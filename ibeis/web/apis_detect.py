@@ -111,9 +111,9 @@ def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
 @register_ibs_method
 @register_api('/test/detect/cnn/yolo/', methods=['GET'])
 def detection_yolo_test(ibs):
-    from random import shuffle
+    from random import shuffle  # NOQA
     gid_list = ibs.get_valid_gids()
-    shuffle(gid_list)
+    # shuffle(gid_list)
     gid_list = gid_list[:3]
     results_dict = ibs.detect_cnn_yolo_json(gid_list)
     return results_dict
@@ -151,7 +151,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
             'autointerest': False,
             'interest_bypass': False,
             'metadata': True,
-            'parts': True,
+            'parts': False,
         }
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
@@ -165,14 +165,36 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
 
     annotation_list = []
     for result in result_list:
+        quality = result.get('quality', None)
+        if quality in [-1, None]:
+            quality = 0
+        elif quality <= 2:
+            quality = 1
+        elif quality > 2:
+            quality = 2
+
+        viewpoint1 = result.get('viewpoint1', None)
+        viewpoint2 = result.get('viewpoint2', None)
+        viewpoint3 = result.get('viewpoint3', None)
+
+        if viewpoint1 is None and viewpoint2 is None and viewpoint3 is None:
+            viewpoint = result.get('viewpoint', None)
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+
         annotation_list.append({
-            'left'   : 100.0 * (result['xtl'] / width),
-            'top'    : 100.0 * (result['ytl'] / height),
-            'width'  : 100.0 * (result['width'] / width),
-            'height' : 100.0 * (result['height'] / height),
-            'label'  : result['class'],
-            'id'     : None,
-            'theta'  : result.get('theta', 0.0),
+            'id'      : result.get('id', None),
+            'left'    : 100.0 * (result.get('left', result['xtl']) / width),
+            'top'     : 100.0 * (result.get('top', result['ytl']) / height),
+            'width'   : 100.0 * (result['width'] / width),
+            'height'  : 100.0 * (result['height'] / height),
+            'species' : result.get('species', result['class']),
+            'theta'   : result.get('theta', 0.0),
+            'viewpoint1' : viewpoint1,
+            'viewpoint2' : viewpoint2,
+            'viewpoint3' : viewpoint3,
+            'quality'    : quality,
+            'multiple'   : 'true' if result.get('multiple', None) == 1 else 'false',
+            'interest'   : 'true' if result.get('interest', None) == 1 else 'false',
         })
 
     species = KEY_DEFAULTS[SPECIES_KEY]
@@ -211,6 +233,42 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         with open(join(*json_filepath_list)) as json_file:
             EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
 
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_list = zip(species_nice_list, species_text_list)
+    species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
+
+    # Collect mapping of species to parts
+    aid_list = ibs.get_valid_aids()
+    part_species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+    part_species_text_list = ibs.get_species_texts(part_species_rowid_list)
+    part_rowids_list = ibs.get_annot_part_rowids(aid_list)
+    part_types_list = map(ibs.get_part_types, part_rowids_list)
+
+    zipped = zip(part_species_text_list, part_types_list)
+    species_part_dict = {
+        const.UNKNOWN: set([])
+    }
+    for part_species_text, part_type_list in zipped:
+        if part_species_text not in species_part_dict:
+            species_part_dict[part_species_text] = set([const.UNKNOWN])
+        for part_type in part_type_list:
+            species_part_dict[part_species_text].add(part_type)
+            species_part_dict[const.UNKNOWN].add(part_type)
+    # Add any images that did not get added because they aren't assigned any annotations
+    for species_text in species_text_list:
+        if species_text not in species_part_dict:
+            species_part_dict[species_text] = set([const.UNKNOWN])
+    for key in species_part_dict:
+        species_part_dict[key] = sorted(list(species_part_dict[key]))
+    species_part_dict_json = json.dumps(species_part_dict)
+
     orientation_flag = '0'
     if species is not None and 'zebra' in species:
         orientation_flag = '1'
@@ -238,6 +296,8 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
                          config=config,
                          settings=settings,
                          annotation_list=annotation_list,
+                         species_list=species_list,
+                         species_part_dict_json=species_part_dict_json,
                          callback_url=callback_url,
                          callback_method=callback_method,
                          EMBEDDED_CSS=EMBEDDED_CSS,
@@ -261,18 +321,43 @@ def process_detection_html(ibs, **kwargs):
     image_uuid = ibs.get_image_uuids(gid)
     width, height = ibs.get_image_sizes(gid)
     # Get aids
-    annotation_list = json.loads(request.form['detection-annotations'])
+    annotation_list = json.loads(request.form['ia-detection-data'])
+
+    viewpoint1_list = [
+        int(annot['metadata'].get('viewpoint1', -1))
+        for annot in annotation_list
+    ]
+    viewpoint2_list = [
+        int(annot['metadata'].get('viewpoint2', -1))
+        for annot in annotation_list
+    ]
+    viewpoint3_list = [
+        int(annot['metadata'].get('viewpoint3', -1))
+        for annot in annotation_list
+    ]
+    zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
+    viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+
     result_list = [
         {
-            'xtl'        : int( width  * (annot['left']   / 100.0) ),
-            'ytl'        : int( height * (annot['top']    / 100.0) ),
-            'width'      : int( width  * (annot['width']  / 100.0) ),
-            'height'     : int( height * (annot['height'] / 100.0) ),
-            'theta'      : float(annot['theta']),
+            'id'         : annot['label'],
+            'xtl'        : int( width  * (annot['percent']['left']   / 100.0) ),
+            'ytl'        : int( height * (annot['percent']['top']    / 100.0) ),
+            'left'       : int( width  * (annot['percent']['left']   / 100.0) ),
+            'top'        : int( height * (annot['percent']['top']    / 100.0) ),
+            'width'      : int( width  * (annot['percent']['width']  / 100.0) ),
+            'height'     : int( height * (annot['percent']['height'] / 100.0) ),
+            'theta'      : float(annot['angles']['theta']),
             'confidence' : 1.0,
             'class'      : annot['label'],
+            'species'    : annot['label'],
+            'viewpoint'  : viewpoint,
+            'quality'    : annot['metadata']['quality'],
+            'multiple'   : annot['metadata']['multiple'],
+            'interest'   : annot['highlighted'],
+
         }
-        for annot in annotation_list
+        for annot, viewpoint in zip(annotation_list, viewpoint_list)
     ]
     result_dict = {
         'image_uuid_list' : [image_uuid],
@@ -337,13 +422,21 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
     results_list = [
         [
             {
+                'id'         : aid,
                 'xtl'        : ibs.get_annot_bboxes(aid)[0],
                 'ytl'        : ibs.get_annot_bboxes(aid)[1],
+                'left'       : ibs.get_annot_bboxes(aid)[0],
+                'top'        : ibs.get_annot_bboxes(aid)[1],
                 'width'      : ibs.get_annot_bboxes(aid)[2],
                 'height'     : ibs.get_annot_bboxes(aid)[3],
                 'theta'      : round(ibs.get_annot_thetas(aid), 4),
                 'confidence' : round(ibs.get_annot_detect_confidence(aid), 4),
                 'class'      : ibs.get_annot_species_texts(aid),
+                'species'    : ibs.get_annot_species_texts(aid),
+                'viewpoint'  : ibs.get_annot_viewpoints(aid),
+                'quality'    : ibs.get_annot_qualities(aid),
+                'multiple'   : ibs.get_annot_multiple(aid),
+                'interest'   : ibs.get_annot_interest(aid),
             }
             for aid in aid_list
         ]

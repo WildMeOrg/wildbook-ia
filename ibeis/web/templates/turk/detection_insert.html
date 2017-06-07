@@ -39,24 +39,7 @@
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
     <div id="ia-bbox-annotator-container"></div>
     <div style="text-align: center; color: #aaa;">
-      <a tabindex="0" id="ia-detection-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='<ul>
-      <li><b>Left-click</b>: add a new box <span style="color: #00e100; opacity: 0.75"><b>(green)</b></span></li>
-      <li><b>Hover</b>: highlight a box <span style="color: #F0AD4E; opacity: 0.75"><b>(orange)</b></span></li>
-      <li><b>Right-click</b> or <b>F</b>: focus a highlighted box <span style="color: #EB2A18; opacity: 0.75"><b>(red).</b></span></li>
-        When in focus: <ul>
-          <li>parts <span style="color: #444444; opacity: 0.75"><b>(dark outline)</b></span> can be added</li>
-          <li>metadata can be changed below</li>
-          <li>a part can be highlighted and focused</li>
-        </ul>
-      <li><b>Esc</b>: cancel any action and unfocus</li>
-      <li><b>Delete</b> or <b>k</b>: delete a highlighted box</li>
-      <li><b>Delete+Shift</b> delete all parts of a highlighted box</li>
-      <li><b>Crtl</b>: hold to show all available hotkeys</li>
-      <li><b>I</b>: mark a highlighted box with Interest <span style="color: #2E63FF; opacity: 0.75"><b>(blue)</b></span></li>
-      <li><b>R</b>: rotate a highlighted box right by 90&#176;</li>
-      <li><b>L</b>: rotate a highlighted box left by 90&#176;</li>
-      <li><b>B</b>: send a box to the background</li>
-    </ul>' style="margin-top: 10px;">Quick Help</a>
+      <a tabindex="0" id="ia-detection-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='' style="margin-top: 10px;">Quick Help</a>
     </div>
     <br/>
     <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
@@ -176,7 +159,9 @@
                 <option value="{{ species_text }}">{{ species_nice }}</option>
               {% endfor %}
             </select>
-            <span class="pull-left" data-toggle="modal" data-target="#species-add" style="color: #aaa; cursor: pointer;"><i>Add Species</i></span>
+            {% if EMBEDDED %}
+              <span class="pull-left" data-toggle="modal" data-target="#species-add" style="color: #aaa; cursor: pointer;"><i>Add Species</i></span>
+            {% endif %}
             <br/>
           </div>
 
@@ -232,7 +217,9 @@
                 <option value="{{ species_text }}">{{ species_nice }}</option>
               {% endfor %}
             </select>
-            <span class="pull-left" data-toggle="modal" data-target="#part-add" style="color: #aaa; cursor: pointer;"><i>Add Type</i></span>
+            {% if EMBEDDED %}
+              <span class="pull-left" data-toggle="modal" data-target="#part-add" style="color: #aaa; cursor: pointer;"><i>Add Type</i></span>
+            {% endif %}
           </div>
 
           <div class="col-lg-4"></div>
@@ -241,6 +228,11 @@
         </div>
       </div>
     </div>
+
+    Quickhelp:
+    <br/>
+    <span id="ia-detection-quickhelp-fallback">
+    </span>
 
     <textarea id="ia-detection-data" name="ia-detection-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form"></textarea>
   </form>
@@ -362,9 +354,11 @@
             }
 
             if(wanted_mode) {
-              $('#ia-detection-setting-toggle').bootstrapToggle('on')
+              $('#ia-detection-setting-toggle').prop('checked', true).trigger('change');
+              // $('#ia-detection-setting-toggle').bootstrapToggle('on')
             } else {
-              $('#ia-detection-setting-toggle').bootstrapToggle('off')
+              $('#ia-detection-setting-toggle').prop('checked', false).trigger('change');
+              // $('#ia-detection-setting-toggle').bootstrapToggle('off')
             }
           },
         },
@@ -417,15 +411,16 @@
         });
       {% endfor %}
 
-      // Create the toggle's user interaction
-      toggle = $('#ia-detection-setting-toggle');
-
-      toggle.bootstrapToggle({
-        on: 'Axis-to-Axis',
-        off: 'Corner-to-Corner',
-        onstyle: 'primary',
-        offstyle: 'primary'
-      });
+      {% if EMBEDDED %}
+        // Create the toggle's user interaction
+        toggle = $('#ia-detection-setting-toggle');
+        toggle.bootstrapToggle({
+          on: 'Axis-to-Axis',
+          off: 'Corner-to-Corner',
+          onstyle: 'primary',
+          offstyle: 'primary'
+        });
+      {% endif %}
 
       $("#ia-detection-setting-toggle,#ia-detection-setting-orientation").change(function() {
         var checked_mode, diagonal_mode, checked_tag;
@@ -530,9 +525,33 @@
         update_label()
       });
 
-      $('#ia-detection-quickhelp').popover({
-        html: true,
-      })
+      var quickhelp_instructions = `<ul>
+        <li><b>Left-click</b>: add a new box <span style="color: #00e100; opacity: 0.75"><b>(green)</b></span></li>
+        <li><b>Hover</b>: highlight a box <span style="color: #F0AD4E; opacity: 0.75"><b>(orange)</b></span></li>
+        <li><b>Right-click</b> or <b>F</b>: focus a highlighted box <span style="color: #EB2A18; opacity: 0.75"><b>(red).</b></span></li>
+          When in focus: <ul>
+            <li>parts <span style="color: #444444; opacity: 0.75"><b>(dark outline)</b></span> can be added</li>
+            <li>metadata can be changed below</li>
+            <li>a part can be highlighted and focused</li>
+          </ul>
+        <li><b>Esc</b>: cancel any action and unfocus</li>
+        <li><b>Delete</b> or <b>k</b>: delete a highlighted box</li>
+        <li><b>Delete+Shift</b> delete all parts of a highlighted box</li>
+        <li><b>Crtl</b>: hold to show all available hotkeys</li>
+        <li><b>I</b>: mark a highlighted box with Interest <span style="color: #2E63FF; opacity: 0.75"><b>(blue)</b></span></li>
+        <li><b>R</b>: rotate a highlighted box right by 90&#176;</li>
+        <li><b>L</b>: rotate a highlighted box left by 90&#176;</li>
+        <li><b>B</b>: send a box to the background</li>
+      </ul>`
+
+      {% if EMBEDDED %}
+        $('#ia-detection-quickhelp').popover({
+          html: true,
+        }).attr('data-content', quickhelp_instructions);
+      {% else %}
+        $('#ia-detection-quickhelp').css('visibility', 'hidden');
+        $('#ia-detection-quickhelp-fallback').html(quickhelp_instructions);
+      {% endif %}
 
       $('#species-add').on('shown.bs.modal', function() {
           $('input[name="species-add"]').val('')

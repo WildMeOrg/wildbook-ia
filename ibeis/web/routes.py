@@ -1813,6 +1813,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, confi
                          settings=settings,
                          callback_url=callback_url,
                          callback_method='POST',
+                         EMBEDDED=True,
                          EMBEDDED_CSS=None,
                          EMBEDDED_JAVASCRIPT=None,
                          review=review)

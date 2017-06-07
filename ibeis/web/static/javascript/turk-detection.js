@@ -357,7 +357,9 @@ $(window).keydown(function(event) {
             $('.ia-detection-hotkey').show();
         } else if (key == 84) {
             // T pressed
-            $('#ia-detection-setting-toggle').bootstrapToggle('toggle');
+            var element = $('#ia-detection-setting-toggle')
+            element.prop('checked', !element.is(':checked')).trigger('change');
+            // $('#ia-detection-setting-toggle').bootstrapToggle('toggle');
         } else if (key == 77) {
             // M pressed
             var element = $('#ia-detection-setting-orientation')
