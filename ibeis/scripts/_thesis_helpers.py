@@ -39,6 +39,7 @@ TMP_RC = {
 W, H = 7.4375, 3.0
 
 
+@ut.reloadable_class
 class DBInputs(object):
     def __init__(self, dbname=None):
         self.dbname = dbname

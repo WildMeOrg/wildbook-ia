@@ -44,8 +44,7 @@ class Chap5(DBInputs):
         names = list(annots.group_items(annots.nids).values())
         ut.shuffle(names, rng=321)
         train_names, test_names = names[0::2], names[1::2]
-        train_aids = ut.flatten(names[0::2])
-        test_aids = ut.flatten(names[1::2])
+        train_aids, test_aids = map(ut.flatten, (train_names, test_names))
 
         params = {}
         if ibs.dbname == 'PZ_MTEST':
@@ -158,6 +157,8 @@ class Chap5(DBInputs):
     def measure_dbstats(self):
         """
         python -m ibeis Chap5.draw dbstats GZ_Master1
+
+        python -m ibeis Chap5.measure dbstats PZ_Master1
         python -m ibeis Chap5.draw dbstats PZ_Master1
 
         Ignore:
@@ -200,7 +201,8 @@ class Chap5(DBInputs):
                 '''
                 if this (the real training data) is different from the parents
                 (ibeis) info, that means the staging database is ahead of
-                annotmatch. Report the ibeis one for clarity.
+                annotmatch. Report the ibeis one for clarity. Num annots should
+                always be the same though.
                 ''')
         }
 
@@ -244,10 +246,9 @@ class Chap5(DBInputs):
         print(tabular.as_tabular())
 
         ut.writeto(join(self.dpath, 'dbstats.tex'), tabular.as_tabular())
-        ut.render_latex(tabular.as_table(), dpath=self.dpath, fname='dbstats')
-
-        print('dbstats = %r' % (dbstats,))
-        pass
+        fpath = ut.render_latex(tabular.as_table(), dpath=self.dpath,
+                                fname='dbstats')
+        return fpath
 
     @profile
     def measure_simulation(self):
@@ -400,14 +401,11 @@ class Chap5(DBInputs):
         merges = [ut.sortedby(ss, ut.emap(len, ss)) for ss in merges]
 
         graph = sim_results[key]['graph']
+        ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
+                  'review_id']
         if True:
             print('\nsplits = ' + ut.repr4(splits))
-
             print('\nmerges = ' + ut.repr4(merges))
-
-            ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
-                      'review_id']
-
             def print_edge_df(df, parts):
                 if len(df):
                     order = ['truth', 'decision', 'tags', 'prob_match']
@@ -423,14 +421,12 @@ class Chap5(DBInputs):
                     print(df_str)
                 else:
                     print(df)
-
             for parts in merges:
                 print('\n\n')
                 print('Merge Row: ' + ut.repr2(parts))
                 sub = graph.subgraph(ut.flatten(parts))
                 df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
                 print_edge_df(df, parts)
-
             for parts in splits:
                 print('\n\n')
                 print('Split Row: ' + ut.repr2(parts))
@@ -438,279 +434,253 @@ class Chap5(DBInputs):
                 df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
                 print_edge_df(df, parts)
 
-        error_aids = set(ut.total_flatten(merges) + ut.total_flatten(splits))
-        err_graph = graph.subgraph(error_aids)
+        ibs = ibeis.opendb(db=self.dbname)
 
-        if False:
-            for merge in merges:
+        def error_subinfr(sample_merges, sample_splits):
+            error_aids = set(ut.total_flatten(sample_merges) +
+                             ut.total_flatten(sample_splits))
+
+            err_graph = graph.subgraph(error_aids)
+            if False:
+                for merge in sample_merges:
+                    for cc1, cc2 in ut.combinations(merge, 2):
+                        x = list(nxu.edges_between(err_graph, cc1, cc2))
+                        err_graph.remove_edges_from(x)
+
+            # Find edges that were completely missed
+            missing_edges = []
+            for merge in sample_merges:
                 for cc1, cc2 in ut.combinations(merge, 2):
-                    x = list(nxu.edges_between(err_graph, cc1, cc2))
-                    err_graph.remove_edges_from(x)
+                    edges = list(nxu.edges_between(err_graph, cc1, cc2))
+                    edges2 = []
+                    for e in edges:
+                        d = err_graph.get_edge_data(*e)
+                        if d.get('decision') in {NEGTV}:
+                            edges2.append(e)
+                    if len(edges2) == 0:
+                        missing = [(next(iter(cc1)), next(iter(cc2)))]
+                        # missing = list(nxu.edge_connected_augmentation(
+                        #     err_graph.subgraph(cc1.union(cc2)), k=1))
+                        missing_edges.extend(missing)
 
-        # Find edges that were completely missed
-        missing_edges = []
-        for merge in merges:
-            for cc1, cc2 in ut.combinations(merge, 2):
-                edges = list(nxu.edges_between(err_graph, cc1, cc2))
-                edges2 = []
-                for e in edges:
-                    d = err_graph.get_edge_data(*e)
-                    if d.get('decision') in {NEGTV}:
-                        edges2.append(e)
-                if len(edges2) == 0:
-                    missing = [(next(iter(cc1)), next(iter(cc2)))]
-                    # missing = list(nxu.edge_connected_augmentation(
-                    #     err_graph.subgraph(cc1.union(cc2)), k=1))
-                    missing_edges.extend(missing)
+            err_edges = []
+            if missing_edges:
+                # Try to choose a single error edge
+                err_edges = missing_edges
 
-        err_graph.add_edges_from(missing_edges)
-        infr = ibeis.AnnotInference.from_netx(err_graph)
+            missing_edges = []
+            err_graph.add_edges_from(missing_edges)
+            infr = ibeis.AnnotInference.from_netx(err_graph)
 
-        infr.set_node_attrs('real_nid', {
-            aid: nid for nid, cc in enumerate(real_ccs)
-            for aid in cc if aid in error_aids})
+            infr.set_node_attrs('real_nid', {
+                aid: nid for nid, cc in enumerate(real_ccs)
+                for aid in cc if aid in error_aids})
 
-        infr.set_node_attrs('pred_nid', {
-            aid: nid for nid, cc in enumerate(pred_ccs)
-            for aid in cc if aid in error_aids})
+            infr.set_node_attrs('pred_nid', {
+                aid: nid for nid, cc in enumerate(pred_ccs)
+                for aid in cc if aid in error_aids})
 
-        infr.relabel_using_reviews()
-        # infr.show(groupby='real_nid', splines='spline', fnum=1)
+            infr.relabel_using_reviews()
+            # infr.show(groupby='real_nid', splines='spline', fnum=1)
 
-        edge_overrides = {
-            'alpha': {
-                (u, v): .05
-                for (u, v, d) in infr.graph.edges(data=True)
-                if d.get('decision') == NEGTV and
-                (d.get('truth') == d.get('decision'))
-            },
-            'style': {e: '' for e in missing_edges},
-            'sketch': {e: None for e in missing_edges},
-            'linestyle': {e: 'dashed' for e in missing_edges},
-            'linewidth': {e: 2.0 for e in missing_edges},
-            'stroke': {
-                (u, v): {'linewidth': 3, 'foreground': infr._error_color}
-                for (u, v, d) in infr.graph.edges(data=True)
-                if (d.get('truth') != d.get('decision') or d.get('truth') is None)
-            },
-        }
+            stroke_kw = {'linewidth': 3, 'foreground': infr._error_color}
 
-        infr.show(groupby='pred_nid', splines='spline', fnum=1,
-                  simple_labels=True,
-                  colorby='real_nid',
-                  show_recent_review=False,
-                  edge_overrides=edge_overrides)
+            split_errors = {}
+            for (u, v, d) in infr.graph.edges(data=True):
+                if (d.get('truth') != d.get('decision')):
+                    ne = infr.e_(*infr.pos_graph.node_labels(u, v))
+                    # Try to choose a single error edge
+                    err_edge = (u, v)
+                    split_errors[ne] = err_edge
+            err_edges += list(split_errors.values())
+
+            edge_overrides = {
+                'alpha': {
+                    (u, v): .05
+                    for (u, v, d) in infr.graph.edges(data=True)
+                    if d.get('decision') == NEGTV and
+                    (d.get('truth') == d.get('decision'))
+                },
+                'style': {e: '' for e in missing_edges},
+                'sketch': {e: None for e in missing_edges},
+                'linestyle': {e: 'dashed' for e in missing_edges},
+                'linewidth': {e: 2.0 for e in missing_edges},
+                'stroke': {
+                    (u, v): stroke_kw
+                    for (u, v, d) in infr.graph.edges(data=True)
+                    if (d.get('truth') != d.get('decision') or d.get('truth') is None)
+                },
+            }
+            infr.ibs = ibs
+            return infr, err_edges, edge_overrides
+
+        # sample_merges = ut.strided_sample(merges, 2)
+        # sample_splits = ut.strided_sample(splits, 2)
+
+        def show_edge(err_edge):
+            from ibeis import core_annots
+            aid1, aid2 = err_edge
+            match = infr._exec_pairwise_match([(aid1, aid2)])[0]
+            fig = pt.figure(fnum=1, pnum=(2, 1, 2))
+            ax = pt.gca()
+            match.show(ax, vert=False, heatmask=True, show_lines=False,
+                       show_ell=False, show_ori=False, show_eig=False,
+                       modifysize=True)
+            # ax.set_xlabel(xlabel)
+
+        chosen_merges = merge1, merge2, merge3 = ut.strided_sample(merges, 3)
+        chosen_splits = split1, split2, split3 = ut.strided_sample(splits, 3)
+
+        mpl.rcParams.update(TMP_RC)
+        showkw = dict(
+            show_recent_review=False,
+            # groupby='pred_nid',
+            splines='spline', fnum=1, simple_labels=True, colorby='real_nid',
+            use_image=True, pnum=(2, 1, 1)
+        )
+
+        special = [m for m in merges if 1072 in ut.flatten(m)]
+
+        import plottool as pt
+        self._setup()
+        # TODO: load classifiers
+        classifiers = self.sim_params['classifiers']
+
+        dpath = ut.ensuredir((self.dpath, 'errors'))
+        labeled_cases = [
+            ('merge', chosen_merges + special),
+            ('split', chosen_splits)
+        ]
+
+        for case_type, cases in labeled_cases:
+            for case in cases:
+                if case_type == 'merge':
+                    # sample_merges = [case]
+                    # sample_splits = []
+                    infr, err_edges, edge_overrides = error_subinfr([case], [])
+                else:
+                    infr, err_edges, edge_overrides = error_subinfr([], [case])
+
+                infr._viz_image_config['thumbsize'] = 700
+                infr.ibs = ibs
+                infr.classifiers = classifiers
+
+                probs = infr._make_task_probs(err_edges)
+                match_probs = probs['match_state']
+                pb_probs = probs['photobomb_state']
+
+                fig = pt.figure(fnum=1, pnum=(2, 1, 1), doclf=True)
+                infr.show(edge_overrides=edge_overrides, **showkw)
+
+                for err_edge in err_edges:
+                    e = err_edge
+                    show_edge(err_edge)
+
+                    df = nxu.edge_df(graph, [e], ignore=ignore + infr.visual_edge_attrs)
+                    # df.index.names = (None, None)
+                    xlabel = '%s case: %s' % (case_type, ut.repr2(case, nobr=True))
+                    edge_info = df.iloc[0].to_dict()
+                    xlabel += '\nedge = {}, {}'.format(*e)
+                    if edge_info:
+                        xlabel += '\n' + ut.repr2(edge_info, precision=4, stritems=True)
+                    else:
+                        xlabel += '\nedge never marked as a candidate'
+                    xlabel += '\n' + ut.repr2(match_probs.loc[e].to_dict(), precision=4, stritems=True)
+                    xlabel += '\n' + ut.repr2(pb_probs.loc[e].to_dict(), precision=4, stritems=True)
+                    pt.gca().set_xlabel(xlabel)
+                    parts = [ut.repr2(sorted(p), itemsep='', nobr=True) for p in case]
+                    case_id = '-'.join(parts)
+                    eid = '{},{}'.format(*err_edge)
+                    pt.adjust_subplots(top=1, wspace=0, hspace=0)
+                    fpath = join(dpath, case_type + '_' + case_id + '_edge' + eid + '.png')
+                    vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def write_error_tables(self):
         """
         CommandLine:
             python -m ibeis Chap5.draw error_tables --db PZ_MTEST --diskshow
-            python -m ibeis Chap5.draw error_tables --db GZ_Master1 --diskshow
             python -m ibeis Chap5.draw error_tables --db PZ_Master1 --diskshow
+            python -m ibeis Chap5.draw error_tables GZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.thesis import _ranking_hist, _ranking_cdf
+            >>> self = Chap5('GZ_Master1')
         """
         sim_results = self.ensure_results('simulation')
         keys = ['ranking', 'rank+clf', 'graph']
         infos = {}
         for key in keys:
-            print('!!!!!!!!!!!!')
-            print('key = %r' % (key,))
+            # print('!!!!!!!!!!!!')
+            # print('key = %r' % (key,))
             expt_data = sim_results[key]
-            info = self.print_error_sizes(expt_data, allow_hist=False)
+            info = self._get_error_sizes(expt_data, allow_hist=False)
+            info['correct']['n_pred_pccs'] = '-'
+            info['correct']['size_pred_pccs'] = '-'
             infos[key] = info
 
         dfs = {}
+        with_aves = 0
         for key in keys:
             info = infos[key]
 
             table = ut.odict()
-
-            # caseinfo = info['unchanged']
-            # casetable = table['common'] = ut.odict()
-            # casetable['pred # PCC']    = '-'
-            # casetable['pred PCC size'] = '-'
-            # casetable['real # PCC']    = caseinfo['n_real_pccs']
-            # casetable['real PCC size'] = caseinfo['size_real_pccs']
-            # casetable['small size']    = '-'
-            # casetable['large size']    = '-'
-
-            caseinfo = info['split']
-            casetable = table['split'] = ut.odict()
-            casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-            casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-            casetable['real # PCC']    = caseinfo['n_real_pccs']
-            casetable['real PCC size'] = caseinfo['size_real_pccs']
-            # casetable['small size']    = caseinfo['ave_small']
-            # casetable['large size']    = caseinfo['ave_large']
-
-            caseinfo = info['merge']
-            casetable = table['merge'] = ut.odict()
-            casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-            casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-            casetable['real # PCC']    = caseinfo['n_real_pccs']
-            casetable['real PCC size'] = caseinfo['size_real_pccs']
-            # casetable['small size']    = caseinfo['ave_small']
-            # casetable['large size']    = caseinfo['ave_large']
+            types = ['correct', 'split', 'merge']
+            for t in types:
+                caseinfo = info[t]
+                casetable = ut.odict()
+                casetable['pred PCCs']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real PCCs']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                if with_aves:
+                    casetable['small size'] = caseinfo.get('ave_small', '-')
+                    casetable['large size'] = caseinfo.get('ave_large', '-')
+                table[t] = ut.map_keys(upper_one, casetable)
 
             df = pd.DataFrame.from_dict(table, orient='index')
             df = df.loc[list(table.keys())]
-            # df = df.rename(columns={c: '\\thead{%s}' % (c) for c in df.columns})
-
-            print(df)
             dfs[key] = df
 
-            text = df.to_latex(index=True, escape=True)
-            import re
-            text = re.sub('±...', '', text)
-            # text = text.replace('±', '\pm')
-            # print(text)
-            top, rest = text.split('\\toprule')
-            header, rest = rest.split('\\midrule')
+        df = pd.concat(ut.take(dfs, keys), axis=0, keys=keys)
+        tabular = Tabular(df, index=True, escape=True, colfmt='numeric')
+        text = tabular.as_tabular()
+        print(text)
+        fname = 'error_size_details'
+        ut.write_to(join(self.dpath, fname + '.tex'), text)
+        ut.render_latex(text, self.dpath, fname,
+                        preamb_extra=['\\usepackage{makecell}'])
 
-            # split_tabular()  # maybe refactor?
-
-            new_text = ''.join([
-                top, '\\toprule',
-                '\n{} &\multicolumn{2}{c}{pred} & \multicolumn{2}{c}{real}\\\\',
-                header.replace('pred', '').replace('real', ''),
-                '\\midrule',
-                rest
-            ])
-            new_text = new_text + '\\caption{%s}' % (key,)
-            print(new_text)
-            print('\n')
-
-            if 0:
-                ut.render_latex_text(new_text, preamb_extra=[
-                    '\\usepackage{makecell}',
-                ])
-
-        caseinfo = info['split']
-        casetable = table['split'] = ut.odict()
-        casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-        casetable['real # PCC']    = caseinfo['n_real_pccs']
-        casetable['small size']    = caseinfo['ave_small']
-        casetable['large size']    = caseinfo['ave_large']
-
-        caseinfo = info['merge']
-        casetable = table['merge'] = ut.odict()
-        casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-        casetable['real # PCC']    = caseinfo['n_real_pccs']
-        casetable['small size']    = caseinfo['ave_small']
-        casetable['large size']    = caseinfo['ave_large']
-
+        # Inspect error sizes only for the graph
+        caseinfo = infos['graph']
+        table = ut.odict()
+        types = ['split', 'merge']
+        for t in types:
+            caseinfo = info[t]
+            casetable = ut.odict()
+            casetable['error groups'] = caseinfo.get('n_errgroups', '-')
+            casetable['group size'] = caseinfo.get('errgroup_size', '-')
+            casetable['small PCC size'] = caseinfo.get('ave_small', '-')
+            casetable['large PCC size'] = caseinfo.get('ave_large', '-')
+            casetable = ut.map_keys(upper_one, casetable)
+            table[t] = ut.map_keys(upper_one, casetable)
         df = pd.DataFrame.from_dict(table, orient='index')
         df = df.loc[list(table.keys())]
-        print(df)
 
-        if 1:
-            df = dfs[keys[0]].T
-            for key in keys[1:]:
-                df = df.join(dfs[key].T, rsuffix=' ' + key)
-            df = df.T
-            text = df.to_latex(index=True, escape=True,
-                               column_format='l' + 'r' * 6)
-            # text = re.sub('±...', '', text)
-            text = text.replace('±', '\pm')
-            # print(text)
-            top, rest = text.split('\\toprule')
-            header, rest = rest.split('\\midrule')
-            body, bot = rest.split('\\bottomrule')
-            # split_tabular()  # maybe refactor?
+        tabular = Tabular(df, index=True, escape=True, colfmt='numeric')
+        text = tabular.as_tabular()
+        print(text)
+        fname = 'error_group_details'
+        ut.write_to(join(self.dpath, fname + '.tex'), text)
+        ut.render_latex(text, self.dpath, fname,
+                        preamb_extra=['\\usepackage{makecell}'])
 
-            body2 = body
-            for key in keys:
-                body2 = body2.replace(key, '')
-            # Put all numbers in math mode
-            pat = ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
-            body2 = re.sub(pat, '$' + ut.bref_field('num') + '$', body2)
-
-            header2 = header
-            # for key in ['pred', 'real']:
-            #     header2 = header2.replace(key, '')
-            header2 = header2.replace('\\# PCC', '\\#')
-            header2 = header2.replace('PCC size', 'size')
-
-            import ubelt as ub
-
-            bodychunks = []
-            bodylines = body2.strip().split('\n')
-            for key, chunk in zip(keys, ub.chunks(bodylines, nchunks=3)):
-                part = '\n\multirow{%d}{*}{%s}\n' % (len(chunk), key,)
-                part += '\n'.join(['& ' + c for c in chunk])
-                bodychunks.append(part)
-            body3 = '\n\\midrule'.join(bodychunks) + '\n'
-            print(body3)
-
-            # mcol2 = ['\multicolumn{2}{c}{pred} & \multicolumn{2}{c}{real}']
-            latex_str = ''.join([
-                top.replace('{l', '{ll'),
-                # '\\hline',
-                '\\toprule',
-                # '\n{} & {} & ' + ' & '.join(mcol2) + ' \\\\',
-                ' {} & ' + header2,
-                # '\\hline',
-                '\\midrule',
-                body3,
-                # '\\hline',
-                '\\bottomrule',
-                bot,
-            ])
-            print(latex_str)
-            fname = 'error_size.tex'
-            ut.write_to(join(self.dpath, fname), latex_str)
-
-            ut.render_latex_text(latex_str, preamb_extra=[
-                '\\usepackage{makecell}',
-            ])
-
-        if 0:
-            df = dfs[keys[0]]
-            for key in keys[1:]:
-                df = df.join(dfs[key], rsuffix=' ' + key)
-            # print(df)
-
-            text = df.to_latex(index=True, escape=True,
-                               column_format='|l|' + '|'.join(['rrrr'] * 3) + '|')
-            text = re.sub('±...', '', text)
-            text = text.replace('±', '\pm')
-            # print(text)
-            top, rest = text.split('\\toprule')
-            header, bot = rest.split('\\midrule')
-
-            mcol1 = ['\multicolumn{4}{c|}{%s}' % (key,) for key in keys]
-            mcol2 = ['\multicolumn{2}{c}{pred} & \multicolumn{2}{c|}{real}'] * 3
-
-            header3 = header
-            for key in keys + ['pred', 'real']:
-                header3 = header3.replace(key, '')
-            # header3 = header3.replace('\\# PCC', 'num')
-            header3 = header3.replace('PCC size', 'size')
-
-            latex_str = ''.join([
-                top, '\\hline',
-                '\n{} & ' + ' & '.join(mcol1) + ' \\\\',
-                '\n{} & ' + ' & '.join(mcol2) + ' \\\\',
-                header3,
-                '\\hline',
-                bot.replace('bottomrule', 'hline')
-            ])
-            print(latex_str)
-
-            for x in re.finditer(pat, latex_str):
-                print(x)
-            # ut.render_latex_text(latex_str, preamb_extra=[
-            #     '\\usepackage{makecell}',
-            # ])
-
-            fname = 'error_size.tex'
-            ut.write_to(join(self.dpath, fname), latex_str)
-
-    def print_error_sizes(self, expt_data, allow_hist=False):
+    def _get_error_sizes(self, expt_data, allow_hist=False):
         real_ccs = expt_data['real_ccs']
         pred_ccs = expt_data['pred_ccs']
         graph = expt_data['graph']
-        delta_df = ut.grouping_delta_stats(pred_ccs, real_ccs)
-        print(delta_df)
+        # delta_df = ut.grouping_delta_stats(pred_ccs, real_ccs)
+        # print(delta_df)
 
         delta = ut.grouping_delta(real_ccs, pred_ccs)
         unchanged = delta['unchanged']
@@ -736,8 +706,6 @@ class Chap5(DBInputs):
 
         def unchanged_measures(unchanged):
             pred = true = unchanged
-            ('n_real_pccs', len(true)),
-            ('size_real_pccs', ave_size(true)),
             unchanged_info = ut.odict([
                 ('n_pred_pccs', len(pred)),
                 ('size_pred_pccs', ave_size(pred)),
@@ -781,7 +749,8 @@ class Chap5(DBInputs):
                 ('size_pred_pccs', ave_size(pred)),
                 ('n_real_pccs', len(true)),
                 ('size_real_pccs', ave_size(true)),
-                ('n_true_per_pred', ave_size(splits)),
+                ('n_errgroups', len(splits)),
+                ('errgroup_size', ave_size(splits)),
                 ('ave_small', ave_size(smalls)),
                 ('ave_large', ave_size(larges)),
             ])
@@ -820,7 +789,8 @@ class Chap5(DBInputs):
                 ('size_pred_pccs', ave_size(pred)),
                 ('n_real_pccs', len(true)),
                 ('size_real_pccs', ave_size(true)),
-                ('n_true_per_pred', ave_size(merges)),
+                ('n_errgroups', len(merges)),
+                ('errgroup_size', ave_size(merges)),
                 ('ave_incon_edges', ave_size(ut.lmap(ut.flatten, baddies))),
                 ('n_bad_pairs', n_bad_pairs),
                 ('n_bad_pccs', n_bad_pccs),
@@ -830,19 +800,19 @@ class Chap5(DBInputs):
             ])
             return merge_info
 
-        def hybrid_measures(hybrid):
-            pred = hybrid['old']
-            true = hybrid['new']
-            hybrid_info = ut.odict([
-                ('n_pred_pccs', len(pred)),
-                ('size_pred_pccs', ave_size(pred)),
-                ('n_real_pccs', len(true)),
-                ('size_real_pccs', ave_size(true)),
-            ])
-            return hybrid_info
+        # def hybrid_measures(hybrid):
+        #     pred = hybrid['old']
+        #     true = hybrid['new']
+        #     hybrid_info = ut.odict([
+        #         ('n_pred_pccs', len(pred)),
+        #         ('size_pred_pccs', ave_size(pred)),
+        #         ('n_real_pccs', len(true)),
+        #         ('size_real_pccs', ave_size(true)),
+        #     ])
+        #     return hybrid_info
 
         info = {
-            'unchanged': unchanged_measures(unchanged),
+            'correct': unchanged_measures(unchanged),
             'split': split_measures(all_splits),
             'merge': merge_measures(all_merges),
         }
@@ -1472,113 +1442,6 @@ class Chap4(DBInputs):
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
-    def draw_prune(self):
-        """
-        CommandLine:
-            python -m ibeis Chap4.draw importance GZ_Master1
-
-            python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
-            python -m ibeis Chap4.draw importance PZ_Master1 match_state
-
-            python -m ibeis Chap4.draw prune GZ_Master1,PZ_Master1
-            python -m ibeis Chap4.draw prune PZ_Master1
-
-        >>> from ibeis.scripts.thesis import *
-        >>> self = Chap4('PZ_Master1')
-        >>> self = Chap4('GZ_Master1')
-        >>> self = Chap4('PZ_MTEST')
-        """
-
-        task_key = 'match_state'
-        expt_name = 'prune'
-        results = self.ensure_results(expt_name)
-
-        n_dims = results['n_dims']
-        mdis_list = results['mdis_list']
-        sub_reports = results['sub_reports']
-
-        # mccs = [r['mcc'] for r in reports]
-        # mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
-        # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs]
-        # for rs in sub_reports])
-        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
-                             for rs in sub_reports])
-
-        import plottool as pt
-
-        mpl.rcParams.update(TMP_RC)
-        fig = pt.figure(fnum=1, doclf=True)
-        pt.multi_plot(n_dims, {'mean': ave_mccs.mean(axis=1)},
-                      rcParams=TMP_RC,
-                      marker='',
-                      force_xticks=[min(n_dims)],
-                      # num_xticks=5,
-                      ylabel='MCC',
-                      xlabel='# feature dimensions',
-                      ymin=.5,
-                      ymax=1, xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
-        ax = pt.gca()
-        ax.invert_xaxis()
-        fig.set_size_inches([W / 2, H])
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        # Find the point at which accuracy starts to fall
-        u = ave_mccs.mean(axis=1)
-        # middle = ut.take_around_percentile(u, .5, len(n_dims) // 2.2)
-        # thresh = middle.mean() - (middle.std() * 6)
-        # print('thresh = %r' % (thresh,))
-        # idx = np.where(u < thresh)[0][0]
-        idx = u.argmax()
-
-        fig = pt.figure(fnum=2)
-        n_to_mid = ut.dzip(n_dims, mdis_list)
-        pruned_importance = n_to_mid[n_dims[idx]]
-        pt.wordcloud(pruned_importance, ax=fig.axes[0])
-        fname = 'wc_{}_pruned.png'.format(task_key)
-        fig_fpath = join(str(self.dpath), fname)
-        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        vals = pruned_importance.values()
-        items = pruned_importance.items()
-        top_dims = ut.sortedby(items, vals)[::-1]
-        lines = []
-        num_top = 10
-        for k, v in top_dims[:num_top]:
-            k = feat_alias(k)
-            k = k.replace('_', '\\_')
-            lines.append('{} & {:.4f} \\\\'.format(k, v))
-        latex_str = '\n'.join(ut.align_lines(lines, '&'))
-
-        increase = u[idx] - u[0]
-
-        print(latex_str)
-        print()
-        extra_ = ut.codeblock(
-            r'''
-            \begin{{table}}[h]
-                \centering
-                \caption{{Pruned top {}/{} dimensions for {} increases MCC by {:.4f}}}
-                \begin{{tabular}}{{lr}}
-                    \toprule
-                    dimension & importance \\
-                    \midrule
-                    {}
-                    \bottomrule
-                \end{{tabular}}
-            \end{{table}}
-            '''
-        ).format(num_top, len(pruned_importance), task_key.replace('_', '-'),
-                 increase, latex_str)
-        # topinfo = vt.AnnotPairFeatInfo(list(pruned_importance.keys()))
-
-        fname = 'pruned_feat_importance_{}'.format(task_key)
-        fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
-        ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
-
-        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
-        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
-
     def measure_rerank(self):
         """
             >>> from ibeis.scripts.thesis import *
@@ -1961,47 +1824,38 @@ class Chap4(DBInputs):
         df = df.rename_axis(self.task_nice_lookup[task_key], 1)
         df.index.name = None
         df.columns.name = None
-        # import utool
-        # utool.embed()
 
-        latex_str = df.to_latex(
-            float_format=lambda x: '' if np.isnan(x) else str(int(x)),
-        )
+        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
+        tabular = Tabular(df, colfmt=colfmt, hline=True)
+        tabular.groupxs = [list(range(len(df) - 1)), [len(df) - 1]]
+        latex_str = tabular.as_tabular()
+
         sum_pred = df.index[-1]
         sum_real = df.columns[-1]
         latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
         latex_str = latex_str.replace(sum_real, r'$\sum$ real')
-        # latex_str = latex_str.replace(sum_pred, r'$\textstyle\sum$ predicted')
-        # latex_str = latex_str.replace(sum_real, r'$\textstyle\sum$ real')
-        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
-        newheader = '\\begin{tabular}{%s}' % (colfmt,)
-        latex_str = '\n'.join([newheader] + latex_str.split('\n')[1:])
-        lines = latex_str.split('\n')
-        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
-        latex_str = '\n'.join(lines)
-        latex_str = latex_str.replace('midrule', 'hline')
-        latex_str = latex_str.replace('toprule', 'hline')
-        latex_str = latex_str.replace('bottomrule', 'hline')
-        confusion_tex = latex_str
+        confusion_tex = ut.align(latex_str, '&', pos=None)
+        print(confusion_tex)
 
         df = metric_df
         # df = self.task_metrics[task_key]
         df = df.rename_axis(self.task_nice_lookup[task_key], 0)
-        df = df.drop(['markedness', 'bookmaker'], axis=1)
+        df = df.rename_axis({'mcc': 'MCC'}, 1)
+        df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
         df.index.name = None
         df.columns.name = None
         df['support'] = df['support'].astype(np.int)
-        latex_str = df.to_latex(
-            float_format=lambda x: '%.2f' % (x)
-        )
-        lines = latex_str.split('\n')
-        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
-        latex_str = '\n'.join(lines)
+        df.columns = ut.emap(upper_one, df.columns)
+
         import re
+        tabular = Tabular(df, colfmt='numeric')
+        top, header, mid, bot = tabular.as_parts()
+        lines = mid[0].split('\n')
+        newmid = [lines[0:-1], lines[-1:]]
+        tabular.parts = (top, header, newmid, bot)
+        latex_str = tabular.as_tabular()
         latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         metrics_tex = latex_str
-
-        print(confusion_tex)
         print(metrics_tex)
 
         dpath = str(self.dpath)
@@ -2022,19 +1876,12 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.draw metrics PZ_PB_RF_TRAIN match_state
             python -m ibeis Chap4.draw metrics GZ_Master1 photobomb_state
 
-            python -m ibeis Chap4.draw metrics GZ_Master1 photobomb_state
+            python -m ibeis Chap4.draw metrics PZ_Master1,GZ_Master1 photobomb_state,match_state
 
-        Example:
+        Ignore:
             >>> from ibeis.scripts.thesis import *
-            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
-            >>> defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_PB_RF_TRAIN'
-            >>> defaultdb = 'PZ_MTEST'
-            >>> #task_key = kwargs['task_key']
-            >>> task_key = ut.get_argval('--task-key', default='match_state')
-            >>> dbname = ut.get_argval('--db', default=defaultdb)
-            >>> self = Chap4(dbname)
-            >>> self.write_metrics(task_key)
+            >>> self = Chap4('PZ_Master1')
+            >>> task_key = 'match_state'
         """
         results = self.ensure_results('all')
         task_combo_res = results['task_combo_res']
@@ -2064,47 +1911,38 @@ class Chap4(DBInputs):
         df = df.rename_axis(self.task_nice_lookup[task_key], 1)
         df.index.name = None
         df.columns.name = None
-        # import utool
-        # utool.embed()
 
-        latex_str = df.to_latex(
-            float_format=lambda x: '' if np.isnan(x) else str(int(x)),
-        )
+        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
+        tabular = Tabular(df, colfmt=colfmt, hline=True)
+        tabular.groupxs = [list(range(len(df) - 1)), [len(df) - 1]]
+        latex_str = tabular.as_tabular()
+
         sum_pred = df.index[-1]
         sum_real = df.columns[-1]
         latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
         latex_str = latex_str.replace(sum_real, r'$\sum$ real')
-        # latex_str = latex_str.replace(sum_pred, r'$\textstyle\sum$ predicted')
-        # latex_str = latex_str.replace(sum_real, r'$\textstyle\sum$ real')
-        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
-        newheader = '\\begin{tabular}{%s}' % (colfmt,)
-        latex_str = '\n'.join([newheader] + latex_str.split('\n')[1:])
-        lines = latex_str.split('\n')
-        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
-        latex_str = '\n'.join(lines)
-        latex_str = latex_str.replace('midrule', 'hline')
-        latex_str = latex_str.replace('toprule', 'hline')
-        latex_str = latex_str.replace('bottomrule', 'hline')
-        confusion_tex = latex_str
+        confusion_tex = ut.align(latex_str, '&', pos=None)
+        print(confusion_tex)
 
         df = metric_df
         # df = self.task_metrics[task_key]
         df = df.rename_axis(self.task_nice_lookup[task_key], 0)
-        df = df.drop(['markedness', 'bookmaker'], axis=1)
+        df = df.rename_axis({'mcc': 'MCC'}, 1)
+        df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
         df.index.name = None
         df.columns.name = None
         df['support'] = df['support'].astype(np.int)
-        latex_str = df.to_latex(
-            float_format=lambda x: '%.2f' % (x)
-        )
-        lines = latex_str.split('\n')
-        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
-        latex_str = '\n'.join(lines)
+        df.columns = ut.emap(upper_one, df.columns)
+
         import re
+        tabular = Tabular(df, colfmt='numeric')
+        top, header, mid, bot = tabular.as_parts()
+        lines = mid[0].split('\n')
+        newmid = [lines[0:-1], lines[-1:]]
+        tabular.parts = (top, header, newmid, bot)
+        latex_str = tabular.as_tabular()
         latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         metrics_tex = latex_str
-
-        print(confusion_tex)
         print(metrics_tex)
 
         dpath = str(self.dpath)
@@ -2120,6 +1958,10 @@ class Chap4(DBInputs):
         return fpath1, fpath2
 
     def write_sample_info(self):
+        """
+        python -m ibeis Chap4.draw sample_info GZ_Master1
+
+        """
         results = self.ensure_results('sample_info')
         # results['aid_pool']
         # results['encoded_labels2d']
@@ -2152,10 +1994,12 @@ class Chap4(DBInputs):
 
     def write_importance(self, task_key):
         """
-        python -m ibeis Chap4.draw importance GZ_Master1 match_state
-        python -m ibeis Chap4.draw importance GZ_Master1 photobomb_state
+        python -m ibeis Chap4.draw importance GZ_Master1,PZ_Master1 match_state
 
+        python -m ibeis Chap4.draw importance GZ_Master1 match_state
         python -m ibeis Chap4.draw importance PZ_Master1 match_state
+
+        python -m ibeis Chap4.draw importance GZ_Master1 photobomb_state
         python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
         """
         # Print info for latex table
@@ -2169,7 +2013,7 @@ class Chap4(DBInputs):
         for k, v in top_dims[:num_top]:
             k = feat_alias(k)
             k = k.replace('_', '\\_')
-            lines.append('{} & {:.4f} \\\\'.format(k, v))
+            lines.append('\\tt{{{}}} & ${:.4f}$ \\\\'.format(k, v))
         latex_str = '\n'.join(ut.align_lines(lines, '&'))
 
         fname = 'feat_importance_{}'.format(task_key)
@@ -2185,7 +2029,7 @@ class Chap4(DBInputs):
                 \caption{{Top {}/{} dimensions for {}}}
                 \begin{{tabular}}{{lr}}
                     \toprule
-                    dimension & importance \\
+                    Dimension & Importance \\
                     \midrule
                     {}
                     \bottomrule
@@ -2197,6 +2041,113 @@ class Chap4(DBInputs):
         fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
         ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
         return fpath
+
+    def draw_prune(self):
+        """
+        CommandLine:
+            python -m ibeis Chap4.draw importance GZ_Master1
+
+            python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
+            python -m ibeis Chap4.draw importance PZ_Master1 match_state
+
+            python -m ibeis Chap4.draw prune GZ_Master1,PZ_Master1
+            python -m ibeis Chap4.draw prune PZ_Master1
+
+        >>> from ibeis.scripts.thesis import *
+        >>> self = Chap4('PZ_Master1')
+        >>> self = Chap4('GZ_Master1')
+        >>> self = Chap4('PZ_MTEST')
+        """
+
+        task_key = 'match_state'
+        expt_name = 'prune'
+        results = self.ensure_results(expt_name)
+
+        n_dims = results['n_dims']
+        mdis_list = results['mdis_list']
+        sub_reports = results['sub_reports']
+
+        # mccs = [r['mcc'] for r in reports]
+        # mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
+        # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs]
+        # for rs in sub_reports])
+        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
+                             for rs in sub_reports])
+
+        import plottool as pt
+
+        mpl.rcParams.update(TMP_RC)
+        fig = pt.figure(fnum=1, doclf=True)
+        pt.multi_plot(n_dims, {'mean': ave_mccs.mean(axis=1)},
+                      rcParams=TMP_RC,
+                      marker='',
+                      force_xticks=[min(n_dims)],
+                      # num_xticks=5,
+                      ylabel='MCC',
+                      xlabel='# feature dimensions',
+                      ymin=.5,
+                      ymax=1, xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
+        ax = pt.gca()
+        ax.invert_xaxis()
+        fig.set_size_inches([W / 2, H])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        # Find the point at which accuracy starts to fall
+        u = ave_mccs.mean(axis=1)
+        # middle = ut.take_around_percentile(u, .5, len(n_dims) // 2.2)
+        # thresh = middle.mean() - (middle.std() * 6)
+        # print('thresh = %r' % (thresh,))
+        # idx = np.where(u < thresh)[0][0]
+        idx = u.argmax()
+
+        fig = pt.figure(fnum=2)
+        n_to_mid = ut.dzip(n_dims, mdis_list)
+        pruned_importance = n_to_mid[n_dims[idx]]
+        pt.wordcloud(pruned_importance, ax=fig.axes[0])
+        fname = 'wc_{}_pruned.png'.format(task_key)
+        fig_fpath = join(str(self.dpath), fname)
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        vals = pruned_importance.values()
+        items = pruned_importance.items()
+        top_dims = ut.sortedby(items, vals)[::-1]
+        lines = []
+        num_top = 10
+        for k, v in top_dims[:num_top]:
+            k = feat_alias(k)
+            k = k.replace('_', '\\_')
+            lines.append('\\tt{{{}}} & ${:.4f}$ \\\\'.format(k, v))
+        latex_str = '\n'.join(ut.align_lines(lines, '&'))
+
+        increase = u[idx] - u[0]
+
+        print(latex_str)
+        print()
+        extra_ = ut.codeblock(
+            r'''
+            \begin{{table}}[h]
+                \centering
+                \caption{{Pruned top {}/{} dimensions for {} increases MCC by {:.4f}}}
+                \begin{{tabular}}{{lr}}
+                    \toprule
+                    Dimension & Importance \\
+                    \midrule
+                    {}
+                    \bottomrule
+                \end{{tabular}}
+            \end{{table}}
+            '''
+        ).format(num_top, len(pruned_importance), task_key.replace('_', '-'),
+                 increase, latex_str)
+        # topinfo = vt.AnnotPairFeatInfo(list(pruned_importance.keys()))
+
+        fname = 'pruned_feat_importance_{}'.format(task_key)
+        fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
+        ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
+
+        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
+        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
 
     def measure_thresh(self, pblm):
         task_key = 'match_state'
@@ -3241,7 +3192,7 @@ class Chap3Draw(object):
 
 @ut.reloadable_class
 class Chap3(DBInputs, Chap3Draw, Chap3Measures):
-    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures3')
     def _setup(self):
         self._precollect()
 
@@ -3308,23 +3259,38 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
             infos['view'].append(info['view'])
             # labels.append(self.species_nice.capitalize())
 
-        df = pd.DataFrame(infos['enc'])
-        # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
-        df = df.rename(columns={'species_nice': 'Database'})
-        text = df.to_latex(index=False, na_repr='nan').replace('±', '\pm')
-        text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
-        text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
-        text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
-        text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
-        text = text.replace(r'n\_annots', r'\thead{\#annots}')
-        enc_text = text.replace('lrrllr', 'lrrrrr')
-        # ut.render_latex_text(text, preamb_extra='\\usepackage{makecell}')
+        alias = {
+            'species_nice': 'database',
+            'n_singleton_names': 'names (singleton)',
+            'n_resighted_names': 'names (resighted)',
+            'n_encounter_per_resighted_name': 'encounters per name (resighted)',
+            'n_annots_per_encounter': 'annots per encounter',
+            'n_annots': 'annots',
+        }
+        alias = ut.map_vals(upper_one, alias)
+        df = pd.DataFrame(infos['enc']).rename(columns=alias)
+        df = df.set_index('Database')
+        df.index.name = None
+        df.index = ut.emap(upper_one, df.index)
+        alias = ut.map_vals(upper_one, alias)
+        tabular = Tabular(df, colfmt='numeric')
+        tabular.theadify = 16
+        enc_text = tabular.as_tabular()
+        print(enc_text)
 
         df = pd.DataFrame(infos['qual'])
         df = df.rename(columns={'species_nice': 'Database'})
         df = df.reindex_axis(ut.partial_order(
             df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
-        qual_text = df.to_latex(index=False, na_repr='nan')
+        df = df.set_index('Database')
+        df.index.name = None
+        df.index = ut.emap(upper_one, df.index)
+        df[pd.isnull(df)] = 0
+        df = df.astype(np.int)
+        df.columns = ut.emap(upper_one, df.columns)
+        tabular = Tabular(df, colfmt='numeric')
+        qual_text = tabular.as_tabular()
+        print(qual_text)
 
         df = pd.DataFrame(infos['view'])
         df = df.rename(columns={
@@ -3338,10 +3304,22 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
                          'B', 'None'])
         df = df.reindex_axis(order, axis=1)
         df = df.set_index('Database')
+        df.index.name = None
+        df.index = ut.emap(upper_one, df.index)
         df[pd.isnull(df)] = 0
-        df = df.astype(np.int).reset_index()
-        view_text = df.to_latex(index=False, na_repr='nan')
-        # ut.render_latex(latex_text, dpath=self.dpath, fname='dbstats')
+        df = df.astype(np.int)
+        tabular = Tabular(df, colfmt='numeric')
+        view_text = tabular.as_tabular()
+        print(view_text)
+
+        ut.render_latex(enc_text, dpath=self.base_dpath, fname='agg-enc',
+                        preamb_extra=['\\usepackage{makecell}'])
+
+        ut.render_latex(view_text, dpath=self.base_dpath, fname='agg-view',
+                        preamb_extra=['\\usepackage{makecell}'])
+
+        ut.render_latex(qual_text, dpath=self.base_dpath, fname='agg-qual',
+                        preamb_extra=['\\usepackage{makecell}'])
 
         ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
         ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
@@ -3864,9 +3842,9 @@ def split_tabular(text):
 
 @ut.reloadable_class
 class Tabular(object):
-    def __init__(self, data=None, colfmt=None, hline=None, caption=''):
+    def __init__(self, data=None, colfmt=None, hline=None, caption='',
+                 index=True, escape=True):
         self._data = data
-        self.index = None
         self.n_cols = None
         self.n_rows = None
         self.df = None
@@ -3874,46 +3852,86 @@ class Tabular(object):
         self.parts = None
         self.colfmt = colfmt
         self.hline = hline
+        self.theadify = False
         self.caption = caption
+        self.groupxs = None
 
-        if data is not None:
-            if isinstance(data, pd.DataFrame):
-                self.set_dataframe(data)
-            elif isinstance(data, str):
-                self.set_text(data)
+        self.n_index_levels = 1
+        # pandas options
+        self.index = index
+        self.escape = escape
 
     def _rectify_colfmt(self, colfmt=None):
         if colfmt is None:
             colfmt = self.colfmt
         if colfmt == 'numeric':
             assert self.n_cols is not None, 'need ncols for numeric'
-            colfmt = 'l' * self.index + 'r' * (self.n_cols)
+            colfmt = 'l' * self.n_index_levels + 'r' * (self.n_cols)
         return colfmt
 
-    @classmethod
-    def from_pandas(Tabular, data, **kw):
-        self = Tabular(data, **kw)
-        return self
-
-    def set_text(self, text):
+    def _rectify_text(self, text):
+        import re
         text = text.replace('±', '\pm')
-        self.text = text
+        # Put all numbers in math mode
+        pat = ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
+        text2 = re.sub(pat, '$' + ut.bref_field('num') + '$', text)
 
-    def set_dataframe(self, df):
-        self.df = df
-        self.index = True
-        text = df.to_latex(
-            index=self.index, escape=False, float_format=lambda x: '%.2f' % (x))
-        self.n_rows = df.shape[0]
-        self.n_cols = df.shape[1]
-        self.set_text(text)
-        return self
+        # latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
+        return text2
+
+    def as_text(self):
+        if isinstance(self._data, str):
+            text = self._data
+        elif isinstance(self._data, pd.DataFrame):
+            df = self._data
+            text = df.to_latex(
+                index=self.index, escape=self.escape,
+                float_format=lambda x: 'nan' if np.isnan(x) else '%.2f' % (x))
+            if self.index:
+                self.n_index_levels = len(df.index.names)
+            self.n_rows = df.shape[0]
+            self.n_cols = df.shape[1]
+        text = self._rectify_text(text)
+        return text
 
     def as_parts(self):
-        top, header, mid, bot = split_tabular(self.text)
+        if self.parts is not None:
+            return self.parts
+        text = self.as_text()
+        top, header, mid, bot = split_tabular(text)
         colfmt = self._rectify_colfmt()
         if colfmt is not None:
             top = '\\begin{tabular}{%s}' % (colfmt,)
+
+        if self.theadify:
+            import textwrap
+            width = self.theadify
+            wrapper = textwrap.TextWrapper(width=width, break_long_words=False)
+
+            header_lines = header.split('\n')
+            new_lines = []
+            for line in header_lines:
+                line = line.rstrip('\\')
+                headers = [h.strip() for h in line.split('&')]
+                headers = ['\\\\'.join(wrapper.wrap(h)) for h in headers]
+                headers = [h if h == '{}' else '\\thead{' + h + '}'
+                           for h in headers]
+                line = ' & '.join(headers) + '\\\\'
+                new_lines.append(line)
+            new_header = '\n'.join(new_lines)
+            header = new_header
+        if True:
+            groupxs = self.groupxs
+            # Put midlines between multi index levels
+            if groupxs is None and isinstance(self._data, pd.DataFrame):
+                index = self._data.index
+                if len(index.names) == 2 and len(mid) == 1:
+                    groupxs = ut.group_indices(index.labels[0])[1]
+                    # part = '\n\multirow{%d}{*}{%s}\n' % (len(chunk), key,)
+                    # part += '\n'.join(['& ' + c for c in chunk])
+            if groupxs is not None:
+                bodylines = mid[0].split('\n')
+                mid = ut.apply_grouping(bodylines, groupxs)
         parts = (top, header, mid, bot)
         return parts
 
@@ -3941,6 +3959,10 @@ class Tabular(object):
         return table
 
 
+def upper_one(s):
+    return s[0].upper() + s[1:]
+
+
 def join_tabular(parts, hline=False, align=True):
     top, header, mid, bot = parts
 
@@ -3955,7 +3977,14 @@ def join_tabular(parts, hline=False, align=True):
 
     top_parts = [top, toprule, header]
     if mid:
-        mid_parts = ut.flatten(ut.bzip([midrule], mid))
+        # join midblocks given as lists of lines instead of strings
+        midblocks = []
+        for m in mid:
+            if isinstance(m, str):
+                midblocks.append(m)
+            else:
+                midblocks.append('\n'.join(m))
+        mid_parts = ut.flatten(ut.bzip([midrule], midblocks))
     else:
         mid_parts = []
     # middle_parts = ut.flatten(list(ut.bzip(body_parts, ['\\midrule'])))
@@ -3963,6 +3992,7 @@ def join_tabular(parts, hline=False, align=True):
     text = '\n'.join(top_parts + mid_parts + bot_parts)
     if align:
         text = ut.align(text, '&', pos=None)
+        # text = ut.align(text, r'\\', pos=None)
     return text
 
 

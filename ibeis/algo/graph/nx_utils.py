@@ -1342,7 +1342,10 @@ def edge_df(graph, edges, ignore=None):
         if ignore:
             ignore = df.columns.intersection(ignore)
             df = df.drop(ignore, axis=1)
-        df.index.names = ('u', 'v')
+        try:
+            df.index.names = ('u', 'v')
+        except Exception:
+            pass
     return df
 
 

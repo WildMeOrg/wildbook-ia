@@ -68,8 +68,6 @@ class GraphVisualization(object):
         # import networkx as nx
         if graph is None:
             graph = infr.graph
-        infr._viz_image_config = dict(in_image=False,
-                                      thumbsize=221)
 
         # nx.set_node_attributes(graph, 'framewidth', 3.0)
         # nx.set_node_attributes(graph, 'shape', ut.dzip(annot_nodes, ['rect']))

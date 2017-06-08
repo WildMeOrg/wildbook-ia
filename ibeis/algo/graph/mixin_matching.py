@@ -321,7 +321,7 @@ class AnnotInfrMatching(object):
         ])
         if multi_index:
             # Index features by edges
-            uv_index = ensure_multi_index(edges, ('aid1', 'aid2'))
+            uv_index = nx_utils.ensure_multi_index(edges, ('aid1', 'aid2'))
             X.index = uv_index
         X[pd.isnull(X)] = np.nan
         X[np.isinf(X)] = np.nan
@@ -916,6 +916,8 @@ class CandidateSearch(object):
             'pairwise_match_version=%r' % (match_configclass().version,)
         ])
         use_cache = not feat_construct_config['need_lnbnn']
+        if len(edges) < 2:
+            use_cache = False
         cache_dir = ut.ensuredir(infr.ibs.get_cachedir(), 'infr_bulk_cache')
         feat_cacher = ub.Cacher('bulk_pairfeats_v3',
                                 feat_cfgstr, enabled=use_cache,

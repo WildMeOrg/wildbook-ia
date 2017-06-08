@@ -984,6 +984,9 @@ class AnnotInference(ut.NiceRepr,
         infr.edge_truth = {}
         infr.task_probs = ut.ddict(dict)
 
+        infr._viz_image_config = dict(in_image=False,
+                                      thumbsize=221)
+
         # Criteria
         infr.refresh = None
         infr.term = None
