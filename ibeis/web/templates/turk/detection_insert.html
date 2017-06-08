@@ -11,8 +11,10 @@
           <input type="checkbox" id="ia-detection-setting-orientation" {% if settings['ia-detection-setting-orientation'] %}checked{% endif %}>
           <i> Axis-to-Axis Mid-line <span class="ia-detection-hotkey">(M)</span></i>
           <br/>
-          <input type="checkbox" id="ia-detection-setting-parts-assignments" {% if settings['ia-detection-setting-parts-assignments'] %}checked{% endif %}>
-          <i> Show Part Assignments <span class="ia-detection-hotkey">(A)</span></i>
+          <span class="ia-detection-parts-toggle">
+            <input type="checkbox" id="ia-detection-setting-parts-assignments" {% if settings['ia-detection-setting-parts-assignments'] %}checked{% endif %}>
+            <i> Show Part Assignments <span class="ia-detection-hotkey">(A)</span></i>
+          </span>
         </div>
     </div>
     <div class="col-lg-4 col-md-4 col-sm-4">
@@ -28,10 +30,15 @@
     </div>
     <div class="col-lg-4 col-md-4 col-sm-4">
         <div style="text-align: right; margin-top: 8px;">
-          <i><span class="ia-detection-hotkey">(S)</span> Always Show Parts</i>
-          <input type="checkbox" id="ia-detection-setting-parts-show" {% if settings['ia-detection-setting-parts-show'] %}checked{% endif %}><br/>
-          <i><span class="ia-detection-hotkey">(D / H)</span> Always Hide Parts</i>
-          <input type="checkbox" id="ia-detection-setting-parts-hide" {% if settings['ia-detection-setting-parts-hide'] %}checked{% endif %}>
+          <span class="ia-detection-parts-toggle">
+            <i><span class="ia-detection-hotkey">(S)</span> Always Show Parts</i>
+            <input type="checkbox" id="ia-detection-setting-parts-show" {% if settings['ia-detection-setting-parts-show'] %}checked{% endif %}><br/>
+          </span>
+
+          <span class="ia-detection-parts-toggle">
+            <i><span class="ia-detection-hotkey">(D / H)</span> Always Hide Parts</i>
+            <input type="checkbox" id="ia-detection-setting-parts-hide" {% if settings['ia-detection-setting-parts-hide'] %}checked{% endif %}>
+          </span>
         </div>
     </div>
   </div>
@@ -229,10 +236,12 @@
       </div>
     </div>
 
-    Quickhelp:
-    <br/>
-    <span id="ia-detection-quickhelp-fallback">
-    </span>
+    {% if not EMBEDDED %}
+      Quickhelp:
+      <br/>
+      <span id="ia-detection-quickhelp-fallback">
+      </span>
+    {% endif %}
 
     <textarea id="ia-detection-data" name="ia-detection-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form"></textarea>
   </form>

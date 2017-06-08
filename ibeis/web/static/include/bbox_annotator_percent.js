@@ -3,11 +3,13 @@
 TODO
 - Hold Shift to resize bbox around center
 - Hold Shift to move bbox while also moving any inside sub-entries
-- Middle mouse button drag to resize bbox with the highlighted anchor point
 - On Selector finish/cancel, hover the correct box if actually hovering
 - Selector assignment line for adding
 - Delete entry if released entirely outside the bounds of the image
 - Change the parent of a subentry
+- Shift to background in reverse (foreground)
+- Minimum size of the anchors with percentage based on box area
+- Zooming for very small regions
 
 */
 
@@ -619,6 +621,7 @@ TODO
                 focus:    null,
                 focus2:   null,
                 drag:     false,
+                which:    null,
                 inside:   false,
                 anchors:  {},
             }
@@ -772,7 +775,6 @@ TODO
 
                     // Delete key pressed
                     if (bba.options.hotkeys.delete.indexOf(key) != -1) {
-                        console.log(bba.state.focus + " " + bba.state.focus2)
                         if (bba.state.mode == "selector") {
                             bba.selector_cancel(event)
                         } else if (bba.state.mode == "drag") {
@@ -904,10 +906,8 @@ TODO
             this.elements.container.mousedown(function(event) {
                 bba.state.inside = true
 
-                if (event.which == 1) {
-                    if (bba.state.mode != "rotate" && bba.state.mode != "resize") {
-                        bba.drag_start()
-                    }
+                if (bba.state.mode != "rotate" && bba.state.mode != "resize") {
+                    bba.drag_start(event)
                 }
             })
 
@@ -920,9 +920,19 @@ TODO
                 if (bba.state.mode == "selector") {
                     // Update the active BBoxSelector location
                     bba.selector_update(event)
-                } else if (bba.state.drag && bba.state.mode != "drag") {
+                } else if (bba.state.drag && bba.state.mode != "drag" && bba.state.mode != "magnet") {
                     // We are dragging the cursor, move the entry if hovered
-                    if (bba.state.hover != null) {
+                    if (bba.state.which == 3) {
+                        bba.state.mode = "magnet"
+                        element = bba.elements.entries[bba.state.hover]
+                        entry = bba.entries[bba.state.hover]
+                        console.log('MAGNET SETTING ' + entry.closest)
+                        // VERSION 1
+                        resize_handle = element.resize[entry.closest]
+                        bba.resize_start(resize_handle, event)
+                        // VERSION 2
+                        // bba.anchor_update(event, entry.closest)
+                    } else if (bba.state.hover != null) {
                         bba.state.mode = "drag"
 
                         // Hide the close and rotate buttons
@@ -978,6 +988,11 @@ TODO
 
                 // If we are resizing a bounding box via a drag, notify the bbox that the mouse has moved
                 if (bba.state.mode == "resize") {
+                    bba.resize_entry(event)
+                }
+
+                // If we are resizing a bounding box via a magnet drag, notify the bbox that the mouse has moved
+                if (bba.state.mode == "magnet") {
                     bba.resize_entry(event)
                 }
             })
@@ -1042,52 +1057,25 @@ TODO
                         document.onselectstart = null
                         bba.state.mode = "free"
                     } else if (bba.state.mode == "resize") {
-                        var element, index
-
-                        // Correct the orientation back to the original state
-                        for (var index = bba.state.orientation; index > 0; index--) {
-                            bba.orient_entry(event, "right")
-                        }
-
-                        // Set the other entries to be transparent
-                        bba.entries_style_transparent(1.0)
-
-                        if (bba.state.hover != null) {
-                            entry = bba.entries[bba.state.hover]
-                            element = bba.elements.entries[bba.state.hover]
-
-                            // Set the element border with the correct orientation
-                            element.bbox.css({
-                                "border": bba.options.border.width + "px solid " + bba.options.colors.hover,
-                                "border-top": (bba.options.border.width * 1.5) + "px dotted " + bba.options.colors.hover,
-                            })
-
-                            bba.label_entry(bba.state.hover, entry.label)
-                            if (bba.options.handles.close.enabled) {
-                                element.close.show()
-                            }
-                            if (bba.options.handles.rotate.enabled) {
-                                element.rotate.show()
-                            }
-                        }
-
-                        document.onselectstart = null
-                        bba.state.mode = "free"
+                        bba.resize_finish(event)
                     } else if (bba.state.mode == "close") {
                         bba.state.mode = "free"
                     } else if (bba.state.mode == "junk") {
                         bba.state.mode = "free"
                     }
-
-                    bba.drag_finish()
                 } else if (event.which == 3) {
-                    if (bba.state.hover != null) {
-                        bba.focus_entry(bba.state.hover)
-                    } else if (bba.state.focus != null) {
-                        bba.focus_entry(bba.state.focus)
+                    if (bba.state.mode == "magnet") {
+                        bba.resize_finish(event)
+                    } else {
+                        if (bba.state.hover != null) {
+                            bba.focus_entry(bba.state.hover)
+                        } else if (bba.state.focus != null) {
+                            bba.focus_entry(bba.state.focus)
+                        }
                     }
                 }
 
+                bba.drag_finish()
                 bba.state.inside = false
             })
         }
@@ -1106,7 +1094,6 @@ TODO
             w2 = Math.min(w2, this.options.limits.frame.width, limit2)
             h2 = (w2 / w1) * h1
 
-            console.log(w2 + " " + h2)
             this.elements.frame.css({
                 "width": w2 + "px",
                 "height": h2 + "px",
@@ -1265,6 +1252,7 @@ TODO
             }
             entry.metadata !== undefined || (entry.metadata = {})
             entry.highlighted !== undefined || (entry.highlighted = false)
+            entry.closest !== undefined || (entry.closest = null)
 
             console.log('[BBoxAnnotator] Adding entry for:')
             console.log(entry)
@@ -1539,6 +1527,10 @@ TODO
             }
             // Do not update the hover entry if currently dragging
             if (this.state.mode == "drag") {
+                return
+            }
+            // Do not update the hover entry if currently dragging
+            if (this.state.mode == "magnet") {
                 return
             }
             // Do not update the hover entry if currently rotating
@@ -1951,6 +1943,7 @@ TODO
             // }
             // handle = element.resize[closest_anchor]
 
+            entry['closest'] = closest_key
             handle = element.resize[closest_key]
             handle.css({
                 "background-color": this.options.colors.anchor,
@@ -2348,6 +2341,125 @@ TODO
             this.refresh()
         }
 
+        BBoxAnnotator.prototype.resize_start = function(resize_element, event) {
+            var index, entry, element, handle, border_side
+
+            // Find the parent bbox of the close button and the bbox's index
+            parent = resize_element.parent("." + bba.options.classes.bbox)
+            index = parent.prevAll("." + bba.options.classes.bbox).length
+            entry = bba.entries[index]
+            element = bba.elements.entries[index]
+            handle = resize_element.prop(bba.options.props.resize)
+
+            // Set the other entries to be transparent
+            bba.entries_style_transparent(bba.options.colors.transparent, index)
+
+            if (entry.parent != null) {
+                element2 = bba.elements.entries[entry.parent]
+                element2.bbox.css({
+                    'opacity': 1.0,
+                })
+            }
+
+            // Get the orientation
+            bba.state.orientation = Math.floor(entry.angles.theta / (Math.PI * 0.5))
+            while (bba.state.orientation < 0) {
+                bba.state.orientation += 4
+            }
+            while (bba.state.orientation > 4) {
+                bba.state.orientation -= 4
+            }
+            bba.state.orientation = Math.floor(bba.state.orientation)
+
+            // Set the border-top based on the correct orientation
+            if(bba.state.orientation == 0) {
+                border_side = null
+            } else if(bba.state.orientation == 1) {
+                border_side = "border-right"
+            } else if(bba.state.orientation == 2) {
+                border_side = "border-bottom"
+            } else if(bba.state.orientation == 3) {
+                border_side = "border-left"
+            }
+
+            if(border_side != null) {
+                // Set the element border with the correct orientation
+                element.bbox.css("border-top", bba.options.border.width + "px solid" + bba.options.colors.hover)
+                element.bbox.css(border_side, (bba.options.border.width * 1.5) + "px dotted " + bba.options.colors.hover)
+            }
+
+            // Fix the handle based on the orientation
+            for (var index = bba.state.orientation; index > 0; index--) {
+                bba.orient_entry(event, "left")
+
+                // Update the handle
+                if (handle == "nw") {
+                    handle = "ne"
+                } else if (handle == "n") {
+                    handle = "e"
+                } else if (handle == "ne") {
+                    handle = "se"
+                } else if (handle == "e") {
+                    handle = "s"
+                } else if (handle == "se") {
+                    handle = "sw"
+                } else if (handle == "s") {
+                    handle = "w"
+                } else if (handle == "sw") {
+                    handle = "nw"
+                } else if (handle == "w") {
+                    handle = "n"
+                }
+            }
+
+            // Hide the close and rotate buttons
+            if (!bba.options.debug) {
+                element.label.hide()
+                element.close.hide()
+                element.rotate.hide()
+            }
+
+            // Dis-allow selection by drag selection
+            document.onselectstart = function() {
+                return false
+            }
+            bba.anchor_update(event, handle)
+        }
+
+        BBoxAnnotator.prototype.resize_finish = function(event) {
+            var element, index
+
+            // Correct the orientation back to the original state
+            for (var index = bba.state.orientation; index > 0; index--) {
+                bba.orient_entry(event, "right")
+            }
+
+            // Set the other entries to be transparent
+            bba.entries_style_transparent(1.0)
+
+            if (bba.state.hover != null) {
+                entry = bba.entries[bba.state.hover]
+                element = bba.elements.entries[bba.state.hover]
+
+                // Set the element border with the correct orientation
+                element.bbox.css({
+                    "border": bba.options.border.width + "px solid " + bba.options.colors.hover,
+                    "border-top": (bba.options.border.width * 1.5) + "px dotted " + bba.options.colors.hover,
+                })
+
+                bba.label_entry(bba.state.hover, entry.label)
+                if (bba.options.handles.close.enabled) {
+                    element.close.show()
+                }
+                if (bba.options.handles.rotate.enabled) {
+                    element.rotate.show()
+                }
+            }
+
+            document.onselectstart = null
+            bba.state.mode = "free"
+        }
+
         BBoxAnnotator.prototype.resize_entry = function(event) {
             var index, handle, entry, element, anchor
             var offset, cursor, delta, theta, hypo, ratio
@@ -2487,6 +2599,16 @@ TODO
                 }
             }
 
+            // Set all anchors to be the standard (white)
+            for (var key in element.resize) {
+                element.resize[key].css({
+                    "background-color": "#FFFFFF",
+                })
+            }
+            element.resize[handle].css({
+                "background-color": this.options.colors.anchor,
+            })
+
             // Temporarily put the width and height to check for bounds check
             top = this.state.anchors.element.y + offset.y
             left = this.state.anchors.element.x + offset.x
@@ -2498,8 +2620,8 @@ TODO
                 return
             }
 
-            entry.pixels.top =
-            entry.pixels.left =
+            // entry.pixels.top = top
+            // entry.pixels.left = left
             entry.pixels.width = width
             entry.pixels.height = height
 
@@ -2974,8 +3096,9 @@ TODO
             }
         }
 
-        BBoxAnnotator.prototype.drag_start = function() {
+        BBoxAnnotator.prototype.drag_start = function(event) {
             this.state.drag = true
+            this.state.which = event.which
             document.onselectstart = function() {
                 return false
             }
@@ -2983,6 +3106,7 @@ TODO
 
         BBoxAnnotator.prototype.drag_finish = function() {
             this.state.drag = false
+            this.state.which = null
             document.onselectstart = null
         }
 
@@ -3032,6 +3156,10 @@ TODO
             element.rotate.mousedown(function(event) {
                 var parent, index, entry, element
 
+                if (event.which == 3) {
+                    return
+                }
+
                 // Find the parent bbox of the close button and the bbox's index
                 parent = $(this).parent("." + bba.options.classes.bbox)
                 index = parent.prevAll("." + bba.options.classes.bbox).length
@@ -3069,91 +3197,10 @@ TODO
 
             for (var key in element.resize) {
                 element.resize[key].mousedown(function(event) {
-                    var index, entry, element, handle, border_side
-
-                    // Find the parent bbox of the close button and the bbox's index
-                    parent = $(this).parent("." + bba.options.classes.bbox)
-                    index = parent.prevAll("." + bba.options.classes.bbox).length
-                    entry = bba.entries[index]
-                    element = bba.elements.entries[index]
-                    handle = $(this).prop(bba.options.props.resize)
-
                     // We want to prevent the selector mode from firing from "free"
                     bba.state.mode = "resize"
-
-                    // Set the other entries to be transparent
-                    bba.entries_style_transparent(bba.options.colors.transparent, index)
-
-                    if (entry.parent != null) {
-                        element2 = bba.elements.entries[entry.parent]
-                        element2.bbox.css({
-                            'opacity': 1.0,
-                        })
-                    }
-
-                    // Get the orientation
-                    bba.state.orientation = Math.floor(entry.angles.theta / (Math.PI * 0.5))
-                    while (bba.state.orientation < 0) {
-                        bba.state.orientation += 4
-                    }
-                    while (bba.state.orientation > 4) {
-                        bba.state.orientation -= 4
-                    }
-                    bba.state.orientation = Math.floor(bba.state.orientation)
-
-                    // Set the border-top based on the correct orientation
-                    if(bba.state.orientation == 0) {
-                        border_side = null
-                    } else if(bba.state.orientation == 1) {
-                        border_side = "border-right"
-                    } else if(bba.state.orientation == 2) {
-                        border_side = "border-bottom"
-                    } else if(bba.state.orientation == 3) {
-                        border_side = "border-left"
-                    }
-
-                    if(border_side != null) {
-                        // Set the element border with the correct orientation
-                        element.bbox.css("border-top", bba.options.border.width + "px solid" + bba.options.colors.hover)
-                        element.bbox.css(border_side, (bba.options.border.width * 1.5) + "px dotted " + bba.options.colors.hover)
-                    }
-
-                    // Fix the handle based on the orientation
-                    for (var index = bba.state.orientation; index > 0; index--) {
-                        bba.orient_entry(event, "left")
-
-                        // Update the handle
-                        if (handle == "nw") {
-                            handle = "ne"
-                        } else if (handle == "n") {
-                            handle = "e"
-                        } else if (handle == "ne") {
-                            handle = "se"
-                        } else if (handle == "e") {
-                            handle = "s"
-                        } else if (handle == "se") {
-                            handle = "sw"
-                        } else if (handle == "s") {
-                            handle = "w"
-                        } else if (handle == "sw") {
-                            handle = "nw"
-                        } else if (handle == "w") {
-                            handle = "n"
-                        }
-                    }
-
-                    // Hide the close and rotate buttons
-                    if (!bba.options.debug) {
-                        element.label.hide()
-                        element.close.hide()
-                        element.rotate.hide()
-                    }
-
-                    // Dis-allow selection by drag selection
-                    document.onselectstart = function() {
-                        return false
-                    }
-                    bba.anchor_update(event, handle)
+                    // Start the resizing
+                    bba.resize_start($(this), event)
                 })
             }
         }

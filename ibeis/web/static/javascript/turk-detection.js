@@ -212,9 +212,17 @@ function fix_metadata_panels() {
     x = $('#ia-metadata-panel-annotation').height()
     y = $('#ia-metadata-panel-part').height()
     height = Math.max(x, y)
+    if ( ! config_metadata){
+      height = 0
+    }
     $('#ia-metadata-panel-container').css({
         "height": height,
     })
+    if (! config_parts) {
+        $('.ia-detection-parts-toggle').css({
+            'visibility': 'hidden',
+        })
+    }
 }
 
 function update_label() {
