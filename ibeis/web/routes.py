@@ -1607,17 +1607,25 @@ def turk_cameratrap(**kwargs):
 
 
 @register_route('/turk/detection/', methods=['GET'])
-def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, config=None, **kwargs):
+def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwargs):
 
     ibs = current_app.ibs
 
-    if config is None:
-        config = {
-            'autointerest': False,
-            'interest_bypass': False,
-            'metadata': True,
-            'parts': True,
-        }
+    default_list = [
+        ('autointerest',    False),
+        ('interest_bypass', False),
+        ('metadata',        True),
+        ('parts',           True),
+    ]
+    config = {
+        key: kwargs.get(key, default)
+        for key, default in default_list
+    }
+    config_str_list = [
+        '%s=%s' % (key, 'true' if config[key] else 'false', )
+        for key in config.keys()
+    ]
+    config_str = '&'.join(config_str_list)
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
@@ -1794,6 +1802,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, confi
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
                          gid=gid,
+                         config_str=config_str,
                          config=config,
                          refer_aid=refer_aid,
                          species=species,

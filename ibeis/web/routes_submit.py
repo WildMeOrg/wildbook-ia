@@ -253,12 +253,25 @@ def submit_detection(**kwargs):
         # Set image reviewed flag
         ibs.set_image_reviewed([gid], [1])
         print('[web] turk_id: %s, gid: %d, annots: %d, parts: %d' % (turk_id, gid, len(annotation_list), len(part_list), ))
+
+    default_list = [
+        'autointerest',
+        'interest_bypass',
+        'metadata',
+        'parts',
+    ]
+    config = {
+        default: kwargs[default]
+        for default in default_list
+        if default in kwargs
+    }
+
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_detection', imgsetid=imgsetid, previous=gid))
+        return redirect(url_for('turk_detection', imgsetid=imgsetid, previous=gid, **config))
 
 
 @register_route('/submit/viewpoint/', methods=['POST'])

@@ -43,7 +43,7 @@
     </div>
   </div>
 
-  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}&{{ config_str }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
     <div id="ia-bbox-annotator-container"></div>
     <div style="text-align: center; color: #aaa;">
       <a tabindex="0" id="ia-detection-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='' style="margin-top: 10px;">Quick Help</a>
