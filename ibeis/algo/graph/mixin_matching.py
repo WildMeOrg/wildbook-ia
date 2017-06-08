@@ -937,8 +937,9 @@ class CandidateSearch(object):
                                                 global_keys, need_lnbnn,
                                                 multi_index)
             feat_cacher.save(data)
-            fpath = feat_cacher.get_fpath()
-            print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
+            if feat_cacher.enabled:
+                fpath = feat_cacher.get_fpath()
+                print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         matches, feats = data
 
         # # Take the filtered subset of columns
