@@ -230,7 +230,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     chip_paths = ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, config2_=config2_)
     thumbtup_list = [
-        (thumb_path, chip_path, chipsize, [], [])
+        (thumb_path, chip_path, chipsize, [], [], [])
         for (thumb_path, chip_path, chipsize) in
         zip(thumb_gpaths, chip_paths, chipsize_list,)
     ]
