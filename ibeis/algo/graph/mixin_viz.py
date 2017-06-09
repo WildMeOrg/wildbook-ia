@@ -477,6 +477,7 @@ class GraphVisualization(object):
     @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,
                    with_colorbar=False, pnum=(1, 1, 1),
+                   zoomable=True,
                    pickable=False, **kwargs):
         import plottool as pt
         if graph is None:
@@ -489,11 +490,13 @@ class GraphVisualization(object):
             # infr.update_visual_attrs(**update_kw)
             if update_attrs:
                 infr.update_visual_attrs(graph=graph, **kwargs)
+            verbose = kwargs.pop('verbose', 2)
             pt.show_nx(graph, layout='custom', as_directed=False,
-                       modify_ax=False, use_image=use_image, verbose=2,
-                       pnum=pnum, **kwargs)
-            pt.zoom_factory()
-            pt.pan_factory(pt.gca())
+                       modify_ax=False, use_image=use_image,
+                       pnum=pnum, verbose=verbose, **kwargs)
+            if zoomable:
+                pt.zoom_factory()
+                pt.pan_factory(pt.gca())
 
         if with_colorbar:
             # Draw a colorbar
@@ -520,6 +523,18 @@ class GraphVisualization(object):
         if pickable:
             fig = pt.gcf()
             fig.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
+
+    def show_edge(infr, edge, fnum=None, pnum=None, **kwargs):
+        import plottool as pt
+        match = infr._exec_pairwise_match([edge])[0]
+        fnum = pt.ensure_fnum(fnum)
+        pt.figure(fnum=fnum, pnum=pnum)
+        ax = pt.gca()
+        showkw = dict(vert=False, heatmask=True, show_lines=False,
+                      show_ell=False, show_ori=False, show_eig=False,
+                      modifysize=True)
+        showkw.update(kwargs)
+        match.show(ax, **showkw)
 
     def draw_aids(infr, aids, fnum=None):
         from ibeis.viz import viz_chip

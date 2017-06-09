@@ -42,7 +42,11 @@ W, H = 7.4375, 3.0
 @ut.reloadable_class
 class DBInputs(object):
     def __init__(self, dbname=None):
+        self.ibs = None
+        self.expt_results = {}
         self.dbname = dbname
+        self.dname = None
+        self.dpath = None
         if 'GZ' in dbname:
             self.species_nice = "Grévy's zebras"
         if 'PZ' in dbname:
@@ -52,11 +56,33 @@ class DBInputs(object):
         if 'humpback' in dbname:
             self.species_nice = "humpbacks"
             # self.species_nice = "humpback whales"
-        self.ibs = None
         if dbname is not None:
-            self.dpath = join(self.base_dpath, self.dbname)
+            # self.dpath = join(self.base_dpath, self.dbname)
+            computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
+            self.dname = self.dbname + '_' + computer_id
+            self.dpath = join(self.base_dpath, self.dname)
             # ut.ensuredir(self.dpath)
-        self.expt_results = {}
+
+    def _setup_links(self, cfgstr):
+        # Setup directory
+        from os.path import expanduser
+        assert self.dname is not None
+        dbcode = '{}_{}'.format(self.dname, cfgstr)
+
+        dpath = expanduser(join(self.base_dpath, dbcode))
+        link1 = expanduser(join(self.base_dpath, self.dname))
+        link2 = expanduser(join(self.base_dpath, self.dbname))
+        ut.ensuredir(dpath)
+        self.real_dpath = dpath
+
+        for link in [link1, link2]:
+            try:
+                self.link = ut.symlink(dpath, link, overwrite=True)
+            except Exception:
+                if exists(dpath):
+                    newpath = ut.non_existing_path(dpath, suffix='_old')
+                    ut.move(link, newpath)
+                    self.link = ut.symlink(dpath, link)
 
     def ensure_setup(self):
         if self.ibs is None:
@@ -73,12 +99,25 @@ class DBInputs(object):
             for fpath, expt_name in zip(fpaths, expt_names):
                 self.expt_results[expt_name] = ut.load_data(fpath)
         else:
+            # expt_name = splitext(basename(fpath))[0]
             fpath = join(str(self.dpath), expt_name + '.pkl')
-            expt_name = splitext(basename(fpath))[0]
             if not exists(fpath):
+                ut.cprint('Experiment results {} do not exist'.format(expt_name), 'red')
+                ut.cprint('First re-setup to check if it is a path issue', 'red')
                 if self.ibs is None:
+                    self._precollect()
+                ut.cprint('Checking new fpath', 'yellow')
+                fpath = join(str(self.dpath), expt_name + '.pkl')
+                print('fpath = %r' % (fpath,))
+                if not exists(fpath):
+                    ut.cprint('Results still missing need to re-measure', 'red')
+                    assert False
                     self._setup()
-                getattr(self, 'measure_' + expt_name)()
+                    getattr(self, 'measure_' + expt_name)()
+                else:
+                    ut.cprint('Re-setup fixed it', 'gren')
+            else:
+                print('Experiment results {} exist'.format(expt_name))
             self.expt_results[expt_name] = ut.load_data(fpath)
             return self.expt_results[expt_name]
 
@@ -170,7 +209,7 @@ class DBInputs(object):
                 if ut.get_argflag('--diskshow'):
                     if isinstance(fpath, six.text_type):
                         ut.startfile(fpath)
-                    else:
+                    elif fpath is not None:
                         fpath_list = fpath
                         for fpath in fpath_list:
                             ut.startfile(fpath)

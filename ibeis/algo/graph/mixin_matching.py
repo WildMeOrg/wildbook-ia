@@ -6,6 +6,7 @@ import utool as ut
 import itertools as it
 import networkx as nx
 import vtool as vt
+from os.path import join
 from ibeis.algo.graph import nx_utils
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
@@ -918,10 +919,12 @@ class CandidateSearch(object):
         use_cache = not feat_construct_config['need_lnbnn']
         if len(edges) < 2:
             use_cache = False
-        cache_dir = ut.ensuredir(infr.ibs.get_cachedir(), 'infr_bulk_cache')
+        cache_dir = join(infr.ibs.get_cachedir(), 'infr_bulk_cache')
         feat_cacher = ub.Cacher('bulk_pairfeats_v3',
                                 feat_cfgstr, enabled=use_cache,
                                 dpath=cache_dir, verbose=20)
+        if feat_cacher.enabled:
+            ut.ensuredir(cache_dir)
         if feat_cacher.exists():
             fpath = feat_cacher.get_fpath()
             print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
@@ -955,6 +958,36 @@ class CandidateSearch(object):
                 raise KeyError(mis_msg)
             feats = feats[feat_dims]
         return feats
+
+    def find_pretrained_classifiers(infr, dpath):
+        import glob
+        import parse
+        from os.path import join, basename
+        fname_fmt = 'deploy_{task_key}_learn({data_key})_{n_dims}_{clf_key}_{hashid}.cPkl'
+        task_clf_candidates = ut.ddict(list)
+        for fpath in glob.iglob(join(dpath, 'deploy_*.cPkl')):
+            fname = basename(fpath)
+            result = parse.parse(fname_fmt, fname)
+            if result:
+                task_key = result.named['task_key']
+                task_clf_candidates[task_key].append(fpath)
+        return task_clf_candidates
+
+    def load_latest_classifiers(infr, dpath):
+        from os.path import getctime
+        task_clf_candidates = infr.find_pretrained_classifiers(dpath)
+        task_clf_fpaths = {}
+        for task_key, fpaths in task_clf_candidates.items():
+            # Find the classifier most recently created
+            fpath = fpaths[ut.argmax(map(getctime, fpaths))]
+            task_clf_fpaths[task_key] = fpath
+        classifiers = {}
+        for task_key, fpath in task_clf_fpaths.items():
+            clf_info = ut.load_data(fpath)
+            assert clf_info['metadata']['task_key'] == task_key, (
+                'bad saved clf at fpath={}'.format(fpath))
+            classifiers[task_key] = clf_info
+        return classifiers
 
     @profile
     def _make_task_probs(infr, edges, data_key=None):

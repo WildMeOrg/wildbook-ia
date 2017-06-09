@@ -963,6 +963,7 @@ class AnnotInference(ut.NiceRepr,
         # state. If dirty it means we need to recompute connected compoments
         # before we can continue with dynamic review.
         infr.dirty = False
+        infr.readonly = False
 
         infr.graph = None
 
@@ -1045,17 +1046,28 @@ class AnnotInference(ut.NiceRepr,
 
     def subgraph(infr, aids):
         """
-        Makes a inference subgraph containing only aids.
-        Note, this is not robust, be careful.
+        Makes a new inference object that is a subset of the original.
+
+        Note, this is not robust, be careful. The subgraph should be treated as
+        read only. Do not commit any reviews made from here.
         """
         orig_name_labels = list(infr.gen_node_values('orig_name_label', aids))
         infr2 = AnnotInference(infr.ibs, aids, orig_name_labels,
                                autoinit=False, verbose=infr.verbose)
-        infr2.graph = infr.graph.copy()
+        # deep copy the graph structure
+        infr2.graph = infr.graph.subgraph(aids).copy()
+        infr2.readonly = True
+        infr2.classifiers = infr.classifiers
 
-        # TODO:
-        # infr2.external_feedback = copy.deepcopy(infr.external_feedback)
-        # infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
+        infr2._viz_image_config = infr._viz_image_config.copy()
+        # infr2._viz_init_nodes = infr._viz_image_config
+        # infr2._viz_image_config_dirty = infr._viz_image_config_dirty
+        infr2.edge_truth = {
+            e: infr.edge_truth[e] for e in infr2.graph.edges()
+            if e in infr.edge_truth
+        }
+
+        # TODO: internal/external feedback
 
         infr2.nid_counter = infr.nid_counter
         infr2.dirty = True
@@ -1085,11 +1097,14 @@ class AnnotInference(ut.NiceRepr,
 
     def copy(infr):
         import copy
-        # deep copy everything but ibs
+        # shallow copy ibs
         infr2 = AnnotInference(
             infr.ibs, copy.deepcopy(infr.aids),
             copy.deepcopy(infr.orig_name_labels), autoinit=False,
             verbose=infr.verbose)
+        # shallow copy classifiers
+        infr2.classifiers = infr.classifiers
+
         infr2.graph = infr.graph.copy()
         infr2.external_feedback = copy.deepcopy(infr.external_feedback)
         infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
@@ -1105,9 +1120,14 @@ class AnnotInference(ut.NiceRepr,
         infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
         infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
 
+        infr2._viz_image_config = infr._viz_image_config.copy()
+
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
         infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
         infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
+
+        infr2.readonly = infr.readonly
+        infr2.dirty = infr.dirty
         return infr2
 
 

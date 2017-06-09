@@ -116,11 +116,15 @@ class AttrAccess(object):
                 raise KeyError('graph does not have edge %r ' % (edge,))
         return data
 
-    def get_edge_dataframe(infr, edges):
+    def get_edge_dataframe(infr, edges=None):
         import pandas as pd
-        edge_datas = {edge: infr.get_nonvisual_edge_data(edge).copy()
-                      for edge in edges}
+        if edges is None:
+            edges = infr.edges()
+        edge_datas = {e: infr.get_nonvisual_edge_data(e) for e in edges}
+        edge_datas = {e: {k: None for k in infr.feedback_data_keys}
+                      if d is None else d for e, d in edge_datas.items()}
         edge_df = pd.DataFrame.from_dict(edge_datas, orient='index')
+        # pd.DataFrame.from_dict(edge_datas, orient='list')
         return edge_df
 
 
