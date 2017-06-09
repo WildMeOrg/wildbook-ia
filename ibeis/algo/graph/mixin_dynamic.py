@@ -222,10 +222,12 @@ class DynamicUpdate(object):
                 else:
                     test_action = 'incorrect new mistake'
 
-        infr.test_state['action'] = test_action
+        infr.test_state['test_action'] = test_action
         infr.test_state['pred_decision'] = decision
         infr.test_state['true_decision'] = true_decision
         infr.test_state['user_id'] = user_id
+        infr.test_state['recovering'] = (infr.recover_graph.has_node(edge[0]) or
+                                         infr.recover_graph.has_node(edge[1]))
 
         infr.test_state['n_decision'] += 1
         if user_id.startswith('auto'):

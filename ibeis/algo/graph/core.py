@@ -175,6 +175,8 @@ class Feedback(object):
                 'need to recompute before dynamic inference continues')
             # Update priority queue based on the new edge
             action = infr.add_review_edge(edge, decision)
+            if infr.test_mode:
+                infr.test_state['action'] = action
             if False:
                 infr._print_debug_ccs()
         else:
@@ -986,7 +988,6 @@ class AnnotInference(ut.NiceRepr,
 
         # Criteria
         infr.refresh = None
-        infr.term = None
 
         # Dynamic Properties (requires bookkeeping)
         infr.nid_to_errors = {}

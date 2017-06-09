@@ -187,7 +187,6 @@ class Chap5(DBInputs):
         })
         infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
-        infr1.rrr()
         infr1.enable_auto_prioritize_nonpos = True
         infr1._refresh_params['window'] = 20
         infr1._refresh_params['thresh'] = np.exp(-2)
@@ -249,7 +248,7 @@ class Chap5(DBInputs):
         # metrics_df = pd.DataFrame.from_dict(graph_expt_data['metrics'])
         # for user, group in metrics_df.groupby('user_id'):
         #     print('actions of user = %r' % (user,))
-        #     user_actions = group['action']
+        #     user_actions = group['test_action']
         #     print(ut.repr4(ut.dict_hist(user_actions), stritems=True))
 
         # self.draw_simulation()
@@ -430,6 +429,21 @@ class Chap5(DBInputs):
         sim_results = self.ensure_results('simulation')
         key = 'graph'
 
+        ignore = ['timestamp', 'num_reviews', 'default_priority', 'confidence',
+                  'review_id']
+
+        task_keys = [
+            'match_state',
+            'photobomb_state',
+        ]
+        task_nice_lookup = {
+            'match_state': const.REVIEW.CODE_TO_NICE,
+            'photobomb_state': {
+                'pb': 'Photobomb',
+                'notpb': 'Not Photobomb',
+            }
+        }
+
         mpl.rcParams.update(TMP_RC)
 
         # Load simulation end state with predicted and real PCCs
@@ -452,40 +466,7 @@ class Chap5(DBInputs):
         parent_infr.set_node_attrs('pred_id', {
             aid: nid for nid, cc in enumerate(pred_ccs) for aid in cc})
 
-        from networkx.utils import arbitrary_element as arbitrary
-
-        def missing_merge_edges(graph, case):
-            """
-            Find edges that would merge the PCCs, but were not considered as
-            candidates
-            """
-            for cc1, cc2 in ut.combinations(case, 2):
-                edges = list(nxu.edges_between(graph, cc1, cc2))
-                # Is there an edge that might have been considered?
-                datas = ut.estarmap(graph.get_edge_data, edges)
-                # isneg = [d.get('decision') in {NEGTV} for d in datas]
-                if len(edges) == 0:
-                    # Could find ones that are likely to be comparable, but for
-                    # now, just pick an arbitrary edge.
-                    missing = (arbitrary(cc1), arbitrary(cc2))
-                    # missing = list(nxu.edge_connected_augmentation(
-                    #     graph.subgraph(cc1.union(cc2)), k=1))
-                    yield missing
-
-        def choose_error_edges(graph, case):
-            """
-            Pick a good edge between each error case
-            """
-            # weight_loc = {NEGTV: 3, INCMP: 2, UNREV: 1}
-            for cc1, cc2 in ut.combinations(case, 2):
-                edges = list(nxu.edges_between(graph, cc1, cc2))
-                datas = ut.estarmap(graph.get_edge_data, edges)
-                candidates = []
-                for e, d in zip(edges, datas):
-                    if (d.get('truth') != d.get('decision')):
-                        candidates.append(e)
-                if candidates:
-                    yield arbitrary(candidates)
+        # from networkx.utils import arbitrary_element as arbitrary
 
         # Gather a sample of error groups
         n = 10
@@ -494,127 +475,101 @@ class Chap5(DBInputs):
             ('merge', ut.strided_sample(delta['merges'], n)),
             ('split', ut.strided_sample(delta['splits'], n))
         ])
-        err_groups = [(t, g) for t, gs in sampled_errors.items() for g in gs]
-
-        ignore = ['timestamp', 'num_reviews',
-                  'default_priority',
-                  'confidence',
-                  'review_id']
 
         err_items = []
-        for err_type, case in err_groups:
-            # For each case find what edges need fixing
-            missing_edges = []
-            if err_type == 'merge':
-                missing_edges = list(missing_merge_edges(graph, case))
-            # Get one edge to inspect for each pair of PCCs
-            # Try and make it the most interesting one
-            existing_edges = list(choose_error_edges(graph, case))
-            error_edges = existing_edges + missing_edges
-            for edge in error_edges:
-                edge = parent_infr.e_(*edge)
-                err_items.append((err_type, case, edge))
+        for case_type, cases in sampled_errors.items():
+            for case in cases:
+                case_aids = set(ut.flatten(case))
+                # For each case find what edges need fixing
+                if case_type == 'merge':
+                    error_edges = parent_infr.find_pos_augment_edges(case_aids, k=1)
+                else:
+                    edges = list(nxu.edges_between(graph, case_aids))
+                    df = parent_infr.get_edge_dataframe(edges)
+                    flags = (df.truth != df.decision) & (df.truth == NEGTV)
+                    error_edges = df.index[flags].tolist()
+                for edge in error_edges:
+                    edge = parent_infr.e_(*edge)
+                    err_items.append((case_type, case, error_edges, edge))
+        err_items_df = pd.DataFrame(err_items, columns=['case_type', 'case',
+                                                        'error_edges', 'edge'])
 
-        edges = ut.take_column(err_items, 2)
-        edges_df = parent_infr.get_edge_dataframe(edges)
-        edges_df = edges_df.drop(edges_df.columns.intersection(ignore), axis=1)
+        edges = err_items_df['error_edges'].tolist()
+        df = parent_infr.get_edge_dataframe(edges)
+        df = df.drop(df.columns.intersection(ignore), axis=1)
         # Lookup the probs for each state
         task_probs = parent_infr._make_task_probs(edges)
         probs_df = pd.concat(task_probs, axis=1)  # NOQA
 
-        task_keys = [
-            'match_state',
-            'photobomb_state',
-        ]
-        task_nice_lookup = {
-            'match_state': const.REVIEW.CODE_TO_NICE,
-            'photobomb_state': {
-                'pb': 'Photobomb',
-                'notpb': 'Not Photobomb',
-            }
-        }
+        dpath = ut.ensuredir((self.dpath, 'errors'))
+        fnum = 1
 
-        def visual_overrides(infr, selected=None, case=None, case_type=None):
+        fig = pt.figure(fnum=fnum, pnum=(2, 1, 1))
+        pt.adjust_subplots(
+            top=1, right=1, left=0, bottom=.15, hspace=.01, wspace=0, fig=fig)
 
-            missing = []
-            if case_type == 'merge':
-                missing = list(missing_merge_edges(infr.graph, case))
-                infr.graph.add_edges_from(missing)
+        # subitems = err_items_df
+        subitems = err_items_df[err_items_df.case_type == 'merge'].iloc[-2:]
+        for _, (case_type, case, error_edges, edge) in subitems.iterrows():
+            aids = ut.total_flatten(case)
+            infr = parent_infr.subgraph(aids)
 
             # err_graph.add_edges_from(missing_edges)
-            edge_df = infr.get_edge_dataframe()
-            is_mistake = (
-                (edge_df['truth'] != edge_df['decision']) &
-                ((edge_df['decision'] == NEGTV) |
-                 (edge_df['decision'] == POSTV) |
-                 (edge_df['decision'] == INCMP) ))
+            df = infr.get_edge_dataframe()
+            mistakes = df[(df.truth != df.decision) & (df.decision != UNREV)]
+            mistake_edges = mistakes.index.tolist()
+            err_edges = mistake_edges + list(error_edges)
+            missing = [e for e in err_edges if not infr.has_edge(e)]
 
-            # is_trueneg = (~is_mistake) & (edge_df['decision'] == NEGTV)
-            mistake_edges = edge_df[is_mistake].index.tolist()
-            # true_negatives = edge_df[is_trueneg].index.tolist()
-            stroke_kw = {'linewidth': 2, 'foreground': infr._error_color}
-            err_edges = mistake_edges + [selected]
+            stroke = {'linewidth': 2.5, 'foreground': infr._error_color}
             edge_overrides = {
                 # 'alpha': {e: .05 for e in true_negatives},
                 'alpha': {},
-                'style': {e: '' for e in err_edges + missing},
-                'sketch': {e: None for e in err_edges + missing},
+                'style': {e: '' for e in err_edges},
+                'sketch': {e: None for e in err_edges},
                 'linestyle': {e: 'dashed' for e in missing},
                 'linewidth': {e: 2.0 for e in err_edges + missing},
-                'stroke': {e: stroke_kw for e in err_edges + missing},
+                'stroke': {e: stroke for e in err_edges + missing},
             }
-            if selected:
-                # shadow_kw = {
-                #     'rho': .3, 'alpha': .6, 'shadow_color': 'r',
-                #     'offset': (0, 0), 'scale': 3.0,
-                # }
-                edge_overrides['stroke'].update({
-                    selected: {'linewidth': 5, 'foreground': infr._error_color}
-                })
-                edge_overrides['alpha'].update({
-                    selected: 1.0
-                })
-            return edge_overrides
-
-        showkw = dict(show_recent_review=False, zoomable=False,
-                      show_cand=False,
-                      splines='spline', simple_labels=True, colorby='real_id',
-                      use_image=True)
-
-        dpath = ut.ensuredir((self.dpath, 'errors'))
-        fnum = 1
-        fig = pt.figure(fnum=1, pnum=(2, 1, 1))
-        pt.adjust_subplots(top=1, right=1, left=0, bottom=.15,
-                           hspace=.01, wspace=0)
-        for err_type, case, edge in err_items:
-            # if edge != (2801, 2802):
-            #     continue
-            # if edge != (2054, 2866):
-            #     continue
-            # if edge != (2881, 2927):
-            #     continue
-            aids = ut.total_flatten(case)
-            infr = parent_infr.subgraph(aids)
-            edge_overrides = visual_overrides(infr, edge, case, err_type)
+            # shadow =
+            if edge:
+                selected_kw = {
+                    # 'shadow': {'alpha': .6, 'color': 'r', 'offset': 0,
+                    #            'scale': 3.0}
+                    'stroke': {'linewidth': 5, 'foreground': infr._error_color},
+                    'alpha': 1.0,
+                }
+                for k, v in selected_kw.items():
+                    if k not in edge_overrides:
+                        edge_overrides[k] = {}
+                    edge_overrides[k][edge] = selected_kw[k]
 
             infr.show_edge(edge, fnum=1, pnum=(2, 1, 2))
             ax = pt.gca()
             xy, w, h = pt.get_axis_xy_width_height(ax=ax)
-            # ratio = 1 / abs(w / h)
 
-            infr.show_graph(fnum=fnum,
-                            # ratio=ratio,
-                            pnum=(2, 1, 1),
-                            # sep=.2,
-                            edge_overrides=edge_overrides, **showkw)
+            if case_type == 'split':
+                colorby = 'real_id'
+            if case_type == 'merge':
+                colorby = 'pred_id'
+
+            infr.show_graph(
+                fnum=fnum, pnum=(2, 1, 1), show_recent_review=False,
+                zoomable=False,
+                pickable=False,
+                show_cand=False, splines='spline',
+                simple_labels=True, colorby=colorby, use_image=True,
+                edge_overrides=edge_overrides,
+                # ratio=1 / abs(w / h)
+            )
 
             # df.index.names = (None, None)
             # xlabel = '\nedge = {}, {}'.format(*edge)
-            # xlabel = '%s case: %s' % (err_type, ut.repr2(case, nobr=True))
+            # xlabel = '%s case: %s' % (case_type, ut.repr2(case, nobr=True))
 
-            edge_info = edges_df.loc[edge].to_dict()
+            edge_info = df.loc[edge].to_dict()
 
-            xlabel = err_type.capitalize() + ' case. '
+            xlabel = case_type.capitalize() + ' case. '
             code_to_nice = task_nice_lookup['match_state']
             real_code = infr.match_state_gt(edge)
             pred_code = edge_info['decision']
@@ -638,17 +593,9 @@ class Chap5(DBInputs):
             xlabel += '\n{}, {}'.format(real_nice,
                                               pred_nice)
 
-            # if edge_info['decision'] is None:
-            #     xlabel += '\nedge never marked as a candidate'
-            # else:
-            #     xlabel += '\n' + ut.repr2(edge_info, precision=4,
-            #                               stritems=True)
-            # for task, probs in probs_df
             for task_key in task_keys:
-                import utool
-                with utool.embed_on_exception_context:
-                    tprobs = task_probs[task_key]
-                    _probs = tprobs.loc[edge].to_dict()
+                tprobs = task_probs[task_key]
+                _probs = tprobs.loc[edge].to_dict()
                 code_to_nice = task_nice_lookup[task_key]
                 probs = ut.odict((v, _probs[k])
                                  for k, v in code_to_nice.items()
@@ -663,7 +610,7 @@ class Chap5(DBInputs):
             case_id = ','.join(list(map(str, map(len, parts))))
             case_id += '_' + ut.hash_data('-'.join(parts))[0:8]
             eid = '{},{}'.format(*edge)
-            fname = err_type + '_' + case_id + '_edge' + eid + '.png'
+            fname = case_type + '_' + case_id + '_edge' + eid + '.png'
             fpath = join(dpath, fname)
             vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
@@ -953,15 +900,8 @@ class Chap5(DBInputs):
     def draw_refresh(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw_refresh --db PZ_MTEST --show
-            python -m ibeis Chap5.draw_refresh --db GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw_refresh --db PZ_Master1 --diskshow
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> self = Chap5(dbname)
-            >>> self.draw_refresh()
+            python -m ibeis Chap5.draw refresh GZ_Master1 --diskshow
+            python -m ibeis Chap5.draw refresh --db PZ_Master1 --diskshow
         """
         sim_results = self.ensure_results('simulation')
 
@@ -980,6 +920,9 @@ class Chap5(DBInputs):
         pt.figure(fnum=fnum, pnum=pnum_())
         ax = pt.gca()
         ydatas = _metrics('pprob_any')
+
+        # fix the visual inconsistency that doesn't matter in practice
+        flags = _metrics('refresh_support')
         key = 'graph'
         ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
         ax.set_xlabel('# manual reviews')
@@ -990,8 +933,7 @@ class Chap5(DBInputs):
         fig = pt.gcf()  # NOQA
         fig.set_size_inches([W, H * .5])
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
+        return fpath
 
     def draw_simulation2(self):
         """
@@ -1044,7 +986,7 @@ class Chap5(DBInputs):
             ax.fill_between(xs, ys, low, alpha=.6, color=color)
 
         def overlay_actions(ymax=1):
-            is_correct = metrics_df['action'].map(
+            is_correct = metrics_df['test_action'].map(
                 lambda x: x.startswith('correct')).values
             recovering = metrics_df['recovering'].values
             is_auto = metrics_df['user_id'].map(

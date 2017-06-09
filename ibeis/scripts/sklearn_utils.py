@@ -612,6 +612,8 @@ def predict_proba_df(clf, X_df, class_names=None):
         columns = ut.take(class_names, clf.classes_)
     else:
         columns = None
+    if len(X_df) == 0:
+        return pd.DataFrame(columns=columns)
     try:
         probs = clf.predict_proba(X_df)
     except ValueError:

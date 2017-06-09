@@ -413,10 +413,8 @@ class GraphVisualization(object):
                 'rho': .3,
                 'alpha': .6,
                 'shadow_color': 'w' if dark_background else 'k',
-                # 'offset': (2, -2),
                 'offset': (0, 0),
                 'scale': 3.0,
-                # 'offset': (4, -4)
             }]))
 
         # Z_ORDER: make sure nodes are on top
@@ -575,6 +573,9 @@ class GraphVisualization(object):
             lines += [('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1))]
         lines += [('edge_data: ' + ut.repr2(edge_data, nl=1))]
         return '\n'.join(lines)
+
+    def show_error_case(infr):
+        pass
 
     show = show_graph
 

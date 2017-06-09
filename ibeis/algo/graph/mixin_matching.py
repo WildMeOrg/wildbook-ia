@@ -10,7 +10,7 @@ from os.path import join
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
-from ibeis.algo.graph.state import UNREV  # NOQA
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -305,10 +305,12 @@ class AnnotInfrMatching(object):
             >>> match = matches[0]
             >>> match._make_global_feature_vector(global_keys)
         """
-
         import pandas as pd
         # TODO: ensure feat/chip configs are resepected
         edges = ut.lmap(tuple, ut.aslist(edges))
+        if len(edges) == 0:
+            return [], []
+
         matches = infr._enriched_pairwise_matches(edges, config=config,
                                                   global_keys=global_keys,
                                                   need_lnbnn=need_lnbnn)
@@ -768,39 +770,56 @@ class CandidateSearch(object):
             # needs_probs = infr.get_edges_where_eq('task_probs', None,
             #                                       edges=new_edges,
             #                                       default=None)
-            task_probs = infr._make_task_probs(priority_edges)
-
-            # FIXME: this is slow
-            for task, probs in task_probs.items():
-                if task not in infr.task_probs:
-                    # infr.task_probs[task] = probs
-                    infr.task_probs[task] = probs.to_dict(orient='index')
-                else:
-                    # import pandas as pd
-                    # old = infr.task_probs[task]
-                    # new = pd.merge(old, probs, 'outer', probs.columns.tolist(),
-                    #                left_index=True, right_index=True,
-                    #                copy=False)
-                    # infr.task_probs[task] = new
-                    infr.task_probs[task].update(probs.to_dict(orient='index'))
 
             primary_task = 'match_state'
-            primary_probs = task_probs[primary_task]
+            infr.task_probs[primary_task]
+
+            match_task = infr.task_probs.get('match_state', {})
+            need_flags = [e not in match_task for e in priority_edges]
+            need_edges = ut.compress(priority_edges, need_flags)
+
+            infr.print('There are {} edges without probabilities'.format(
+                len(need_edges)), 1)
+
+            # task_probs = infr._make_task_probs(priority_edges)
+            if len(need_edges) > 0:
+                # Only recompute for the needed edges
+                task_probs = infr._make_task_probs(need_edges)
+                # FIXME: this is slow
+                for task, probs in task_probs.items():
+                    if task not in infr.task_probs:
+                        # infr.task_probs[task] = probs
+                        infr.task_probs[task] = probs.to_dict(orient='index')
+                    else:
+                        # import pandas as pd
+                        # old = infr.task_probs[task]
+                        # new = pd.merge(old, probs, 'outer', probs.columns.tolist(),
+                        #                left_index=True, right_index=True,
+                        #                copy=False)
+                        # infr.task_probs[task] = new
+                        infr.task_probs[task].update(probs.to_dict(orient='index'))
+
+            import pandas as pd
+            primary_probs = pd.DataFrame(
+                ut.take(infr.task_probs[primary_task], priority_edges),
+                index=nxu.ensure_multi_index(priority_edges, ('aid1', 'aid2'))
+            )
+
             primary_thresh = infr.task_thresh[primary_task]
-            prob_match = primary_probs['match']
+            prob_match = primary_probs[POSTV]
 
             default_priority = prob_match.copy()
             # Give negatives that pass automatic thresholds high priority
             if infr.enable_auto_prioritize_nonpos:
-                _probs = task_probs[primary_task]['nomatch']
-                flags = _probs > primary_thresh['nomatch']
+                _probs = primary_probs[NEGTV]
+                flags = _probs > primary_thresh[NEGTV]
                 default_priority[flags] = np.maximum(default_priority[flags],
                                                      _probs[flags])
 
             # Give not-comps that pass automatic thresholds high priority
             if infr.enable_auto_prioritize_nonpos:
-                _probs = task_probs[primary_task]['notcomp']
-                flags = _probs > primary_thresh['notcomp']
+                _probs = primary_probs[INCMP]
+                flags = _probs > primary_thresh[INCMP]
                 default_priority[flags] = np.maximum(default_priority[flags],
                                                      _probs[flags])
 
@@ -811,7 +830,6 @@ class CandidateSearch(object):
             #         edge_task_probs[edge][task] = val
 
             infr.set_edge_attrs('prob_match', prob_match.to_dict())
-            # infr.set_edge_attrs('task_probs', edge_task_probs)
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
 
             priority_metric = 'default_priority'
@@ -839,7 +857,7 @@ class CandidateSearch(object):
 
         candidate_edges = list(candidate_edges)
         new_edges = infr.ensure_edges_from(candidate_edges)
-        infr.print('added {}/{} new candidate edges'.format(
+        infr.print('There are {}/{} new candidate edges'.format(
             len(new_edges), len(candidate_edges)))
 
         if infr.test_mode:
@@ -852,14 +870,16 @@ class CandidateSearch(object):
         else:
             priority_edges = candidate_edges
 
-        metric, priority = infr.make_edge_priority_scores(priority_edges)
+        if len(priority_edges) > 0:
+            metric, priority = infr.make_edge_priority_scores(priority_edges)
 
-        infr.set_edge_attrs(metric, ut.dzip(priority_edges, priority))
-        infr.prioritize(metric, priority_edges, priority)
+            infr.set_edge_attrs(metric, ut.dzip(priority_edges, priority))
+            infr.prioritize(metric, priority_edges, priority)
 
         if hasattr(infr, 'on_new_candidate_edges'):
             # hack callback for demo
             infr.on_new_candidate_edges(infr, new_edges)
+        return len(priority_edges)
 
     @profile
     def refresh_candidate_edges(infr):
@@ -896,6 +916,7 @@ class CandidateSearch(object):
         edges = [(1, 2)]
         """
         import ubelt as ub
+        import pandas as pd
         infr.print('Requesting %d cached pairwise features' % len(edges),
                    level=3)
         edges = list(edges)
@@ -904,6 +925,11 @@ class CandidateSearch(object):
         edge_hashid = ut.hashid_arr(edge_uuids, 'edges')
 
         feat_construct_config, feat_dims = data_info
+        if len(edges) == 0:
+            index = nxu.ensure_multi_index([], ('aid1', 'aid2'))
+            feats = pd.DataFrame(columns=feat_dims, index=index)
+            return feats
+
         _cfg_lbl = ut.partial(ut.repr2, stritems=True, itemsep='', kvsep=':')
         match_configclass = ibs.depc_annot.configclass_dict['pairwise_match']
 

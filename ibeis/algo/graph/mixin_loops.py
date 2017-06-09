@@ -27,6 +27,12 @@ class RefreshCriteria(object):
         refresh._ewma = 1
         refresh.enabled = True
 
+    def clear(refresh):
+        refresh.manual_decisions = []
+        refresh._ewma = 1
+        refresh.num_pos = 0
+        refresh.num_meaningful = 0
+
     def check(refresh):
         # if len(refresh.manual_decisions) > refresh.warmup:
         # return (refresh.pos_frac < refresh.frac_thresh and
@@ -211,11 +217,6 @@ class RefreshCriteria(object):
         n_positives = mu * n_remain_edges
         return n_positives
 
-    def clear(refresh):
-        refresh.manual_decisions = []
-        refresh.num_pos = 0
-        refresh.num_meaningful = 0
-
     def add(refresh, meaningful, user_id, decision=None):
         if not refresh.enabled:
             return
@@ -369,8 +370,8 @@ class InfrLoops(object):
         """
         Finds edges to make sure the ground truth is merged
         """
-        infr.print('==============================')
-        infr.print('--- GROUNDTRUTH MERGE LOOP ---')
+        infr.print('==============================', color='white')
+        infr.print('--- GROUNDTRUTH MERGE LOOP ---', color='white')
         assert infr.test_mode, 'only run this in test mode'
 
         from ibeis.algo.graph import nx_utils
@@ -399,31 +400,10 @@ class InfrLoops(object):
             infr.add_feedback(edge=edge, **feedback)
             infr.recovery_review_loop(verbose=0)
 
-    def pos_redun_loop(infr):
-        infr.print('===========================')
-        infr.print('--- POSITIVE REDUN LOOP ---')
-        new_edges = infr.find_pos_redun_candidate_edges()
-        for count in it.count(0):
-            infr.print('check pos-redun iter {}'.format(count))
-            print('pos_redun_candidates = %r' % (len(new_edges),))
-            infr.queue.clear()
-            infr.add_candidate_edges(new_edges)
-            infr.refresh.enabled = False
-            infr.inner_priority_loop(use_refresh=False)
-            new_edges = infr.find_pos_redun_candidate_edges()
-            if len(new_edges) < 10:
-                print('new_edges = %r' % (new_edges,))
-            if len(new_edges) == 0:
-                infr.print(
-                    'pos-redundancy achieved in {} iterations'.format(
-                        count + 1))
-                break
-            infr.print('not pos-reduntant yet.')
-
     @profile
     def rereview_nonconf_auto(infr):
-        infr.print('=========================')
-        infr.print('--- REREVIEW NONCONF AUTO')
+        infr.print('=========================', color='white')
+        infr.print('--- REREVIEW NONCONF AUTO', color='white')
         # Enforce that a user checks any PCC that was auto-reviewed
         # but was unable to achieve k-positive-consistency
         for pcc in list(infr.non_pos_redundant_pccs(relax_size=False)):
@@ -441,8 +421,8 @@ class InfrLoops(object):
     @profile
     def recovery_review_loop(infr, verbose=1):
         if verbose:
-            infr.print('=============================')
-            infr.print('--- RECOVERY REVEIEW LOOP ---')
+            infr.print('=============================', color='white')
+            infr.print('--- RECOVERY REVEIEW LOOP ---', color='white')
         while infr.is_recovering():
             edge, priority = infr.pop()
             try:
@@ -454,11 +434,43 @@ class InfrLoops(object):
                 continue
             infr.add_feedback(edge=edge, **feedback)
 
+    def _print_previous_loop_statistics(infr, count):
+        # Print stats about what happend in the this loop
+        history = infr.metrics_list[-count:]
+        recover_blocks = ut.group_items([
+            (k, sum(1 for i in g))
+            for k, g in it.groupby(ut.take_column(history, 'recovering'))
+        ]).get(True, [])
+        infr.print((
+            'Recovery mode entered {} times, '
+            'made {} recovery decisions.').format(
+                len(recover_blocks), sum(recover_blocks)), color='green')
+        infr.print(
+            'Test Action Histogram: {}'.format(ut.repr4(ut.dict_hist(
+                ut.take_column(history, 'test_action')
+            ), si=True)), color='yellow')
+        if infr.enable_inference:
+            infr.print(
+                'Inference Action Histogram: {}'.format(ut.repr2(ut.dict_hist(
+                    ut.emap(frozenset, ut.take_column(history, 'action'))
+                ), si=True)), color='yellow')
+        infr.print(
+            'Decision Histogram: {}'.format(ut.repr2(ut.dict_hist(
+                ut.take_column(history, 'pred_decision')
+            ), si=True)), color='yellow')
+        infr.print(
+            'User Histogram: {}'.format(ut.repr2(ut.dict_hist(
+                ut.take_column(history, 'user_id')
+            ), si=True)), color='yellow')
+        pass
+
     @profile
     def inner_priority_loop(infr, use_refresh=True):
         """
         Executes reviews until the queue is empty or needs refresh
         """
+        if infr.refresh:
+            infr.refresh.enabled = use_refresh
         infr.print('Start inner loop with {} items in the queue'.format(
             len(infr.queue)))
         for count in it.count(0):
@@ -478,12 +490,40 @@ class InfrLoops(object):
                 infr.print('No more edges after %d iterations, need refresh' %
                            (count,), 1, color='yellow')
                 break
+        if infr.metrics_list:
+            infr._print_previous_loop_statistics(count)
+
+    def pos_redun_loop(infr):
+        infr.print('===========================', color='white')
+        infr.print('--- POSITIVE REDUN LOOP ---', color='white')
+        new_edges = infr.find_pos_redun_candidate_edges()
+        for count in it.count(0):
+            infr.print('check pos-redun iter {}'.format(count))
+            # print('pos_redun_candidates = %r' % (len(new_edges),))
+            infr.queue.clear()
+            infr.add_candidate_edges(new_edges)
+            infr.inner_priority_loop(use_refresh=False)
+            new_edges = infr.find_pos_redun_candidate_edges()
+            # if len(new_edges) < 10:
+            #     print('new_edges = %r' % (new_edges,))
+            # else:
+            #     print('new_edges = #%r' % (len(new_edges),))
+            if len(new_edges) == 0:
+                infr.print(
+                    'pos-redundancy achieved in {} iterations'.format(
+                        count + 1))
+                break
+            infr.print('not pos-reduntant yet.', color='white')
 
     def lnbnn_priority_loop(infr, use_refresh=True):
-        infr.print('============================')
-        infr.print('--- LNBNN PRIORITY LOOP ---')
-        infr.refresh_candidate_edges()
-        infr.refresh = RefreshCriteria(**infr._refresh_params)
+        infr.print('============================', color='white')
+        infr.print('--- LNBNN PRIORITY LOOP ---', color='white')
+        n_prioritized = infr.refresh_candidate_edges()
+        if n_prioritized == 0:
+            infr.print('LNBNN FOUND NO NEW EDGES')
+            return
+        if use_refresh:
+            infr.refresh.clear()
         infr.inner_priority_loop(use_refresh)
 
     @profile
@@ -496,6 +536,8 @@ class InfrLoops(object):
             max_loops = infr._max_outer_loops
             if max_loops is None:
                 max_loops = np.inf
+
+        infr.refresh = RefreshCriteria(**infr._refresh_params)
 
         # Initialize a refresh criteria
         for count in it.count(0):
@@ -898,13 +940,16 @@ class SimulationHelpers(object):
             'n_merge_remain': infr.real_n_pcc_mst_edges - n_true_merges,
             'n_true_merges': n_true_merges,
             'recovering': infr.is_recovering(),
+            # 'recovering2': infr.test_state['recovering'],
             'merge_remain': 1 - pos_acc,
             'n_errors': n_error_edges,
             'n_fn': n_fn,
             'n_fp': n_fp,
+            'refresh_support': len(infr.refresh.manual_decisions),
             'pprob_any': infr.refresh.prob_any_remain(),
             'mu': infr.refresh._ewma,
-            'action': infr.test_state['action'],
+            'test_action': infr.test_state['test_action'],
+            'action': infr.test_state.get('action', None),
             'user_id': infr.test_state['user_id'],
             'pred_decision': infr.test_state['pred_decision'],
             'true_decision': infr.test_state['true_decision'],
