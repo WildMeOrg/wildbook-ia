@@ -1217,15 +1217,16 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         if True:
             # Add a frame around the node
             framewidth = nattrs.get('framewidth', 0)
+            framealpha = nattrs.get('framealpha', 1.0)
+            framealign = nattrs.get('framealign', 'center')
             if framewidth > 0:
                 framecolor = nattrs.get('framecolor', node_color)
                 framecolor = ensure_nonhex_color(framecolor)
 
                 #print('framecolor = %r' % (framecolor,))
-                alpha = 1.0
                 if framecolor is None:
                     framecolor = pt.BLACK
-                    alpha = 0.0
+                    framealpha = 0.0
                 if framewidth is True:
                     if figsize is not None:
                         # HACK
@@ -1234,7 +1235,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     else:
                         framewidth = 3.0
                 lw = framewidth
-                frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw, alpha=alpha)
+                frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw,
+                                     align=framealign, alpha=framealpha)
                 if zorder is not None:
                     frame.set_zorder(zorder)
                 #frame.set_zorder()

@@ -1440,13 +1440,20 @@ def cartoon_stacked_rects(xy, width, height, num=4, shift=None, **kwargs):
     return col
 
 
-def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0, fill=None, **kwargs):
+def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0,
+              align='center', fill=None, **kwargs):
     if ax is None:
         ax = gca()
     (rx, ry, rw, rh) = bbox
     # Transformations are specified in backwards order.
     trans_annotation = mpl.transforms.Affine2D()
-    trans_annotation.scale(rw, rh)
+    if align == 'center':
+        trans_annotation.scale(rw, rh)
+    elif align == 'outer':
+        trans_annotation.scale(rw + (lw / 2), rh + (lw / 2))
+    elif align == 'inner':
+        trans_annotation.scale(rw - (lw / 2), rh - (lw / 2))
+
     trans_annotation.rotate(theta)
     trans_annotation.translate(rx + rw / 2, ry + rh / 2)
     t_end = trans_annotation + ax.transData
