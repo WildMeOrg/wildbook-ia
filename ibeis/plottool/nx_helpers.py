@@ -213,6 +213,123 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
         pt.plt.imshow(img, extent=extent)
 
 
+def parse_html_graphviz_attrs():
+    # Parse the documentation table
+    import bs4
+    import requests
+    r  = requests.get(r"http://www.graphviz.org/doc/info/attrs.html")
+    data = r.text
+    soup = bs4.BeautifulSoup(data, 'html5lib')
+
+    for table in soup.findAll("table"):
+        if len(list(table.descendants)) > 2000:
+            break
+
+    columns = [th.text.strip() for th in table.find_all('th')]
+
+    data = []
+    for tr in table.find_all('tr'):
+        row = [td.text.strip() for td in tr.find_all('td')]
+        if row:
+            data.append(row)
+
+    import pandas as pd
+    pd.options.display.max_rows = 20
+    pd.options.display.max_columns = 40
+    pd.options.display.width = 160
+    pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
+    full_df = pd.DataFrame(data, columns=columns)
+    # Find valid progs that can be used
+    all_progs = []
+    for n in full_df['Notes'].tolist():
+        line = n.replace(' only', '').replace('not ', '')
+        found = [_.strip() for _ in line.split(',')]
+        all_progs.extend(found)
+    all_progs = set(all_progs) - {''}
+
+    # Find which progs are supported by which rows
+    supported_progs = []
+    for n in full_df['Notes'].tolist():
+        line = n.replace(' only', '').replace('not ', '')
+        if n.endswith('only'):
+            only = {_.strip() for _ in line.split(',')}
+            supported_progs.append(only)
+        elif n.startswith('not'):
+            noneof = {_.strip() for _ in line.split(',')}
+            supported_progs.append(all_progs - noneof)
+        else:
+            supported_progs.append(all_progs)
+
+    # Find subset that supports dot or neato
+    dot_or_neato = [len({'dot', 'neato'}.intersection(p)) > 0
+                    for p in supported_progs]
+    df = full_df[dot_or_neato]
+    df = full_df
+
+    neato_ = [len({'neato'}.intersection(p)) > 0
+                    for p in supported_progs]
+    df = full_df
+
+    # types are:
+    # edges, nodes, the root graph, subgraphs and cluster subgraphs
+    typed_keys = {}
+    for t in {'E', 'N', 'G', 'S', 'C'}:
+        flags = [t in x for x in df['Used By']]
+        typed_keys[t] = df[flags]['Name'].tolist()
+    print(ut.format_single_paragraph_sentences(', '.join(typed_keys['G'])))
+
+    df = full_df[neato_]
+    neato_keys = {}
+    for t in {'E', 'N', 'G', 'S', 'C'}:
+        flags = [t in x for x in df['Used By']]
+        neato_keys[t] = df[flags]['Name'].tolist()
+    print(ut.format_single_paragraph_sentences(', '.join(neato_keys['G'])))
+
+
+class GRAPHVIZ_KEYS(object):
+    N = {'URL', 'area', 'color', 'colorscheme', 'comment', 'distortion',
+         'fillcolor', 'fixedsize', 'fontcolor', 'fontname', 'fontsize',
+         'gradientangle', 'group', 'height', 'href', 'id', 'image', 'imagepos',
+         'imagescale', 'label', 'labelloc', 'layer', 'margin', 'nojustify',
+         'ordering', 'orientation', 'penwidth', 'peripheries', 'pin', 'pos',
+         'rects', 'regular', 'root', 'samplepoints', 'shape', 'shapefile',
+         'showboxes', 'sides', 'skew', 'sortv', 'style', 'target', 'tooltip',
+         'vertices', 'width', 'xlabel', 'xlp', 'z'}
+
+    E = {'URL', 'arrowhead', 'arrowsize', 'arrowtail', 'color', 'colorscheme',
+         'comment', 'constraint', 'decorate', 'dir', 'edgeURL', 'edgehref',
+         'edgetarget', 'edgetooltip', 'fillcolor', 'fontcolor', 'fontname',
+         'fontsize', 'headURL', 'head_lp', 'headclip', 'headhref', 'headlabel',
+         'headport', 'headtarget', 'headtooltip', 'href', 'id', 'label',
+         'labelURL', 'labelangle', 'labeldistance', 'labelfloat',
+         'labelfontcolor', 'labelfontname', 'labelfontsize', 'labelhref',
+         'labeltarget', 'labeltooltip', 'layer', 'len', 'lhead', 'lp', 'ltail',
+         'minlen', 'nojustify', 'penwidth', 'pos', 'samehead', 'sametail',
+         'showboxes', 'style', 'tailURL', 'tail_lp', 'tailclip', 'tailhref',
+         'taillabel', 'tailport', 'tailtarget', 'tailtooltip', 'target',
+         'tooltip', 'weight', 'xlabel', 'xlp'}
+
+    G = {'Damping', 'K', 'URL', '_background', 'bb', 'bgcolor', 'center',
+         'charset', 'clusterrank', 'colorscheme', 'comment', 'compound',
+         'concentrate', 'defaultdist', 'dim', 'dimen', 'diredgeconstraints',
+         'dpi', 'epsilon', 'esep', 'fontcolor', 'fontname', 'fontnames',
+         'fontpath', 'fontsize', 'forcelabels', 'gradientangle', 'href', 'id',
+         'imagepath', 'inputscale', 'label', 'label_scheme', 'labeljust',
+         'labelloc', 'landscape', 'layerlistsep', 'layers', 'layerselect',
+         'layersep', 'layout', 'levels', 'levelsgap', 'lheight', 'lp',
+         'lwidth', 'margin', 'maxiter', 'mclimit', 'mindist', 'mode', 'model',
+         'mosek', 'newrank', 'nodesep', 'nojustify', 'normalize',
+         'notranslate', 'nslimit\nnslimit1', 'ordering', 'orientation',
+         'outputorder', 'overlap', 'overlap_scaling', 'overlap_shrink', 'pack',
+         'packmode', 'pad', 'page', 'pagedir', 'quadtree', 'quantum',
+         'rankdir', 'ranksep', 'ratio', 'remincross', 'repulsiveforce',
+         'resolution', 'root', 'rotate', 'rotation', 'scale', 'searchsize',
+         'sep', 'showboxes', 'size', 'smoothing', 'sortv', 'splines', 'start',
+         'style', 'stylesheet', 'target', 'truecolor', 'viewport',
+         'voro_margin', 'xdotversion'}
+
+
 class GraphVizLayoutConfig(dtool.Config):
     r"""
     Ignore:
@@ -308,11 +425,6 @@ def get_explicit_graph(graph):
         return base_class
 
     base_class = get_nx_base(graph)
-    # base_class = graph.__class__
-    # import utool
-    # utool.embed()
-    # explicit_graph = graph.copy()
-    # explicit_graph.clear()
     explicit_graph = base_class()
     explicit_graph.graph = copy.deepcopy(graph.graph)
 
@@ -463,8 +575,9 @@ def make_agraph(graph_):
     height_px = np.array(ut.take_column(node_attrs, 'height'))
     scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
 
-    width_in = width_px / 72.0 * scale
-    height_in = height_px / 72.0 * scale
+    inputscale = 72.0
+    width_in = width_px / inputscale * scale
+    height_in = height_px / inputscale * scale
     width_in_dict = dict(zip(shaped_nodes, width_in))
     height_in_dict = dict(zip(shaped_nodes, height_in))
     nx.set_node_attributes(graph_, 'width', width_in_dict)
@@ -514,7 +627,7 @@ def make_agraph(graph_):
             ptstr = ptstr_.strip('[]').strip(' ').strip('()')
             ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
             pt_list = list(map(float, ptstr_list))
-            pt_arr = np.array(pt_list) / 72.0
+            pt_arr = np.array(pt_list) / inputscale
             new_ptstr_list = list(map(str, pt_arr))
             new_ptstr_ = ','.join(new_ptstr_list)
             if anode.attr['pin'] is True:
@@ -537,17 +650,55 @@ def make_agraph(graph_):
     return agraph
 
 
-def make_agraph_args(kwargs):
-    kwargs = kwargs.copy()
-    prog = kwargs.pop('prog', 'dot')
-    if prog != 'dot':
-        kwargs['overlap'] = kwargs.get('overlap', 'false')
-    kwargs['splines'] = kwargs.get('splines', 'spline')
-    kwargs['notranslate'] = 'true'  # for neato postprocessing
-    argparts = ['-G%s=%s' % (key, str(val))
-                for key, val in kwargs.items()]
-    args = ' '.join(argparts)
-    return args
+def _groupby_prelayout(graph_, layoutkw, groupby):
+    """
+    sets `pin` attr of `graph_` inplace in order to nodes according to
+    specified layout.
+    """
+    import networkx as nx
+    has_pins = any([
+        v.lower() == 'true'
+        for v in nx.get_node_attributes(graph_, 'pin').values()])
+    has_pins &= all('pos' in d for n, d in graph_.node.items())
+    if not has_pins:
+        # Layout groups separately
+        node_to_group = nx.get_node_attributes(graph_, groupby)
+        group_to_nodes = ut.invert_dict(node_to_group, unique_vals=False)
+        subgraph_list = []
+
+        def subgraph_grid(subgraphs, hpad=None, vpad=None):
+            n_cols = int(np.ceil(np.sqrt(len(subgraphs))))
+            columns = [ut.stack_graphs(chunk, vert=False, pad=hpad)
+                       for chunk in ut.ichunks(subgraphs, n_cols)]
+            new_graph = ut.stack_graphs(columns, vert=True, pad=vpad)
+            return new_graph
+
+        group_grid = graph_.graph.get('group_grid', None)
+
+        for group, nodes in group_to_nodes.items():
+            if group_grid:
+                subnode_list = [graph_.subgraph([node]) for node in nodes]
+                for sub in subnode_list:
+                    sub.graph.update(graph_.graph)
+                    nx_agraph_layout(sub, inplace=True, groupby=None, **layoutkw)
+                subgraph = subgraph_grid(subnode_list)
+                # subgraph = graph_.subgraph(nodes)
+            else:
+                subgraph = graph_.subgraph(nodes)
+            subgraph.graph.update(graph_.graph)
+            nx_agraph_layout(subgraph, inplace=True, groupby=None, **layoutkw)
+            subgraph_list.append(subgraph)
+
+        hpad = graph_.graph.get('hpad', None)
+        vpad = graph_.graph.get('vpad', None)
+        graph_ = subgraph_grid(subgraph_list, hpad, vpad)
+
+        # graph_ = ut.stack_graphs(subgraph_list)
+        nx.set_node_attributes(graph_, 'pin', 'true')
+        return True
+    else:
+        return False
+        # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
 
 
 def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
@@ -604,7 +755,6 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     """
     #import networkx as nx
     import pygraphviz
-    import networkx as nx
 
     # graph_ = get_explicit_graph(orig_graph).copy()
     graph_ = get_explicit_graph(orig_graph)
@@ -614,55 +764,14 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     num_nodes = len(graph_)
     is_large = num_nodes > LARGE_GRAPH
 
-    layoutkw = layoutkw.copy()
+    # layoutkw = layoutkw.copy()
     draw_implicit = layoutkw.pop('draw_implicit', True)
 
     pinned_groups = False
 
     if groupby is not None:
-        has_pins = any([
-            v.lower() == 'true'
-            for v in nx.get_node_attributes(graph_, 'pin').values()])
-        has_pins &= all('pos' in d for n, d in graph_.node.items())
-        if has_pins:
-            # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
-            pass
-        else:
-            # Layout groups separately
-            node_to_group = nx.get_node_attributes(graph_, groupby)
-            group_to_nodes = ut.invert_dict(node_to_group, unique_vals=False)
-            subgraph_list = []
-
-            def subgraph_grid(subgraphs, hpad=None, vpad=None):
-                n_cols = int(np.ceil(np.sqrt(len(subgraphs))))
-                columns = [ut.stack_graphs(chunk, vert=False, pad=hpad)
-                           for chunk in ut.ichunks(subgraphs, n_cols)]
-                new_graph = ut.stack_graphs(columns, vert=True, pad=vpad)
-                return new_graph
-
-            group_grid = orig_graph.graph.get('group_grid', None)
-
-            for group, nodes in group_to_nodes.items():
-                if group_grid:
-                    subnode_list = [graph_.subgraph([node]) for node in nodes]
-                    for sub in subnode_list:
-                        sub.graph.update(graph_.graph)
-                        nx_agraph_layout(sub, inplace=True, groupby=None, **layoutkw)
-                    subgraph = subgraph_grid(subnode_list)
-                    # subgraph = graph_.subgraph(nodes)
-                else:
-                    subgraph = graph_.subgraph(nodes)
-                subgraph.graph.update(graph_.graph)
-                nx_agraph_layout(subgraph, inplace=True, groupby=None, **layoutkw)
-                subgraph_list.append(subgraph)
-
-            hpad = orig_graph.graph.get('hpad', None)
-            vpad = orig_graph.graph.get('vpad', None)
-            graph_ = subgraph_grid(subgraph_list, hpad, vpad)
-
-            # graph_ = ut.stack_graphs(subgraph_list)
-            nx.set_node_attributes(graph_, 'pin', 'true')
-            pinned_groups = True
+        pinned_groups = _groupby_prelayout(
+            graph_, layoutkw=layoutkw, groupby=groupby)
 
     prog = layoutkw.pop('prog', 'dot')
 
@@ -671,8 +780,20 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     layoutkw['splines'] = layoutkw.get('splines', 'spline')
     if prog == 'neato':
         layoutkw['notranslate'] = 'true'  # for neato postprocessing
-    argparts = ['-G%s=%s' % (key, str(val))
-                for key, val in layoutkw.items()]
+
+    # layoutkw is allowed to overwrite graph.graph['graph']
+    args_kw = graph_.graph.get('graph', {}).copy()
+    for key, val in layoutkw.items():
+        if key in GRAPHVIZ_KEYS.G and val is not None:
+            if key not in args_kw:
+                args_kw[key] = val
+
+    # del args_kw['sep']
+    # del args_kw['nodesep']
+    # del args_kw['overlap']
+    # del args_kw['notranslate']
+
+    argparts = ['-G{}={}'.format(key, val) for key, val in args_kw.items()]
     args = ' '.join(argparts)
     splines = layoutkw['splines']
 
@@ -687,7 +808,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     # Run layout
     #print('prog = %r' % (prog,))
 
-    if ut.VERBOSE or verbose > 0:
+    if verbose > 3:
         print('BEFORE LAYOUT\n' + str(agraph))
 
     if is_large:
@@ -730,7 +851,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         test_fpath = ut.truepath('~/test_graphviz_draw.png')
         agraph.draw(test_fpath)
         ut.startfile(test_fpath)
-    if ut.VERBOSE or verbose > 1:
+    if verbose > 3:
         print('AFTER LAYOUT\n' + str(agraph))
 
     # TODO: just replace with a single dict of attributes
