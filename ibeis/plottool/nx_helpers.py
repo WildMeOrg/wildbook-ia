@@ -1416,9 +1416,15 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 if shadowkw is not False:
                     if shadowkw is True:
                         shadowkw = {}
+                    linewidth = shadowkw.pop('linewidth', full_lw)
                     scale = shadowkw.pop('scale', 1.0)
-                    shadowkw_ = dict(offset=(2, -2), shadow_color='k',
-                                     alpha=.3, rho=.3, linewidth=full_lw * scale)
+                    color = shadowkw.pop('color', 'k')
+                    offset = ut.ensure_iterable(shadowkw.pop('offset', (2, -2)))
+                    if len(offset) == 1:
+                        offset = offset * 2
+                    shadowkw_ = dict(offset=offset, shadow_color=color,
+                                     alpha=.3, rho=.3, linewidth=linewidth *
+                                     scale)
                     shadowkw_.update(shadowkw)
                     path_effects += [patheffects.SimpleLineShadow(**shadowkw_)]
 
