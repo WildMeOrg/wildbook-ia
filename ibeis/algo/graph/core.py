@@ -950,11 +950,7 @@ class AnnotInference(ut.NiceRepr,
         infr.classifiers = None
         infr.review_counter = it.count(0)
         infr.verbose = verbose
-        infr.init_logging()
-        infr.print('__init__', level=1)
         infr.ibs = ibs
-        if aids == 'all':
-            aids = ibs.get_valid_aids()
         infr.aids = None
         infr.aids_set = None
         infr.orig_name_labels = None
@@ -995,14 +991,9 @@ class AnnotInference(ut.NiceRepr,
         # Dynamic Properties (requires bookkeeping)
         infr.nid_to_errors = {}
         infr.recovery_ccs = []
-        # TODO: keep one main recovery cc but once it is done pop the next one
-        # from recovery_ccs until none are left
 
-        # graph holding positive edges of inconsistent PCCs
-        # infr.recover_graph = infr._graph_cls()
+        # Recover graph holds positive edges of inconsistent PCCs
         infr.recover_graph = nx_dynamic_graph.DynConnGraph()
-        # infr._graph_cls()
-        infr.recover_prev_neg_nids = None
         # Set of PCCs that are positive redundant
         infr.pos_redun_nids = set([])
         # Represents the metagraph of negative edges between PCCs
@@ -1037,12 +1028,49 @@ class AnnotInference(ut.NiceRepr,
             'pos_redun': 2,
             'neg_redun': 2,
         }
-        infr.add_aids(aids, nids)
 
         infr.manual_wgt = None
 
+        infr.init_logging()
+        infr.print('__init__', level=1)
+        if aids == 'all':
+            aids = ibs.get_valid_aids()
+        infr.add_aids(aids, nids)
+
         if autoinit:
             infr.initialize_graph()
+
+    def copy(infr):
+        import copy
+        # shallow copy ibs
+        infr2 = AnnotInference(
+            infr.ibs, copy.deepcopy(infr.aids),
+            copy.deepcopy(infr.orig_name_labels), autoinit=False,
+            verbose=infr.verbose)
+        # shallow copy classifiers
+        infr2.classifiers = infr.classifiers
+
+        infr2.graph = infr.graph.copy()
+        infr2.external_feedback = copy.deepcopy(infr.external_feedback)
+        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
+        infr2.cm_list = copy.deepcopy(infr.cm_list)
+        infr2.qreq_ = copy.deepcopy(infr.qreq_)
+        infr2.nid_counter = infr.nid_counter
+
+        infr2.recover_graph = copy.deepcopy(infr.recover_graph)
+
+        infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
+        infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
+
+        infr2._viz_image_config = infr._viz_image_config.copy()
+
+        infr2.review_graphs = copy.deepcopy(infr.review_graphs)
+        infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
+        infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
+
+        infr2.readonly = infr.readonly
+        infr2.dirty = infr.dirty
+        return infr2
 
     def subgraph(infr, aids):
         """
@@ -1074,10 +1102,9 @@ class AnnotInference(ut.NiceRepr,
         infr2.cm_list = None
         infr2.qreq_ = None
 
-        # infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
+        # TODO:
+        # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)
         # infr2.recover_graph = copy.deepcopy(infr.recover_graph)
-        # infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)
-
         # infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
         # infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
 
@@ -1089,45 +1116,6 @@ class AnnotInference(ut.NiceRepr,
                 infr2.review_graphs[k] = g.subgraph(aids, dynamic=True)
             else:
                 infr2.review_graphs[k] = g.subgraph(aids)
-        return infr2
-
-        # TODO:
-        # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)
-        # infr2.recovery_ccs = []  # = copy.deepcopy(infr.recovery_ccs)
-
-    def copy(infr):
-        import copy
-        # shallow copy ibs
-        infr2 = AnnotInference(
-            infr.ibs, copy.deepcopy(infr.aids),
-            copy.deepcopy(infr.orig_name_labels), autoinit=False,
-            verbose=infr.verbose)
-        # shallow copy classifiers
-        infr2.classifiers = infr.classifiers
-
-        infr2.graph = infr.graph.copy()
-        infr2.external_feedback = copy.deepcopy(infr.external_feedback)
-        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
-        infr2.cm_list = copy.deepcopy(infr.cm_list)
-        infr2.qreq_ = copy.deepcopy(infr.qreq_)
-        infr2.nid_counter = infr.nid_counter
-
-        infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
-
-        infr2.recover_graph = copy.deepcopy(infr.recover_graph)
-        infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)
-
-        infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
-        infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
-
-        infr2._viz_image_config = infr._viz_image_config.copy()
-
-        infr2.review_graphs = copy.deepcopy(infr.review_graphs)
-        infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
-        infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
-
-        infr2.readonly = infr.readonly
-        infr2.dirty = infr.dirty
         return infr2
 
 

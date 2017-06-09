@@ -7,7 +7,7 @@ import itertools as it
 import networkx as nx
 import vtool as vt
 from os.path import join
-from ibeis.algo.graph import nx_utils
+from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
 from ibeis.algo.graph.state import UNREV  # NOQA
@@ -322,7 +322,7 @@ class AnnotInfrMatching(object):
         ])
         if multi_index:
             # Index features by edges
-            uv_index = nx_utils.ensure_multi_index(edges, ('aid1', 'aid2'))
+            uv_index = nxu.ensure_multi_index(edges, ('aid1', 'aid2'))
             X.index = uv_index
         X[pd.isnull(X)] = np.nan
         X[np.isinf(X)] = np.nan
@@ -678,6 +678,10 @@ class CandidateSearch(object):
         return candidate_edges
 
     def find_pos_augment_edges(infr, pcc, k=None):
+        """
+        # [[1, 0], [0, 2], [1, 2], [3, 1]]
+        pos_sub = nx.Graph([[0, 1], [1, 2], [0, 2], [1, 3]])
+        """
         if k is None:
             pos_k = infr.queue_params['pos_redun']
         else:
@@ -685,26 +689,27 @@ class CandidateSearch(object):
         pos_sub = infr.pos_graph.subgraph(pcc)
 
         # First try to augment only with unreviewed existing edges
-        unrev_avail = list(nx_utils.edges_inside(infr.unreviewed_graph, pcc))
+        unrev_avail = list(nxu.edges_inside(infr.unreviewed_graph, pcc))
         try:
-            check_edges = nx_utils.edge_connected_augmentation(
+            check_edges = nxu.edge_connected_augmentation(
                 pos_sub, pos_k, avail=unrev_avail, return_anyway=False)
         except ValueError:
             check_edges = None
         if not check_edges:
             # Allow new edges to be introduced
             full_sub = infr.graph.subgraph(pcc)
-            full_avail = unrev_avail + list(nx.complement(full_sub).edges())
+            new_avail = ut.estarmap(infr.e_, nx.complement(full_sub).edges())
+            full_avail = unrev_avail + new_avail
             n_max = (len(pos_sub) * (len(pos_sub) - 1)) // 2
-            n_comp = n_max - pos_sub.number_of_edges()
-            if len(full_avail) == n_comp:
+            n_complement = n_max - pos_sub.number_of_edges()
+            if len(full_avail) == n_complement:
                 # can use the faster algorithm
-                check_edges = nx_utils.edge_connected_augmentation(
-                    pos_sub, pos_k, return_anyway=True)
+                check_edges = nxu.edge_connected_augmentation(
+                    pos_sub, k=pos_k, return_anyway=True)
             else:
                 # have to use the slow approximate algo
-                check_edges = nx_utils.edge_connected_augmentation(
-                    pos_sub, pos_k, avail=full_avail, return_anyway=True)
+                check_edges = nxu.edge_connected_augmentation(
+                    pos_sub, k=pos_k, avail=full_avail, return_anyway=True)
         check_edges = set(it.starmap(e_, check_edges))
         return check_edges
 
@@ -730,11 +735,11 @@ class CandidateSearch(object):
         # Add random edges between exisiting non-redundant PCCs
         candidate_edges = set([])
         pcc_gen = list(infr.non_pos_redundant_pccs(relax_size=True))
-        pcc_gen = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
-        for pcc in pcc_gen:
+        prog = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
+        for pcc in prog:
             check_edges = infr.find_pos_augment_edges(pcc)
             candidate_edges.update(check_edges)
-            # kcon_ccs = list(nx_utils.edge_connected_components(sub, pos_k))
+            # kcon_ccs = list(nxu.edge_connected_components(sub, pos_k))
             # bicon = list(nx.biconnected_components(sub))
             # check_edges = set([])
             # Get edges between k-edge-connected components
@@ -755,29 +760,15 @@ class CandidateSearch(object):
         return candidate_edges
 
     @profile
-    def add_candidate_edges(infr, candidate_edges):
-
-        candidate_edges = list(candidate_edges)
-        new_edges = infr.ensure_edges_from(candidate_edges)
-        infr.print('Adding {}/{} new candidate edges'.format(
-            len(new_edges), len(candidate_edges)))
-
-        if len(new_edges) == 0:
-            return
-
-        # infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
-        # infr.unreviewed_graph.add_edges_from(new_edges)
-
-        if infr.test_mode:
-            infr.apply_edge_truth(new_edges)
-
+    def make_edge_priority_scores(infr, priority_edges):
         if infr.classifiers:
-            infr.print('Prioritizing edges with one-vs-one probabilities', 1)
+            infr.print('Prioritizing {} edges with one-vs-one probabilities'.format(
+                len(priority_edges)), 1)
             # Construct pairwise features on edges in infr
             # needs_probs = infr.get_edges_where_eq('task_probs', None,
             #                                       edges=new_edges,
             #                                       default=None)
-            task_probs = infr._make_task_probs(new_edges)
+            task_probs = infr._make_task_probs(priority_edges)
 
             # FIXME: this is slow
             for task, probs in task_probs.items():
@@ -814,7 +805,7 @@ class CandidateSearch(object):
                                                      _probs[flags])
 
             # Pack into edge attributes
-            # edge_task_probs = {edge: {} for edge in new_edges}
+            # edge_task_probs = {edge: {} for edge in priority_edges}
             # for task, probs in task_probs.items():
             #     for edge, val in probs.to_dict(orient='index').items():
             #         edge_task_probs[edge][task] = val
@@ -823,27 +814,48 @@ class CandidateSearch(object):
             # infr.set_edge_attrs('task_probs', edge_task_probs)
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
 
-            # Insert all the new edges into the priority queue
-            # infr.queue.update((-default_priority).to_dict())
-            infr.prioritize('default_priority', new_edges, default_priority)
+            priority_metric = 'default_priority'
+            priority = default_priority
         elif hasattr(infr, 'dummy_matcher'):
-            prob_match = np.array(infr.dummy_matcher.predict_edges(new_edges))
-            infr.set_edge_attrs('prob_match', ut.dzip(new_edges, prob_match))
-            infr.prioritize('prob_match', new_edges, prob_match)
-            # infr.queue.update(ut.dzip(new_edges, -prob_match))
+            prob_match = np.array(infr.dummy_matcher.predict_edges(priority_edges))
+            infr.set_edge_attrs('prob_match', ut.dzip(priority_edges, prob_match))
+            priority_metric = 'prob_match'
+            priority = prob_match
         elif infr.cm_list is not None:
             infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
             infr.task_probs = None
-            scores = infr._make_lnbnn_scores(new_edges)
-            infr.set_edge_attrs('normscore', ut.dzip(new_edges, scores))
-            infr.prioritize('normscore', new_edges, scores)
-            # infr.queue.update(ut.dzip(new_edges, -scores))
+            scores = infr._make_lnbnn_scores(priority_edges)
+            priority_metric = 'normscore'
+            priority = scores
         else:
             infr.print('No information to prioritize edges')
-            scores = np.zeros(len(new_edges)) + 1e-6
-            infr.prioritize('random', new_edges, scores)
-            # infr.queue.update(ut.dzip(new_edges, -scores))
+            priority_metric = 'random'
+            priority = np.zeros(len(priority_edges)) + 1e-6
+        return priority_metric, priority
+
+    @profile
+    def add_candidate_edges(infr, candidate_edges):
+
+        candidate_edges = list(candidate_edges)
+        new_edges = infr.ensure_edges_from(candidate_edges)
+        infr.print('added {}/{} new candidate edges'.format(
+            len(new_edges), len(candidate_edges)))
+
+        if infr.test_mode:
+            infr.apply_edge_truth(new_edges)
+
+        if infr.enable_redundancy:
+            priority_edges = list(infr.filter_nonredun_edges(candidate_edges))
+            infr.print('using only {}/{} non-redun candidate edges'.format(
+                len(priority_edges), len(candidate_edges)))
+        else:
+            priority_edges = candidate_edges
+
+        metric, priority = infr.make_edge_priority_scores(priority_edges)
+
+        infr.set_edge_attrs(metric, ut.dzip(priority_edges, priority))
+        infr.prioritize(metric, priority_edges, priority)
 
         if hasattr(infr, 'on_new_candidate_edges'):
             # hack callback for demo

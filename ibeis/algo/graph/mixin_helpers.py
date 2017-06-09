@@ -156,6 +156,23 @@ class Convenience(object):
     def print_graph_info(infr):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
+    def print_within_connection_info(infr, edge=None, cc=None, aid=None, nid=None):
+        if edge is not None:
+            aid, aid2 = edge
+        if nid is not None:
+            cc = infr.pos_graph._ccs[nid]
+        if aid is not None:
+            cc = infr.pos_graph.connected_to(aid)
+
+        subgraph = infr.graph.subgraph(cc)
+        list(nxu.complement_edges(subgraph))
+
+        edges = list(nxu.edges_between(infr.graph, cc))
+        df = infr.get_edge_dataframe(edges)
+        print(df)
+
+        # UNFINISHED
+
     def pair_connection_info(infr, aid1, aid2):
         """
         Helps debugging when ibs.nids has info that annotmatch/staging do not

@@ -403,11 +403,22 @@ class InfrLoops(object):
         infr.print('===========================')
         infr.print('--- POSITIVE REDUN LOOP ---')
         new_edges = infr.find_pos_redun_candidate_edges()
-        print('pos_redun_candidates = %r' % (len(new_edges),))
-        infr.queue.clear()
-        infr.add_candidate_edges(new_edges)
-        infr.refresh.enabled = False
-        infr.inner_priority_loop(use_refresh=False)
+        for count in it.count(0):
+            infr.print('check pos-redun iter {}'.format(count))
+            print('pos_redun_candidates = %r' % (len(new_edges),))
+            infr.queue.clear()
+            infr.add_candidate_edges(new_edges)
+            infr.refresh.enabled = False
+            infr.inner_priority_loop(use_refresh=False)
+            new_edges = infr.find_pos_redun_candidate_edges()
+            if len(new_edges) < 10:
+                print('new_edges = %r' % (new_edges,))
+            if len(new_edges) == 0:
+                infr.print(
+                    'pos-redundancy achieved in {} iterations'.format(
+                        count + 1))
+                break
+            infr.print('not pos-reduntant yet.')
 
     @profile
     def rereview_nonconf_auto(infr):
@@ -820,11 +831,11 @@ class SimulationHelpers(object):
 
         if 0:
             import ubelt
+            from ibeis.algo.graph import nx_utils
             for timer in ubelt.Timerit(10):
                 with timer:
                     # Find undetectable errors
                     num_undetectable_fn = 0
-                    from ibeis.algo.graph import nx_utils
                     for nid1, nid2 in infr.neg_redun_nids.edges():
                         cc1 = infr.pos_graph.component(nid1)
                         cc2 = infr.pos_graph.component(nid2)
@@ -838,7 +849,6 @@ class SimulationHelpers(object):
 
                     # Find undetectable errors
                     num_undetectable_fp = 0
-                    from ibeis.algo.graph import nx_utils
                     for nid in infr.pos_redun_nids:
                         cc = infr.pos_graph.component(nid)
                         if not ut.allsame(ut.take(infr.node_truth, cc)):

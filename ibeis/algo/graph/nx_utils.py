@@ -656,7 +656,8 @@ def greedy_edge_augmentation(G, k, avail=None, return_anyway=False):
 
 
 @profile
-def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=False):
+def edge_connected_augmentation(G, k, avail=None, hack=False,
+                                return_anyway=False):
     r"""
     Finds set of edges to k-edge-connect G. In the case of k=1
     this is a minimum weight set. For k=2 it becomes exact only if avail is
@@ -716,7 +717,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
     elif k == 1 and not hack:
         aug_edges = one_connected_augmentation(G, avail)
     elif k == 2 and avail is None and not hack:
-        aug_edges = bridge_connected_augmentation(G)
+        aug_edges = list(bridge_connected_augmentation(G))
     elif k == 2 and avail is not None:
         aug_edges = weighted_bridge_connected_augmentation(G, avail,
                                                            return_anyway)
@@ -1023,7 +1024,7 @@ def bridge_connected_augmentation(G):
         >>> from ibeis.algo.graph.nx_utils import *
         >>> import networkx as nx
         >>> G = demodata_tarjan_bridge()
-        >>> bridge_edges = bridge_connected_augmentation(G)
+        >>> bridge_edges = list(bridge_connected_augmentation(G))
         >>> import plottool as pt
         >>> ut.quit_if_noshow()
         >>> pt.qtensure()
@@ -1041,7 +1042,7 @@ def bridge_connected_augmentation(G):
         >>> import networkx as nx
         >>> G = nx.Graph()
         >>> G.add_nodes_from([1, 2, 3, 4])
-        >>> bridge_edges = bridge_connected_augmentation(G)
+        >>> bridge_edges = list(bridge_connected_augmentation(G))
         >>> import plottool as pt
         >>> ut.quit_if_noshow()
         >>> pt.qtensure()
@@ -1052,6 +1053,11 @@ def bridge_connected_augmentation(G):
         >>> pt.nx_agraph_layout(G2, inplace=True, prog='neato')
         >>> pt.show_nx(G, fnum=1, pnum=(1, 2, 1), layout='custom')
         >>> pt.show_nx(G2, fnum=1, pnum=(1, 2, 2), layout='custom')
+
+    Example:
+        G = nx.Graph([(2393, 2257), (2393, 2685), (2685, 2257), (1758, 2257)])
+        bridge_edges = list(bridge_connected_augmentation(G))
+        assert not any([G.has_edge(*e) for e in bridge_edges])
     """
     if G.number_of_nodes() < 3:
         raise ValueError('impossible to bridge connect less than 3 verticies')
@@ -1071,9 +1077,19 @@ def bridge_connected_augmentation(G):
     # collect the edges used to augment the original forest
     aug_tree_edges = tree_bridges + forest_bridges
     # map these edges back to edges in the original graph
-    inverse = {v: k for k, v in C.graph['mapping'].items()}
-    bridge_edges = [(inverse[u], inverse[v]) for u, v in aug_tree_edges]
-    return bridge_edges
+    # ensure that you choose a pair that does not yet exist
+    inverse = ut.ddict(list)
+    for k, v in C.graph['mapping'].items():
+        inverse[v].append(k)
+    # sort so we choose minimum degree nodes first
+    inverse = {augu: sorted(mapped, key=lambda u: (G.degree(u), u))
+               for augu, mapped in inverse.items()}
+    for augu, augv in aug_tree_edges:
+        # Find the first available edge that doesn't exist and return it
+        for u, v in it.product(inverse[augu], inverse[augv]):
+            if not G.has_edge(u, v):
+                yield u, v
+                break
 
 
 @profile

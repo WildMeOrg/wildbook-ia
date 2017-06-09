@@ -67,7 +67,6 @@ class DynamicUpdate(object):
         else:
             raise AssertionError('Unknown decision=%r' % (decision,))
         return action
-        # print('infr.recover_graph = %r' % (infr.recover_graph,))
 
     def ensure_edges_from(infr, edges):
         """
@@ -87,7 +86,7 @@ class DynamicUpdate(object):
         return new_edges
 
     def _add_review_edges_from(infr, edges, decision=UNREV):
-        infr.print('add %d edges decision=%r' % (len(edges), decision), 1)
+        infr.print('add {} edges decision={}'.format(len(edges), decision), 1)
         # Add to review graph corresponding to decision
         infr.review_graphs[decision].add_edges_from(edges)
         # Remove from previously existing graphs
@@ -1581,17 +1580,6 @@ class NonDynamicUpdate(object):
         """
         categories = infr.categorize_edges(graph)
 
-        infr.recover_graph.clear()
-        nid_to_errors = {}
-        for nid, intern_edges in categories['inconsistent_internal'].items():
-            cc = infr.pos_graph.component_nodes(nid)
-            pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False).copy()
-            neg_edges = list(edges_inside(infr.neg_graph, cc))
-            recover_hypothesis = dict(infr.hypothesis_errors(
-                pos_subgraph, neg_edges))
-            nid_to_errors[nid] = set(recover_hypothesis.keys())
-            infr.recover_graph.add_edges_from(pos_subgraph.edges())
-
         infr.set_edge_attrs(
             'inferred_state',
             ut.dzip(ut.flatten(categories[POSTV].values()), ['same'])
@@ -1622,10 +1610,23 @@ class NonDynamicUpdate(object):
             ut.dzip(ut.flatten(categories['inconsistent_external'].values()),
                     ['inconsistent_external'])
         )
-        # assert (
-        #     set(ut.flatten(ut.flatten(categories['inconsistent_internal'].values()))) ==
-        #     set(ut.flatten(infr.recovery_ccs))
-        # )
+
+        # Ensure bookkeeping is taken care of
+        # * positive redundancy
+        # * negative redundancy
+        # * inconsistency
+        infr.pos_redun_nids = set(infr.find_pos_redun_nids())
+        infr.neg_redun_nids = infr._graph_cls(list(infr.find_neg_redun_nids()))
+        infr.recover_graph.clear()
+        nid_to_errors = {}
+        for nid, intern_edges in categories['inconsistent_internal'].items():
+            cc = infr.pos_graph.component_nodes(nid)
+            pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False).copy()
+            neg_edges = list(edges_inside(infr.neg_graph, cc))
+            recover_hypothesis = dict(infr.hypothesis_errors(pos_subgraph,
+                                                             neg_edges))
+            nid_to_errors[nid] = set(recover_hypothesis.keys())
+            infr.recover_graph.add_edges_from(pos_subgraph.edges())
 
         # Delete old hypothesis
         infr.set_edge_attrs(
@@ -1638,22 +1639,6 @@ class NonDynamicUpdate(object):
             ut.dzip(ut.flatten(nid_to_errors.values()), [True])
         )
         infr.nid_to_errors = nid_to_errors
-
-        # TODO: should this also update redundancy?
-        # infr.refresh_bookkeeping()
-        # def refresh_bookkeeping(infr):
-        # TODO: need to ensure bookkeeping is taken care of
-        infr.recovery_ccs = list(infr.inconsistent_components())
-        if len(infr.recovery_ccs) > 0:
-            infr.recovery_cc = infr.recovery_ccs[0]
-            infr.recover_prev_neg_nids = list(
-                infr.find_external_neg_nids(infr.recovery_cc)
-            )
-        else:
-            infr.recovery_cc = None
-            infr.recover_prev_neg_nids = None
-        infr.pos_redun_nids = set(infr.find_pos_redun_nids())
-        infr.neg_redun_nids = infr._graph_cls(list(infr.find_neg_redun_nids()))
 
         # no longer dirty
         if graph is None:
