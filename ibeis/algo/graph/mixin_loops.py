@@ -31,7 +31,7 @@ class RefreshCriteria(object):
         # if len(refresh.manual_decisions) > refresh.warmup:
         # return (refresh.pos_frac < refresh.frac_thresh and
         #         refresh.num_pos > refresh.pos_thresh)
-        # return refresh.prob_none_remain() > refresh._prob_none_remain_thresh
+        # return refresh._prob_none_remain() > refresh._prob_none_remain_thresh
         if not refresh.enabled:
             return False
         return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
@@ -122,11 +122,11 @@ class RefreshCriteria(object):
             prob_no_event ** a
 
         """
-        prob_no_event_in_range = refresh.prob_none_remain(n_remain_edges)
+        prob_no_event_in_range = refresh._prob_none_remain(n_remain_edges)
         prob_event_in_range = 1 - prob_no_event_in_range
         return prob_event_in_range
 
-    def prob_none_remain(refresh, n_remain_edges=None):
+    def _prob_none_remain(refresh, n_remain_edges=None):
         """
         mu = .3
         a = 3
@@ -405,7 +405,7 @@ class InfrLoops(object):
         new_edges = infr.find_pos_redun_candidate_edges()
         print('pos_redun_candidates = %r' % (len(new_edges),))
         infr.queue.clear()
-        infr.add_new_candidate_edges(new_edges)
+        infr.add_candidate_edges(new_edges)
         infr.refresh.enabled = False
         infr.inner_priority_loop(use_refresh=False)
 
@@ -448,7 +448,8 @@ class InfrLoops(object):
         """
         Executes reviews until the queue is empty or needs refresh
         """
-        infr.print('Start inner loop')
+        infr.print('Start inner loop with {} items in the queue'.format(
+            len(infr.queue)))
         for count in it.count(0):
             if infr.is_recovering():
                 infr.print('Still recovering after %d iterations' % (count,),
@@ -493,6 +494,7 @@ class InfrLoops(object):
             infr.print('Outer loop iter %d ' % (count,))
             # Do priority loop over lnbnn candidates
             infr.lnbnn_priority_loop(use_refresh)
+            print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
 
             terminate = (infr.refresh.num_meaningful == 0)
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
@@ -502,6 +504,8 @@ class InfrLoops(object):
             if infr.enable_redundancy:
                 # Fix positive redundancy of anything within the loop
                 infr.pos_redun_loop()
+
+            print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
 
             if terminate:

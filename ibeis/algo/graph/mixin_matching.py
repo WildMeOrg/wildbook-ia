@@ -660,18 +660,21 @@ class CandidateSearch(object):
             # 'sv_on': False,
         })
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
-        candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
+        lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': 5}))
         already_reviewed = set(infr.get_edges_where_ne(
-            'decision', 'unreviewed', edges=candidate_edges,
+            'decision', 'unreviewed', edges=lnbnn_results,
             default='unreviewed', on_missing='filter'))
-        candidate_edges = set(candidate_edges) - already_reviewed
+        candidate_edges = lnbnn_results - already_reviewed
 
-        if infr.enable_inference:
-            candidate_edges = set(infr.filter_nonredun_edges(candidate_edges))
+        infr.print('ranking alg found {}/{} unreviewed edges'.format(
+            len(candidate_edges), len(lnbnn_results)), 1)
 
-        infr.print('vsmany found %d/%d new edges' % (
-            len(candidate_edges), len(candidate_edges) +
-            len(already_reviewed)), 1)
+        # if infr.enable_inference:
+        #     orig_candidate_edges = candidate_edges
+        #     candidate_edges = set(infr.filter_nonredun_edges(candidate_edges))
+        #     infr.print('removed {} redundant candidates'.format(
+        #         len(orig_candidate_edges) - len(candidate_edges)), 1)
+
         return candidate_edges
 
     def find_pos_augment_edges(infr, pcc, k=None):
@@ -752,34 +755,16 @@ class CandidateSearch(object):
         return candidate_edges
 
     @profile
-    def find_new_candidate_edges(infr, ranking=True):
-        if ranking:
-            candidate_edges = infr.find_lnbnn_candidate_edges()
-        else:
-            candidate_edges = set([])
-        if infr.enable_inference:
-            if False:
-                new_neg = set(infr.find_neg_redun_candidate_edges())
-                candidate_edges.update(new_neg)
-            if not ranking:
-                new_pos = set(infr.find_pos_redun_candidate_edges())
-                candidate_edges.update(new_pos)
-                print('[WARNING] This should no longer be hit')
-                print('[WARNING] Depricate ranking=False in find_new_candidate_edges')
-        new_edges = {
-            edge for edge in candidate_edges if not infr.graph.has_edge(*edge)
-        }
-        return new_edges
+    def add_candidate_edges(infr, candidate_edges):
 
-    @profile
-    def add_new_candidate_edges(infr, new_edges):
-        new_edges = list(new_edges)
-        infr.print('Adding %d new candidate edges' % (len(new_edges)))
-        new_edges = list(new_edges)
+        candidate_edges = list(candidate_edges)
+        new_edges = infr.ensure_edges_from(candidate_edges)
+        infr.print('Adding {}/{} new candidate edges'.format(
+            len(new_edges), len(candidate_edges)))
+
         if len(new_edges) == 0:
             return
 
-        infr.ensure_edges_from(new_edges, assume_new=True)
         # infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
         # infr.unreviewed_graph.add_edges_from(new_edges)
 
@@ -865,7 +850,7 @@ class CandidateSearch(object):
             infr.on_new_candidate_edges(infr, new_edges)
 
     @profile
-    def refresh_candidate_edges(infr, ranking=True):
+    def refresh_candidate_edges(infr):
         """
         Search for candidate edges.
         Assign each edge a priority and add to queue.
@@ -873,8 +858,8 @@ class CandidateSearch(object):
         infr.print('refresh_candidate_edges', 1)
 
         infr.assert_consistency_invariant()
-        new_edges = infr.find_new_candidate_edges(ranking=ranking)
-        infr.add_new_candidate_edges(new_edges)
+        candidate_edges = infr.find_lnbnn_candidate_edges()
+        infr.add_candidate_edges(candidate_edges)
         infr.assert_consistency_invariant()
 
     def _cached_pairwise_features(infr, edges, data_info):
@@ -899,7 +884,8 @@ class CandidateSearch(object):
         edges = [(1, 2)]
         """
         import ubelt as ub
-        infr.print('Requesting %d cached pairwise features' % len(edges))
+        infr.print('Requesting %d cached pairwise features' % len(edges),
+                   level=3)
         edges = list(edges)
         ibs = infr.ibs
         edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
@@ -922,10 +908,10 @@ class CandidateSearch(object):
         cache_dir = join(infr.ibs.get_cachedir(), 'infr_bulk_cache')
         feat_cacher = ub.Cacher('bulk_pairfeats_v3',
                                 feat_cfgstr, enabled=use_cache,
-                                dpath=cache_dir, verbose=20)
+                                dpath=cache_dir, verbose=infr.verbose > 3)
         if feat_cacher.enabled:
             ut.ensuredir(cache_dir)
-        if feat_cacher.exists():
+        if feat_cacher.exists() and infr.verbose > 3:
             fpath = feat_cacher.get_fpath()
             print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         data = feat_cacher.tryload()
@@ -940,7 +926,7 @@ class CandidateSearch(object):
                                                 global_keys, need_lnbnn,
                                                 multi_index)
             feat_cacher.save(data)
-            if feat_cacher.enabled:
+            if feat_cacher.enabled and infr.verbose > 3:
                 fpath = feat_cacher.get_fpath()
                 print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         matches, feats = data
@@ -1008,6 +994,8 @@ class CandidateSearch(object):
         prev_data_info = None
         task_keys = list(infr.classifiers.keys())
         task_probs = {}
+        infr.print('predict {} for {} edges'.format(
+            ut.conj_phrase(task_keys, 'and'), len(edges)))
         for task_key in task_keys:
             deploy_info = infr.classifiers[task_key]
             data_info = deploy_info['metadata']['data_info']
@@ -1016,7 +1004,6 @@ class CandidateSearch(object):
             if prev_data_info != data_info:
                 X_df = infr._cached_pairwise_features(edges, data_info)
                 prev_data_info = data_info
-            infr.print('predict {}'.format(task_key))
             probs_df = sklearn_utils.predict_proba_df(clf, X_df, class_names)
             task_probs[task_key] = probs_df
         # pblm = infr.classifiers

@@ -69,18 +69,22 @@ class DynamicUpdate(object):
         return action
         # print('infr.recover_graph = %r' % (infr.recover_graph,))
 
-    def ensure_edges_from(infr, edges, assume_new=False):
+    def ensure_edges_from(infr, edges):
         """
-        Finds edges that don't exist and adds them as unreviwed edges
+        Finds edges that don't exist and adds them as unreviwed edges.
+        Returns new edges that were added.
         """
-        if assume_new:
-            missing_edges = edges
-        else:
-            flags = (not infr.has_edge(e) for e in edges)
-            missing_edges = it.compress(edges, flags)
-        missing_edges = list(missing_edges)
-        infr.graph.add_edges_from(missing_edges, decision=UNREV, num_reviews=0)
-        infr._add_review_edges_from(missing_edges, decision=UNREV)
+        edges = list(edges)
+        new_edges = [e for e in edges if not infr.has_edge(e)]
+        infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
+        # if infr.enable_inference:
+        #     for edge in new_edges:
+        #         infr._uninferable_decision(edge, UNREV)
+        # else:
+        # TODO: I'm pretty sure we don't need to do any redundancy bookkeeping
+        # by adding new unreviewed edges between PCCs, but make sure.
+        infr._add_review_edges_from(new_edges, decision=UNREV)
+        return new_edges
 
     def _add_review_edges_from(infr, edges, decision=UNREV):
         infr.print('add %d edges decision=%r' % (len(edges), decision), 1)
