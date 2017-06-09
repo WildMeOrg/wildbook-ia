@@ -767,10 +767,6 @@ class CandidateSearch(object):
             infr.print('Prioritizing {} edges with one-vs-one probabilities'.format(
                 len(priority_edges)), 1)
             # Construct pairwise features on edges in infr
-            # needs_probs = infr.get_edges_where_eq('task_probs', None,
-            #                                       edges=new_edges,
-            #                                       default=None)
-
             primary_task = 'match_state'
             infr.task_probs[primary_task]
 

@@ -574,8 +574,67 @@ class GraphVisualization(object):
         lines += [('edge_data: ' + ut.repr2(edge_data, nl=1))]
         return '\n'.join(lines)
 
-    def show_error_case(infr):
-        pass
+    def show_error_case(infr, aids, edge=None, error_edges=None, colorby=None,
+                        fnum=1):
+        """
+        Example
+        """
+        import plottool as pt
+
+        if error_edges is None:
+            # compute a minimal set of edges to minimally fix the case
+            pass
+
+        sub_infr = infr.subgraph(aids)
+
+        # err_graph.add_edges_from(missing_edges)
+        subdf = sub_infr.get_edge_dataframe()
+        mistake_edges = []
+        if len(subdf) > 0:
+            mistakes = subdf[(subdf.truth != subdf.decision) &
+                             (subdf.decision != UNREV)]
+            mistake_edges = mistakes.index.tolist()
+        err_edges = mistake_edges + list(error_edges)
+        missing = [e for e in err_edges if not sub_infr.has_edge(e)]
+
+        # Hack, make sure you don't reuse
+        sub_infr.graph.add_edges_from(missing)
+
+        stroke = {'linewidth': 2.5, 'foreground': sub_infr._error_color}
+        edge_overrides = {
+            # 'alpha': {e: .05 for e in true_negatives},
+            'alpha': {},
+            'style': {e: '' for e in err_edges},
+            'sketch': {e: None for e in err_edges},
+            'linestyle': {e: 'dashed' for e in missing},
+            'linewidth': {e: 2.0 for e in err_edges + missing},
+            'stroke': {e: stroke for e in err_edges + missing},
+        }
+        selected_kw = {
+            'stroke': {'linewidth': 5, 'foreground': sub_infr._error_color},
+            'alpha': 1.0,
+        }
+        for k, v in selected_kw.items():
+            if k not in edge_overrides:
+                edge_overrides[k] = {}
+            edge_overrides[k][edge] = selected_kw[k]
+
+        sub_infr.show_edge(edge, fnum=1, pnum=(2, 1, 2))
+        ax = pt.gca()
+        xy, w, h = pt.get_axis_xy_width_height(ax=ax)
+
+        nx.set_node_attributes(sub_infr.graph, 'framewidth', 1.0)
+        nx.set_node_attributes(sub_infr.graph, 'framealign', 'outer')
+        nx.set_node_attributes(sub_infr.graph, 'framealpha', 0.7)
+        sub_infr.show_graph(
+            fnum=fnum, pnum=(2, 1, 1), show_recent_review=False,
+            zoomable=False,
+            pickable=False,
+            show_cand=False, splines='spline',
+            simple_labels=True, colorby=colorby, use_image=True,
+            edge_overrides=edge_overrides,
+            # ratio=1 / abs(w / h)
+        )
 
     show = show_graph
 

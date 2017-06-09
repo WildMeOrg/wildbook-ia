@@ -45,7 +45,19 @@ class Chap5(DBInputs):
 
         self.test_train = train_aids, test_aids
 
-        cfgstr = '{}_{}'.format(len(test_aids), len(train_aids))
+        # ut.get_nonconflicting_path(dpath, suffix='_old')
+        self.const_dials = {
+            # 'oracle_accuracy' : (0.98, 1.0),
+            # 'oracle_accuracy' : (0.98, .98),
+            'oracle_accuracy' : (0.99, .99),
+            'k_redun'         : 2,
+            'max_outer_loops' : np.inf,
+            # 'max_outer_loops' : 1,
+        }
+
+        hashid = ut.hash_data(ut.repr3(self.const_dials))[0:6]
+
+        cfgstr = '{}_{}_{}'.format(len(test_aids), len(train_aids), hashid)
         self._setup_links(cfgstr)
 
     def _setup(self):
@@ -112,23 +124,13 @@ class Chap5(DBInputs):
         clf_dpath = ut.ensuredir((self.dpath, 'clf'))
         classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
 
-        # ut.get_nonconflicting_path(dpath, suffix='_old')
-        const_dials = {
-            # 'oracle_accuracy' : (0.98, 1.0),
-            # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.98, .98),
-            'k_redun'         : 2,
-            'max_outer_loops' : np.inf,
-            # 'max_outer_loops' : 1,
-        }
-
         sim_params = {
             'test_aids': test_aids,
             'train_aids': train_aids,
             'classifiers': classifiers,
             'graph_thresh': graph_thresh,
             'rankclf_thresh': rankclf_thresh,
-            'const_dials': const_dials,
+            'const_dials': self.const_dials,
         }
         self.pblm = pblm
         self.sim_params = sim_params
@@ -272,6 +274,7 @@ class Chap5(DBInputs):
         self.draw_simulation()
         self.draw_refresh()
         self.write_dbstats()
+        # python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
 
     @profile
     def measure_dbstats(self):
@@ -453,17 +456,17 @@ class Chap5(DBInputs):
 
         # Manage data using a read-only inference object
         ibs = ibeis.opendb(db=self.dbname)
-        parent_infr = ibeis.AnnotInference.from_netx(graph, ibs=ibs)
-        parent_infr.readonly = True
-        parent_infr._viz_image_config['thumbsize'] = 700
-        parent_infr.classifiers = parent_infr.load_latest_classifiers(
+        infr = ibeis.AnnotInference.from_netx(graph, ibs=ibs)
+        infr.readonly = True
+        infr._viz_image_config['thumbsize'] = 700
+        infr.classifiers = infr.load_latest_classifiers(
             join(self.dpath, 'clf'))
-        parent_infr.relabel_using_reviews(rectify=False)
+        infr.relabel_using_reviews(rectify=False)
 
         # For each node, mark its real and predicted ids
-        parent_infr.set_node_attrs('real_id', {
+        infr.set_node_attrs('real_id', {
             aid: nid for nid, cc in enumerate(real_ccs) for aid in cc})
-        parent_infr.set_node_attrs('pred_id', {
+        infr.set_node_attrs('pred_id', {
             aid: nid for nid, cc in enumerate(pred_ccs) for aid in cc})
 
         # from networkx.utils import arbitrary_element as arbitrary
@@ -482,92 +485,46 @@ class Chap5(DBInputs):
                 case_aids = set(ut.flatten(case))
                 # For each case find what edges need fixing
                 if case_type == 'merge':
-                    error_edges = parent_infr.find_pos_augment_edges(case_aids, k=1)
+                    error_edges = infr.find_pos_augment_edges(case_aids, k=1)
                 else:
                     edges = list(nxu.edges_between(graph, case_aids))
-                    df = parent_infr.get_edge_dataframe(edges)
-                    flags = (df.truth != df.decision) & (df.truth == NEGTV)
-                    error_edges = df.index[flags].tolist()
+                    _df = infr.get_edge_dataframe(edges)
+                    flags = (_df.truth != _df.decision) & (_df.truth == NEGTV)
+                    error_edges = _df.index[flags].tolist()
                 for edge in error_edges:
-                    edge = parent_infr.e_(*edge)
+                    edge = infr.e_(*edge)
                     err_items.append((case_type, case, error_edges, edge))
         err_items_df = pd.DataFrame(err_items, columns=['case_type', 'case',
                                                         'error_edges', 'edge'])
 
-        edges = err_items_df['error_edges'].tolist()
-        df = parent_infr.get_edge_dataframe(edges)
-        df = df.drop(df.columns.intersection(ignore), axis=1)
+        edges = err_items_df['edge'].tolist()
+        err_df = infr.get_edge_dataframe(edges)
+        err_df = err_df.drop(err_df.columns.intersection(ignore), axis=1)
         # Lookup the probs for each state
-        task_probs = parent_infr._make_task_probs(edges)
+        task_probs = infr._make_task_probs(edges)
         probs_df = pd.concat(task_probs, axis=1)  # NOQA
 
         dpath = ut.ensuredir((self.dpath, 'errors'))
         fnum = 1
 
-        fig = pt.figure(fnum=fnum, pnum=(2, 1, 1))
+        fig = pt.figure(fnum=fnum, pnum=(2, 1, 2))
+        ax = pt.gca()
         pt.adjust_subplots(
             top=1, right=1, left=0, bottom=.15, hspace=.01, wspace=0, fig=fig)
 
-        # subitems = err_items_df
-        subitems = err_items_df[err_items_df.case_type == 'merge'].iloc[-2:]
+        subitems = err_items_df
+        # subitems = err_items_df[err_items_df.case_type == 'merge'].iloc[-2:]
         for _, (case_type, case, error_edges, edge) in subitems.iterrows():
             aids = ut.total_flatten(case)
-            infr = parent_infr.subgraph(aids)
-
-            # err_graph.add_edges_from(missing_edges)
-            df = infr.get_edge_dataframe()
-            mistakes = df[(df.truth != df.decision) & (df.decision != UNREV)]
-            mistake_edges = mistakes.index.tolist()
-            err_edges = mistake_edges + list(error_edges)
-            missing = [e for e in err_edges if not infr.has_edge(e)]
-
-            stroke = {'linewidth': 2.5, 'foreground': infr._error_color}
-            edge_overrides = {
-                # 'alpha': {e: .05 for e in true_negatives},
-                'alpha': {},
-                'style': {e: '' for e in err_edges},
-                'sketch': {e: None for e in err_edges},
-                'linestyle': {e: 'dashed' for e in missing},
-                'linewidth': {e: 2.0 for e in err_edges + missing},
-                'stroke': {e: stroke for e in err_edges + missing},
-            }
-            # shadow =
-            if edge:
-                selected_kw = {
-                    # 'shadow': {'alpha': .6, 'color': 'r', 'offset': 0,
-                    #            'scale': 3.0}
-                    'stroke': {'linewidth': 5, 'foreground': infr._error_color},
-                    'alpha': 1.0,
-                }
-                for k, v in selected_kw.items():
-                    if k not in edge_overrides:
-                        edge_overrides[k] = {}
-                    edge_overrides[k][edge] = selected_kw[k]
-
-            infr.show_edge(edge, fnum=1, pnum=(2, 1, 2))
-            ax = pt.gca()
-            xy, w, h = pt.get_axis_xy_width_height(ax=ax)
 
             if case_type == 'split':
                 colorby = 'real_id'
             if case_type == 'merge':
                 colorby = 'pred_id'
 
-            infr.show_graph(
-                fnum=fnum, pnum=(2, 1, 1), show_recent_review=False,
-                zoomable=False,
-                pickable=False,
-                show_cand=False, splines='spline',
-                simple_labels=True, colorby=colorby, use_image=True,
-                edge_overrides=edge_overrides,
-                # ratio=1 / abs(w / h)
-            )
+            infr.show_error_case(aids, edge, error_edges, colorby=colorby)
 
-            # df.index.names = (None, None)
-            # xlabel = '\nedge = {}, {}'.format(*edge)
-            # xlabel = '%s case: %s' % (case_type, ut.repr2(case, nobr=True))
-
-            edge_info = df.loc[edge].to_dict()
+            edge_info = err_df.loc[edge].to_dict()
 
             xlabel = case_type.capitalize() + ' case. '
             code_to_nice = task_nice_lookup['match_state']
@@ -590,8 +547,7 @@ class Chap5(DBInputs):
                 pred_nice = 'pred=None'
             else:
                 pred_nice = 'pred={}'.format(code_to_nice[pred_code])
-            xlabel += '\n{}, {}'.format(real_nice,
-                                              pred_nice)
+            xlabel += '\n{}, {}'.format(real_nice, pred_nice)
 
             for task_key in task_keys:
                 tprobs = task_probs[task_key]
@@ -603,6 +559,9 @@ class Chap5(DBInputs):
                 probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
                 xlabel += '\n' + probstr
             xlabel = xlabel.lstrip('\n')
+
+            fig = pt.gcf()
+            ax = fig.axes[0]
             ax.set_xlabel(xlabel)
             fig.set_size_inches([W, H * 2])
 
@@ -922,7 +881,7 @@ class Chap5(DBInputs):
         ydatas = _metrics('pprob_any')
 
         # fix the visual inconsistency that doesn't matter in practice
-        flags = _metrics('refresh_support')
+        # flags = _metrics('refresh_support')
         key = 'graph'
         ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
         ax.set_xlabel('# manual reviews')
