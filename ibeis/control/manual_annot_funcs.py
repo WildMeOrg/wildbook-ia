@@ -2630,7 +2630,7 @@ def set_annot_name_texts(ibs, aid_list, name_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/species/', methods=['PUT'], __api_plural_check__=False)
-def set_annot_species(ibs, aid_list, species_text_list):
+def set_annot_species(ibs, aid_list, species_text_list, **kwargs):
     r"""
     Sets species/speciesids of a list of annotations.
     Convenience function for set_annot_lblannot_from_value
@@ -2640,7 +2640,7 @@ def set_annot_species(ibs, aid_list, species_text_list):
         URL:    /api/annot/species/
     """
     #ibs.get_nids_from_text
-    species_rowid_list = ibs.get_species_rowids_from_text(species_text_list)
+    species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, **kwargs)
     ibs.set_annot_species_rowids(aid_list, species_rowid_list)
 
 

@@ -5529,6 +5529,7 @@ def _clean_species(ibs):
     if ibs.readonly:
         # SUPER HACK
         return
+    species_mapping_dict = {}
     if ibs is not None:
         flag = '--allow-keyboard-database-update'
         from six.moves import input as raw_input_
@@ -5538,8 +5539,12 @@ def _clean_species(ibs):
         species_nice_list = ibs.get_species_nice(species_rowid_list)
         species_code_list = ibs.get_species_codes(species_rowid_list)
         for rowid, text, nice, code in zip(species_rowid_list, species_text_list, species_nice_list, species_code_list):
+            alias = None
             if text in const.SPECIES_MAPPING:
                 species_code, species_nice = const.SPECIES_MAPPING[text]
+                while species_code is None:
+                    alias = species_nice
+                    species_code, species_nice = const.SPECIES_MAPPING[species_nice]
             elif text is None or text.strip() in ['_', const.UNKNOWN, 'none', 'None', '']:
                 print('[_clean_species] deleting species: %r' % (text, ))
                 ibs.delete_species(rowid)
@@ -5558,6 +5563,19 @@ def _clean_species(ibs):
             if nice != species_nice or code != species_code:
                 ibs._set_species_nice([rowid], [species_nice])
                 ibs._set_species_code([rowid], [species_code])
+            if alias is not None:
+                alias_rowid = ibs.get_species_rowids_from_text(alias, skip_cleaning=True)
+                aid_list = ibs._get_all_aids()
+                species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+                aid_list_ = [
+                    aid
+                    for aid, species_rowid in zip(aid_list, species_rowid_list)
+                    if species_rowid == rowid
+                ]
+                species_mapping_dict[rowid] = alias_rowid
+                ibs.set_annot_species_rowids(aid_list_, [alias_rowid] * len(aid_list_))
+                ibs.delete_species([rowid])
+    return species_mapping_dict
 
 
 @register_ibs_method

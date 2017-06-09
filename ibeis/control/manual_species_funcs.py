@@ -245,7 +245,11 @@ def add_species(ibs, species_nice_list, species_text_list=None,
 
     # Clean species
     if not skip_cleaning:
-        ibs._clean_species()
+        species_mapping_dict = ibs._clean_species()
+        species_rowid_list = [
+            species_mapping_dict.get(species_rowid, species_rowid)
+            for species_rowid in species_rowid_list
+        ]
 
     return species_rowid_list
     #value_list = ibs.sanitize_species_texts(species_text_list)
@@ -296,7 +300,7 @@ def delete_empty_species(ibs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/species/rowid/text/', methods=['GET'], __api_plural_check__=False)
-def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
+def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
     r"""
     Returns:
         species_rowid_list (list): Creates one if it doesnt exist
@@ -355,7 +359,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
     """
     if ensure:
-        species_rowid_list = ibs.add_species(species_text_list)
+        species_rowid_list = ibs.add_species(species_text_list, **kwargs)
     else:
         species_text_list_ = ibs.sanitize_species_texts(species_text_list)
         #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
