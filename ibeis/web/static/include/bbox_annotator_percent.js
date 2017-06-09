@@ -3197,10 +3197,12 @@ TODO
 
             for (var key in element.resize) {
                 element.resize[key].mousedown(function(event) {
-                    // We want to prevent the selector mode from firing from "free"
-                    bba.state.mode = "resize"
-                    // Start the resizing
-                    bba.resize_start($(this), event)
+                    if (event.which == 1) {
+                        // We want to prevent the selector mode from firing from "free"
+                        bba.state.mode = "resize"
+                        // Start the resizing
+                        bba.resize_start($(this), event)
+                    }
                 })
             }
         }
