@@ -445,15 +445,16 @@ class InfrLoops(object):
             'Recovery mode entered {} times, '
             'made {} recovery decisions.').format(
                 len(recover_blocks), sum(recover_blocks)), color='green')
+        testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
         infr.print(
-            'Test Action Histogram: {}'.format(ut.repr4(ut.dict_hist(
-                ut.take_column(history, 'test_action')
-            ), si=True)), color='yellow')
+            'Test Action Histogram: {}'.format(
+                ut.repr4(testaction_hist, si=True)), color='yellow')
         if infr.enable_inference:
+            action_hist = ut.dict_hist(
+                ut.emap(frozenset, ut.take_column(history, 'action')))
             infr.print(
-                'Inference Action Histogram: {}'.format(ut.repr2(ut.dict_hist(
-                    ut.emap(frozenset, ut.take_column(history, 'action'))
-                ), si=True)), color='yellow')
+                'Inference Action Histogram: {}'.format(
+                    ut.repr2(action_hist, si=True)), color='yellow')
         infr.print(
             'Decision Histogram: {}'.format(ut.repr2(ut.dict_hist(
                 ut.take_column(history, 'pred_decision')
@@ -537,10 +538,17 @@ class InfrLoops(object):
             if max_loops is None:
                 max_loops = np.inf
 
+        if infr.test_mode:
+            print('------------------ {} -------------------'.format(infr.name))
+
         infr.refresh = RefreshCriteria(**infr._refresh_params)
 
         # Initialize a refresh criteria
         for count in it.count(0):
+
+            if infr.test_mode and infr.enable_inference:
+                checkpoint = infr.copy()
+
             if count >= max_loops:
                 infr.print('early stop', 1, color='red')
                 break
@@ -553,6 +561,17 @@ class InfrLoops(object):
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
             if terminate:
                 infr.print('Triggered termination criteria', 1, color='red')
+
+            if infr.test_mode and infr.enable_inference:
+                count = len(infr.metrics_list) - len(checkpoint.metrics_list)
+                history = infr.metrics_list[-count:]
+                testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
+                badness = testaction_hist.get('incorrect new merge', 0)
+                rewind = (infr.refresh.num_meaningful == badness) and badness > 0
+                if rewind:
+                    pass
+                    # import utool
+                    # utool.embed()
 
             if infr.enable_redundancy:
                 # Fix positive redundancy of anything within the loop

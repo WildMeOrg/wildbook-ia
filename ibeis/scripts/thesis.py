@@ -24,7 +24,12 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 class Chap5(DBInputs):
     """
     python -m ibeis Chap5.measure all GZ_Master1
+    python -m ibeis Chap5.measure all PZ_Master1
     python -m ibeis Chap5.draw all GZ_Master1
+    python -m ibeis Chap5.draw all PZ_Master1 --comp Leviathan
+
+    python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+    python -m ibeis Chap5.draw error_graph_analysis PZ_Master1 --comp Leviathan
 
 
     """
@@ -45,6 +50,13 @@ class Chap5(DBInputs):
 
         self.test_train = train_aids, test_aids
 
+        params = {}
+        if ibs.dbname == 'PZ_MTEST':
+            params['sample_method'] = 'random'
+
+        self.pblm = script_vsone.OneVsOneProblem.from_aids(
+            ibs, train_aids, **params)
+
         # ut.get_nonconflicting_path(dpath, suffix='_old')
         self.const_dials = {
             # 'oracle_accuracy' : (0.98, 1.0),
@@ -60,11 +72,73 @@ class Chap5(DBInputs):
         cfgstr = '{}_{}_{}'.format(len(test_aids), len(train_aids), hashid)
         self._setup_links(cfgstr)
 
+    def _thresh_test(self):
+        self._precollect()
+
+        ibs = self.ibs
+        train_aids, test_aids = self.test_train
+
+        task_key = 'match_state'
+        pblm = self.pblm
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+
+        pblm.eval_data_keys = [data_key]
+        pblm.setup(with_simple=False)
+        pblm.learn_evaluation_classifiers()
+
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        pblm.report_evaluation()
+
+        if True:
+            # Remove results that are photobombs for now
+            # res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
+            pb_task = pblm.samples.subtasks['photobomb_state']
+            import utool
+            with utool.embed_on_exception_context:
+                flags = pb_task.indicator_df.loc[res.index]['notpb'].values
+                notpb_res = res.compress(flags)
+                res = notpb_res
+
+        # TODO: need more principled way of selecting thresholds
+        graph_thresh = res.get_pos_threshes('fpr', value=.002)
+        rankclf_thresh = res.get_pos_threshes('fpr', value=0)
+
+        if ibs.dbname == 'GZ_Master1':
+            graph_thresh = res.get_pos_threshes('fpr', value=.0014)
+            rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
+        elif ibs.dbname == 'PZ_Master1':
+            # graph_thresh = res.get_pos_threshes('tpr', value=.5)
+            # graph_thresh = res.get_pos_threshes('fpr', value=.03)
+            # rankclf_thresh = res.get_pos_threshes('fpr', value=.01)
+            graph_thresh = res.get_pos_threshes('fpr', value=.001)
+            rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
+
+        print('\n--- Graph thresholds ---')
+        res.report_auto_thresholds(graph_thresh)
+
+        print('\n --- Ranking thresholds ---')
+        res.report_auto_thresholds(rankclf_thresh)
+
+        """
+        PLAN:
+            Draw an LNBNN sample.
+            Estimate probabilities on sample.
+
+            for each fpr on validation,
+                find threshold
+                find fpr at that threshold for the lnbnn sample
+
+            plot the predicted fpr vs the true fpr to show that this is
+            difficult to predict.
+        """
+
     def _setup(self):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_Master1')
             >>> self = Chap5('PZ_MTEST')
         """
         self._precollect()
@@ -72,12 +146,8 @@ class Chap5(DBInputs):
         ibs = self.ibs
         train_aids, test_aids = self.test_train
 
-        params = {}
-        if ibs.dbname == 'PZ_MTEST':
-            params['sample_method'] = 'random'
-
-        pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids, **params)
         task_key = 'match_state'
+        pblm = self.pblm
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
 

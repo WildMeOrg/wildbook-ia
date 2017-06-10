@@ -1071,6 +1071,23 @@ class AnnotInference(ut.NiceRepr,
 
         infr2.readonly = infr.readonly
         infr2.dirty = infr.dirty
+
+        infr2.test_mode = infr.test_mode
+        infr2.test_mode = infr.test_mode
+        infr2.simulation_mode = infr.simulation_mode
+
+        infr2.enable_redundancy = infr.enable_redundancy
+        infr2.enable_inference = infr.enable_inference
+        infr2.enable_autoreview = infr.enable_autoreview
+        infr2.enable_attr_update = infr.enable_attr_update
+        infr2.enable_auto_prioritize_nonpos = infr.enable_auto_prioritize_nonpos
+
+        infr.queue = copy.deepcopy(infr.queue)
+        infr.queue_params = copy.deepcopy(infr.queue_params)
+
+        if infr.test_mode:
+            infr2.test_state = copy.deepcopy(infr.test_state)
+            infr2.metrics_list = copy.deepcopy(infr.metrics_list)
         return infr2
 
     def subgraph(infr, aids):
