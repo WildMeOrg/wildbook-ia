@@ -762,9 +762,9 @@ class CandidateSearch(object):
         return candidate_edges
 
     @profile
-    def make_edge_priority_scores(infr, priority_edges):
+    def ensure_priority_scores(infr, priority_edges):
         if infr.classifiers:
-            infr.print('Prioritizing {} edges with one-vs-one probabilities'.format(
+            infr.print('Prioritizing {} edges with one-vs-one probs'.format(
                 len(priority_edges)), 1)
             # Construct pairwise features on edges in infr
             primary_task = 'match_state'
@@ -828,25 +828,27 @@ class CandidateSearch(object):
             infr.set_edge_attrs('prob_match', prob_match.to_dict())
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
 
-            priority_metric = 'default_priority'
+            metric = 'default_priority'
             priority = default_priority
         elif hasattr(infr, 'dummy_matcher'):
             prob_match = np.array(infr.dummy_matcher.predict_edges(priority_edges))
             infr.set_edge_attrs('prob_match', ut.dzip(priority_edges, prob_match))
-            priority_metric = 'prob_match'
+            metric = 'prob_match'
             priority = prob_match
         elif infr.cm_list is not None:
             infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
             infr.task_probs = None
             scores = infr._make_lnbnn_scores(priority_edges)
-            priority_metric = 'normscore'
+            metric = 'normscore'
             priority = scores
         else:
             infr.print('No information to prioritize edges')
-            priority_metric = 'random'
+            metric = 'random'
             priority = np.zeros(len(priority_edges)) + 1e-6
-        return priority_metric, priority
+
+        infr.set_edge_attrs(metric, ut.dzip(priority_edges, priority))
+        return metric, priority
 
     @profile
     def add_candidate_edges(infr, candidate_edges):
@@ -867,9 +869,8 @@ class CandidateSearch(object):
             priority_edges = candidate_edges
 
         if len(priority_edges) > 0:
-            metric, priority = infr.make_edge_priority_scores(priority_edges)
+            metric, priority = infr.ensure_priority_scores(priority_edges)
 
-            infr.set_edge_attrs(metric, ut.dzip(priority_edges, priority))
             infr.prioritize(metric, priority_edges, priority)
 
         if hasattr(infr, 'on_new_candidate_edges'):

@@ -1015,6 +1015,7 @@ class AnnotInference(ut.NiceRepr,
         # the priority queue and extra edges needed to achieve minimum
         # redundancy will be searched for if the queue is empty.
         infr.enable_redundancy = True
+        infr.enable_fixredun = True
         infr.enable_inference = True
         infr.enable_autoreview = False
         infr.enable_attr_update = True

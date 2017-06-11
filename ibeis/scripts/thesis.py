@@ -67,71 +67,30 @@ class Chap5(DBInputs):
             # 'max_outer_loops' : 1,
         }
 
-        hashid = ut.hash_data(ut.repr3(self.const_dials))[0:6]
+        if ibs.dbname == 'GZ_Master1':
+            self.thresh_targets = {
+                'graph': ('fpr', .0014),
+                'rankclf': ('fpr', .001),
+            }
+        elif ibs.dbname == 'PZ_Master1':
+            self.thresh_targets = {
+                'graph': ('fpr', .03),
+                'rankclf': ('fpr', .01),
+            }
+        else:
+            self.thresh_targets = {
+                'graph': ('fpr', .002),
+                'rankclf': ('fpr', 0),
+            }
+
+        hashid = ut.hash_data(ut.repr3(
+            self.const_dials
+            # ut.dict_union(self.const_dials, self.thresh_targets)
+            # ut.dict_union(self.const_dials, self.thresh_targets)
+        ))[0:6]
 
         cfgstr = '{}_{}_{}'.format(len(test_aids), len(train_aids), hashid)
         self._setup_links(cfgstr)
-
-    def _thresh_test(self):
-        self._precollect()
-
-        ibs = self.ibs
-        train_aids, test_aids = self.test_train
-
-        task_key = 'match_state'
-        pblm = self.pblm
-        data_key = pblm.default_data_key
-        clf_key = pblm.default_clf_key
-
-        pblm.eval_data_keys = [data_key]
-        pblm.setup(with_simple=False)
-        pblm.learn_evaluation_classifiers()
-
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
-        pblm.report_evaluation()
-
-        if True:
-            # Remove results that are photobombs for now
-            # res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
-            pb_task = pblm.samples.subtasks['photobomb_state']
-            import utool
-            with utool.embed_on_exception_context:
-                flags = pb_task.indicator_df.loc[res.index]['notpb'].values
-                notpb_res = res.compress(flags)
-                res = notpb_res
-
-        # TODO: need more principled way of selecting thresholds
-        graph_thresh = res.get_pos_threshes('fpr', value=.002)
-        rankclf_thresh = res.get_pos_threshes('fpr', value=0)
-
-        if ibs.dbname == 'GZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.0014)
-            rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
-        elif ibs.dbname == 'PZ_Master1':
-            # graph_thresh = res.get_pos_threshes('tpr', value=.5)
-            # graph_thresh = res.get_pos_threshes('fpr', value=.03)
-            # rankclf_thresh = res.get_pos_threshes('fpr', value=.01)
-            graph_thresh = res.get_pos_threshes('fpr', value=.001)
-            rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
-
-        print('\n--- Graph thresholds ---')
-        res.report_auto_thresholds(graph_thresh)
-
-        print('\n --- Ranking thresholds ---')
-        res.report_auto_thresholds(rankclf_thresh)
-
-        """
-        PLAN:
-            Draw an LNBNN sample.
-            Estimate probabilities on sample.
-
-            for each fpr on validation,
-                find threshold
-                find fpr at that threshold for the lnbnn sample
-
-            plot the predicted fpr vs the true fpr to show that this is
-            difficult to predict.
-        """
 
     def _setup(self):
         """
@@ -142,8 +101,6 @@ class Chap5(DBInputs):
             >>> self = Chap5('PZ_MTEST')
         """
         self._precollect()
-
-        ibs = self.ibs
         train_aids, test_aids = self.test_train
 
         task_key = 'match_state'
@@ -174,15 +131,8 @@ class Chap5(DBInputs):
                 res = notpb_res
 
         # TODO: need more principled way of selecting thresholds
-        graph_thresh = res.get_pos_threshes('fpr', value=.002)
-        rankclf_thresh = res.get_pos_threshes('fpr', value=0)
-
-        if ibs.dbname == 'GZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.0014)
-            rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
-        elif ibs.dbname == 'PZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.03)
-            rankclf_thresh = res.get_pos_threshes('fpr', value=.01)
+        graph_thresh = res.get_pos_threshes(*self.thresh_targets['graph'])
+        rankclf_thresh = res.get_pos_threshes(*self.thresh_targets['rankclf'])
 
         print('\n--- Graph thresholds ---')
         res.report_auto_thresholds(graph_thresh)
@@ -205,6 +155,126 @@ class Chap5(DBInputs):
         self.pblm = pblm
         self.sim_params = sim_params
         return sim_params
+
+    def _thresh_test(self):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('PZ_Master1')
+            >>> self = Chap5('GZ_Master1')
+        """
+        import ibeis
+        self.ensure_setup()
+
+        task_key = 'match_state'
+        pblm = self.pblm
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        pblm.report_evaluation()
+
+        if True:
+            # Remove results that are photobombs for now
+            # res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
+            pb_task = pblm.samples.subtasks['photobomb_state']
+            import utool
+            with utool.embed_on_exception_context:
+                flags = pb_task.indicator_df.loc[res.index]['notpb'].values
+                notpb_res = res.compress(flags)
+                res = notpb_res
+
+        """
+        PLAN:
+            Draw an LNBNN sample.
+            Estimate probabilities on sample.
+
+            for each fpr on validation,
+                find threshold
+                find fpr at that threshold for the lnbnn sample
+
+            plot the predicted fpr vs the true fpr to show that this is
+            difficult to predict.
+        """
+
+        ibs = self.ibs
+        sim_params = self.sim_params
+        classifiers = sim_params['classifiers']
+        test_aids = sim_params['test_aids']
+        const_dials = sim_params['const_dials']
+
+        graph_thresh = sim_params['graph_thresh']
+
+        verbose = 1
+
+        # ----------
+        # Graph test
+        dials1 = ut.dict_union(const_dials, {
+            'name'               : 'graph',
+            'enable_inference'   : True,
+            'match_state_thresh' : graph_thresh,
+        })
+
+        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                     verbose=verbose)
+
+        estimate = []
+        thresh = []
+        confusions = []
+
+        target_values = [0, .001, .0012, .0014, .0016, .002]
+        for value in target_values:
+            match_thresh = res.get_pos_threshes('fpr', value=value)
+            estimate.append(value)
+            thresh.append(match_thresh)
+
+            infr1.enable_auto_prioritize_nonpos = True
+            infr1._refresh_params['window'] = 20
+            infr1._refresh_params['thresh'] = np.exp(-2)
+            infr1._refresh_params['patience'] = 20
+            infr1.init_simulation(classifiers=classifiers, **dials1)
+            infr1.init_test_mode()
+            infr1.reset(state='empty')
+            infr1.task_thresh['match_state'] = match_thresh
+            infr1.enable_fixredun = False
+            infr1.main_loop(max_loops=1)
+
+            # for e in infr1.edges():
+            #     decision = infr1.get_edge_data(e).get('decision', UNREV)
+            #     truth = infr1.get_edge_data(e).get('truth', None)
+            c = pd.DataFrame(infr1.test_state['confusion'])
+            confusions.append(c)
+
+        actual_fpr = []
+        actual_nums = []
+        for c, est, t in zip(estimate, confusions, thresh):
+            print(t)
+            print(est)
+            print(c)
+            # n_total = c.sum().sum()
+            # n_true = np.diag(c).sum()
+            # n_false = n_total - n_true
+            # tpa = n_true / n_total
+            # fpr = n_false / n_total
+            # pos_fpr = (c.loc[POSTV].sum() - c.loc[POSTV][POSTV]) / c.loc[POSTV].sum()
+            N = c.sum(axis=0)
+            TP = pd.Series(np.diag(c), index=c.index)  # NOQA
+            FP = (c - np.diagflat(np.diag(c))).sum(axis=0)
+            fpr = FP / N
+            # tpas.append(tpa)
+            actual_fpr.append(fpr)
+            actual_nums.append(N)
+
+        for class_name in [NEGTV, POSTV]:
+            fnum = 1
+            x = [t[class_name] for t in thresh]
+            class_nums = np.array([n[class_name] for n in actual_nums])
+            class_actual = np.array([a[class_name] for a in actual_fpr])
+            class_est = target_values
+
+            pt.figure(fnum=fnum)
+            pt.plot(x, class_est, 'x--', label='est ' + class_name)
+            pt.plot(x, class_actual, 'o--', label='actual ' + class_name)
+            pt.legend()
 
     def _collect_sim_results(self, infr, dials):
         pred_confusion = pd.DataFrame(infr.test_state['confusion'])

@@ -546,8 +546,8 @@ class InfrLoops(object):
         # Initialize a refresh criteria
         for count in it.count(0):
 
-            if infr.test_mode and infr.enable_inference:
-                checkpoint = infr.copy()
+            # if infr.test_mode and infr.enable_inference:
+            #     checkpoint = infr.copy()
 
             if count >= max_loops:
                 infr.print('early stop', 1, color='red')
@@ -562,18 +562,18 @@ class InfrLoops(object):
             if terminate:
                 infr.print('Triggered termination criteria', 1, color='red')
 
-            if infr.test_mode and infr.enable_inference:
-                count = len(infr.metrics_list) - len(checkpoint.metrics_list)
-                history = infr.metrics_list[-count:]
-                testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
-                badness = testaction_hist.get('incorrect new merge', 0)
-                rewind = (infr.refresh.num_meaningful == badness) and badness > 0
-                if rewind:
-                    pass
-                    # import utool
-                    # utool.embed()
+            # if infr.test_mode and infr.enable_inference:
+            #     count = len(infr.metrics_list) - len(checkpoint.metrics_list)
+            #     history = infr.metrics_list[-count:]
+            #     testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
+            #     badness = testaction_hist.get('incorrect new merge', 0)
+            #     rewind = (infr.refresh.num_meaningful == badness) and badness > 0
+            #     if rewind:
+            #         pass
+            #         # import utool
+            #         # utool.embed()
 
-            if infr.enable_redundancy:
+            if infr.enable_redundancy and infr.enable_fixredun:
                 # Fix positive redundancy of anything within the loop
                 infr.pos_redun_loop()
 
@@ -626,21 +626,24 @@ class InfrReviewers(object):
         # decision_probs = infr.task_probs[primary_task].loc[edge]
         # decision_probs = pd.Series(data['task_probs'][primary_task])
 
-        if False:
-            decision_probs = pd.Series(infr.task_probs[primary_task][edge])
-            a, b = decision_probs.align(infr.task_thresh[primary_task])
-            decision_flags = a > b
-            hasone = sum(decision_flags) == 1
-            # decision = decision_flags.argmax()
-        else:
-            # TODO: don't autodecide if secondary classifiers are on
+        # if False:
+        #     decision_probs = pd.Series(infr.task_probs[primary_task][edge])
+        #     a, b = decision_probs.align(infr.task_thresh[primary_task])
+        #     decision_flags = a > b
+        #     hasone = sum(decision_flags) == 1
+        #     # decision = decision_flags.argmax()
+        # TODO: don't autodecide if secondary classifiers are on
+        try:
             decision_probs = infr.task_probs[primary_task][edge]
-            primary_thresh = infr.task_thresh[primary_task]
-            decision_flags = {k: decision_probs[k] > thresh
-                              for k, thresh in primary_thresh.items()}
-            hasone = sum(decision_flags.values()) == 1
-            # decision = ut.argmax(decision_probs)
-        # decision_probs > infr.task_thresh[primary_task]
+        except KeyError:
+            # Compute probs if they haven't been done yet
+            infr.ensure_priority_scores([edge])
+            decision_probs = infr.task_probs[primary_task][edge]
+
+        primary_thresh = infr.task_thresh[primary_task]
+        decision_flags = {k: decision_probs[k] > thresh
+                          for k, thresh in primary_thresh.items()}
+        hasone = sum(decision_flags.values()) == 1
         auto_flag = False
         if hasone:
             # Check to see if it might be confounded by a photobomb
