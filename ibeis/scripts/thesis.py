@@ -74,8 +74,10 @@ class Chap5(DBInputs):
             }
         elif ibs.dbname == 'PZ_Master1':
             self.thresh_targets = {
-                'graph': ('fpr', .03),
-                'rankclf': ('fpr', .01),
+                # 'graph': ('fpr', .03),
+                # 'rankclf': ('fpr', .01),
+                'graph': ('fpr', .0014),
+                'rankclf': ('fpr', .001),
             }
         else:
             self.thresh_targets = {
@@ -84,8 +86,8 @@ class Chap5(DBInputs):
             }
 
         hashid = ut.hash_data(ut.repr3(
-            self.const_dials
-            # ut.dict_union(self.const_dials, self.thresh_targets)
+            # self.const_dials
+            ut.dict_union(self.const_dials, self.thresh_targets)
             # ut.dict_union(self.const_dials, self.thresh_targets)
         ))[0:6]
 
