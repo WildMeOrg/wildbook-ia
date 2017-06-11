@@ -111,7 +111,7 @@ class DBInputs(object):
                 print('fpath = %r' % (fpath,))
                 if not exists(fpath):
                     ut.cprint('Results still missing need to re-measure', 'red')
-                    assert False
+                    # assert False
                     self._setup()
                     getattr(self, 'measure_' + expt_name)()
                 else:
