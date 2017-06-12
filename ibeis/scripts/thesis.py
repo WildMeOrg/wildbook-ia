@@ -35,6 +35,30 @@ class Chap5(DBInputs):
     """
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures5')
 
+    def measure_all(self):
+        self.measure_dbstats()
+        self.measure_simulation()
+
+    def draw_all(self):
+        r"""
+        CommandLine:
+            python -m ibeis Chap5.draw all GZ_Master1
+            python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+
+            python -m ibeis Chap5.draw all PZ_Master1
+            python -m ibeis Chap5.draw error_graph_analysis PZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('GZ_Master1')
+        """
+        self.ensure_results('simulation')
+        self.draw_simulation()
+        self.draw_refresh()
+        self.write_dbstats()
+        self.write_error_tables()
+        # python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+
     def _precollect(self):
         if self.ibs is None:
             _Chap5 = ut.fix_super_reload(Chap5, self)
@@ -85,22 +109,20 @@ class Chap5(DBInputs):
                 'rankclf': ('fpr', 0),
             }
 
-        hashid = ut.hash_data(ut.repr3(
-            # self.const_dials
-            ut.dict_union(self.const_dials, self.thresh_targets)
-            # ut.dict_union(self.const_dials, self.thresh_targets)
-        ))[0:6]
-
-        cfgstr = '{}_{}_{}'.format(len(test_aids), len(train_aids), hashid)
-        self._setup_links(cfgstr)
+        config = ut.dict_union(self.const_dials, self.thresh_targets)
+        cfg_prefix = '{}_{}'.format(len(test_aids), len(train_aids))
+        self._setup_links(cfg_prefix, config)
 
     def _setup(self):
         """
+        python -m ibeis Chap5._setup
+
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> self = Chap5('GZ_Master1')
+            >>> #self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
-            >>> self = Chap5('PZ_MTEST')
+            >>> #self = Chap5('PZ_MTEST')
+            >>> self._setup()
         """
         self._precollect()
         train_aids, test_aids = self.test_train
@@ -115,7 +137,7 @@ class Chap5(DBInputs):
         pblm.learn_evaluation_classifiers()
 
         res = pblm.task_combo_res[task_key][clf_key][data_key]
-        pblm.report_evaluation()
+        # pblm.report_evaluation()
 
         # if False:
         #     pblm.learn_evaluation_classifiers(task_keys=['photobomb_state'])
@@ -137,10 +159,23 @@ class Chap5(DBInputs):
         rankclf_thresh = res.get_pos_threshes(*self.thresh_targets['rankclf'])
 
         print('\n--- Graph thresholds ---')
-        res.report_auto_thresholds(graph_thresh)
+        graph_report = res.report_auto_thresholds(graph_thresh, verbose=0)
 
         print('\n --- Ranking thresholds ---')
-        res.report_auto_thresholds(rankclf_thresh)
+        rankclf_report = res.report_auto_thresholds(rankclf_thresh, verbose=0)
+
+        ut.writeto(join(self.dpath, 'thresh_reports.txt'),
+                   '\n'.join([
+                       '============',
+                       'Graph report',
+                       '------------',
+                       graph_report,
+                       '',
+                       '============',
+                       'Rank CLF report',
+                       '------------',
+                       rankclf_report,
+                   ]))
 
         # Load or create the deploy classifiers
         clf_dpath = ut.ensuredir((self.dpath, 'clf'))
@@ -278,23 +313,6 @@ class Chap5(DBInputs):
             pt.plot(x, class_actual, 'o--', label='actual ' + class_name)
             pt.legend()
 
-    def _collect_sim_results(self, infr, dials):
-        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
-        pred_confusion.index.name = 'real'
-        pred_confusion.columns.name = 'pred'
-        print('Edge confusion')
-        print(pred_confusion)
-
-        expt_data = {
-            'real_ccs': list(infr.nid_to_gt_cc.values()),
-            'pred_ccs': list(infr.pos_graph.connected_components()),
-            'graph': infr.graph.copy(),
-            'dials': dials,
-            'refresh_thresh': infr.refresh._prob_any_remain_thresh,
-            'metrics': infr.metrics_list,
-        }
-        return expt_data
-
     @profile
     def measure_simulation(self):
         """
@@ -399,24 +417,22 @@ class Chap5(DBInputs):
         # ut.show_if_requested()
         pass
 
-    def measure_all(self):
-        self.measure_dbstats()
-        self.measure_simulation()
+    def _collect_sim_results(self, infr, dials):
+        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
+        pred_confusion.index.name = 'real'
+        pred_confusion.columns.name = 'pred'
+        print('Edge confusion')
+        print(pred_confusion)
 
-    def draw_all(self):
-        r"""
-        CommandLine:
-            python -m ibeis Chap5.draw all GZ_Master1
-
-        Ignore:
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap4('GZ_Master1')
-        """
-        self.ensure_results('simulation')
-        self.draw_simulation()
-        self.draw_refresh()
-        self.write_dbstats()
-        # python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+        expt_data = {
+            'real_ccs': list(infr.nid_to_gt_cc.values()),
+            'pred_ccs': list(infr.pos_graph.connected_components()),
+            'graph': infr.graph.copy(),
+            'dials': dials,
+            'refresh_thresh': infr.refresh._prob_any_remain_thresh,
+            'metrics': infr.metrics_list,
+        }
+        return expt_data
 
     @profile
     def measure_dbstats(self):
@@ -516,6 +532,12 @@ class Chap5(DBInputs):
         return fpath
 
     def print_error_analysis(self):
+        """
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_Master1')
+        """
         sim_results = self.ensure_results('simulation')
 
         key = 'graph'
@@ -564,6 +586,8 @@ class Chap5(DBInputs):
         """
         CommandLine:
             python -m ibeis Chap5.draw error_graph_analysis GZ_Master1
+            python -m ibeis Chap5.draw error_graph_analysis PZ_Master1
+
         Ignore:
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
@@ -601,6 +625,7 @@ class Chap5(DBInputs):
         infr = ibeis.AnnotInference.from_netx(graph, ibs=ibs)
         infr.readonly = True
         infr._viz_image_config['thumbsize'] = 700
+        infr._viz_image_config['grow'] = True
         infr.classifiers = infr.load_latest_classifiers(
             join(self.dpath, 'clf'))
         infr.relabel_using_reviews(rectify=False)
@@ -614,12 +639,15 @@ class Chap5(DBInputs):
         # from networkx.utils import arbitrary_element as arbitrary
 
         # Gather a sample of error groups
-        n = 10
+        n = 20
         delta = ut.grouping_delta(pred_ccs, real_ccs, pure=False)
         sampled_errors = ut.odict([
             ('merge', ut.strided_sample(delta['merges'], n)),
             ('split', ut.strided_sample(delta['splits'], n))
         ])
+
+        for k, v in sampled_errors.items():
+            print('Sampled {} {} cases'.format(len(v), k))
 
         err_items = []
         for case_type, cases in sampled_errors.items():
@@ -718,8 +746,7 @@ class Chap5(DBInputs):
     def write_error_tables(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw error_tables --db PZ_MTEST --diskshow
-            python -m ibeis Chap5.draw error_tables --db PZ_Master1 --diskshow
+            python -m ibeis Chap5.draw error_tables PZ_Master1
             python -m ibeis Chap5.draw error_tables GZ_Master1
 
         Ignore:
@@ -764,12 +791,8 @@ class Chap5(DBInputs):
 
         df = pd.concat(ut.take(dfs, keys), axis=0, keys=keys)
         tabular = Tabular(df, index=True, escape=True, colfmt='numeric')
-        text = tabular.as_tabular()
-        print(text)
-        fname = 'error_size_details'
-        ut.write_to(join(self.dpath, fname + '.tex'), text)
-        ut.render_latex(text, self.dpath, fname,
-                        preamb_extra=['\\usepackage{makecell}'])
+        error_size_text = tabular.as_tabular()
+        print(error_size_text)
 
         # Inspect error sizes only for the graph
         caseinfo = infos['graph']
@@ -788,11 +811,17 @@ class Chap5(DBInputs):
         df = df.loc[list(table.keys())]
 
         tabular = Tabular(df, index=True, escape=True, colfmt='numeric')
-        text = tabular.as_tabular()
-        print(text)
+        error_group_text = tabular.as_tabular()
+        print(error_group_text)
+
+        fname = 'error_size_details'
+        ut.write_to(join(self.dpath, fname + '.tex'), error_size_text)
+        ut.render_latex(error_size_text, self.dpath, fname,
+                        preamb_extra=['\\usepackage{makecell}'])
+
         fname = 'error_group_details'
-        ut.write_to(join(self.dpath, fname + '.tex'), text)
-        ut.render_latex(text, self.dpath, fname,
+        ut.write_to(join(self.dpath, fname + '.tex'), error_group_text)
+        ut.render_latex(error_group_text, self.dpath, fname,
                         preamb_extra=['\\usepackage{makecell}'])
 
     def _get_error_sizes(self, expt_data, allow_hist=False):
@@ -802,7 +831,7 @@ class Chap5(DBInputs):
         # delta_df = ut.grouping_delta_stats(pred_ccs, real_ccs)
         # print(delta_df)
 
-        delta = ut.grouping_delta(real_ccs, pred_ccs)
+        delta = ut.grouping_delta(pred_ccs, real_ccs)
         unchanged = delta['unchanged']
         splits = delta['splits']['new']
         merges = delta['merges']['old']

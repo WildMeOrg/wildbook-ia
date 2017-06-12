@@ -60,20 +60,29 @@ class DBInputs(object):
             # self.dpath = join(self.base_dpath, self.dbname)
             computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
             self.dname = self.dbname + '_' + computer_id
-            self.dpath = join(self.base_dpath, self.dname)
+            self.orig_dpath = join(self.base_dpath, 'configured', self.dname)
+            print('self.orig_dpath = %r' % (self.orig_dpath,))
+            self.dpath = self.orig_dpath
             # ut.ensuredir(self.dpath)
 
-    def _setup_links(self, cfgstr):
+    def _setup_links(self, cfg_prefix, config=None):
         # Setup directory
         from os.path import expanduser
         assert self.dname is not None
-        dbcode = '{}_{}'.format(self.dname, cfgstr)
 
-        dpath = expanduser(join(self.base_dpath, dbcode))
-        link1 = expanduser(join(self.base_dpath, self.dname))
+        cfgstr = ut.repr3(config)
+        hashid = ut.hash_data(cfgstr)[0:6]
+        dbcode = '{}_{}_{}'.format(self.dname, cfg_prefix, hashid)
+
+        dpath = expanduser(join(self.base_dpath, 'configured', dbcode))
+        link1 = expanduser(join(self.base_dpath, 'configured', self.dname))
+
         link2 = expanduser(join(self.base_dpath, self.dbname))
+
         ut.ensuredir(dpath)
         self.real_dpath = dpath
+        print('self.real_dpath = %r' % (self.real_dpath,))
+        self.dpath = self.real_dpath
 
         for link in [link1, link2]:
             try:
@@ -83,6 +92,8 @@ class DBInputs(object):
                     newpath = ut.non_existing_path(dpath, suffix='_old')
                     ut.move(link, newpath)
                     self.link = ut.symlink(dpath, link)
+
+        ut.writeto(join(self.dpath, 'info.txt'), cfgstr)
 
     def ensure_setup(self):
         if self.ibs is None:

@@ -849,8 +849,10 @@ class ClfResult(ut.NiceRepr):
         print('Choosing threshold based on %s' % (choice_k,))
         res.report_auto_thresholds(pos_threshes)
 
-    def report_auto_thresholds(res, threshes):
-        print('Chosen thresholds = %s' % (ut.repr2(
+    def report_auto_thresholds(res, threshes, verbose=True):
+        report_lines = []
+        print_ = report_lines.append
+        print_('Chosen thresholds = %s' % (ut.repr2(
             threshes, nl=1, precision=4, align=True),))
 
         res.augment_if_needed()
@@ -867,7 +869,7 @@ class ClfResult(ut.NiceRepr):
         auto_probs = res.clf_probs[can_autodecide]
 
         total_cases = int(sample_weight.sum())
-        print('Will autodecide for %r/%r cases' % (can_autodecide.sum(),
+        print_('Will autodecide for %r/%r cases' % (can_autodecide.sum(),
                                                      (total_cases)))
 
         def frac_str(a, b):
@@ -877,7 +879,7 @@ class ClfResult(ut.NiceRepr):
         supported_class_idxs = [
             k for k, y in enumerate(y_test_bin.T) if y.sum() > 0]
 
-        print(' * Auto-Decide Per-Class Summary')
+        print_(' * Auto-Decide Per-Class Summary')
         for k in supported_class_idxs:
             # Look at fail/succs in threshold
             name = res.class_names[k]
@@ -900,17 +902,17 @@ class ClfResult(ut.NiceRepr):
                 '    got {pass_str} right',
                 '    made {fail_str} errors',
             ])
-            print(ut.indent(fmtstr.format(**locals())))
+            print_(ut.indent(fmtstr.format(**locals())))
 
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names=target_names,
             sample_weight=can_autodecide.astype(np.float), verbose=False)
-        print(' * Auto-Decide Confusion')
-        print(ut.indent(str(report['confusion'])))
-        print(' * Auto-Decide Metrics')
-        print(ut.indent(str(report['metrics'])))
+        print_(' * Auto-Decide Confusion')
+        print_(ut.indent(str(report['confusion'])))
+        print_(' * Auto-Decide Metrics')
+        print_(ut.indent(str(report['metrics'])))
         if 'mcc' in report:
-            print(ut.indent(str(report['mcc'])))
+            print_(ut.indent(str(report['mcc'])))
 
         try:
             auto_truth_bin = res.y_test_bin[can_autodecide]
@@ -919,10 +921,14 @@ class ClfResult(ut.NiceRepr):
                 auto_probs_k = auto_probs.T[k]
                 if auto_probs_k.sum():
                     auc = sklearn.metrics.roc_auc_score(auto_truth_k, auto_probs_k)
-                    print(' * Auto AUC(Macro): {:.4f} for class={}'.format(
+                    print_(' * Auto AUC(Macro): {:.4f} for class={}'.format(
                         auc, res.class_names[k]))
         except ValueError:
             pass
+        report = '\n'.join(report_lines)
+        if verbose:
+            print(report)
+        return report
 
     def confusions(res, class_name):
         import vtool as vt

@@ -80,6 +80,7 @@ class ChipThumbConfig(dtool.Config):
         ut.ParamInfo('pad', 0, hideif=0),
         ut.ParamInfo('in_image', False),
         ut.ParamInfo('version', 'dev'),
+        ut.ParamInfo('grow', False, hideif=False),
     ]
 
 
@@ -138,12 +139,19 @@ def compute_chipthumb(depc, aid_list, config=None):
 
     if in_image:
         imgsz_list = ibs.get_image_sizes(gid_list)
-        newsize_scale_list = [
-            vt.resized_clamped_thumb_dims((w, h), max_dsize)
-            for (w, h) in imgsz_list
-        ]
-        newsize_list_ = ut.take_column(newsize_scale_list, 0)
-        newscale_list = ut.take_column(newsize_scale_list, [1, 2])
+        if config['grow']:
+            newsize_list = [
+                vt.get_scaled_size_with_width(thumbsize, w, h)
+                for (w, h) in imgsz_list
+            ]
+            newscale_list = [sz[0] / thumbsize for sz in newsize_list]
+        else:
+            newsize_scale_list = [
+                vt.resized_clamped_thumb_dims((w, h), max_dsize)
+                for (w, h) in imgsz_list
+            ]
+            newsize_list_ = ut.take_column(newsize_scale_list, 0)
+            newscale_list = ut.take_column(newsize_scale_list, [1, 2])
         new_verts_list = [
             vt.scaled_verts_from_bbox(bbox, theta, sx, sy)
             for bbox, theta, (sx, sy) in
@@ -153,12 +161,18 @@ def compute_chipthumb(depc, aid_list, config=None):
             vt.scale_mat3x3(sx, sy) for (sx, sy) in newscale_list
         ]
     else:
-        newsize_scale_list = [
-            vt.resized_clamped_thumb_dims((w, h), max_dsize)
-            for (w, h) in bbox_size_list
-        ]
-        newsize_list = ut.take_column(newsize_scale_list, 0)
-        # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
+        if config['grow']:
+            newsize_list = [
+                vt.get_scaled_size_with_width(thumbsize, w, h)
+                for (w, h) in bbox_size_list
+            ]
+        else:
+            newsize_scale_list = [
+                vt.resized_clamped_thumb_dims((w, h), max_dsize)
+                for (w, h) in bbox_size_list
+            ]
+            newsize_list = ut.take_column(newsize_scale_list, 0)
+            # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
         if pad > 0:
             halfoffset_ms = (pad, pad)
             extras_list = [vt.get_extramargin_measures(bbox, new_size, halfoffset_ms)
