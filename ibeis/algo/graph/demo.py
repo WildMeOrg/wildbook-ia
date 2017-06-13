@@ -32,6 +32,38 @@ def demodata_mtest_infr(state='empty'):
     return infr
 
 
+def demodata_infr2(defaultdb='PZ_MTEST'):
+    defaultdb = 'PZ_MTEST'
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    annots = ibs.annots()
+    names = list(annots.group_items(annots.nids).values())[0:20]
+    def dummy_phi(c, n):
+        x = np.arange(n)
+        phi = c * x / (c * x + 1)
+        phi = phi / phi.sum()
+        phi = np.diff(phi)
+        return phi
+    phis = {
+        c: dummy_phi(c, 30)
+        for c in range(1, 4)
+    }
+    aids = ut.flatten(names)
+    infr = ibeis.AnnotInference(ibs, aids, autoinit=True)
+    infr.init_termination_criteria(phis)
+    infr.init_refresh_criteria()
+
+    # Partially review
+    n1, n2, n3, n4 = names[0:4]
+    for name in names[4:]:
+        for a, b in ut.itertwo(name.aids):
+            infr.add_feedback((a, b), POSTV)
+
+    for name1, name2 in it.combinations(names[4:], 2):
+        infr.add_feedback((name1.aids[0], name2.aids[0]), NEGTV)
+    return infr
+
+
 def demo2():
     """
     CommandLine:
@@ -46,6 +78,10 @@ def demo2():
     """
     import plottool as pt
 
+    from ibeis.scripts.thesis import TMP_RC
+    import matplotlib as mpl
+    mpl.rcParams.update(TMP_RC)
+
     # ---- Synthetic data params
     queue_params = {
         'pos_redun': 2,
@@ -53,7 +89,8 @@ def demo2():
     }
     # oracle_accuracy = .98
     # oracle_accuracy = .90
-    oracle_accuracy = .8
+    # oracle_accuracy = (.8, 1.0)
+    oracle_accuracy = (.85, 1.0)
     # oracle_accuracy = 1.0
 
     # --- draw params
@@ -62,21 +99,23 @@ def demo2():
     # QUIT_OR_EMEBED = 'embed'
     QUIT_OR_EMEBED = 'quit'
     TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
-    PRESHOW = VISUALIZE
+    START = ut.get_argval('--start', type_=int, default=None)
+    END = ut.get_argval('--end', type_=int, default=None)
 
     # ------------------
 
     # rng = np.random.RandomState(42)
 
     # infr = demodata_infr(num_pccs=4, size=3, size_std=1, p_incon=0)
-    infr = demodata_infr(num_pccs=6, size=7, size_std=1, p_incon=0)
+    # infr = demodata_infr(num_pccs=6, size=7, size_std=1, p_incon=0)
+    infr = demodata_infr(num_pccs=3, size=5, size_std=.2, p_incon=0)
+    infr.verbose = 100
     # apply_dummy_viewpoints(infr)
     # infr.ensure_cliques()
     infr.review_dummy_edges(method='clique')
     infr.ensure_full()
     # infr.apply_edge_truth()
     # Dummy scoring
-    # apply_dummy_scores(infr, rng)
 
     infr.init_simulation(oracle_accuracy=oracle_accuracy, name='demo2')
 
@@ -85,9 +124,10 @@ def demo2():
     dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
     ut.remove_files_in_dir(dpath)
 
-    def show_graph(infr, title, final=False):
+    def show_graph(infr, title, final=False, selected_edges=None):
         if not VISUALIZE:
             return
+        # TODO: rich colored text?
         latest = '\n'.join(infr.latest_logs())
         showkw = dict(
             # fontsize=infr.graph.graph['fontsize'],
@@ -95,10 +135,13 @@ def demo2():
             show_unreviewed_edges=True,
             show_inferred_same=False,
             show_inferred_diff=False,
+            outof=(len(infr.aids)),
             # show_inferred_same=True,
             # show_inferred_diff=True,
+            selected_edges=selected_edges,
             show_labels=True,
-            show_recent_review=not final,
+            # show_recent_review=not final,
+            show_recent_review=False,
             # splines=infr.graph.graph['splines'],
             reposition=False,
             # with_colorbar=True
@@ -108,17 +151,46 @@ def demo2():
         infr_ = infr.copy()
         infr_ = infr
         infr_.verbose = verbose
-        infr_.show(pickable=True, **showkw)
+        infr_.show(pickable=True, verbose=0, **showkw)
         infr.verbose = verbose
-        print('status ' + ut.repr4(infr_.status()))
+        # print('status ' + ut.repr4(infr_.status()))
         # infr.show(**showkw)
         pt.set_title(title)
         ax = pt.gca()
         fig = pt.gcf()
-        pt.adjust_subplots(top=.95, left=0, right=1, bottom=.2, fig=fig)
+        pt.adjust_subplots(top=.95, left=0, right=1, bottom=.45,
+                           fig=fig)
         ax.set_aspect('equal')
+        fontsize = 18
+        if True:
+            # postprocess xlabel
+            lines = []
+            for line in latest.split('\n'):
+                if False and line.startswith('ORACLE ERROR'):
+                    lines += ['ORACLE ERROR']
+                else:
+                    lines += [line]
+            latest = '\n'.join(lines)
+            if len(lines) > 10:
+                fontsize = 16
+            if len(lines) > 12:
+                fontsize = 14
+            if len(lines) > 14:
+                fontsize = 12
+            if len(lines) > 18:
+                fontsize = 10
+
+            if len(lines) > 23:
+                fontsize = 8
+
         ax.set_xlabel(latest)
-        dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
+        xlabel = ax.get_xaxis().get_label()
+        xlabel.set_horizontalalignment('left')
+        xlabel.set_x(.025)
+        # xlabel.set_fontname('CMU Typewriter Text')
+        xlabel.set_fontname('Inconsolata')
+        xlabel.set_fontsize(fontsize)
+
         pt.save_figure(dpath=dpath, dpi=128, figsize=(9, 10))
         infr.latest_logs()
 
@@ -143,8 +215,8 @@ def demo2():
         infr.update_visual_attrs()
 
     infr.prioritize('prob_match')
-    if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
-        show_graph(infr, 'pre-reveiw')
+    if VISUALIZE or TARGET_REVIEW is None or TARGET_REVIEW == 0:
+        show_graph(infr, 'initial state')
 
     def on_new_candidate_edges(infr, edges):
         # hack updateing visual attrs as a callback
@@ -153,11 +225,12 @@ def demo2():
     infr.on_new_candidate_edges = on_new_candidate_edges
 
     infr.queue_params.update(**queue_params)
-    infr.print('Searching for candidates')
-    new_edges = infr.dummy_matcher.find_candidate_edges()
-    infr.add_new_candidate_edges(new_edges)
+    infr.dummy_matcher.refresh_candidate_edges()
 
-    if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
+    VIZ_ALL = (VISUALIZE and TARGET_REVIEW is None and START is None)
+    print('VIZ_ALL = %r' % (VIZ_ALL,))
+
+    if VIZ_ALL or TARGET_REVIEW == 0:
         show_graph(infr, 'find-candidates')
 
     # _iter2 = enumerate(infr.generate_reviews(**queue_params))
@@ -166,21 +239,42 @@ def demo2():
 
     # prog = ut.ProgIter(_iter2, label='demo2', bs=False, adjust=False,
     #                    enabled=False)
-    count = 0
+    count = 1
+    first = 1
     for edge, priority in infr._generate_reviews(data=True):
-        msg = 'review #%d, priority=%.2f' % (count, priority)
+        msg = 'review #%d, priority=%.3f' % (count, priority)
         print('\n----------')
-        infr.print(msg)
+        infr.print('pop edge {} with priority={:.3f}'.format(edge, priority))
         # print('remaining_reviews = %r' % (infr.remaining_reviews()),)
         # Make the next review decision
-        feedback = infr.request_oracle_review(edge)
+
+        if START is not None:
+            VIZ_ALL = count >= START
+
+        if END is not None and count >= END:
+            break
+
+        AT_TARGET = TARGET_REVIEW is not None and count >= TARGET_REVIEW - 1
+
+        SHOW_CANDIATE_POP = True
+        if SHOW_CANDIATE_POP and (VIZ_ALL or AT_TARGET):
+            # Show edge selection
+            show_graph(infr, 'pre' + msg, selected_edges=[edge])
+
+        infr.print(msg)
+        if ut.allsame(infr.pos_graph.node_labels(*edge)) and first:
+            # Have oracle make a mistake early
+            feedback = infr.request_oracle_review(edge, accuracy=0)
+            first -= 1
+        else:
+            feedback = infr.request_oracle_review(edge)
         if count == TARGET_REVIEW:
             infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
         infr.add_feedback(edge, **feedback)
         infr.print('len(queue) = %r' % (len(infr.queue)))
         # infr.apply_nondynamic_update()
         # Show the result
-        if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
+        if VIZ_ALL or AT_TARGET:
             show_graph(infr, msg)
             # import sys
             # sys.exit(1)
@@ -188,7 +282,8 @@ def demo2():
             break
         count += 1
 
-    show_graph(infr, 'post-review', final=True)
+    infr.print('status = ' + ut.repr4(infr.status(extended=False)))
+    show_graph(infr, 'post-review (#reviews={})'.format(count), final=True)
 
     # ROUND 2 FIGHT
     # if TARGET_REVIEW is None and round2_params is not None:
@@ -247,60 +342,6 @@ def get_edge_truth(infr, n1, n2):
         return 2
     else:
         return int(same)
-
-
-def apply_dummy_scores(infr, rng=None):
-    """
-    CommandLine:
-        python -m ibeis.algo.graph.demo apply_dummy_scores --show
-
-    Ignore:
-        import sympy
-        x, y = sympy.symbols('x, y', positive=True, real=True)
-
-        num_pos_edges = (x * (x - 1)) / 2 * y
-        num_neg_edges = x * x * (y - 1)
-        subs = {x: 3, y: 3}
-        print(num_pos_edges.evalf(subs=subs))
-        print(num_neg_edges.evalf(subs=subs))
-        sympy.solve(num_pos_edges - num_neg_edges)
-
-        2*x/(x + 1) - y
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> import vtool as vt
-        >>> from ibeis.algo.graph.demo import *  # NOQA
-        >>> infr = make_dummy_infr([100] * 2)
-        >>> infr.ensure_full()
-        >>> rng = None
-        >>> #infr.apply_edge_truth()
-        >>> apply_dummy_scores(infr, rng)
-        >>> edges = list(infr.graph.edges())
-        >>> truths = np.array(ut.take(infr.edge_truth, edges))
-        >>> edge_to_normscore = infr.get_edge_attrs('prob_match')
-        >>> scores = np.array(list(ut.take(edge_to_normscore, edges)))
-        >>> scorenorm = vt.ScoreNormalizer()
-        >>> import ibeis.constants as const
-        >>> truth_enc = np.array(ut.take(const.REVIEW.CODE_TO_INT, truths))
-        >>> scorenorm.fit(scores, truth_enc)
-        >>> ut.quit_if_noshow()
-        >>> scorenorm.visualize()
-        >>> ut.show_if_requested()
-    """
-    print('[demo] apply dummy scores')
-    rng = ut.ensure_rng(rng)
-    dummy_params = {
-        NEGTV: {'mean': .2, 'std': .25},
-        POSTV: {'mean': .8, 'std': .2},
-        INCMP: {'mean': .2, 'std': .4},
-    }
-    # edges = list(infr.graph.edges())
-    grouped_edges = ut.group_pairs(infr.edge_truth.items())
-    for key, group in grouped_edges.items():
-        probs = randn(shape=[len(group)], rng=rng, a_max=1, a_min=0,
-                      **dummy_params[key])
-        infr.set_edge_attrs('prob_match', ut.dzip(group, probs))
 
 
 def apply_dummy_viewpoints(infr):
@@ -1257,20 +1298,52 @@ class DummyMatcher(object):
         >>> assert len(infr.dummy_matcher.prob_cache) == 2
     """
     def __init__(matcher, infr):
-        matcher.infr = infr
         matcher.prob_cache = {}
-        matcher.rng = np.random.RandomState(0)
+        matcher.rng = np.random.RandomState(4033913)
+        matcher.dummy_params = {
+            NEGTV: {'mean': .2, 'std': .25},
+            POSTV: {'mean': .85, 'std': .2},
+            INCMP: {'mean': .15, 'std': .1},
+        }
+        matcher.score_dist = randn
+
+        matcher.infr = infr
         matcher.orig_nodes = set(infr.aids)
         matcher.orig_labels = infr.get_node_attrs('orig_name_label')
         matcher.orig_groups = ut.invert_dict(matcher.orig_labels, False)
         matcher.orig_groups = ut.map_vals(set, matcher.orig_groups)
-        matcher.dummy_params = {
-            NEGTV: {'mean': .2, 'std': .25},
-            POSTV: {'mean': .8, 'std': .2},
-            INCMP: {'mean': .2, 'std': .4},
-        }
+
+    def show_score_probs(matcher):
+        """
+        CommandLine:
+            python -m ibeis.algo.graph.demo DummyMatcher.show_score_probs --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.demo import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference(None)
+            >>> matcher = DummyMatcher(infr)
+            >>> matcher.show_score_probs()
+            >>> ut.show_if_requested()
+        """
+        import plottool as pt
+        dist = matcher.score_dist
+        n = 100000
+        for key in matcher.dummy_params.keys():
+            probs = dist(shape=[n], rng=matcher.rng, a_max=1, a_min=0,
+                          **matcher.dummy_params[key])
+            color = matcher.infr._get_truth_colors()[key]
+            pt.plt.hist(probs, bins=100, label=key, alpha=.8, color=color)
+        pt.legend()
 
     def dummy_ranker(matcher, u, K=10):
+        """
+        simulates the ranking algorithm. Order is defined using the dummy vsone
+        scores, but tests are only applied to randomly selected gt and gf
+        pairs. So, you usually will get a gt result, but you might not if all
+        the scores are bad.
+        """
         infr = matcher.infr
 
         nid = matcher.orig_labels[u]
@@ -1302,6 +1375,14 @@ class DummyMatcher(object):
         ranked_edges = ut.take(u_edges, sortx)
         # assert len(ranked_edges) == K
         return ranked_edges
+
+    def refresh_candidate_edges(matcher):
+        infr = matcher.infr
+        infr.print('Searching for dummy candidates')
+        infr.print('dummy vsone params =' + ut.repr4(
+            matcher.dummy_params, nl=1, si=True))
+        new_edges = infr.dummy_matcher.find_candidate_edges()
+        infr.add_candidate_edges(new_edges)
 
     def find_candidate_edges(matcher, K=10):
         new_edges = []

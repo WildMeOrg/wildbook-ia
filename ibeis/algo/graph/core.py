@@ -166,6 +166,7 @@ class Feedback(object):
             'review_id': review_id,
         }
         infr.internal_feedback[edge].append(feedback_item)
+        infr.set_edge_attr(edge, feedback_item)
 
         if infr.test_mode:
             infr._dynamic_test_callback(edge, decision, user_id)
@@ -184,7 +185,6 @@ class Feedback(object):
             infr.dirty = True
             infr._add_review_edge(edge, decision)
 
-        infr.set_edge_attr(edge, feedback_item)
         if infr.refresh and infr.enable_inference:
             # only add to criteria if this wasn't requested as a fix edge
             if priority is not None and priority <= 1.0:
@@ -949,9 +949,12 @@ class AnnotInference(ut.NiceRepr,
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
         # infr.verbose = verbose
-        infr.classifiers = None
-        infr.review_counter = it.count(0)
         infr.verbose = verbose
+
+        infr.review_counter = it.count(0)
+        infr.nid_counter = None
+
+        infr.classifiers = None
         infr.ibs = ibs
         infr.aids = None
         infr.aids_set = None
@@ -973,21 +976,9 @@ class AnnotInference(ut.NiceRepr,
             UNREV: None,
         }
 
-        infr._max_outer_loops = None
-        infr._refresh_params = {
-            'window': 50,
-            'patience': 50,
-            'thresh': .1,
-        }
-
+        # Bookkeeping
         infr.edge_truth = {}
         infr.task_probs = ut.ddict(dict)
-
-        infr._viz_image_config = dict(in_image=False,
-                                      thumbsize=221)
-
-        # Criteria
-        infr.refresh = None
 
         # Dynamic Properties (requires bookkeeping)
         infr.nid_to_errors = {}
@@ -1003,14 +994,34 @@ class AnnotInference(ut.NiceRepr,
         # This should represent The feedback read from a database. We do not
         # need to do any updates to an external database based on this data.
         infr.external_feedback = ut.ddict(list)
-
         # Feedback that has not been synced with the external database.
         # Once we sync, this is merged into external feedback.
         infr.internal_feedback = ut.ddict(list)
 
+        # Criterion
+        infr.refresh = None
+        infr.queue = None
+
+        # Params
+        infr._max_outer_loops = None
+        infr._refresh_params = {
+            'window': 50,
+            'patience': 50,
+            'thresh': .1,
+        }
+        infr.queue_params = {
+            'pos_redun': 2,
+            'neg_redun': 2,
+        }
+        infr._viz_image_config = {
+            'in_image': False,
+            'thumbsize': 221,
+
+        }
+
+        # Modes
         infr.test_mode = False
         infr.simulation_mode = False
-
         # if enable_redundancy is True, then redundant edges will be ignored by
         # the priority queue and extra edges needed to achieve minimum
         # redundancy will be searched for if the queue is empty.
@@ -1021,15 +1032,10 @@ class AnnotInference(ut.NiceRepr,
         infr.enable_attr_update = True
         infr.enable_auto_prioritize_nonpos = True
 
+        # Can we remove these?
         infr.cm_list = None
         infr.vsone_matches = {}
         infr.qreq_ = None
-        infr.nid_counter = None
-        infr.queue = None
-        infr.queue_params = {
-            'pos_redun': 2,
-            'neg_redun': 2,
-        }
 
         infr.manual_wgt = None
 
@@ -1136,38 +1142,6 @@ class AnnotInference(ut.NiceRepr,
             else:
                 infr2.review_graphs[k] = g.subgraph(aids)
         return infr2
-
-
-def testdata_infr2(defaultdb='PZ_MTEST'):
-    defaultdb = 'PZ_MTEST'
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
-    annots = ibs.annots()
-    names = list(annots.group_items(annots.nids).values())[0:20]
-    def dummy_phi(c, n):
-        x = np.arange(n)
-        phi = c * x / (c * x + 1)
-        phi = phi / phi.sum()
-        phi = np.diff(phi)
-        return phi
-    phis = {
-        c: dummy_phi(c, 30)
-        for c in range(1, 4)
-    }
-    aids = ut.flatten(names)
-    infr = AnnotInference(ibs, aids, autoinit=True)
-    infr.init_termination_criteria(phis)
-    infr.init_refresh_criteria()
-
-    # Partially review
-    n1, n2, n3, n4 = names[0:4]
-    for name in names[4:]:
-        for a, b in ut.itertwo(name.aids):
-            infr.add_feedback((a, b), POSTV)
-
-    for name1, name2 in it.combinations(names[4:], 2):
-        infr.add_feedback((name1.aids[0], name2.aids[0]), NEGTV)
-    return infr
 
 
 def testdata_infr(defaultdb='PZ_MTEST'):

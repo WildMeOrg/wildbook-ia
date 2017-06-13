@@ -10,17 +10,17 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 
 DPI = 300
 
-TMP_RC = {
-    'axes.titlesize': 12,
-    'axes.labelsize': 12,
-    'font.family': 'DejaVu Sans',
-    'xtick.labelsize': 12,
-    'ytick.labelsize': 12,
-    # 'legend.fontsize': 18,
-    # 'legend.alpha': .8,
-    'legend.fontsize': 12,
-    'legend.facecolor': 'w',
-}
+# TMP_RC = {
+#     'axes.titlesize': 12,
+#     'axes.labelsize': 12,
+#     'font.family': 'DejaVu Sans',
+#     'xtick.labelsize': 12,
+#     'ytick.labelsize': 12,
+#     # 'legend.fontsize': 18,
+#     # 'legend.alpha': .8,
+#     'legend.fontsize': 12,
+#     'legend.facecolor': 'w',
+# }
 
 TMP_RC = {
     'axes.titlesize': 12,

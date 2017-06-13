@@ -317,7 +317,7 @@ class UserOracle(object):
         oracle.rng = rng
         oracle.states = {POSTV, NEGTV, INCMP}
 
-    def review(oracle, edge, truth, infr):
+    def review(oracle, edge, truth, infr, accuracy=None):
         feedback = {
             'user_id': 'oracle',
             'confidence': 'absolutely_sure',
@@ -325,10 +325,12 @@ class UserOracle(object):
             'tags': [],
         }
         is_recovering = infr.is_recovering()
-        if is_recovering:
-            accuracy = oracle.recover_accuracy
-        else:
-            accuracy = oracle.normal_accuracy
+
+        if accuracy is None:
+            if is_recovering:
+                accuracy = oracle.recover_accuracy
+            else:
+                accuracy = oracle.normal_accuracy
 
         # The oracle can get anything where the hardness is less than its
         # accuracy
@@ -347,12 +349,12 @@ class UserOracle(object):
             feedback['confidence'] = 'guessing'
         feedback['decision'] = observed
         if error:
-
             infr.print(
-                '[ORACLE] MADE ERROR edge=%r, truth=%r, observed=%r, '
-                'rec=%r, hardness=%r' % (
-                    edge, truth, observed, is_recovering, hardness),
-                2, color='red')
+                'ORACLE ERROR real={} pred={} acc={:.2f} hard={:.2f}'.format(truth, observed, accuracy, hardness), 2, color='red')
+
+            # infr.print(
+            #     'ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}'.format(edge, truth, observed, is_recovering, hardness),
+            #     2, color='red')
         return feedback
 
 
@@ -430,7 +432,7 @@ class InfrLoops(object):
             except ReviewCanceled:
                 # Place edge back on the queue
                 if not infr.is_redundant(edge):
-                    infr.queue[edge] = priority
+                    infr.push(edge, priority)
                 continue
             infr.add_feedback(edge=edge, **feedback)
 
@@ -786,9 +788,9 @@ class InfrReviewers(object):
         pass
 
     @profile
-    def request_oracle_review(infr, edge):
+    def request_oracle_review(infr, edge, **kw):
         truth = infr.match_state_gt(edge)
-        feedback = infr.oracle.review(edge, truth, infr)
+        feedback = infr.oracle.review(edge, truth, infr, **kw)
         return feedback
 
     def request_user_review(infr, edge):

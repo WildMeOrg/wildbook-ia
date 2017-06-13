@@ -226,7 +226,7 @@ class GraphVisualization(object):
                             show_unreviewed_edges=False,
                             show_inferred_diff=True,
                             show_inferred_same=True,
-                            show_recent_review=True,
+                            show_recent_review=False,
                             highlight_reviews=True,
                             show_inconsistency=True,
                             wavy=True,
@@ -299,7 +299,8 @@ class GraphVisualization(object):
                 nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # NODE_COLOR: based on name_label
-        ut.color_nodes(graph, labelattr=colorby, sat_adjust=-.4)
+        ut.color_nodes(graph, labelattr=colorby,
+                       outof=kwargs.get('outof', None), sat_adjust=-.4)
 
         # EDGES:
         # Grab different types of edges
@@ -331,9 +332,9 @@ class GraphVisualization(object):
         compared_edges = match_edges + nomatch_edges
         uncompared_edges = ut.setdiff(edges, compared_edges)
         nontrivial_inferred_same = ut.setdiff(inferred_same, match_edges +
-                                              nomatch_edges)
+                                              nomatch_edges + notcomp_edges)
         nontrivial_inferred_diff = ut.setdiff(inferred_diff, match_edges +
-                                              nomatch_edges)
+                                              nomatch_edges + notcomp_edges)
         nontrivial_inferred_edges = (nontrivial_inferred_same +
                                      nontrivial_inferred_diff)
         nx_set_edge_attrs = nx.set_edge_attributes
@@ -400,16 +401,20 @@ class GraphVisualization(object):
 
         # Make dummy edges more transparent
         # nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
+        selected_edges = kwargs.pop('selected_edges', None)
 
         # SHADOW: based on review_timestamp
         # Increase visibility of nodes with the most recently changed timestamp
-        if show_recent_review and edge_to_reviewid:
+        if show_recent_review and edge_to_reviewid and selected_edges is None:
             timestamps = list(edge_to_reviewid.values())
             recent_idxs = ut.where(ut.equal([max(timestamps)], timestamps))
             recent_edges = ut.take(list(edge_to_reviewid.keys()), recent_idxs)
+            selected_edges = recent_edges
+
+        if selected_edges is not None:
             # TODO: add photoshop-like parameters like
             # spread and size. offset is the same as angle and distance.
-            nx_set_edge_attrs(graph, 'shadow', ut.dzip(recent_edges, [{
+            nx_set_edge_attrs(graph, 'shadow', ut.dzip(selected_edges, [{
                 'rho': .3,
                 'alpha': .6,
                 'shadow_color': 'w' if dark_background else 'k',
@@ -444,11 +449,11 @@ class GraphVisualization(object):
             nx_set_edge_attrs(graph, 'style', ut.dzip(
                 nontrivial_inferred_diff, ['invis']))
 
-        if show_recent_review and edge_to_reviewid:
+        if selected_edges is not None:
             # Always show the most recent review (remove setting of invis)
-            infr.print('recent_edges = %r' % (recent_edges,))
+            # infr.print('recent_edges = %r' % (recent_edges,))
             nx_set_edge_attrs(graph, 'style',
-                                   ut.dzip(recent_edges, ['']))
+                                   ut.dzip(selected_edges, ['']))
 
         if reposition:
             # LAYOUT: update the positioning layout
@@ -488,7 +493,7 @@ class GraphVisualization(object):
             # infr.update_visual_attrs(**update_kw)
             if update_attrs:
                 infr.update_visual_attrs(graph=graph, **kwargs)
-            verbose = kwargs.pop('verbose', 2)
+            verbose = kwargs.pop('verbose', infr.verbose)
             pt.show_nx(graph, layout='custom', as_directed=False,
                        modify_ax=False, use_image=use_image,
                        pnum=pnum, verbose=verbose, **kwargs)

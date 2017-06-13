@@ -895,7 +895,10 @@ def graph_iden_cut_demo():
 
         infr.graph.add_edges_from(new_edges)
         infr.apply_edge_truth(new_edges)
-        infr.queue.update(ut.dzip(new_edges, ut.dzip(new_edges, [-1])))
+        for edge in new_edges:
+            infr.queue.push(edge, -1)
+
+        from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 
         try:
             while True:
