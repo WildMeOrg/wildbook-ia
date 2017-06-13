@@ -1434,11 +1434,12 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         shadowkw = {}
                     linewidth = shadowkw.pop('linewidth', full_lw)
                     scale = shadowkw.pop('scale', 1.0)
-                    color = shadowkw.pop('color', 'k')
+                    shadow_color = shadowkw.pop('color', 'k')
+                    shadow_color = shadowkw.pop('shadow_color', shadow_color)
                     offset = ut.ensure_iterable(shadowkw.pop('offset', (2, -2)))
                     if len(offset) == 1:
                         offset = offset * 2
-                    shadowkw_ = dict(offset=offset, shadow_color=color,
+                    shadowkw_ = dict(offset=offset, shadow_color=shadow_color,
                                      alpha=.3, rho=.3, linewidth=linewidth *
                                      scale)
                     shadowkw_.update(shadowkw)
