@@ -695,9 +695,9 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
 
         # graph_ = ut.stack_graphs(subgraph_list)
         nx.set_node_attributes(graph_, 'pin', 'true')
-        return True
+        return True, graph_
     else:
-        return False
+        return False, graph_
         # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
 
 
@@ -744,14 +744,21 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         >>> graph3, _ = nx_agraph_layout(graph1.copy(), inplace=True, **layoutkw)
         >>> nx.set_node_attributes(graph1, 'pin', 'true')
         >>> graph4, _ = nx_agraph_layout(graph1.copy(), inplace=True, **layoutkw)
-        >>> assert np.all(nx.get_node_attributes(graph1, 'pos')['1'] == nx.get_node_attributes(graph4, 'pos')['1'])
-        >>> assert np.all(nx.get_node_attributes(graph2, 'pos')['1'] == nx.get_node_attributes(graph3, 'pos')['1'])
-        >>> ut.quit_if_noshow()
-        >>> pt.show_nx(graph1, layout='custom', pnum=(2, 2, 1), fnum=1)
-        >>> pt.show_nx(graph2, layout='custom', pnum=(2, 2, 2), fnum=1)
-        >>> pt.show_nx(graph3, layout='custom', pnum=(2, 2, 3), fnum=1)
-        >>> pt.show_nx(graph4, layout='custom', pnum=(2, 2, 4), fnum=1)
-        >>> ut.show_if_requested()
+        >>> if pt.show_was_requested():
+        >>>     pt.show_nx(graph1, layout='custom', pnum=(2, 2, 1), fnum=1)
+        >>>     pt.show_nx(graph2, layout='custom', pnum=(2, 2, 2), fnum=1)
+        >>>     pt.show_nx(graph3, layout='custom', pnum=(2, 2, 3), fnum=1)
+        >>>     pt.show_nx(graph4, layout='custom', pnum=(2, 2, 4), fnum=1)
+        >>>     ut.show_if_requested()
+        >>> g1pos = nx.get_node_attributes(graph1, 'pos')['1']
+        >>> g4pos = nx.get_node_attributes(graph4, 'pos')['1']
+        >>> g2pos = nx.get_node_attributes(graph2, 'pos')['1']
+        >>> g3pos = nx.get_node_attributes(graph3, 'pos')['1']
+        >>> assert np.all(g1pos == g4pos)
+        >>> assert np.all(g2pos == g3pos)
+
+        assert np.all(nx.get_node_attributes(graph1, 'pos')['1'] == nx.get_node_attributes(graph4, 'pos')['1'])
+        assert np.all(nx.get_node_attributes(graph2, 'pos')['1'] == nx.get_node_attributes(graph3, 'pos')['1'])
     """
     #import networkx as nx
     import pygraphviz
@@ -769,9 +776,11 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
 
     pinned_groups = False
 
+    print('groupby = %r' % (groupby,))
     if groupby is not None:
-        pinned_groups = _groupby_prelayout(
+        pinned_groups, graph_ = _groupby_prelayout(
             graph_, layoutkw=layoutkw, groupby=groupby)
+        print('pinned_groups = %r' % (pinned_groups,))
 
     prog = layoutkw.pop('prog', 'dot')
 
@@ -781,21 +790,26 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     if prog == 'neato':
         layoutkw['notranslate'] = 'true'  # for neato postprocessing
 
-    # layoutkw is allowed to overwrite graph.graph['graph']
-    args_kw = graph_.graph.get('graph', {}).copy()
-    for key, val in layoutkw.items():
-        if key in GRAPHVIZ_KEYS.G and val is not None:
-            if key not in args_kw:
-                args_kw[key] = val
+    if True:
+        argparts = ['-G%s=%s' % (key, str(val))
+                    for key, val in layoutkw.items()]
+        splines = layoutkw['splines']
+    else:
+        # layoutkw is allowed to overwrite graph.graph['graph']
+        args_kw = graph_.graph.get('graph', {}).copy()
+        for key, val in layoutkw.items():
+            if key in GRAPHVIZ_KEYS.G and val is not None:
+                if key not in args_kw:
+                    args_kw[key] = val
 
-    # del args_kw['sep']
-    # del args_kw['nodesep']
-    # del args_kw['overlap']
-    # del args_kw['notranslate']
+        # del args_kw['sep']
+        # del args_kw['nodesep']
+        # del args_kw['overlap']
+        # del args_kw['notranslate']
+        argparts = ['-G{}={}'.format(key, val) for key, val in args_kw.items()]
+        splines = args_kw['splines']
 
-    argparts = ['-G{}={}'.format(key, val) for key, val in args_kw.items()]
     args = ' '.join(argparts)
-    splines = layoutkw['splines']
 
     if verbose is None:
         verbose = ut.VERBOSE
