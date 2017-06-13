@@ -454,6 +454,32 @@ def set_title(title='', ax=None, **fontkw):
 
 
 def set_xlabel(lbl, ax=None, **kwargs):
+    r"""
+    Args:
+        lbl (?):
+        ax (None): (default = None)
+        **kwargs:
+
+    CommandLine:
+        python -m plottool.custom_figure set_xlabel
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.custom_figure import *  # NOQA
+        >>> import plottool as pt
+        >>> fig = pt.figure()
+        >>> pt.adjust_subplots(fig=fig, bottom=.5)
+        >>> ax = pt.gca()
+        >>> lbl = 'a\nab\nabc'
+        >>> result = set_xlabel(lbl, ax)
+        >>> xaxis = ax.get_xaxis()
+        >>> xlabel = xaxis.get_label()
+        >>> xlabel.set_horizontalalignment('left')
+        >>> xlabel.set_x(0)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> ut.show_if_requested()
+    """
     if ax is None:
         ax = gca()
     # labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])

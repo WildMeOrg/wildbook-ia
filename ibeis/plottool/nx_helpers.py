@@ -776,11 +776,9 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
 
     pinned_groups = False
 
-    print('groupby = %r' % (groupby,))
     if groupby is not None:
         pinned_groups, graph_ = _groupby_prelayout(
             graph_, layoutkw=layoutkw, groupby=groupby)
-        print('pinned_groups = %r' % (pinned_groups,))
 
     prog = layoutkw.pop('prog', 'dot')
 
