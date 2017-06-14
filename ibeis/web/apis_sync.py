@@ -29,8 +29,7 @@ if REMOTE_TESTING:
     REMOTE_UUID = None
 else:
     REMOTE = 'http://35.161.135.191:5555'  # AMI IN AWS CALLED "IBEIS IA DETECT"
-    # REMOTE_UUID = uuid.UUID('e468d14b-3a39-4165-8f62-16f9e3deea39')
-    REMOTE_UUID = uuid.UUID('23edc1c5-3ef8-43c5-b106-759d418a368d')
+    REMOTE_UUID = uuid.UUID('e468d14b-3a39-4165-8f62-16f9e3deea39')
 
 
 def _construct_route_url(route_rule):
