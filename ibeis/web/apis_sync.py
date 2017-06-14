@@ -237,7 +237,8 @@ def _detect_remote_push_part_metadata(ibs, part_uuid_list):
 
 @register_ibs_method
 @register_api('/api/sync/', methods=['GET'])
-def _detect_remote_sync_images(ibs, gid_list=None):
+def _detect_remote_sync_images(ibs, gid_list=None,
+                               only_sync_missing_images=False):
     _assert_remote_online(ibs)
 
     if gid_list is None:
@@ -278,17 +279,21 @@ def _detect_remote_sync_images(ibs, gid_list=None):
         ibs._detect_remote_push_images(missing_gid_list)
         print('...pushed')
 
+    # Filter only missing
+    gid_list_ = missing_gid_list if only_sync_missing_images else gid_list
+    image_uuid_list_ = ibs.get_image_uuids(gid_list_)
+
     ############################################################################
 
     # Sync imageset
     print('Setting imageset...')
-    ibs._detect_remote_push_imageset(image_uuid_list)
+    ibs._detect_remote_push_imageset(image_uuid_list_)
     print('...set')
 
     ############################################################################
 
     # Sync annots
-    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list_))
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     annot_uuid_list_ = _get('/api/annot/json/')
 
