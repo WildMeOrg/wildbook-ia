@@ -74,9 +74,10 @@ def _assert_remote_online(ibs):
 def _detect_remote_push_images(ibs, gid_list):
     route_url = _construct_route_url('/api/upload/image/')
 
+    num_images = len(gid_list)
     image_path_list = ibs.get_image_paths(gid_list)
-    for image_path in image_path_list:
-        print('\tSending %r' % (image_path, ))
+    for index, image_path in enumerate(image_path_list):
+        print('\tSending %d / %d: %r' % (index, num_images, image_path, ))
         file_dict = {
             'image': open(image_path, 'rb'),
         }
@@ -314,7 +315,8 @@ def _detect_remote_sync_images(ibs, gid_list=None,
 
     # Sync annotation metadata
     print('Synching annotation metadata...')
-    ibs._detect_remote_push_annot_metadata(annot_uuid_list)
+    if len(annot_uuid_list) > 0:
+        ibs._detect_remote_push_annot_metadata(annot_uuid_list)
     print('...synched')
 
     ############################################################################
@@ -340,7 +342,8 @@ def _detect_remote_sync_images(ibs, gid_list=None,
 
     # Sync part metadata
     print('Synching part metadata...')
-    ibs._detect_remote_push_part_metadata(part_uuid_list)
+    if len(part_uuid_list) > 0:
+        ibs._detect_remote_push_part_metadata(part_uuid_list)
     print('...synched')
 
 
