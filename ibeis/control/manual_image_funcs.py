@@ -402,7 +402,6 @@ def localize_images(ibs, gid_list_=None):
 
     """
     #from os.path import isabs
-    ut.embed()
     import six
     if six.PY2:
         import urlparse
@@ -429,9 +428,6 @@ def localize_images(ibs, gid_list_=None):
     def islocal(uri):
         return not (isabs(uri) and isproto(uri, valid_protos))
 
-    abs_uri_list = [uri if islocal(uri) else
-                    join(ibs.imgdir, uri) for uri in uri_list]
-
     guuid_list = ibs.get_image_uuids(gid_list)
     gext_list  = ibs.get_image_exts(gid_list)
     # Build list of image names based on uuid in the ibeis imgdir
@@ -440,29 +436,31 @@ def localize_images(ibs, gid_list_=None):
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
+        print('Localizing %r -> %r' % (uri, loc_gpath, ))
         if isproto(uri, valid_protos):
             if isproto(uri, s3_proto):
+                print('\tAWS S3 Fetch')
                 s3_dict = ut.s3_str_decode_to_dict(uri)
                 ut.grab_s3_contents(loc_gpath, **s3_dict)
-            if isproto(uri, url_protos):
+            elif isproto(uri, url_protos):
+                print('\tURL Download')
                 # Ensure that the Unicode string is properly encoded for web requests
                 uri_ = urlsplit(uri)
                 uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
                 uri_ = uri_._replace(path=uri_path)
                 uri = uri_.geturl()
                 six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
-    # Copy images to local directory
-    #needs_copy_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
-    #                           for gp, lgp in zip(abs_uri_list, loc_gpath_list)]
-    needs_copy_flags = [not exists(gpath) for gpath in loc_gpath_list]
-    # ---
-    loc_gpath_list_ = ut.compress(loc_gpath_list, needs_copy_flags)
-    #loc_gname_list_ = ut.compress(loc_gname_list, needs_copy_flags)
-    gpath_list_     = ut.compress(abs_uri_list, needs_copy_flags)
-    gid_list_       = ut.compress(gid_list, needs_copy_flags)
-    ut.copy_list(gpath_list_, loc_gpath_list_, lbl='Localizing Images: ')
+            else:
+                raise ValueError('Sanity check failed')
+        else:
+            if not exists(loc_gpath):
+                print('\tIO Copy')
+                # Copy images to local directory
+                uri if islocal(uri) else join(ibs.imgdir, uri)
+                ut.copy_list([uri], [loc_gpath])
+            else:
+                print('\tSkipping (already localized)')
     # Update database uris
-    #ibs.set_image_uris(gid_list_, loc_gname_list_)
     ibs.set_image_uris(gid_list, loc_gname_list)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
