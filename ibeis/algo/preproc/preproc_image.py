@@ -99,7 +99,6 @@ def parse_imageinfo(gpath):
     with warnings.catch_warnings(record=True) as w:
         try:
             if isproto(gpath, valid_protos):
-                ut.embed()
                 suffix = '.%s' % (basename(gpath), )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
                 args = (gpath, temp_filepath, )
