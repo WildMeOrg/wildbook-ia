@@ -721,44 +721,13 @@ def save_parts(fig, fpath, grouped_axes=None, dpi=None):
         subpath = ut.augpath(fpath, chr(count + 65))
         extent = axes_extent(axs).transformed(fig.dpi_scale_trans.inverted())
         savekw = {}
-        savekw['transparent'] = True
+        savekw['transparent'] = ut.get_argflag('--alpha')
         if dpi is not None:
             savekw['dpi'] = dpi
         savekw['edgecolor'] = 'none'
         fig.savefig(subpath, bbox_inches=extent, **savekw)
         subpaths.append(subpath)
     return subpaths
-
-
-def get_save_directions():
-    from os.path import join
-    fpath = None
-    fpath_ = ut.get_argval('--save', type_=str, default=None)
-    if fpath_ is not None:
-        print('Figure save was requested')
-        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'],
-                                   type_hints={'t': list, 'a': list})
-        #import sys
-
-        #print(sys.argv)
-        #ut.print_dict(arg_dict)
-        # HACK
-        arg_dict = {
-            key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']')
-            if isinstance(val, list) else val
-            for key, val in arg_dict.items()
-        }
-        fpath_ = fpath_.format(**arg_dict)
-        fpath_ = ut.remove_chars(fpath_, ' \'"')
-        dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
-        print('dpath = %r' % (dpath,))
-        #if False and not gotdpath and ut.is_developer():
-        #    # HACK use utool profile here
-        #    print('USING DEV CAND DIR')
-        #    dpath = ut.truepath('~/latex/crall-cand')
-
-        fpath = join(dpath, fpath_)
-    return fpath
 
 
 def show_if_requested(N=1):
@@ -781,15 +750,21 @@ def show_if_requested(N=1):
     update_figsize()
 
     dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
+    SAVE_PARTS = ut.get_argflag('--saveparts')
 
     fpath_ = ut.get_argval('--save', type_=str, default=None)
+    if fpath_ is None:
+        fpath_ = ut.get_argval('--saveparts', type_=str, default=None)
+        SAVE_PARTS = True
 
     if fpath_ is not None:
+        from os.path import expanduser
+        fpath_ = expanduser(fpath_)
         print('Figure save was requested')
         arg_dict = ut.get_arg_dict(prefix_list=['--', '-'],
                                    type_hints={'t': list, 'a': list})
         #import sys
-        from os.path import basename, splitext, join
+        from os.path import basename, splitext, join, dirname
         import plottool as pt
         import vtool as vt
 
@@ -802,15 +777,16 @@ def show_if_requested(N=1):
         fpath_ = fpath_.format(**arg_dict)
         fpath_ = ut.remove_chars(fpath_, ' \'"')
         dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
-        print('dpath = %r' % (dpath,))
 
         fpath = join(dpath, fpath_)
+        if not gotdpath:
+            dpath = dirname(fpath_)
+        print('dpath = %r' % (dpath,))
 
         fig = pt.gcf()
         fig.dpi = dpi
 
         fpath_strict = ut.truepath(fpath)
-        SAVE_PARTS = ut.get_argflag('--saveparts')
         CLIP_WHITE = ut.get_argflag('--clipwhite')
 
         if SAVE_PARTS:
