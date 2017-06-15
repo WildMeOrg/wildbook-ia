@@ -13,7 +13,7 @@ class RefreshCriteria(object):
     """
     Determine when to re-query for candidate edges
     """
-    def __init__(refresh, window=100, patience=50, thresh=.1):
+    def __init__(refresh, window=100, patience=50, thresh=.1, method='poisson'):
         refresh.manual_decisions = []
         refresh.num_pos = 0
         refresh.num_meaningful = 0
@@ -26,6 +26,7 @@ class RefreshCriteria(object):
         # refresh._ewma = None
         refresh._ewma = 1
         refresh.enabled = True
+        refresh.method = method
 
     def clear(refresh):
         refresh.manual_decisions = []
@@ -33,11 +34,10 @@ class RefreshCriteria(object):
         refresh.num_pos = 0
         refresh.num_meaningful = 0
 
+    def is_id_complete(refresh):
+        return (refresh.num_meaningful == 0)
+
     def check(refresh):
-        # if len(refresh.manual_decisions) > refresh.warmup:
-        # return (refresh.pos_frac < refresh.frac_thresh and
-        #         refresh.num_pos > refresh.pos_thresh)
-        # return refresh._prob_none_remain() > refresh._prob_none_remain_thresh
         if not refresh.enabled:
             return False
         return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
@@ -64,7 +64,7 @@ class RefreshCriteria(object):
             >>> from ibeis.algo.graph import demo
             >>> demokw = ut.argparse_dict({'num_pccs': 50, 'size': 4})
             >>> refreshkw = ut.argparse_dict(
-            >>>     {'window': 50, 'patience': 4, 'thresh': np.exp(-2)})
+            >>>     {'window': 50, 'patience': 4, 'thresh': np.exp(-2), 'method': 'poisson'})
             >>> infr = demo.demodata_infr(size_std=0, **demokw)
             >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
@@ -136,23 +136,50 @@ class RefreshCriteria(object):
         """
         mu = .3
         a = 3
-        poisson_prob_k_events(0, mu)
-        1 - poisson_prob_at_least_k_events(0, mu)
+        poisson_prob_exactly_k_events(0, mu)
+        1 - poisson_prob_more_than_k_events(0, mu)
 
-        poisson_prob_k_events(0, mu) ** a
-        poisson_prob_k_events(0, mu * a)
+        poisson_prob_exactly_k_events(0, mu) ** a
+        poisson_prob_exactly_k_events(0, mu * a)
 
-        (1 - poisson_prob_at_least_k_events(0, mu)) ** a
-        (1 - poisson_prob_at_least_k_events(0, mu * a))
+        poisson_prob_at_most_k_events(1, lam)
+        poisson_prob_more_than_k_events(1, lam)
+
+        poisson_prob_more_than_k_events(0, lam)
+        poisson_prob_exactly_k_events(0, lam)
+
+        (1 - poisson_prob_more_than_k_events(0, mu)) ** a
+        (1 - poisson_prob_more_than_k_events(0, mu * a))
+
+        import scipy.stats
+        p = scipy.stats.distributions.poisson.pmf(0, lam)
+        p = scipy.stats.distributions.poisson.pmf(0, lam)
+        assert p == poisson_prob_exactly_k_events(0, lam)
         """
         import scipy as sp
-        mu = refresh._ewma
-        def poisson_prob_k_events(k, mu):
-            return np.exp(-mu) * (mu ** k) / sp.math.factorial(k)
-        # def  poisson_prob_at_least_k_events(k, mu):
-        #     return sp.special.gammainc(k + 1, mu) / sp.math.factorial(k)
+
+        def poisson_prob_exactly_k_events(k, lam):
+            return np.exp(-lam) * (lam ** k) / sp.math.factorial(k)
+
+        def poisson_prob_at_most_k_events(k, lam):
+            """ this is the cdf """
+            k_ = int(np.floor(k))
+            return np.exp(-lam) * sum((lam ** i) / sp.math.factorial(i) for i in range(0, k_ + 1))
+            # return sp.special.gammaincc(k_ + 1, lam) / sp.math.factorial(k_)
+
+        def poisson_prob_more_than_k_events(k, lam):
+            k_ = int(np.floor(k))
+            return sp.special.gammainc(k_ + 1, lam) / sp.math.factorial(k_)
+
         a = refresh._patience
-        prob_no_event_in_range = poisson_prob_k_events(0, mu * a)
+        mu = refresh._ewma
+
+        if refresh.method == 'poisson':
+            lam = a * mu
+            prob_no_event_in_range = np.exp(-lam)
+            prob_no_event_in_range = poisson_prob_exactly_k_events(0, lam)
+        elif refresh.method == 'binomial':
+            prob_no_event_in_range = (1 - mu) ** a
         return prob_no_event_in_range
 
     def pred_num_positives(refresh, n_remain_edges):
@@ -529,6 +556,43 @@ class InfrLoops(object):
             infr.refresh.clear()
         infr.inner_priority_loop(use_refresh)
 
+    def simple_main_loop(infr):
+        """
+            >>> from ibeis.algo.graph.mixin_loops import *
+            >>> import utool as ut
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=10, size=4)
+            >>> infr.clear_edges()
+            >>> infr.init_simulation()
+            >>> infr.refresh = RefreshCriteria(**infr._refresh_params)
+            >>> infr.simple_main_loop()
+        """
+
+        while not infr.refresh.is_id_complete():
+            # Search for candidate edges with LNBNN
+            infr.refresh_candidate_edges()
+
+            while len(infr.queue) > 0:
+                # Top of priority queue is determined dynamically
+                edge, _ = infr.pop()
+                # Automatic / manual edge review
+                feedback = infr.request_review(edge)
+                # Insert edge and dynamically update the priority
+                infr.add_feedback(edge, **feedback)
+                if infr.refresh.check():
+                    break
+
+            # Ensure all PCCs are positive redundant
+            new_edges = infr.find_pos_redun_candidate_edges()
+            while len(new_edges) > 0:
+                infr.queue.clear()
+                infr.add_candidate_edges(new_edges)
+                while len(infr.queue) > 0:
+                    edge, _ = infr.pop()
+                    feedback = infr.request_review(edge)
+                    infr.add_feedback(edge, **feedback)
+                new_edges = infr.find_pos_redun_candidate_edges()
+
     @profile
     def main_loop(infr, max_loops=None, use_refresh=True):
         """
@@ -669,7 +733,20 @@ class InfrReviewers(object):
         return auto_flag, review
 
     @profile
-    def emit_or_review(infr, edge, priority):
+    def request_review(infr, edge, priority=None):
+        """ function only for test purposes use emit_or_review """
+        if infr.enable_autoreview:
+            flag, feedback = infr.try_auto_review(edge)
+            if flag:
+                return feedback
+        if infr.simulation_mode:
+            feedback = infr.request_oracle_review(edge)
+            return feedback
+        else:
+            raise Exception('use emit_or_review instead')
+
+    @profile
+    def emit_or_review(infr, edge, priority=None):
         if infr.enable_autoreview:
             flag, feedback = infr.try_auto_review(edge)
             if flag:
@@ -822,11 +899,22 @@ class SimulationHelpers(object):
 
         infr.oracle = UserOracle(oracle_accuracy, rng=infr.name)
 
-        infr.task_thresh = {
-            'photobomb_state': pd.Series({
+        if match_state_thresh is None:
+            match_state_thresh = {
+                POSTV: 1.0,
+                NEGTV: 1.0,
+                INCMP: 1.0,
+            }
+
+        pb_state_thresh = None
+        if pb_state_thresh is None:
+            pb_state_thresh = {
                 'pb': .5,
                 'notpb': .9,
-            }),
+            }
+
+        infr.task_thresh = {
+            'photobomb_state': pd.Series(pb_state_thresh),
             'match_state': pd.Series(match_state_thresh)
         }
         infr._max_outer_loops = max_outer_loops

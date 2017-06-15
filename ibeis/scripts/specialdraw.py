@@ -19,38 +19,45 @@ def multidb_montage():
     import vtool as vt
     import numpy as np
     pt.ensureqt()
-    ibs1 = ibeis.opendb('PZ_MTEST')
-    ibs2 = ibeis.opendb('GZ_ALL')
-    ibs3 = ibeis.opendb('GIRM_Master1')
+    dbnames = [
+        'PZ_Master1',
+        'GZ_Master1',
+        'humpbacks_fb',
+        'GIRM_Master1',
+    ]
+    ibs_list = [ibeis.opendb(dbname) for dbname in dbnames]
 
-    chip_lists = []
+    target_num = 1000
+    sample_size = target_num // len(ibs_list)
+
     aids_list = []
-
-    for ibs in [ibs1, ibs2, ibs3]:
-        aids = ibs.sample_annots_general(minqual='good', sample_size=400)
+    for ibs in ibs_list:
+        aids = ibs.sample_annots_general(
+            minqual='good', sample_size=sample_size)
         aids_list.append(aids)
 
     print(ut.depth_profile(aids_list))
 
-    for ibs, aids in zip([ibs1, ibs2, ibs3], aids_list):
-        chips = ibs.get_annot_chips(aids)
-        chip_lists.append(chips)
+    chip_lists = []
+    for ibs, aids in zip(ibs_list, aids_list):
+        annots = ibs.annots(aids)
+        chip_lists.append(annots.chips)
 
-    chip_list = ut.flatten(chip_lists)
-    np.random.shuffle(chip_list)
+    chips = ut.flatten(chip_lists)
+    np.random.shuffle(chips)
 
     widescreen_ratio = 16 / 9
     ratio = ut.PHI
     ratio = widescreen_ratio
 
-    fpath = pt.get_save_directions()
+    fpath = ut.get_argval('--save', type_=str, default='montage.jpg')
 
     #height = 6000
     width = 6000
     #width = int(height * ratio)
     height = int(width / ratio)
     dsize = (width, height)
-    dst = vt.montage(chip_list, dsize)
+    dst = vt.montage(chips, dsize)
     vt.imwrite(fpath, dst)
     if ut.get_argflag('--show'):
         pt.imshow(dst)
@@ -1563,6 +1570,62 @@ def redun_demo2():
 
     fig = pt.gcf()
     fig.set_size_inches(10, 5)
+
+    ut.show_if_requested()
+
+
+def redun_demo3():
+    r"""
+    python -m ibeis.scripts.specialdraw redun_demo3 --show
+    python -m ibeis.scripts.specialdraw redun_demo3 --saveparts=~/slides/incon_redun.jpg --dpi=300
+    """
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    from ibeis.algo.graph import demo
+    from ibeis.algo.graph import nx_utils as nxu
+    import plottool as pt
+
+    # import networkx as nx
+    pt.ensureqt()
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    fnum = 1
+    showkw = dict(show_inconsistency=False, show_labels=True,
+                  simple_labels=True,
+                  show_recent_review=False, wavy=False,
+                  groupby='name_label',
+                  splines='spline',
+                  show_all=True,
+                  pickable=True, fnum=fnum)
+
+    graphkw = dict(hpad=50, vpad=50, group_grid=True)
+    pnum_ = pt.make_pnum_nextgen(2, 1)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4), (6,)])
+    infr.add_feedback((5, 6), decision=POSTV)
+    for e in nxu.complement_edges(infr.graph):
+        infr.add_feedback(e, decision=INCMP)
+
+    infr.graph.graph.update(graphkw)
+    infr.show(pnum=pnum_(), **showkw)
+    ax = pt.gca()
+    ax.set_aspect('equal')
+
+    ccs = [(1, 2, 3, 4), (11, 12, 13, 14, 15)]
+    infr = demo.make_demo_infr(ccs=ccs)
+    infr.add_feedback((4, 14), decision=NEGTV)
+    import networkx as nx
+    for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
+        print('e = %r' % (e,))
+        infr.add_feedback(e, decision=INCMP)
+    infr.graph.graph.update(graphkw)
+    infr.show(pnum=pnum_(), **showkw)
+    ax = pt.gca()
+    ax.set_aspect('equal')
+
+    fig = pt.gcf()
+    fig.set_size_inches(10 / 3, 5)
 
     ut.show_if_requested()
 

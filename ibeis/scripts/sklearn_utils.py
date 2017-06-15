@@ -542,6 +542,7 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
 
     >>> from ibeis.scripts.sklearn_utils import *
     >>> probs = np.array([
+    >>>     [0.5, 0.5, 0.0],
     >>>     [0.4, 0.5, 0.1],
     >>>     [1.0, 0.0, 0.0],
     >>>     [0.3, 0.3, 0.4],
@@ -566,7 +567,9 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
             raise ValueError('need target names to use a dict of threshes')
         threshes = ut.take(threshes, target_names)
 
-    bin_flags = (probs >= threshes)
+    # if force:
+    #     bin_flags = (probs >= threshes)
+    bin_flags = (probs > threshes)
     num_states = bin_flags.sum(axis=1)
 
     no_predict    = (num_states == 0)

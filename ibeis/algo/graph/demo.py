@@ -225,7 +225,7 @@ def demo2():
     infr.on_new_candidate_edges = on_new_candidate_edges
 
     infr.queue_params.update(**queue_params)
-    infr.dummy_matcher.refresh_candidate_edges()
+    infr.refresh_candidate_edges()
 
     VIZ_ALL = (VISUALIZE and TARGET_REVIEW is None and START is None)
     print('VIZ_ALL = %r' % (VIZ_ALL,))
@@ -1295,10 +1295,9 @@ class DummyMatcher(object):
         >>> infr = demo.demodata_infr(**kwargs)
         >>> infr.dummy_matcher.predict_edges([(1, 2)])
         >>> infr.dummy_matcher.predict_edges([(1, 21)])
-        >>> assert len(infr.dummy_matcher.prob_cache) == 2
+        >>> assert len(infr.dummy_matcher.task_probs['match_state']) == 2
     """
     def __init__(matcher, infr):
-        matcher.prob_cache = {}
         matcher.rng = np.random.RandomState(4033913)
         matcher.dummy_params = {
             NEGTV: {'mean': .2, 'std': .25},
@@ -1376,15 +1375,18 @@ class DummyMatcher(object):
         # assert len(ranked_edges) == K
         return ranked_edges
 
-    def refresh_candidate_edges(matcher):
-        infr = matcher.infr
-        infr.print('Searching for dummy candidates')
-        infr.print('dummy vsone params =' + ut.repr4(
-            matcher.dummy_params, nl=1, si=True))
-        new_edges = infr.dummy_matcher.find_candidate_edges()
-        infr.add_candidate_edges(new_edges)
-
     def find_candidate_edges(matcher, K=10):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.demo import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> import networkx as nx
+            >>> kwargs = dict(num_pccs=40, size=2)
+            >>> infr = demo.demodata_infr(**kwargs)
+            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
+            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+        """
         new_edges = []
         nodes = list(matcher.infr.graph.nodes())
         for u in nodes:
@@ -1413,15 +1415,17 @@ class DummyMatcher(object):
             >>> import networkx as nx
             >>> kwargs = dict(num_pccs=40, size=2)
             >>> infr = demo.demodata_infr(**kwargs)
-            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
+            >>> edges = list(infr.graph.edges())
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
             >>> #print('scores = %r' % (scores,))
             >>> #hashid = ut.hash_data(scores)
             >>> #print('hashid = %r' % (hashid,))
             >>> #assert hashid == 'cdlkytilfeqgmtsihvhqwffmhczqmpil'
         """
+        infr = matcher.infr
         edges = list(it.starmap(matcher.infr.e_, edges))
-        is_miss = np.array([e not in matcher.prob_cache for e in edges])
+        prob_cache = infr.task_probs['match_state']
+        is_miss = np.array([e not in prob_cache for e in edges])
         # is_hit = ~is_miss
         if np.any(is_miss):
             miss_edges = ut.compress(edges, is_miss)
@@ -1429,14 +1433,18 @@ class DummyMatcher(object):
             grouped_edges = ut.group_items(miss_edges, miss_truths,
                                            sorted_=False)
             # Need to make this determenistic too
+            states = [POSTV, NEGTV, INCMP]
             for key in sorted(grouped_edges.keys()):
                 group = grouped_edges[key]
-                probs = randn(shape=[len(group)], rng=matcher.rng, a_max=1, a_min=0,
-                              **matcher.dummy_params[key])
-                for edge, prob in zip(group, probs):
-                    matcher.prob_cache[edge] = prob
-
-        return ut.take(matcher.prob_cache, edges)
+                probs0 = randn(shape=[len(group)], rng=matcher.rng, a_max=1, a_min=0,
+                               **matcher.dummy_params[key])
+                # Just randomly assign other probs
+                probs1 = matcher.rng.rand(len(group)) * (1 - probs0)
+                probs2 = 1 - (probs0 + probs1)
+                for edge, probs in zip(group, zip(probs0, probs1, probs2)):
+                    prob_cache[edge] = ut.dzip(states, probs)
+        pos_scores = ut.take_column(ut.take(prob_cache, edges), POSTV)
+        return pos_scores
 
     # print('[demo] apply dummy scores')
     # rng = ut.ensure_rng(rng)

@@ -790,7 +790,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     with_vsone = True
     if with_vsone:
         options += [
-            ('Tune Vsone(vt)', make_vsone_context_options(ibs, aid1, aid2, qreq_)[0][1])
+            ('Tune Vsone(vt)', make_vsone_context_options(ibs, aid1, aid2,
+                                                          qreq_=qreq_)[0][1])
         ]
 
     with_vsmany = True
@@ -899,7 +900,9 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
 
 
 def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
-    self = make_vsone_tuner(ibs, qaid, daid, qreq_=qreq_)
+    edge = (qaid, daid)
+    print('[inspect_gui] show_vsone_tuner edge={}'.format(edge))
+    self = make_vsone_tuner(ibs, edge, qreq_=qreq_)
     self.show()
 
 

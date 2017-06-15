@@ -1116,6 +1116,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         key = 'Debug'
         menu = self.menus[key] = self.menubar.newMenu(key)
         menu.newAction(triggered=self.use_ibeis_names)
+        menu.newAction(triggered=self.reset_staging)
+        menu.newAction(triggered=self.reset_annotmatch)
         menu.newAction(triggered=self.ensure_full)
         menu.newAction(triggered=self.ensure_cliques)
         menu.newAction(triggered=self.vsone_subset)
@@ -1154,7 +1156,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             raise ValueError('Unknown init_mode=%r' % (self.init_mode,))
         self.repopulate()
 
-        if ut.get_argflag('--graph'):
+        if ut.get_argflag('--graphtab'):
             index = self.graph_tab_widget.indexOf(self.graph_tab)
             self.graph_tab_widget.setCurrentIndex(index)
             # self.graph_tab_widget.setCurrentIndex(2)
@@ -1275,6 +1277,28 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             #     self.infr.apply_nondynamic_update()
             self.repopulate()
             ctx.set_progress(3, 3)
+
+    def reset_annotmatch(self):
+        print('[viz_graph] reset_rereview')
+        infr = self.infr
+        with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
+            ctx.set_progress(0, 3)
+            infr.reset_feedback('annotmatch', apply=True)
+            infr.relabel_using_reviews()
+            ctx.set_progress(msg='repopulate')
+            self.repopulate()
+            ctx.set_progress(8, 8)
+
+    def reset_staging(self):
+        print('[viz_graph] reset_rereview')
+        infr = self.infr
+        with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
+            ctx.set_progress(0, 3)
+            infr.reset_feedback('staging', apply=True)
+            infr.relabel_using_reviews()
+            ctx.set_progress(msg='repopulate')
+            self.repopulate()
+            ctx.set_progress(8, 8)
 
     def reset_rereview(self):
         """
@@ -2339,8 +2363,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
                             init_mode='review', graph_tab=False):
     r"""
     CommandLine:
-        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graph-tab
-        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graph-tab
+        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graphtab
+        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graphtab
 
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --graph-tab --aids=2587,2398
         ibeis make_qt_graph_interface --show

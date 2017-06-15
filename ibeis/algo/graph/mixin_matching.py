@@ -885,9 +885,18 @@ class CandidateSearch(object):
         Assign each edge a priority and add to queue.
         """
         infr.print('refresh_candidate_edges', 1)
-
         infr.assert_consistency_invariant()
-        candidate_edges = infr.find_lnbnn_candidate_edges()
+
+        if infr.ibs is not None:
+            candidate_edges = infr.find_lnbnn_candidate_edges()
+        elif hasattr(infr, 'dummy_matcher'):
+            infr.print('Searching for dummy candidates')
+            infr.print('dummy vsone params =' + ut.repr4(
+                infr.dummy_matcher.dummy_params, nl=1, si=True))
+            candidate_edges = infr.dummy_matcher.find_candidate_edges()
+        else:
+            raise Exception(
+                'No method available to search for candidate edges')
         infr.add_candidate_edges(candidate_edges)
         infr.assert_consistency_invariant()
 

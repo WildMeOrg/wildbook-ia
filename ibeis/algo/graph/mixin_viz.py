@@ -264,7 +264,14 @@ class GraphVisualization(object):
         show_cand = get_any(kwargs, ['show_candidate_edges', 'show_candidates',
                                      'show_cand'])
         if show_cand is not None:
-            show_unreviewed_edges = show_cand
+            show_cand = True
+            show_reviewed_edges   = True
+            show_unreviewed_edges = True
+            show_inferred_diff    = True
+            show_inferred_same    = True
+
+        if kwargs.get('show_all'):
+            show_cand = True
 
         # alpha_low = .5
         alpha_med = .9
