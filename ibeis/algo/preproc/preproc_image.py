@@ -84,6 +84,8 @@ def parse_imageinfo(gpath):
         import urllib
         urlsplit = urllib.parse.urlsplit
 
+    gpath = gpath.strip()
+
     url_protos = ['https://', 'http://']
     s3_proto = ['s3://']
     valid_protos = s3_proto + url_protos
