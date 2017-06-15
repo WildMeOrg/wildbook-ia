@@ -402,6 +402,7 @@ def localize_images(ibs, gid_list_=None):
 
     """
     #from os.path import isabs
+    ut.embed()
     import six
     if six.PY2:
         import urlparse
