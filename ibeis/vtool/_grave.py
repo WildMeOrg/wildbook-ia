@@ -163,3 +163,76 @@ def bow_test():
 
     print(x.dot(c1))
     print(x.dot(c2))
+
+
+def match_inspect_graph():
+    """
+
+    CommandLine:
+        python -m vtool.inspect_matches match_inspect_graph --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.inspect_matches import *  # NOQA
+        >>> import vtool as vt
+        >>> gt.ensure_qapp()
+        >>> ut.qtensure()
+        >>> self = match_inspect_graph()
+        >>> self.show()
+        >>> ut.quit_if_noshow()
+        >>> self.update()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
+    """
+    import vtool as vt
+    annots = [lazy_test_annot('easy1.png'),
+              lazy_test_annot('easy2.png'),
+              lazy_test_annot('easy3.png'),
+              lazy_test_annot('zebra.png'),
+              lazy_test_annot('hard3.png')]
+    matches = [vt.PairwiseMatch(a1, a2) for a1, a2 in ut.combinations(annots, 2)]
+    self = MultiMatchInspector(matches=matches)
+    return self
+
+
+class MultiMatchInspector(INSPECT_BASE):
+    # DEPRICATE
+
+    def initialize(self, matches):
+        self.matches = matches
+
+        self.splitter = self.addNewSplitter(orientation='horiz')
+        # tab_widget = self.addNewTabWidget(verticalStretch=1)
+        # self.edge_tab = tab_widget.addNewTab('Edges')
+        # self.match_tab = tab_widget.addNewTab('Matches')
+
+        self.edge_api_widget = gt.APIItemWidget(
+            doubleClicked=self.edge_doubleclick)
+        self.match_inspector = MatchInspector(match=None)
+
+        self.splitter.addWidget(self.edge_api_widget)
+        self.splitter.addWidget(self.match_inspector)
+
+        self.populate_edge_model()
+
+    def edge_doubleclick(self, qtindex):
+        row = qtindex.row()
+        match = self.matches[row]
+        self.match_inspector.set_match(match)
+
+    def populate_edge_model(self):
+        edge_api = gt.CustomAPI(
+            col_name_list=['index', 'aid1', 'aid2'],
+            col_getter_dict={
+                'index': list(range(len(self.matches))),
+                'aid1': [m.annot1['aid'] for m in self.matches],
+                'aid2': [m.annot2['aid'] for m in self.matches],
+            }, sort_reverse=False)
+        headers = edge_api.make_headers(tblnice='Edges')
+        self.edge_api_widget.change_headers(headers)
+        self.edge_api_widget.resize_headers(edge_api)
+        self.edge_api_widget.view.verticalHeader().setVisible(True)
+        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(24)
+        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
+        # self.edge_tab.setTabText('Matches (%r)' % (self.edge_api_widget.model.num_rows_total))
+
+

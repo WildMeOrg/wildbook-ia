@@ -26,76 +26,27 @@ def lazy_test_annot(key):
     })
     return annot
 
+try:
+    import dtool as dt
 
-def match_inspect_graph():
-    """
+    MatchDisplayConfig = dt.from_param_info_list([
+        ut.ParamInfo('overlay', True),
+        ut.ParamInfo('show_all_kpts', False),
+        ut.ParamInfo('mask_blend', 0.0, min_=0, max_=1),
 
-    CommandLine:
-        python -m vtool.inspect_matches match_inspect_graph --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.inspect_matches import *  # NOQA
-        >>> import vtool as vt
-        >>> gt.ensure_qapp()
-        >>> ut.qtensure()
-        >>> self = match_inspect_graph()
-        >>> self.show()
-        >>> ut.quit_if_noshow()
-        >>> self.update()
-        >>> gt.qtapp_loop(qwin=self, freq=10)
-    """
-    import vtool as vt
-    annots = [lazy_test_annot('easy1.png'),
-              lazy_test_annot('easy2.png'),
-              lazy_test_annot('easy3.png'),
-              lazy_test_annot('zebra.png'),
-              lazy_test_annot('hard3.png')]
-    matches = [vt.PairwiseMatch(a1, a2) for a1, a2 in ut.combinations(annots, 2)]
-    self = MultiMatchInspector(matches=matches)
-    return self
-
-
-class MultiMatchInspector(INSPECT_BASE):
-    # DEPRICATE
-
-    def initialize(self, matches):
-        self.matches = matches
-
-        self.splitter = self.addNewSplitter(orientation='horiz')
-        # tab_widget = self.addNewTabWidget(verticalStretch=1)
-        # self.edge_tab = tab_widget.addNewTab('Edges')
-        # self.match_tab = tab_widget.addNewTab('Matches')
-
-        self.edge_api_widget = gt.APIItemWidget(
-            doubleClicked=self.edge_doubleclick)
-        self.match_inspector = MatchInspector(match=None)
-
-        self.splitter.addWidget(self.edge_api_widget)
-        self.splitter.addWidget(self.match_inspector)
-
-        self.populate_edge_model()
-
-    def edge_doubleclick(self, qtindex):
-        row = qtindex.row()
-        match = self.matches[row]
-        self.match_inspector.set_match(match)
-
-    def populate_edge_model(self):
-        edge_api = gt.CustomAPI(
-            col_name_list=['index', 'aid1', 'aid2'],
-            col_getter_dict={
-                'index': list(range(len(self.matches))),
-                'aid1': [m.annot1['aid'] for m in self.matches],
-                'aid2': [m.annot2['aid'] for m in self.matches],
-            }, sort_reverse=False)
-        headers = edge_api.make_headers(tblnice='Edges')
-        self.edge_api_widget.change_headers(headers)
-        self.edge_api_widget.resize_headers(edge_api)
-        self.edge_api_widget.view.verticalHeader().setVisible(True)
-        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(24)
-        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
-        # self.edge_tab.setTabText('Matches (%r)' % (self.edge_api_widget.model.num_rows_total))
+        ut.ParamInfo('heatmask', True, hideif=':not overlay'),
+        ut.ParamInfo('show_homog', False, hideif=':not overlay'),
+        ut.ParamInfo('show_ori', False, hideif=':not overlay'),
+        ut.ParamInfo('show_ell', False, hideif=':not overlay'),
+        ut.ParamInfo('show_pts', False, hideif=':not overlay'),
+        ut.ParamInfo('show_lines', False, hideif=lambda cfg: not cfg['overlay']),
+        ut.ParamInfo('show_rect', False, hideif=':not overlay'),
+        ut.ParamInfo('show_eig', False, hideif=':not overlay'),
+        ut.ParamInfo('ell_alpha', 0.6, min_=0, max_=1, hideif=':not overlay'),
+        ut.ParamInfo('line_alpha', 0.35, min_=0, max_=1, hideif=':not overlay'),
+    ])
+except ImportError:
+    pass
 
 
 class MatchInspector(INSPECT_BASE):
@@ -108,6 +59,8 @@ class MatchInspector(INSPECT_BASE):
     CommandLine:
         python -m vtool.inspect_matches MatchInspector:0 --show
         python -m vtool.inspect_matches MatchInspector:1 --show
+
+        python -m vtool.inspect_matches MatchInspector:1 --db GZ_Master1 --aids=1041,1045 --show
 
     Example:
         >>> # SCRIPT
@@ -131,12 +84,16 @@ class MatchInspector(INSPECT_BASE):
         >>> import ibeis
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> annots = ibs.annots([1, 2])
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids = ut.argval('--aids', default=[1, 2])
+        >>> print('aids = %r' % (aids,))
+        >>> annots = ibs.annots(aids)
         >>> annot1 = annots[0]._make_lazy_dict()
         >>> annot2 = annots[1]._make_lazy_dict()
+        >>> cfgdict = MatchDisplayConfig().asdict()
+        >>> cfgdict = ut.argparse_dict(cfgdict)
         >>> match = vt.PairwiseMatch(annot1, annot2)
-        >>> self = MatchInspector(match=match)
+        >>> self = MatchInspector(match=match, cfgdict=cfgdict)
         >>> self.show()
         >>> ut.quit_if_noshow()
         >>> #self.update()
@@ -184,6 +141,18 @@ class MatchInspector(INSPECT_BASE):
             options = [('No context set', None)]
         gt.popup_menu(self, qpoint, options)
 
+    def screenshot(self):
+        import plottool as pt
+        with pt.RenderingContext() as render:
+            self.match.show(**self.disp_config)
+        fpaths = gt.newFileDialog('.', mode='save', exec_=True)
+        if fpaths is not None and len(fpaths) > 0:
+            fpath = fpaths[0]
+            if not fpath.endswith('.jpg'):
+                fpath += '.jpg'
+            import vtool as vt
+            vt.imwrite(fpath, render.image)
+
     def embed(self):
         match = self.match  # NOQA
         import utool
@@ -220,24 +189,7 @@ class MatchInspector(INSPECT_BASE):
         TmpVsOneConfig = dtool.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
         self.config = TmpVsOneConfig()
-
-        TmpDisplayConfig = dtool.from_param_info_list([
-            ut.ParamInfo('overlay', True),
-            ut.ParamInfo('show_all_kpts', False),
-            ut.ParamInfo('mask_blend', 0.0, min_=0, max_=1),
-
-            ut.ParamInfo('heatmask', True, hideif=':not overlay'),
-            ut.ParamInfo('show_homog', False, hideif=':not overlay'),
-            ut.ParamInfo('show_ori', False, hideif=':not overlay'),
-            ut.ParamInfo('show_ell', False, hideif=':not overlay'),
-            ut.ParamInfo('show_pts', False, hideif=':not overlay'),
-            ut.ParamInfo('show_lines', False, hideif=lambda cfg: not cfg['overlay']),
-            ut.ParamInfo('show_rect', False, hideif=':not overlay'),
-            ut.ParamInfo('show_eig', False, hideif=':not overlay'),
-            ut.ParamInfo('ell_alpha', 0.6, min_=0, max_=1, hideif=':not overlay'),
-            ut.ParamInfo('line_alpha', 0.35, min_=0, max_=1, hideif=':not overlay'),
-        ])
-        self.disp_config = TmpDisplayConfig()
+        self.disp_config = MatchDisplayConfig()
 
         if cfgdict is not None:
             print('[inspect_match] default cfgdict = %r' % (cfgdict,))
@@ -258,6 +210,7 @@ class MatchInspector(INSPECT_BASE):
         self.menubar = gt.newMenubar(self)
         self.menuFile = self.menubar.newMenu('Dev')
         self.menuFile.newAction(triggered=self.embed)
+        self.menuFile.newAction(triggered=self.screenshot)
         splitter1 = self.addNewSplitter(orientation='horiz')
         config_vframe = splitter1.newWidget()
         splitter2     = splitter1.addNewSplitter(orientation='vert')
