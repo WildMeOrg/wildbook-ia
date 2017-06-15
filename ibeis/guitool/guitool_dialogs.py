@@ -61,8 +61,8 @@ def user_option(parent=None, msg='msg', title='user_option',
     Example:
         >>> # GUI_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_option'
@@ -75,7 +75,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> result = str(reply)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> #guitool.guitool_main.qtapp_loop()
+        >>> #gt.guitool_main.qtapp_loop()
     """
     if ut.VERBOSE:
         print('[gt] user_option:\n %r: %s' % (title, msg))
@@ -150,8 +150,8 @@ def user_input(parent=None, msg='msg', title='user_input', text=''):
         >>> msg = 'msg'
         >>> title = 'user_input'
         >>> text = 'default text'
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
         >>> dpath = user_input(parent, msg, title, text)
         >>> result = str(dpath)
         >>> print(result)
@@ -179,8 +179,50 @@ def user_question(msg):
 
 
 def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
-                  _dialog_class_=QtWidgets.QFileDialog):
-    qdlg = _dialog_class_()
+                  mode='open', exec_=False):
+    r"""
+    Args:
+        directory_ (?):
+        other_sidebar_dpaths (list): (default = [])
+        use_sidebar_cwd (bool): (default = True)
+        _dialog_class_ (wrappertype): (default = <class 'PyQt5.QtWidgets.QFileDialog'>)
+
+    Returns:
+        ?: qdlg
+
+    CommandLine:
+        python -m guitool.guitool_dialogs newFileDialog --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> directory_ = '.'
+        >>> _dialog_class_ = QtWidgets.QFileDialog
+        >>> if ut.show_was_requested():
+        >>>     files = newFileDialog(directory_, mode='save', exec_=True)
+        >>>     print('files = %r' % (files,))
+        >>> else:
+        >>>     dlg = newFileDialog(directory_, mode='save', exec_=True)
+    """
+    qdlg = QtWidgets.QFileDialog()
+    if mode == 'open':
+        qdlg.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+    elif mode == 'save':
+        qdlg.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
+    else:
+        raise KeyError(mode)
+
+    _set_dialog_sidebar(qdlg, directory_, use_sidebar_cwd, other_sidebar_dpaths)
+    if exec_:
+        qdlg.exec_()
+        return qdlg.selectedFiles()
+    else:
+        return qdlg
+
+
+def _set_dialog_sidebar(qdlg, directory_=None, use_sidebar_cwd=True, other_sidebar_dpaths=[]):
     sidebar_urls = qdlg.sidebarUrls()[:]
     if use_sidebar_cwd:
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(os.getcwd()))
@@ -190,7 +232,6 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
     sidebar_urls = ut.unique(sidebar_urls)
     #print('sidebar_urls = %r' % (sidebar_urls,))
     qdlg.setSidebarUrls(sidebar_urls)
-    return qdlg
 
 
 class QDirectoriesDialog(QtWidgets.QFileDialog):
@@ -222,8 +263,8 @@ def newDirectoryDialog(caption, directory=None, other_sidebar_dpaths=[],
         'directory': directory
     }
     _dialog_class_ = QtWidgets.QFileDialog if single_directory else QDirectoriesDialog
-    qdlg = newFileDialog(directory, other_sidebar_dpaths, use_sidebar_cwd,
-                         _dialog_class_=_dialog_class_)
+    qdlg = _dialog_class_()
+    _set_dialog_sidebar(qdlg, directory, use_sidebar_cwd, other_sidebar_dpaths)
     if single_directory:
         dpath_list = [ str(qdlg.getExistingDirectory(None, **qtkw)) ]
     else:
