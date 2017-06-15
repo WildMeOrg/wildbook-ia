@@ -1672,6 +1672,33 @@ def update_all_image_special_imageset(ibs):
 
 
 @register_ibs_method
+def update_species_imagesets(ibs):
+    gid_list = ibs.get_valid_gids()
+    aids_list = ibs.get_image_aids(gid_list)
+    species_list = map(ibs.get_annot_species_texts, aids_list)
+    species_list = map(set, species_list)
+
+    species_dict = {}
+    for species_list_, gid in zip(species_list, gid_list):
+        for species in species_list_:
+            if species not in species_dict:
+                species_dict[species] = []
+            species_dict[species].append(gid)
+
+    key_list = sorted(species_dict.keys())
+    imageset_text_list = [
+        'Species: %s' % (key.replace('_', ' ').title(), )
+        for key in key_list
+    ]
+
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    for key, imageset_rowid_list in zip(key_list, imageset_rowid_list):
+        gid_list = species_dict[key]
+        gid_list = list(set(gid_list))
+        ibs.set_image_imgsetids(gid_list, [imageset_rowid_list] * len(gid_list))
+
+
+@register_ibs_method
 def get_special_imgsetids(ibs):
     get_imagesettext_imgsetid = ibs.get_imageset_imgsetids_from_text
     special_imagesettext_list = [
