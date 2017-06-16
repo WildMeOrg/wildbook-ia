@@ -368,12 +368,10 @@ class APIItemModel(API_MODEL_BASE):
                         values = np.array(ut.replace_nones(values, np.nan))
                         # Force nan to be the smallest number
                         values[np.isnan(values)] = -np.inf
-                    if type_ is str:
+                    elif type_ is str:
                         values = ut.replace_nones(values, '')
-                    import utool
-                    with utool.embed_on_exception_context:
-                        import vtool as vt
-                        sortx = vt.argsort_records([values, id_list], reverse=reverse)
+                    import vtool as vt
+                    sortx = vt.argsort_records([values, id_list], reverse=reverse)
                     # </NUMPY MULTIARRAY SORT>
                     nodes = ut.take(children, sortx)
                     level = model.col_level_list[sort_index]
