@@ -25,11 +25,25 @@ REMOTE_TESTING = False
 
 
 if REMOTE_TESTING:
-    REMOTE = 'http://127.0.0.1:5555'  # AMI IN AWS CALLED "IBEIS IA DETECT"
+    REMOTE_DOMAIN = '127.0.0.1'
+    REMOTE_PORT = '5555'
     REMOTE_UUID = None
 else:
-    REMOTE = 'http://35.161.135.191:5555'  # AMI IN AWS CALLED "IBEIS IA DETECT"
-    REMOTE_UUID = uuid.UUID('e468d14b-3a39-4165-8f62-16f9e3deea39')
+    REMOTE_DOMAIN = '35.161.135.191'
+    REMOTE_PORT = '5555'
+    REMOTE_UUID = 'e468d14b-3a39-4165-8f62-16f9e3deea39'
+
+    remote_args = ut.get_arg_dict()
+    REMOTE_DOMAIN = remote_args.get('sync-domain', REMOTE_DOMAIN)
+    REMOTE_PORT = remote_args.get('sync-port', REMOTE_PORT)
+    REMOTE_UUID = remote_args.get('sync-uuid', REMOTE_UUID)
+
+    if REMOTE_UUID in [True, '', 'none', 'None']:
+        REMOTE_UUID = None
+
+
+REMOTE_URL = 'http://%s:%s' % (REMOTE_DOMAIN, REMOTE_PORT, )
+REMOTE_UUID = None if REMOTE_UUID is None else uuid.UUID(REMOTE_UUID)
 
 
 def _construct_route_url(route_rule):
@@ -37,7 +51,7 @@ def _construct_route_url(route_rule):
         route_rule = '/' + route_rule
     if not route_rule.endswith('/'):
         route_rule = route_rule + '/'
-    route_url = '%s%s' % (REMOTE, route_rule, )
+    route_url = '%s%s' % (REMOTE_URL, route_rule, )
     return route_url
 
 
@@ -66,7 +80,7 @@ def _assert_remote_online(ibs):
         if REMOTE_UUID is not None:
             assert uuid == REMOTE_UUID
     except:
-        raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE, ))
+        raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE_URL, ))
 
 
 @register_ibs_method
@@ -250,7 +264,7 @@ def _detect_remote_sync_images(ibs, gid_list=None,
         for _ in range(3)
     ]
     confirm_str = '-'.join(confirm_list)
-    print('You are about to submit %d images to the remote DETECT database.' % (len(gid_list), ))
+    print('You are about to submit %d images to a remote DETECT database at %r with UUID=%r.' % (len(gid_list), REMOTE_URL, REMOTE_UUID, ))
     print('Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.')
     print('In order to continue, please type exactly the confirmation string %r' % (confirm_str, ))
 
