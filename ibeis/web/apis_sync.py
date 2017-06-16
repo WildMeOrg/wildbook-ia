@@ -252,8 +252,8 @@ def _detect_remote_push_part_metadata(ibs, part_uuid_list):
 
 @register_ibs_method
 @register_api('/api/sync/', methods=['GET'])
-def _detect_remote_sync_images(ibs, gid_list=None,
-                               only_sync_missing_images=False):
+def detect_remote_sync_images(ibs, gid_list=None,
+                              only_sync_missing_images=False):
     _assert_remote_online(ibs)
 
     if gid_list is None:
