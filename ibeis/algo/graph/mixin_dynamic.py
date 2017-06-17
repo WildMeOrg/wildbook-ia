@@ -775,41 +775,14 @@ class Completeness(object):
                 return True
         return False
 
-    def non_complete_pcc_pairs(infr):
-        """
-        Get pairs of PCCs that are not complete.
-        Finds edges that might complete them.
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr2()
-            >>> categories = infr.categorize_edges(graph)
-            >>> negative = categories[NEGTV]
-            >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
-            >>> infr.graph.remove_edges_from(edges)
-            >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
-            >>> result = non_complete_pcc_pairs(infr)
-            >>> print(result)
-        """
-        raise NotImplementedError('')
-        thresh = 1.0
-        pcc_set = list(infr.positive_connected_compoments())
-        # Remove anything under the probabilistic threshold
-        if thresh < 1.0:
-            pcc_set = [
-                c1 for c1 in pcc_set if
-                infr.prob_complete(c1) < thresh
-            ]
-        else:
-            assert False
-        # Loop through all pairs
-        for c1_nodes, c2_nodes in it.combinations(pcc_set, 2):
-            check_edges = infr.rand_neg_check_edges(c1_nodes, c2_nodes)
-            if len(check_edges) > 0:
-                # no check edges means we can't do anything
-                yield (c1_nodes, c2_nodes, check_edges)
+    def find_neg_redun_nids(infr):
+        """ recomputes edges in infr.neg_redun_nids """
+        for cc in infr.consistent_components():
+            node = next(iter(cc))
+            nid1 = infr.pos_graph.node_label(node)
+            for nid2 in infr.negative_redundant_nids(cc):
+                if nid1 < nid2:
+                    yield nid1, nid2
 
 
 class Priority(object):

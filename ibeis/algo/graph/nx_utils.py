@@ -15,6 +15,22 @@ def _dz(a, b):
     return ut.dzip(a, b)
 
 
+def diag_product(s1, s2):
+    """ Does product, but iterates over the diagonal first """
+    s1 = list(s1)
+    s2 = list(s2)
+    if len(s1) > len(s2):
+        for _ in range(len(s1)):
+            for a, b in zip(s1, s2):
+                yield (a, b)
+            s1 = ut.list_roll(s1, 1)
+    else:
+        for _ in range(len(s2)):
+            for a, b in zip(s1, s2):
+                yield (a, b)
+            s2 = ut.list_roll(s2, 1)
+
+
 def e_(u, v):
     return (u, v) if u < v else (v, u)
 

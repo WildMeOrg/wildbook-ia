@@ -334,6 +334,9 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
             H.add_edges_from(edges_inside(self, nbunch))
         else:
             H = super(DynConnGraph, self).subgraph(nbunch)
+            for n in nbunch:
+                # need to add individual nodes
+                H._add_node(n)
             # Recreate the connected compoment structure
             for u, v in H.edges():
                 H._union(u, v)

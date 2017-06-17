@@ -679,6 +679,88 @@ class CandidateSearch(object):
 
         return candidate_edges
 
+    @profile
+    def find_neg_redun_candidate_edges(infr, k=None):
+        """
+        Get pairs of PCCs that are not complete.
+        Finds edges that might complete them.
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr2()
+            >>> categories = infr.categorize_edges(graph)
+            >>> negative = categories[NEGTV]
+            >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
+            >>> infr.graph.remove_edges_from(edges)
+            >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
+            >>> result = non_complete_pcc_pairs(infr)
+            >>> print(result)
+        """
+        if k is None:
+            k = infr.queue_params['neg_redun']
+        # Loop through all pairs
+        for cc1, cc2 in infr.find_non_neg_redun_pccs(k=k):
+            for u, v in infr.find_neg_augment_edges(cc1, cc2, k):
+                yield e_(u, v)
+
+    @profile
+    def find_non_neg_redun_pccs(infr, k=None):
+        """
+        Get pairs of PCCs that are not complete.
+        """
+        if k is None:
+            k = infr.queue_params['neg_redun']
+        pccs = infr.positive_components()
+        # Loop through all pairs
+        for cc1, cc2 in it.combinations(pccs, 2):
+            if not infr.is_neg_redundant(cc1, cc2):
+                yield cc1, cc2
+
+    def find_neg_augment_edges(infr, cc1, cc2, k=None):
+        """
+        Find enough edges to between two pccs to make them k-negative complete
+        """
+        if k is None:
+            k = infr.queue_params['neg_redun']
+        existing_edges = set(edges_cross(infr.graph, cc1, cc2))
+        reviewed_edges = {
+            edge: state
+            for edge, state in infr.get_edge_attrs(
+                'decision', existing_edges,
+                default=UNREV).items()
+            if state != UNREV
+        }
+
+        # Find how many negative edges we already have
+        num = sum([state == NEGTV for state in reviewed_edges.values()])
+        if num < k:
+            # Find k random negative edges
+            check_edges = existing_edges - set(reviewed_edges)
+            # Check the existing but unreviewed edges first
+            for edge in check_edges:
+                num += 1
+                yield edge
+                if num >= k:
+                    raise StopIteration()
+            # Check non-existing edges next
+            seed = 2827295125
+            try:
+                seed += sum(cc1) + sum(cc2)
+            except Exception:
+                pass
+            rng = np.random.RandomState(seed)
+            cc1 = ut.shuffle(list(cc1), rng=rng)
+            cc2 = ut.shuffle(list(cc2), rng=rng)
+            cc1 = ut.shuffle(list(cc1), rng=rng)
+            for edge in it.starmap(nxu.e_, nxu.diag_product(cc1, cc2)):
+                if edge not in existing_edges:
+                    num += 1
+                    yield edge
+                    if num >= k:
+                        raise StopIteration()
+
     def find_pos_augment_edges(infr, pcc, k=None):
         """
         # [[1, 0], [0, 2], [1, 2], [3, 1]]
@@ -752,13 +834,6 @@ class CandidateSearch(object):
             # check_edges = set(it.starmap(e_, check_edges))
             # check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
             # candidate_edges.update(check_edges)
-        return candidate_edges
-
-    @profile
-    def find_neg_redun_candidate_edges(infr):
-        candidate_edges = set([])
-        for c1, c2, check_edges in infr.non_complete_pcc_pairs():
-            candidate_edges.update(check_edges)
         return candidate_edges
 
     @profile
