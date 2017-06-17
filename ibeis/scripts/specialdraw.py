@@ -943,26 +943,22 @@ def graph_iden_cut_demo():
     infr.show(use_image=True, update_attrs=False)
 
 
-def graph_iden_cut_demo2():
+def show_id_graph():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --precut
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --postcut
-
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --precut --save=precut.png --clipwhite
-        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --postcut --save=postcut.png --clipwhite
+        python -m ibeis.scripts.specialdraw show_id_graph --show
+        python -m ibeis.scripts.specialdraw show_id_graph --show
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.scripts.specialdraw import *  # NOQA
-        >>> graph_iden_cut_demo()
+        >>> show_id_graph()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
     import ibeis
     import plottool as pt
-    from ibeis.viz import viz_graph
     # import networkx as nx
     pt.ensureqt()
     ibs = ibeis.opendb(defaultdb='PZ_PB_RF_TRAIN')
@@ -990,8 +986,7 @@ def graph_iden_cut_demo2():
                 if any('left' in t for t in a.yaw_texts):
                     print(a.yaw_texts)
                     pccs.append(cc)
-                    break
-                # break
+                    # break
     if len(pccs) == 0:
         for (n1, n2), es in edgecat['notcomp'].items():
             cc1 = infr.pos_graph._ccs[n1]
@@ -1004,6 +999,8 @@ def graph_iden_cut_demo2():
             pccs.append(frozenset(cc1))
             pccs.append(frozenset(cc2))
             break
+
+    MAX_SIZE += len(pccs) - 1
 
     for cc in infr.positive_components():
         cc = frozenset(cc)
@@ -1019,99 +1016,25 @@ def graph_iden_cut_demo2():
     subinfr._viz_image_config['thumbsize'] = 700
     subinfr._viz_image_config['grow'] = True
     subinfr.ensure_cliques(decision=POSTV)
-    subinfr.rrr()
 
     subinfr.apply_nondynamic_update()
     for edge in subinfr.find_neg_redun_candidate_edges(k=1):
         subinfr.add_feedback(edge, decision=NEGTV)
 
-    subinfr.show(pickable=True, use_image=True, groupby='name_label')
+    import itertools as it
+    edges = list(it.combinations(subinfr.aids, 2))
+    n = 0
+    for e in ut.compress(edges, [not f for f in infr.is_comparable(edges)]):
+        subinfr.add_feedback(e, decision=INCMP)
+        n += 1
+        # if n > 3:
+        #     break
 
-    if False:
-        # Find extra example
-        annots = ibs.annots(ibs.filter_annots_general(view='right', require_timestamp=True, min_pername=2))
-        unique_nids = ut.unique(annots.nids)
-        nid_to_annots = ut.dzip(unique_nids, map(ibs.annots, ibs.get_name_aids(unique_nids)))
-        # nid_to_annots = annots.group_items(annots.nids)
-        right_nids = ut.argsort(ut.map_dict_vals(len, nid_to_annots))[::-1]
-        right_annots = nid_to_annots[right_nids[1]]
-        inter = pt.interact_multi_image.MultiImageInteraction(right_annots.chips)
-        inter.start()
+    for edge in subinfr.find_neg_redun_candidate_edges(k=1):
+        subinfr.add_feedback(edge, decision=NEGTV)
 
-        inter = pt.interact_multi_image.MultiImageInteraction(ibs.annots([16228, 16257, 16273]).chips)
-        inter.start()
-        ut.take(right_annots.aids, [2, 6, 10])
-
-    nid2_aid.update({4429: [16228, 16257, 16273]})
-
-    aids = ut.flatten(nid2_aid.values())
-
-    postcut = ut.get_argflag('--postcut')
-    aids_list = ibs.group_annots_by_name(aids)[0]
-
-    infr = ibeis.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list),
-                                autoinit=True)
-    if postcut:
-        infr.init_test_mode2(enable_autoreview=False)
-
-        node_to_label = infr.get_node_attrs('orig_name_label')
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
-        # cliques
-        new_edges = []
-        for label, nodes in label_to_nodes.items():
-            for edge in ut.combinations(nodes, 2):
-                if not infr.has_edge(edge):
-                    new_edges.append(infr.e_(*edge))
-        # negative edges
-        import random
-        rng = random.Random(0)
-        for aids1, aids2 in ut.combinations(nid2_aid.values(), 2):
-            aid1 = rng.choice(aids1)
-            aid2 = rng.choice(aids2)
-            new_edges.append(infr.e_(aid1, aid2))
-
-        infr.graph.add_edges_from(new_edges)
-        infr.apply_edge_truth(new_edges)
-        for edge in new_edges:
-            infr.queue.push(edge, -1)
-
-        from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
-
-        try:
-            while True:
-                edge, priority = infr.pop()
-                feedback = infr.request_user_review(edge)
-                infr.add_feedback(edge=edge, **feedback)
-        except StopIteration:
-            pass
-    # if postcut:
-    #     # infr.ensure_mst()
-    #     # infr.ensure_cliques()
-    #     infr.review_dummy_edges(method=2)
-    else:
-        infr.ensure_full()
-
-    # Adjust between new and old variable names
-    infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', POSTV), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', NEGTV), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', INCMP), [0.5]))
-
-    infr.initialize_visual_node_attrs()
-    infr.update_node_image_attribute(use_image=True)
-    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
-                             groupby='name_label', splines='spline',
-                             show_cand=not postcut)
-    infr.set_edge_attrs('linewidth', 2)
-    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', POSTV), [4]))
-    if not postcut:
-        infr.set_edge_attrs('color', pt.BLACK)
-    infr.set_edge_attrs('alpha', .7)
-    if not postcut:
-        infr.set_node_attrs('framewidth', 0)
-    viz_graph.ensure_node_images(ibs, infr.graph)
-    infr.show(use_image=True, update_attrs=False)
+    subinfr.show(pickable=True, use_image=True, groupby='name_label',
+                 splines='spline')
 
 
 def intraoccurrence_connected():
