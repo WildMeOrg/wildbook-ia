@@ -2262,13 +2262,14 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     query_object.relabel_using_reviews()
 
     # Create a priority on edge review ands determines inconsistencies
-    query_object.apply_review_inference()
+    query_object.apply_mst()
+    query_object.apply_nondynamic_update()
 
     print('Precomputing match images')
     # view_orientation = request.args.get('view_orientation', 'vertical')
-    precompute_current_review_match_images(ibs, query_object,
-                                           global_feedback_limit=global_feedback_limit,
-                                           view_orientation='vertical')
+    # precompute_current_review_match_images(ibs, query_object,
+    #                                        global_feedback_limit=global_feedback_limit,
+    #                                        view_orientation='vertical')
     # precompute_current_review_match_images(ibs, query_object,
     #                                        global_feedback_limit=global_feedback_limit,
     #                                        view_orientation='horizontal')
@@ -2393,11 +2394,15 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
             with ut.Timer('[web.routes.turk_identification] Get matches'):
                 # Get raw list of reviews
                 review_cfg = GLOBAL_FEEDBACK_CONFIG_DICT.copy()
-                raw_review_list, _ = query_object.get_filtered_edges(review_cfg)
+                ut.embed()
+                raw_review_list = []
 
                 # Get actual
                 review_cfg['max_num'] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
-                review_aid1_list, review_aid2_list = query_object.get_filtered_edges(review_cfg)
+                values = query_object.pop()
+                (review_aid1_list, review_aid2_list), review_confidence = values
+                review_aid1_list = [review_aid1_list]
+                review_aid2_list = [review_aid2_list]
 
             with ut.Timer('[web.routes.turk_identification] Get status'):
                 # Get status
