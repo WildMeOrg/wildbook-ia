@@ -478,7 +478,7 @@ class APIItemWidget(WIDGET_BASE):
             #widget.resize_headers()
             #headers = api.make_headers(tblnice=widget.tblnice)
             #widget.change_headers(headers)
-            #print(ut.dict_str(headers))
+            #print(ut.repr2(headers))
 
     def change_headers(widget, headers):
         parent = widget.parent()
@@ -501,7 +501,7 @@ class APIItemWidget(WIDGET_BASE):
     def refresh_headers(widget):
         headers = widget.api.make_headers(tblnice=widget.tblnice)
         widget.change_headers(headers)
-        #print(ut.dict_str(headers))
+        #print(ut.repr2(headers))
 
     def resize_headers(self, api=None):
         if api is None:
@@ -520,7 +520,7 @@ class APIItemWidget(WIDGET_BASE):
     def on_contextMenuRequested(widget, index, pos):
         print('context request')
         if widget.api is not None:
-            print(ut.list_str(widget.api.get_available_colnames()))
+            print(ut.repr2(widget.api.get_available_colnames()))
             # HACK test
             #widget.api.add_column_names(['qx2_gt_rank', 'qx2_gf_rank', 'qx2_gt_raw_score', 'qx2_gf_raw_score'])
             widget.refresh_headers()

@@ -91,7 +91,7 @@ class FilterProxyModel(BASE_CLASS):
         #proxy_keys = dir(proxyIndex)
         #proxy_vals = [getattr(proxyIndex, key) for key in proxy_keys]
         #proxy_dict = dict(zip(proxy_keys, proxy_vals))
-        #print('[guitool] proxyIndex.__dict__=%s' % utool.dict_str(proxy_dict))
+        #print('[guitool] proxyIndex.__dict__=%s' % utool.repr2(proxy_dict))
         #utool.embed()
         #sourceIndex = BASE_CLASS.mapToSource(self, proxyIndex)
         sourceIndex = self.mapToSource(proxyIndex)

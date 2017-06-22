@@ -77,7 +77,7 @@ def qindexinfo(index):
 #    #    'G':    use E or f format, whichever is the most concise
 #    #}
 #    data = 1000000
-#    print(ut.dict_str({
+#    print(ut.repr2({
 #        'out1': __STR__(QString.number(float(data), format='g', precision=8))
 #    }))
 

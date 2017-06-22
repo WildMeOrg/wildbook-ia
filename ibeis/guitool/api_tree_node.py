@@ -83,7 +83,7 @@ class TreeNode(TREE_NODE_BASE):
             #print('[tree_node] dir(self)=')
             #print(dir(self))
             #print('[tree_node] self.__dict__=')
-            #print(utool.dict_str(self.__dict__))
+            #print(utool.repr2(self.__dict__))
             raise
 
     def get_num_children(self):
@@ -236,13 +236,13 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         print('num_levels = %r' % (num_levels,))
     for level in range(num_levels):
         #print('------------ level=%r -----------' % (level,))
-        #print(utool.dict_str(locals()))
+        #print(utool.repr2(locals()))
         new_node_lists = []
         new_ids_lists  = []
         for parent_node, id_list in zip(parent_node_list, ids_list):
             #pass
             #assert isinstance(parent_node, TreeNode), '%r\n%s' % (parent_node,
-            #                                                      utool.dict_str(locals()))
+            #                                                      utool.repr2(locals()))
             node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
             if level + 1 < num_levels:
                 child_ider = ider_list[level + 1]

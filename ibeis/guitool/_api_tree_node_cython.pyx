@@ -110,7 +110,7 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
     parent_node_list = [root_node]
     for level in range(num_levels):
         #print('------------ level=%r -----------' % (level,))
-        #print(utool.dict_str(locals()))
+        #print(utool.repr2(locals()))
         new_node_lists = []
         new_ids_lists  = []
         for sx in range(len(ids_list)):
