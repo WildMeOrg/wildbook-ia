@@ -283,17 +283,17 @@
 
     species_part_dict = JSON.parse('{{ species_part_dict_json|safe }}')
 
-    config_autointerest    = false // {% if config['autointerest']            %}true{% else %}false{% endif %}
-    config_interest_bypass = false // {% if config['interest_bypass']         %}true{% else %}false{% endif %}
-    config_metadata        = true  // {% if config['metadata']                %}true{% else %}false{% endif %}
-    config_viewpoint       = false // {% if config['metadata_viewpoint']      %}true{% else %}false{% endif %}
-    config_quality         = false // {% if config['metadata_quality']        %}true{% else %}false{% endif %}
-    config_flags           = true // {% if config['metadata_flags']          %}true{% else %}false{% endif %}
-    config_flags_aoi       = true // {% if config['metadata_flags_aoi']      %}true{% else %}false{% endif %}
-    config_flags_multiple  = false // {% if config['metadata_flags_multiple'] %}true{% else %}false{% endif %}
-    config_species         = true // {% if config['metadata_species']        %}true{% else %}false{% endif %}
-    config_quickhelp       = true // {% if config['metadata_quickhelp']      %}true{% else %}false{% endif %}
-    config_parts           = true // {% if config['parts']                   %}true{% else %}false{% endif %}
+    config_autointerest    = {% if config['autointerest']            %}true{% else %}false{% endif %}
+    config_interest_bypass = {% if config['interest_bypass']         %}true{% else %}false{% endif %}
+    config_metadata        = {% if config['metadata']                %}true{% else %}false{% endif %}
+    config_viewpoint       = {% if config['metadata_viewpoint']      %}true{% else %}false{% endif %}
+    config_quality         = {% if config['metadata_quality']        %}true{% else %}false{% endif %}
+    config_flags           = {% if config['metadata_flags']          %}true{% else %}false{% endif %}
+    config_flags_aoi       = {% if config['metadata_flags_aoi']      %}true{% else %}false{% endif %}
+    config_flags_multiple  = {% if config['metadata_flags_multiple'] %}true{% else %}false{% endif %}
+    config_species         = {% if config['metadata_species']        %}true{% else %}false{% endif %}
+    config_quickhelp       = {% if config['metadata_quickhelp']      %}true{% else %}false{% endif %}
+    config_parts           = {% if config['parts']                   %}true{% else %}false{% endif %}
 
     hotkeys_disabled = true
     hotkeys_global_disabled = false
