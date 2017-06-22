@@ -146,8 +146,8 @@ def get_data_list():
         >>> from ibeis_pyinstaller_data_helper import *  # NOQA
         >>> result = get_data_list()
         >>> DATATUP_LIST, BINARYTUP_LIST, iconfile = result
-        >>> print('DATATUP_LIST = ' + ut.list_str(DATATUP_LIST))
-        >>> print('BINARYTUP_LIST = ' + ut.list_str(BINARYTUP_LIST))
+        >>> print('DATATUP_LIST = ' + ut.repr2(DATATUP_LIST))
+        >>> print('BINARYTUP_LIST = ' + ut.repr2(BINARYTUP_LIST))
         >>> print(len(DATATUP_LIST))
         >>> print(len(BINARYTUP_LIST))
         >>> print(iconfile)
@@ -317,7 +317,7 @@ def get_data_list():
         for (dst, src) in DATATUP_LIST:
             assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
-        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.repr2(DATATUP_LIST))
         raise
 
     # Web Assets
@@ -358,7 +358,7 @@ def get_data_list():
         for (dst, src) in DATATUP_LIST:
             assert ut.checkpath(src, verbose=False), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
-        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.repr2(DATATUP_LIST))
         raise
 
     return DATATUP_LIST, BINARYTUP_LIST, iconfile

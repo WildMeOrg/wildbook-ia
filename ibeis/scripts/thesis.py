@@ -3970,8 +3970,15 @@ def ave_str(mean, std, precision=2):
 
 def split_tabular(text):
     top, rest = text.split('\\toprule')
-    header, *body1, rest = rest.split('\\midrule')
-    *body2, bot = rest.split('\\bottomrule')
+
+    x = rest.split('\\midrule')
+    header, body1, rest = x[0], x[1:-1], x[-1]
+    # header, *body1, rest = rest.split('\\midrule')
+
+    y = rest.split('\\bottomrule')
+    body2, bot = y[0:-1], y[-1]
+    # *body2, bot = rest.split('\\bottomrule')
+
     top = top.strip('\n')
     header = header.strip('\n')
     mid = [b.strip('\n') for b in body1 + body2]

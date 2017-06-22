@@ -467,6 +467,9 @@ class QueryRequest(ut.NiceRepr):
 
         only considers grouping of database names
 
+        CommandLine:
+            python -m ibeis.algo.hots.query_request --test-get_qreq_pcc_hashid:0
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA

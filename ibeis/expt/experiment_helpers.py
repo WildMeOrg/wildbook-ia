@@ -64,12 +64,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
         >>> assert pipecfg_list[0].sv_cfg.sv_on is True
         >>> assert pipecfg_list[1].sv_cfg.sv_on is False
         >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
-        >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))
+        >>> result = ('pipecfg_lbls = '+ ut.repr2(pipecfg_lbls))
         >>> print(result)
-        pipecfg_lbls = [
-            'default:',
-            'default:sv_on=False',
-        ]
+        pipecfg_lbls = ['default:', 'default:sv_on=False']
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -80,7 +77,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
         >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average,crop_dim_size=[960,500]', 'default:K=[1,4]']
         >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
-        >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))
+        >>> result = ('pipecfg_lbls = '+ ut.repr2(pipecfg_lbls))
         >>> print(result)
         >>> print_pipe_configs(pcfgdict_list, pipecfg_list)
     """
@@ -325,7 +322,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
                 print('+--')
                 print('key = %r' % (key,))
                 print('duplicate_varied_cfgs = %s' % (
-                    ut.list_str(varied_compressed_dict_list),))
+                    ut.repr2(varied_compressed_dict_list),))
                 print('duplicate_nonvaried_cfgs = %s' % (
                     ut.dict_str(nonvaried_compressed_dict),))
                 print('L__')
@@ -373,7 +370,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>> _tup = get_annotcfg_list(ibs, acfg_name_list, filter_dups)
         >>> acfg_list, expanded_aids_list = _tup
         >>> print('\n PRINTING TEST RESULTS')
-        >>> result = ut.list_str(acfg_list, nl=3)
+        >>> result = ut.repr2(acfg_list, nl=3)
         >>> print('\n')
         >>> #statskw = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict, with_vals=False)
         >>> printkw = dict(combined=True, per_name_vpedge=None,

@@ -1059,36 +1059,36 @@ def show_id_graph():
     showkw = dict(pickable=True, use_image=True, groupby='name_label',
                   splines='spline', fnum=1)
 
-    infr.show(**showkw, show_positive_edges=False, show_negative_edges=False,
-              show_incomparable_edges=False)
+    infr.show(show_positive_edges=False, show_negative_edges=False,
+              show_incomparable_edges=False, **showkw)
     fig = pt.gcf()
-    fig.savefig('id_graph1.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph1.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
-    infr.show(**showkw, show_positive_edges=True, show_negative_edges=False,
-              show_incomparable_edges=False)
+    infr.show(show_positive_edges=True, show_negative_edges=False,
+              show_incomparable_edges=False, **showkw)
     fig = pt.gcf()
-    fig.savefig('id_graph2.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph2.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
-    infr.show(**showkw, show_positive_edges=False, show_negative_edges=True,
-              show_incomparable_edges=False)
+    infr.show(show_positive_edges=False, show_negative_edges=True,
+              show_incomparable_edges=False, **showkw)
     fig = pt.gcf()
-    fig.savefig('id_graph3.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph3.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
-    infr.show(**showkw, show_positive_edges=False, show_negative_edges=False,
-              show_incomparable_edges=True)
+    infr.show(show_positive_edges=False, show_negative_edges=False,
+              show_incomparable_edges=True, **showkw)
     fig = pt.gcf()
-    fig.savefig('id_graph4.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph4.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
     import networkx as nx
 
-    infr.show(**showkw, pin=True)
+    infr.show(pin=True, **showkw)
     nx.set_node_attributes(infr.graph, 'pin', 'true')
     fig = pt.gcf()
-    fig.savefig('id_graph5.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph5.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
     infr2 = infr.copy()
     for edge in infr2.find_pos_redun_candidate_edges(k=2):
@@ -1096,15 +1096,15 @@ def show_id_graph():
     infr2.show(pickable=True, use_image=True,
                  groupby='name_label', fnum=1, splines='spline')
     fig = pt.gcf()
-    fig.savefig('id_graph6.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph6.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
     for edge in infr2.find_neg_redun_candidate_edges(k=2):
         infr2.add_feedback(edge, decision=NEGTV)
     infr2.show(pickable=True, use_image=True,
                  groupby='name_label', fnum=1, splines='spline')
     fig = pt.gcf()
-    fig.savefig('id_graph7.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph7.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
     infr3 = infr.copy()
     for edge in infr3.find_pos_redun_candidate_edges(k=2):
@@ -1117,17 +1117,17 @@ def show_id_graph():
                show_inconsistency=True,
                groupby='name_label', fnum=1, splines='spline')
     fig = pt.gcf()
-    fig.savefig('id_graph8.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph8.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
     infr4 = infr.copy()
     for edge in infr4.edges():
         infr4.add_feedback(edge, decision=UNREV)
     infr4.refresh_candidate_edges()
-    infr4.show(**showkw, show_cand=True)
+    infr4.show(show_cand=True, **showkw)
     fig = pt.gcf()
-    fig.savefig('id_graph9.png', **savekw,
-                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    fig.savefig('id_graph9.png',
+                bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
 
 
 def intraoccurrence_connected():
