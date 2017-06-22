@@ -1322,7 +1322,7 @@ class DummyMatcher(object):
         >>> infr = demo.demodata_infr(**kwargs)
         >>> infr.dummy_matcher.predict_edges([(1, 2)])
         >>> infr.dummy_matcher.predict_edges([(1, 21)])
-        >>> assert len(infr.dummy_matcher.task_probs['match_state']) == 2
+        >>> assert len(infr.dummy_matcher.infr.task_probs['match_state']) == 2
     """
     def __init__(matcher, infr):
         matcher.rng = np.random.RandomState(4033913)

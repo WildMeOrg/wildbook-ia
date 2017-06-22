@@ -543,8 +543,8 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
         >>>     np.array([ 0.5,  0.5], dtype=np.float32),
         >>> ]
         >>> wx_to_idxs, wx_to_maws = invert_assigns_old(idx_to_wxs, idx_to_maws)
-        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),)
-        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws),)
+        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs, with_dtype=True),)
+        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws, with_dtype=True),)
         >>> print(result)
         wx_to_idxs = {
             0: np.array([0, 2], dtype=np.int32),
@@ -593,8 +593,8 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         >>> idx_to_maws[1, 1] = np.ma.masked
         >>> tup = invert_assigns(idx_to_wxs, idx_to_maws)
         >>> wx_to_idxs, wx_to_maws = tup
-        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),)
-        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws),)
+        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs, with_dtype=True),)
+        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws, with_dtype=True),)
         >>> print(result)
         wx_to_idxs = {
             0: np.array([0, 2], dtype=np.int32),

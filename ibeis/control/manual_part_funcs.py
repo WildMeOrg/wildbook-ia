@@ -396,7 +396,7 @@ def get_part_thetas(ibs, part_rowid_list):
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> result = get_part_thetas(ibs, part_rowid_list)
         >>> print(result)
-        None
+        []
     """
     theta_list = ibs.db.get(const.PART_TABLE, ('part_theta',), part_rowid_list)
     return theta_list

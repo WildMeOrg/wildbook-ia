@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import numpy as np
+import numpy as np  # NOQA
 import utool as ut
 # import logging
 import itertools as it
