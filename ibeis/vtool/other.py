@@ -116,8 +116,8 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> idxs_list = argsort_groups(scores_list, reverse, rng)
         >>> #import vtool as vt
         >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
-        >>> #result = 'sorted_scores = %s' % (ut.list_str(sorted_scores),)
-        >>> result = 'idxs_list = %s' % (ut.list_str(idxs_list, with_dtype=False),)
+        >>> #result = 'sorted_scores = %s' % (ut.repr2(sorted_scores),)
+        >>> result = 'idxs_list = %s' % (ut.repr4(idxs_list, with_dtype=False),)
         >>> print(result)
         idxs_list = [
             np.array([1, 0]),
@@ -1908,8 +1908,8 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         depth_profile2 = ut.depth_profile(output2)
         type_profile1 = ut.list_type_profile(output1)
         type_profile2 = ut.list_type_profile(output2)
-        print('depth_profile1 = ' + ut.list_str(depth_profile1))
-        print('depth_profile2 = ' + ut.list_str(depth_profile2))
+        print('depth_profile1 = ' + ut.repr2(depth_profile1))
+        print('depth_profile2 = ' + ut.repr2(depth_profile2))
         print('type_profile1 = ' + (type_profile1))
         print('type_profile2 = ' + (type_profile2))
     print('L ___ END COMPARE IMPLEMENTATIONS ___')

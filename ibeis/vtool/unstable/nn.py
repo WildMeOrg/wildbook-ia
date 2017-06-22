@@ -725,7 +725,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         >>> items_list = [[1, 2, 3], [4], [5, 6], [7]]
         >>> ensure_numpy = True
         >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-        >>> print(ut.dict_str(outerkey2_innerkey2_items))
+        >>> print(ut.repr2(outerkey2_innerkey2_items))
         {
             10: {300: array([6]), 100: array([1])},
             20: {400: array([7]), 100: array([2, 3])},
@@ -742,8 +742,8 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         >>> items_list = [np.array([incrementer() for _ in range(nOuter_)]) for nOuter_ in nOuterList]
         >>> ensure_numpy = False
         >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-        >>> print(ut.dict_str(outerkey2_innerkey2_items))
-        >>> print(ut.dict_str(outerkey2_innerkey2_items[0]))
+        >>> print(ut.repr2(outerkey2_innerkey2_items))
+        >>> print(ut.repr2(outerkey2_innerkey2_items[0]))
 
     Timeit:
         %timeit double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)

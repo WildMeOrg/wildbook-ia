@@ -1107,7 +1107,7 @@ def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
               flipx=False, color=color, fnum=fnum, pnum=pnum,
               title='Interplated Precision Vs Recall\n' + 'avep = %.3f'  % ave_p)
     #print('Interplated Precision')
-    #print(ut.list_str(list(zip(recall_domain, p_interp))))
+    #print(ut.repr2(list(zip(recall_domain, p_interp))))
     #fig.show()
 
 

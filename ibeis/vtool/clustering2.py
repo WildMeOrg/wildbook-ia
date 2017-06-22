@@ -103,7 +103,7 @@ def groupedzip(id_list, datas_list):
         >>> grouped_tuples = list(grouped_iter)
         >>> # verify results
         >>> result = str(groupxs) + '\n'
-        >>> result += ut.list_str(grouped_tuples, nl=1)
+        >>> result += ut.repr2(grouped_tuples, nl=1)
         >>> print(result)
         [1 2 3]
         [

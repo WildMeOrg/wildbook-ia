@@ -821,7 +821,7 @@ def partition_scores(X, y, attrs=None):
         >>> tup = partition_scores(X, y, attrs)
         >>> resdict = ut.odict(zip(
         >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
-        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
+        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=1, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
@@ -884,7 +884,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         >>> (X, y, attrs) = tup
         >>> y = y.astype(np.int)
         >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
-        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
+        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=1, nl=1)
         >>> print(result)
         X=np.array([5, 6, 6, 7, 1, 2, 2]),
@@ -1309,7 +1309,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         if figtitle is not None:
             pt.set_figtitle(figtitle)
         else:
-            pt.set_figtitle('ScoreNorm test' + ut.dict_str(normkw, newlines=False))
+            pt.set_figtitle('ScoreNorm test' + ut.repr2(normkw, newlines=False))
 
     locals_ = locals()
     return locals_

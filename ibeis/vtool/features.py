@@ -96,7 +96,7 @@ def get_extract_features_default_params():
         >>> # build test data
         >>> # execute function
         >>> param_dict = get_extract_features_default_params()
-        >>> result = ut.dict_str(param_dict)
+        >>> result = ut.repr2(param_dict)
         >>> # verify results
         >>> print(result)
     """

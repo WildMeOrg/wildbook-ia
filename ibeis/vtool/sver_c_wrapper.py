@@ -189,8 +189,8 @@ def test_sver_wrapper2():
 
         #print(sv_tup[0])
         #print(sv_tup[3])
-    print('unique cases affine inliers: ' + ut.list_str(list(set(inliers_list))))
-    print('unique cases homog inliers: ' + ut.list_str(list(set(homog_inliers_list))))
+    print('unique cases affine inliers: ' + ut.repr2(list(set(inliers_list))))
+    print('unique cases homog inliers: ' + ut.repr2(list(set(homog_inliers_list))))
 
 
 def test_sver_wrapper():
@@ -221,7 +221,7 @@ def test_sver_wrapper():
     scale_thresh_sqrd = ktool.KPTS_DTYPE(2.0)
     ori_thresh        = ktool.KPTS_DTYPE(TAU / 4.0)
     keys = 'xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh'.split(', ')
-    print(ut.dict_str(ut.dict_subset(locals(), keys)))
+    print(ut.repr2(ut.dict_subset(locals(), keys)))
 
     def report_errors():
         pass

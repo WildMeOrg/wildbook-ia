@@ -502,7 +502,7 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
         func_list = ut.get_module_owned_functions(vtool.distance)
         funcname_list = [ut.get_funcname(x) for x in func_list]
         funcname_list = [n for n in funcname_list if n not in ['compute_distances']]
-        print('VALID_DISTS = ' + ut.list_str(sorted(funcname_list)))
+        print('VALID_DISTS = ' + ut.repr2(sorted(funcname_list)))
 
     CommandLine:
         python -m vtool.distance --test-compute_distances
@@ -514,7 +514,7 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
         >>> hist2 = np.array([[1, 2], [3, 1], [2, 2]])
         >>> dist_list = ['L1', 'L2']
         >>> dist_dict = compute_distances(hist1, hist2, dist_list)
-        >>> result = ut.dict_str(dist_dict, precision=3)
+        >>> result = ut.repr2(dist_dict, precision=3)
         >>> print(result)
         {
             'L1': np.array([ 0.,  1.,  4.], dtype=np.float64),

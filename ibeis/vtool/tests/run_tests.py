@@ -31,7 +31,7 @@ def run_tests():
         dpath_list = [dirname(vt.__file__)]
         doctest_modname_list = ut.find_doctestable_modnames(
             dpath_list, exclude_doctests_fnames, exclude_dirs)
-        print(ut.indent('doctest_modname_list = ' + ut.list_str(doctest_modname_list), ' ' * 8))
+        print(ut.indent('doctest_modname_list = ' + ut.repr2(doctest_modname_list), ' ' * 8))
 
         """
         doctest_modname_list = [

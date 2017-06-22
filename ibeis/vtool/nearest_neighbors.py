@@ -181,7 +181,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> dpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-        >>> result = ut.list_str((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True)
+        >>> result = ut.repr3((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True)
         >>> print(result)
         (
             np.array([[3, 3, 3, 3, 0],
@@ -443,7 +443,7 @@ def get_flann_params(algorithm='kdtree', **kwargs):
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> algorithm = ut.get_argval('--algo', default='kdtree')
         >>> flann_params = get_flann_params(algorithm)
-        >>> result = ('flann_params = %s' % (ut.dict_str(flann_params),))
+        >>> result = ('flann_params = %s' % (ut.repr2(flann_params),))
         >>> print(result)
     """
     _algorithm_options = [
@@ -565,7 +565,7 @@ def tune_flann(dpts,
         for badchar in badchar_list:
             suffix = suffix.replace(badchar, '')
         print('flann_atkwargs:')
-        print(ut.dict_str(flann_atkwargs))
+        print(ut.repr2(flann_atkwargs))
         print('starting optimization')
         tuned_params = flann.build_index(dpts, **flann_atkwargs)
         print('finished optimization')
@@ -619,21 +619,21 @@ def tune_flann(dpts,
         #    'sorted',
         #]
         out_file = 'flann_tuned' + suffix
-        ut.write_to(out_file, ut.dict_str(tuned_params, sorted_=True, newlines=True))
+        ut.write_to(out_file, ut.repr2(tuned_params, sorted_=True, newlines=True))
         flann.delete_index()
         if tuned_params['algorithm'] in relevant_params_dict:
             print('relevant_params=')
             relevant_params = relevant_params_dict[tuned_params['algorithm']]
-            print(ut.dict_str(ut.dict_subset(tuned_params, relevant_params),
+            print(ut.repr2(ut.dict_subset(tuned_params, relevant_params),
                               sorted_=True, newlines=True))
             print('irrelevant_params=')
-            print(ut.dict_str(ut.dict_setdiff(tuned_params, relevant_params),
+            print(ut.repr2(ut.dict_setdiff(tuned_params, relevant_params),
                               sorted_=True, newlines=True))
         else:
             print('unknown tuned algorithm=%r' % (tuned_params['algorithm'],))
 
         print('all_tuned_params=')
-        print(ut.dict_str(tuned_params, sorted_=True, newlines=True))
+        print(ut.repr2(tuned_params, sorted_=True, newlines=True))
     return tuned_params
 
 
@@ -679,7 +679,7 @@ def flann_index_time_experiment():
 
     def get_buildtime_data(**kwargs):
         flann_params = vt.get_flann_params(**kwargs)
-        print('flann_params = %r' % (ut.dict_str(flann_params),))
+        print('flann_params = %r' % (ut.repr2(flann_params),))
         data_list = []
         num = 1000
         print('-----')

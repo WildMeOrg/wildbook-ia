@@ -1268,7 +1268,7 @@ def get_invVR_mats_oris(invVR_mats):
         >>> print('The position is easy')
         >>> print('Scale is not found through symbolic manipulation but can be taken through linear algebra properites')
         >>> print('Orientation is a bit more involved')
-        >>> print(ut.dict_str(solutions, sorted_=True))
+        >>> print(ut.repr2(solutions, sorted_=True))
         >>> # PROOVE ORIENTATION EQUATION IS CORRECT
         >>> #ivr11 must be positive for this to work
         >>> ori_arb = (-sympy.atan2(iv12, iv11)) % (symtau)
@@ -1418,7 +1418,7 @@ def get_invVR_mats_oris(invVR_mats):
         >>> ori_subs3 = ori_subs2.subs({theta:0})
         >>> ori_subs3 = ori_subs2.subs(dict(theta=0), simultanious=True)
         for sym in ori_subs2.free_symbols:
-            print('%r.assumptions0 = %s' % (sym, ut.dict_str(sym.assumptions0),))
+            print('%r.assumptions0 = %s' % (sym, ut.repr2(sym.assumptions0),))
 
 
 

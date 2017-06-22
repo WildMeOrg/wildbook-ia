@@ -595,7 +595,7 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     kpts_ = kpts + aug
     # Ensure keypoint feasibility
     kpts_ = force_kpts_feasibility(kpts_)
-    #print(ut.dict_str({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
+    #print(ut.repr2({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
     #assert kpts_.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts_.dtype=%r' % (kpts_.dtype)
     return kpts_
 
