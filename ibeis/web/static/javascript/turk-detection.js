@@ -67,6 +67,44 @@ function update_metadata_panel(state) {
         visible_ids = []
     }
 
+    if ( ! config_viewpoint) {
+        hidden_ids.push("#ia-metadata-panel-annotation-viewpoint")
+        $("#ia-metadata-panel-annotation-row2").css('margin-top', '10px');
+        hidden_ids.push("#ia-metadata-panel-part-viewpoint")
+    }
+
+    if ( ! config_quality) {
+        hidden_ids.push("#ia-metadata-panel-annotation-quality")
+        hidden_ids.push("#ia-metadata-panel-part-quality")
+    }
+
+    if ( ! config_quality && config_flags) {
+        $("#ia-metadata-panel-annotation-species").css('margin-top', '-55px');
+        $("#ia-metadata-panel-part-type").css('margin-top', '-26px');
+    }
+
+    if ( ! config_flags) {
+        hidden_ids.push("#ia-metadata-panel-annotation-flags")
+    }
+
+    if ( ! config_flags_aoi) {
+        hidden_ids.push("#ia-metadata-panel-annotation-flags-aoi")
+    }
+
+    if ( ! config_flags_multiple) {
+        hidden_ids.push("#ia-metadata-panel-annotation-flags-multiple")
+    }
+
+    if ( ! config_species) {
+        hidden_ids.push("#ia-metadata-panel-annotation-species")
+        hidden_ids.push("#ia-metadata-panel-part-type")
+    }
+
+    if ( ! config_quickhelp) {
+        hidden_ids.push("#ia-metadata-panel-annotation-quickhelp")
+        hidden_ids.push("#ia-metadata-panel-annotation-quickhelp-fallback")
+    }
+
     for (var index = 0; index < active_ids.length; index++) {
         $(active_ids[index]).css(css_active)
     }

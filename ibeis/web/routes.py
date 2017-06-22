@@ -1612,10 +1612,17 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     ibs = current_app.ibs
 
     default_list = [
-        ('autointerest',    False),
-        ('interest_bypass', False),
-        ('metadata',        True),
-        ('parts',           True),
+        ('autointerest',            False),
+        ('interest_bypass',         False),
+        ('metadata',                True),
+        ('metadata_viewpoint',      True),
+        ('metadata_quality',        True),
+        ('metadata_flags',          True),
+        ('metadata_flags_aoi',      True),
+        ('metadata_flags_multiple', True),
+        ('metadata_species',        True),
+        ('metadata_quickhelp',      True),
+        ('parts',                   True),
     ]
     config = {
         key: kwargs.get(key, default)

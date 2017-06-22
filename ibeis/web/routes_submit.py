@@ -258,6 +258,13 @@ def submit_detection(**kwargs):
         'autointerest',
         'interest_bypass',
         'metadata',
+        'metadata_viewpoint',
+        'metadata_quality',
+        'metadata_flags',
+        'metadata_flags_aoi',
+        'metadata_flags_multiple',
+        'metadata_species',
+        'metadata_quickhelp',
         'parts',
     ]
     config = {
