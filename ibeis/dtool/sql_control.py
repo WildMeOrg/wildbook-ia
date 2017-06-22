@@ -147,10 +147,10 @@ class SQLExecutionContext(object):
             context.cur.execute(context.operation, params)
         except lite.Error as ex:
             print('Reporting SQLite Error')
-            print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
+            print('params = ' + ut.repr2(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
             if hasattr(ex, 'message') and ex.message.find('probably unsupported type') > -1:
-                print('ERR REPORT: given param types = ' + ut.list_str(ut.lmap(type, params)))
+                print('ERR REPORT: given param types = ' + ut.repr2(ut.lmap(type, params)))
                 if context.tablename is None:
                     if context.operation_type.startswith('SELECT'):
                         tablename = ut.str_between(context.operation, 'FROM', 'WHERE').strip()
@@ -1251,7 +1251,7 @@ class SQLDatabaseController(object):
             >>> from dtool.sql_control import *  # NOQA
             >>> db = testdata_depc()['notch'].db
             >>> metadata_items = db.get_metadata_items()
-            >>> result = ('metadata_items = %s' % (ut.list_str(sorted(metadata_items)),))
+            >>> result = ('metadata_items = %s' % (ut.repr2(sorted(metadata_items)),))
             >>> print(result)
         """
         metadata_rowids = db.get_all_rowids(METADATA_TABLE)
@@ -1509,7 +1509,7 @@ class SQLDatabaseController(object):
         if VERBOSE_SQL or ut.VERBOSE:
             print('[sql] schema modifying tablename=%r' % tablename)
             print('[sql] * colmap_list = ' + 'None' if colmap_list is None else
-                  ut.list_str(colmap_list))
+                  ut.repr2(colmap_list))
 
         if colmap_list is None:
             colmap_list = []
@@ -1661,7 +1661,7 @@ class SQLDatabaseController(object):
         id_iter = [(key,) for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
-        #print('Setting metadata_key from %s to %s' % (ut.list_str(id_iter), ut.list_str(val_iter)))
+        #print('Setting metadata_key from %s to %s' % (ut.repr2(id_iter), ut.repr2(val_iter)))
         db.set(METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
 
     def drop_table(db, tablename):
@@ -1975,7 +1975,7 @@ class SQLDatabaseController(object):
             >>> depc = testdata_depc()
             >>> db = depc['chip'].db
             >>> superkeys = db.get_table_superkey_colnames('chip')
-            >>> result = ut.list_str(superkeys, nl=False)
+            >>> result = ut.repr2(superkeys, nl=False)
             >>> print(result)
             [('dummy_annot_rowid', 'config_rowid')]
         """
@@ -2077,7 +2077,7 @@ class SQLDatabaseController(object):
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
             >>> colrichinfo_list = db.get_columns(tablename)
-            >>> result = ('colrichinfo_list = %s' % (ut.list_str(colrichinfo_list),))
+            >>> result = ('colrichinfo_list = %s' % (ut.repr2(colrichinfo_list),))
             >>> print(result)
             colrichinfo_list = [
                 (0, 'keypoint_rowid', 'INTEGER', 0, None, 1),
@@ -2227,7 +2227,7 @@ class SQLDatabaseController(object):
                     assert len(superkey) == 1, 'unhandled'
                     colinfo = {_.name: _ for _ in _deptablecols}[superkey[0]]
                     table_dict_def[superkey[0]] = colinfo.type_
-        #json_def_str = ut.dict_str(table_dict_def, aligned=True)
+        #json_def_str = ut.repr2(table_dict_def, aligned=True)
         return table_dict_def
         #table_obj_def =
 
@@ -2251,9 +2251,9 @@ class SQLDatabaseController(object):
             ...     new_transferdata = db.get_table_new_transferdata(tablename)
             ...     column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
             ...     print('tablename = %r' % (tablename,))
-            ...     print('colnames = ' + ut.list_str(column_names))
-            ...     print('extern_colx_list = ' + ut.list_str(extern_colx_list))
-            ...     print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            ...     print('colnames = ' + ut.repr2(column_names))
+            ...     print('extern_colx_list = ' + ut.repr2(extern_colx_list))
+            ...     print('extern_superkey_colname_list = ' + ut.repr2(extern_superkey_colname_list))
             ...     print('L___')
 
         Example:
@@ -2268,9 +2268,9 @@ class SQLDatabaseController(object):
             ...     new_transferdata = db.get_table_new_transferdata(tablename)
             ...     column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
             ...     print('tablename = %r' % (tablename,))
-            ...     print('colnames = ' + ut.list_str(column_names))
-            ...     print('extern_colx_list = ' + ut.list_str(extern_colx_list))
-            ...     print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            ...     print('colnames = ' + ut.repr2(column_names))
+            ...     print('extern_colx_list = ' + ut.repr2(extern_colx_list))
+            ...     print('extern_superkey_colname_list = ' + ut.repr2(extern_superkey_colname_list))
             ...     print('L___')
 
         Example:
@@ -2285,9 +2285,9 @@ class SQLDatabaseController(object):
             >>> column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
             >>> dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
             >>> print('tablename = %r' % (tablename,))
-            >>> print('colnames = ' + ut.list_str(column_names))
-            >>> print('extern_colx_list = ' + ut.list_str(extern_colx_list))
-            >>> print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            >>> print('colnames = ' + ut.repr2(column_names))
+            >>> print('extern_colx_list = ' + ut.repr2(extern_colx_list))
+            >>> print('extern_superkey_colname_list = ' + ut.repr2(extern_superkey_colname_list))
             >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
             >>> print('L___')
             >>> tablename = ibs.const.ANNOTATION_TABLE
@@ -2295,9 +2295,9 @@ class SQLDatabaseController(object):
             >>> column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
             >>> dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
             >>> print('tablename = %r' % (tablename,))
-            >>> print('colnames = ' + ut.list_str(column_names))
-            >>> print('extern_colx_list = ' + ut.list_str(extern_colx_list))
-            >>> print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            >>> print('colnames = ' + ut.repr2(column_names))
+            >>> print('extern_colx_list = ' + ut.repr2(extern_colx_list))
+            >>> print('extern_superkey_colname_list = ' + ut.repr2(extern_superkey_colname_list))
             >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
             >>> print('L___')
         """
