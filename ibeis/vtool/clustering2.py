@@ -138,7 +138,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobraces=1)
+        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
         >>> print(result)
         np.array([1, 2, 3], dtype=np.int64),
         [
@@ -155,7 +155,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> # 2d arrays must be flattened before coming into this function so
         >>> # information is on the last axis
         >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
-        >>> result = ut.repr3((keys, groupxs), nobraces=1)
+        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
         >>> print(result)
         np.array([ 24, 129, 659, 822], dtype=np.int64),
         [

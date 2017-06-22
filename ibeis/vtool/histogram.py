@@ -184,7 +184,7 @@ def argsubmaxima2(ydata, xdata=None, maxima_thresh=None, _debug=False,
         >>> import plottool as pt
         >>> pt.draw_hist_subbin_maxima(ydata, xdata)
         >>> pt.show_if_requested()
-        (array([ 3.0318792]), array([ 37.19208239]))
+        (array([ 3.03374251]), array([ 37.2719012]))
 
     Ignore:
 
@@ -447,7 +447,7 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>>                            key_list=['x123', 'y123', 'coeff_list'])
         >>> x123, y123, coeff_list = locals_
         >>> res = (submaxima_x, submaxima_y)
-        >>> result = ut.repr2(res, nl=1, nobr=True, precision=2)
+        >>> result = ut.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt

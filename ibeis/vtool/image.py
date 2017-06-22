@@ -350,8 +350,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
         except cv2.error as cv2ex:
             ut.printex(cv2ex, 'opencv error', iswarning=True)
-            #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
-            #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
+            #print('cv2error dict = ' + ut.repr2(cv2ex.__dict__))
+            #print('cv2error dirlist = ' + ut.repr2(dir(cv2ex)))
             #print('cv2error args = ' + repr(cv2ex.args))
             #print('cv2error message = ' + repr(cv2ex.message))
             #cv2error args =
@@ -2175,7 +2175,7 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         >>> vert = False
         >>> tup = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
         >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
-        >>> result = ut.remove_doublspaces(ut.numpy_str(np.array(stacked_offsets).T, precision=2, max_line_width=10000)).replace(' ,', ',')
+        >>> result = ut.remove_doublspaces(ut.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -2186,7 +2186,8 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         ...    pt.draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
         >>> ut.show_if_requested()
         np.array([[ 0., 0., 0., 0., 0., 512., 512., 512., 512., 512., 1024., 1024., 1024., 1024., 1024. ],
-         [ 0., 512.12, 1024.25, 1827., 2339., 0., 427., 939., 1742., 2254., 0., 250., 762., 1389., 1789. ]], dtype=np.float64)
+         [ 0., 512.12, 1024.25, 1827., 2339., 0., 427., 939., 1742., 2254., 0., 373.18, 1137.45, 2073.38, 2670.47]], dtype=np.float64)
+
 
     """
     stacked_img, offset_tups, sf_tups = stack_image_list(multiimg_list,
@@ -2290,7 +2291,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> # verify results
-        >>> result = ut.numpy_str(np.array(offset_list).T, precision=2)
+        >>> result = ut.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt

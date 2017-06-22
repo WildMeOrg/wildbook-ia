@@ -588,7 +588,7 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
         >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode, use_cpp=use_cpp)
         >>> # verify results
         >>> print(np.array(warped_patches).shape)
-        >>> print(ut.numpy_str(np.array(warped_subkpts), precision=2))
+        >>> print(ut.repr2(np.array(warped_subkpts), precision=2))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(warped_patches[0])

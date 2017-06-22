@@ -616,8 +616,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> (fp_indicies, fn_indicies) = encoder.get_error_indicies(X, y)
             >>> fp_X = X.take(fp_indicies)[0:3]
             >>> fn_X = X.take(fn_indicies)[0:3]
-            >>> result =    'fp_X = ' + ut.numpy_str2(fp_X)
-            >>> result += '\nfn_X = ' + ut.numpy_str2(fn_X)
+            >>> result =    'fp_X = ' + ut.repr2(fp_X)
+            >>> result += '\nfn_X = ' + ut.repr2(fn_X)
             >>> print(result)
             fp_X = np.array([ 6.196,  5.912,  5.804])
             fn_X = np.array([ 3.947,  4.277,  4.43 ])
@@ -659,8 +659,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> (tp_indicies, tn_indicies) = encoder.get_correct_indices(X, y)
             >>> tp_X = X.take(tp_indicies)[0:3]
             >>> tn_X = X.take(tn_indicies)[0:3]
-            >>> result =    'tp_X = ' + ut.numpy_str2(tp_X)
-            >>> result += '\ntn_X = ' + ut.numpy_str2(tn_X)
+            >>> result =    'tp_X = ' + ut.repr2(tp_X)
+            >>> result += '\ntn_X = ' + ut.repr2(tn_X)
             >>> print(result)
             tp_X = np.array([ 8.883,  8.77 ,  8.759])
             tn_X = np.array([ 0.727,  0.76 ,  0.841])
@@ -1196,7 +1196,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         >>> scores = np.array([-1, 0.0, 0.01, 2.3, 8.0, 9.99, 10.0, 10.1, 11.1])
         >>> prob = normalize_scores(score_domain, p_tp_given_score, scores)
         >>> #np.set_printoptions(suppress=True)
-        >>> result = ut.numpy_str(prob, precision=2, suppress_small=True)
+        >>> result = ut.repr2(prob, precision=2, suppress_small=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt

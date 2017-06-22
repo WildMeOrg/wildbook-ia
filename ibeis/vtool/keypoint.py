@@ -511,6 +511,22 @@ def get_RV_mats_3x3(kpts):
     """
     prefered over get_invV_mats
 
+    Ignore:
+        >>> from vtool.keypoint import *
+        >>> kpts = np.array([[  3.20e+01,   2.72e+01,   1.81e+01,   1.04e+00,   1.60e+01, 6.18e+00],
+        >>>                  [  6.10e+01,   2.29e+01,   1.76e+01,   5.12e-01,   2.42e+01, 6.14e+00],
+        >>>                  [  9.31e+01,   2.36e+01,   2.04e+01,   1.33e-01,   2.48e+01, 6.24e+00],
+        >>>                  [  1.20e+02,   2.95e+01,   1.73e+01,  -3.05e+00,   2.21e+01, 3.50e-01],
+        >>>                  [  1.47e+02,   4.20e+01,   2.27e+01,   1.91e+00,   1.35e+01, 5.28e-01]])
+        >>> ut.hash_data(kpts)
+        niwuyadbqlexzcsyxtkewgdzazqubdwo
+        >>> ut.exec_func_src(get_RV_mats_3x3, update=True)
+        >>> ut.hash_data(invVR_mats)
+        vrsbqnyavbgchflfddajpqmmhrthopkc
+        >>> ut.hash_data(RV_mats)
+        puklvygdivpqrvajrypdpbrrglhjvhqm
+
+
     Returns:
         V_mats (ndarray) : sequence of matrices that transform an ellipse to unit circle
     """
@@ -853,7 +869,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> scale_factor = (1.5, 0.5)
         >>> kpts_ = offset_kpts(kpts, offset, scale_factor)
         >>> # verify results (hack + 0. to fix negative 0)
-        >>> result = ut.list_str((kpts, kpts_ + 0.), precision=2, nobr=True)
+        >>> result = ut.repr3((kpts, kpts_ + 0.), precision=2, nobr=True, with_dtype=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -919,7 +935,7 @@ def transform_kpts(kpts, M):
         >>> M = np.array([[10, 0, 0], [10, 10, 0], [0, 0, 1]], dtype=np.float64)
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
-        >>> result = ut.numpy_str(kpts, precision=3).replace('-0. ', ' 0. ')
+        >>> result = ut.repr2(kpts, precision=3, with_dtype=True).replace('-0. ', ' 0. ')
         >>> print(result)
         np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,    0.   ],
                   [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,    0.   ],
@@ -1010,7 +1026,7 @@ def transform_kpts_xys(H, kpts):
         ...               [  1.,   1.,   2.]])
         >>> xy_t = transform_kpts_xys(H, kpts)
         >>> # verify results
-        >>> result = ut.numpy_str(xy_t, precision=3)
+        >>> result = ut.repr2(xy_t, precision=3, with_dtype=True)
         >>> print(result)
         np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
                   [ 2.574,  2.482,  2.516,  2.5  ,  2.508]], dtype=np.float64)
@@ -1048,7 +1064,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(7, 3, 3).astype(np.float64)
         >>> det_arr = get_invVR_mats_sqrd_scale(invVR_mats)
-        >>> result = ut.numpy_str(det_arr, precision=2)
+        >>> result = ut.repr2(det_arr, precision=2, with_dtype=True)
         >>> print(result)
         np.array([-0.16, -0.09, -0.34,  0.59, -0.2 ,  0.18,  0.06], dtype=np.float64)
     """
@@ -1069,9 +1085,9 @@ def get_invVR_mats_shape(invVR_mats):
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
         >>> output = get_invVR_mats_shape(invVR_mats)
-        >>> result = ut.hashstr(output)
+        >>> result = ut.hash_data(output)
         >>> print(result)
-        oq9o@yqhtgloy58!
+        pibujdiaimwcnmomserkcytyyikahjmp
 
     References:
         TODO
@@ -1146,7 +1162,7 @@ def get_invVR_mats_oris(invVR_mats):
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(7, 2, 2).astype(np.float64)
         >>> output = get_invVR_mats_oris(invVR_mats)
-        >>> result = ut.numpy_str(output, precision=2)
+        >>> result = ut.repr2(output, precision=2, with_dtype=True)
         np.array([ 5.37,  5.29,  5.9 ,  5.26,  4.74,  5.6 ,  4.9 ], dtype=np.float64)
 
     Sympy:
@@ -1305,8 +1321,8 @@ def get_invVR_mats_oris(invVR_mats):
         nptheta = np.linspace(0, 2 * np.pi, 32, endpoint=False)
 
         mapping = np.arctan(np.tan(nptheta))
-        print(ut.list_str(zip(nptheta / (2 * np.pi), nptheta, mapping, nptheta == mapping), precision=3))
-        print(ut.list_str(zip(nptheta / (2 * np.pi), nptheta, mapping  % (np.pi * 2), nptheta == mapping % (np.pi * 2)), precision=3))
+        print(ut.repr2(zip(nptheta / (2 * np.pi), nptheta, mapping, nptheta == mapping), precision=3))
+        print(ut.repr2(zip(nptheta / (2 * np.pi), nptheta, mapping  % (np.pi * 2), nptheta == mapping % (np.pi * 2)), precision=3))
 
         >>> # NUMPY CHECKS
 
@@ -1319,20 +1335,20 @@ def get_invVR_mats_oris(invVR_mats):
         >>> case1_result = (-np.arctan(np.tan(-case1_theta)) % TAU)
         >>> case1_theta == case1_result
 
-        >>> print(ut.list_str(zip(case1_theta, case1_result, vt.ori_distance(case1_theta, case1_result) ), precision=3))
+        >>> print(ut.repr2(zip(case1_theta, case1_result, vt.ori_distance(case1_theta, case1_result) ), precision=3))
         >>> #
         >>> # Case 2
         >>> #\modfn{\paren{-\atan{\tan{(-\theta)}} - \pi }}{\TAU}     &\text{if } \cos{(-\theta )} < 0 \AND \sin{(-\theta )} \ge 0 \\
         >>> flags = (np.cos(-nptheta) < 0) * (np.sin(-nptheta) >= 0)
         >>> case2_theta =  nptheta.compress(flags)
         >>> case2_result = (-np.arctan(np.tan(-case2_theta)) - np.pi) % TAU
-        >>> print(ut.list_str(zip(case2_theta, case2_result, vt.ori_distance(case2_theta, case2_result) ), precision=3))
+        >>> print(ut.repr2(zip(case2_theta, case2_result, vt.ori_distance(case2_theta, case2_result) ), precision=3))
         >>> # Case 3
         >>> #\modfn{\paren{-\atan{\tan{(-\theta)}} + \pi }}{\TAU} &\text{if } \cos{(-\theta )} < 0 \AND \sin{(-\theta )} < 0 \\
         >>> flags = (np.cos(-nptheta) < 0) * (np.sin(-nptheta) < 0)
         >>> case3_theta =  nptheta.compress(flags)
         >>> case3_result = (-np.arctan(np.tan(-case3_theta)) + np.pi) % TAU
-        >>> print(ut.list_str(zip(case3_theta, case3_result, vt.ori_distance(case3_theta, case3_result)), precision=3))
+        >>> print(ut.repr2(zip(case3_theta, case3_result, vt.ori_distance(case3_theta, case3_result)), precision=3))
         >>> # Case 4
         >>> #\modfn{\paren{-\frac{\pi}{2} }}{\TAU}                &\text{if } \cos{(-\theta )} = 0 \AND \sin{(-\theta )} > 0 \\
         >>> # There are 2 locations with cos(-theta) = 0 and sing(-theta) > 0
@@ -1521,12 +1537,12 @@ def get_invVR_mats_oris(invVR_mats):
         >>> expr2 = theta
         >>> domain = {theta: (0, 2 * np.pi)}
         >>> truth_list, results_list, input_list = vt.symbolic_randcheck(ori, theta, domain, n=7)
-        >>> print(ut.list_str(truth_list, precision=2))
-        >>> print(ut.list_str(results_list, precision=2))
-        >>> print(ut.list_str(input_list, precision=2))
+        >>> print(ut.repr2(truth_list, precision=2))
+        >>> print(ut.repr2(results_list, precision=2))
+        >>> print(ut.repr2(input_list, precision=2))
         >>> difference = results_list.T[1] - results_list.T[0]
-        >>> print('diff = ' + ut.list_str(difference))
-        >>> print('ori diff = ' + ut.list_str(vt.ori_distance(results_list.T[1], results_list.T[0])))
+        >>> print('diff = ' + ut.repr2(difference))
+        >>> print('ori diff = ' + ut.repr2(vt.ori_distance(results_list.T[1], results_list.T[0])))
 
         truth_list, results_list, input_list =
         check_random_points(sympy.sin(theta) / sympy.cos(theta),
@@ -1617,8 +1633,8 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> rng = np.random.RandomState(0)
         >>> invVR_mats = rng.rand(1000, 2, 2).astype(np.float64)
         >>> output = rectify_invV_mats_are_up(invVR_mats)
-        >>> print(ut.hashstr(output))
-        2wir&6ybcga0bpvz
+        >>> print(ut.hash_data(output))
+        nbgarvieipbyfihtrhmeouosgehswvcr
 
     Ignore:
         _invRs_2x2 = invVR_mats[:, 0:2, 0:2][0:1]
@@ -1808,6 +1824,33 @@ def invert_invV_mats(invV_mats):
 
     CommandLine:
         python -m vtool.keypoint --test-invert_invV_mats
+
+    Ignore:
+        >>> from vtool.keypoint import *
+        >>> invV_mats  = np.array([[[  18.00372824,    1.86434161,   32.        ],
+        >>>                         [  -0.61356842,   16.02202028,   27.2       ],
+        >>>                         [   0.        ,    0.        ,    1.        ]],
+        >>> #
+        >>>                         [[  17.41989015,    2.51145917,   61.        ],
+        >>>                         [  -2.94649591,   24.02540959,   22.9       ],
+        >>>                         [   0.        ,    0.        ,    1.        ]],
+        >>> #
+        >>>                         [[  20.38098025,    0.88070646,   93.1       ],
+        >>>                         [  -0.93778675,   24.78261982,   23.6       ],
+        >>>                         [   0.        ,    0.        ,    1.        ]],
+        >>> #
+        >>>                         [[  16.25114793,   -5.93213207,  120.        ],
+        >>>                         [   4.71295477,   21.80597527,   29.5       ],
+        >>>                         [   0.        ,    0.        ,    1.        ]],
+        >>> #
+        >>>                         [[  19.60863253,  -11.43641248,  147.        ],
+        >>>                         [   8.45128003,   10.69925072,   42.        ],
+        >>>                         [   0.        ,    0.        ,    1.        ]]])
+        >>> ut.hash_data(invV_mats)
+        hcnoknyxgeecfyfrygblbvdeezmiulws
+        >>> V_mats = npl.inv(invV_mats)
+        >>> ut.hash_data(V_mats)
+        yooneahjgcifojzpovddeyhtkkyypldd
 
     Example:
         >>> # ENABLE_DOCTEST

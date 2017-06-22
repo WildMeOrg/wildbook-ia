@@ -21,6 +21,7 @@ def lazy_test_annot(key):
         'rchip_fpath': rchip_fpath,
         'gps': (np.nan, np.nan),
         'yaw': np.nan,
+        'view': np.nan,
         'qual': np.nan,
         'time': np.nan,
     })

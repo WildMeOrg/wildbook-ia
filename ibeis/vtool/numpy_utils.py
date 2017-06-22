@@ -347,7 +347,7 @@ def unique_row_indexes(arr):
         >>> from vtool.numpy_utils import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> unique_rowx = unique_row_indexes(arr)
-        >>> result = ('unique_rowx = %s' % (ut.numpy_str(unique_rowx),))
+        >>> result = ('unique_rowx = %s' % (ut.repr2(unique_rowx),))
         >>> print(result)
         unique_rowx = np.array([0, 1, 2, 3, 5], dtype=np.int64)
 

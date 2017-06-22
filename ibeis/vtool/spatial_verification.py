@@ -79,10 +79,12 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
-        >>> print(ut.numpy_str(Mx9))
-        >>> result = ut.hashstr(Mx9)
+        >>> result = (ut.repr2(Mx9[0:2], suppress_small=True, precision=2, with_dtype=True))
         >>> print(result)
-        f@2l62+2!ppow8yw
+        np.array([[  0.00e+00,   0.00e+00,   0.00e+00,  -3.20e+01,  -2.72e+01,
+                    -1.00e+00,   8.82e+02,   7.49e+02,   2.76e+01],
+                  [  3.20e+01,   2.72e+01,   1.00e+00,   0.00e+00,   0.00e+00,
+                     0.00e+00,  -1.09e+03,  -9.28e+02,  -3.42e+01]], dtype=np.float64)
 
     Timeit:
         import numba
@@ -189,7 +191,7 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
         >>> xy1_man = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_man = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx6 = build_affine_lstsqrs_Mx6(xy1_man, xy2_man)
-        >>> print(ut.numpy_str(Mx6))
+        >>> print(ut.repr2(Mx6))
         >>> result = ut.hashstr(Mx6)
         >>> print(result)
 
@@ -416,8 +418,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         tuple: hypo_inliers, hypo_errors
 
     CommandLine:
-        python2 -m vtool.spatial_verification --test-_test_hypothesis_inliers
-        python3 -m vtool.spatial_verification --test-_test_hypothesis_inliers
+        python -m vtool.spatial_verification --test-_test_hypothesis_inliers
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -449,12 +450,22 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> output_str = ut.repr3(output, precision=2, suppress_small=True)
+        >>> output_str = ut.repr2(output, precision=2, suppress_small=True)
         >>> print('output_str = %s' % (output_str,))
         >>> hypo_inliers, hypo_errors = output
-        >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hashstr27(output_str))
+        >>> # Inverting matrices is different in python2
+        >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hash_data(output))
         >>> print(result)
-        nInliers=1 hash=wmwxgbxyabncylyf
+        nInliers=1 hash=mvbcrvpbtylihsytiowbtcsmozlmoaun
+
+    Ignore:
+        kpts = kpts1_m
+        ut.hash_data(kpts)
+        ut.hash_data(invVR2s_m)
+        ut.hash_data(kpts1_m)
+        ut.hash_data(RV1s_m)
+        hist1, hist2 = xy2_m.T, _xy1_mt.T
+        dtype = SV_DTYPE
 
     Timeit:
         %timeit xy_err < xy_thresh_sqrd
@@ -530,9 +541,9 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> output_str = ut.repr3(output, precision=2, suppress_small=True)
         >>> print('output_str = %s' % (output_str,))
         >>> aff_inliers_list, aff_errors_list, Aff_mats = output
-        >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hashstr27(output_str))
+        >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hash_data(output_str))
         >>> print(result)
-        nInliers=9 hash=bepdwuaenjmfsllc
+        nInliers=9 hash=lwmgwuyvameoegkgmfrrvkjkykqxlapd
 
     Ignore::
         from vtool.spatial_verification import *  # NOQA
@@ -901,18 +912,18 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> xy_thresh_sqrd = .01 * ktool.get_kpts_dlen_sqrd(kpts2)
         >>> homogtup = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> refined_inliers, refined_errors, H = homogtup
-        >>> result = ut.list_str(homogtup, precision=2, nl=True, suppress_small=True, label_list=['refined_inliers', 'refined_errors', 'H'])
+        >>> result = ut.repr2(homogtup, precision=2, nl=True, suppress_small=True, nobr=True)
         >>> print(result)
-        refined_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
-        refined_errors = (
-                             np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
-                                         25.83,    3.82], dtype=np.float64),
-                             np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
-                             np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43], dtype=np.float64),
-                         )
-        H = np.array([[ 0.92, -0.05,  7.21],
-                      [-0.01,  0.91,  4.13],
-                      [-0.  , -0.  ,  1.  ]], dtype=np.float64)
+        np.array([0, 1, 2, 3, 4, 5, 6, 7, 8]),
+        (
+            np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
+                        25.83,    3.82]),
+            np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47]),
+            np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43]),
+        ),
+        np.array([[  9.18e-01,  -4.82e-02,   7.21e+00],
+                  [ -6.86e-03,   9.09e-01,   4.13e+00],
+                  [ -1.21e-04,  -3.45e-04,   1.00e+00]]),
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -1027,7 +1038,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> print('refined_inliers = %r' % (refined_inliers,))
         >>> #print('refined_errors = %r' % (refined_errors,))
         >>> result = ut.list_type_profile(svtup, with_dtype=False)
-        >>> #result = ut.list_str(svtup, precision=3)
+        >>> #result = ut.repr2(svtup, precision=3)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt

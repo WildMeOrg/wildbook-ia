@@ -281,12 +281,12 @@ def det_distance(det1, det2):
         >>> # ENABLE_DOCTEST
         >>> from vtool.distance import *  # NOQA
         >>> rng = np.random.RandomState(53)
-        >>> det1 = rng.rand(1000)
-        >>> det2 = rng.rand(1000)
+        >>> det1 = rng.rand(5)
+        >>> det2 = rng.rand(5)
         >>> scaledist = det_distance(det1, det2)
         >>> result = ut.repr2(scaledist, precision=2, threshold=2)
         >>> print(result)
-        np.array([ 1.03,  1.19,  1.21, ...,  1.25,  1.83,  1.43])
+        np.array([ 1.58,  1.47,  1.72,  1.36,  1.68])
     """
     det_dist = det1 / det2
     # Flip ratios that are less than 1
@@ -315,12 +315,12 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         >>> import numpy
         >>> ut.exec_funckw(L2_sqrd, globals())
         >>> rng = np.random.RandomState(53)
-        >>> hist1 = rng.rand(1000, 2)
-        >>> hist2 = rng.rand(1000, 2)
+        >>> hist1 = rng.rand(5, 2)
+        >>> hist2 = rng.rand(5, 2)
         >>> l2dist = L2_sqrd(hist1, hist2)
         >>> result = ut.repr2(l2dist, precision=2, threshold=2)
         >>> print(result)
-        np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66])
+        np.array([ 0.6 ,  0.17,  0.05,  0.01,  0.1 ])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -351,7 +351,9 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         #else
     """
     # Carefull, this will not return the correct result if the types are unsigned.
-    return ((np.asarray(hist1, dtype) - np.asarray(hist2, dtype)) ** 2).sum(-1)  # this is faster
+    hist1_ = np.asarray(hist1, dtype)
+    hist2_ = np.asarray(hist2, dtype)
+    return ((hist1_ - hist2_) ** 2).sum(-1)  # this is faster
 
 
 def understanding_pseudomax_props(mode=2):
@@ -416,10 +418,10 @@ def understanding_pseudomax_props(mode=2):
     dist_01 = np.sqrt(dist_sqrd_01)
     dist_256 = np.sqrt(dist_sqrd_256)
 
-    print('dist_sqrd_01  = %s' % (ut.numpy_str(dist_sqrd_01, precision=2),))
-    print('dist_sqrd_256 = %s' % (ut.numpy_str(dist_sqrd_256, precision=2),))
-    print('dist_01       = %s' % (ut.numpy_str(dist_01, precision=2),))
-    print('dist_256      = %s' % (ut.numpy_str(dist_256, precision=2),))
+    print('dist_sqrd_01  = %s' % (ut.repr2(dist_sqrd_01, precision=2),))
+    print('dist_sqrd_256 = %s' % (ut.repr2(dist_sqrd_256, precision=2),))
+    print('dist_01       = %s' % (ut.repr2(dist_01, precision=2),))
+    print('dist_256      = %s' % (ut.repr2(dist_256, precision=2),))
 
     print('--')
     print('sqrt(2)       = %f' % (np.sqrt(2)))
@@ -906,7 +908,7 @@ def haversine(latlon1, latlon2):
         >>> haversin_pdist = functools.partial(spdist.pdist, metric=vt.haversine)
         >>> dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
         >>> dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
-        >>> result = ('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2),))
+        >>> result = ('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2, with_dtype=True),))
         >>> print(result)
         dist_matrix_list = [
             np.array([[    0.  ,  9417.52,  9527.8 ,  9527.8 ],

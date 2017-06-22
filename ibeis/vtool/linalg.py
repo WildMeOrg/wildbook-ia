@@ -357,9 +357,9 @@ def whiten_xy_points(xy_m):
         >>> xy_m = dummy.get_dummy_xy()
         >>> tup = whiten_xy_points(xy_m)
         >>> xy_norm, T = tup
-        >>> result = (ut.hashstr(tup))
+        >>> result = (ut.hash_data(tup))
         >>> print(result)
-        wg%mpai0hxvil4p2
+        ripouamvkahpcjfrcuuylqfrswgvageg
     """
     mu_xy  = xy_m.mean(1)  # center of mass
     std_xy = xy_m.std(1)
@@ -388,7 +388,7 @@ def add_homogenous_coordinate(_xys):
         >>> _xyzs = add_homogenous_coordinate(_xys)
         >>> # verify results
         >>> assert np.all(_xys == remove_homogenous_coordinate(_xyzs))
-        >>> result = ut.numpy_str(_xyzs)
+        >>> result = ut.repr2(_xyzs, with_dtype=True)
         >>> print(result)
         np.array([[ 2.,  0.,  0.,  2.],
                   [ 2.,  2.,  0.,  0.],
@@ -420,7 +420,7 @@ def remove_homogenous_coordinate(_xyzs):
         ...                   [ 2.,   2.,  0.,  0.],
         ...                   [ 1.2,  1.,  1.,  2.]], dtype=np.float32)
         >>> _xys = remove_homogenous_coordinate(_xyzs)
-        >>> result = ut.numpy_str(_xys, precision=3)
+        >>> result = ut.repr2(_xys, precision=3, with_dtype=True)
         >>> print(result)
         np.array([[ 1.667,  0.   ,  0.   ,  1.   ],
                   [ 1.667,  2.   ,  0.   ,  0.   ]], dtype=np.float32)
@@ -432,10 +432,10 @@ def remove_homogenous_coordinate(_xyzs):
         ...                   [ 121.,  139.,  156.,  155.,  163.],
         ...                   [  47.,   56.,   62.,   62.,   65.]])
         >>> _xys = remove_homogenous_coordinate(_xyzs)
-        >>> result = np.array_repr(_xys, precision=3)
+        >>> result = ut.repr2(_xys, precision=3)
         >>> print(result)
-        array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
-               [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
+        np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
+                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
     """
     assert _xyzs.shape[0] == 3
     with warnings.catch_warnings():
@@ -481,7 +481,7 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> from vtool.linalg import *  # NOQA
         >>> arr = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
         >>> arr_normed = normalize(arr, axis=1)
-        >>> result = ut.hz_str('arr_normed = ', ut.numpy_str(arr_normed, precision=2))
+        >>> result = ut.hz_str('arr_normed = ', ut.repr2(arr_normed, precision=2, with_dtype=True))
         >>> assert np.allclose((arr_normed ** 2).sum(axis=1), [1, 1])
         >>> print(result)
         arr_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
@@ -492,7 +492,7 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> from vtool.linalg import *  # NOQA
         >>> arr = np.array([ 0.6,  0.1, -0.6])
         >>> arr_normed = normalize(arr)
-        >>> result = ut.hz_str('arr_normed = ', ut.numpy_str(arr_normed, precision=2))
+        >>> result = ut.hz_str('arr_normed = ', ut.repr2(arr_normed, precision=2))
         >>> assert np.allclose((arr_normed ** 2).sum(), [1])
         >>> print(result)
 
@@ -501,7 +501,7 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> ord_list = [0, 1, 2, np.inf, -np.inf]
         >>> arr = np.array([ 0.6,  0.1, -0.5])
         >>> normed = [(ord, normalize(arr, ord=ord)) for ord in ord_list]
-        >>> result = ut.repr4(normed, precision=2)
+        >>> result = ut.repr4(normed, precision=2, with_dtype=True)
         >>> print(result)
         [
             (0, np.array([ 0.2 ,  0.03, -0.17], dtype=np.float64)),
@@ -569,11 +569,12 @@ def random_affine_args(zoom_pdf=None,
         >>> print('affine_args = %s' % (ut.repr2(affine_args),))
         >>> (sx, sy, theta, shear, tx, ty) = affine_args
         >>> Aff = vt.affine_mat3x3(sx, sy, theta, shear, tx, ty)
-        >>> result = ut.numpy_str2(Aff)
+        >>> result = ut.repr2(Aff)
         >>> print(result)
-        np.array([[ 1.009, -0.   ,  1.695],
-                  [ 0.   ,  1.042,  2.584],
-                  [ 0.   ,  0.   ,  1.   ]])
+        np.array([[ 1.00934827, -0.        ,  1.6946192 ],
+                  [ 0.        ,  1.0418724 ,  2.58357645],
+                  [ 0.        ,  0.        ,  1.        ]])
+
     """
     if zoom_pdf is None:
         sx = sy = 1.0

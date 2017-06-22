@@ -251,7 +251,7 @@ def get_undirected_edge_ids(directed_edges):
         >>> from vtool.other import *  # NOQA
         >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
         >>> edgeid_list = get_undirected_edge_ids(directed_edges)
-        >>> result = ('edgeid_list = %s' % (str(edgeid_list),))
+        >>> result = ('edgeid_list = %s' % (ut.repr2(edgeid_list),))
         >>> print(result)
         edgeid_list = [0 0 1 2 3 1 1]
     """
@@ -430,7 +430,7 @@ def nonunique_row_indexes(arr):
         >>> from vtool.other import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> nonunique_rowx = unique_row_indexes(arr)
-        >>> result = ('nonunique_rowx = %s' % (ut.numpy_str(nonunique_rowx),))
+        >>> result = ('nonunique_rowx = %s' % (ut.repr2(nonunique_rowx),))
         >>> print(result)
         nonunique_rowx = np.array([4, 6, 7, 8], dtype=np.int64)
     """
@@ -451,7 +451,7 @@ def compute_unique_data_ids(data):
         >>> from vtool.other import *  # NOQA
         >>> data = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> dataid_list = compute_unique_data_ids(data)
-        >>> result = 'dataid_list = ' + ut.numpy_str(dataid_list)
+        >>> result = 'dataid_list = ' + ut.repr2(dataid_list, with_dtype=True)
         >>> print(result)
         dataid_list = np.array([0, 1, 2, 3, 0, 4, 4, 2, 1], dtype=np.int32)
     """
@@ -1116,7 +1116,7 @@ def get_uncovered_mask(covered_array, covering_array):
         ... ], dtype=np.int32)
         >>> covering_array = [2, 4, 5]
         >>> flags = get_uncovered_mask(covered_array, covering_array)
-        >>> result = ut.numpy_str(flags)
+        >>> result = ut.repr2(flags, with_dtype=True)
         >>> print(result)
         np.array([[ True, False,  True],
                   [False, False,  True],
@@ -1339,6 +1339,7 @@ def norm01(array, dim=None):
 
 
 def weighted_geometic_mean_unnormalized(data, weights):
+    import vtool as vt
     terms = [x ** w for x, w in zip(data, weights)]
     termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     return termprod
@@ -1365,7 +1366,7 @@ def weighted_geometic_mean(data, weights):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
-        >>> data = [np.array(.9), np.array(.5)]
+        >>> data = [.9, .5]
         >>> weights = np.array([1.0, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
         >>> result = ('gmean_ = %.3f' % (gmean_,))
@@ -1381,7 +1382,7 @@ def weighted_geometic_mean(data, weights):
         >>> data = [img1, img2]
         >>> weights = np.array([.5, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
-        >>> result = ut.hz_str('gmean_ = ', ut.numpy_str(gmean_, precision=2))
+        >>> result = ut.hz_str('gmean_ = ', ut.repr2(gmean_, precision=2, with_dtype=True))
         >>> print(result)
         gmean_ = np.array([[ 0.11,  0.77,  0.68,  0.69],
                            [ 0.64,  0.72,  0.45,  0.83],
@@ -1393,7 +1394,7 @@ def weighted_geometic_mean(data, weights):
         res2 = np.sqrt(img1 * img2)
     """
     import vtool as vt
-    terms = [x ** w for x, w in zip(data, weights)]
+    terms = [np.asarray(x ** w) for x, w in zip(data, weights)]
     termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     exponent = 1 / np.sum(weights)
     gmean_ = termprod ** exponent
@@ -2176,7 +2177,7 @@ def inbounds(num, low, high, eq=False):
         >>> high = .4
         >>> eq = False
         >>> is_inbounds = inbounds(num, low, high, eq)
-        >>> result = ut.numpy_str(is_inbounds)
+        >>> result = ut.repr2(is_inbounds, with_dtype=True)
         >>> print(result)
         np.array([[False, False,  True],
                   [ True,  True, False],

@@ -530,7 +530,7 @@ def iceil(num, dtype=np.int32):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> num = [1.5, 2.9]
-        >>> result = ut.numpy_str(vt.iceil(num))
+        >>> result = ut.repr2(vt.iceil(num), with_dtype=True)
         >>> print(result)
         np.array([2, 3], dtype=np.int32)
     """

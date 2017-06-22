@@ -245,7 +245,7 @@ def test_sver_wrapper():
     scales2 = vt.get_scales(kpts2.take(fm_input.T[1], axis=0))
     #fs_input = 1 / scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
     fs_input = scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
-    print('fs_input = ' + ut.numpy_str(fs_input))
+    print('fs_input = ' + ut.repr2(fs_input))
     #fs_input[0:-9] = 0
     #fs_input = np.ones(len(fm_input), dtype=fs_dtype)
     #ut.embed()

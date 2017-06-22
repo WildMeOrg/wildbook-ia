@@ -845,7 +845,7 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         >>> precision = confusions.precision
         >>> recall = confusions.recall
         >>> recall_domain, p_interp = interpolate_precision_recall(confusions.precision, recall, nSamples=11)
-        >>> result = ut.numpy_str(p_interp, precision=1)
+        >>> result = ut.repr2(p_interp, precision=1, with_dtype=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> draw_precision_recall_curve(recall_domain, p_interp)

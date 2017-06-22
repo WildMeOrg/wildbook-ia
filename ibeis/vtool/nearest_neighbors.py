@@ -5,7 +5,6 @@ python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors)
 """
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
-import sys
 import utool as ut
 import numpy as np
 (print, rrr, profile) = ut.inject2(__name__)
@@ -98,9 +97,6 @@ def test_annoy():
             index.nn_index(qvecs, num_neighbs, checks=checks)
 
 
-
-
-
 def test_cv2_flann():
     """
     Ignore:
@@ -185,7 +181,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> dpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-        >>> result = ut.list_str((qx2_dx.T, qx2_dist.T), precision=2)
+        >>> result = ut.list_str((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True)
         >>> print(result)
         (
             np.array([[3, 3, 3, 3, 0],
