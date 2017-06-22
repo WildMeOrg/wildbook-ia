@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool
 import numpy as np
 import utool as ut
 import six
 import scipy.interpolate
 from functools import partial
-print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__)
 
 
 def check_unused_kwargs(kwargs, expected_keys):
