@@ -85,7 +85,7 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     if len(gid_list) == 0:
         # nothing is being added
         print('[ibs] WARNING: 0 annotations are beign added!')
-        print(ut.dict_str(locals()))
+        print(ut.repr2(locals()))
         return []
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids

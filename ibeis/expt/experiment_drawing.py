@@ -560,9 +560,9 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         basis_dict[key] = _basis
 
     if verbose:
-        print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
+        print('basis_dict = ' + ut.repr2(basis_dict, nl=1, hack_liststr=True))
         print('e.g. cfgx_lists_dict[1] contains indicies of configs where K = basis_dict["K"][1]')
-        print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
+        print('cfx_lists_dict = ' + ut.repr2(cfgx_lists_dict, nl=2, hack_liststr=True))
 
     #const_key = 'K'
 

@@ -86,7 +86,7 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
         >>>                              type_hint=ut.ddict(list, has_any=list,
         >>>                                                 has_none=list,
         >>>                                                 logic=str))
-        >>> print('filter_kw = %s' % (ut.dict_str(filter_kw),))
+        >>> print('filter_kw = %s' % (ut.repr2(filter_kw),))
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> #filter_kw = dict(is_known=True, min_num=1, has_any='viewpoint')
@@ -159,7 +159,7 @@ def get_default_annot_filter_form():
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> filter_kw = get_default_annot_filter_form()
-        >>> print(ut.dict_str(filter_kw, align=True))
+        >>> print(ut.repr2(filter_kw, align=True))
         >>> print(', '.join(filter_kw.keys()))
     """
     from ibeis.expt import annotation_configs
@@ -306,7 +306,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=None):
     if verbose:
         print('+=== EXPAND_SINGLE_ACFG ===')
         print(' * acfg = %s' %
-              (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg),
+              (ut.repr2(annotation_configs.compress_aidcfg(aidcfg),
                            align=True),))
         print('+---------------------')
     avail_aids = ibs._get_all_aids()
@@ -1057,7 +1057,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
 
     if verbose:
         ut.colorprint('+=== EXPAND_ACFGS ===', 'yellow')
-        print(' * acfg = %s' % (ut.dict_str(comp_acfg, align=True),))
+        print(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
         ut.colorprint('+---------------------', 'yellow')
 
     # Breakup into common, query, and database configs
@@ -1161,7 +1161,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
 
     except Exception as ex:
         print('PRINTING ERROR INFO')
-        print(' * acfg = %s' % (ut.dict_str(comp_acfg, align=True),))
+        print(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
         ut.printex(ex, 'Error executing filter chains')
         raise
 
@@ -2092,11 +2092,11 @@ def verb_context(filtertype, aidcfg, verbose):
                 infostr = ''
                 if len(keys) > 0:
                     subdict = ut.dict_subset(aidcfg, keys, None)
-                    infostr += '' + ut.dict_str(subdict, **dictkw)
+                    infostr += '' + ut.repr2(subdict, **dictkw)
                 print('[%s] * Filter by %s' % (
                     self.prefix.upper(), infostr.strip()))
                 if verbose > 1 and len(filterextra) > 0:
-                    infostr2 = ut.dict_str(filterextra, nl=False, explicit=False)
+                    infostr2 = ut.repr2(filterextra, nl=False, explicit=False)
                     print('[%s]      %s' % (
                         self.prefix.upper(), infostr2))
 

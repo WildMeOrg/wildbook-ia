@@ -313,10 +313,10 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         >>> aid2_list = aid_pairs.T[1]
         >>> undirected_tags = get_aidpair_tags(ibs, aid1_list, aid2_list, directed=False)
         >>> tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
-        >>> print(ut.list_str(tagged_pairs))
+        >>> print(ut.repr2(tagged_pairs))
         >>> tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
-        >>> print(ut.dict_str(tag_dict, nl=2))
-        >>> print(ut.dict_str(ut.map_dict_vals(len, tag_dict)))
+        >>> print(ut.repr2(tag_dict, nl=2))
+        >>> print(ut.repr2(ut.map_dict_vals(len, tag_dict)))
     """
     aid_pairs = np.vstack([aid1_list, aid2_list]).T
     if directed:
@@ -406,11 +406,11 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         >>> aid1_list = aid1_list.take(xs)
         >>> aid2_list = aid2_list.take(xs)
         >>> valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)
-        >>> print('valid_tags_list = %s' % (ut.list_str(valid_tags_list, nl=1),))
+        >>> print('valid_tags_list = %s' % (ut.repr2(valid_tags_list, nl=1),))
         >>> #
         >>> print('Aid pairs with has_any=%s' % (has_any,))
         >>> print('Aid pairs with min_num=%s' % (min_num,))
-        >>> print('aid_pairs = ' + ut.list_str(list(zip(aid1_list, aid2_list))))
+        >>> print('aid_pairs = ' + ut.repr2(list(zip(aid1_list, aid2_list))))
         >>> # Show timedelta info
         >>> ut.quit_if_noshow()
         >>> timedelta_list = ibs.get_annot_pair_timedelta(aid1_list, aid2_list)

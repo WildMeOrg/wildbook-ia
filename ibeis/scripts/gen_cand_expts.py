@@ -175,7 +175,7 @@ def parse_latex_comments_for_commmands():
         cmd_list2.append(cmd)
     cmd_list = cmd_list2
 
-    print('cmd_list = %s' % (ut.list_str(cmd_list),))
+    print('cmd_list = %s' % (ut.repr2(cmd_list),))
     from os.path import splitext
     script_fname =  'regen_' + splitext(fname)[0] + '.sh'
     fname, script, line_list = write_script_lines(cmd_list, script_fname)

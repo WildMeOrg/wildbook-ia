@@ -32,7 +32,7 @@ def get_hsdb_image_gpaths(ibs, gid_list):
         >>> # execute function
         >>> gpath_list = get_hsdb_image_gpaths(ibs, gid_list)
         >>> # verify results
-        >>> result = ut.list_str(gpath_list)
+        >>> result = ut.repr2(gpath_list, nl=1)
         >>> print(result)
         [
             '../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg',

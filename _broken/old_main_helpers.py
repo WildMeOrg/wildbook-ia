@@ -62,7 +62,7 @@ def get_commandline_aidcfg():
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> aidcfg = get_commandline_aidcfg()
-        >>> print('aidcfg = ' + ut.dict_str(aidcfg))
+        >>> print('aidcfg = ' + ut.repr2(aidcfg))
     """
 
     def parse_cfgstr_list2(cfgstr_list, named_dcfgs_dict, cfgtype=None, alias_keys=None):

@@ -178,7 +178,7 @@ def make_metadata_custom_api(metadata):
         col_nice_dict=col_nice_dict
     )
     #headers = custom_api.make_headers(tblnice='results')
-    #print(ut.dict_str(headers))
+    #print(ut.repr2(headers))
     wgt = MetadataViewer()
     wgt.connect_api(custom_api)
     return wgt
@@ -221,7 +221,7 @@ def make_test_result_custom_api(ibs, testres):
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
     #headers = custom_api.make_headers(tblnice='results')
-    #print(ut.dict_str(headers))
+    #print(ut.repr2(headers))
     wgt = guitool.APIItemWidget()
     wgt.connect_api(custom_api)
     return wgt

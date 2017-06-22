@@ -42,7 +42,7 @@ def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
     if params.args.dump_argv:
-        print(ut.dict_str(vars(params.args), sorted_=False))
+        print(ut.repr2(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
         ut.global_cache_dump()  # debug command, dumps to stdout
     if params.args.set_workdir is not None:
@@ -92,7 +92,7 @@ def postload_commands(ibs, back):
         # Set query parameters from command line using the --cfg flag
         cfgdict = ut.parse_cfgstr_list(params.args.update_query_cfg)
         print('Custom cfgdict specified')
-        print(ut.dict_str(cfgdict))
+        print(ut.repr2(cfgdict))
         ibs.update_query_cfg(**cfgdict)
     if params.args.edit_notes:
         ut.editfile(ibs.get_dbnotes_fpath(ensure=True))

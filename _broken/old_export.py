@@ -315,7 +315,7 @@ def export_transfer_data(ibs_src, gid_list=None):
         >>> annot_td_dict = annotation_td._asdict()
         >>> # remove non-determenistic uuid
         >>> del annot_td_dict['annot_uuid_list']
-        >>> result = ut.dict_str(annot_td_dict)
+        >>> result = ut.repr2(annot_td_dict)
         >>> print(result)
         {
             'annot_parent_INDEX_list': [None],
@@ -444,12 +444,12 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
         ibs = ibs_src
         configid_list = ibs.get_valid_configids()
         config_suffix_list = ibs.get_config_suffixes(configid_list)
-        print(ut.list_str(list(zip(configid_list, config_suffix_list))))
+        print(ut.repr2(list(zip(configid_list, config_suffix_list))))
 
         imgsetid_list = ibs.get_valid_imgsetids()
         imageset_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
         imageset_suffix_list = ibs.get_config_suffixes(config_rowid_list)
-        print(ut.list_str(list(zip(imageset_config_rowid_list, imageset_suffix_list))))
+        print(ut.repr2(list(zip(imageset_config_rowid_list, imageset_suffix_list))))
 
     """
     # Get configs

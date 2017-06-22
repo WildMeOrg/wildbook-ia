@@ -371,7 +371,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 except Exception as ex:
                     ut.printex(ex)
                     print('nid = %r' % (nid,))
-                    print('self.nid2_color = %s' % (ut.dict_str(self.nid2_color),))
+                    print('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
                     raise
                 px = colx + offset
                 ax = self.plot_chip(int(aid), nRows, nCols, px, color=color, fulldraw=fulldraw)
@@ -684,7 +684,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     #interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #ibs.print_annotation_table()
-                #print(ut.dict_str(event.__dict__))
+                #print(ut.repr2(event.__dict__))
             elif viztype == 'matches':
                 self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)
 

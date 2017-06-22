@@ -371,7 +371,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
         >>> (nn_cachedir, nn_mid_cacheid_list) = tup
-        >>> result1 = 'nn_mid_cacheid_list1 = ' + ut.list_str(nn_mid_cacheid_list)
+        >>> result1 = 'nn_mid_cacheid_list1 = ' + ut.repr2(nn_mid_cacheid_list, nl=1)
         >>> # test 2
         >>> cfgdict2 = dict(K=2, Knorm=3, use_k_padding=True)
         >>> p2 = 'default' + ut.get_cfg_lbl(cfgdict)
@@ -381,7 +381,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
         >>> (nn_cachedir, nn_mid_cacheid_list) = tup
-        >>> result2 = 'nn_mid_cacheid_list2 = ' + ut.list_str(nn_mid_cacheid_list)
+        >>> result2 = 'nn_mid_cacheid_list2 = ' + ut.repr2(nn_mid_cacheid_list, nl=1)
         >>> result = result1 + '\n' + result2
         >>> print(result)
         nn_mid_cacheid_list1 = [

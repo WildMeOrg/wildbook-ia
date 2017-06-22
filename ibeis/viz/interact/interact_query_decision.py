@@ -411,7 +411,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #self.show_page()
                     #ibs.print_annotation_table()
-                print(ut.dict_str(event.__dict__))
+                print(ut.repr2(event.__dict__))
 
 
 if __name__ == '__main__':

@@ -79,7 +79,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>>     dict_['dnid_list'] = ibs.get_annot_name_rowids(dict_['daid_list'])
         >>>     dict_['dgname_list'] = ibs.get_image_gnames(dict_['dgid_list'])
         >>>     dict_['qgname'] = ibs.get_image_gnames(dict_['qgid'])
-        >>> result  = ut.list_str(dict_list, nl=2, precision=2, hack_liststr=True)
+        >>> result  = ut.repr2(dict_list, nl=2, precision=2, hack_liststr=True)
         >>> result = result.replace('u\'', '"').replace('\'', '"')
         >>> print(result)
 

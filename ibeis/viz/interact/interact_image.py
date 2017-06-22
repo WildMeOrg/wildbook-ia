@@ -31,7 +31,7 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             viz.show_image(ibs, gid, sel_aids=sel_aids, fnum=self.fnum, **_kwargs)
             df2.set_figtitle('Image View')
         except TypeError as ex:
-            ut.printex(ex, ut.dict_str(_kwargs))
+            ut.printex(ex, ut.repr2(_kwargs))
             raise
 
     # Create callback wrapper

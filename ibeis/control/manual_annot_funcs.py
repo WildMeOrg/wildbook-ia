@@ -474,7 +474,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     if len(gid_list) == 0:
         # nothing is being added
         print('[ibs] WARNING: 0 annotations are beign added!')
-        print(ut.dict_str(locals()))
+        print(ut.repr2(locals()))
         return []
 
     if yaw_list is None:
@@ -1310,7 +1310,7 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', pathsafe=False):
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> prefix = ''
         >>> semantic_uuid_hashid = get_annot_hashid_semantic_uuid(ibs, aid_list, prefix)
-        >>> result = ut.list_str(ibs.get_annot_semantic_uuids(aid_list)) + '\n'
+        >>> result = ut.repr2(ibs.get_annot_semantic_uuids(aid_list), nl=1) + '\n'
         >>> result += ('semantic_uuid_hashid = %s' % (str(semantic_uuid_hashid),))
         >>> print(result)
         [
@@ -1931,7 +1931,7 @@ def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> result = ut.list_str(get_annot_name_texts(ibs, aid_list), nl=False)
+        >>> result = ut.repr2(get_annot_name_texts(ibs, aid_list), nl=False)
         >>> print(result)
         ['____', 'easy', 'hard', 'jeff', '____', '____', 'zebra']
 
@@ -1941,7 +1941,7 @@ def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> result = ut.list_str(get_annot_name_texts(ibs, aid_list, True), nl=False)
+        >>> result = ut.repr2(get_annot_name_texts(ibs, aid_list, True), nl=False)
         >>> print(result)
         ['____1', 'easy', 'hard', 'jeff', '____9', '____11', 'zebra']
     """
@@ -1993,7 +1993,7 @@ def get_annot_species_texts(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1::3]
-        >>> result = ut.list_str(get_annot_species_texts(ibs, aid_list), nl=False)
+        >>> result = ut.repr2(get_annot_species_texts(ibs, aid_list), nl=False)
         >>> print(result)
         ['zebra_plains', 'zebra_plains', '____', 'bear_polar']
 
@@ -2004,7 +2004,7 @@ def get_annot_species_texts(ibs, aid_list):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> species_list = get_annot_species_texts(ibs, aid_list)
-        >>> result = ut.list_str(list(set(species_list)), nl=False)
+        >>> result = ut.repr2(list(set(species_list)), nl=False)
         >>> print(result)
         ['zebra_plains']
 
@@ -2719,16 +2719,16 @@ def set_annot_metadata(ibs, gid_list, metadata_dict_list):
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
         >>> ]
-        >>> print(ut.list_str(metadata_dict_list))
+        >>> print(ut.repr2(metadata_dict_list))
         >>> ibs.set_annot_metadata(gid_list, metadata_dict_list)
         >>> # verify results
         >>> metadata_dict_list_ = ibs.get_annot_metadata(gid_list)
-        >>> print(ut.list_str(metadata_dict_list_))
+        >>> print(ut.repr2(metadata_dict_list_))
         >>> assert metadata_dict_list == metadata_dict_list_
         >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
-        >>> print(ut.list_str(metadata_str_list))
+        >>> print(ut.repr2(metadata_str_list))
         >>> metadata_str_list_ = ibs.get_annot_metadata(gid_list, return_raw=True)
-        >>> print(ut.list_str(metadata_str_list_))
+        >>> print(ut.repr2(metadata_str_list_))
         >>> assert metadata_str_list == metadata_str_list_
     """
     id_iter = ((gid,) for gid in gid_list)

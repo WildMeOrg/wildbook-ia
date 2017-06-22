@@ -687,7 +687,7 @@ def ensure_pz_mtest_mergesplit_test():
         ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
 
     final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
-    print('final_result = %s' % (ut.list_str(final_result),))
+    print('final_result = %s' % (ut.repr2(final_result),))
 
 
 def ensure_wilddogs():

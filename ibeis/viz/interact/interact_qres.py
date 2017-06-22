@@ -122,7 +122,7 @@ class InteractQres(BASE_CLASS):
         #    print(str(event.__dict__))
         print('viztype=%r' % viztype)
         # Clicked a specific matches
-        print('plodat_dict = ' + ut.dict_str(ph.get_plotdat_dict(ax)))
+        print('plodat_dict = ' + ut.repr2(ph.get_plotdat_dict(ax)))
         if viztype.startswith('chip'):
             from ibeis.viz.interact import interact_chip
             options = interact_chip.build_annot_context_options(

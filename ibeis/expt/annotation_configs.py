@@ -196,7 +196,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> acfg = default
         >>> acfg = compress_aidcfg(acfg)
-        >>> result = ('acfg = %s' % (ut.dict_str(acfg),))
+        >>> result = ('acfg = %s' % (ut.repr2(acfg),))
         >>> print(default)
         >>> print(result)
     """
@@ -245,7 +245,7 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
         >>> from ibeis.expt.annotation_configs import *  # NOQA
 
     """
-    #print(ut.list_str(varied_acfg_list, nl=2))
+    #print(ut.repr2(varied_acfg_list, nl=2))
     for acfg in acfg_list:
         assert acfg['qcfg'].get(mainkey, '') == acfg['dcfg'].get(mainkey, ''), (
             'should be the same for now')
@@ -333,8 +333,8 @@ def compress_acfg_list_for_printing(acfg_list):
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
         >>> nonvaried_dict, varied_dicts = compress_acfg_list_for_printing(acfg_list)
-        >>> result = ('varied_dicts = %s\n' % (ut.list_str(varied_dicts),))
-        >>> result += ('nonvaried_dict = %s' % (ut.dict_str(nonvaried_dict),))
+        >>> result = ('varied_dicts = %s\n' % (ut.repr2(varied_dicts),))
+        >>> result += ('nonvaried_dict = %s' % (ut.repr2(nonvaried_dict),))
         >>> print(result)
     """
     flat_acfg_list = flatten_acfg_list(acfg_list)
@@ -380,7 +380,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
 
     ut.colorprint('+=== <Info acfg_list> ===', 'white')
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
-    print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
+    print('non-varied aidcfg = ' + ut.repr2(nonvaried_compressed_dict))
     seen_ = ut.ddict(list)
 
     # get default kwkeys for annot info
@@ -399,7 +399,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         if not only_summary:
             ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
                           (acfgx + 1, len(acfg_list), title), 'lightgray')
-            print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx],
+            print('acfg = ' + ut.repr2(varied_compressed_dict_list[acfgx],
                                           strvals=True))
 
         if expanded_aids_list is not None:
@@ -415,7 +415,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                     hashids = (stats_['qaid_stats']['qhashid'],
                                stats_['daid_stats']['dhashid'])
                     hashid_list.append(hashids)
-                    stats_str2 = ut.dict_str(stats_, strvals=True,
+                    stats_str2 = ut.repr2(stats_, strvals=True,
                                              newlines=True, explicit=False,
                                              nobraces=False)
                     if not only_summary:
@@ -425,13 +425,13 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                 dupdict = varied_compressed_dict_list[dupindex[0]]
                 if not only_summary:
                     print('DUPLICATE of index %r' % (dupindex,))
-                    print('DUP OF acfg = ' + ut.dict_str(dupdict, strvals=True))
-    print('hashid summary = ' + ut.list_str(hashid_list, nl=1))
+                    print('DUP OF acfg = ' + ut.repr2(dupdict, strvals=True))
+    print('hashid summary = ' + ut.repr2(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
 
 def print_acfg(acfg, expanded_aids=None, ibs=None, **kwargs):
-    print('acfg = ' + ut.dict_str(compress_aidcfg(acfg)))
+    print('acfg = ' + ut.repr2(compress_aidcfg(acfg)))
     if expanded_aids is not None:
         ibs.print_annot_stats(expanded_aids, label='expanded_aids = ', **kwargs)
 

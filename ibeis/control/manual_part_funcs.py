@@ -170,7 +170,7 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     if len(aid_list) == 0:
         # nothing is being added
         print('[ibs] WARNING: 0 parts are being added!')
-        print(ut.dict_str(locals()))
+        print(ut.repr2(locals()))
         return []
 
     if detect_confidence_list is None:

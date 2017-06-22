@@ -412,7 +412,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             cmdstr,
             extra,
             'pipe_cfgstr=%s' % (self.qreq_.get_cfgstr(with_data=False)),
-            ut.dict_str(stats_dict, strvals=True)
+            ut.repr2(stats_dict, strvals=True)
         ])
         stats_str = '\n'.join(stat_parts)
         print(stats_str)
@@ -2247,7 +2247,7 @@ class MainWindowBackend(GUIBACK_BASE):
         }[daids_mode]
         valid_kw.update(daids_mode_valid_kw_dict[daids_mode])
         print('[back] get_selected_daids: ' + mode_str)
-        print('[back] ... valid_kw = ' + ut.dict_str(valid_kw))
+        print('[back] ... valid_kw = ' + ut.repr2(valid_kw))
         daid_list = back.ibs.get_valid_aids(**valid_kw)
         return daid_list
 
@@ -2335,7 +2335,7 @@ class MainWindowBackend(GUIBACK_BASE):
             part2 = (part1 + 'will identify {num_qaids} query {qannots} against {num_daids} {species_nice} database {dannots}.').format(**fmtdict)
             msg_fmtstr_list += [part2]
             # Add detailed info
-            stats_str2 = ut.dict_str(stats_, strvals=True,
+            stats_str2 = ut.repr2(stats_, strvals=True,
                                      newlines=2, explicit=False,
                                      nobraces=False)
             detailed_msg_list.append('--- Group %d ---' % (count,))
@@ -2348,7 +2348,7 @@ class MainWindowBackend(GUIBACK_BASE):
         msg_str = msg_fmtstr.format(**fmtdict)
 
         if cfgdict is not None and len(cfgdict) > 0:
-            detailed_msg_list = ['Special Settings: {}'.format(ut.dict_str(cfgdict))] + detailed_msg_list
+            detailed_msg_list = ['Special Settings: {}'.format(ut.repr2(cfgdict))] + detailed_msg_list
 
         detailed_msg = '\n'.join(detailed_msg_list)
 

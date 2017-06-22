@@ -550,7 +550,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> config = ProbchipConfig.from_argv_dict(fw_detector='rf', smooth_thresh=None)
         >>> #probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
         >>> probchip_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
-        >>> #result = ut.list_str(probchip_fpath_list_)
+        >>> #result = ut.repr2(probchip_fpath_list_)
         >>> #print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -981,7 +981,7 @@ def compute_feats(depc, cid_list, config=None):
     if ut.NOT_QUIET:
         print('[preproc_feat] config = %s' % config)
         if ut.VERYVERBOSE:
-            print('full_params = ' + ut.dict_str())
+            print('full_params = ' + ut.repr2())
 
     ibs = depc.controller
     if feat_type == 'hesaff+sift':

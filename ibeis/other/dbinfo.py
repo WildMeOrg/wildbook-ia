@@ -1225,7 +1225,7 @@ def get_dbinfo(ibs, verbose=True,
     except Exception:
         pair_tag_info = {}
 
-    #print(ut.dict_str(pair_tag_info))
+    #print(ut.repr2(pair_tag_info))
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
@@ -1461,7 +1461,7 @@ def get_dbinfo(ibs, verbose=True,
         return ut.align(str_, ':', ' :')
 
     def align_dict2(dict_):
-        str_ = ut.dict_str(dict_)
+        str_ = ut.repr2(dict_)
         return align2(str_)
 
     header_block_lines = (
@@ -1534,8 +1534,8 @@ def get_dbinfo(ibs, verbose=True,
     contributor_block_lines = [
         '# Images per contributor       = ' + align_dict2(contributor_tag_to_nImages),
         '# Annots per contributor       = ' + align_dict2(contributor_tag_to_nAnnots),
-        '# Quality per contributor      = ' + ut.dict_str(contributor_tag_to_qualstats, sorted_=True),
-        '# Viewpoint per contributor    = ' + ut.dict_str(contributor_tag_to_viewstats, sorted_=True),
+        '# Quality per contributor      = ' + ut.repr2(contributor_tag_to_qualstats, sorted_=True),
+        '# Viewpoint per contributor    = ' + ut.repr2(contributor_tag_to_viewstats, sorted_=True),
     ] if with_contrib else []
 
     img_block_lines = [

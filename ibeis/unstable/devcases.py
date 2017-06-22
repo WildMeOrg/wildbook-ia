@@ -288,7 +288,7 @@ def myquery():
     #qres_copy.ishow_top(ibs)
     #from matplotlib import pyplot as plt
     #plt.show()
-    #print(ut.list_str()))
+    #print(ut.repr2()))
     # TODO: plot max variation dims
     #import plottool as pt
     #pt.plot(p_list, diff_list)
@@ -369,7 +369,7 @@ def find_close_incorrect_match(ibs, qaids):
     top_gf_vuuids = ibs.get_annot_visual_uuids(top_gf_aids)
     qvuuid = ibs.get_annot_visual_uuids(qaid)
     gf_mapping = {qvuuid: top_gf_vuuids[0:1]}
-    print('gf_mapping = ' + ut.dict_str(gf_mapping))
+    print('gf_mapping = ' + ut.repr2(gf_mapping))
     pass
 
 
@@ -497,7 +497,7 @@ def load_gztest(ibs):
     eval_text = ut.read_from(join(dir_,  'GZ_TESTTUP.txt'))
     testcases = eval(eval_text)
     count_dict = ut.count_dict_vals(testcases)
-    print(ut.dict_str(count_dict))
+    print(ut.repr2(count_dict))
 
     testtup_list = ut.flatten(ut.dict_take_list(testcases, ['vsone_wins',
                                                             'vsmany_outperformed',

@@ -210,7 +210,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         >>> # execute function
         >>> annotation_text_list = get_annot_texts(ibs, aid_list, kwargs_proxy=kwargs_proxy)
         >>> # verify results
-        >>> result = ut.list_str(annotation_text_list)
+        >>> result = ut.repr2(annotation_text_list, nl=1)
         >>> print(result)
         [
             'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=left',

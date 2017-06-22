@@ -119,20 +119,20 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> ### Test Getter (caches)
         >>> val_list1 = getter_func(ibs, rowid_list1)
         >>> val_list2 = wrp_getter_cacher(ibs, rowid_list1)
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
         >>> val_list3 = wrp_getter_cacher(ibs, rowid_list1)
         >>> val_list4 = wrp_getter_cacher(ibs, rowid_list2)
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
         >>> val_list5 = wrp_getter_cacher(ibs, rowid_list3)
         >>> val_list  = wrp_getter_cacher(ibs, rowid_list)
         >>> ut.assert_eq(val_list1, val_list2, 'run1')
         >>> ut.assert_eq(val_list1, val_list2, 'run2')
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
         >>> ### Test Setter (invalidates)
         >>> setter_func = ibs.set_name_texts
         >>> wrp_cache_invalidator = cache_invalidator(tblname, force=True)(lambda *a: None)
         >>> wrp_cache_invalidator(ibs, rowid_list1)
-        >>> print(ut.dict_str(ibs.table_cache))
+        >>> print(ut.repr2(ibs.table_cache))
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -325,7 +325,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                 print('self = %r' % (self,))
                 print('args = %r' % (args,))
                 print('kwargs = %r' % (kwargs,))
-                print('colscache_ = ' + ut.dict_str(colscache_, truncate=1))
+                print('colscache_ = ' + ut.repr2(colscache_, truncate=1))
 
             # Clear the cache of any specified colname
             # when the invalidator is called
@@ -347,7 +347,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
             # Preform set/delete action
             if DEBUG_API_CACHE:
                 print('After:')
-                print('colscache_ = ' + ut.dict_str(colscache_, truncate=1))
+                print('colscache_ = ' + ut.repr2(colscache_, truncate=1))
                 print('L__________')
 
             writer_result = writer_func(self, *args, **kwargs)

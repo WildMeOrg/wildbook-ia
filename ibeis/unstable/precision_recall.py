@@ -177,7 +177,7 @@ def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None,
               flipx=False, color='r',
               title='Interplated Precision Vs Recall\n' + 'avep = %r'  % ave_p)
     print('Interplated Precision')
-    print(ut.list_str(list(zip(recall_range_, p_interp_curve))))
+    print(ut.repr2(list(zip(recall_range_, p_interp_curve))))
     #fig.show()
 
 

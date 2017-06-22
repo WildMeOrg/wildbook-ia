@@ -450,7 +450,7 @@ def clear_distinctivness_cache(j):
 
 def list_distinctivness_cache():
     global_distinctdir = sysres.get_global_distinctiveness_modeldir()
-    print(ut.list_str(ut.ls(global_distinctdir)))
+    print(ut.repr2(ut.ls(global_distinctdir)))
 
 
 def list_published_distinctivness():
@@ -462,7 +462,7 @@ def list_published_distinctivness():
         >>> # SLOW_DOCTEST
         >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> published_fpaths = list_published_distinctivness()
-        >>> print(ut.list_str(published_fpaths))
+        >>> print(ut.repr2(published_fpaths))
     """
     published_fpaths = ut.ls(PUBLISH_DIR)
     return published_fpaths
@@ -541,7 +541,7 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     varied_dict = Config.DCVS_DEFAULT.get_varydict()
 
     print('Varied Dict: ')
-    print(ut.dict_str(varied_dict))
+    print(ut.repr2(varied_dict))
 
     cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict)
 

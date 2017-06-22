@@ -1111,7 +1111,7 @@ def check_database_overlap(ibs1, ibs2):
         prop2_rowids = ut.map_dict_keys(
             changed_sinfo1._fields.__getitem__, colx2_rowids)
         print('changed_value_counts = ' +
-              ut.dict_str(ut.map_dict_vals(len, prop2_rowids)))
+              ut.repr2(ut.map_dict_vals(len, prop2_rowids)))
         yawx = changed_sinfo1._fields.index('yaw')
 
         # Show change in viewpoints

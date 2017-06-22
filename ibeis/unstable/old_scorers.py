@@ -83,7 +83,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
         >>> config = qreq_.qparams
         >>> daid_list, score_list = compute_annot_coverage_score(qreq_, cm, config)
         >>> ut.assert_inbounds(np.array(score_list), 0, 1, eq=True)
-        >>> result = ut.list_str(score_list, precision=3)
+        >>> result = ut.repr2(score_list, precision=3)
         >>> print(result)
     """
     # DEPRICATE
@@ -107,7 +107,7 @@ def compute_name_coverage_score(qreq_, cm, config={}):
         >>> config = qreq_.qparams
         >>> dnid_list, score_list = compute_name_coverage_score(qreq_, cm, config)
         >>> ut.assert_inbounds(np.array(score_list), 0, 1, eq=True)
-        >>> result = ut.list_str(score_list, precision=3)
+        >>> result = ut.repr2(score_list, precision=3)
         >>> print(result)
     """
     # DEPRICATE
@@ -165,7 +165,7 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
     """
     if ut.VERYVERBOSE:
         print('[acov] make_mask_func = %r' % (make_mask_func,))
-        print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
+        print('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
     return general_coverage_mask_generator(make_mask_func, qreq_, cm.qaid, cm.daid_list, cm.fm_list, cm.fs_list, config, cov_cfg)
 
 
@@ -201,7 +201,7 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     """
     if ut.VERYVERBOSE:
         print('[ncov] make_mask_func = %r' % (make_mask_func,))
-        print('[ncov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
+        print('[ncov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
     assert cm.dnid_list is not None, 'eval nids'
     unique_dnids, groupxs = vt.group_indices(cm.dnid_list)
     fm_groups = vt.apply_grouping_(cm.fm_list, groupxs)
@@ -219,7 +219,7 @@ def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list,
     """
     if ut.VERYVERBOSE:
         print('[acov] make_mask_func = %r' % (make_mask_func,))
-        print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
+        print('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
     # Distinctivness and foreground weight
     qweights = get_annot_kpts_baseline_weights(qreq_.ibs, [qaid], config2_=qreq_.extern_query_config2, config=config)[0]
     # Denominator weight mask

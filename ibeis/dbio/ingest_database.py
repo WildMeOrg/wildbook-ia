@@ -68,7 +68,7 @@ class Ingestable(object):
         self.ensure_feasibility()
 
     def __str__(self):
-        return ut.dict_str(self.__dict__)
+        return ut.repr2(self.__dict__)
 
     def ensure_feasibility(self):
         rawdir  = ibeis.sysres.get_rawdir()
@@ -1584,7 +1584,7 @@ def ingest_serengeti_mamal_cameratrap(species):
         import utool as ut
         csv_text = ut.read_from(csv_fpath)
         csv_lines = csv_text.split('\n')
-        print(ut.list_str(csv_lines[0:2]))
+        print(ut.repr2(csv_lines[0:2]))
         csv_data = [[field.strip('"').strip('\r') for field in line.split(',')]
                     for line in csv_lines if len(line) > 0]
         csv_header = csv_data[0]
@@ -1624,8 +1624,8 @@ def ingest_serengeti_mamal_cameratrap(species):
     # Find the zebra events
     serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
     print('serengeti_sepcies_hist = %s' %
-          ut.dict_str(ut.dict_hist(species_class_species_list), key_order_metric='val'))
-    #print('serengeti_sepcies_set = %s' % (ut.list_str(serengeti_sepcies_set),))
+          ut.repr2(ut.dict_hist(species_class_species_list), key_order_metric='val'))
+    #print('serengeti_sepcies_set = %s' % (ut.repr2(serengeti_sepcies_set),))
 
     assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
     species_class_chosen_idx_list = ut.list_where(

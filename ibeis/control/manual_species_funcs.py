@@ -105,7 +105,7 @@ def sanitize_species_texts(ibs, species_text_list):
         >>> # execute function
         >>> species_text_list_ = sanitize_species_texts(ibs, species_text_list)
         >>> # verify results
-        >>> result = ut.list_str(species_text_list_, nl=False)
+        >>> result = ut.repr2(species_text_list_, nl=False)
         >>> print(result)
         ['foo', 'bar', 'zebra_plains']
     """
@@ -187,15 +187,15 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         ...     'jaguar', 'zebra_plains', 'zebra_plains', '____', 'TYPO',
         ...     '____', 'zebra_grevys', 'bear_polar']
         >>> species_rowid_list = ibs.add_species(species_text_list)
-        >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
+        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
         >>> species_text = ibs.get_species_texts(species_rowid_list)
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result =  ut.list_str(species_text, nl=False) + '\n'
-        >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
+        >>> result =  ut.repr2(species_text, nl=False) + '\n'
+        >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
+        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
         ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
@@ -324,18 +324,18 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         ...     '____', u'zebra_grevys', u'bear_polar']
         >>> ensure = False
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
-        >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
+        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ensure = True
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
-        >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
+        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
         >>> species_text = ibs.get_species_texts(species_rowid_list)
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result = ut.list_str(species_text, nl=False) + '\n'
-        >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
+        >>> result = ut.repr2(species_text, nl=False) + '\n'
+        >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
+        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
         ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]

@@ -399,7 +399,7 @@ def print_results(ibs, testres):
     #    statstr_kw   = dict(precision=3, newlines=True, lbl=lbl, align=True)
     #    stat_str     = ut.get_stats_str(stat_dict=stat_dict, **statstr_kw)
     #    sel_stat_str = ut.get_stats_str(stat_dict=sel_stat_dict, **statstr_kw)
-    #    sel_stat_str = 'sel_col_lbls = %s' % (ut.list_str(sel_col_lbls),) + '\n' + sel_stat_str
+    #    sel_stat_str = 'sel_col_lbls = %s' % (ut.repr2(sel_col_lbls),) + '\n' + sel_stat_str
     #    return stat_str, sel_stat_str
 
     #@ut.argv_flag_dec
@@ -665,7 +665,7 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
 
     #        timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
     #        print('Time statistics for each rank range:')
-    #        print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+    #        print(ut.repr2(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
     #print_rankhist_time()
 
     #@ut.argv_flag_dec
@@ -749,7 +749,7 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
     #    statstr_kw   = dict(precision=3, newlines=True, lbl=lbl, align=True)
     #    stat_str     = ut.get_stats_str(stat_dict=stat_dict, **statstr_kw)
     #    sel_stat_str = ut.get_stats_str(stat_dict=sel_stat_dict, **statstr_kw)
-    #    sel_stat_str = 'sel_col_lbls = %s' % (ut.list_str(sel_col_lbls),) + '\n' + sel_stat_str
+    #    sel_stat_str = 'sel_col_lbls = %s' % (ut.repr2(sel_col_lbls),) + '\n' + sel_stat_str
     #    return stat_str, sel_stat_str
 
     #@ut.argv_flag_dec

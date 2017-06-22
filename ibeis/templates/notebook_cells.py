@@ -836,10 +836,10 @@ def dataset_summary_stats_hacktest():
         ibs, acfg_name_list=a, verbose=0)
 
     expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
-    print(ut.dict_str(ibs.get_annot_stats_dict(expt_aids, strkeys=True, nl=2, use_hist=True)))
+    print(ut.repr2(ibs.get_annot_stats_dict(expt_aids, strkeys=True, nl=2, use_hist=True)))
 
     # expt_qaids = sorted(set(ut.total_flatten(ut.take_column(expanded_aids_list, 0))))
-    # print(ut.dict_str(ibs.get_annot_stats_dict(expt_qaids, strkeys=True, nl=2, use_hist=True)))
+    # print(ut.repr2(ibs.get_annot_stats_dict(expt_qaids, strkeys=True, nl=2, use_hist=True)))
     """
     pass
 

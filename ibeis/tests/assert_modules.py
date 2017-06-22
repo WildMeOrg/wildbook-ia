@@ -99,7 +99,7 @@ def checkinfo(target=None, pipname=None):
                 return False, 'None', target, infodict, ut.formatex(ex), 'Some unknown error in ' + packagename
             current_version = infodict['__version__']
             # Build status text
-            msg = ut.dict_str(infodict, strvals=True)
+            msg = ut.repr2(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
             # Check if passed
@@ -370,7 +370,7 @@ def assert_modules():
     machine_info_lines = []
 
     machine_info_lines.append('sys.version = %r ' % (sys.version))
-    machine_info_lines.append('PATH = ' + ut.list_str(ut.get_path_dirs()))
+    machine_info_lines.append('PATH = ' + ut.repr2(ut.get_path_dirs()))
     machine_info_lines.append('\n\n\n============================')
     machine_info_lines.append('Begining assert modules main')
     machine_info_lines.append('* MACHINE_NAME = %r' % MACHINE_NAME)

@@ -316,7 +316,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         >>> passed_list = list(passed_iter)
         >>> assert all(passed_list), 'problem in get_name_aids'
         >>> # Print gropued items
-        >>> print(ut.dict_str(groupid2_items, newlines=False))
+        >>> print(ut.repr2(groupid2_items, newlines=False))
 
     Ignore;
         from ibeis.control.manual_name_funcs import *  # NOQA
@@ -983,10 +983,10 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> name_text_list = [u'Fred', u'Sue', '____', u'zebra_grevys', 'TYPO', '____']
         >>> ensure = False
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
+        >>> print(ut.repr2(list(zip(name_text_list, name_rowid_list))))
         >>> ensure = True
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.list_str(list(zip(name_text_list, name_rowid_list))))
+        >>> print(ut.repr2(list(zip(name_text_list, name_rowid_list))))
         >>> ibs.print_name_table()
         >>> result = str(name_rowid_list) + '\n'
         >>> typo_rowids = ibs.get_name_rowids_from_text(['TYPO', 'Fred', 'Sue', 'zebra_grevys'])

@@ -102,7 +102,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
         >>> nns_list, nnvalid0_list = args
-        >>> print(ut.dict_str(qreq_.qparams.__dict__, sorted_=True))
+        >>> print(ut.repr2(qreq_.qparams.__dict__, sorted_=True))
         >>> assert qreq_.qparams.fg_on == True, 'bug setting custom params fg_on'
         >>> fgvotes_list = fg_match_weighter(nns_list, nnvalid0_list, qreq_)
         >>> print('fgvotes_list = %r' % (fgvotes_list,))

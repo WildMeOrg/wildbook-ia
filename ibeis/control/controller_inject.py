@@ -775,8 +775,8 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
     print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
     print('[REMOTE] \tMethod:  %r' % (remote_api_method, ))
     if ut.DEBUG2 or ut.VERBOSE:
-        print('[REMOTE] \tHeaders: %s' % (ut.dict_str(headers), ))
-        print('[REMOTE] \tKWArgs:  %s' % (ut.dict_str(kwargs), ))
+        print('[REMOTE] \tHeaders: %s' % (ut.repr2(headers), ))
+        print('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs), ))
 
     # Make request to server
     try:

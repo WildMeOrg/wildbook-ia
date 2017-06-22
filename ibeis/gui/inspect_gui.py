@@ -710,7 +710,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
         >>> aid2 = cm.get_top_aids()[0]
         >>> aid_list = None
         >>> options = get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_, aid_list)
-        >>> result = ('options = %s' % (ut.list_str(options),))
+        >>> result = ('options = %s' % (ut.repr2(options),))
         >>> print(result)
     """
     if ut.VERBOSE:
@@ -1007,7 +1007,7 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
         print('[inspect_gui] tags = %r' % (tags,))
     if ut.VERBOSE:
         print('[inspect_gui] Making case hotlist: ' +
-              ut.list_str(case_hotlink_list))
+              ut.repr2(case_hotlink_list))
 
     def _wrap_set_annotmatch_prop(prop, toggle_val):
         if ut.VERBOSE:
@@ -1046,7 +1046,7 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
         ]
     if ut.VERBOSE:
         print('Partial tag funcs:' +
-              ut.list_str(
+              ut.repr2(
                   [ut.func_str(func, func.args, func.keywords)
                    for func in ut.get_list_column(pair_tag_options, 1)]))
     return pair_tag_options

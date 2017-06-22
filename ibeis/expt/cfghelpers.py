@@ -150,7 +150,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>>                                      cfgtype, alias_keys, valid_keys,
         >>>                                      expand_nested, strict,
         >>>                                      special_join_dict)
-        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print('cfg_combos_list = %s' % (ut.repr2(cfg_combos_list, nl=2),))
         >>> print(ut.depth_profile(cfg_combos_list))
         >>> cfg_list = ut.flatten(cfg_combos_list)
         >>> cfg_list = ut.flatten([cfg if isinstance(cfg, list) else [cfg] for cfg in cfg_list])

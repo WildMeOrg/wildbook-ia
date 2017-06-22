@@ -2182,7 +2182,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         >>> ibs._clean_species()
         >>> imgsetid = None
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
-        >>> result = ut.repr2((new_nid_list, new_name_list))
+        >>> result = ut.repr2((new_nid_list, new_name_list), nl=1)
         >>> print(result)
         (
             [1, 2, 3, 4, 5, 6, 7],
@@ -2199,7 +2199,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid = ibs.get_valid_imgsetids()[1]
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
-        >>> result = ut.repr2((new_nid_list, new_name_list))
+        >>> result = ut.repr2((new_nid_list, new_name_list), nl=1)
         >>> print(result)
         (
             [4, 5, 6, 7],

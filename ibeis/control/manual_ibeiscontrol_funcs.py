@@ -67,7 +67,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         >>> dstncvs_list = get_annot_kpts_distinctiveness(ibs, aid_list)
         >>> print(ut.depth_profile(dstncvs_list1))
         >>> stats_dict = ut.dict_stack([ut.get_stats(dstncvs) for dstncvs in dstncvs_list])
-        >>> print(ut.dict_str(stats_dict))
+        >>> print(ut.repr2(stats_dict))
         >>> assert np.all(np.array(stats_dict['min']) >= 0), 'distinctiveness was out of bounds'
         >>> assert np.all(np.array(stats_dict['max']) <= 1), 'distinctiveness was out of bounds'
     """

@@ -110,10 +110,10 @@ def augment_nnindexer_experiment():
             time_list_addition.append(t.ellapsed)
             tmp_cfgstr_list.append(nnindexer_.cfgstr)
             print('===============\n\n')
-        print(ut.list_str(time_list_addition))
-        print(ut.list_str(list(map(id, nnindexer_list))))
-        print(ut.list_str(tmp_cfgstr_list))
-        print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+        print(ut.repr2(time_list_addition))
+        print(ut.repr2(list(map(id, nnindexer_list))))
+        print(ut.repr2(tmp_cfgstr_list))
+        print(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
 
         IS_SMALL = False
 
@@ -160,10 +160,10 @@ def augment_nnindexer_experiment():
             #                      #exclude_refs=[cv2.__dict__, mpl.__dict__]
             #     ))
             print('L___________________\n\n\n')
-        print(ut.list_str(time_list_reindex))
+        print(ut.repr2(time_list_reindex))
         if IS_SMALL:
-            print(ut.list_str(list(map(id, nnindexer_list))))
-            print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+            print(ut.repr2(list(map(id, nnindexer_list))))
+            print(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
     except KeyboardInterrupt:
             print('\n[train] Caught CRTL+C')
             resolution = ''

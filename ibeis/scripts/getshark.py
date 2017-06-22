@@ -1431,12 +1431,12 @@ def parse_shark_fname_tags(orig_fname_list):
         ])[::-1]
 
         print('Known')
-        print(ut.list_str(known_taghist[0:100]))
+        print(ut.repr2(known_taghist[0:100]))
 
         print('Unknown')
-        print(ut.list_str(unknown_taghist[0:100]))
+        print(ut.repr2(unknown_taghist[0:100]))
 
-        print(ut.dict_str(
+        print(ut.repr2(
             ut.dict_hist(ut.flatten(known_img_tag_list)),
             key_order_metric='val'
         ))

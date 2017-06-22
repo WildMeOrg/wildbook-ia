@@ -267,7 +267,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     print('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
     input_test_list = params.args.tests[:]
-    print('input_test_list = %s' % (ut.list_str(input_test_list),))
+    print('input_test_list = %s' % (ut.repr2(input_test_list),))
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
@@ -604,7 +604,7 @@ python dev.py --hard -t best vsone nsum
 
 #def run_devmain2():
 #    input_test_list = ut.get_argval(('--tests', '-t',), type_=list, default=[])[:]
-#    print('input_test_list = %s' % (ut.list_str(input_test_list),))
+#    print('input_test_list = %s' % (ut.repr2(input_test_list),))
 #    # fnum = 1
 
 #    valid_test_list = []  # build list for printing in case of failure

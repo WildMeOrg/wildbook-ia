@@ -543,7 +543,7 @@ class _ChipMatchVisualization(object):
             >>> kwargs['saveax'] = ut.get_argflag('--saveax')
             >>> kwargs['in_image'] = ut.get_argflag('--in-image')
             >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
-            >>> print('kwargs = %s' % (ut.dict_str(kwargs),))
+            >>> print('kwargs = %s' % (ut.repr2(kwargs),))
             >>> cm, qreq_ = ibeis.testdata_cm()
             >>> aid = cm.get_top_aids()[0]
             >>> img_fpath = cm.imwrite_single_annotmatch(qreq_, aid, **kwargs)
@@ -643,7 +643,7 @@ class _ChipMatchVisualization(object):
             >>> kwargs['draw_border'] = False
             >>> kwargs['in_image'] = False
             >>> kwargs['draw_lbl'] = False
-            >>> print('kwargs = %s' % (ut.dict_str(kwargs),))
+            >>> print('kwargs = %s' % (ut.repr2(kwargs),))
             >>> cm, qreq_ = ibeis.testdata_cm()
             >>> aid = cm.get_top_aids()[0]
             >>> import plottool as pt
@@ -1439,7 +1439,7 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConven
             other_keys = list(set(class_dict.keys()) - set(key_list))
             if len(other_keys) > 0:
                 print('Not unserializing extra attributes: %s' % (
-                    ut.list_str(other_keys)))
+                    ut.repr2(other_keys)))
 
         if ibs is not None:
             class_dict = prepare_dict_uuids(class_dict, ibs)
@@ -1686,7 +1686,7 @@ class _ChipMatchDebugger(object):
             'qnid=%r ' % cm.qnid,
             ut.hz_str(top_lbl, ' ', top_str),
             #'num feat matches per annotation stats:',
-            #ut.indent(ut.dict_str(nFeatMatch_stats)),
+            #ut.indent(ut.repr2(nFeatMatch_stats)),
             #ut.indent(nFeatMatch_stats_str),
         ])
 
@@ -2376,7 +2376,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> inplace = False
             >>> keepscores = True
             >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
-            >>> result = ('out = %s' % (ut.repr2(out),))
+            >>> result = ('out = %s' % (ut.repr2(out, nl=1),))
             >>> # Because the subset was all aids in order, the output
             >>> # ChipMatch should be exactly the same.
             >>> assert cm.inspect_difference(out), 'Should be exactly equal!'
@@ -2393,7 +2393,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> inplace = False
             >>> keepscores = True
             >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
-            >>> result = ('out = %s' % (ut.repr2(out),))
+            >>> result = ('out = %s' % (ut.repr2(out, nl=1),))
             >>> print(result)
         """
         if inplace:
@@ -2597,7 +2597,7 @@ class ChipMatch(_ChipMatchVisualization,
             other_keys = list(set(class_dict.keys()) - set(key_list))
             if len(other_keys) > 0:
                 print('Not unserializing extra attributes: %s' % (
-                    ut.list_str(other_keys)))
+                    ut.repr2(other_keys)))
 
         if ibs is not None:
             class_dict = prepare_dict_uuids(class_dict, ibs)

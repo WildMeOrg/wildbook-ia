@@ -211,7 +211,7 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> pcfgdict = testdata_pipecfg()
-        >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
+        >>> result = ('pcfgdict = %s' % (ut.repr2(pcfgdict),))
         >>> print(result)
     """
     if verbose is None or verbose >= 1:

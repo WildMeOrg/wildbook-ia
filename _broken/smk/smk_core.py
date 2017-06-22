@@ -341,10 +341,10 @@ def build_correspondences(sparse_list, qfxs_list, dfxs_list, daids_list):
         assert len(daid_nestlist) == len(fs_nestlist), 'inconsistent len'
         min_ = min(2, len(nFm_list))
         max_ = min(15, len(nFm_list))
-        print('nFm_list[_min:_max]      = ' + utool.list_str(nFm_list[min_:max_]))
-        print('fm_nestlist[_min:_max]   = ' + utool.list_str(fm_nestlist[min_:max_]))
-        print('fs_nestlist[_min:_max]   = ' + utool.list_str(fs_nestlist[min_:max_]))
-        print('daid_nestlist[_min:_max] = ' + utool.list_str(daid_nestlist[min_:max_]))
+        print('nFm_list[_min:_max]      = ' + utool.repr2(nFm_list[min_:max_]))
+        print('fm_nestlist[_min:_max]   = ' + utool.repr2(fm_nestlist[min_:max_]))
+        print('fs_nestlist[_min:_max]   = ' + utool.repr2(fs_nestlist[min_:max_]))
+        print('daid_nestlist[_min:_max] = ' + utool.repr2(daid_nestlist[min_:max_]))
         for fm_, fs_, daid_ in zip(fm_nestlist, fs_nestlist, daid_nestlist):
             assert len(fm_) == len(fs_), 'inconsistent len'
             assert len(fm_) == len(daid_), 'inconsistent len'

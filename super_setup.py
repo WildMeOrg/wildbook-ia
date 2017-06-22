@@ -282,6 +282,7 @@ def syscmd(cmdstr):
     print('RUN> ' + cmdstr)
     os.system(cmdstr)
 
+
 def in_virtual_env():
     print('sys.real_prefix=%r' % (getattr(sys, 'real_prefix', None),))
     print('sys.base_prefix=%r' % (getattr(sys, 'base_prefix', None),))
@@ -294,6 +295,7 @@ def in_virtual_env():
         # For venv module
         in_venv = sys.base_prefix != sys.prefix
     return in_venv
+
 
 def ensure_utool(CODE_DIR, pythoncmd):
     WIN32 = sys.platform.startswith('win32')
@@ -309,7 +311,7 @@ def ensure_utool(CODE_DIR, pythoncmd):
         try:
             ans = input('Enter y to continue. Anything else to exit...\n')
         except:
-            ans = raw_input('Enter y to continue. Anything else to exit...\n')
+            ans = raw_input('Enter y to continue. Anything else to exit...\n')  # NOQA
     if ans != 'y':
         print('Please install utool to continue')
         sys.exit(0)
@@ -369,6 +371,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         # 'https://github.com/WildbookOrg/sandbox_utools.git',
         'https://github.com/WildbookOrg/vtool.git',
         'https://github.com/WildbookOrg/dtool.git',
+        'https://github.com/Erotemic/ubelt.git',
         'https://github.com/WildbookOrg/detecttools.git',
     ], CODE_DIR, label='core', pythoncmd=pythoncmd)
 
@@ -1158,28 +1161,28 @@ def main():
     CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo(verbose=1)
 
     try:
-        import cv2
+        import cv2  # NOQA
     except ImportError:
         print('Need to install OpenCV')
         print('python super_setup.py --opencv')
 
     try:
-        import pyflann
+        import pyflann  # NOQA
     except ImportError:
         print('Need to install FLANN')
         print('python super_setup.py --flann')
 
     try:
-        import theano, lasagne
+        import theano, lasagne  # NOQA
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')
 
     try:
         try:
-            import PyQt4
+            import PyQt4  # NOQA
         except ImportError:
-            import PyQt5
+            import PyQt5  # NOQA
     except ImportError:
         print('Need to install PyQt')
         print('python super_setup.py --pyqt')

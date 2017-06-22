@@ -492,7 +492,7 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> figtitle = 'FIXME USE SUBSET OF CFGDICT'
-        >>> # ut.dict_str(rrvsone_cfgdict, newlines=False)
+        >>> # ut.repr2(rrvsone_cfgdict, newlines=False)
         >>> show_all_ranked_matches(qreq_, cm_list_VSONE, figtitle=figtitle)
         >>> pt.show_if_requested()
     """
@@ -1078,7 +1078,7 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
         'fm_dtype'     : hstypes.FM_DTYPE,
         'fs_dtype'     : hstypes.FS_DTYPE,
     }
-    #print('rat_kwargs = ' + ut.dict_str(rat_kwargs))
+    #print('rat_kwargs = ' + ut.repr2(rat_kwargs))
     scrtup_list = [
         matching.unconstrained_ratio_match(
             flann, vecs2, **rat_kwargs)
@@ -1144,7 +1144,7 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
         'fm_dtype'         : hstypes.FM_DTYPE,
         'fs_dtype'         : hstypes.FS_DTYPE,
     }
-    print('scr_kwargs = ' + ut.dict_str(scr_kwargs))
+    print('scr_kwargs = ' + ut.repr2(scr_kwargs))
     # Homographys in H_list map image1 space into image2 space
     scrtup_list = [
         matching.spatially_constrained_ratio_match(

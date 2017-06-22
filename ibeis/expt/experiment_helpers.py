@@ -324,7 +324,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
                 print('duplicate_varied_cfgs = %s' % (
                     ut.repr2(varied_compressed_dict_list),))
                 print('duplicate_nonvaried_cfgs = %s' % (
-                    ut.dict_str(nonvaried_compressed_dict),))
+                    ut.repr2(nonvaried_compressed_dict),))
                 print('L__')
 
         if verbose >= 1:

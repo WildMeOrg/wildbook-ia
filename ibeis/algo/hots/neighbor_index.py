@@ -583,7 +583,7 @@ class NeighborIndex(object):
             shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
             short_params = ut.odict([(shortnames.get(key, key), str(val)[0:7])
                                      for key, val in six.iteritems(flann_params_clean)])
-            flann_valsig_ = ut.dict_str(
+            flann_valsig_ = ut.repr2(
                 short_params, nl=False, explicit=True, strvals=True)
             flann_valsig_ = flann_valsig_.lstrip('dict').replace(' ', '')
             #flann_valsig_ = str(list(flann_params.values()))

@@ -306,7 +306,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         print('[show_qres] * figtitle=%r' % (figtitle,))
         print('[show_qres] * max_nCols=%r' % (max_nCols,))
         print('[show_qres] * show_query=%r' % (show_query,))
-        print('[show_qres] * kwargs=%s' % (ut.dict_str(kwargs),))
+        print('[show_qres] * kwargs=%s' % (ut.repr2(kwargs),))
 
     # HACK:
     _color_list = pt.distinct_colors(nTop)

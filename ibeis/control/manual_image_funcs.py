@@ -623,16 +623,16 @@ def set_image_metadata(ibs, gid_list, metadata_dict_list):
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
         >>> ]
-        >>> print(ut.list_str(metadata_dict_list))
+        >>> print(ut.repr2(metadata_dict_list))
         >>> ibs.set_image_metadata(gid_list, metadata_dict_list)
         >>> # verify results
         >>> metadata_dict_list_ = ibs.get_image_metadata(gid_list)
-        >>> print(ut.list_str(metadata_dict_list_))
+        >>> print(ut.repr2(metadata_dict_list_))
         >>> assert metadata_dict_list == metadata_dict_list_
         >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
-        >>> print(ut.list_str(metadata_str_list))
+        >>> print(ut.repr2(metadata_str_list))
         >>> metadata_str_list_ = ibs.get_image_metadata(gid_list, return_raw=True)
-        >>> print(ut.list_str(metadata_str_list_))
+        >>> print(ut.repr2(metadata_str_list_))
         >>> assert metadata_str_list == metadata_str_list_
     """
     id_iter = ((gid,) for gid in gid_list)
@@ -986,7 +986,7 @@ def get_image_uuids(ibs, gid_list):
         >>> # execute function
         >>> image_uuid_list = ibs.get_image_uuids(gid_list)
         >>> # verify results
-        >>> result = ut.list_str(image_uuid_list)
+        >>> result = ut.repr2(image_uuid_list, nl=1)
         >>> print(result)
         [
             UUID('66ec193a-1619-b3b6-216d-1784b4833b61'),
@@ -1244,7 +1244,7 @@ def get_image_gnames(ibs, gid_list):
         >>> # execute function
         >>> gname_list = get_image_gnames(ibs, gid_list)
         >>> # verify results
-        >>> result = ut.list_str(gname_list)
+        >>> result = ut.repr2(gname_list, nl=1)
         >>> print(result)
         [
             'easy1.JPG',

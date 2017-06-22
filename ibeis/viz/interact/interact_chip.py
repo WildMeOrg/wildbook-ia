@@ -114,7 +114,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         >>>                                             with_interact_chip,
         >>>                                             with_interact_image,
         >>>                                             config2_)
-        >>> result = ('callback_list = %s' % (ut.list_str(callback_list, nl=4),))
+        >>> result = ('callback_list = %s' % (ut.repr2(callback_list, nl=4),))
         >>> print(result)
     """
     import guitool as gt

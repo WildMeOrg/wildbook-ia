@@ -632,7 +632,7 @@ class QueryConfig(ConfigBase):
         try:
             query_cfg.make_feasible()
         except AssertionError as ex:
-            print(ut.dict_str(cfgdict, sorted_=True))
+            print(ut.repr2(cfgdict, sorted_=True))
             ut.printex(ex)
             raise
 
