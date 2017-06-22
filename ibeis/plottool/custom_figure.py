@@ -442,7 +442,8 @@ def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
     if fontkw:
-        titlesize = fontkw.get('titlesize', mpl.rcParams['axes.titlesize'])
+        fontsize = fontkw.get('fontsize', mpl.rcParams['axes.titlesize'])
+        titlesize = fontkw.get('titlesize', fontsize)
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
                 weight=fontkw.get('weight', 'light'), size=titlesize)
