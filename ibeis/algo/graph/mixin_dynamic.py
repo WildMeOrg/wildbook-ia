@@ -5,7 +5,7 @@ import numpy as np
 import utool as ut
 import itertools as it
 import networkx as nx
-from ibeis.algo.graph import nx_utils
+from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN,
                                     UNINFERABLE)
 from ibeis.algo.graph.nx_utils import (edges_inside, edges_cross,
@@ -1110,7 +1110,7 @@ class _RedundancyHelpers(object):
             # Find k random negative edges
             check_edges = existing_edges - set(reviewed_edges)
             if len(check_edges) < k:
-                edges = it.starmap(nx_utils.e_, it.product(c1_nodes, c2_nodes))
+                edges = it.starmap(nxu.e_, it.product(c1_nodes, c2_nodes))
                 for edge in edges:
                     if edge not in reviewed_edges:
                         check_edges.add(edge)
@@ -1252,7 +1252,7 @@ class Redundancy(_RedundancyHelpers):
         infr.update_neg_redun_to(nid1, [nid2], may_add, may_remove, force)
 
     @profile
-    def is_pos_redundant(infr, cc, relax_size=None):
+    def is_pos_redundant(infr, cc, k=None, relax=None, assume_connected=False):
         """
         Tests if a group of nodes is positive redundant.
         (ie. if the group is k-edge-connected)
@@ -1271,28 +1271,27 @@ class Redundancy(_RedundancyHelpers):
             >>> print('flags = %r' % (flags,))
             >>> assert flags == [False, True]
         """
-        k = infr.queue_params['pos_redun']
-        if k == 1:
+        if k is None:
+            k = infr.queue_params['pos_redun']
+        if assume_connected and k == 1:
             return True  # assumes cc is connected
-        else:
-            if relax_size is None:
-                relax_size = True
-            # if the nodes are not big enough for this amount of connectivity
-            # then we relax the requirement
-            if relax_size:
-                required_k = min(len(cc) - 1, k)
-            else:
-                required_k = k
-            assert isinstance(cc, set)
-            if required_k <= 1:
+        if relax is None:
+            relax = True
+        pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False)
+        if relax:
+            # If we cannot add any more edges to the subgraph then we consider
+            # it positive redundant.
+            n_incomp = sum(1 for _ in nxu.edges_inside(infr.incomp_graph, cc))
+            n_pos = pos_subgraph.number_of_edges()
+            n_nodes = pos_subgraph.number_of_nodes()
+            n_max = (n_nodes * (n_nodes - 1)) // 2
+            if n_max == (n_pos + n_incomp):
                 return True
-            else:
-                pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False)
-                return nx_utils.is_edge_connected(pos_subgraph, k=required_k)
-        raise AssertionError('impossible state')
+        # In all other cases test edge-connectivity
+        return nxu.is_edge_connected(pos_subgraph, k=k)
 
     @profile
-    def is_neg_redundant(infr, cc1, cc2):
+    def is_neg_redundant(infr, cc1, cc2, k=None):
         r"""
         Tests if two groups of nodes are negative redundant
         (ie. have at least k negative edges between them).
@@ -1314,18 +1313,19 @@ class Redundancy(_RedundancyHelpers):
             >>> print('flags = %r' % (flags,))
             >>> assert flags == [False, False, True]
         """
-        k_neg = infr.queue_params['neg_redun']
+        if k is None:
+            k = infr.queue_params['neg_redun']
         neg_edge_gen = edges_cross(infr.neg_graph, cc1, cc2)
         # do a lazy count of negative edges
         for count, _ in enumerate(neg_edge_gen, start=1):
-            if count >= k_neg:
+            if count >= k:
                 return True
         return False
 
     def pos_redundancy(infr, cc):
         """ Returns how positive redundant a cc is """
         pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False)
-        if nx_utils.is_complete(pos_subgraph):
+        if nxu.is_complete(pos_subgraph):
             return np.inf
         else:
             return nx.edge_connectivity(pos_subgraph)
@@ -1407,17 +1407,21 @@ class Redundancy(_RedundancyHelpers):
         ]
         return neg_nids
 
-    def pos_redundant_pccs(infr, relax_size=None):
+    def pos_redundant_pccs(infr, k=None, relax=None):
+        if k is None:
+            k = infr.queue_params['pos_redun']
         for cc in infr.consistent_components():
-            if infr.is_pos_redundant(cc, relax_size):
+            if infr.is_pos_redundant(cc, k=k, relax=relax):
                 yield cc
 
-    def non_pos_redundant_pccs(infr, relax_size=None):
+    def non_pos_redundant_pccs(infr, k=None, relax=None):
         """
         Get PCCs that are not k-positive-redundant
         """
+        if k is None:
+            k = infr.queue_params['pos_redun']
         for cc in infr.consistent_components():
-            if not infr.is_pos_redundant(cc, relax_size):
+            if not infr.is_pos_redundant(cc, k=k, relax=relax):
                 yield cc
 
     def find_pos_redun_nids(infr):
@@ -1752,7 +1756,7 @@ class NonDynamicUpdate(object):
 
         # Get reviewed edges using fast lookup structures
         ne_to_edges = {
-            key: nx_utils.group_name_edges(rev_graph[key], node_to_label)
+            key: nxu.group_name_edges(rev_graph[key], node_to_label)
             for key in states
         }
 

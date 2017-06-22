@@ -123,13 +123,15 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:
-        python -m ibeis.viz.viz_chip --test-show_chip --show --ecc
+        python -m ibeis.viz.viz_chip show_chip --show --ecc
         python -c "import utool as ut; ut.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')"
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+        python -m ibeis.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+        python -m ibeis.viz.viz_chip show_chip --show --db NNP_Master3 --aids 14047 --no-annote
 
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
-        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
+        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
+        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
+
+        python -m ibeis.viz.viz_chip show_chip --show --db PZ_MTEST --aid 1 --ecc --draw_lbls=False --notitle --save=~/slides/lnbnn_query.jpg --dpi=300
 
     Example:
         >>> # VIZ_TEST
@@ -154,6 +156,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>>     colors = pt.scores_to_color(s, cmap_='jet')
         >>>     kwargs['color'] = colors
         >>>     kwargs['kpts'] = kpts
+        >>>     kwargs['ell_linewidth'] = 3
+        >>>     kwargs['ell_alpha'] = .7
         >>> show_chip(ibs, aid, in_image=in_image, config2_=config2_, **kwargs)
         >>> pt.show_if_requested()
     """

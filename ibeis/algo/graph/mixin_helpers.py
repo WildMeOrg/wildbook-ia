@@ -367,12 +367,12 @@ class DummyEdges(object):
         infr.graph.add_edges_from(new_edges, decision=UNREV, _dummy_edge=True)
         infr.review_graphs[UNREV].add_edges_from(new_edges)
 
-    def ensure_mst(infr, decision=POSTV):
+    def ensure_mst(infr, label='name_label', decision=POSTV):
         """
         Ensures that all names are names are connected
         """
         infr.print('ensure_mst', 1)
-        new_edges = infr.find_mst_edges()
+        new_edges = infr.find_mst_edges(label=label)
         # Add new MST edges to original graph
         infr.print('adding %d MST edges' % (len(new_edges)), 2)
         for u, v in new_edges:
@@ -385,8 +385,8 @@ class DummyEdges(object):
         ensure that each PCC is k-connected.  Note that in somes cases this is
         not possible
         """
-        name_attr = 'name_label'
-        node_to_label = infr.get_node_attrs(name_attr)
+        label = 'name_label'
+        node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
 
@@ -412,7 +412,7 @@ class DummyEdges(object):
         return new_edges
 
     @profile
-    def find_mst_edges(infr, name_attr='name_label'):
+    def find_mst_edges(infr, label='name_label'):
         """
         Returns edges to augment existing PCCs (by label) in order to ensure
         they are connected with positive edges.
@@ -434,9 +434,9 @@ class DummyEdges(object):
         from ibeis.algo.graph import nx_utils as nxu
         # import networkx as nx
         # Find clusters by labels
-        # name_attr = 'orig_name_label'
-        # name_attr = 'name_label'
-        node_to_label = infr.get_node_attrs(name_attr)
+        # label = 'orig_name_label'
+        # label = 'name_label'
+        node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
 
@@ -494,7 +494,8 @@ class DummyEdges(object):
         prog.ensure_newline()
 
         for edge in new_edges:
-            assert not infr.graph.has_edge(*edge)
+            assert not infr.graph.has_edge(*edge), (
+                'alrady have edge={}'.format(edge))
         return new_edges
 
 

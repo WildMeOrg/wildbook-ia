@@ -108,7 +108,8 @@ def demo2():
 
     # infr = demodata_infr(num_pccs=4, size=3, size_std=1, p_incon=0)
     # infr = demodata_infr(num_pccs=6, size=7, size_std=1, p_incon=0)
-    infr = demodata_infr(num_pccs=3, size=5, size_std=.2, p_incon=0)
+    # infr = demodata_infr(num_pccs=3, size=5, size_std=.2, p_incon=0)
+    infr = demodata_infr(pcc_sizes=[5, 2, 4])
     infr.verbose = 100
     # apply_dummy_viewpoints(infr)
     # infr.ensure_cliques()
@@ -123,6 +124,8 @@ def demo2():
 
     dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
     ut.remove_files_in_dir(dpath)
+
+    fig_counter = it.count(0)
 
     def show_graph(infr, title, final=False, selected_edges=None):
         if not VISUALIZE:
@@ -140,6 +143,7 @@ def demo2():
             # show_inferred_diff=True,
             selected_edges=selected_edges,
             show_labels=True,
+            simple_labels=True,
             # show_recent_review=not final,
             show_recent_review=False,
             # splines=infr.graph.graph['splines'],
@@ -155,13 +159,10 @@ def demo2():
         infr.verbose = verbose
         # print('status ' + ut.repr4(infr_.status()))
         # infr.show(**showkw)
-        pt.set_title(title)
         ax = pt.gca()
+        pt.set_title(title, fontsize=20)
         fig = pt.gcf()
-        pt.adjust_subplots(top=.95, left=0, right=1, bottom=.45,
-                           fig=fig)
-        ax.set_aspect('equal')
-        fontsize = 18
+        fontsize = 22
         if True:
             # postprocess xlabel
             lines = []
@@ -183,15 +184,29 @@ def demo2():
             if len(lines) > 23:
                 fontsize = 8
 
-        ax.set_xlabel(latest)
-        xlabel = ax.get_xaxis().get_label()
-        xlabel.set_horizontalalignment('left')
-        xlabel.set_x(.025)
-        # xlabel.set_fontname('CMU Typewriter Text')
-        xlabel.set_fontname('Inconsolata')
-        xlabel.set_fontsize(fontsize)
+        if True:
+            pt.adjust_subplots(top=.95, left=0, right=1, bottom=.45,
+                               fig=fig)
+            ax.set_xlabel('\n' + latest)
+            xlabel = ax.get_xaxis().get_label()
+            xlabel.set_horizontalalignment('left')
+            # xlabel.set_x(.025)
+            xlabel.set_x(-.6)
+            # xlabel.set_fontname('CMU Typewriter Text')
+            xlabel.set_fontname('Inconsolata')
+            xlabel.set_fontsize(fontsize)
+        ax.set_aspect('equal')
 
-        pt.save_figure(dpath=dpath, dpi=128, figsize=(9, 10))
+        # ax.xaxis.label.set_color('red')
+
+        from os.path import join
+
+        fpath = join(dpath, 'demo_{:04d}.png'.format(next(fig_counter)))
+        fig.savefig(fpath, dpi=300,
+                    # transparent=True,
+                    edgecolor='none')
+
+        # pt.save_figure(dpath=dpath, dpi=300)
         infr.latest_logs()
 
     if VISUALIZE:
@@ -254,13 +269,6 @@ def demo2():
         if END is not None and count >= END:
             break
 
-        AT_TARGET = TARGET_REVIEW is not None and count >= TARGET_REVIEW - 1
-
-        SHOW_CANDIATE_POP = True
-        if SHOW_CANDIATE_POP and (VIZ_ALL or AT_TARGET):
-            # Show edge selection
-            show_graph(infr, 'pre' + msg, selected_edges=[edge])
-
         infr.print(msg)
         if ut.allsame(infr.pos_graph.node_labels(*edge)) and first:
             # Have oracle make a mistake early
@@ -268,6 +276,19 @@ def demo2():
             first -= 1
         else:
             feedback = infr.request_oracle_review(edge)
+
+        AT_TARGET = TARGET_REVIEW is not None and count >= TARGET_REVIEW - 1
+
+        SHOW_CANDIATE_POP = True
+        if SHOW_CANDIATE_POP and (VIZ_ALL or AT_TARGET):
+            # import utool
+            # utool.embed()
+            infr.print(ut.repr2(infr.task_probs['match_state'][edge], precision=4, si=True))
+            infr.print('len(queue) = %r' % (len(infr.queue)))
+            # Show edge selection
+            infr.print('Oracle will predict: ' + feedback['decision'])
+            show_graph(infr, 'pre' + msg, selected_edges=[edge])
+
         if count == TARGET_REVIEW:
             infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
         infr.add_feedback(edge, **feedback)
@@ -1097,6 +1118,7 @@ def demodata_infr(**kwargs):
     # p_pcc_incon = kwargs.get('p_incon', .1)
     p_pcc_incon = kwargs.get('p_incon', 0)
     p_pcc_incomp = kwargs.get('p_incomp', 0)
+    pcc_sizes = kwalias('pcc_sizes', None)
 
     # number of maximum inconsistent edges per pcc
     max_n_incon = kwargs.get('n_incon', 3)
@@ -1105,11 +1127,16 @@ def demodata_infr(**kwargs):
     counter = 1
     new_ccs = []
 
-    pcc_iter = list(range(num_pccs))
+    if pcc_sizes is None:
+        pcc_sizes = [int(randn(size_mean, size_std, rng=rng, a_min=1))
+                     for _ in range(num_pccs)]
+    else:
+        num_pccs = len(pcc_sizes)
+
+    pcc_iter = list(enumerate(pcc_sizes))
     pcc_iter = ut.ProgIter(pcc_iter, enabled=num_pccs > 20,
                            label='make pos-demo')
-    for i in pcc_iter:
-        size = int(randn(size_mean, size_std, rng=rng, a_min=1))
+    for i, size in pcc_iter:
         p = .1
         want_connectivity = rng.choice([1, 2, 3])
         want_connectivity = min(size - 1, want_connectivity)

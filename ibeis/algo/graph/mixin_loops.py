@@ -49,6 +49,12 @@ class RefreshCriteria(object):
                     --num_pccs=40 --size=2 --patience=20 --window=20 --show
 
             python -m ibeis.algo.graph.mixin_loops prob_any_remain \
+                    --method=poisson --num_pccs=40 --size=2 --patience=20 --window=20 --show
+
+            python -m ibeis.algo.graph.mixin_loops prob_any_remain \
+                    --method=binomial --num_pccs=40 --size=2 --patience=20 --window=20 --show
+
+            python -m ibeis.algo.graph.mixin_loops prob_any_remain \
                     --num_pccs=40 --size=2 --patience=20 --window=20 \
                     --dpi=300 --figsize=7.4375,3.0 \
                     --dpath=~/latex/crall-thesis-2017 \
@@ -435,7 +441,7 @@ class InfrLoops(object):
         infr.print('--- REREVIEW NONCONF AUTO', color='white')
         # Enforce that a user checks any PCC that was auto-reviewed
         # but was unable to achieve k-positive-consistency
-        for pcc in list(infr.non_pos_redundant_pccs(relax_size=False)):
+        for pcc in list(infr.non_pos_redundant_pccs(relax=False)):
             subgraph = infr.graph.subgraph(pcc)
             for u, v, data in subgraph.edges(data=True):
                 edge = infr.e_(u, v)
@@ -526,14 +532,14 @@ class InfrLoops(object):
     def pos_redun_loop(infr):
         infr.print('===========================', color='white')
         infr.print('--- POSITIVE REDUN LOOP ---', color='white')
-        new_edges = infr.find_pos_redun_candidate_edges()
+        new_edges = list(infr.find_pos_redun_candidate_edges())
         for count in it.count(0):
             infr.print('check pos-redun iter {}'.format(count))
             # print('pos_redun_candidates = %r' % (len(new_edges),))
             infr.queue.clear()
             infr.add_candidate_edges(new_edges)
             infr.inner_priority_loop(use_refresh=False)
-            new_edges = infr.find_pos_redun_candidate_edges()
+            new_edges = list(infr.find_pos_redun_candidate_edges())
             # if len(new_edges) < 10:
             #     print('new_edges = %r' % (new_edges,))
             # else:
@@ -583,7 +589,7 @@ class InfrLoops(object):
                     break
 
             # Ensure all PCCs are positive redundant
-            new_edges = infr.find_pos_redun_candidate_edges()
+            new_edges = list(infr.find_pos_redun_candidate_edges())
             while len(new_edges) > 0:
                 infr.queue.clear()
                 infr.add_candidate_edges(new_edges)
@@ -591,7 +597,7 @@ class InfrLoops(object):
                     edge, _ = infr.pop()
                     feedback = infr.request_review(edge)
                     infr.add_feedback(edge, **feedback)
-                new_edges = infr.find_pos_redun_candidate_edges()
+                new_edges = list(infr.find_pos_redun_candidate_edges())
 
     @profile
     def main_loop(infr, max_loops=None, use_refresh=True):

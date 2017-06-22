@@ -798,7 +798,7 @@ class CandidateSearch(object):
         return check_edges
 
     @profile
-    def find_pos_redun_candidate_edges(infr, verbose=False):
+    def find_pos_redun_candidate_edges(infr, k=None, verbose=False):
         r"""
         CommandLine:
             python -m ibeis.algo.graph.mixin_matching find_pos_redun_candidate_edges
@@ -811,30 +811,22 @@ class CandidateSearch(object):
             >>> infr.add_feedback((2, 5), decision='match')
             >>> infr.add_feedback((1, 5), decision='notcomp')
             >>> infr.queue_params['pos_redun'] = 2
-            >>> candidate_edges = infr.find_pos_redun_candidate_edges()
+            >>> candidate_edges = list(infr.find_pos_redun_candidate_edges())
             >>> result = ('candidate_edges = %s' % (ut.repr2(candidate_edges),))
             >>> print(result)
             candidate_edges = {(1, 3), (7, 10)}
         """
         # Add random edges between exisiting non-redundant PCCs
-        candidate_edges = set([])
-        pcc_gen = list(infr.non_pos_redundant_pccs(relax_size=True))
+        if k is None:
+            k = infr.queue_params['pos_redun']
+        # pcc_gen = list(infr.non_pos_redundant_pccs(relax=True))
+        pcc_gen = list(infr.positive_components())
         prog = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
         for pcc in prog:
-            check_edges = infr.find_pos_augment_edges(pcc)
-            candidate_edges.update(check_edges)
-            # kcon_ccs = list(nxu.edge_connected_components(sub, pos_k))
-            # bicon = list(nx.biconnected_components(sub))
-            # check_edges = set([])
-            # Get edges between k-edge-connected components
-            # sub_comp = nx.complement(sub)
-            # for c1, c2 in it.combinations(kcon_ccs, 2):
-            #     check_edges.update(edges_cross(sub_comp, c1, c2))
-            # Very agressive, need to tone down
-            # check_edges = set(it.starmap(e_, check_edges))
-            # check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
-            # candidate_edges.update(check_edges)
-        return candidate_edges
+            if not infr.is_pos_redundant(pcc, k=k, relax=True,
+                                         assume_connected=True):
+                for edge in infr.find_pos_augment_edges(pcc, k=k):
+                    yield nxu.e_(*edge)
 
     @profile
     def ensure_priority_scores(infr, priority_edges):

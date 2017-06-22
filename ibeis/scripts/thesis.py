@@ -1031,7 +1031,7 @@ class Chap5(DBInputs):
         """
         CommandLine:
             python -m ibeis Chap5.draw refresh GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw refresh --db PZ_Master1 --diskshow
+            python -m ibeis Chap5.draw refresh PZ_Master1 --diskshow
         """
         sim_results = self.ensure_results('simulation')
 
@@ -1056,7 +1056,7 @@ class Chap5(DBInputs):
         key = 'graph'
         ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
         ax.set_xlabel('# manual reviews')
-        ax.set_ylabel('P(T=1)')
+        ax.set_ylabel('P(C=1)')
         # ax.legend()
 
         fpath = join(self.dpath, 'refresh.png')
@@ -1185,7 +1185,7 @@ class Chap5(DBInputs):
 
         pt.multi_plot(
             xdata, [metrics_df['pprob_any']],
-            label_list=['P(T=1)'],
+            label_list=['P(C=1)'],
             xlabel=xlabel, ylabel='refresh criteria',
             marker='', ymin=0, ymax=1, rcParams=TMP_RC,
             fnum=1, pnum=pnum_(),
@@ -1234,7 +1234,7 @@ class Chap5(DBInputs):
 
         pt.multi_plot(
             xdata, [metrics_df['pprob_any']],
-            label_list=['P(T=1)'],
+            label_list=['P(C=1)'],
             xlabel=xlabel, ylabel='refresh criteria',
             marker='', ymin=0, ymax=1, rcParams=TMP_RC,
             fnum=1, pnum=pnum_(),

@@ -284,13 +284,15 @@ class GraphVisualization(object):
         ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
 
         # Set annotation node labels
+        node_to_nid = None
         if not show_labels:
             nx.set_node_attributes(graph, 'label', ut.dzip(graph.nodes(), ['']))
         else:
             if simple_labels:
                 nx.set_node_attributes(graph, 'label', {n: str(n) for n in graph.nodes()})
             else:
-                node_to_nid = nx.get_node_attributes(graph, 'name_label')
+                if node_to_nid is None:
+                    node_to_nid = nx.get_node_attributes(graph, 'name_label')
                 node_to_view = nx.get_node_attributes(graph, 'viewpoint')
                 if node_to_view:
                     annotnode_to_label = {
@@ -326,22 +328,22 @@ class GraphVisualization(object):
                          nx.get_edge_attributes(graph, 'maybe_error').items()
                          if split]
         decision_to_edge = ut.group_pairs(reviewed_states.items())
-        nomatch_edges = decision_to_edge[NEGTV]
-        match_edges = decision_to_edge[POSTV]
-        notcomp_edges = decision_to_edge[INCMP]
+        neg_edges = decision_to_edge[NEGTV]
+        pos_edges = decision_to_edge[POSTV]
+        incomp_edges = decision_to_edge[INCMP]
         unreviewed_edges = decision_to_edge[UNREV]
 
         inferred_same = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'same']
         inferred_diff = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'diff']
-        reviewed_edges = notcomp_edges + match_edges + nomatch_edges
-        compared_edges = match_edges + nomatch_edges
+        reviewed_edges = incomp_edges + pos_edges + neg_edges
+        compared_edges = pos_edges + neg_edges
         uncompared_edges = ut.setdiff(edges, compared_edges)
-        nontrivial_inferred_same = ut.setdiff(inferred_same, match_edges +
-                                              nomatch_edges + notcomp_edges)
-        nontrivial_inferred_diff = ut.setdiff(inferred_diff, match_edges +
-                                              nomatch_edges + notcomp_edges)
+        nontrivial_inferred_same = ut.setdiff(inferred_same, pos_edges +
+                                              neg_edges + incomp_edges)
+        nontrivial_inferred_diff = ut.setdiff(inferred_diff, pos_edges +
+                                              neg_edges + incomp_edges)
         nontrivial_inferred_edges = (nontrivial_inferred_same +
                                      nontrivial_inferred_diff)
         nx_set_edge_attrs = nx.set_edge_attributes
@@ -379,23 +381,45 @@ class GraphVisualization(object):
         nx_set_edge_attrs(graph, 'implicit', ut.dzip(uncompared_edges, [True]))
 
         # Only matching edges should impose constraints on the graph layout
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(nomatch_edges, [True]))
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(nomatch_edges, [alpha_med]))
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(notcomp_edges, [True]))
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(notcomp_edges, [alpha_med]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(neg_edges, [True]))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(neg_edges, [alpha_med]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(incomp_edges, [True]))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(incomp_edges, [alpha_med]))
 
         # Ensure reviewed edges are visible
         nx_set_edge_attrs(graph, 'implicit', ut.dzip(reviewed_edges, [False]))
         nx_set_edge_attrs(graph, 'alpha', ut.dzip(reviewed_edges,
-                                                       [alpha_high]))
+                                                  [alpha_high]))
 
         if True:
             # Infered same edges can be allowed to constrain in order
             # to make things look nice sometimes
             nx_set_edge_attrs(graph, 'implicit', ut.dzip(inferred_same,
-                                                              [False]))
+                                                         [False]))
             nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_same,
-                                                           [alpha_high]))
+                                                      [alpha_high]))
+
+        if not kwargs.get('show_same', True):
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_same, [0]))
+
+        if not kwargs.get('show_diff', True):
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_diff, [0]))
+
+        if not kwargs.get('show_positive_edges', True):
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(pos_edges, [0]))
+
+        if not kwargs.get('show_negative_edges', True):
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(neg_edges, [0]))
+
+        if not kwargs.get('show_incomparable_edges', True):
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(incomp_edges, [0]))
+
+        if not kwargs.get('show_between', True):
+            if node_to_nid is None:
+                node_to_nid = nx.get_node_attributes(graph, 'name_label')
+            between_edges = [(u, v) for u, v in edges
+                             if node_to_nid[u] != node_to_nid[v]]
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(between_edges, [0]))
 
         # SKETCH: based on inferred_edges
         # Make inferred edges wavy
@@ -486,8 +510,7 @@ class GraphVisualization(object):
 
     @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,
-                   with_colorbar=False, pnum=(1, 1, 1),
-                   zoomable=True,
+                   with_colorbar=False, pnum=(1, 1, 1), zoomable=True,
                    pickable=False, **kwargs):
         import plottool as pt
         if graph is None:

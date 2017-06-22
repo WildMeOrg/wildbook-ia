@@ -961,48 +961,59 @@ def show_id_graph():
     import plottool as pt
     # import networkx as nx
     pt.ensureqt()
-    ibs = ibeis.opendb(defaultdb='PZ_PB_RF_TRAIN')
+    # ibs = ibeis.opendb(defaultdb='PZ_PB_RF_TRAIN')
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
 
-    infr = ibeis.AnnotInference(ibs=ibs, aids='all')
-    infr.reset_feedback('staging', apply=True)
+    parent_infr = ibeis.AnnotInference(ibs=ibs, aids='all')
+    parent_infr.reset_feedback('staging', apply=True)
 
-    edgecat = infr.categorize_edges()
+    edgecat = parent_infr.categorize_edges()
 
     MAX_SIZE = 6
     MAX_NUM = 6
 
     pccs = []
-    if len(pccs) == 0:
-        for (n1, n2), es in edgecat['notcomp'].items():
-            if n1 == n2:
-                cc = infr.pos_graph._ccs[n1]
-                pccs.append(cc)
-                break
-    if len(pccs) == 0:
-        for cc in infr.positive_components():
-            a = ibs.annots(cc)
-            if any('left' not in t for t in a.yaw_texts):
-                # print(a.yaw_texts)
-                if any('left' in t for t in a.yaw_texts):
-                    print(a.yaw_texts)
+    infr = parent_infr
+    if ibs.dbname == 'PZ_Master1':
+        incomp_pcc = {5652, 5197, 4244}
+        force_incomp_edge = [(5652, 5197)]
+        pccs.append(incomp_pcc)
+    else:
+        pccs = []
+        force_incomp_edge = []
+        if len(pccs) == 0:
+            for (n1, n2), es in edgecat['notcomp'].items():
+                if n1 == n2:
+                    cc = parent_infr.pos_graph._ccs[n1]
                     pccs.append(cc)
-                    # break
-    if len(pccs) == 0:
-        for (n1, n2), es in edgecat['notcomp'].items():
-            cc1 = infr.pos_graph._ccs[n1]
-            cc2 = infr.pos_graph._ccs[n2]
-            # s1 = len(infr.pos_graph._ccs[n1])
-            # s2 = len(infr.pos_graph._ccs[n2])
-            # if s1 in {3} and s2 in {3}:
-            # print(annots1.yaw_texts)
-            # print(annots2.yaw_texts)
-            pccs.append(frozenset(cc1))
-            pccs.append(frozenset(cc2))
-            break
+                    break
+        if len(pccs) == 0:
+            for cc in parent_infr.positive_components():
+                a = ibs.annots(cc)
+                if any(t is not None and 'left' not in t for t in a.yaw_texts):
+                    # print(a.yaw_texts)
+                    if any(t is not None and 'left' in t for t in a.yaw_texts):
+                        if any(t is not None and 'right' in t for t in a.yaw_texts):
+                            print(a.yaw_texts)
+                            if len(cc) <= MAX_SIZE:
+                                pccs.append(cc)
+                        # break
+        if len(pccs) == 0:
+            for (n1, n2), es in edgecat['notcomp'].items():
+                cc1 = parent_infr.pos_graph._ccs[n1]
+                cc2 = parent_infr.pos_graph._ccs[n2]
+                # s1 = len(parent_infr.pos_graph._ccs[n1])
+                # s2 = len(parent_infr.pos_graph._ccs[n2])
+                # if s1 in {3} and s2 in {3}:
+                # print(annots1.yaw_texts)
+                # print(annots2.yaw_texts)
+                pccs.append(frozenset(cc1))
+                pccs.append(frozenset(cc2))
+                break
 
     MAX_SIZE += len(pccs) - 1
 
-    for cc in infr.positive_components():
+    for cc in parent_infr.positive_components():
         cc = frozenset(cc)
         if len(cc) < MAX_SIZE:
             if cc not in pccs:
@@ -1011,30 +1022,112 @@ def show_id_graph():
         if len(pccs) >= MAX_NUM:
             break
 
-    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
-    subinfr = infr.subgraph(ut.flatten(pccs))
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    subinfr = parent_infr.subgraph(ut.flatten(pccs))
     subinfr._viz_image_config['thumbsize'] = 700
     subinfr._viz_image_config['grow'] = True
-    subinfr.ensure_cliques(decision=POSTV)
+    infr = subinfr
 
-    subinfr.apply_nondynamic_update()
-    for edge in subinfr.find_neg_redun_candidate_edges(k=1):
-        subinfr.add_feedback(edge, decision=NEGTV)
+    infr.apply_nondynamic_update()
+    # infr.ensure_mst()
+    infr.ensure_mst(label='orig_name_label')
+    # infr.ensure_cliques(decision=POSTV)
+
+    # infr.show(pickable=True, use_image=True, groupby='name_label',
+    #              splines='spline')
+
+    infr.apply_nondynamic_update()
+    for edge in infr.find_neg_redun_candidate_edges(k=1):
+        infr.add_feedback(edge, decision=NEGTV)
 
     import itertools as it
-    edges = list(it.combinations(subinfr.aids, 2))
+    edges = list(it.combinations(infr.aids, 2))
     n = 0
-    for e in ut.compress(edges, [not f for f in infr.is_comparable(edges)]):
-        subinfr.add_feedback(e, decision=INCMP)
+    incomp_edges = ut.compress(edges, [not f for f in infr.is_comparable(edges)])
+    for e in ut.shuffle(incomp_edges, rng=3545115929):
+        infr.add_feedback(e, decision=INCMP)
         n += 1
-        # if n > 3:
-        #     break
+        if n > 3:
+            break
+    for e in force_incomp_edge:
+        infr.add_feedback(e, decision=INCMP)
 
-    for edge in subinfr.find_neg_redun_candidate_edges(k=1):
-        subinfr.add_feedback(edge, decision=NEGTV)
+    for edge in infr.find_neg_redun_candidate_edges(k=1):
+        infr.add_feedback(edge, decision=NEGTV)
 
-    subinfr.show(pickable=True, use_image=True, groupby='name_label',
-                 splines='spline')
+    savekw = dict(dpi=300, transparent=True, edgecolor='none')
+    showkw = dict(pickable=True, use_image=True, groupby='name_label',
+                  splines='spline', fnum=1)
+
+    infr.show(**showkw, show_positive_edges=False, show_negative_edges=False,
+              show_incomparable_edges=False)
+    fig = pt.gcf()
+    fig.savefig('id_graph1.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+
+    infr.show(**showkw, show_positive_edges=True, show_negative_edges=False,
+              show_incomparable_edges=False)
+    fig = pt.gcf()
+    fig.savefig('id_graph2.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+
+    infr.show(**showkw, show_positive_edges=False, show_negative_edges=True,
+              show_incomparable_edges=False)
+    fig = pt.gcf()
+    fig.savefig('id_graph3.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+
+    infr.show(**showkw, show_positive_edges=False, show_negative_edges=False,
+              show_incomparable_edges=True)
+    fig = pt.gcf()
+    fig.savefig('id_graph4.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    import networkx as nx
+
+    infr.show(**showkw, pin=True)
+    nx.set_node_attributes(infr.graph, 'pin', 'true')
+    fig = pt.gcf()
+    fig.savefig('id_graph5.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+
+    infr2 = infr.copy()
+    for edge in infr2.find_pos_redun_candidate_edges(k=2):
+        infr2.add_feedback(edge, decision=POSTV)
+    infr2.show(pickable=True, use_image=True,
+                 groupby='name_label', fnum=1, splines='spline')
+    fig = pt.gcf()
+    fig.savefig('id_graph6.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+    for edge in infr2.find_neg_redun_candidate_edges(k=2):
+        infr2.add_feedback(edge, decision=NEGTV)
+    infr2.show(pickable=True, use_image=True,
+                 groupby='name_label', fnum=1, splines='spline')
+    fig = pt.gcf()
+    fig.savefig('id_graph7.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+
+    infr3 = infr.copy()
+    for edge in infr3.find_pos_redun_candidate_edges(k=2):
+        infr3.add_feedback(edge, decision=POSTV)
+    for cc in infr3.non_pos_redundant_pccs(k=3):
+        for edge in infr3.find_pos_augment_edges(cc, k=3):
+            infr3.add_feedback(edge, decision=NEGTV)
+            break
+    infr3.show(pickable=True, use_image=True, show_between=False,
+               show_inconsistency=True,
+               groupby='name_label', fnum=1, splines='spline')
+    fig = pt.gcf()
+    fig.savefig('id_graph8.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
+
+    infr4 = infr.copy()
+    for edge in infr4.edges():
+        infr4.add_feedback(edge, decision=UNREV)
+    infr4.refresh_candidate_edges()
+    infr4.show(**showkw, show_cand=True)
+    fig = pt.gcf()
+    fig.savefig('id_graph9.png', **savekw,
+                bbox_inches=pt.extract_axes_extents(fig, combine=True))
 
 
 def intraoccurrence_connected():
