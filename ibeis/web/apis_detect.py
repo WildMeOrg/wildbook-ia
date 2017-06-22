@@ -146,13 +146,22 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     if gid is None:
         return 'INVALID IMAGE UUID'
 
-    if config is None:
-        config = {
-            'autointerest': False,
-            'interest_bypass': False,
-            'metadata': True,
-            'parts': False,
-        }
+    default_config = {
+        'autointerest': False,
+        'interest_bypass': False,
+        'metadata': True,
+        'metadata_viewpoint': False,
+        'metadata_quality': False,
+        'metadata_flags': True,
+        'metadata_flags_aoi': True,
+        'metadata_flags_multiple': False,
+        'metadata_species': True,
+        'metadata_quickhelp': True,
+        'parts': False,
+    }
+
+    if config is not None:
+        default_config.update(config)
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
     image = ibs.get_image_imgdata(gid)
@@ -293,7 +302,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
                          species=species,
                          image_path=gpath,
                          image_src=image_src,
-                         config=config,
+                         config=default_config,
                          settings=settings,
                          annotation_list=annotation_list,
                          species_list=species_list,
