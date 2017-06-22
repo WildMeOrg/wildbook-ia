@@ -2226,8 +2226,8 @@ def get_annot_image_paths(ibs, aid_list):
     try:
         ut.assert_all_not_None(gid_list, 'gid_list')
     except AssertionError:
-        print('[!get_annot_image_paths] ' + ut.list_dbgstr('aid_list'))
-        print('[!get_annot_image_paths] ' + ut.list_dbgstr('gid_list'))
+        print('[!get_annot_image_paths] aids=' + ut.repr4(aid_list))
+        print('[!get_annot_image_paths] gids=' + ut.repr4(gid_list))
         raise
     gpath_list = ibs.get_image_paths(gid_list)
     ut.assert_all_not_None(gpath_list, 'gpath_list')
