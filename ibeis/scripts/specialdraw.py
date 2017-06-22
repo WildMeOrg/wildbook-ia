@@ -696,7 +696,7 @@ def setcover_example():
     infr = orig_graph_iden.OrigAnnotInference(cm_list)
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
-    print(ut.hz_str('prob_annots = ', ut.array2string2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
+    print(ut.hz_str('prob_annots = ', ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
     # ut.setcover_greedy(candidate_sets_dict)
     max_weight = 3
     prob_annots[np.diag_indices(len(prob_annots))] = np.inf

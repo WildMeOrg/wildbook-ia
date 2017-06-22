@@ -23,7 +23,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     # PL2 = PL2 / np.linalg.norm(PL2, axis=0)
     zero_part = np.zeros((num_labels, len(Pn) + num_labels))
     prob_part = np.hstack([PL2, Pn])
-    print(ut.hz_str(' PL2 = ', ut.array_repr2(PL2, precision=2)))
+    print(ut.hz_str(' PL2 = ', ut.repr2(PL2, precision=2)))
     # Redo p with posteriors
     if ut.get_argflag('--postem'):
         P = np.vstack([zero_part, prob_part])
@@ -381,7 +381,7 @@ def try_em():
         P[np.diag_indices(len(P))] = 0
         P = P + P.T / 2
         P = np.clip(P, .01, .99)
-        print(ut.hz_str(' P = ', ut.array_repr2(P, precision=2, max_line_width=140)))
+        print(ut.hz_str(' P = ', ut.repr2(P, precision=2, max_line_width=140)))
         return P
 
     Pn = make_test_similarity(test_case)
@@ -461,7 +461,7 @@ def try_em():
         # Stack everything into a single matrix
         zero_part = np.zeros((num_labels, num_nodes + num_labels))
         prob_part = np.hstack([PL, Pn])
-        #print(ut.hz_str(' prob_part = ', ut.array_repr2(prob_part[:, :], precision=2)))
+        #print(ut.hz_str(' prob_part = ', ut.repr2(prob_part[:, :], precision=2)))
         P = np.vstack([zero_part, prob_part])
 
         # Gamma will hold a probability distribution over the nodes
@@ -471,8 +471,8 @@ def try_em():
 
         print('Initialize')
         print('num_labels = %r' % (num_labels,))
-        # print(ut.hz_str(' gamma = ', ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
-        print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
+        # print(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
 
         delta_i = np.zeros(num_labels)
         def dErr(i, gam, P, delta_i=delta_i):
@@ -497,14 +497,14 @@ def try_em():
             for i in range(num_labels, d):
                 dGam[:, i] = dErr(i, gam, P)
             # Make a step in the gradient direction
-            # print(ut.hz_str(' dGam = ', ut.array_repr2(dGam, max_line_width=140, precision=2)))
+            # print(ut.hz_str(' dGam = ', ut.repr2(dGam, max_line_width=140, precision=2)))
             gam = gam + learn_rate * dGam
             # Normalize
             gam = np.clip(gam, 0, 1)
             for i in range(num_labels, d):
                 gam[:, i] = gam[:, i] / np.sum(gam[:, i])
-        # print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
-        # print(ut.hz_str(' gamma = ', ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        # print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
+        # print(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
         print('Finished')
     return P, Pn, PL, gam, num_labels
 
@@ -550,9 +550,9 @@ def try_em2(prob_names, prob_annots=None):
     if verbose:
         print('Initialize')
         print('num_names = %r' % (num_names,))
-        print(ut.hz_str('prior = ', ut.array2string2(prob_part[:, :], precision=2, max_line_width=140, suppress_small=True)))
-        print(ut.hz_str('gamma = ', ut.array2string2(gam[:, :], max_line_width=140, precision=2, suppress_small=True)))
-    #print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
+        print(ut.hz_str('prior = ', ut.repr2(prob_part[:, :], precision=2, max_line_width=140, suppress_small=True)))
+        print(ut.hz_str('gamma = ', ut.repr2(gam[:, :], max_line_width=140, precision=2, suppress_small=True)))
+    #print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
 
     delta_i = np.zeros(num_names)
     def dErr(i, gam, prior, delta_i=delta_i, num_names=num_names):
@@ -583,15 +583,15 @@ def try_em2(prob_names, prob_annots=None):
         for i in range(num_names, num_nodes):
             dGam[:, i] = dErr(i, gam, prior)
         # Make a step in the gradient direction
-        # print(ut.hz_str(' dGam = ', ut.array_repr2(dGam, max_line_width=140, precision=2)))
+        # print(ut.hz_str(' dGam = ', ut.repr2(dGam, max_line_width=140, precision=2)))
         gam = gam + learn_rate * dGam
         # Normalize
         gam = np.clip(gam, 0, 1)
         for i in range(num_names, num_nodes):
             gam[:, i] = gam[:, i] / np.sum(gam[:, i])
-    # print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
+    # print(ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2)))
     if verbose:
-        print(ut.hz_str(' gamma = ', ut.array2string2(gam[:, num_names:], max_line_width=140, precision=2, suppress_small=True)))
+        print(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_names:], max_line_width=140, precision=2, suppress_small=True)))
         print('Finished')
     return gam
 

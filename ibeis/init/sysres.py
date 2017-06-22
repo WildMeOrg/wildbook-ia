@@ -577,7 +577,7 @@ def ensure_pz_mtest_batchworkflow_test():
 
             # TODO do max-nway cut
         #day_diffs = spdist.squareform(hourdiffs) / 24.0
-        #print(ut.numpy_str(day_diffs, precision=2, suppress_small=True))
+        #print(ut.repr2(day_diffs, precision=2, suppress_small=True))
         #import itertools
         #compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c > r)]
         #print(len(aids))

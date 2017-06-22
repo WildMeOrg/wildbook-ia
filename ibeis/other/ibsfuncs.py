@@ -273,7 +273,7 @@ def assert_singleton_relationship(ibs, alrids_list):
             'must only have one relationship of a type')
     except AssertionError as ex:
         parent_locals = ut.get_parent_frame().f_locals
-        ut.printex(ex, 'parent_locals=' + ut.dict_str(parent_locals),
+        ut.printex(ex, 'parent_locals=' + ut.repr2(parent_locals),
                    key_list=['alrids_list', ])
         raise
 
@@ -413,7 +413,7 @@ def assert_images_exist(ibs, gid_list=None, verbose=True):
     if verbose:
         bad_gpaths = ibs.get_image_paths(bad_gids)
         print('Bad Gpaths:')
-        print(ut.truncate_str(ut.list_str(bad_gpaths), maxlen=500))
+        print(ut.truncate_str(ut.repr2(bad_gpaths), maxlen=500))
     assert num_bad_gids == 0, '%d images dont exist' % (num_bad_gids,)
     print('[check] checked %d images exist' % len(gid_list))
 
@@ -648,7 +648,7 @@ def check_annot_consistency(ibs, aid_list=None):
     num_None_annot_gids = sum(ut.flag_None_items(annot_gid_list))
     print('num_None_annot_gids = %r ' % (num_None_annot_gids,))
     assert num_None_annot_gids == 0
-    #print(ut.dict_str(dict(ut.debug_duplicate_items(annot_gid_list))))
+    #print(ut.repr2(dict(ut.debug_duplicate_items(annot_gid_list))))
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
@@ -815,7 +815,7 @@ def check_exif_data(ibs, gid_list):
     ut.print_stats(num_tags_list, 'num tags per image')
 
     print('tag frequency')
-    print(ut.dict_str(key2_freq))
+    print(ut.repr2(key2_freq))
 
 
 @register_ibs_method
@@ -1077,7 +1077,7 @@ def fix_invalid_nids(ibs):
             ibs.delete_names([const.UNKNOWN_NAME_ROWID])
         else:
             errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
-            errmsg += ut.list_str(list(zip(invalid_nids, invalid_texts)))
+            errmsg += ut.repr2(list(zip(invalid_nids, invalid_texts)))
             raise AssertionError(errmsg)
 
 
@@ -2182,7 +2182,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         >>> ibs._clean_species()
         >>> imgsetid = None
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
-        >>> result = ut.list_str((new_nid_list, new_name_list))
+        >>> result = ut.repr2((new_nid_list, new_name_list))
         >>> print(result)
         (
             [1, 2, 3, 4, 5, 6, 7],
@@ -2199,7 +2199,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid = ibs.get_valid_imgsetids()[1]
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
-        >>> result = ut.list_str((new_nid_list, new_name_list))
+        >>> result = ut.repr2((new_nid_list, new_name_list))
         >>> print(result)
         (
             [4, 5, 6, 7],
@@ -2653,9 +2653,9 @@ def get_num_annots_per_name(ibs, aid_list):
         >>> key_list = ut.get_list_column(items, 0)
         >>> val_list = ut.get_list_column(items, 1)
         >>> min_per_name = dict(zip(key_list, np.cumsum(val_list)))
-        >>> result = ('per_name_hist = %s' % (ut.dict_str(per_name_hist),))
+        >>> result = ('per_name_hist = %s' % (ut.repr2(per_name_hist),))
         >>> print(result)
-        >>> print('min_per_name = %s' % (ut.dict_str(min_per_name),))
+        >>> print('min_per_name = %s' % (ut.repr2(min_per_name),))
         per_name_hist = {
             1: 5,
             2: 2,
@@ -2738,7 +2738,7 @@ def get_yaw_viewtexts(yaw_list):
         >>> import numpy as np
         >>> yaw_list = [0.0, np.pi / 2, np.pi / 4, np.pi, 3.15, -.4, -8, .2, 4, 7, 20, None]
         >>> text_list = get_yaw_viewtexts(yaw_list)
-        >>> result = ut.list_str(text_list, nl=False)
+        >>> result = ut.repr2(text_list, nl=False)
         >>> print(result)
         ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
 
@@ -2822,7 +2822,7 @@ def get_database_species(ibs, aid_list=None):
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
-        >>> result = ut.list_str(ibs.get_database_species(), nl=False)
+        >>> result = ut.repr2(ibs.get_database_species(), nl=False)
         >>> print(result)
         ['____', 'bear_polar', 'zebra_grevys', 'zebra_plains']
 
@@ -2831,7 +2831,7 @@ def get_database_species(ibs, aid_list=None):
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> result = ut.list_str(ibs.get_database_species(), nl=False)
+        >>> result = ut.repr2(ibs.get_database_species(), nl=False)
         >>> print(result)
         ['zebra_plains']
     """
@@ -2920,9 +2920,9 @@ def get_database_species_count(ibs, aid_list=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
+        >>> #print(ut.repr2(ibeis.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = ibeis.opendb('testdb1')
-        >>> result = ut.dict_str(ibs.get_database_species_count(), nl=False)
+        >>> result = ut.repr2(ibs.get_database_species_count(), nl=False)
         >>> print(result)
         {'____': 3, 'bear_polar': 2, 'zebra_grevys': 2, 'zebra_plains': 6}
 
@@ -4252,7 +4252,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         min_timedeltas = np.array([np.nan if dists is None else
                                    np.nanmin(dists) for dists in timedeltas])
         min_name_timedelta_stats = ut.get_stats(min_timedeltas, use_nan=True)
-        print('min_name_timedelta_stats = %s' % (ut.dict_str(min_name_timedelta_stats),))
+        print('min_name_timedelta_stats = %s' % (ut.repr2(min_name_timedelta_stats),))
     return filtered_aids
 
 
@@ -4360,12 +4360,12 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
         >>> #aid_list1 = [1, 2, 8, 9, 60]
         >>> #aid_list2 = [3, 7, 20]
         >>> groups = partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2)
-        >>> result = ut.list_str(groups, label_list=['gt_grouped_aids1', 'gt_grouped_aids2', 'gf_grouped_aids1', 'gf_gropued_aids2'])
+        >>> result = ut.repr2(groups)
         >>> print(result)
-        gt_grouped_aids1 = [[10, 11], [17, 18], [22, 23]]
-        gt_grouped_aids2 = [[12, 13, 14, 15], [19, 20, 21], [24, 25, 26]]
-        gf_grouped_aids1 = [[2], [5, 6]]
-        gf_gropued_aids2 = [[29, 30, 31, 32], [49]]
+        [[10, 11], [17, 18], [22, 23]]
+        [[12, 13, 14, 15], [19, 20, 21], [24, 25, 26]]
+        [[2], [5, 6]]
+        [[29, 30, 31, 32], [49]]
     """
     #ibs.
     import ibeis.control.IBEISControl
@@ -4489,7 +4489,7 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
         del dict_['num_nan']
     exclude_keys = []  # ['std', 'nMin', 'nMax']
     if multi is True:
-        str_ = ut.dict_str(dict_, precision=precision, nl=2, strvals=True)
+        str_ = ut.repr2(dict_, precision=precision, nl=2, strvals=True)
     else:
         str_ =  ut.get_stats_str(stat_dict=dict_, precision=precision,
                                  exclude_keys=exclude_keys, **kwargs)
@@ -4615,8 +4615,8 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         >>> #prop2_num_aids_stats = ut.hmap_vals(ut.get_stats, prop2_num_aids)
         >>> prop2_num_aids_hist = ut.hmap_vals(ut.dict_hist, prop2_num_aids)
         >>> prop2_num_aids_cumhist = ut.map_dict_vals(ut.dict_hist_cumsum, prop2_num_aids_hist)
-        >>> print('prop2_num_aids_hist[%s] = %s' % (keys1,  ut.dict_str(ut.dict_subset(prop2_num_aids_hist, keys1))))
-        >>> print('prop2_num_aids_cumhist[%s] = %s' % (keys1,  ut.dict_str(ut.dict_subset(prop2_num_aids_cumhist, keys1))))
+        >>> print('prop2_num_aids_hist[%s] = %s' % (keys1,  ut.repr2(ut.dict_subset(prop2_num_aids_hist, keys1))))
+        >>> print('prop2_num_aids_cumhist[%s] = %s' % (keys1,  ut.repr2(ut.dict_subset(prop2_num_aids_cumhist, keys1))))
 
     """
     aid_prop_list = [getter(aids) for getter in getter_list]
@@ -5051,7 +5051,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(
         ...    defaultdb='testdb1', a='default:qsize=3')
         >>> stat_dict = get_annotconfig_stats(ibs, qaids, daids, **kwargs)
-        >>> stats_str2 = ut.dict_str(stat_dict, strvals=True,
+        >>> stats_str2 = ut.repr2(stat_dict, strvals=True,
         >>>                          newlines=True, explicit=False, nobraces=False)
         >>> print(stats_str2)
     """
@@ -5194,7 +5194,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         annotconfig_stats = ut.odict(list(annotconfig_stats_strs1.items()) +
                                           list(annotconfig_stats_strs2.items()))
         if verbose:
-            stats_str2 = ut.dict_str(annotconfig_stats, strvals=True,
+            stats_str2 = ut.repr2(annotconfig_stats, strvals=True,
                                      newlines=True, explicit=False, nobraces=False)
             print('annot_config_stats = ' + stats_str2)
 
@@ -5246,7 +5246,7 @@ def find_unlabeled_name_members(ibs, **kwargs):
         if False:
             missing_percent_list = [sum(flags) / len(flags) for flags in missing_flag_list]
             print('Missing per name stats')
-            print(ut.dict_str(ut.get_stats(missing_percent_list, use_median=True)))
+            print(ut.repr2(ut.get_stats(missing_percent_list, use_median=True)))
         return missing_aid_list
 
     selected_aids_list = []

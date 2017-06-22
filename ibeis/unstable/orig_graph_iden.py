@@ -121,7 +121,7 @@ class OrigAnnotInference(object):
             prob_annots[idx][:] = annot_scores
         prob_annots[np.diag_indices(len(prob_annots))] = np.inf
         prob_annots += 1E-9
-        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names,
+        #print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
         #precision=2, max_line_width=140, suppress_small=True)))
         return unique_aids, prob_annots
 
@@ -143,7 +143,7 @@ class OrigAnnotInference(object):
 
         # Normalize to row stochastic matrix
         prob_names /= prob_names.sum(axis=1)[:, None]
-        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names,
+        #print(ut.hz_str('prob_names = ', ut.repr2(prob_names,
         #precision=2, max_line_width=140, suppress_small=True)))
         return unique_nids, prob_names
 
@@ -191,8 +191,8 @@ class OrigAnnotInference(object):
         qxs, nxs = np.where(postcut)
         if False:
             kw = dict(precision=2, max_line_width=140, suppress_small=True)
-            print(ut.hz_str('prob_names = ', ut.array2string2((prob_names), **kw)))
-            print(ut.hz_str('postcut = ', ut.array2string2((postcut).astype(np.int), **kw)))
+            print(ut.hz_str('prob_names = ', ut.repr2((prob_names), **kw)))
+            print(ut.hz_str('postcut = ', ut.repr2((postcut).astype(np.int), **kw)))
         matching_qaids = ut.take(qaid_list, qxs)
         matched_nids = ut.take(unique_nids, nxs)
 
@@ -443,7 +443,7 @@ class OrigAnnotInference(object):
         #print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
 
         #prob_annots = None
-        #print(ut.array2string2prob_names precision=2, max_line_width=100,
+        #print(ut.repr2)prob_names precision=2, max_line_width=100,
         #      suppress_small=True))
 
     def make_annot_inference_dict(self, internal=False):
