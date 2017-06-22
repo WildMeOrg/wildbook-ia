@@ -380,7 +380,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
         #print('[df2] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
         savekw['bbox_inches'] = extent.expanded(1.0, 1.0)
         if verbose == 2:
-            print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
+            print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
         #ut.embed()
 
     #fname_clean = split(fpath_clean)[1]
@@ -395,7 +395,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
             #fig.savefig(fpath_clean)
             if verbose > 1 or ut.VERBOSE:
                 print(']pt.save_figure] fpath_clean = %s' % (fpath_clean, ))
-                print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
+                print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
             # savekw['bbox_inches'] = 'tight'
             #print('savekw = %r' % (savekw,))
             if fpath_clean.endswith('.png'):

@@ -133,7 +133,7 @@ class MatchInteraction2(BASE_CLASS):
             show_matches_kw['H1'] = self.H1
             show_matches_kw['H2'] = self.H2
         if verbose:
-            print('show_matches_kw = %s' % (ut.dict_str(show_matches_kw, truncate=True)))
+            print('show_matches_kw = %s' % (ut.repr2(show_matches_kw, truncate=True)))
 
         #tup = show_matches(fm, fs, **show_matches_kw)
         ax, xywh1, xywh2 = pt.show_chipmatch2(

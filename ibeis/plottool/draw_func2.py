@@ -441,7 +441,7 @@ def udpate_adjust_subplots():
                 ('vals must be len (1, 3, or 6) not %d, adjust_list=%r. '
                  'Expects keys=%r') % (len(adjust_list), adjust_list, keys))
         adjust_kw = dict(zip(keys, vals))
-        print('**adjust_kw = %s' % (ut.dict_str(adjust_kw),))
+        print('**adjust_kw = %s' % (ut.repr2(adjust_kw),))
         adjust_subplots(**adjust_kw)
 
 
@@ -2764,7 +2764,7 @@ def print_valid_cmaps():
     import pylab
     import utool as ut
     maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
-    print(ut.list_str(sorted(maps)))
+    print(ut.repr2(sorted(maps)))
 
 
 def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None,

@@ -104,7 +104,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
 
     if scale_factor is None:
         scale_factor = 1.0
-    #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.dict_str(kwargs))
+    #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.repr2(kwargs))
     # ellipse and point properties
     pts_size       = kwargs.get('pts_size', 2)
     pts_alpha      = kwargs.get('pts_alpha', 1.0)
@@ -178,7 +178,7 @@ def _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha=None):
     #if pts_alpha is not None:
     #    ptskw['alpha'] = pts_alpha
     if OLD_WAY:
-        #print(ut.dict_str(ptskw))
+        #print(ut.repr2(ptskw))
         ax.scatter(_xs, _ys, **ptskw)
         # FIXME: THIS MIGHT CAUSE ISSUES: UNEXPECTED CALL
         #ax.autoscale(enable=False)

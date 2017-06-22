@@ -197,8 +197,8 @@ class MultiImageInteraction(BASE_CLASS):
                 'sel_list'   : sel_list,
                 'label_list' : label_list,
             })
-            #print(utool.dict_str(_vizkw))
-            #print('vizkw = ' + utool.dict_str(_vizkw))
+            #print(utool.repr2(_vizkw))
+            #print('vizkw = ' + utool.repr2(_vizkw))
             _, ax = viz_image2.show_image(img, **_vizkw)
             if self.xlabel_list is not None:
                 import plottool as pt
