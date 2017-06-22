@@ -3130,7 +3130,7 @@ class Chap3Draw(object):
         ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
         """
         mpl.rcParams.update(TMP_RC)
-        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         expt_name = 'nsum'
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
@@ -3146,7 +3146,46 @@ class Chap3Draw(object):
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
         nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
         pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+        fig.set_size_inches([W, H * .6])
         fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_nsum_simple(self):
+        """
+        ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+        ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> self = Chap3('PZ_Master1')
+        """
+        raise Exception("hacked")
+        mpl.rcParams.update(TMP_RC)
+        # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        fpath = '/home/joncrall/latex/crall-thesis-2017/figures3/PZ_Master1/nsum.pkl'
+        results = ut.load_data(fpath)
+        # results = self.ensure_results(expt_name)
+        cdfs, infos = list(zip(*results))
+        # pcfgs = ut.take_column(infos, 'pcfg')
+        alias = {
+            'nsum': 'fmech',
+            'csum': 'amech',
+        }
+        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        # hack
+        cdfs = cdfs[::2]
+        labels = labels[::2]
+        infos = infos[::2]
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+        fig.set_size_inches([W, H * .6])
+        ut.ensuredir(self.dpath)
+        fpath = join(self.dpath, 'nsum_simple.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
@@ -3950,6 +3989,7 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
         pnum=pnum, fnum=fnum,
         rcParams=TMP_RC,
     )
+    return pt.gcf()
 
 
 def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
