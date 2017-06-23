@@ -1624,8 +1624,10 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         ('metadata_quickhelp',      True),
         ('parts',                   True),
     ]
+
+    config_kwargs = kwargs.get('config', {})
     config = {
-        key: kwargs.get(key, default)
+        key: kwargs.get(key, config_kwargs.get(key, default))
         for key, default in default_list
     }
     config_str_list = [
