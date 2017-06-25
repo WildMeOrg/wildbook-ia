@@ -46,11 +46,11 @@ class StratifiedGroupKFold(_BaseKFold):
             ?: test_folds
 
         CommandLine:
-            python -m ibeis.scripts.sklearn_utils _make_test_folds
+            python -m ibeis.algo.verif.sklearn_utils _make_test_folds
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.sklearn_utils import *  # NOQA
+            >>> from ibeis.algo.verif.sklearn_utils import *  # NOQA
             >>> import utool as ut
             >>> rng = ut.ensure_rng(0)
             >>> groups = [1, 1, 3, 4, 2, 2, 7, 8, 8]
@@ -174,7 +174,7 @@ class StratifiedGroupKFold(_BaseKFold):
 
 def temp(samples):
     from sklearn import model_selection
-    from ibeis.scripts import sklearn_utils
+    from ibeis.algo.verif import sklearn_utils
     def check_balance(idxs):
         from sklearn.utils.fixes import bincount
         print('-------')
@@ -242,7 +242,7 @@ def classification_report2(y_true, y_pred, target_names=None,
             Error Measures in MultiClass Prediction
 
     Example:
-        >>> from ibeis.scripts.sklearn_utils import *  # NOQA
+        >>> from ibeis.algo.verif.sklearn_utils import *  # NOQA
         >>> y_true = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
         >>> y_pred = [1, 2, 1, 3, 1, 2, 2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 1, 3]
         >>> target_names = None
@@ -542,7 +542,7 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
     if more than one thing passes the thresold we take the highest one if
     multi=True, and return nan otherwise.
 
-    >>> from ibeis.scripts.sklearn_utils import *
+    >>> from ibeis.algo.verif.sklearn_utils import *
     >>> probs = np.array([
     >>>     [0.5, 0.5, 0.0],
     >>>     [0.4, 0.5, 0.1],

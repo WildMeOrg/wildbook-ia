@@ -14,7 +14,7 @@ import pandas as pd
 import sklearn
 import sklearn.metrics
 import sklearn.ensemble
-from ibeis.scripts import sklearn_utils
+from ibeis.algo.verif import sklearn_utils
 from six.moves import range
 print, rrr, profile = ut.inject2(__name__)
 
@@ -39,6 +39,7 @@ class ClfProblem(ut.NiceRepr):
         pblm.xval_kw = XValConfig()
         pblm.eval_task_clfs = None
         pblm.task_combo_res = None
+        pblm.verbose = True
 
     def set_pandas_options(pblm):
         # pd.options.display.max_rows = 10
@@ -67,7 +68,28 @@ class ClfProblem(ut.NiceRepr):
         Evaluates by learning classifiers using cross validation.
         Do not use this to learn production classifiers.
 
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+
+        Example:
+
+        CommandLine:
+            python -m clf_helpers learn_evaluation_classifiers
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
+            >>> pblm = IrisProblem()
+            >>> pblm.setup()
+            >>> pblm.verbose = True
+            >>> pblm.eval_clf_keys = ['Logit', 'RF']
+            >>> pblm.eval_task_keys = ['iris']
+            >>> pblm.eval_data_keys = ['learn(all)']
+            >>> result = pblm.learn_evaluation_classifiers()
+            >>> res = pblm.task_combo_res['iris']['Logit']['learn(all)']
+            >>> res.print_report()
+            >>> res = pblm.task_combo_res['iris']['RF']['learn(all)']
+            >>> res.print_report()
+            >>> print(result)
         """
         pblm.eval_task_clfs = ut.AutoVivification()
         pblm.task_combo_res = ut.AutoVivification()
@@ -111,24 +133,32 @@ class ClfProblem(ut.NiceRepr):
         clf_key = 'RF'
         """
         # TODO: add in params used to construct features into the cfgstr
-        sample_hashid = pblm.samples.sample_hashid()
+        if hasattr(pblm.samples, 'sample_hashid'):
+            ibs = pblm.infr.ibs
+            sample_hashid = pblm.samples.sample_hashid()
 
-        feat_dims = pblm.samples.X_dict[data_key].columns.values.tolist()
-        # cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
+            feat_dims = pblm.samples.X_dict[data_key].columns.values.tolist()
+            # cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
 
-        est_kw1, est_kw2 = pblm._estimator_params(clf_key)
-        param_id = ut.get_dict_hashid(est_kw1)
-        xval_id = pblm.xval_kw.get_cfgstr()
-        cfgstr = '_'.join([
-            sample_hashid, param_id, xval_id, task_key, data_key, clf_key,
-            ut.hashid_arr(feat_dims, 'feats')
-        ])
+            est_kw1, est_kw2 = pblm._estimator_params(clf_key)
+            param_id = ut.get_dict_hashid(est_kw1)
+            xval_id = pblm.xval_kw.get_cfgstr()
+            cfgstr = '_'.join([
+                sample_hashid, param_id, xval_id, task_key, data_key, clf_key,
+                ut.hashid_arr(feat_dims, 'feats')
+            ])
+            fname = 'eval_clfres_' + ibs.dbname
+        else:
+            fname = 'foo'
+            feat_dims = None
+            cfgstr = 'bar'
+            use_cache = False
 
+        # TODO: ABI class should not be caching
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
                          verbose=1)
         import ubelt as ub
-        ibs = pblm.infr.ibs
-        cacher_clf = ub.Cacher('eval_clfres_' + ibs.dbname, cfgstr=cfgstr,
+        cacher_clf = ub.Cacher(fname, cfgstr=cfgstr,
                                meta=[feat_dims], **cacher_kw)
 
         data = cacher_clf.tryload()
@@ -148,7 +178,7 @@ class ClfProblem(ut.NiceRepr):
         Learns a cross-validated classifier on the dataset
 
         Ignore:
-            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem()
             >>> pblm.load_features()
             >>> pblm.load_samples()
@@ -250,12 +280,30 @@ class ClfProblem(ut.NiceRepr):
         elif est_type in {'SVC', 'SVM'}:
             est_kw1 = dict(kernel='linear')
             est_kw2 = {}
+        elif est_type in {'Logit', 'LogisticRegression'}:
+            est_kw1 = {}
+            est_kw2 = {}
+        elif est_type in {'MLP'}:
+            est_kw1 = dict(
+                activation='relu', alpha=1e-05, batch_size='auto',
+                beta_1=0.9, beta_2=0.999, early_stopping=False,
+                epsilon=1e-08, hidden_layer_sizes=(10, 10),
+                learning_rate='constant', learning_rate_init=0.001,
+                max_iter=200, momentum=0.9, nesterovs_momentum=True,
+                power_t=0.5, random_state=3915904814, shuffle=True,
+                solver='lbfgs', tol=0.0001, validation_fraction=0.1,
+                warm_start=False
+            )
+            est_kw2 = dict(verbose=False)
+        else:
+            raise KeyError('Unknown Estimator')
         return est_kw1, est_kw2
 
     def _get_estimator(pblm, clf_key):
         """
         Returns sklearn classifier
         """
+        import sklearn.neural_network
         tup = clf_key.split('-')
         wrap_type = None if len(tup) == 1 else tup[1]
         est_type = tup[0]
@@ -267,6 +315,8 @@ class ClfProblem(ut.NiceRepr):
         est_class = {
             'RF': sklearn.ensemble.RandomForestClassifier,
             'SVC': sklearn.svm.SVC,
+            'Logit': sklearn.linear_model.LogisticRegression,
+            'MLP': sklearn.neural_network.MLPClassifier,
         }[est_type]
 
         est_kw1, est_kw2 = pblm._estimator_params(est_type)
@@ -277,10 +327,26 @@ class ClfProblem(ut.NiceRepr):
         # steps.append((est_type, est_class(**est_params)))
         # if wrap_type is not None:
         #     steps.append((wrap_type, multiclass_wrapper))
-        # pipe = sklearn.pipeline.Pipeline(steps)
-
-        def clf_partial():
-            return multiclass_wrapper(est_class(**est_params))
+        if est_type == 'MLP':
+            def clf_partial():
+                pipe = sklearn.pipeline.Pipeline([
+                    ('inputer', sklearn.preprocessing.Imputer(
+                        missing_values='NaN', strategy='mean', axis=0)),
+                    # ('scale', sklearn.preprocessing.StandardScaler),
+                    ('est', est_class(**est_params)),
+                ])
+                return multiclass_wrapper(pipe)
+        elif est_type == 'Logit':
+            def clf_partial():
+                pipe = sklearn.pipeline.Pipeline([
+                    ('inputer', sklearn.preprocessing.Imputer(
+                        missing_values='NaN', strategy='mean', axis=0)),
+                    ('est', est_class(**est_params)),
+                ])
+                return multiclass_wrapper(pipe)
+        else:
+            def clf_partial():
+                return multiclass_wrapper(est_class(**est_params))
 
         return clf_partial
 
@@ -303,7 +369,7 @@ class ClfProblem(ut.NiceRepr):
         helper script I've only run interactively
 
         Example:
-            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             #>>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm.load_samples()
@@ -315,7 +381,7 @@ class ClfProblem(ut.NiceRepr):
         from sklearn.model_selection import RandomizedSearchCV  # NOQA
         from sklearn.model_selection import GridSearchCV  # NOQA
         from sklearn.ensemble import RandomForestClassifier
-        from ibeis.scripts import sklearn_utils
+        from ibeis.algo.verif import sklearn_utils
 
         if data_key is None:
             data_key = pblm.default_data_key
@@ -1007,11 +1073,11 @@ class MultiTaskSamples(ut.NiceRepr):
     non-mutually exclusive subclassification labels
 
     CommandLine:
-        python -m ibeis.scripts.clf_helpers MultiTaskSamples
+        python -m ibeis.algo.verif.clf_helpers MultiTaskSamples
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.clf_helpers import *  # NOQA
+        >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
         >>> samples = MultiTaskSamples([0, 1, 2, 3])
         >>> tasks_to_indicators = ut.odict([
         >>>     ('task1', ut.odict([
@@ -1069,8 +1135,10 @@ class MultiTaskSamples(ut.NiceRepr):
 
     def class_name_basis(samples):
         """ corresponds with indexes returned from encoded1d """
-        class_name_basis = [(b, a) for a, b in ut.product(*[
+        class_name_basis = [t[::-1] for t in ut.product(*[
             v.class_names for k, v in samples.items()][::-1])]
+        # class_name_basis = [(b, a) for a, b in ut.product(*[
+        #     v.class_names for k, v in samples.items()][::-1])]
         return class_name_basis
 
     def class_idx_basis_2d(samples):
@@ -1234,7 +1302,7 @@ class MultiClassLabels(ut.NiceRepr):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.scripts.clf_helpers import *  # NOQA
+            >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
             >>> indicator = ut.odict([
             >>>         ('state1', [0, 0, 0, 1]),
             >>>         ('state2', [0, 0, 1, 0]),
@@ -1314,11 +1382,43 @@ class MultiClassLabels(ut.NiceRepr):
         print('len(%s) = %s' % (labels.task_name, len(labels)))
 
 
+class IrisProblem(ClfProblem):
+    """
+    Simple demo using the abstract clf problem to work on the iris dataset.
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.verif.clf_helpers import *  # NOQA
+            >>> pblm = IrisProblem()
+            >>> pblm.setup()
+            >>> pblm.samples
+
+    """
+
+    def setup(pblm):
+        import sklearn.datasets
+        iris = sklearn.datasets.load_iris()
+
+        pblm.primary_task_key = 'iris'
+        pblm.default_data_key = 'learn(all)'
+        pblm.default_clf_key = 'RF'
+
+        X_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+        samples = MultiTaskSamples(X_df.index)
+        samples.apply_indicators(
+            {'iris': {name: iris.target == idx
+                      for idx, name in enumerate(iris.target_names)}})
+        samples.X_dict = {'learn(all)': X_df}
+
+        pblm.samples = samples
+        pblm.xval_kw['type'] = 'StratifiedKFold'
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.scripts.samples
-        python -m ibeis.scripts.samples --allexamples
+        python -m ibeis.algo.verif.samples
+        python -m ibeis.algo.verif.samples --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

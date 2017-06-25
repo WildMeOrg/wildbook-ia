@@ -302,7 +302,6 @@ def main():
         python -m ibeis toy_classify_nans --toy2 --save "rf_nan_toy5.jpg" --figsize=10,10 --nanrate=0
 
     Example:
-        >>> from ibeis.algo.hots.script_vsone import *  # NOQA
         >>> result = toy_classify_nans()
     """
     from sklearn.ensemble import RandomForestClassifier

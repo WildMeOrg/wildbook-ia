@@ -610,7 +610,7 @@ class AnnotInfrMatching(object):
 class InfrLearning(object):
     def learn_evaluataion_clasifiers(infr):
         infr.print('learn_evaluataion_clasifiers')
-        from ibeis.scripts.script_vsone import OneVsOneProblem
+        from ibeis.algo.verif.vsone import OneVsOneProblem
         pblm = OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
         pblm.default_clf_key = 'RF'

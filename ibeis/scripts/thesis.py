@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-from ibeis.scripts import script_vsone
+from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
 from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 import ibeis.constants as const
@@ -78,7 +78,7 @@ class Chap5(DBInputs):
         if ibs.dbname == 'PZ_MTEST':
             params['sample_method'] = 'random'
 
-        self.pblm = script_vsone.OneVsOneProblem.from_aids(
+        self.pblm = vsone.OneVsOneProblem.from_aids(
             ibs, train_aids, **params)
 
         # ut.get_nonconflicting_path(dpath, suffix='_old')
@@ -1331,7 +1331,7 @@ class Chap4(DBInputs):
                 infr.reset_feedback('staging', apply=True)
                 print(ut.repr4(infr.status()))
 
-                pblm = script_vsone.OneVsOneProblem.from_aids(ibs, self.aids_pool)
+                pblm = vsone.OneVsOneProblem.from_aids(ibs, self.aids_pool)
                 pblm.load_samples()
                 pblm.samples.print_info()
 
@@ -1339,7 +1339,7 @@ class Chap4(DBInputs):
         else:
             aids = self.aids_pool
 
-        pblm = script_vsone.OneVsOneProblem.from_aids(ibs, aids)
+        pblm = vsone.OneVsOneProblem.from_aids(ibs, aids)
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         pblm.eval_task_keys = ['match_state', 'photobomb_state']
