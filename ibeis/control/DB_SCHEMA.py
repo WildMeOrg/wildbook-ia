@@ -1532,6 +1532,19 @@ def update_1_6_5(db, ibs=None):
         (15, 'image_toggle_cameratrap', 'INTEGER DEFAULT NULL', None),
     ))
 
+
+def update_XYZ_am_staging(db):
+    """
+
+    [c for c in df.columns if np.all(pd.isnull(df[c]))]
+
+    TODO:
+        drop annotmatch_pairwise_prob, config_hashid
+
+    """
+
+    'annotmatch_pairwise_prob'
+
 # ========================
 # Valid Versions & Mapping
 # ========================

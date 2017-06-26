@@ -20,6 +20,28 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
+def turk_pz():
+    import ibeis
+
+    ibs = ibeis.opendb('GZ_Master1')
+    infr = ibeis.AnnotInference(ibs, aids='all')
+    infr.reset_feedback('staging', apply=True)
+    infr.relabel_using_reviews(rectify=True)
+    # infr.apply_nondynamic_update()
+    print(ut.repr4(infr.status()))
+
+    infr.ibeis_delta_info()
+
+    infr.match_state_delta()
+    infr.get_ibeis_name_delta()
+
+    infr.relabel_using_reviews(rectify=True)
+    infr.write_ibeis_annotmatch_feedback()
+    infr.write_ibeis_name_assignment()
+
+    pass
+
+
 @ut.reloadable_class
 class VerifierExpt(DBInputs):
     """

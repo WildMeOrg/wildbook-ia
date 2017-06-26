@@ -145,8 +145,8 @@ if __name__ == '__main__':
 
         ibeis rsync pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
 
-        ibeis rsync push --db PZ_Master1 --user joncrall --remote lev --dryrun
-        ibeis rsync push --db GZ_Master1 --user joncrall --remote lev --dryrun
+        ibeis rsync push --db PZ_Master1 --user joncrall --remote lev
+        ibeis rsync push --db GZ_Master1 --user joncrall --remote lev
         ibeis rsync push --db NNP_MasterGIRM_core --user joncrall --remote lev --dryrun
         ibeis rsync push --db PZ_PB_RF_TRAIN --user joncrall --remote lev --dryrun
         ibeis rsync push --db WS_ALL --user joncrall --remote lev --dryrun

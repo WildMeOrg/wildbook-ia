@@ -6,7 +6,7 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import six
-from ibeis.algo.graph.nx_utils import e_
+import ibeis.algo.graph.nx_utils as nxu
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
 print, rrr, profile = ut.inject2(__name__)
@@ -145,7 +145,7 @@ class IBEISIO(object):
             >>> for cc1, cc2 in unjustified:
             >>>     u = next(iter(cc1))
             >>>     v = next(iter(cc2))
-            >>>     review_edges.append(e_(u, v))
+            >>>     review_edges.append(nxu.e_(u, v))
             >>> infr.verbose = 100
             >>> infr.prioritize(
             >>>     edges=review_edges, scores=[1] * len(review_edges),
@@ -425,7 +425,7 @@ class IBEISIO(object):
         for data in review_data:
             (aid1, aid2, count, decision_int,
              user_id, conf_int, timestamp, tags) = data
-            edge = e_(aid1, aid2)
+            edge = nxu.e_(aid1, aid2)
             feedback_item = {
                 'decision': lookup_truth[decision_int],
                 'timestamp': timestamp,
@@ -523,7 +523,7 @@ class IBEISIO(object):
 
         feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
-            edge = e_(aid1, aid2)
+            edge = nxu.e_(aid1, aid2)
             conf = confidence_list[count]
             truth_ = truth[count]
             timestamp = timestamp_list[count]
@@ -579,7 +579,8 @@ class IBEISIO(object):
         df['decision'] = decision
         df['aid1'] = aids1
         df['aid2'] = aids2
-        df['tags'] = tags
+        df['tags'] = [None if ts is None else [t.lower() for t in ts if t]
+                      for ts in tags]
         df['confidence'] = confidence
         df['timestamp'] = timestamp
         df['user_id'] = user_id
@@ -624,6 +625,10 @@ class IBEISIO(object):
             >>> (edge_delta_df) = infr.match_state_delta()
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
+
+        Ignore:
+            old = 'annotmatch'
+            new = 'all'
         """
         old_feedback = infr._feedback_df(old)
         new_feedback = infr._feedback_df(new)
@@ -816,6 +821,111 @@ class IBEISGroundtruth(object):
         nids2 = infr.ibs.get_annot_nids(aids2)
         is_same = (nids1 == nids2)
         return is_same
+
+
+def fix_annotmatch_to_undirected_upper(ibs):
+    """
+    Enforce that all items in annotmatch are undirected upper
+
+    import ibeis
+    # ibs = ibeis.opendb('PZ_Master1')
+    ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
+    """
+    df = ibs.db.get_table_as_pandas('annotmatch')
+    df.set_index(['annot_rowid1', 'annot_rowid2'], inplace=True, drop=False)
+    # We want everything in upper triangular form
+    is_upper = df['annot_rowid1'] < df['annot_rowid2']
+    is_lower = df['annot_rowid1'] > df['annot_rowid2']
+    is_equal = df['annot_rowid1'] == df['annot_rowid2']
+    assert not np.any(is_equal)
+
+    print(is_lower.sum())
+    print(is_upper.sum())
+
+    upper_edges = ut.estarmap(nxu.e_, df[is_upper].index.tolist())
+    lower_edges = ut.estarmap(nxu.e_, df[is_lower].index.tolist())
+    both_edges = ut.isect(upper_edges, lower_edges)
+    if len(both_edges) > 0:
+        both_upper = both_edges
+        both_lower = [tuple(e[::-1]) for e in both_edges]
+
+        df1 = df.loc[both_upper].reset_index(drop=True)
+        df2 = df.loc[both_lower].reset_index(drop=True)
+
+        df3 = df1.copy()
+
+        cols = ['annotmatch_truth', 'annotmatch_confidence', 'annotmatch_tag_text',
+                'annotmatch_posixtime_modified', 'annotmatch_reviewed',
+                'annotmatch_reviewer']
+
+        for col in cols:
+            idxs = np.where(pd.isnull(df3[col]))[0]
+            df3.loc[idxs, col] = df2.loc[idxs, col]
+
+        assert all(pd.isnull(df2.annotmatch_posixtime_modified)), 'should not happen'
+        assert all(pd.isnull(df2.annotmatch_reviewer)), 'should not happen'
+        assert all(pd.isnull(df2.annotmatch_confidence)), 'should not happen'
+        assert all(pd.isnull(df2.annotmatch_pairwise_prob)), 'should not happen'
+
+        flags = (df3.annotmatch_truth != df2.annotmatch_truth) & ~pd.isnull(df3.annotmatch_truth) & ~pd.isnull(df2.annotmatch_truth)
+        if any(flags & ~pd.isnull(df2.annotmatch_posixtime_modified)):
+            assert False, 'need to rectify'
+
+        tags2 = df2.annotmatch_tag_text.map(lambda x: {t for t in x.split(';') if t})
+        tags3 = df3.annotmatch_tag_text.map(lambda x: {t for t in x.split(';') if t})
+
+        # Merge the tags
+        df3['annotmatch_tag_text'] = [';'.join(sorted(t1.union(t2))) for t1, t2 in zip(tags3, tags2)]
+
+        delete_df = df3[pd.isnull(df3.annotmatch_truth)]
+
+        df4 = df3[~pd.isnull(df3.annotmatch_truth)]
+        ibs.set_annotmatch_truth(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_truth])
+        ibs.set_annotmatch_tag_text(df4.annotmatch_rowid, df4.annotmatch_tag_text.tolist())
+        ibs.set_annotmatch_confidence(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_confidence])
+        ibs.set_annotmatch_reviewer(df4.annotmatch_rowid, [None if pd.isnull(x) else str(x) for x in df4.annotmatch_reviewer])
+        ibs.set_annotmatch_posixtime_modified(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_posixtime_modified])
+
+        ibs.delete_annotmatch(delete_df.annotmatch_rowid)
+
+        # forwards_edge4 = [nxu.e_(u, v) for u, v in df4[['annot_rowid1', 'annot_rowid2']].values.tolist()]
+        # forwards_rowids4 = ibs.get_annotmatch_rowid_from_superkey(forwards_edge4)
+        backwards_edge4 = [nxu.e_(u, v)[::-1] for u, v in df4[['annot_rowid1', 'annot_rowid2']].values.tolist()]
+        backwards_rowids4 = ibs.get_annotmatch_rowid_from_superkey(backwards_edge4)
+        ibs.delete_annotmatch(backwards_rowids4)
+
+    #-------------------------
+
+    # NOW WE HAVE RECIFIED DUPLICATE PAIRS AND THERE IS ONLY ONE AID PAIR PER DB
+    # SO WE CAN SAFELY FLIP EVERYTHING TO BE IN UPPER TRIANGULAR MODE
+    df = ibs.db.get_table_as_pandas('annotmatch')
+    df.set_index(['annot_rowid1', 'annot_rowid2'], inplace=True, drop=False)
+    # We want everything in upper triangular form
+    is_upper = df['annot_rowid1'] < df['annot_rowid2']
+    is_lower = df['annot_rowid1'] > df['annot_rowid2']
+    is_equal = df['annot_rowid1'] == df['annot_rowid2']
+    assert not np.any(is_equal)
+
+    bad_lower_edges = df[is_lower].index.tolist()
+    upper_edges = ut.estarmap(nxu.e_, df[is_upper].index.tolist())
+    fix_lower_edges = ut.estarmap(nxu.e_, bad_lower_edges)
+    both_edges = ut.isect(upper_edges, fix_lower_edges)
+    assert len(both_edges) == 0, 'should not have any both edges anymore'
+
+    lower_rowids = ibs.get_annotmatch_rowid_from_superkey(*list(zip(*bad_lower_edges)))
+
+    assert not any(x is None for x in lower_rowids)
+
+    # Ensure all edges are upper triangular in the database
+    id_iter = lower_rowids
+    colnames = ('annot_rowid1', 'annot_rowid2')
+    ibs.db.set('annotmatch', colnames, fix_lower_edges, id_iter)
+
+    df = ibs.db.get_table_as_pandas('annotmatch')
+    df.set_index(['annot_rowid1', 'annot_rowid2'], inplace=True, drop=False)
+    # We want everything in upper triangular form
+    is_lower = df['annot_rowid1'] > df['annot_rowid2']
+    assert is_lower.sum() == 0
 
 
 if __name__ == '__main__':

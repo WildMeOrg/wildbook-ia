@@ -121,7 +121,7 @@ def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotm
 
 
 @register_ibs_method
-def delete_annotmatch(ibs, annotmatch_rowid_list, config2_=None):
+def delete_annotmatch(ibs, annotmatch_rowid_list):
     r""" annotmatch.delete(annotmatch_rowid_list)
 
     delete annotmatch rows
