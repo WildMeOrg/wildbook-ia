@@ -19,7 +19,9 @@ import sklearn.multiclass
 import sklearn.ensemble
 from ibeis.algo.verif import clf_helpers
 from ibeis.algo.verif import sklearn_utils
+from ibeis.algo.verif import pairfeat
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+from os.path import join, exists, basename
 from six.moves import zip
 print, rrr, profile = ut.inject2(__name__)
 
@@ -35,38 +37,6 @@ class PairSampleConfig(dt.Config):
         ut.ParamInfo('bot_gf', 1),
         ut.ParamInfo('rand_gf', 2),
     ]
-
-
-class PairFeatureConfig(dt.Config):
-    """ for building pairwise feature dimensions """
-    _param_info_list = [
-        # ut.ParamInfo('indices', slice(0, 5)),
-        ut.ParamInfo('indices', []),
-        ut.ParamInfo('summary_ops', {
-            # 'invsum',
-            'sum', 'std', 'mean', 'len', 'med'}),
-        ut.ParamInfo('local_keys', None),
-        ut.ParamInfo('sorters', [
-            # 'ratio', 'norm_dist', 'match_dist'
-            # 'lnbnn', 'lnbnn_norm_dist',
-        ]),
-        # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
-        ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
-        # ut.ParamInfo('bins', [.5, .6, .7, .8])
-        ut.ParamInfo('bins', (.625, .8), type_=eval),
-        ut.ParamInfo('need_lnbnn', False),
-
-        # ut.ParamInfo('med', True),
-    ]
-
-
-class VsOneMatchConfig(dt.Config):
-    _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG
-
-
-class VsOneFeatConfig(dt.Config):
-    """ keypoint params """
-    _param_info_list = vt.matching.VSONE_FEAT_CONFIG
 
 
 @ut.reloadable_class
@@ -114,10 +84,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params = dt.Config.from_dict(ut.odict([
             ('subsample', None),
             ('pair_sample', PairSampleConfig()),
-            ('vsone_kpts', VsOneFeatConfig()),
-            ('vsone_match', VsOneMatchConfig()),
-            ('pairwise_feats', PairFeatureConfig()),
-            ('sample_method', 'lnbnn'),
+            ('vsone_kpts', pairfeat.VsOneFeatConfig()),
+            ('vsone_match', pairfeat.VsOneMatchConfig()),
+            ('pairwise_feats', pairfeat.PairFeatureConfig()),
+            ('need_lnbnn', False),
+            # ('sample_method', 'lnbnn'),
+            ('sample_method', 'random'),
             ('sample_search', dict(
                 K=4, Knorm=1, requery=True, score_method='csum',
                 prescore_method='csum')),
@@ -160,8 +132,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         match_config.update(hyper_params['vsone_kpts'])
         match_config.update(hyper_params['vsone_match'])
         pairfeat_cfg = hyper_params['pairwise_feats'].asdict()
-        need_lnbnn = pairfeat_cfg.pop('need_lnbnn', False)
-        pblm.feat_construct_config = {
+        need_lnbnn = hyper_params['need_lnbnn']
+        # need_lnbnn = pairfeat_cfg.pop('need_lnbnn', False)
+        pblm.feat_extract_config = {
             'global_keys': global_keys,
             'match_config': match_config,
             'pairfeat_cfg': pairfeat_cfg,
@@ -269,7 +242,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             if data is None:
                 print('HACKING STATIC DATASET')
                 infos = []
-                from os.path import basename
                 for fpath in cacher1.existing_versions():
                     finfo = ut.get_file_info(fpath)
                     finfo['fname'] = basename(fpath)
@@ -379,20 +351,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         else:
             raise KeyError('Unknown sample_method={}'.format(sample_method))
 
-        # TODO: it would be nice to have a ibs database proprty that changes
-        # whenever any value in a primary table changes
-        # cacher2 = ub.Cacher('pairsample_2_v6', cfgstr=cfgstr,
-        #                     appname=pblm.appname, enabled=use_cache,
-        #                     verbose=pblm.verbose)
-        # data = cacher2.tryload()
-        # if data is None:
-        #     if pblm.verbose > 0:
-        #         print('[pblm] gather photobomb and incomparable cases')
         pb_aid_pairs = infr.photobomb_samples()
         incomp_aid_pairs = list(infr.incomp_graph.edges())
-        # data = pb_aid_pairs, incomp_aid_pairs
-        # cacher2.save(data)
-        # pb_aid_pairs, incomp_aid_pairs = data
 
         # Simplify life by using undirected pairs
         aid_pairs = pb_aid_pairs + list(aid_pairs_) + incomp_aid_pairs
@@ -425,64 +385,26 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.samples.apply_multi_task_multi_label()
 
     @profile
-    def load_features(pblm, use_cache=True, with_simple=True):
+    def load_features(pblm, use_cache=True, with_simple=False):
         """
         CommandLine:
             python -m ibeis.algo.verif.vsone load_features --profile
 
         Example:
             >>> from ibeis.algo.verif.vsone import *  # NOQA
-            >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
-            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm.load_samples()
             >>> pblm.load_features(with_simple=False)
         """
         if pblm.verbose > 0:
             ut.cprint('[pblm] load_features', color='blue')
 
-        infr = pblm.infr
-        # ibs = pblm.infr.ibs
-
-        infr.classifiers = pblm
-
+        ibs = pblm.infr.ibs
         edges = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
-        data_info = (pblm.feat_construct_config, None)
-        X_all = infr._cached_pairwise_features(edges, data_info)
-
-        # hyper_params = pblm.hyper_params
-        # TODO: features should also rely on global attributes
-        # fornow using edge+label hashids is good enough
-        # sample_hashid = pblm.samples.sample_hashid()
-        # cfgstr_parts = [
-        #     ibs.dbname,
-        #     sample_hashid,
-        #     hyper_params['vsone_kpts'].get_cfgstr(),
-        #     hyper_params['vsone_match'].get_cfgstr(),
-        #     hyper_params['pairwise_feats'].get_cfgstr(),
-        # ]
-        # cfgstr = '_'.join(cfgstr_parts)
-
-        # cacher = ub.Cacher('pairwise_data_' + ibs.dbname,
-        #                    cfgstr=cfgstr, appname=pblm.appname,
-        #                    enabled=use_cache, verbose=pblm.verbose)
-        # data = cacher.tryload()
-        # if data is None:
-        #     config = {}
-        #     config.update(hyper_params.vsone_match)
-        #     config.update(hyper_params.vsone_kpts)
-        #     pairfeat_cfg = hyper_params.pairwise_feats
-        #     need_lnbnn = False
-        #     if need_lnbnn:
-        #         raise NotImplementedError('not done yet')
-        #         if infr.qreq_ is None:
-        #             pass
-        #     matches, X_all = infr._make_pairwise_features(
-        #         aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg,
-        #         need_lnbnn=need_lnbnn)
-        #     data = X_all
-        #     cacher.save(data)
-        # X_all = data
-        # assert X_all.index.tolist() == aid_pairs, 'index disagrees'
+        feat_extract_config = pblm.feat_extract_config
+        extr = pairfeat.PairwiseFeatureExtractor(ibs, **feat_extract_config)
+        X_all = extr.transform(edges)
 
         pblm.raw_X_dict = {'learn(all)': X_all}
         pblm.samples.set_feats(copy.deepcopy(pblm.raw_X_dict))
@@ -553,104 +475,15 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.raw_simple_scores = simple_scores
         pblm.samples.set_simple_scores(copy.deepcopy(pblm.raw_simple_scores))
 
-    def _make_deploy_metadata(pblm, task_key=None):
-        if pblm.samples is None:
-            pblm.setup()
-
-        if task_key is None:
-            task_key = pblm.primary_task_key
-
-        # task_keys = list(pblm.samples.supported_tasks())
-        clf_key = pblm.default_clf_key
-        data_key = pblm.default_data_key
-
-        # Save the classifie
-        data_info = pblm.feat_construct_info[data_key]
-        feat_construct_config, feat_dims = data_info
-
-        samples = pblm.samples
-        labels = samples.subtasks[task_key]
-
-        edge_hashid = samples.edge_set_hashid()
-        label_hashid = samples.task_label_hashid(task_key)
-        tasksamp_hashid = samples.task_sample_hashid(task_key)
-
-        annot_hashid = ut.hashid_arr(samples._unique_annots.visual_uuids,
-                                     'annots')
-
-        metadata = {
-            'tasksamp_hashid': tasksamp_hashid,
-            'edge_hashid': edge_hashid,
-            'label_hashid': label_hashid,
-            'annot_hashid': annot_hashid,
-            'class_hist': labels.make_histogram(),
-            'class_names': labels.class_names,
-            'data_info': data_info
-            # 'aid_pairs': samples.aid_pairs,
-        }
-
-        fmtkw = {
-            'task_key': task_key,
-            'data_key': data_key,
-            'clf_key': clf_key,
-            'n_dims': len(feat_dims),
-        }
-        metadata.update(fmtkw)
-
-        meta_cfgstr = ut.repr2(metadata, kvsep=':', itemsep='',
-                               stritems=True)
-        hashid = ut.hash_data(meta_cfgstr)[0:16]
-
-        deploy_fname = (
-            'deploy_{task_key}_{data_key}_{n_dims}_{clf_key}_{hashid}.cPkl'
-        ).format(hashid=hashid, **fmtkw)
-
-        deploy_metadata = metadata.copy()
-        deploy_metadata['hashid'] = hashid
-        deploy_metadata['fname'] = deploy_fname
-        return deploy_metadata, deploy_fname
-
-    def _make_deploy_info(pblm, task_key=None):
-        if pblm.samples is None:
-            pblm.setup()
-
-        if task_key is None:
-            task_key = pblm.primary_task_key
-
-        deploy_metadata, deploy_fname = pblm._make_deploy_metadata(task_key)
-        clf_key = deploy_metadata['clf_key']
-        data_key = deploy_metadata['data_key']
-
-        clf = None
-        if pblm.deploy_task_clfs:
-            clf = pblm.deploy_task_clfs[task_key][clf_key][data_key]
-        if not clf:
-            pblm.learn_deploy_classifiers([task_key], clf_key, data_key)
-            clf = pblm.deploy_task_clfs[task_key][clf_key][data_key]
-
-        deploy_info = {
-            'clf': clf,
-            'metadata': deploy_metadata,
-        }
-        return deploy_info
-
     def ensure_deploy_classifiers(pblm, dpath='.'):
-        from os.path import join, exists
         classifiers = {}
         task_keys = list(pblm.samples.supported_tasks())
         for task_key in task_keys:
-            _, fname = pblm._make_deploy_metadata(task_key=task_key)
-            fpath = join(dpath, fname)
-            if exists(fpath):
-                deploy_info = ut.load_data(fpath)
-                assert bool(deploy_info['clf']), 'must have clf'
-            else:
-                deploy_info = pblm.deploy(dpath, task_key=task_key)
-                assert exists(fpath), 'must now exist'
+            deploy_info = Deployer(dpath).ensure(pblm, task_key)
             classifiers[task_key] = deploy_info
         return classifiers
 
-    def deploy(pblm, dpath='.', task_key=None):
+    def deploy(pblm, dpath='.', task_key=None, publish=False):
         """
         Trains and saves a classifier for deployment
 
@@ -660,30 +493,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 * Information needed to construct the input to the classifier
                     - TODO: can this be encoded as an sklearn pipeline?
                 * Metadata concerning what data the classifier was trained with
-
-        Example:
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
-            >>> params = dict(sample_method='random')
-            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
-            >>> pblm.setup(with_simple=False)
-            >>> task_key = pblm.primary_task_key
-            >>> pblm.deploy()
+                * PUBLISH TO /media/hdd/PUBLIC/models/pairclf
 
         Ignore:
             pblm.evaluate_classifiers(with_simple=False)
             res = pblm.task_combo_res[pblm.primary_task_key]['RF']['learn(sum,glob)']
-
         """
-        deploy_info = pblm._make_deploy_info(task_key=task_key)
-        deploy_fname = deploy_info['metadata']['fname']
-
-        from os.path import join
-        deploy_fpath = join(dpath, deploy_fname)
-        meta_fpath = deploy_fpath + '.meta.json'
-
-        ut.save_json(meta_fpath, deploy_info['metadata'])
-        ut.save_data(deploy_fpath, deploy_info)
-        return deploy_info
+        return Deployer(dpath=dpath, pblm=pblm).deploy(task_key, publish)
 
     def setup(pblm, with_simple=False):
         pblm.set_pandas_options()
@@ -722,7 +538,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             print('No data to train task_key = %r' % (task_key,))
             task_keys.remove(task_key)
 
-    def setup_evaluation(pblm, with_simple=True):
+    def setup_evaluation(pblm, with_simple=False):
         pblm.setup(with_simple=with_simple)
 
         task_keys = pblm.eval_task_keys
@@ -758,7 +574,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         for task_key in pblm.eval_task_keys:
             pblm.task_evaluation_report(task_key)
 
-    def evaluate_classifiers(pblm, with_simple=True):
+    def evaluate_classifiers(pblm, with_simple=False):
         """
         CommandLine:
             python -m ibeis.algo.verif.vsone evaluate_classifiers
@@ -1064,7 +880,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             assert set(have_edges) | set(need_edges) == set(want_edges)
 
             infr.classifiers = pblm
-            data_info = pblm.feat_construct_info[data_key]
+            data_info = pblm.feat_extract_info[data_key]
             X_need = infr._cached_pairwise_features(need_edges, data_info)
             # X_need = infr._pblm_pairwise_features(need_edges, data_key)
             # Make an ensemble of the evaluation classifiers
@@ -1124,11 +940,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo = vt.AnnotPairFeatInfo(X)
 
         X_dict = ut.odict()
-        pblm.feat_construct_info = {}
+        pblm.feat_extract_info = {}
         def register_data_key(data_key, cols):
             feat_dims = sorted(cols)
-            data_info = (pblm.feat_construct_config, feat_dims)
-            pblm.feat_construct_info[data_key] = data_info
+            data_info = (pblm.feat_extract_config, feat_dims)
+            pblm.feat_extract_info[data_key] = data_info
             X_dict[data_key] = X[feat_dims]
 
         register_data_key('learn(all)', list(X.columns))
@@ -1757,6 +1573,317 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         win = infr.qt_review_loop(cfgdict=cfgdict)
         # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
         return win
+
+
+@ut.reloadable_class
+class Deployer(object):
+
+    fname_parts = ['vsone', '{species}', '{task_key}',
+                   '{clf_key}', '{n_dims}', '{hashid}']
+
+    fname_fmtstr = '.'.join(fname_parts)
+
+    meta_suffix = '.meta.json'
+
+    publish_info = {
+        'remote': 'lev.cs.rpi.edu',
+        'path': '/media/hdd/PUBLIC/models/pairclf',
+    }
+
+    # published = {
+    #     'zebra_plains': {
+    #         'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
+    #         # 'photobomb_state': None,
+    #     },
+    #     'zebra_grevys': {},
+    # }
+    published = {
+        'zebra_plains': {
+            'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
+        },
+    }
+
+    def __init__(self, dpath='.', pblm=None):
+        self.dpath = dpath
+        self.pblm = pblm
+
+    def _load_published(self, ibs, species, task_key):
+        """
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> self = Deployer()
+        """
+
+        base_url = 'https://{remote}/public/models/pairclf'.format(
+            **self.publish_info)
+
+        task_fnames = self.published[species]
+        fname = task_fnames[task_key]
+
+        grabkw = dict(appname='ibeis', check_hash=False, verbose=0)
+
+        # meta_url = base_url + '/' + fname + self.meta_suffix
+        # meta_fpath = ut.grab_file_url(meta_url, **grabkw)
+
+        deploy_url = base_url + '/' + fname
+        deploy_fpath = ut.grab_file_url(deploy_url, **grabkw)
+
+        verif = self._load_verifier(ibs, deploy_fpath, task_key)
+        return verif
+
+    def _load_verifier(self, ibs, deploy_fpath, task_key):
+        from ibeis.algo.verif import verifier
+        deploy_info = ut.load_data(deploy_fpath)
+        verif = verifier.Verifier(ibs, deploy_info=deploy_info)
+        if task_key is not None:
+            assert verif.metadata['task_key'] == task_key, (
+                'bad saved clf at fpath={}'.format(deploy_fpath))
+        return verif
+
+    def load_published(self, ibs, species):
+        task_fnames = self.published[species]
+        classifiers = {
+            task_key: self._load_published(ibs, species, task_key)
+            for task_key in task_fnames.keys()
+        }
+        return classifiers
+
+    def find_pretrained(self):
+        import glob
+        import parse
+        fname_fmt = self.fname_fmtstr + '.cPkl'
+        task_clf_candidates = ut.ddict(list)
+        globstr = self.fname_parts[0] + '.*.cPkl'
+        for fpath in glob.iglob(join(self.dpath, globstr)):
+            fname = basename(fpath)
+            result = parse.parse(fname_fmt, fname)
+            if result:
+                task_key = result.named['task_key']
+                task_clf_candidates[task_key].append(fpath)
+        return task_clf_candidates
+
+    def find_latest_remote(self):
+        """
+        Used to update the published dict
+        """
+        base_url = 'https://{remote}/public/models/pairclf'.format(
+            **self.publish_info)
+        import requests
+        import bs4
+        resp = requests.get(base_url)
+        soup = bs4.BeautifulSoup(resp.text, 'html.parser')
+        table = soup.findAll('table')[0]
+
+        def parse_bs_table(table):
+            n_columns = 0
+            n_rows = 0
+            column_names = []
+            # Find number of rows and columns
+            # we also find the column titles if we can
+            for row in table.find_all('tr'):
+                td_tags = row.find_all('td')
+                if len(td_tags) > 0:
+                    n_rows += 1
+                    if n_columns == 0:
+                        n_columns = len(td_tags)
+                # Handle column names if we find them
+                th_tags = row.find_all('th')
+                if len(th_tags) > 0 and len(column_names) == 0:
+                    for th in th_tags:
+                        column_names.append(th.get_text())
+
+            # Safeguard on Column Titles
+            if len(column_names) > 0 and len(column_names) != n_columns:
+                raise Exception("Column titles do not match the number of columns")
+            columns = column_names if len(column_names) > 0 else range(0, n_columns)
+            df = pd.DataFrame(columns=columns, index=list(range(0, n_rows)))
+            row_marker = 0
+            for row in table.find_all('tr'):
+                column_marker = 0
+                columns = row.find_all('td')
+                for column in columns:
+                    df.iat[row_marker, column_marker] = column.get_text().strip()
+                    column_marker += 1
+                if len(columns) > 0:
+                    row_marker += 1
+            return df
+        df = parse_bs_table(table)
+        # Find all available models
+        df = df[df['Name'].map(lambda x: x.endswith('.cPkl'))]
+        # df = df[df['Last modified'].map(len) > 0]
+
+        fname_fmt = self.fname_fmtstr + '.cPkl'
+        task_clf_candidates = ut.ddict(list)
+        import parse
+        for idx, row in df.iterrows():
+            fname = basename(row['Name'])
+            result = parse.parse(fname_fmt, fname)
+            if result:
+                task_key = result.named['task_key']
+                species = result.named['species']
+                task_clf_candidates[(species, task_key)].append(idx)
+
+        task_clf_fnames = ut.ddict(dict)
+        for key, idxs in task_clf_candidates.items():
+            species, task_key = key
+            # Find the classifier most recently created
+            max_idx = ut.argmax(df.loc[idxs]['Last modified'].tolist())
+            fname = df.loc[idxs[max_idx]]['Name']
+            task_clf_fnames[species][task_key] = fname
+
+        print('published = ' + ut.repr2(task_clf_fnames, nl=2))
+        return task_clf_fnames
+
+    def find_latest_local(self):
+        """
+
+            >>> self = Deployer()
+            >>> self.find_pretrained()
+            >>> self.find_latest_local()
+        """
+        from os.path import getctime
+        task_clf_candidates = self.find_pretrained()
+        task_clf_fpaths = {}
+        for task_key, fpaths in task_clf_candidates.items():
+            # Find the classifier most recently created
+            fpath = fpaths[ut.argmax(map(getctime, fpaths))]
+            task_clf_fpaths[task_key] = fpath
+        return task_clf_fpaths
+
+    def _make_deploy_metadata(self, task_key=None):
+        pblm = self.pblm
+        if pblm.samples is None:
+            pblm.setup()
+
+        if task_key is None:
+            task_key = pblm.primary_task_key
+
+        # task_keys = list(pblm.samples.supported_tasks())
+        clf_key = pblm.default_clf_key
+        data_key = pblm.default_data_key
+
+        # Save the classifie
+        data_info = pblm.feat_extract_info[data_key]
+        feat_extract_config, feat_dims = data_info
+
+        samples = pblm.samples
+        labels = samples.subtasks[task_key]
+
+        edge_hashid = samples.edge_set_hashid()
+        label_hashid = samples.task_label_hashid(task_key)
+        tasksamp_hashid = samples.task_sample_hashid(task_key)
+
+        annot_hashid = ut.hashid_arr(samples._unique_annots.visual_uuids,
+                                     'annots')
+
+        # species = pblm.infr.ibs.get_primary_database_species(
+        #     samples._unique_annots.aid)
+        species = '+'.join(sorted(set(samples._unique_annots.species)))
+
+        metadata = {
+            'tasksamp_hashid': tasksamp_hashid,
+            'edge_hashid': edge_hashid,
+            'label_hashid': label_hashid,
+            'annot_hashid': annot_hashid,
+            'class_hist': labels.make_histogram(),
+            'class_names': labels.class_names,
+            'data_info': data_info,
+            'task_key': task_key,
+            'species': species,
+            'data_key': data_key,
+            'clf_key': clf_key,
+            'n_dims': len(feat_dims),
+            # 'aid_pairs': samples.aid_pairs,
+        }
+
+        meta_cfgstr = ut.repr2(metadata, kvsep=':', itemsep='', si=True)
+        hashid = ut.hash_data(meta_cfgstr)[0:16]
+
+        deploy_fname = (self.fname_fmtstr.format(hashid=hashid, **metadata) +
+                        '.cPkl')
+
+        deploy_metadata = metadata.copy()
+        deploy_metadata['hashid'] = hashid
+        deploy_metadata['fname'] = deploy_fname
+        return deploy_metadata, deploy_fname
+
+    def _make_deploy_info(self, task_key=None):
+        pblm = self.pblm
+        if pblm.samples is None:
+            pblm.setup()
+
+        if task_key is None:
+            task_key = pblm.primary_task_key
+
+        deploy_metadata, deploy_fname = self._make_deploy_metadata(task_key)
+        clf_key = deploy_metadata['clf_key']
+        data_key = deploy_metadata['data_key']
+
+        clf = None
+        if pblm.deploy_task_clfs:
+            clf = pblm.deploy_task_clfs[task_key][clf_key][data_key]
+        if not clf:
+            pblm.learn_deploy_classifiers([task_key], clf_key, data_key)
+            clf = pblm.deploy_task_clfs[task_key][clf_key][data_key]
+
+        deploy_info = {
+            'clf': clf,
+            'metadata': deploy_metadata,
+        }
+        return deploy_info
+
+    def ensure(self, task_key):
+        _, fname = self._make_deploy_metadata(task_key=task_key)
+        fpath = join(self.dpath, fname)
+        if exists(fpath):
+            deploy_info = ut.load_data(fpath)
+            assert bool(deploy_info['clf']), 'must have clf'
+        else:
+            deploy_info = self.deploy(task_key=task_key)
+            assert exists(fpath), 'must now exist'
+
+    def deploy(self, task_key=None, publish=False):
+        """
+        Trains and saves a classifier for deployment
+
+        Notes:
+            A deployment consists of the following information
+                * The classifier itself
+                * Information needed to construct the input to the classifier
+                    - TODO: can this be encoded as an sklearn pipeline?
+                * Metadata concerning what data the classifier was trained with
+                * PUBLISH TO /media/hdd/PUBLIC/models/pairclf
+
+        Example:
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> params = dict(sample_method='random')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
+            >>> pblm.setup(with_simple=False)
+            >>> task_key = pblm.primary_task_key
+            >>> self = Deployer(dpath='.', pblm=pblm)
+            >>> deploy_info = self.deploy()
+
+        Ignore:
+            pblm.evaluate_classifiers(with_simple=False)
+            res = pblm.task_combo_res[pblm.primary_task_key]['RF']['learn(sum,glob)']
+        """
+        deploy_info = self._make_deploy_info(task_key=task_key)
+        deploy_fname = deploy_info['metadata']['fname']
+
+        meta_fname = deploy_fname + self.meta_suffix
+        deploy_fpath = join(self.dpath, deploy_fname)
+        meta_fpath = join(self.dpath, meta_fname)
+
+        ut.save_json(meta_fpath, deploy_info['metadata'])
+        ut.save_data(deploy_fpath, deploy_info)
+
+        if publish:
+            user = ut.get_user_name()
+            remote_uri = '{user}@{remote}:{path}'.format(user=user,
+                                                         **self.publish_info)
+
+            ut.rsync(meta_fpath, remote_uri + '/' + meta_fname)
+            ut.rsync(deploy_fpath, remote_uri + '/' + deploy_fname)
+        return deploy_info
 
 
 @ut.reloadable_class

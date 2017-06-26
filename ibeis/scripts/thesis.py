@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
+from ibeis.scripts._thesis_helpers import Tabular, upper_one
 from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 import ibeis.constants as const
 from ibeis.algo.graph import nx_utils as nxu
@@ -304,7 +305,7 @@ class Chap5(DBInputs):
         for class_name in [NEGTV, POSTV]:
             fnum = 1
             x = [t[class_name] for t in thresh]
-            class_nums = np.array([n[class_name] for n in actual_nums])
+            # class_nums = np.array([n[class_name] for n in actual_nums])
             class_actual = np.array([a[class_name] for a in actual_fpr])
             class_est = target_values
 
@@ -626,8 +627,7 @@ class Chap5(DBInputs):
         infr.readonly = True
         infr._viz_image_config['thumbsize'] = 700
         infr._viz_image_config['grow'] = True
-        infr.classifiers = infr.load_latest_classifiers(
-            join(self.dpath, 'clf'))
+        infr.load_latest_classifiers(join(self.dpath, 'clf'))
         infr.relabel_using_reviews(rectify=False)
 
         # For each node, mark its real and predicted ids
@@ -1763,7 +1763,7 @@ class Chap4(DBInputs):
         # Augment cases with their one-vs-one matches
         infr = pblm.infr
         data_key = self.data_key
-        config = pblm.feat_construct_info[data_key][0]['match_config']
+        config = pblm.feat_extract_info[data_key][0]['match_config']
         edges = [case['edge'] for case in cases]
         matches = infr._exec_pairwise_match(edges, config)
 
@@ -4006,185 +4006,6 @@ def ave_str(mean, std, precision=2):
     fmtstr = ''.join([ffmt, '±', ffmt])
     str_ = fmtstr.format(mean, std)
     return str_
-
-
-def split_tabular(text):
-    top, rest = text.split('\\toprule')
-
-    x = rest.split('\\midrule')
-    header, body1, rest = x[0], x[1:-1], x[-1]
-    # header, *body1, rest = rest.split('\\midrule')
-
-    y = rest.split('\\bottomrule')
-    body2, bot = y[0:-1], y[-1]
-    # *body2, bot = rest.split('\\bottomrule')
-
-    top = top.strip('\n')
-    header = header.strip('\n')
-    mid = [b.strip('\n') for b in body1 + body2]
-    bot = bot.strip('\n')
-    # print(top)
-    # print(header)
-    # print(body)
-    # print(bot)
-    parts = (top, header, mid, bot)
-    return parts
-
-
-@ut.reloadable_class
-class Tabular(object):
-    def __init__(self, data=None, colfmt=None, hline=None, caption='',
-                 index=True, escape=True):
-        self._data = data
-        self.n_cols = None
-        self.n_rows = None
-        self.df = None
-        self.text = None
-        self.parts = None
-        self.colfmt = colfmt
-        self.hline = hline
-        self.theadify = False
-        self.caption = caption
-        self.groupxs = None
-
-        self.n_index_levels = 1
-        # pandas options
-        self.index = index
-        self.escape = escape
-
-    def _rectify_colfmt(self, colfmt=None):
-        if colfmt is None:
-            colfmt = self.colfmt
-        if colfmt == 'numeric':
-            assert self.n_cols is not None, 'need ncols for numeric'
-            colfmt = 'l' * self.n_index_levels + 'r' * (self.n_cols)
-        return colfmt
-
-    def _rectify_text(self, text):
-        import re
-        text = text.replace('±', '\pm')
-        # Put all numbers in math mode
-        pat = ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
-        text2 = re.sub(pat, '$' + ut.bref_field('num') + '$', text)
-
-        # latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
-        return text2
-
-    def as_text(self):
-        if isinstance(self._data, str):
-            text = self._data
-        elif isinstance(self._data, pd.DataFrame):
-            df = self._data
-            text = df.to_latex(
-                index=self.index, escape=self.escape,
-                float_format=lambda x: 'nan' if np.isnan(x) else '%.2f' % (x))
-            if self.index:
-                self.n_index_levels = len(df.index.names)
-            self.n_rows = df.shape[0]
-            self.n_cols = df.shape[1]
-        text = self._rectify_text(text)
-        return text
-
-    def as_parts(self):
-        if self.parts is not None:
-            return self.parts
-        text = self.as_text()
-        top, header, mid, bot = split_tabular(text)
-        colfmt = self._rectify_colfmt()
-        if colfmt is not None:
-            top = '\\begin{tabular}{%s}' % (colfmt,)
-
-        if self.theadify:
-            import textwrap
-            width = self.theadify
-            wrapper = textwrap.TextWrapper(width=width, break_long_words=False)
-
-            header_lines = header.split('\n')
-            new_lines = []
-            for line in header_lines:
-                line = line.rstrip('\\')
-                headers = [h.strip() for h in line.split('&')]
-                headers = ['\\\\'.join(wrapper.wrap(h)) for h in headers]
-                headers = [h if h == '{}' else '\\thead{' + h + '}'
-                           for h in headers]
-                line = ' & '.join(headers) + '\\\\'
-                new_lines.append(line)
-            new_header = '\n'.join(new_lines)
-            header = new_header
-        if True:
-            groupxs = self.groupxs
-            # Put midlines between multi index levels
-            if groupxs is None and isinstance(self._data, pd.DataFrame):
-                index = self._data.index
-                if len(index.names) == 2 and len(mid) == 1:
-                    groupxs = ut.group_indices(index.labels[0])[1]
-                    # part = '\n\multirow{%d}{*}{%s}\n' % (len(chunk), key,)
-                    # part += '\n'.join(['& ' + c for c in chunk])
-            if groupxs is not None:
-                bodylines = mid[0].split('\n')
-                mid = ut.apply_grouping(bodylines, groupxs)
-        parts = (top, header, mid, bot)
-        return parts
-
-    def as_tabular(self):
-        parts = self.as_parts()
-        tabular = join_tabular(parts, hline=self.hline)
-        return tabular
-
-    def as_table(self, caption=None):
-        if caption is None:
-            caption = self.caption
-        tabular = self.as_tabular()
-        table = ut.codeblock(
-            r'''
-            \begin{{table}}[h]
-                \centering
-                \caption{{{caption}}}
-            ''').format(caption=caption)
-        if tabular:
-            table += '\n' + ut.indent(tabular)
-        table += '\n' + ut.codeblock(
-            '''
-            \end{{table}}
-            ''').format()
-        return table
-
-
-def upper_one(s):
-    return s[0].upper() + s[1:]
-
-
-def join_tabular(parts, hline=False, align=True):
-    top, header, mid, bot = parts
-
-    if hline:
-        toprule = midrule = botrule = '\\hline'
-    else:
-        toprule = '\\toprule'
-        midrule = '\\midrule'
-        botrule = '\\bottomrule'
-
-    ut.flatten(ut.bzip(['a', 'b', 'c'], ['-']))
-
-    top_parts = [top, toprule, header]
-    if mid:
-        # join midblocks given as lists of lines instead of strings
-        midblocks = []
-        for m in mid:
-            if isinstance(m, str):
-                midblocks.append(m)
-            else:
-                midblocks.append('\n'.join(m))
-        mid_parts = ut.flatten(ut.bzip([midrule], midblocks))
-    else:
-        mid_parts = []
-    # middle_parts = ut.flatten(list(ut.bzip(body_parts, ['\\midrule'])))
-    bot_parts = [botrule, bot]
-    text = '\n'.join(top_parts + mid_parts + bot_parts)
-    if align:
-        text = ut.align(text, '&', pos=None)
-        # text = ut.align(text, r'\\', pos=None)
-    return text
 
 
 if __name__ == '__main__':

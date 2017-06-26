@@ -1016,7 +1016,19 @@ class AnnotInference(ut.NiceRepr,
         infr._viz_image_config = {
             'in_image': False,
             'thumbsize': 221,
+        }
 
+        # primary_task = 'match_state'
+        infr.task_thresh = {
+            'match_state': {
+                POSTV: np.inf,
+                NEGTV: np.inf,
+                INCMP: np.inf,
+            },
+            'photobomb_state': {
+                'pb': np.inf,
+                'nopb': np.inf,
+            }
         }
 
         # Modes

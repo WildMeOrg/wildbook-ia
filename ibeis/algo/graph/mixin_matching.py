@@ -74,278 +74,7 @@ class AnnotInfrMatching(object):
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
 
-    def exec_vsone(infr, prog_hook=None):
-        r"""
-        DEPRICATE and use _exec_pairwise_match instead
-
-        Args:
-            prog_hook (None): (default = None)
-
-        CommandLine:
-            python -m ibeis.algo.graph.core exec_vsone
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.ensure_full()
-            >>> result = infr.exec_vsone()
-            >>> print(result)
-        """
-        # Post process ranks_top and bottom vsmany queries with vsone
-        # Execute vsone queries on the best vsmany results
-        parent_rowids = list(infr.graph.edges())
-        qaids = ut.take_column(parent_rowids, 0)
-        daids = ut.take_column(parent_rowids, 1)
-
-        config = {
-            # 'sv_on': False,
-            'ratio_thresh': .9,
-        }
-
-        result_list = infr.ibs.depc.get('vsone', (qaids, daids), config=config)
-        # result_list = infr.ibs.depc.get('vsone', parent_rowids)
-        # result_list = infr.ibs.depc.get('vsone', [list(zip(qaids)), list(zip(daids))])
-        # hack copy the postprocess
-        import ibeis
-        unique_qaids, groupxs = ut.group_indices(qaids)
-        grouped_daids = ut.apply_grouping(daids, groupxs)
-
-        unique_qnids = infr.ibs.get_annot_nids(unique_qaids)
-        single_cm_list = ut.take_column(result_list, 1)
-        grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
-
-        _iter = zip(unique_qaids, unique_qnids, grouped_daids, grouped_cms)
-        cm_list = []
-        for qaid, qnid, daids, cms in _iter:
-            # Hacked in version of creating an annot match object
-            chip_match = ibeis.ChipMatch.combine_cms(cms)
-            # chip_match.score_name_maxcsum(request)
-            cm_list.append(chip_match)
-
-        # cm_list = qreq_.execute(parent_rowids)
-        infr.vsone_qreq_ = infr.ibs.depc.new_request('vsone', qaids, daids,
-                                                     cfgdict=config)
-        infr.vsone_cm_list_ = cm_list
-        infr.qreq_  = infr.vsone_qreq_
-        infr.cm_list = cm_list
-
-    def _exec_pairwise_match(infr, edges, config={}, prog_hook=None):
-        """
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> config = {}
-            >>> infr.ensure_full()
-            >>> edges = [(1, 2), (2, 3)]
-            >>> config = {}
-            >>> prog_hook = None
-            >>> match_list = infr._exec_pairwise_match(edges, config)
-            >>> match1, match2 = match_list
-            >>> assert match1.annot2 is match2.annot1
-            >>> assert match1.annot1 is not match2.annot2
-        """
-        edges = ut.lmap(tuple, ut.aslist(edges))
-        infr.print('exec_vsone_subset')
-        qaids = ut.take_column(edges, 0)
-        daids = ut.take_column(edges, 1)
-        # TODO: ensure feat/chip configs are resepected
-        match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
-                                       'match', config=config)
-
-        # Hack: Postprocess matches to re-add annotation info in lazy-dict format
-        from ibeis import core_annots
-        config = ut.hashdict(config)
-        ibs = infr.ibs
-        qannot_cfg = dannot_cfg = config
-        preload = True
-        configured_lazy_annots = core_annots.make_configured_annots(
-            ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=preload)
-        for qaid, daid, match in zip(qaids, daids, match_list):
-            match.annot1 = configured_lazy_annots[config][qaid]
-            match.annot2 = configured_lazy_annots[config][daid]
-            match.config = config
-        return match_list
-
-    def _enrich_matches_lnbnn(infr, matches, inplace=False):
-        """
-        applies lnbnn scores to pairwise one-vs-one matches
-        """
-        from ibeis.algo.hots import nn_weights
-        qreq_ = infr.qreq_
-        qreq_.load_indexer()
-        indexer = qreq_.indexer
-        if not inplace:
-            matches_ = [match.copy() for match in matches]
-        else:
-            matches_ = matches
-        K = qreq_.qparams.K
-        Knorm = qreq_.qparams.Knorm
-        normalizer_rule  = qreq_.qparams.normalizer_rule
-
-        infr.print('Stacking vecs for batch lnbnn matching')
-        offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
-        stacked_vecs = np.vstack([
-            match_.matched_vecs2()
-            for match_ in ut.ProgIter(matches_, label='stack matched vecs')
-        ])
-
-        vecs = stacked_vecs
-        num = (K + Knorm)
-        idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
-                                        label='lnbnn scoring')
-
-        idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-        dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
-        iter_ = zip(matches_, idx_list, dist_list)
-        prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
-        for match_, neighb_idx, neighb_dist in prog:
-            qaid = match_.annot2['aid']
-            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm,
-                                          normalizer_rule)
-            ndist = vt.take_col_per_row(neighb_dist, norm_k)
-            vdist = match_.local_measures['match_dist']
-            lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
-            lnbnn_clip_dist = np.clip(lnbnn_dist, 0, np.inf)
-            match_.local_measures['lnbnn_norm_dist'] = ndist
-            match_.local_measures['lnbnn'] = lnbnn_dist
-            match_.local_measures['lnbnn_clip'] = lnbnn_clip_dist
-            match_.fs = lnbnn_dist
-        return matches_
-
-    def _enriched_pairwise_matches(infr, edges, config={}, global_keys=None,
-                                   need_lnbnn=True, prog_hook=None):
-        """
-        Adds extra domain specific local and global properties that the match
-        object doesnt directly provide.
-
-        config = {
-            'K': 1,
-            'Knorm': 3,
-            'affine_invariance': True,
-            'augment_orientation': True,
-            'checks': 20,
-            'ratio_thresh': 0.8,
-            'refine_method': 'homog',
-            'sv_on': True,
-            'sver_xy_thresh': 0.01,
-            'symmetric': True,
-            'weight': 'fgweights'
-        }
-        need_lnbnn = False
-        global_keys = ['gps', 'qual', 'time', 'yaw']
-        prog_hook = None
-        """
-        if global_keys is None:
-            raise ValueError('specify global keys')
-            # global_keys = ['yaw', 'qual', 'gps', 'time']
-            # global_keys = ['view', 'qual', 'gps', 'time']
-        matches = infr._exec_pairwise_match(edges, config=config,
-                                            prog_hook=prog_hook)
-        infr.print('enriching matches')
-        if need_lnbnn:
-            infr._enrich_matches_lnbnn(matches, inplace=True)
-        # Ensure matches know about relavent metadata
-        for match in matches:
-            vt.matching.ensure_metadata_normxy(match.annot1)
-            vt.matching.ensure_metadata_normxy(match.annot2)
-        for match in ut.ProgIter(matches, label='setup globals'):
-            match.add_global_measures(global_keys)
-        for match in ut.ProgIter(matches, label='setup locals'):
-            match.add_local_measures()
-        return matches
-
-    def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
-                                global_keys=None, need_lnbnn=True,
-                                multi_index=True):
-        """
-        Construct matches and their pairwise features
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_mtest_infr()
-            >>> config = {
-            >>>     'K': 1,
-            >>>     'Knorm': 3,
-            >>>     'affine_invariance': True,
-            >>>     'augment_orientation': True,
-            >>>     'checks': 20,
-            >>>     'ratio_thresh': 0.8,
-            >>>     'refine_method': 'homog',
-            >>>     'sv_on': True,
-            >>>     'sver_xy_thresh': 0.01,
-            >>>     'symmetric': True,
-            >>>     'weight': 'fgweights'
-            >>> }
-            >>> need_lnbnn = False
-            >>> #global_keys = ['gps', 'qual', 'time', 'yaw']
-            >>> global_keys = ['gps', 'qual', 'time', 'view']
-            >>> local_keys =  [
-            >>>     'fgweights', 'match_dist', 'norm_dist', 'norm_x1', 'norm_x2',
-            >>>     'norm_y1', 'norm_y2', 'ratio_score', 'scale1', 'scale2',
-            >>>     'sver_err_ori', 'sver_err_scale', 'sver_err_xy',
-            >>>     'weighted_norm_dist', 'weighted_ratio']
-            >>> pairfeat_cfg = {
-            >>>     'bin_key': 'ratio',
-            >>>     'bins': [0.6, 0.7, 0.8],
-            >>>     'indices': [],
-            >>>     'local_keys': local_keys,
-            >>>     'sorters': [],
-            >>>     'summary_ops': ['len', 'mean', 'sum']
-            >>> }
-            >>> multi_index = True
-            >>> edges = [(1, 2), (2, 3)]
-            >>> matches, X = infr._make_pairwise_features(
-            >>>     edges, config, pairfeat_cfg, global_keys, need_lnbnn,
-            >>>     multi_index)
-            >>> featinfo = vt.AnnotPairFeatInfo(X.columns)
-            >>> print(featinfo.get_infostr())
-            >>> match = matches[0]
-            >>> match._make_global_feature_vector(global_keys)
-        """
-        import pandas as pd
-        # TODO: ensure feat/chip configs are resepected
-        edges = ut.lmap(tuple, ut.aslist(edges))
-        if len(edges) == 0:
-            return [], []
-
-        matches = infr._enriched_pairwise_matches(edges, config=config,
-                                                  global_keys=global_keys,
-                                                  need_lnbnn=need_lnbnn)
-        # ---------------
-        # Try different feature constructions
-        infr.print('building pairwise features')
-        pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
-        X = pd.DataFrame([
-            m.make_feature_vector(**pairfeat_cfg)
-            for m in ut.ProgIter(matches, label='making pairwise feats')
-        ])
-        if multi_index:
-            # Index features by edges
-            uv_index = nxu.ensure_multi_index(edges, ('aid1', 'aid2'))
-            X.index = uv_index
-        X[pd.isnull(X)] = np.nan
-        X[np.isinf(X)] = np.nan
-        # Re-order column names to ensure dimensions are consistent
-        X = X.reindex_axis(sorted(X.columns), axis=1)
-
-        # hack to fix feature validity
-        if np.any(np.isinf(X['global(speed)'])):
-            flags = np.isinf(X['global(speed)'])
-            numer = X.loc[flags, 'global(gps_delta)']
-            denom = X.loc[flags, 'global(time_delta)']
-            newvals = np.full(len(numer), np.nan)
-            newvals[(numer == 0) & (denom == 0)] = 0
-            X.loc[flags, 'global(speed)'] = newvals
-
-        aid_pairs_ = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
-        assert aid_pairs_ == edges, 'edge ordering changed'
-
-        return matches, X
-
-    def exec_vsone_subset(infr, edges, config={}, prog_hook=None):
+    def exec_vsone_subset(infr, edges, prog_hook=None):
         r"""
         Args:
             prog_hook (None): (default = None)
@@ -357,14 +86,15 @@ class AnnotInfrMatching(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> config = {}
             >>> infr.ensure_full()
             >>> edges = [(1, 2), (2, 3)]
             >>> result = infr.exec_vsone_subset(edges)
             >>> print(result)
         """
-        match_list = infr._exec_pairwise_match(edges, config=config,
-                                               prog_hook=prog_hook)
+        from ibeis.algo.verif import pairfeat
+        extr = pairfeat.PairwiseFeatureExtractor(infr.ibs)
+        match_list = extr._exec_pairwise_match(edges, prog_hook=prog_hook)
+
         vsone_matches = {e_(u, v): match
                          for (u, v), match in zip(edges, match_list)}
         infr.vsone_matches.update(vsone_matches)
@@ -608,13 +338,46 @@ class AnnotInfrMatching(object):
 
 
 class InfrLearning(object):
-    def learn_evaluataion_clasifiers(infr):
-        infr.print('learn_evaluataion_clasifiers')
-        from ibeis.algo.verif.vsone import OneVsOneProblem
-        pblm = OneVsOneProblem(infr, verbose=True)
+
+    def learn_deploy_classifiers(infr, publish=False):
+        """
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> infr = ibeis.AnnotInference(ibs, aids='all')
+            >>> infr.ensure_mst()
+            >>> publish = False
+            >>> infr.learn_deploy_classifiers()
+
+        Ignore:
+            publish = True
+        """
+        infr.print('learn_deploy_classifiers')
+        from ibeis.algo.verif import vsone
+        pblm = vsone.OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
         pblm.default_clf_key = 'RF'
-        pblm.default_data_key = 'learn(sum,glob,4)'
+        pblm.default_data_key = 'learn(sum,glob)'
+        pblm.setup()
+        dpath = '.'
+
+        task_key = 'match_state'
+        pblm.deploy(dpath, task_key=task_key, publish=publish)
+
+        task_key = 'photobomb_state'
+        if task_key in pblm.eval_task_keys:
+            pblm.deploy(dpath, task_key=task_key)
+
+    # def publish_deploy_classifiers():
+    #     pass
+
+    def learn_evaluataion_clasifiers(infr):
+        infr.print('learn_evaluataion_clasifiers')
+        from ibeis.algo.verif import vsone
+        pblm = vsone.OneVsOneProblem(infr, verbose=True)
+        pblm.primary_task_key = 'match_state'
+        pblm.default_clf_key = 'RF'
+        pblm.default_data_key = 'learn(sum,glob)'
         pblm.load_features()
         pblm.load_samples()
         pblm.build_feature_subsets()
@@ -627,6 +390,24 @@ class InfrLearning(object):
         pblm.learn_evaluation_classifiers(cfg_prefix=cfg_prefix)
         infr.pblm = pblm
         # infr.classifiers = pblm
+
+    def load_published(infr):
+        from ibeis.algo.verif import vsone
+        ibs = infr.ibs
+        species = ibs.get_primary_database_species(infr.aids)
+        infr.classifiers = vsone.Deployer().load_published(ibs, species)
+
+    def load_latest_classifiers(infr, dpath):
+        from ibeis.algo.verif import vsone
+        task_clf_fpaths = vsone.Deployer(dpath).find_latest_local()
+        classifiers = {}
+        for task_key, fpath in task_clf_fpaths.items():
+            clf_info = ut.load_data(fpath)
+            assert clf_info['metadata']['task_key'] == task_key, (
+                'bad saved clf at fpath={}'.format(fpath))
+            classifiers[task_key] = clf_info
+        infr.classifiers = classifiers
+        # return classifiers
 
     def photobomb_samples(infr):
         edges = list(infr.edges())
@@ -830,6 +611,16 @@ class CandidateSearch(object):
 
     @profile
     def ensure_priority_scores(infr, priority_edges):
+        """
+        Example:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> infr = ibeis.AnnotInference(ibs, aids='all')
+            >>> infr.ensure_mst()
+            >>> infr.load_published()
+            >>> priority_edges = list(infr.edges())
+            >>> infr.ensure_priority_scores(priority_edges)
+        """
         if infr.classifiers:
             infr.print('Prioritizing {} edges with one-vs-one probs'.format(
                 len(priority_edges)), 1)
@@ -919,7 +710,6 @@ class CandidateSearch(object):
 
     @profile
     def add_candidate_edges(infr, candidate_edges):
-
         candidate_edges = list(candidate_edges)
         new_edges = infr.ensure_edges_from(candidate_edges)
         infr.print('There are {}/{} new candidate edges'.format(
@@ -937,7 +727,6 @@ class CandidateSearch(object):
 
         if len(priority_edges) > 0:
             metric, priority = infr.ensure_priority_scores(priority_edges)
-
             infr.prioritize(metric, priority_edges, priority)
 
         if hasattr(infr, 'on_new_candidate_edges'):
@@ -967,189 +756,24 @@ class CandidateSearch(object):
         infr.add_candidate_edges(candidate_edges)
         infr.assert_consistency_invariant()
 
-    def _cached_pairwise_features(infr, edges, data_info):
-        """
-        Create pairwise features for annotations in a test inference object
-        based on the features used to learn here
-
-        TODO: need a more systematic way of specifying which feature dimensions
-        need to be computed
-
-        Notes:
-            Given a edge (u, v), we need to:
-            * Check which classifiers we have
-            * Check which feat-cols the classifier needs,
-               and construct a configuration that can acheive that.
-                * Construct the chip/feat config
-                * Construct the vsone config
-                * Additional LNBNN enriching config
-                * Pairwise feature construction config
-            * Then we can apply the feature to the classifier
-
-        edges = [(1, 2)]
-        """
-        import ubelt as ub
-        import pandas as pd
-        infr.print('Requesting %d cached pairwise features' % len(edges),
-                   level=3)
-        edges = list(edges)
-        ibs = infr.ibs
-        edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
-        edge_hashid = ut.hashid_arr(edge_uuids, 'edges')
-
-        feat_construct_config, feat_dims = data_info
-        if len(edges) == 0:
-            index = nxu.ensure_multi_index([], ('aid1', 'aid2'))
-            feats = pd.DataFrame(columns=feat_dims, index=index)
-            return feats
-
-        _cfg_lbl = ut.partial(ut.repr2, stritems=True, itemsep='', kvsep=':')
-        match_configclass = ibs.depc_annot.configclass_dict['pairwise_match']
-
-        feat_cfgstr = '_'.join([
-            edge_hashid,
-            _cfg_lbl(feat_construct_config['match_config']),
-            _cfg_lbl(feat_construct_config['pairfeat_cfg']),
-            'global(' + _cfg_lbl(feat_construct_config['global_keys']) + ')',
-            'pairwise_match_version=%r' % (match_configclass().version,)
-        ])
-        use_cache = not feat_construct_config['need_lnbnn']
-        if len(edges) < 2:
-            use_cache = False
-        cache_dir = join(infr.ibs.get_cachedir(), 'infr_bulk_cache')
-        feat_cacher = ub.Cacher('bulk_pairfeats_v3',
-                                feat_cfgstr, enabled=use_cache,
-                                dpath=cache_dir, verbose=infr.verbose > 3)
-        if feat_cacher.enabled:
-            ut.ensuredir(cache_dir)
-        if feat_cacher.exists() and infr.verbose > 3:
-            fpath = feat_cacher.get_fpath()
-            print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        data = feat_cacher.tryload()
-        if data is None:
-            config = feat_construct_config['match_config']
-            pairfeat_cfg = feat_construct_config['pairfeat_cfg']
-            global_keys = feat_construct_config['global_keys']
-            need_lnbnn = feat_construct_config['need_lnbnn']
-
-            multi_index = True
-            data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
-                                                global_keys, need_lnbnn,
-                                                multi_index)
-            feat_cacher.save(data)
-            if feat_cacher.enabled and infr.verbose > 3:
-                fpath = feat_cacher.get_fpath()
-                print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        matches, feats = data
-
-        # # Take the filtered subset of columns
-        if feat_dims is not None:
-            missing = set(feat_dims).difference(feats.columns)
-            if any(missing):
-                # print('We have: ' + ut.repr4(feats.columns))
-                alt = feats.columns.difference(feat_dims)
-                mis_msg = ('Missing feature dims: ' + ut.repr4(missing))
-                alt_msg = ('Did you mean? ' + ut.repr4(alt))
-                print(mis_msg)
-                print(alt_msg)
-                raise KeyError(mis_msg)
-            feats = feats[feat_dims]
-        return feats
-
-    def find_pretrained_classifiers(infr, dpath):
-        import glob
-        import parse
-        from os.path import join, basename
-        fname_fmt = 'deploy_{task_key}_learn({data_key})_{n_dims}_{clf_key}_{hashid}.cPkl'
-        task_clf_candidates = ut.ddict(list)
-        for fpath in glob.iglob(join(dpath, 'deploy_*.cPkl')):
-            fname = basename(fpath)
-            result = parse.parse(fname_fmt, fname)
-            if result:
-                task_key = result.named['task_key']
-                task_clf_candidates[task_key].append(fpath)
-        return task_clf_candidates
-
-    def load_latest_classifiers(infr, dpath):
-        from os.path import getctime
-        task_clf_candidates = infr.find_pretrained_classifiers(dpath)
-        task_clf_fpaths = {}
-        for task_key, fpaths in task_clf_candidates.items():
-            # Find the classifier most recently created
-            fpath = fpaths[ut.argmax(map(getctime, fpaths))]
-            task_clf_fpaths[task_key] = fpath
-        classifiers = {}
-        for task_key, fpath in task_clf_fpaths.items():
-            clf_info = ut.load_data(fpath)
-            assert clf_info['metadata']['task_key'] == task_key, (
-                'bad saved clf at fpath={}'.format(fpath))
-            classifiers[task_key] = clf_info
-        return classifiers
-
     @profile
-    def _make_task_probs(infr, edges, data_key=None):
+    def _make_task_probs(infr, edges):
         """
         Predict edge probs for each pairwise classifier task
-        GZ_Master1xwusomqdrrgoszenlearn(sum,glob)
-        GZ_Master1xwusomqdrrgoszenlearn
         """
-        # import ubelt as ub
-        from ibeis.scripts import sklearn_utils
         if infr.classifiers is None:
             raise ValueError('no classifiers exist')
-
         if not isinstance(infr.classifiers, dict):
             raise NotImplementedError(
                 'need to deploy or implement eval prediction')
-
-        prev_data_info = None
         task_keys = list(infr.classifiers.keys())
         task_probs = {}
         infr.print('predict {} for {} edges'.format(
             ut.conj_phrase(task_keys, 'and'), len(edges)))
         for task_key in task_keys:
-            deploy_info = infr.classifiers[task_key]
-            data_info = deploy_info['metadata']['data_info']
-            class_names = deploy_info['metadata']['class_names']
-            clf = deploy_info['clf']
-            if prev_data_info != data_info:
-                X_df = infr._cached_pairwise_features(edges, data_info)
-                prev_data_info = data_info
-            probs_df = sklearn_utils.predict_proba_df(clf, X_df, class_names)
+            verif = infr.classifiers[task_key]
+            probs_df = verif.predict_proba_df(edges)
             task_probs[task_key] = probs_df
-        # pblm = infr.classifiers
-        # data_key = pblm.default_data_key
-        # # TODO: find a good way to cache this
-        # data_info = pblm.feat_construct_info[data_key]
-        # X_df = infr._cached_pairwise_features(edges, data_info)
-
-        # feat_construct_config, feat_dims = data_info
-        # cfgstr = '_'.join([
-        #     infr.ibs.dbname, data_key,
-        #     ut.hashid_arr(edges, 'edges'),
-        #     ut.hashid_arr(feat_dims, 'feat_dims'),
-        #     ut.repr2(feat_construct_config, stritems=True, itemsep='',
-        #              kvsep=':')
-        # ])
-        # cache_dir = ut.ensuredir(infr.ibs.get_cachedir(), 'infr_bulk_cache')
-        # cacher = ub.Cacher('foobarclf_taskprobs_' + infr.ibs.dbname,
-        #                    cfgstr=cfgstr, dpath=cache_dir, enabled=1,
-        #                    meta=[edges, feat_dims,
-        #                          ut.repr2(feat_construct_config)],
-        #                    verbose=pblm.verbose)
-        # X = cacher.tryload()
-        # if cacher.exists():
-        #     fpath = cacher.get_fpath()
-        #     print('Bulk cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        # if X is None:
-        #     X = infr._pblm_pairwise_features(edges, data_key)
-        #     cacher.save(X)
-        #     fpath = cacher.get_fpath()
-        #     print('Saved bulk cache of size: {}'.format(
-        #         ut.get_file_nBytes_str(fpath)))
-
-        # task_keys = list(pblm.samples.subtasks.keys())
-        # task_probs = pblm.predict_proba_deploy(X_df, task_keys)
         return task_probs
 
     @profile

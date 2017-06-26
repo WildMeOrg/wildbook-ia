@@ -555,7 +555,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
             handled = True
         elif event.key() == gt.__PYQT__.QtCore.Qt.Key_P:
             self.match_state_combo.setCurrentValue(NEGTV)
-            self.tag_checkboxes[tagname].setChecked(True)
+            self.tag_checkboxes['photobomb'].setChecked(True)
             handled = True
         if not handled:
             super(EdgeReviewDialog, self).keyPressEvent(event)
@@ -1247,8 +1247,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def score_edges_vsone(self):
         # DEPRICATE
+        # TODO: replace with new interface
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
-            self.infr.exec_vsone(prog_hook=ctx.prog_hook)
+            edges = list(self.infr.edges())
+            self.infr.exec_vsone_subset(edges, prog_hook=ctx.prog_hook)
+            # self.infr.exec_vsone(prog_hook=ctx.prog_hook)
             # self.infr.apply_match_scores()
         self.repopulate()
 

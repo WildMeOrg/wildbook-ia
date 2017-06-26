@@ -5,7 +5,7 @@ Interface to Faster R-CNN object proposals.
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import vtool as vt
-from six.moves import zip
+from six.moves import zip, range
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import sys
@@ -32,7 +32,7 @@ if not ut.get_argflag('--no-faster-rcnn'):
         add_path(lib_path)
 
         import caffe
-        reload(caffe)
+        ut.reload_module(caffe)
         from fast_rcnn.config import cfg
         from fast_rcnn.test import im_detect
         from fast_rcnn.nms_wrapper import nms
@@ -223,7 +223,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
 
     # Warm-up network on a dummy image
     im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
-    for i in xrange(2):
+    for i in range(2):
         _, _ = im_detect(net, im)
 
     results_list_ = []
