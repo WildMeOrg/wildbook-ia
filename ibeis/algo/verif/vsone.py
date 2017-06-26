@@ -483,6 +483,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             classifiers[task_key] = deploy_info
         return classifiers
 
+    def deploy_all(pblm, dpath='.', publish=False):
+        task_keys = list(pblm.samples.supported_tasks())
+        for task_key in task_keys:
+            pblm.deploy(dpath, task_key=task_key, publish=publish)
+
     def deploy(pblm, dpath='.', task_key=None, publish=False):
         """
         Trains and saves a classifier for deployment
