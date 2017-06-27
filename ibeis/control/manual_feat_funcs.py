@@ -22,9 +22,6 @@ FEAT_VECS     = 'feature_vecs'
 FEAT_KPTS     = 'feature_keypoints'
 FEAT_NUM_FEAT = 'feature_num_feats'
 
-CONFIG_ROWID      = 'config_rowid'
-FEAT_ROWID        = 'feature_rowid'
-
 
 # ----------------
 # ROOT LEAF FUNCTIONS

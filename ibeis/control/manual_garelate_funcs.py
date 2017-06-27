@@ -35,8 +35,6 @@ def testdata_ibs(defaultdb='testdb1'):
 GAR_ROWID        = 'gar_rowid'
 ANNOTGROUP_ROWID = 'annotgroup_rowid'
 ANNOT_ROWID      = 'annot_rowid'
-CONFIG_ROWID     = 'config_rowid'
-FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 @register_ibs_method
