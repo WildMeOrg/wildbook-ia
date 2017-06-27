@@ -42,6 +42,65 @@ def turk_pz():
     pass
 
 
+def entropy_potential(infr, u, v, decision):
+    """
+    Returns the number of edges this edge would invalidate
+
+    from ibeis.algo.graph import demo
+    infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
+    infr.refresh_candidate_edges()
+    infr.queue_params['neg_redun'] = 1
+    infr.queue_params['pos_redun'] = 1
+    infr.apply_nondynamic_update()
+
+    ut.qtensure()
+    infr.show(show_cand=True, groupby='name_label')
+
+    u, v = 1, 7
+    decision = 'positive'
+    """
+    nid1, nid2 = infr.pos_graph.node_labels(u, v)
+
+    # Cases for K=1
+    if decision == 'positive' and nid1 == nid2:
+        # The actual reduction is the number previously needed to make the cc
+        # k-edge-connected vs how many its needs now.
+
+        # In the same CC does nothing
+        # (unless k > 1, in which case check edge connectivity)
+        return 0
+    elif decision == 'positive' and nid1 != nid2:
+        # Between two PCCs reduces the number of PCCs by one
+        n_ccs = infr.pos_graph.number_of_components()
+
+        # Find needed negative redundency when appart
+        if infr.neg_redun_nids.has_node(nid1):
+            neg_redun_set1 = set(infr.neg_redun_nids.neighbors(nid1))
+        else:
+            neg_redun_set1 = set()
+
+        if infr.neg_redun_nids.has_node(nid2):
+            neg_redun_set2 = set(infr.neg_redun_nids.neighbors(nid2))
+        else:
+            neg_redun_set2 = set()
+
+        # The number of negative edges needed before we place this edge
+        # is the number of PCCs that each PCC doesnt have a negative edge to
+        # yet
+
+        n_neg_need1 = (n_ccs - len(neg_redun_set1) - 1)
+        n_neg_need2 = (n_ccs - len(neg_redun_set2) - 1)
+        n_neg_need_before = n_neg_need1 + n_neg_need2
+
+        # After we join them we take the union of their negative redundancy
+        # (really we should check if it changes after)
+        # and this is now the new number of negative edges that would be needed
+        neg_redun_after = neg_redun_set1.union(neg_redun_set2) - {nid1, nid2}
+        n_neg_need_after = (n_ccs - 2) - len(neg_redun_after)
+
+        neg_entropy = n_neg_need_before - n_neg_need_after
+
+
 @ut.reloadable_class
 class VerifierExpt(DBInputs):
     """
