@@ -32,7 +32,9 @@ class PairFeatureConfig(dt.Config):
         # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
         ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
         # ut.ParamInfo('bins', [.5, .6, .7, .8])
-        ut.ParamInfo('bins', (.625, .8), type_=eval),
+        # ut.ParamInfo('bins', (.625, .8), type_=eval),
+        ut.ParamInfo('bins', (.625,), type_=eval),
+        # ut.ParamInfo('bins', None, type_=eval),
         # ut.ParamInfo('need_lnbnn', False),
         # ut.ParamInfo('med', True),
     ]

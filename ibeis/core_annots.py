@@ -1238,7 +1238,7 @@ class VsOneConfig(dtool.Config):
         >>> print(result)
     """
     _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG + [
-        ut.ParamInfo('version', 7),
+        ut.ParamInfo('version', 8),
         ut.ParamInfo('query_rotation_heuristic', False),
     ]
     #     #ut.ParamInfo('sver_xy_thresh', .01),
@@ -1254,182 +1254,6 @@ class VsOneConfig(dtool.Config):
         ChipConfig,  # TODO: infer chip config from feat config
         FeatWeightConfig,
     ]
-
-
-@derived_attribute(
-    tablename='vsone', parents=['annotations', 'annotations'],
-    colnames=['score', 'match'], coltypes=[float, ChipMatch],
-    requestclass=VsOneRequest,
-    configclass=VsOneConfig,
-    chunksize=256,
-    fname='vsone',
-)
-def compute_one_vs_one(depc, qaids, daids, config):
-    r"""
-    DEPRICATE
-
-    CommandLine:
-        python -m ibeis.core_annots --test-compute_one_vs_one:1 --show
-        python -m ibeis.core_annots --test-compute_one_vs_one
-        python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
-        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> #ibs, depc, aid_list = testdata_core(size=5)
-        >>> import ibeis
-        >>> #ibs, aid_list = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb2', 'default:')
-        >>> groups = ut.group_items(aid_list, ibs.get_annot_occurrence_text(aid_list))
-        >>> aids = list(ut.sort_dict(groups, 'vals', key=len).values())[-1]
-        >>> aid_list = aids[0:4]
-        >>> depc = ibs.depc_annot
-        >>> request = depc.new_request('vsone', aid_list, aid_list, {'resize_dim': 'width', 'dim_size': 450})
-        >>> config = request.config
-        >>> parent_rowids_T = request.parent_rowids_T
-        >>> qaids, daids = request.parent_rowids_T
-        >>> # Compute using request
-        >>> print('...Test vsone cache')
-        >>> rawres_list2 = request.execute(postprocess=False)
-        >>> score_list2 = ut.take_column(rawres_list2, 0)
-        >>> res_list2 = request.execute()
-        >>> print(res_list2)
-        >>> # Compute using function
-        >>> #print('...Test vsone function')
-        >>> #rawres_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
-        >>> #score_list1 = ut.take_column(rawres_list1, 0)
-        >>> #print(score_list1)
-        >>> #assert np.all(score_list1 == score_list2)
-        >>> ut.quit_if_noshow()
-        >>> ut.ensureqt()
-        >>> match = res_list2[0]
-        >>> match.print_inspect_str(request)
-        >>> #match.show_analysis(qreq_=request)
-        >>> #match.ishow_analysis(qreq_=request)
-        >>> #match.ishow_single_annotmatch(qreq_=request)
-        >>> match.show_single_annotmatch(qreq_=request, vert=False)
-        >>> ut.show_if_requested()
-
-    Example:
-        >>> # Example of a one-vs-one query
-        >>> import utool as ut
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> cm_list = ibs.depc.get('vsone', ([1], [2]), config={'ratio_thresh': .9}, recompute=True, _debug=True)
-        >>> #cm_list = qreq_.execute()
-        >>> score, match = cm_list[0]
-        >>> print('score = %r' % (score,))
-        >>> qreq_ = ibs.new_query_request([1], [2])
-        >>> match.print_inspect_str(qreq_)
-        >>> ut.quit_if_noshow()
-        >>> match.show_single_annotmatch(qreq_)
-        >>> import utool as ut
-        >>> ut.show_if_requested()
-
-    Example:
-        >>> # Example of a one-vs-many query
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> config = {'codename': 'vsmany'}
-        >>> qreq_ = ibs.new_query_request([1], ibs.get_valid_aids(), cfgdict=config)
-        >>> cm_list = qreq_.execute()
-        >>> match = cm_list[0]
-        >>> match.print_inspect_str(qreq_)
-        >>> match.show_single_annotmatch(qreq_=qreq_, vert=False)
-        >>> import utool as ut
-        >>> ut.show_if_requested()
-    """
-    import ibeis
-    ibs = depc.controller
-    qannot_cfg = config
-    dannot_cfg = config
-
-    # Prepare lazy attributes for annotations
-    # qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
-    # dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
-    print('qaids = %r' % (qaids,))
-    print('daids = %r' % (daids,))
-
-    unique_qaids = set(qaids)
-    unique_daids = set(daids)
-
-    # Determine a unique set of annots per config
-    configured_aids = ut.ddict(set)
-    configured_aids[qannot_cfg].update(unique_qaids)
-    configured_aids[dannot_cfg].update(unique_daids)
-
-    # Make efficient annot-view representation
-    configured_annot_views = {}
-    for config, aids in configured_aids.items():
-        annots = ibs.annots(sorted(list(aids)), config=config)
-        configured_annot_views[config] = annots.view()
-
-    # These annot views behave like annot objects
-    # but they use the same internal cache
-    # annots1 = configured_annot_views[qannot_cfg].view(qaids)
-    # annots2 = configured_annot_views[dannot_cfg].view(daids)
-
-    # TODO: Ensure entire pipeline can use new dependencies
-    unique_annot_views = list(configured_annot_views.values())
-    for annots in unique_annot_views:
-        annots.chip_size
-        annots.vecs
-        annots.kpts
-        annots.yaw
-        annots.qual
-        annots.gps
-        annots.time
-
-    configured_lazy_annots = ut.ddict(dict)
-    for config, annots in configured_annot_views.items():
-        annot_dict = configured_lazy_annots[config]
-        for aid in ut.ProgIter(annots, label='make lazy dict'):
-            annot = annots.view(aid)._make_lazy_dict()
-            annot_dict[aid] = annot
-
-    unique_lazy_annots = ut.flatten(
-        [x.values() for x in configured_lazy_annots.values()])
-
-    flann_params = {'algorithm': 'kdtree', 'trees': 4}
-    import vtool.matching  # NOQA
-    import vtool as vt
-    for annot in unique_lazy_annots:
-        vt.matching.ensure_metadata_flann(annot, flann_params)
-
-    for annot in unique_lazy_annots:
-        annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
-                             np.array(annot['chip_size'])[:, None])
-
-    for qaid, daid in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
-                                  lbl='compute vsone', bs=True, freq=1):
-        # TODO: precompute these
-        annot1 = configured_lazy_annots[qannot_cfg][qaid]
-        annot2 = configured_lazy_annots[dannot_cfg][daid]
-
-        match = vt.PairwiseMatch(annot1, annot2)
-        match.apply_all(config)
-        H = match.H_12
-        score = match.fs.sum()
-        fm = match.fm
-        fs = match.fs
-
-        match = ibeis.ChipMatch(
-            qaid=qaid, daid_list=[daid], fm_list=[fm],
-            fsv_list=[vt.atleast_nd(fs, 2)],
-            H_list=[H], fsv_col_lbls=['ratio'])
-        match._update_daid_index()
-        match.evaluate_dnids(ibs=ibs)
-        match._update_daid_index()
-        match.set_cannonical_name_score([score], [score])
-
-        if False:
-            ut.ensureqt()
-            ibs, depc, aid_list = testdata_core(size=3)
-            request = depc.new_request(
-                'vsone', aid_list, aid_list, {'dim_size': 450})
-            match.ishow_analysis(request)
-        yield (score, match)
 
 
 def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
@@ -1475,6 +1299,8 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
         configured_annot_views[config] = annots.view()
 
     if preload:
+        precompute_weights = (qannot_cfg.weight == 'fgweights' or
+                              dannot_cfg.weight == 'fgweights')
         unique_annot_views = list(configured_annot_views.values())
         for annots in unique_annot_views:
             annots.chip_size
@@ -1485,6 +1311,8 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
             annots.qual
             annots.gps
             annots.time
+            if precompute_weights:
+                annots.fgweights
 
     configured_lazy_annots = ut.ddict(dict)
     for config, annots in configured_annot_views.items():
@@ -1511,7 +1339,7 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
     tablename='pairwise_match', parents=['annotations', 'annotations'],
     colnames=['match'], coltypes=[vt.PairwiseMatch],
     configclass=VsOneConfig,
-    chunksize=256,
+    chunksize=512,
     fname='vsone2',
 )
 def compute_pairwise_vsone(depc, qaids, daids, config):

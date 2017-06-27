@@ -177,7 +177,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # defaultdb = 'GZ_Master1'
             # defaultdb = 'PZ_MTEST'
         import ibeis
-        ibs, aids = ibeis.testdata_aids(defaultdb)
+        ibs, aids = ibeis.testdata_aids(defaultdb, a=':species=primary')
         pblm = OneVsOneProblem.from_aids(ibs, aids, **params)
         return pblm
 
