@@ -26,6 +26,13 @@ def _get_random_open_port():
     return port
 
 
+class GraphClient2(object):
+    """
+    """
+    pass
+
+
+
 class GraphClient(object):
     def __init__(client, **kwargs):
         client.id_ = 0
@@ -80,12 +87,12 @@ class GraphClient(object):
 
 
 class GraphBackend(object):
-    def __init__(backend, dbdir, **kwargs):
+    def __init__(backend, dbdir, wait=0):
         backend.dbdir = dbdir
         backend.engine_proc = None
         backend.port_dict = None
-        backend._initialize_job_ports(**kwargs)
-        backend._initialize_background_processes(**kwargs)
+        backend._initialize_job_ports()
+        backend._initialize_background_processes(wait=wait)
 
     def __del__(backend):
         if VERBOSE_JOBS:
@@ -95,7 +102,7 @@ class GraphBackend(object):
         if VERBOSE_JOBS:
             print('Killed external procs')
 
-    def _initialize_job_ports(backend, **kwargs):
+    def _initialize_job_ports(backend):
         key_list = [
             'engine_url',
         ]
@@ -113,7 +120,7 @@ class GraphBackend(object):
             for key, port in zip(key_list, port_list)
         }
 
-    def _initialize_background_processes(backend, wait=0, **kwargs):
+    def _initialize_background_processes(backend, wait=0):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
