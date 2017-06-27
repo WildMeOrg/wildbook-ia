@@ -1377,7 +1377,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
-        ut.embed()
         qaid = qaids[qx]
         cm_list = [qreq_.execute(qaids=[qaid])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
