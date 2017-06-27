@@ -26,16 +26,19 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 
 
-REVIEW_ROWID     = 'review_rowid'
-REVIEW_UUID      = 'review_uuid'
-REVIEW_AID1      = 'annot_1_rowid'
-REVIEW_AID2      = 'annot_2_rowid'
-REVIEW_COUNT     = 'review_count'
-REVIEW_DECISION  = 'review_decision'
-REVIEW_TIMESTAMP = 'review_time_posix'
-REVIEW_USER_IDENTITY = 'review_user_identity'
-REVIEW_USER_CONFIDENCE = 'review_user_confidence'
-REVIEW_TAGS      = 'review_tags'
+REVIEW_ROWID             = 'review_rowid'
+REVIEW_UUID              = 'review_uuid'
+REVIEW_AID1              = 'annot_1_rowid'
+REVIEW_AID2              = 'annot_2_rowid'
+REVIEW_COUNT             = 'review_count'
+REVIEW_DECISION          = 'review_decision'
+REVIEW_USER_IDENTITY     = 'review_user_identity'
+REVIEW_USER_CONFIDENCE   = 'review_user_confidence'
+REVIEW_TAGS              = 'review_tags'
+REVIEW_TIME_CLIENT_START = 'review_client_start_time_posix'
+REVIEW_TIME_CLIENT_END   = 'review_client_end_time_posix'
+REVIEW_TIME_SERVER_START = 'review_server_start_time_posix'
+REVIEW_TIME_SERVER_END   = 'review_server_end_time_posix'
 
 
 def e_(u, v):
@@ -118,7 +121,8 @@ def get_review_rowid_from_superkey(ibs, aid_1_list, aid_2_list, count_list,
 @register_api('/api/review/', methods=['POST'])
 def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None,
                identity_list=None, user_confidence_list=None, tags_list=None,
-               timestamp_list=None):
+               review_client_start_time_posix=None, review_client_end_time_posix=None,
+               review_server_start_time_posix=None, review_server_end_time_posix=None):
     r"""
     Adds a list of reviews.
 
@@ -187,6 +191,15 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None
     if user_confidence_list is None:
         user_confidence_list = [None] * n_input
 
+    if review_client_start_time_posix is None:
+        review_client_start_time_posix = [None] * n_input
+    if review_client_end_time_posix is None:
+        review_client_end_time_posix = [None] * n_input
+    if review_server_start_time_posix is None:
+        review_server_start_time_posix = [None] * n_input
+    if review_server_end_time_posix is None:
+        review_server_end_time_posix = [None] * n_input
+
     assert len(aid_1_list) == len(identity_list)
     assert len(aid_1_list) == len(tag_str_list)
     assert len(aid_1_list) == len(user_confidence_list)
@@ -195,14 +208,15 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
     colnames = [REVIEW_UUID, REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-                REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TAGS]
+                REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TAGS,
+                REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
+                REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END]
     params_iter = list(zip(review_uuid_list, aid_1_list, aid_2_list, count_list, decision_list,
-                           identity_list, user_confidence_list, tag_str_list))
+                           identity_list, user_confidence_list, tag_str_list,
+                           review_client_start_time_posix, review_client_end_time_posix,
+                           review_server_start_time_posix, review_server_end_time_posix))
     review_rowid_list = ibs.staging.add_cleanly(const.REVIEW_TABLE, colnames, params_iter,
                                                 ibs.get_review_rowid_from_superkey, superkey_paramx)
-    if timestamp_list is not None:
-        ibs.staging.set(const.REVIEW_TABLE, (REVIEW_TIMESTAMP,), timestamp_list,
-                        review_rowid_list)
     return review_rowid_list
 
 
@@ -346,7 +360,7 @@ def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/count/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/count/', methods=['GET'])
 def get_review_count(ibs, review_rowid_list):
     review_count_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_COUNT,), review_rowid_list)
     return review_count_list
@@ -390,7 +404,7 @@ def get_review_counts_from_pairs(ibs, aid_pairs, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/decision/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/decision/', methods=['GET'])
 def get_review_decision(ibs, review_rowid_list):
     review_decision_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_DECISION,), review_rowid_list)
     return review_decision_list
@@ -398,7 +412,7 @@ def get_review_decision(ibs, review_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/uuid/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/uuid/', methods=['GET'])
 def get_review_uuid(ibs, review_rowid_list):
     review_uuid_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_UUID,), review_rowid_list)
     return review_uuid_list
@@ -406,7 +420,7 @@ def get_review_uuid(ibs, review_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/decision/str/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/decision/str/', methods=['GET'])
 def get_review_decision_str(ibs, review_rowid_list):
     review_decision_list = ibs.get_review_decision(review_rowid_list)
     review_decision_str_list = [
@@ -557,7 +571,7 @@ def get_review_decisions_str_from_tuple(ibs, aid_1_list, aid_2_list, **kwargs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/identity/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/identity/', methods=['GET'])
 def get_review_identity(ibs, review_rowid_list):
     review_identity_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_USER_IDENTITY,), review_rowid_list)
     return review_identity_list
@@ -565,7 +579,7 @@ def get_review_identity(ibs, review_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/confidence/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/confidence/', methods=['GET'])
 def get_review_user_confidence(ibs, review_rowid_list):
     user_confidence_list = ibs.staging.get(const.REVIEW_TABLE,
                                            (REVIEW_USER_CONFIDENCE,),
@@ -596,9 +610,40 @@ def get_review_identities_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/time/posix/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/time/posix/', methods=['GET'])
 def get_review_posix_time(ibs, review_rowid_list):
-    review_posix_time_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_TIMESTAMP,), review_rowid_list)
+    return ibs.get_review_posix_server_end_time(review_rowid_list)
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/time/server/start/posix/', methods=['GET'])
+def get_review_posix_server_start_time(ibs, review_rowid_list):
+    review_posix_time_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_TIME_SERVER_START,), review_rowid_list)
+    return review_posix_time_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/time/client/start/posix/', methods=['GET'])
+def get_review_posix_client_start_time(ibs, review_rowid_list):
+    review_posix_time_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_TIME_CLIENT_START,), review_rowid_list)
+    return review_posix_time_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/time/client/end/posix/', methods=['GET'])
+def get_review_posix_client_end_time(ibs, review_rowid_list):
+    review_posix_time_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_TIME_CLIENT_END,), review_rowid_list)
+    return review_posix_time_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/time/server/end/posix/', methods=['GET'])
+def get_review_posix_server_end_time(ibs, review_rowid_list):
+    review_posix_time_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_TIME_SERVER_END,), review_rowid_list)
     return review_posix_time_list
 
 
@@ -616,7 +661,7 @@ def get_review_aid_tuple(ibs, review_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/times/posix/tuple/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/time/posix/tuple/', methods=['GET'])
 def get_review_posix_times_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):
     r"""
     Returns:
@@ -626,7 +671,7 @@ def get_review_posix_times_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, n
         Method: GET
         URL:    /api/review/time/posix/tuple/
     """
-    colnames = (REVIEW_TIMESTAMP,)
+    colnames = (REVIEW_TIME_SERVER_END,)
     params_iter = zip(aid_1_list, aid_2_list)
     where_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_posix_times_list = ibs.staging.get_where_eq(

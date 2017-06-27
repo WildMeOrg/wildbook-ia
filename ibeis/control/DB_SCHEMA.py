@@ -1539,6 +1539,13 @@ def update_1_6_6(db, ibs=None):
     ))
 
 
+def update_1_6_7(db, ibs=None):
+    db.modify_table(const.ANNOTMATCH_TABLE, (
+        ('annotmatch_pairwise_prob', None, None, None),
+        ('config_hashid', None, None, None),
+    ))
+
+
 def update_XYZ_am_staging(db):
     """
 
@@ -1602,6 +1609,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.4',    (None,                 update_1_6_4,       post_1_6_4          )),
     ('1.6.5',    (None,                 update_1_6_5,       None                )),
     ('1.6.6',    (None,                 update_1_6_6,       None                )),
+    ('1.6.7',    (None,                 update_1_6_7,       None                )),
 ])
 """
 SeeAlso:
