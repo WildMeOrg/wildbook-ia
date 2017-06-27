@@ -223,6 +223,18 @@ class WebNextReviewExhaustedException(WebException):
         super(WebNextReviewExhaustedException, self).__init__(message, rawreturn, code)
 
 
+class WebUnavailableUUIDException(WebException):
+    def __init__(self, unavailable_annot_uuid_list, query_uuid):
+        args = (query_uuid, )
+        message = 'A running query %s is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.' % args
+        rawreturn = {
+            'unavailable_annot_uuid_list': unavailable_annot_uuid_list,
+            'query_uuid' : query_uuid,
+        }
+        code = 604
+        super(WebUnavailableUUIDException, self).__init__(message, rawreturn, code)
+
+
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
                               jQuery_callback=None, cache=None):
     if code is None:

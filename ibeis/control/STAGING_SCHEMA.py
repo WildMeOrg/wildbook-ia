@@ -61,7 +61,29 @@ def update_1_0_1(db, ibs=None):
         ]
     )
 
-    pass
+
+def update_1_0_2(db, ibs=None):
+    db.modify_table(const.REVIEW_TABLE, (
+        (1,                   'review_uuid',                    'UUID',    None),
+        (None,                'review_client_start_time_posix', 'INTEGER', None),
+        (None,                'review_client_end_time_posix',   'INTEGER', None),
+        (None,                'review_server_start_time_posix', 'INTEGER', None),
+        ('review_time_posix', 'review_server_end_time_posix',   'INTEGER', None),
+    ))
+
+
+def post_1_0_2(db, ibs=None):
+    if ibs is not None:
+        import uuid
+        review_rowid_list = ibs._get_all_review_rowids()
+        review_uuid_list = [uuid.uuid4() for _ in range(len(review_rowid_list))]
+        ibs._set_review_uuids(review_rowid_list, review_uuid_list)
+    db.modify_table(
+        const.REVIEW_TABLE,
+        [
+            ('review_uuid', '', 'UUID NOT NULL', None),
+        ],
+    )
 
 # ========================
 # Valid Versions & Mapping
@@ -76,6 +98,7 @@ VALID_VERSIONS = ut.odict([
     (base   ,    (None,                 None,               None                )),
     ('1.0.0',    (None,                 update_1_0_0,       None                )),
     ('1.0.1',    (None,                 update_1_0_1,       None                )),
+    ('1.0.2',    (None,                 update_1_0_2,       post_1_0_2          )),
 ])
 """
 SeeAlso:

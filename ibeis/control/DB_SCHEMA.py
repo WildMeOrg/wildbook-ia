@@ -1291,14 +1291,14 @@ def update_1_4_9(db, ibs=None):
 def post_1_4_9(db, ibs=None):
     if ibs is not None:
         ibs._clean_species()
-        db.modify_table(
-            const.SPECIES_TABLE,
-            [
-                # change type of species_nice
-                ('species_nice', '', 'TEXT NOT NULL', None),
-                ('species_code', '', 'TEXT NOT NULL', None),
-            ],
-        )
+    db.modify_table(
+        const.SPECIES_TABLE,
+        [
+            # change type of species_nice
+            ('species_nice', '', 'TEXT NOT NULL', None),
+            ('species_code', '', 'TEXT NOT NULL', None),
+        ],
+    )
 
 
 def update_1_5_0(db, ibs=None):
@@ -1533,6 +1533,12 @@ def update_1_6_5(db, ibs=None):
     ))
 
 
+def update_1_6_6(db, ibs=None):
+    db.modify_table(const.ANNOTMATCH_TABLE, (
+        (None, 'annotmatch_count', 'INTEGER', None),
+    ))
+
+
 def update_XYZ_am_staging(db):
     """
 
@@ -1595,6 +1601,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.3',    (None,                 update_1_6_3,       None                )),
     ('1.6.4',    (None,                 update_1_6_4,       post_1_6_4          )),
     ('1.6.5',    (None,                 update_1_6_5,       None                )),
+    ('1.6.6',    (None,                 update_1_6_6,       None                )),
 ])
 """
 SeeAlso:

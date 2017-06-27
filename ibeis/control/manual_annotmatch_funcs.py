@@ -44,6 +44,7 @@ ANNOTMATCH_REVIEWER           = 'annotmatch_reviewer'
 ANNOTMATCH_ROWID              = 'annotmatch_rowid'
 ANNOTMATCH_TAG_TEXT           = 'annotmatch_tag_text'
 ANNOTMATCH_TRUTH              = 'annotmatch_truth'
+ANNOTMATCH_COUNT              = 'annotmatch_count'
 ANNOT_ROWID1                  = 'annot_rowid1'
 ANNOT_ROWID2                  = 'annot_rowid2'
 CONFIG_HASHID                 = 'config_hashid'
@@ -74,7 +75,7 @@ def _get_all_annotmatch_rowids(ibs):
 
 @register_ibs_method
 @register_api('/api/match/', methods=['POST'])
-def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotmatch_confidence_list=None, annotmatch_tag_text_list=None, annotmatch_reviewed_list=None, annotmatch_reviewer_list=None, annotmatch_posixtime_modified_list=None, annotmatch_pairwise_prob_list=None, config_hashid_list=None):
+def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotmatch_confidence_list=None, annotmatch_tag_text_list=None, annotmatch_reviewed_list=None, annotmatch_reviewer_list=None, annotmatch_posixtime_modified_list=None, annotmatch_pairwise_prob_list=None, config_hashid_list=None, anotmatch_count_list=None):
     r"""
     Returns:
         returns annotmatch_rowid_list of added (or already existing annotmatchs)
@@ -88,7 +89,7 @@ def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotm
                 ANNOTMATCH_CONFIDENCE, ANNOTMATCH_TAG_TEXT,
                 ANNOTMATCH_REVIEWED, ANNOTMATCH_REVIEWER,
                 ANNOTMATCH_POSIXTIME_MODIFIED, ANNOTMATCH_PAIRWISE_PROB,
-                CONFIG_HASHID,)
+                CONFIG_HASHID, ANNOTMATCH_COUNT,)
     if annotmatch_truth_list is None:
         annotmatch_truth_list = [None] * len(aid1_list)
     if annotmatch_confidence_list is None:
@@ -105,12 +106,14 @@ def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotm
         annotmatch_pairwise_prob_list = [None] * len(aid1_list)
     if config_hashid_list is None:
         config_hashid_list = [None] * len(aid1_list)
+    if anotmatch_count_list is None:
+        anotmatch_count_list = [0] * len(aid1_list)
     params_iter = (
         (aid1, aid2, annotmatch_truth, annotmatch_confidence, annotmatch_tag_text, annotmatch_reviewed,
-         annotmatch_reviewer, annotmatch_posixtime_modified, annotmatch_pairwise_prob, config_hashid,)
-        for (aid1, aid2, annotmatch_truth, annotmatch_confidence, annotmatch_tag_text, annotmatch_reviewed, annotmatch_reviewer, annotmatch_posixtime_modified, annotmatch_pairwise_prob, config_hashid,) in
+         annotmatch_reviewer, annotmatch_posixtime_modified, annotmatch_pairwise_prob, config_hashid, anotmatch_count,)
+        for (aid1, aid2, annotmatch_truth, annotmatch_confidence, annotmatch_tag_text, annotmatch_reviewed, annotmatch_reviewer, annotmatch_posixtime_modified, annotmatch_pairwise_prob, config_hashid, anotmatch_count) in
         zip(aid1_list, aid2_list, annotmatch_truth_list, annotmatch_confidence_list, annotmatch_tag_text_list, annotmatch_reviewed_list,
-            annotmatch_reviewer_list, annotmatch_posixtime_modified_list, annotmatch_pairwise_prob_list, config_hashid_list)
+            annotmatch_reviewer_list, annotmatch_posixtime_modified_list, annotmatch_pairwise_prob_list, config_hashid_list, anotmatch_count_list)
     )
     get_rowid_from_superkey = ibs.get_annotmatch_rowid_from_superkey
     # FIXME: encode superkey paramx
@@ -555,6 +558,16 @@ def get_annotmatch_truth(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def get_annotmatch_count(ibs, annotmatch_rowid_list, eager=True, nInput=None):
+    id_iter = annotmatch_rowid_list
+    colnames = (ANNOTMATCH_COUNT,)
+    annotmatch_truth_list = ibs.db.get(
+        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annotmatch_truth_list
+
+
+@register_ibs_method
 @accessor_decors.setter
 @register_api('/api/match/confidence/', methods=['PUT'])
 def set_annotmatch_confidence(ibs, annotmatch_rowid_list, annotmatch_confidence_list, duplicate_behavior='error'):
@@ -715,6 +728,27 @@ def set_annotmatch_truth(ibs, annotmatch_rowid_list, annotmatch_truth_list, dupl
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_TRUTH,)
     ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_truth_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/match/count/', methods=['PUT'])
+def set_annotmatch_count(ibs, annotmatch_rowid_list, annotmatch_count_list, duplicate_behavior='error'):
+    r""" annotmatch_truth_list -> annotmatch.annotmatch_truth[annotmatch_rowid_list]
+
+    Args:
+        annotmatch_rowid_list
+        annotmatch_count_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annotmatch
+        col = annotmatch_count
+    """
+    id_iter = annotmatch_rowid_list
+    colnames = (ANNOTMATCH_COUNT,)
+    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_count_list,
                id_iter, duplicate_behavior=duplicate_behavior)
 
 

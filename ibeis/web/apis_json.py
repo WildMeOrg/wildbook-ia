@@ -1333,6 +1333,15 @@ def set_annotmatch_reviewer_json(ibs, match_annot_uuid1_list, match_annot_uuid2_
     return ibs.set_annotmatch_reviewer(annotmatch_rowid_list, match_user_list)
 
 
+@register_api('/api/match/count/json/', methods=['PUT'])
+def set_annotmatch_count_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
+                                 match_count_list, **kwargs):
+    aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+    aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    return ibs.set_annotmatch_count(annotmatch_rowid_list, match_count_list)
+
+
 @register_api('/api/contributor/rowid/uuid/json/', methods=['GET'])
 def get_contributor_rowids_from_uuid_json(ibs, contributor_uuid_list):
     return ibs.get_contributor_rowid_from_uuid(contributor_uuid_list)
