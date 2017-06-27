@@ -9,7 +9,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
-from plottool import custom_figure
+from plottool import custom_figure, custom_constants
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -1260,7 +1260,7 @@ def plot_score_histograms(scores_list,
         xvalues = [score_thresh] * len(ydomain)
         plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
-    df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
+    df2.legend(loc='best', size=kwargs.get('legendsize', custom_constants.FONTS.legend))
 
 
 def plot_probabilities(prob_list,
