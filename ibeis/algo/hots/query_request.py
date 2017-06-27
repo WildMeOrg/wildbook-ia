@@ -688,6 +688,8 @@ class QueryRequest(ut.NiceRepr):
         qreq2_.indexer = None
         #qreq2_.metadata = {}
         qreq2_.hasloaded = False
+        qreq2_._unique_annots = qreq_._unique_annots
+        qreq2_._unique_dannots = qreq_._unique_dannots
         return qreq2_
 
     # --- State Modification ---
