@@ -429,7 +429,7 @@ class TestResult(ut.NiceRepr):
             #key = 'qnx2_gt_name_rank'
         if bins is None:
             bins = testres.get_rank_histogram_bins()
-        elif bins is 'dense':
+        elif bins == 'dense':
             bins = np.arange(testres.get_worst_possible_rank() + 1)
 
         cfgx2_ranks = testres.get_infoprop_list(key=key)
