@@ -19,7 +19,7 @@ import sklearn.multiclass
 import sklearn.ensemble
 from ibeis.algo.verif import clf_helpers
 from ibeis.algo.verif import sklearn_utils
-from ibeis.algo.verif import pairfeat
+from ibeis.algo.verif import pairfeat, verifier
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 from os.path import join, exists, basename
 from six.moves import zip
@@ -479,8 +479,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         classifiers = {}
         task_keys = list(pblm.samples.supported_tasks())
         for task_key in task_keys:
-            deploy_info = Deployer(dpath).ensure(pblm, task_key)
-            classifiers[task_key] = deploy_info
+            verif = Deployer(dpath, pblm).ensure(task_key)
+            classifiers[task_key] = verif
         return classifiers
 
     def deploy_all(pblm, dpath='.', publish=False):
@@ -849,70 +849,82 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                             prob_cfgstr, appname=pblm.appname, verbose=20)
         data2 = cacher2.tryload()
         if not data2:
-            # Choose a classifier for each task
-            res_dict = dict([
-                (task_key, pblm.task_combo_res[task_key][clf_key][data_key])
-                for task_key in task_keys
-            ])
-            assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
-                'inconsistent combined result indices')
-
-            # Normalize and align combined result sample edges
-            res0 = next(iter(res_dict.values()))
-            train_uv = np.array(res0.probs_df.index.tolist())
-            assert np.all(train_uv.T[0] < train_uv.T[1]), (
-                'edges must be in lower triangular form')
-            assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
-                'edges must be unique')
-            assert (sorted(ut.emap(tuple, train_uv.tolist())) ==
-                    sorted(ut.emap(tuple, pblm.samples.aid_pairs.tolist())))
-            want_uv = np.array(want_edges)
-
-            # Determine which edges need/have probabilities
-            want_uv_, train_uv_ = vt.structure_rows(want_uv, train_uv)
-            unordered_have_uv_ = np.intersect1d(want_uv_, train_uv_)
-            need_uv_ = np.setdiff1d(want_uv_, unordered_have_uv_)
-            flags = vt.flag_intersection(train_uv_, unordered_have_uv_)
-            # Re-order have_edges to agree with test_idx
-            have_uv_ = train_uv_[flags]
-            need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
-
-            # Convert to tuples for pandas lookup. bleh...
-            have_edges = ut.emap(tuple, have_uv.tolist())
-            need_edges = ut.emap(tuple, need_uv.tolist())
-            want_edges = ut.emap(tuple, want_uv.tolist())
-            assert set(have_edges) & set(need_edges) == set([])
-            assert set(have_edges) | set(need_edges) == set(want_edges)
-
-            infr.classifiers = pblm
-            data_info = pblm.feat_extract_info[data_key]
-            X_need = infr._cached_pairwise_features(need_edges, data_info)
-            # X_need = infr._pblm_pairwise_features(need_edges, data_key)
-            # Make an ensemble of the evaluation classifiers
-            # (todo: use a classifier that hasn't seen any of this data)
-            task_need_probs = {}
-            for task_key in task_keys:
-                print('Predicting %s probabilities' % (task_key,))
-                clf_list = pblm.eval_task_clfs[task_key][clf_key][data_key]
-                labels = pblm.samples.subtasks[task_key]
-                import utool
-                with utool.embed_on_exception_context:
-                    eclf = sklearn_utils.voting_ensemble(clf_list, voting='soft')
-                eclf_probs = sklearn_utils.predict_proba_df(eclf, X_need,
-                                                            labels.class_names)
-                task_need_probs[task_key] = eclf_probs
-
-            # Combine probabilities --- get probabilites for each sample
-            # edges = have_edges + need_edges
-            task_probs = {}
-            for task_key in task_keys:
-                eclf_probs = task_need_probs[task_key]
-                have_probs = res_dict[task_key].probs_df.loc[have_edges]
-                task_probs[task_key] = pd.concat([have_probs, eclf_probs])
-                assert have_probs.index.intersection(eclf_probs.index).size == 0
+            task_probs = pblm._predict_proba_evaluation(infr, want_edges,
+                                                        task_keys, clf_key,
+                                                        data_key)
             data2 = task_probs
             cacher2.save(data2)
         task_probs = data2
+        return task_probs
+
+    def _predict_proba_evaluation(pblm, infr, want_edges, task_keys=None,
+                                  clf_key=None, data_key=None):
+        if clf_key is None:
+            clf_key = pblm.default_clf_key
+        if data_key is None:
+            data_key = pblm.default_data_key
+        if task_keys is None:
+            task_keys = [pblm.primary_task_key]
+        # Choose a classifier for each task
+        res_dict = dict([
+            (task_key, pblm.task_combo_res[task_key][clf_key][data_key])
+            for task_key in task_keys
+        ])
+        assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
+            'inconsistent combined result indices')
+
+        # Normalize and align combined result sample edges
+        res0 = next(iter(res_dict.values()))
+        train_uv = np.array(res0.probs_df.index.tolist())
+        assert np.all(train_uv.T[0] < train_uv.T[1]), (
+            'edges must be in lower triangular form')
+        assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
+            'edges must be unique')
+        assert (sorted(ut.emap(tuple, train_uv.tolist())) ==
+                sorted(ut.emap(tuple, pblm.samples.aid_pairs.tolist())))
+        want_uv = np.array(want_edges)
+
+        # Determine which edges need/have probabilities
+        want_uv_, train_uv_ = vt.structure_rows(want_uv, train_uv)
+        unordered_have_uv_ = np.intersect1d(want_uv_, train_uv_)
+        need_uv_ = np.setdiff1d(want_uv_, unordered_have_uv_)
+        flags = vt.flag_intersection(train_uv_, unordered_have_uv_)
+        # Re-order have_edges to agree with test_idx
+        have_uv_ = train_uv_[flags]
+        need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
+
+        # Convert to tuples for pandas lookup. bleh...
+        have_edges = ut.emap(tuple, have_uv.tolist())
+        need_edges = ut.emap(tuple, need_uv.tolist())
+        want_edges = ut.emap(tuple, want_uv.tolist())
+        assert set(have_edges) & set(need_edges) == set([])
+        assert set(have_edges) | set(need_edges) == set(want_edges)
+
+        classifiers = {}
+        for task_key in task_keys:
+            # Hack together an ensemble verifier
+            verif = Deployer(pblm=pblm)._make_ensemble_verifier(
+                task_key, clf_key, data_key)
+            classifiers[task_key] = verif
+
+        # Make an ensemble of the evaluation classifiers
+        # (todo: use a classifier that hasn't seen any of this data)
+
+        task_need_probs = {}
+        for task_key in task_keys:
+            print('Predicting %s probabilities' % (task_key,))
+            verif = classifiers[task_key]
+            eclf_probs = verif.predict_proba_df(need_edges)
+            task_need_probs[task_key] = eclf_probs
+
+        # Combine probabilities --- get probabilites for each sample
+        # edges = have_edges + need_edges
+        task_probs = {}
+        for task_key in task_keys:
+            eclf_probs = task_need_probs[task_key]
+            have_probs = res_dict[task_key].probs_df.loc[have_edges]
+            task_probs[task_key] = pd.concat([have_probs, eclf_probs])
+            assert have_probs.index.intersection(eclf_probs.index).size == 0
         return task_probs
 
     def build_feature_subsets(pblm):
@@ -1635,8 +1647,28 @@ class Deployer(object):
         verif = self._load_verifier(ibs, deploy_fpath, task_key)
         return verif
 
-    def _load_verifier(self, ibs, deploy_fpath, task_key):
-        from ibeis.algo.verif import verifier
+    def _make_ensemble_verifier(self, task_key, clf_key, data_key):
+        pblm = self.pblm
+        ibs = pblm.infr.ibs
+        data_info = pblm.feat_extract_info[data_key]
+        # Hack together an ensemble verifier
+        clf_list = pblm.eval_task_clfs[task_key][clf_key][data_key]
+        labels = pblm.samples.subtasks[task_key]
+        eclf = sklearn_utils.voting_ensemble(clf_list, voting='soft')
+        deploy_info = {
+            'clf': eclf,
+            'metadata': {
+                'task_key': task_key,
+                'clf_key': 'ensemble({})'.format(data_key),
+                'data_key': data_key,
+                'class_names': labels.class_names,
+                'data_info': data_info,
+            }
+        }
+        verif = verifier.Verifier(ibs, deploy_info)
+        return verif
+
+    def _make_verifier(self, ibs, deploy_fpath, task_key):
         deploy_info = ut.load_data(deploy_fpath)
         verif = verifier.Verifier(ibs, deploy_info=deploy_info)
         if task_key is not None:
@@ -1845,6 +1877,10 @@ class Deployer(object):
         else:
             deploy_info = self.deploy(task_key=task_key)
             assert exists(fpath), 'must now exist'
+        verif = verifier.Verifier(self.pblm.infr.ibs, deploy_info=deploy_info)
+        assert verif.metadata['task_key'] == task_key, (
+            'bad saved clf at fpath={}'.format(fpath))
+        return verif
 
     def deploy(self, task_key=None, publish=False):
         """
