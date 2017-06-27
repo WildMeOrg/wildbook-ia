@@ -962,6 +962,10 @@ class AnnotInference(ut.NiceRepr,
         # infr.verbose = verbose
         infr.verbose = verbose
 
+        # setup logging
+        infr.logs = collections.deque(maxlen=10000)
+        infr.log_index = 0
+
         infr.review_counter = it.count(0)
         infr.nid_counter = None
 
@@ -1066,10 +1070,6 @@ class AnnotInference(ut.NiceRepr,
         if aids == 'all':
             aids = ibs.get_valid_aids()
         infr.add_aids(aids, nids)
-
-        # Logging
-        infr.logs = collections.deque(maxlen=10000)
-        infr.log_index = 0
 
         if autoinit:
             infr.initialize_graph()

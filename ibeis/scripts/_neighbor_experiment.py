@@ -81,8 +81,6 @@ def augment_nnindexer_experiment():
     # Setup
     all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
     # ensure all features are computed
-    #ibs.get_annot_vecs(all_randomize_daids_, ensure=True)
-    #ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)
 
     nnindexer_list = []
     addition_lbl = 'Addition'
