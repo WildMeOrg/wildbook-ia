@@ -688,9 +688,6 @@ class QueryRequest(ut.NiceRepr):
         qreq2_.indexer = None
         #qreq2_.metadata = {}
         qreq2_.hasloaded = False
-        ut.embed()
-        qreq2_._unique_annots = qreq_._unique_annots
-        qreq2_._unique_dannots = qreq_._unique_dannots
         return qreq2_
 
     # --- State Modification ---
@@ -1292,6 +1289,7 @@ class QueryRequest(ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         if qaids is not None:
+            ut.embed()
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
             cm_list = shallow_qreq_.execute(prog_hook=prog_hook)
             #cm_list = qreq_.ibs.query_chips(
