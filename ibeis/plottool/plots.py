@@ -1347,7 +1347,8 @@ def plot_probabilities(prob_list,
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
     if kwargs.get('use_legend', True):
-        df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
+        size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
+        df2.legend(loc='best', size=kwargs.get('legendsize', size))
 
 
 # Short alias
@@ -1475,7 +1476,7 @@ def plot_sorted_scores(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
+            weight='light', size=kwargs.get('labelsize', mpl.rcParams['axes.labelsize']))
     }
 
     ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
@@ -1494,7 +1495,8 @@ def plot_sorted_scores(scores_list,
     }
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
+    size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
+    df2.legend(loc='best', size=kwargs.get('legendsize', size))
     #df2.legend(loc='best')
     #df2.iup()
 
