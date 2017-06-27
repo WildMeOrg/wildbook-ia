@@ -355,11 +355,15 @@ class PairwiseMatch(ut.NiceRepr):
         if verbose is None:
             verbose = True
 
+        allow_shrink = True  # TODO: parameterize?
+
         # Search for nearest neighbors
         if symmetric:
-            tup = symmetric_assign(annot1, annot2, K, Knorm, checks)
+            tup = symmetric_correspondence(annot1, annot2, K, Knorm, checks,
+                                           allow_shrink)
         else:
-            tup = asymmetric_assign(annot1, annot2, K, Knorm, checks)
+            tup = asymmetric_correspondence(annot1, annot2, K, Knorm, checks,
+                                            allow_shrink)
         fm, match_dist, norm_dist, fx1_norm, fx2_norm = tup
 
         ratio = np.divide(match_dist, norm_dist)
@@ -1413,23 +1417,28 @@ PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
 
-def symmetric_assign(annot1, annot2, K, Knorm, checks):
-    num_neighbors = K + Knorm
+def empty_assign():
+    fm = np.empty((0, 2), dtype=np.int32)
+    match_dist = np.array([])
+    norm_dist = np.array([])
+    fx1_norm = np.array([], dtype=np.int32)
+    fx2_norm = np.array([], dtype=np.int32)
+    return fm, match_dist, norm_dist, fx1_norm, fx2_norm
 
-    allow_shrink = True
+
+def symmetric_correspondence(annot1, annot2, K, Knorm, checks, allow_shrink=True):
+    """
+    Find symmetric feature corresopndences
+    """
     if allow_shrink:
+        # Reduce K to allow some correspondences to be established
         n_have = min(len(annot1['vecs']), len(annot2['vecs']))
-        if n_have < num_neighbors:
-            if n_have < 2:
-                fm = np.empty((0, 2), dtype=np.int32)
-                match_dist = np.array([])
-                norm_dist = np.array([])
-                fx1_norm = np.array([], dtype=np.int32)
-                fx2_norm = np.array([], dtype=np.int32)
-                return fm, match_dist, norm_dist, fx1_norm, fx2_norm
-            else:
-                K = n_have - 1
-                Knorm = 1
+        if n_have < 2:
+            return empty_assign()
+        elif n_have < K + Knorm:
+            K, Knorm = n_have - 1, 1
+
+    num_neighbors = K + Knorm
 
     fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
         annot2['flann'], annot1['vecs'], num_neighbors, checks)
@@ -1447,26 +1456,21 @@ def symmetric_assign(annot1, annot2, K, Knorm, checks):
     norm_dist = np.minimum(norm_dist1, norm_dist2)
 
     return fm, match_dist, norm_dist, fx1_norm, fx2_norm
-    pass
 
 
-def asymmetric_assign(annot1, annot2, K, Knorm, checks):
-    num_neighbors = K + Knorm
-
-    allow_shrink = True
+def asymmetric_correspondence(annot1, annot2, K, Knorm, checks, allow_shrink=True):
+    """
+    Find symmetric feature corresopndences
+    """
     if allow_shrink:
-        n_have = min(len(annot1['vecs']), len(annot2['vecs']))
-        if n_have < num_neighbors:
-            if n_have < 2:
-                fm = np.empty((0, 2), dtype=np.int32)
-                match_dist = np.array([])
-                norm_dist = np.array([])
-                fx1_norm = np.array([], dtype=np.int32)
-                fx2_norm = np.array([], dtype=np.int32)
-                return fm, match_dist, norm_dist, fx1_norm, fx2_norm
-            else:
-                K = n_have - 1
-                Knorm = 1
+        # Reduce K to allow some correspondences to be established
+        n_have = len(annot1['vecs'])
+        if n_have < 2:
+            return empty_assign()
+        elif n_have < K + Knorm:
+            K, Knorm = n_have - 1, 1
+
+    num_neighbors = K + Knorm
 
     fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
         annot1['flann'], annot2['vecs'], num_neighbors, checks)
