@@ -217,7 +217,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         argspec = ut.get_func_argspec(func)
         if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'testres':
             # most experiments need a testres
-            expts_kw = dict(defaultdb=db, a=a, t=t,
+            expts_kw = dict(defaultdb=db, dbdir=dbdir, a=a, t=t,
                             qaid_override=qaid_override,
                             daid_override=daid_override,
                             initial_aids=initial_aids
