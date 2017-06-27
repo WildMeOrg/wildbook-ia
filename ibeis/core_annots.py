@@ -1299,8 +1299,8 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
         configured_annot_views[config] = annots.view()
 
     if preload:
-        precompute_weights = (qannot_cfg.weight == 'fgweights' or
-                              dannot_cfg.weight == 'fgweights')
+        precompute_weights = (qannot_cfg['weight'] == 'fgweights' or
+                              dannot_cfg['weight'] == 'fgweights')
         unique_annot_views = list(configured_annot_views.values())
         for annots in unique_annot_views:
             annots.chip_size

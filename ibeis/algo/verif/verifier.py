@@ -14,6 +14,20 @@ print, rrr, profile = ut.inject2(__name__)
 class Verifier(ut.NiceRepr):
     """
 
+    Notes:
+        deploy_info should be a dict with the following keys:
+            clf: sklearn classifier
+            metadata: another dict with key:
+                class_names - classes that clf predicts
+                task_key - str
+                clf_key - str
+                data_info - tuple of (feat_extract_config, feat_dims)  # TODO: make feat dims part of feat_extract_config defaulted to None
+                data_info - tuple of (feat_extract_config, feat_dims)
+
+
+
+
+
     Example:
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> import ibeis

@@ -5,6 +5,7 @@ import numpy as np
 import utool as ut
 import pandas as pd
 import itertools as it
+from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 print, rrr, profile = ut.inject2(__name__)
 
@@ -409,7 +410,6 @@ class InfrLoops(object):
         infr.print('--- GROUNDTRUTH MERGE LOOP ---', color='white')
         assert infr.test_mode, 'only run this in test mode'
 
-        from ibeis.algo.graph import nx_utils
         group = ut.group_items(infr.aids, infr.orig_name_labels)
         fix_edges = []
 
@@ -419,7 +419,7 @@ class InfrLoops(object):
 
         for gt_nid, aids in group.items():
             pos_sub = infr.pos_graph.subgraph(aids)
-            aug_edges = nx_utils.edge_connected_augmentation(
+            aug_edges = nxu.edge_connected_augmentation(
                 pos_sub, 1, return_anyway=True)
             fix_edges.extend(aug_edges)
 
@@ -817,9 +817,6 @@ class InfrReviewers(object):
         """
         does one review step
         """
-        if infr.web_mode:
-            # Return False as we do not want to pop or return feedback
-            return False
         edge, priority = infr.pop()
         feedback = infr.emit_or_review(edge, priority)
         if feedback is None:
@@ -959,9 +956,6 @@ class SimulationHelpers(object):
         infr.print('real_n_pcc_mst_edges = %r' % (
             infr.real_n_pcc_mst_edges,), color='red')
 
-    def init_web_mode(infr):
-        infr.web_mode = True
-
     def measure_error_edges(infr):
         for edge, data in infr.edges(data=True):
             true_state = data['truth']
@@ -996,16 +990,15 @@ class SimulationHelpers(object):
         pred_n_pcc_mst_edges = n_true_merges
 
         if 0:
-            import ubelt
-            from ibeis.algo.graph import nx_utils
-            for timer in ubelt.Timerit(10):
+            import ubelt as ub
+            for timer in ub.Timerit(10):
                 with timer:
                     # Find undetectable errors
                     num_undetectable_fn = 0
                     for nid1, nid2 in infr.neg_redun_nids.edges():
                         cc1 = infr.pos_graph.component(nid1)
                         cc2 = infr.pos_graph.component(nid2)
-                        neg_edges = nx_utils.edges_cross(infr.neg_graph, cc1, cc2)
+                        neg_edges = nxu.edges_cross(infr.neg_graph, cc1, cc2)
                         for u, v in neg_edges:
                             real_nid1 = infr.node_truth[u]
                             real_nid2 = infr.node_truth[v]

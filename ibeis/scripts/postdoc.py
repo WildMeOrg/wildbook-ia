@@ -102,6 +102,153 @@ def entropy_potential(infr, u, v, decision):
 
 
 @ut.reloadable_class
+class GraphExpt(DBInputs):
+    """
+    python -m ibeis GraphExpt.measure all PZ_MTEST
+
+    Ignore:
+        >>> from ibeis.scripts.postdoc import *
+        >>> self = GraphExpt('PZ_MTEST')
+    """
+    base_dpath = ut.truepath('~/Desktop/graph_expt')
+
+    def _precollect(self):
+        if self.ibs is None:
+            _GraphExpt = ut.fix_super_reload(GraphExpt, self)
+            super(_GraphExpt, self)._precollect()
+
+        # Split data into a training and testing test
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        names = list(annots.group_items(annots.nids).values())
+        ut.shuffle(names, rng=321)
+        train_names, test_names = names[0::2], names[1::2]
+        train_aids, test_aids = map(ut.flatten, (train_names, test_names))
+
+        self.test_train = train_aids, test_aids
+
+        params = {}
+        self.pblm = vsone.OneVsOneProblem.from_aids(
+            ibs, train_aids, **params)
+
+        # ut.get_nonconflicting_path(dpath, suffix='_old')
+        self.const_dials = {
+            # 'oracle_accuracy' : (0.98, 1.0),
+            # 'oracle_accuracy' : (0.98, .98),
+            'oracle_accuracy' : (0.99, .99),
+            'k_redun'         : 2,
+            'max_outer_loops' : np.inf,
+            # 'max_outer_loops' : 1,
+        }
+
+        config = ut.dict_union(self.const_dials)
+        cfg_prefix = '{}_{}'.format(len(test_aids), len(train_aids))
+        self._setup_links(cfg_prefix, config)
+
+    def _setup(self):
+        """
+        python -m ibeis Chap5._setup
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> #self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_Master1')
+            >>> #self = Chap5('PZ_MTEST')
+            >>> self._setup()
+        """
+        self._precollect()
+        train_aids, test_aids = self.test_train
+
+        task_key = 'match_state'
+        pblm = self.pblm
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+
+        pblm.eval_data_keys = [data_key]
+        pblm.setup(with_simple=False)
+        pblm.learn_evaluation_classifiers()
+
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        # pblm.report_evaluation()
+
+        # TODO: need more principled way of selecting thresholds
+        graph_thresh = res.get_pos_threshes('fpr', 0.01)
+        # rankclf_thresh = res.get_pos_threshes(fpr=0.01)
+
+        # Load or create the deploy classifiers
+        clf_dpath = ut.ensuredir((self.dpath, 'clf'))
+        classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
+
+        sim_params = {
+            'test_aids': test_aids,
+            'train_aids': train_aids,
+            'classifiers': classifiers,
+            'graph_thresh': graph_thresh,
+            # 'rankclf_thresh': rankclf_thresh,
+            'const_dials': self.const_dials,
+        }
+        self.pblm = pblm
+        self.sim_params = sim_params
+        return sim_params
+
+    @profile
+    def measure_graphsim(self):
+        """
+        CommandLine:
+            python -m ibeis Chap5.measure graphsim GZ_Master1
+            python -m ibeis Chap5.measure graphsim PZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
+        """
+        import ibeis
+        self.ensure_setup()
+
+        ibs = self.ibs
+        sim_params = self.sim_params
+        classifiers = sim_params['classifiers']
+        test_aids = sim_params['test_aids']
+
+        graph_thresh = sim_params['graph_thresh']
+
+        const_dials = sim_params['const_dials']
+
+        sim_results = {}
+        verbose = 1
+
+        # ----------
+        # Graph test
+        dials1 = ut.dict_union(const_dials, {
+            'name'               : 'graph',
+            'enable_inference'   : True,
+            'match_state_thresh' : graph_thresh,
+        })
+        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                     verbose=verbose)
+        infr1.enable_auto_prioritize_nonpos = True
+        infr1._refresh_params['window'] = 20
+        infr1._refresh_params['thresh'] = 0.052
+        infr1._refresh_params['patience'] = 72
+
+        infr1.init_simulation(classifiers=classifiers, **dials1)
+        infr1.init_test_mode()
+
+        infr1.reset(state='empty')
+        infr1.main_loop()
+
+        sim_results['graph'] = self._collect_sim_results(infr1, dials1)
+
+        # ------------
+        # Dump experiment output to disk
+        expt_name = 'graphsim'
+        self.expt_results[expt_name] = sim_results
+        ut.ensuredir(self.dpath)
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
+        pass
+
+
+@ut.reloadable_class
 class VerifierExpt(DBInputs):
     """
     Collect data from experiments to visualize

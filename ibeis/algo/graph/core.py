@@ -5,6 +5,7 @@ import utool as ut
 # import logging
 import itertools as it
 import six
+import collections
 from ibeis.algo.graph import nx_dynamic_graph
 # from ibeis.algo.graph import _dep_mixins
 from ibeis.algo.graph import mixin_viz
@@ -692,11 +693,6 @@ class MiscHelpers(object):
 
         infr.update_node_attributes()
 
-    def init_logging(infr):
-        import collections
-        infr.logs = collections.deque(maxlen=10000)
-        infr.log_index = 0
-
     @profile
     def log_message(infr, msg, level=1, color=None):
         if color is None:
@@ -945,9 +941,24 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
+
+    Ignore:
+        >>> import ibeis
+        >>> import utool as ut
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> infr = ibeis.AnnotInference(ibs, 'all')
+        >>> class_ = infr
+        >>> fpath = None
+        >>> static_attrs = ut.check_static_member_vars(class_, fpath)
+        >>> uninitialized = set(infr.__dict__.keys()) - set(static_attrs)
+
     """
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
+        """
+        Ignore:
+            pass
+        """
         # infr.verbose = verbose
         infr.verbose = verbose
 
@@ -1051,11 +1062,14 @@ class AnnotInference(ut.NiceRepr,
 
         infr.manual_wgt = None
 
-        infr.init_logging()
         infr.print('__init__', level=1)
         if aids == 'all':
             aids = ibs.get_valid_aids()
         infr.add_aids(aids, nids)
+
+        # Logging
+        infr.logs = collections.deque(maxlen=10000)
+        infr.log_index = 0
 
         if autoinit:
             infr.initialize_graph()
