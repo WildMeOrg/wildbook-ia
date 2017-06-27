@@ -87,7 +87,7 @@ def import_subs():
     from ibeis import templates
 
 
-def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
+def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'],
                    initial_aids=None, qaid_override=None, daid_override=None,
                    lazy=False, **kwargs):
     """
@@ -152,9 +152,16 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         else:
             # hack to use tf
             epref = '--tf'
+
+        if dbdir is not None:
+            db_flag = '--dbdir'
+            db_value = dbdir
+        else:
+            db_flag = '--db'
+            db_value = db
         command_parts = ['ibeis',
                          epref, e,
-                         '--db', db,
+                         db_flag, db_value,
                          '-a', ' '.join(a).replace('(', '\(').replace(')', '\)'),
                          '-t', ' '.join(t),
                         ]

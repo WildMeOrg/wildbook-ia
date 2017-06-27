@@ -82,6 +82,7 @@ nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
     %load_ext autoreload
     %reload_ext autoreload
     %autoreload
+    import utool as ut
     import plottool as pt
     from ibeis.templates import notebook_helpers
     notebook_helpers.custom_globals()
