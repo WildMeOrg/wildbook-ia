@@ -1163,64 +1163,22 @@ class QueryRequest(ut.NiceRepr):
             print('[qreq] ensure_features')
         if prog_hook is not None:
             prog_hook(0, 3, 'ensure features')
-        external_qaids = qreq_.qaids
-        external_daids = qreq_.daids
         if prog_hook is not None:
             prog_hook(1, 3, 'ensure query features')
         qreq_.qannots.preload('kpts', 'vecs')
-        qfids = qreq_.ibs.get_annot_feat_rowids(  # NOQA
-            external_qaids, ensure=True,
-            config2_=qreq_.extern_query_config2)
         if prog_hook is not None:
             prog_hook(2, 3, 'ensure database features')
         qreq_.dannots.preload('kpts')
-        dfids = qreq_.ibs.get_annot_feat_rowids(  # NOQA
-            external_daids, ensure=True,
-            config2_=qreq_.extern_data_config2)
         if prog_hook is not None:
             prog_hook(3, 3, 'computed features')
 
     @profile
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):
         """ ensure feature weights are computed """
-        #with ut.EmbedOnException():
         if verbose:
             print('[qreq] ensure_featweights')
-        #internal_qaids = qreq_.get_internal_qaids()
-        #internal_daids = qreq_.get_internal_daids()
-        #qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True, config2_=qreq_.qparams)
-        #qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, config2_=qreq_.qparams)
-        external_qaids = qreq_.qaids
-        external_daids = qreq_.daids
         qreq_.qannots.preload('fgweights')
-        qfw_rowids = qreq_.ibs.get_annot_featweight_rowids(  # NOQA
-            external_qaids, ensure=True,
-            config2_=qreq_.extern_query_config2)
         qreq_.dannots.preload('fgweights')
-        dfw_rowids = qreq_.ibs.get_annot_featweight_rowids(  # NOQA
-            external_daids, ensure=True,
-            config2_=qreq_.extern_data_config2)
-        if ut.DEBUG2:
-            qfeatweights = qreq_.ibs.get_annot_fgweights(
-                external_qaids, ensure=True,
-                config2_=qreq_.extern_query_config2)
-            dfeatweights = qreq_.ibs.get_annot_fgweights(  # NOQA
-                external_daids, ensure=True,
-                config2_=qreq_.extern_data_config2)
-            #if verbose:
-            try:
-                assert len(qfeatweights) > 0, 'no query featweights'
-                assert qfeatweights[0].size > 0, (
-                    'Query featweights are corrupted! qfeatweights=%r' %
-                    (qfeatweights,))
-            except Exception:
-                print('qfeatweights = %r' % (qfeatweights,))
-                raise
-            #print('Featweight hash')
-            #print(qkpts)
-            #print(dkpts)
-            #print(ut.hashstr27(str(qfeatweights)))
-            #print(ut.hashstr27(str(dfeatweights)))
 
     @profile
     def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False, prog_hook=None):

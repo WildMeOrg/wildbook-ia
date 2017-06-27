@@ -37,9 +37,7 @@ ANNOTGROUP_NOTE  = 'annotgroup_note'
 ANNOTGROUP_ROWID = 'annotgroup_rowid'
 ANNOTGROUP_TEXT  = 'annotgroup_text'
 ANNOTGROUP_UUID  = 'annotgroup_uuid'
-CONFIG_ROWID     = 'config_rowid'
 ANNOT_ROWID      = 'annot_rowid'
-FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 @register_ibs_method

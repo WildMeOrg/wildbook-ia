@@ -37,8 +37,6 @@ def testdata_ibs(defaultdb='testdb1'):
     return ibs, qreq_
 
 # AUTOGENED CONSTANTS:
-CONFIG_ROWID     = 'config_rowid'
-FEATWEIGHT_ROWID = 'featweight_rowid'
 PARTY_ROWID      = 'party_rowid'
 PARTY_TAG        = 'party_tag'
 

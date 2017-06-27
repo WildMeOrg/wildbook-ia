@@ -31,13 +31,10 @@ def testdata_annotmatch(defaultdb='testdb1'):
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
-    #from ibeis.hots import query_config
-    #config2_ = query_config.QueryParams(cfgdict=dict())
     return ibs, config2_
 
 
 ANNOTMATCH_CONFIDENCE         = 'annotmatch_confidence'
-ANNOTMATCH_PAIRWISE_PROB      = 'annotmatch_pairwise_prob'
 ANNOTMATCH_POSIXTIME_MODIFIED = 'annotmatch_posixtime_modified'
 ANNOTMATCH_REVIEWED           = 'annotmatch_reviewed'
 ANNOTMATCH_REVIEWER           = 'annotmatch_reviewer'
@@ -47,9 +44,6 @@ ANNOTMATCH_TRUTH              = 'annotmatch_truth'
 ANNOTMATCH_COUNT              = 'annotmatch_count'
 ANNOT_ROWID1                  = 'annot_rowid1'
 ANNOT_ROWID2                  = 'annot_rowid2'
-CONFIG_HASHID                 = 'config_hashid'
-CONFIG_ROWID                  = 'config_rowid'
-FEATWEIGHT_ROWID              = 'featweight_rowid'
 
 
 @register_ibs_method
@@ -75,7 +69,13 @@ def _get_all_annotmatch_rowids(ibs):
 
 @register_ibs_method
 @register_api('/api/match/', methods=['POST'])
-def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotmatch_confidence_list=None, annotmatch_tag_text_list=None, annotmatch_reviewed_list=None, annotmatch_reviewer_list=None, annotmatch_posixtime_modified_list=None, annotmatch_pairwise_prob_list=None, config_hashid_list=None, anotmatch_count_list=None):
+def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None,
+                   annotmatch_confidence_list=None,
+                   annotmatch_tag_text_list=None,
+                   annotmatch_reviewed_list=None,
+                   annotmatch_reviewer_list=None,
+                   annotmatch_posixtime_modified_list=None,
+                   anotmatch_count_list=None):
     r"""
     Returns:
         returns annotmatch_rowid_list of added (or already existing annotmatchs)
@@ -88,8 +88,8 @@ def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotm
     colnames = (ANNOT_ROWID1, ANNOT_ROWID2, ANNOTMATCH_TRUTH,
                 ANNOTMATCH_CONFIDENCE, ANNOTMATCH_TAG_TEXT,
                 ANNOTMATCH_REVIEWED, ANNOTMATCH_REVIEWER,
-                ANNOTMATCH_POSIXTIME_MODIFIED, ANNOTMATCH_PAIRWISE_PROB,
-                CONFIG_HASHID, ANNOTMATCH_COUNT,)
+                ANNOTMATCH_POSIXTIME_MODIFIED,
+                ANNOTMATCH_COUNT,)
     if annotmatch_truth_list is None:
         annotmatch_truth_list = [None] * len(aid1_list)
     if annotmatch_confidence_list is None:
@@ -102,18 +102,14 @@ def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotm
         annotmatch_reviewer_list = [None] * len(aid1_list)
     if annotmatch_posixtime_modified_list is None:
         annotmatch_posixtime_modified_list = [None] * len(aid1_list)
-    if annotmatch_pairwise_prob_list is None:
-        annotmatch_pairwise_prob_list = [None] * len(aid1_list)
-    if config_hashid_list is None:
-        config_hashid_list = [None] * len(aid1_list)
     if anotmatch_count_list is None:
         anotmatch_count_list = [0] * len(aid1_list)
     params_iter = (
         (aid1, aid2, annotmatch_truth, annotmatch_confidence, annotmatch_tag_text, annotmatch_reviewed,
-         annotmatch_reviewer, annotmatch_posixtime_modified, annotmatch_pairwise_prob, config_hashid, anotmatch_count,)
-        for (aid1, aid2, annotmatch_truth, annotmatch_confidence, annotmatch_tag_text, annotmatch_reviewed, annotmatch_reviewer, annotmatch_posixtime_modified, annotmatch_pairwise_prob, config_hashid, anotmatch_count) in
+         annotmatch_reviewer, annotmatch_posixtime_modified, anotmatch_count,)
+        for (aid1, aid2, annotmatch_truth, annotmatch_confidence, annotmatch_tag_text, annotmatch_reviewed, annotmatch_reviewer, annotmatch_posixtime_modified, anotmatch_count) in
         zip(aid1_list, aid2_list, annotmatch_truth_list, annotmatch_confidence_list, annotmatch_tag_text_list, annotmatch_reviewed_list,
-            annotmatch_reviewer_list, annotmatch_posixtime_modified_list, annotmatch_pairwise_prob_list, config_hashid_list, anotmatch_count_list)
+            annotmatch_reviewer_list, annotmatch_posixtime_modified_list, anotmatch_count_list)
     )
     get_rowid_from_superkey = ibs.get_annotmatch_rowid_from_superkey
     # FIXME: encode superkey paramx
@@ -260,74 +256,6 @@ def get_annotmatch_confidence(ibs, annotmatch_rowid_list, eager=True, nInput=Non
     annotmatch_confidence_list = ibs.db.get(
         const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
     return annotmatch_confidence_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-def get_annotmatch_config_hashid(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" config_hashid_list <- annotmatch.config_hashid[annotmatch_rowid_list]
-
-    gets data from the "native" column "config_hashid" in the "annotmatch" table
-
-    Args:
-        annotmatch_rowid_list (list):
-
-    Returns:
-        list: config_hashid_list
-
-    TemplateInfo:
-        Tgetter_table_column
-        col = config_hashid
-        tbl = annotmatch
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
-        >>> ibs, config2_ = testdata_annotmatch()
-        >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
-        >>> eager = True
-        >>> config_hashid_list = ibs.get_annotmatch_config_hashid(annotmatch_rowid_list, eager=eager)
-        >>> assert len(annotmatch_rowid_list) == len(config_hashid_list)
-    """
-    id_iter = annotmatch_rowid_list
-    colnames = (CONFIG_HASHID,)
-    config_hashid_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
-    return config_hashid_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-def get_annotmatch_pairwise_prob(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" annotmatch_pairwise_prob_list <- annotmatch.annotmatch_pairwise_prob[annotmatch_rowid_list]
-
-    gets data from the "native" column "annotmatch_pairwise_prob" in the "annotmatch" table
-
-    Args:
-        annotmatch_rowid_list (list):
-
-    Returns:
-        list: annotmatch_pairwise_prob_list
-
-    TemplateInfo:
-        Tgetter_table_column
-        col = annotmatch_pairwise_prob
-        tbl = annotmatch
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
-        >>> ibs, config2_ = testdata_annotmatch()
-        >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
-        >>> eager = True
-        >>> annotmatch_pairwise_prob_list = ibs.get_annotmatch_pairwise_prob(annotmatch_rowid_list, eager=eager)
-        >>> assert len(annotmatch_rowid_list) == len(annotmatch_pairwise_prob_list)
-    """
-    id_iter = annotmatch_rowid_list
-    colnames = (ANNOTMATCH_PAIRWISE_PROB,)
-    annotmatch_pairwise_prob_list = ibs.db.get(
-        const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
-    return annotmatch_pairwise_prob_list
 
 
 @register_ibs_method
@@ -585,46 +513,6 @@ def set_annotmatch_confidence(ibs, annotmatch_rowid_list, annotmatch_confidence_
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_CONFIDENCE,)
     ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_confidence_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
-
-
-@register_ibs_method
-@accessor_decors.setter
-def set_annotmatch_config_hashid(ibs, annotmatch_rowid_list, config_hashid_list, duplicate_behavior='error'):
-    r""" config_hashid_list -> annotmatch.config_hashid[annotmatch_rowid_list]
-
-    Args:
-        annotmatch_rowid_list
-        config_hashid_list
-
-    TemplateInfo:
-        Tsetter_native_column
-        tbl = annotmatch
-        col = config_hashid
-    """
-    id_iter = annotmatch_rowid_list
-    colnames = (CONFIG_HASHID,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, config_hashid_list,
-               id_iter, duplicate_behavior=duplicate_behavior)
-
-
-@register_ibs_method
-@accessor_decors.setter
-def set_annotmatch_pairwise_prob(ibs, annotmatch_rowid_list, annotmatch_pairwise_prob_list, duplicate_behavior='error'):
-    r""" annotmatch_pairwise_prob_list -> annotmatch.annotmatch_pairwise_prob[annotmatch_rowid_list]
-
-    Args:
-        annotmatch_rowid_list
-        annotmatch_pairwise_prob_list
-
-    TemplateInfo:
-        Tsetter_native_column
-        tbl = annotmatch
-        col = annotmatch_pairwise_prob
-    """
-    id_iter = annotmatch_rowid_list
-    colnames = (ANNOTMATCH_PAIRWISE_PROB,)
-    ibs.db.set(const.ANNOTMATCH_TABLE, colnames, annotmatch_pairwise_prob_list,
                id_iter, duplicate_behavior=duplicate_behavior)
 
 
