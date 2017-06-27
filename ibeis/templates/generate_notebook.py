@@ -48,6 +48,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -p :proot=smk,num_words=64000 default
         python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --asreport
         python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST
 
         python -m ibeis autogen_ipynb --db PZ_MTEST
         # TODO: Add support for dbdir to be specified
@@ -72,8 +73,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         >>> from ibeis.templates.generate_notebook import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> launch = ut.get_argflag('--launch')
-        >>> result = autogen_ipynb(ibs, launch)
+        >>> result = autogen_ipynb(ibs)
         >>> print(result)
     """
     dbname = ibs.get_dbname()
@@ -93,7 +93,10 @@ def autogen_ipynb(ibs, launch=None, run=None):
         output_fpath = ut.export_notebook(run_nb, fname)
         ut.startfile(output_fpath)
     elif launch:
-        ut.cmd('jupyter-notebook', nb_fpath, detatch=True)
+        command = ' '.join(['jupyter-notebook',
+                            '--NotebookApp.iopub_data_rate_limit=10000000',
+                            nb_fpath])
+        ut.cmd2(command, detatch=True, verbose=True)
     else:
         print('notebook_str =\n%s' % (notebook_str,))
 
