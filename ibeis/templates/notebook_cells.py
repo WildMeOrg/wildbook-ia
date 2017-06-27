@@ -80,6 +80,7 @@ nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
     import matplotlib as mpl
     %matplotlib inline
     %load_ext autoreload
+    %reload_ext autoreload
     %autoreload
     import plottool as pt
     from ibeis.templates import notebook_helpers
@@ -97,7 +98,7 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     r'''
     # STARTBLOCK
     # Setup database specific parameter configurations
-    db = '{dbname}'
+    dbdir = '{dbdir}'
 
     # Customize one or more of the following annotation configurations
     # See ibeis/expt/annotation_configs.py for an enumeration of options
@@ -120,7 +121,7 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     # Load database for this test run
     import ibeis
     ibeis.expt.harness.USE_BIG_TEST_CACHE = True
-    ibs = ibeis.opendb(db=db)
+    ibs = ibeis.opendb(dbdir=dbdir)
     # ENDBLOCK
     '''))
 
@@ -175,7 +176,7 @@ dbsize_expt = ('# Database Size Experiment ', ut.codeblock(
     if True:
         test_result = ibeis.run_experiment(
             e='rank_surface',
-            db=db,
+            dbdir=dbdir,
             a=['varysize_td'],
             t=['candk'])
         #test_result.print_unique_annot_config_stats()
@@ -186,7 +187,7 @@ dbsize_expt = ('# Database Size Experiment ', ut.codeblock(
         # This test requires a little bit of relaxation to get enough data
         test_result = ibeis.run_experiment(
             e='rank_surface',
-            db=db,
+            dbdir=dbdir,
             a=['varysize_tdqual:qmin_pername=3,dpername=[1,2]'],
             t=['candk'])
         #test_result.print_unique_annot_config_stats()
@@ -202,7 +203,7 @@ timedelta_distribution = ('# Result Timedelta Distribution (Safely Ignore)', ut.
     # STARTBLOCK
     test_result = ibeis.run_experiment(
         e='timedelta_hist',
-        db=db,
+        dbdir=dbdir,
         a=a,
         t=t,
         qaid_override=qaid_override, daid_override=daid_override,
@@ -374,7 +375,7 @@ per_annotation_accuracy = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='rank_cmc',
-            db=db, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
+            dbdir=dbdir, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         _ = testres.draw_func(cdfzoom=True, draw_icon=True, labelsize=40,
                               ticksize=30, figtitlesize=30, legendsize=30,
@@ -414,7 +415,7 @@ per_name_accuracy = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='rank_cmc',
-            db=db, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)
+            dbdir=dbdir, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         # _ = testres.draw_func()
         # fix_figsize()
@@ -462,7 +463,7 @@ config_disagree_cases = ('# Configuration Disagreements (Safely Ignored)', ut.co
     # STARTBLOCK
     testres = ibeis.run_experiment(
         e='draw_cases',
-        db=db, a=a, t=t,
+        dbdir=dbdir, a=a, t=t,
         f=[':disagree=True,index=0:3'],
         figsize=(30, 8),
         **draw_case_kw)
@@ -479,7 +480,7 @@ feat_score_sep = ('# Feature Correspondence Score Separation (Safely Ignored)', 
     # STARTBLOCK
     test_result = ibeis.run_experiment(
         e='TestResult.draw_feat_scoresep',
-        db=db,
+        dbdir=dbdir,
         a=a,
         t=t,
         #disttype=['L2_sift']
@@ -498,7 +499,7 @@ success_annot_scoresep = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_annot_scoresep',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             f=[':fail=False,min_gf_timedelta=None'],
         )
         _ = testres.draw_func()
@@ -513,7 +514,7 @@ all_annot_scoresep = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='scores',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             qaid_override=qaid_override, daid_override=daid_override,
             f=[':fail=None,min_gf_timedelta=None']
         )
@@ -532,7 +533,7 @@ view_intereseting_tags = (
         # STARTBLOCK
         test_result = ibeis.run_experiment(
             e='draw_cases',
-            db=db,
+            dbdir=dbdir,
             a=a,
             t=t,
             f=[':index=0:5,with_tag=interesting'],
@@ -581,7 +582,7 @@ easy_success_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             f=[':fail=False,index=0:3,sortdsc=gtscore,max_pername=1'],
             # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
             # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
@@ -608,7 +609,7 @@ hard_success_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1,min_gtscore=.00001'],  # hack min_gtscore for 0 scores marked as success
             # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
             # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
@@ -645,7 +646,7 @@ failure_type2_cases =  (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             f=[':fail=True,index=0:3,sortdsc=gtscore,max_pername=1'],
             figsize=(30, 8),
             **draw_case_kw)
@@ -674,7 +675,7 @@ failure_type1_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             f=[':fail=True,index=0:3,sortdsc=gfscore,max_pername=1'],
             figsize=(30, 8),
             **draw_case_kw)
@@ -697,7 +698,7 @@ total_failure_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a, t=t,
+            dbdir=dbdir, a=a, t=t,
             f=[':fail=True,index=0:3,sortasc=gtscore,max_pername=1'],
             figsize=(30, 8),
             **draw_case_kw)
@@ -715,7 +716,7 @@ investigate_specific_case = (
         # STARTBLOCK
         test_result = ibeis.run_experiment(
             e='draw_cases',
-            db=db,
+            dbdir=dbdir,
             a=[a[0] + ',qsize=1'],
             #t=t,
             t=[t[0], t[0] + ':SV=False'],

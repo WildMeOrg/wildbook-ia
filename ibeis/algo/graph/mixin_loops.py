@@ -817,6 +817,9 @@ class InfrReviewers(object):
         """
         does one review step
         """
+        if infr.web_mode:
+            # Return False as we do not want to pop or return feedback
+            return False
         edge, priority = infr.pop()
         feedback = infr.emit_or_review(edge, priority)
         if feedback is None:
@@ -955,6 +958,9 @@ class SimulationHelpers(object):
             len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
         infr.print('real_n_pcc_mst_edges = %r' % (
             infr.real_n_pcc_mst_edges,), color='red')
+
+    def init_web_mode(infr):
+        infr.web_mode = True
 
     def measure_error_edges(infr):
         for edge, data in infr.edges(data=True):

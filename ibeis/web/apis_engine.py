@@ -68,10 +68,10 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
         >>> try:
         >>>     web_check_uuids(ibs, image_uuid_list, qannot_uuid_list,
         >>>                     dannot_uuid_list)
-        >>> except controller_inject.DuplicateUUIDException:
+        >>> except controller_inject.WebDuplicateUUIDException:
         >>>     pass
         >>> else:
-        >>>     raise AssertionError('Should have gotten DuplicateUUIDException')
+        >>>     raise AssertionError('Should have gotten WebDuplicateUUIDException')
         >>> try:
         >>>     web_check_uuids(ibs, [1, 2, 3], qannot_uuid_list,
         >>>                     dannot_uuid_list)
@@ -100,7 +100,7 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
     qdup_pos_map = ut.find_duplicate_items(dannot_uuid_list)
     ddup_pos_map = ut.find_duplicate_items(qannot_uuid_list)
     if len(ddup_pos_map) + len(qdup_pos_map) > 0:
-        raise controller_inject.DuplicateUUIDException(qdup_pos_map, qdup_pos_map)
+        raise controller_inject.WebDuplicateUUIDException(qdup_pos_map, qdup_pos_map)
 
 
 @register_ibs_method

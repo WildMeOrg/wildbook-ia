@@ -18,6 +18,9 @@ class IBEISIO(object):
     Direct interface into ibeis tables and delta statistics
     """
 
+    def add_annots(infr, aid_list):
+        pass
+
     def ibeis_delta_info(infr, edge_delta_df=None, name_delta_df=None):
         if name_delta_df is None:
             name_delta_df = infr.get_ibeis_name_delta()

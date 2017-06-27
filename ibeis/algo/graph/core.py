@@ -1143,6 +1143,12 @@ class AnnotInference(ut.NiceRepr,
                 infr2.review_graphs[k] = g.subgraph(aids)
         return infr2
 
+    def set_config(infr, **config_dict):
+        pass
+
+    def set_callbacks(infr, **callback_dict):
+        pass
+
 
 def testdata_infr(defaultdb='PZ_MTEST'):
     import ibeis

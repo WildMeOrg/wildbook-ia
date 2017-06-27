@@ -217,6 +217,7 @@ def make_ibeis_cell_list(ibs):
     autogen_str = '# python -m ibeis autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
     # autogen_str = ut.make_autogen_str()
     dbname = ibs.get_dbname()
+    dbdir = ibs.dbdir
     default_acfgstr = ut.get_argval('-a', type_=str, default='default:is_known=True')
 
     asreport = ut.get_argflag('--asreport')

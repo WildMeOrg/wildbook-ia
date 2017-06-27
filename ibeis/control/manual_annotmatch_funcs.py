@@ -73,6 +73,7 @@ def _get_all_annotmatch_rowids(ibs):
 
 
 @register_ibs_method
+@register_api('/api/match/', methods=['POST'])
 def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotmatch_confidence_list=None, annotmatch_tag_text_list=None, annotmatch_reviewed_list=None, annotmatch_reviewer_list=None, annotmatch_posixtime_modified_list=None, annotmatch_pairwise_prob_list=None, config_hashid_list=None):
     r"""
     Returns:
@@ -555,6 +556,7 @@ def get_annotmatch_truth(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/match/confidence/', methods=['PUT'])
 def set_annotmatch_confidence(ibs, annotmatch_rowid_list, annotmatch_confidence_list, duplicate_behavior='error'):
     r""" annotmatch_confidence_list -> annotmatch.annotmatch_confidence[annotmatch_rowid_list]
 
@@ -655,6 +657,7 @@ def set_annotmatch_reviewed(ibs, annotmatch_rowid_list, annotmatch_reviewed_list
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/match/user/', methods=['PUT'])
 def set_annotmatch_reviewer(ibs, annotmatch_rowid_list, annotmatch_reviewer_list, duplicate_behavior='error'):
     r""" annotmatch_reviewer_list -> annotmatch.annotmatch_reviewer[annotmatch_rowid_list]
 
@@ -675,6 +678,7 @@ def set_annotmatch_reviewer(ibs, annotmatch_rowid_list, annotmatch_reviewer_list
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/match/tags/', methods=['PUT'], __api_plural_check__=False)
 def set_annotmatch_tag_text(ibs, annotmatch_rowid_list, annotmatch_tag_text_list, duplicate_behavior='error'):
     r""" annotmatch_tag_text_list -> annotmatch.annotmatch_tag_text[annotmatch_rowid_list]
 
@@ -695,6 +699,7 @@ def set_annotmatch_tag_text(ibs, annotmatch_rowid_list, annotmatch_tag_text_list
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/match/decision/', methods=['PUT'])
 def set_annotmatch_truth(ibs, annotmatch_rowid_list, annotmatch_truth_list, duplicate_behavior='error'):
     r""" annotmatch_truth_list -> annotmatch.annotmatch_truth[annotmatch_rowid_list]
 

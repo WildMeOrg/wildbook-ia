@@ -331,6 +331,22 @@ def add_species_json(ibs, species_nice_list, species_text_list=None,
     return ibs.get_species_uuids(species_rowid_list)
 
 
+@register_api('/api/match/json/', methods=['POST'])
+def add_annotmatch_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
+                        match_decision_list=None, match_confidence_list=None,
+                        match_tag_list=None, match_reviewed_list=None,
+                        match_reviewer_list=None):
+    aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+    aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+    ibs.add_annotmatch(ibs, aid1_list, aid2_list,
+                       annotmatch_truth_list=match_decision_list,
+                       annotmatch_confidence_list=match_confidence_list,
+                       annotmatch_tag_text_list=match_tag_list,
+                       annotmatch_reviewed_list=match_reviewed_list,
+                       annotmatch_reviewer_list=match_reviewer_list)
+    return zip(match_annot_uuid1_list, match_annot_uuid2_list)
+
+
 @register_api('/api/imageset/json/', methods=['GET'])
 def get_valid_imageset_uuids_json(ibs, **kwargs):
     imgsetid_list = ibs.get_valid_imgsetids(**kwargs)
@@ -1279,6 +1295,42 @@ def set_part_types_json(ibs, part_uuid_list, type_text_list, **kwargs):
 def set_part_tag_text_json(ibs, part_uuid_list, part_tags_list, **kwargs):
     aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
     return ibs.set_part_tag_text(aid_list, part_tags_list)
+
+
+@register_api('/api/match/decision/json/', methods=['PUT'])
+def set_annotmatch_truth_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
+                              match_decision_list, **kwargs):
+    aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+    aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    return ibs.set_annotmatch_truth(annotmatch_rowid_list, match_decision_list)
+
+
+@register_api('/api/match/tags/json/', methods=['PUT'], __api_plural_check__=False)
+def set_annotmatch_tag_text_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
+                                 match_tags_list, **kwargs):
+    aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+    aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    return ibs.set_annotmatch_tag_text(annotmatch_rowid_list, match_tags_list)
+
+
+@register_api('/api/match/confidence/json/', methods=['PUT'])
+def set_annotmatch_confidence_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
+                                   match_confidence_list, **kwargs):
+    aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+    aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    return ibs.set_annotmatch_confidence(annotmatch_rowid_list, match_confidence_list)
+
+
+@register_api('/api/match/user/json/', methods=['PUT'])
+def set_annotmatch_reviewer_json(ibs, match_annot_uuid1_list, match_annot_uuid2_list,
+                                 match_user_list, **kwargs):
+    aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+    aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    return ibs.set_annotmatch_reviewer(annotmatch_rowid_list, match_user_list)
 
 
 @register_api('/api/contributor/rowid/uuid/json/', methods=['GET'])

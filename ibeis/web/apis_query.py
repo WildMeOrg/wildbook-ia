@@ -15,6 +15,8 @@ import numpy as np   # NOQA
 import utool as ut
 from ibeis.web import appfuncs as appf
 import traceback
+from ibeis import constants as const
+import six
 ut.noinject('[apis_query]')
 
 
@@ -22,6 +24,9 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
+
+
+ANNOT_INFR_PEAK_MAX = 50
 
 
 @register_ibs_method
@@ -136,9 +141,11 @@ def process_graph_match_html(ibs, **kwargs):
         return state
     import uuid
     map_dict = {
-        'sameanimal'       : 'matched',
-        'differentanimals' : 'notmatched',
-        'cannottell'       : 'notcomparable',
+        'sameanimal'       : const.REVIEW.POSITIVE,
+        'differentanimals' : const.REVIEW.NEGATIVE,
+        'cannottell'       : const.REVIEW.INCOMPARABLE,
+        'unreviewed'       : const.REVIEW.UNREVIEWED,
+        'unknown'          : const.REVIEW.UNKNOWN,
         'photobomb'        : 'photobomb',
         'scenerymatch'     : 'scenerymatch',
     }
@@ -147,17 +154,36 @@ def process_graph_match_html(ibs, **kwargs):
     state = request.form.get('identification-submit', '')
     state = sanitize(state)
     state = map_dict[state]
+    tag_list = []
+    if state in ['photobomb', 'scenerymatch']:
+        tag_list.append(state)
+        state = const.REVIEW.NEGATIVE
     assert state in map_dict.values(), 'matching state is unrecognized'
     # Get checbox tags
-    tag_list = []
     checbox_tag_list = ['photobomb', 'scenerymatch']
     for checbox_tag in checbox_tag_list:
         checkbox_name = 'ia-%s-value' % (checbox_tag)
         if checkbox_name in request.form:
             tag_list.append(checbox_tag)
+    tag_list = sorted(set(tag_list))
     if len(tag_list) == 0:
         tag_list = None
-    return (annot_uuid_1, annot_uuid_2, state, tag_list, )
+    tag_str = ';'.join(tag_list)
+    return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-wb', 1.0)
+
+
+@register_api('/api/review/query/graph/v2/', methods=['POST'])
+def process_graph_match_html_v2(ibs, query_uuid, **kwargs):
+    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(query_uuid)
+    response_tuple = ibs.process_graph_match_html(**kwargs)
+    annot_uuid_1, annot_uuid_2, decision, tags, user_id, confidence = response_tuple
+    aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
+    aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+    edge = (aid1, aid2, )
+    query_annot_infr.add_feedback(edge, decision, tags=tags, user_id=user_id,
+                                  confidence=confidence)
+    query_annot_infr.write_ibeis_staging_feedback()
+    return response_tuple
 
 
 def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
@@ -451,6 +477,100 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
                          EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
 
 
+@register_api('/api/review/query/graph/v2/', methods=['GET'])
+def review_graph_match_html_v2(ibs, query_uuid, callback_url,
+                               callback_method='POST',
+                               view_orientation='vertical',
+                               include_jquery=False):
+    import random
+    # from ibeis.algo.hots.query_request import QueryRequest
+
+    ut.embed()
+
+    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(query_uuid)
+    peak_list = query_annot_infr._peek_many(ANNOT_INFR_PEAK_MAX)
+
+    if len(peak_list) == 0:
+        raise controller_inject.WebNextReviewExhaustedException(query_uuid)
+    peak_index = random.randint(0, len(peak_list) - 1)
+    edge, priority = peak_list[peak_index]
+    args = (edge, priority, peak_index, len(peak_list) - 1)
+    print('Selected edge %r with priority %0.02f out of the peak_list %d / %d' % args)
+
+    # Get score
+    aid_1, aid_2 = edge
+    cm, aid_1, aid_2 = query_annot_infr.lookup_cm(aid_1, aid_2)
+    idx = cm.daid2_idx[aid_2]
+    match_score = cm.name_score_list[idx]
+    #match_score = cm.aid2_score[aid_2]
+
+    annot_uuid_1 = ibs.get_annot_uuids(aid_1)
+    annot_uuid_2 = ibs.get_annot_uuids(aid_2)
+
+    try:
+        image_matches = ensure_review_image(ibs, aid_2, cm, query_annot_infr.qreq_,
+                                            view_orientation=view_orientation)
+    except KeyError:
+        image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
+        traceback.print_exc()
+    try:
+        image_clean = ensure_review_image(ibs, aid_2, cm, query_annot_infr.qreq_,
+                                          view_orientation=view_orientation,
+                                          draw_matches=False)
+    except KeyError:
+        image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+        traceback.print_exc()
+
+    image_matches_src = appf.embed_image_html(image_matches)
+    image_clean_src = appf.embed_image_html(image_clean)
+
+    if False:
+        from ibeis.web import apis_query
+        root_path = dirname(abspath(apis_query.__file__))
+    else:
+        root_path = dirname(abspath(__file__))
+    css_file_list = [
+        ['css', 'style.css'],
+        ['include', 'bootstrap', 'css', 'bootstrap.css'],
+    ]
+    json_file_list = [
+        ['javascript', 'script.js'],
+        ['include', 'bootstrap', 'js', 'bootstrap.js'],
+    ]
+
+    if include_jquery:
+        json_file_list = [
+            ['javascript', 'jquery.min.js'],
+        ] + json_file_list
+
+    EMBEDDED_CSS = ''
+    EMBEDDED_JAVASCRIPT = ''
+
+    css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
+    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    for css_file in css_file_list:
+        css_filepath_list = [root_path, 'static'] + css_file
+        with open(join(*css_filepath_list)) as css_file:
+            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
+
+    for json_file in json_file_list:
+        json_filepath_list = [root_path, 'static'] + json_file
+        with open(join(*json_filepath_list)) as json_file:
+            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
+
+    return appf.template('turk', 'identification_insert',
+                         match_score=match_score,
+                         image_clean_src=image_clean_src,
+                         image_matches_src=image_matches_src,
+                         annot_uuid_1=str(annot_uuid_1),
+                         annot_uuid_2=str(annot_uuid_2),
+                         view_orientation=view_orientation,
+                         callback_url=callback_url,
+                         callback_method=callback_method,
+                         EMBEDDED_CSS=EMBEDDED_CSS,
+                         EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
+
+
 @register_route('/test/review/query/chip/', methods=['GET'])
 def review_query_chips_test(**kwargs):
     """
@@ -529,7 +649,7 @@ def query_chips_test(ibs, **kwargs):
 
 
 @register_ibs_method
-@register_api('/api/query/graph/', methods=['GET'])
+@register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
     from ibeis.algo.hots.orig_graph_iden import OrigAnnotInference
@@ -588,6 +708,185 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
         result_dict['database_annot_uuid_list'] = ibs.get_annot_uuids(daid_list)
         result_dict['query_config_dict'] = query_config_dict
     return result_dict
+
+
+@register_ibs_method
+def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
+    if len(matching_state_list) > 0:
+        match_annot_uuid1_list = ut.take_column(matching_state_list, 0)
+        match_annot_uuid2_list = ut.take_column(matching_state_list, 1)
+        match_decision_list    = ut.take_column(matching_state_list, 2)
+        match_tags_list        = ut.take_column(matching_state_list, 3)
+        match_user_list        = ut.take_column(matching_state_list, 4)
+        match_confidence_list  = ut.take_column(matching_state_list, 5)
+
+        ibs.web_check_uuids([], match_annot_uuid1_list, [])
+        ibs.web_check_uuids([], match_annot_uuid2_list, [])
+
+        match_aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+        match_aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+        match_reviewed_list = [True] * len(match_aid1_list)
+
+        # Add cleanly
+        match_rowid_list = ibs.add_annotmatch(match_aid1_list, match_aid2_list,
+                                              annotmatch_truth_list=match_decision_list,
+                                              annotmatch_confidence_list=match_confidence_list,
+                                              annotmatch_tag_text_list=match_tags_list,
+                                              annotmatch_reviewed_list=match_reviewed_list,
+                                              annotmatch_reviewer_list=match_user_list)
+        # Set any values that already existed
+        ibs.set_annotmatch_truth(match_rowid_list, match_decision_list)
+        ibs.set_annotmatch_tag_text(match_rowid_list, match_tags_list)
+        ibs.set_annotmatch_reviewer(match_rowid_list, match_user_list)
+        ibs.set_annotmatch_reviewed(match_rowid_list, match_reviewed_list)
+        ibs.set_annotmatch_confidence(match_rowid_list, match_confidence_list)
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['POST'])
+def query_chips_graph_v2(ibs, annot_uuid_list=None,
+                         annot_name_list=None,
+                         matching_state_list=[],
+                         query_config_dict={},
+                         ready_callback_url=None,
+                         ready_callback_method='POST',
+                         finish_callback_url=None,
+                         finish_callback_method='POST'):
+    import ibeis
+
+    valid_states = {
+        'match': ['matched'],  # ['match', 'matched'],
+        'nomatch': ['notmatched', 'nonmatch'],  # ['nomatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
+        'notcomp' :  ['notcomparable'],
+    }
+    prefered_states = ut.take_column(valid_states.values(), 0)
+    flat_states = ut.flatten(valid_states.values())
+
+    def sanitize(state):
+        state = state.strip().lower()
+        state = ''.join(state.split())
+        assert state in flat_states, 'matching_state_list has unrecognized states. Should be one of %r' % (prefered_states,)
+        return state
+
+    if annot_uuid_list is None:
+        annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
+
+    ibs.web_check_uuids([], annot_uuid_list, [])
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+
+    if annot_name_list is not None:
+        assert len(annot_name_list) == len(annot_uuid_list)
+        nid_list = ibs.add_names(annot_name_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list)
+
+    ibs.query_chips_graph_v2_matching_state_sync(matching_state_list)
+
+    query_annot_infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list,
+                                            autoinit=True)
+    # Configure query_annot_infr
+    query_annot_infr.init_web_mode()
+    query_annot_infr.set_config(**query_config_dict)
+    query_annot_infr.queue_params['pos_redun'] = 2
+    query_annot_infr.queue_params['neg_redun'] = 2
+    # Initialize
+    query_annot_infr.reset_feedback('annotmatch', apply=True)
+    query_annot_infr.ensure_mst()
+    query_annot_infr.apply_nondynamic_update()
+    # Register callbacks
+    callback_dict = {
+        'ready_callback_url'     : ready_callback_url,
+        'ready_callback_method'  : ready_callback_method,
+        'finish_callback_url'    : finish_callback_url,
+        'finish_callback_method' : finish_callback_method,
+    }
+    query_annot_infr.set_callbacks(**callback_dict)
+    query_annot_infr.main_loop()
+
+    query_uuid = ut.random_uuid()
+    assert query_uuid not in current_app.QUERY_V2_UUID_DICT
+    current_app.QUERY_V2_UUID_DICT[query_uuid] = query_annot_infr
+    return query_uuid
+
+
+@register_ibs_method
+def get_query_annot_infr_query_chips_graph_v2(ibs, query_uuid):
+    query_annot_infr = current_app.QUERY_V2_UUID_DICT.get(query_uuid, None)
+    # We could be redirecting to a newer query_annot_infr
+    query_uuid_chain = [query_uuid]
+    while isinstance(query_annot_infr, six.string_types):
+        query_uuid_chain.append(query_annot_infr)
+        query_annot_infr = current_app.QUERY_V2_UUID_DICT.get(query_annot_infr, None)
+    if query_annot_infr is None:
+        raise controller_inject.WebUnknownUUIDException(['query_uuid'], [query_uuid])
+    return query_annot_infr, query_uuid_chain
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['GET'])
+def sync_query_chips_graph_v2(ibs, query_uuid):
+    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(query_uuid)
+
+    # Ensure internal state is up to date
+    query_annot_infr.relabel_using_reviews(rectify=True)
+    edge_delta_df = query_annot_infr.match_state_delta(old='annotmatch', new='all')
+    name_delta_df = query_annot_infr.get_ibeis_name_delta()
+    query_annot_infr.write_ibeis_staging_feedback()
+    query_annot_infr.write_ibeis_annotmatch_feedback(edge_delta_df)
+    query_annot_infr.write_ibeis_name_assignment(name_delta_df)
+
+    edge_delta_df_ = edge_delta_df.reset_index()
+
+    # Set residual matching data
+    aid1_list = edge_delta_df_['aid1']
+    aid2_list = edge_delta_df_['aid2']
+    annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
+    annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
+    decision_list = ut.take(ibs.const.REVIEW.CODE_TO_INT, edge_delta_df_['new_decision'])
+    tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
+    reviewer_list = edge_delta_df_['new_user_id']
+    conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
+
+    matching_state_list = zip(
+        annot_uuid1_list,
+        annot_uuid2_list,
+        decision_list,
+        tags_list,
+        reviewer_list,
+        conf_list,
+    )
+    ret_dict = {
+        'matching_state_list': matching_state_list,
+        'name_list': name_delta_df,
+    }
+    return ret_dict
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['PUT'])
+def add_annots_query_chips_graph_v2(ibs, query_uuid, annot_uuid_list,
+                                    matching_state_list=[]):
+    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(query_uuid)
+    ibs.web_check_uuids([], annot_uuid_list, [])
+    ibs.query_chips_graph_v2_matching_state_sync(matching_state_list)
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    query_uuid_ = query_annot_infr.add_annots(aid_list)
+    current_app.QUERY_V2_UUID_DICT[query_uuid_] = query_annot_infr
+    current_app.QUERY_V2_UUID_DICT[query_uuid] = query_uuid_
+    return query_uuid_
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['DELETE'])
+def delete_query_chips_graph_v2(ibs, query_uuid):
+    values = ibs.get_query_annot_infr_query_chips_graph_v2(query_uuid)
+    query_annot_infr, query_uuid_chain = values
+    sync_response = ibs.sync_query_chips_graph_v2(query_uuid)
+    del query_annot_infr
+    for query_uuid_ in query_uuid_chain:
+        if query_uuid_ in current_app.QUERY_V2_UUID_DICT:
+            current_app.QUERY_V2_UUID_DICT[query_uuid_] = None
+            current_app.QUERY_V2_UUID_DICT.pop(query_uuid_)
+    return sync_response
 
 
 @register_ibs_method

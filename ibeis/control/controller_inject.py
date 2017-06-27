@@ -125,6 +125,9 @@ def get_flask_app(templates_auto_reload=True):
         GLOBAL_APP.QUERY_OBJECT = None
         GLOBAL_APP.QUERY_OBJECT_JOBID = None
         GLOBAL_APP.QUERY_OBJECT_FEEDBACK_BUFFER = []
+
+        GLOBAL_APP.QUERY_V2_UUID_DICT = {}
+
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
         if HAS_FLASK_CAS:
@@ -179,7 +182,7 @@ class WebMissingUUIDException(WebException):
         super(WebMissingUUIDException, self).__init__(message, rawreturn, code)
 
 
-class DuplicateUUIDException(WebException):
+class WebDuplicateUUIDException(WebException):
     def __init__(self, qdup_pos_map={}, ddup_pos_map={}):
         message = ('Some UUIDs are specified more than once at positions:\n'
                    'duplicate_data_uuids=%s\n'
@@ -193,7 +196,31 @@ class DuplicateUUIDException(WebException):
             'ddup_pos_map' : ddup_pos_map_,
         }
         code = 601
-        super(DuplicateUUIDException, self).__init__(message, rawreturn, code)
+        super(WebDuplicateUUIDException, self).__init__(message, rawreturn, code)
+
+
+class WebUnknownUUIDException(WebException):
+    def __init__(self, unknown_uuid_type_list, unknown_uuid_list):
+        uuid_type_str = ', '.join(sorted(set(unknown_uuid_type_list)))
+        args = (uuid_type_str, len(unknown_uuid_list), )
+        message = 'Unknown %s UUIDs (%d)' % args
+        rawreturn = {
+            'unknown_uuid_type_list' : unknown_uuid_type_list,
+            'unknown_uuid_list' : unknown_uuid_list,
+        }
+        code = 602
+        super(WebUnknownUUIDException, self).__init__(message, rawreturn, code)
+
+
+class WebNextReviewExhaustedException(WebException):
+    def __init__(self, query_uuid):
+        args = (query_uuid, )
+        message = 'The matches for annotation inference query_uuid %r are exhausted' % args
+        rawreturn = {
+            'query_uuid' : query_uuid,
+        }
+        code = 603
+        super(WebNextReviewExhaustedException, self).__init__(message, rawreturn, code)
 
 
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
