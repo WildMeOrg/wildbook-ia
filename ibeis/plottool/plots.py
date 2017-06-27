@@ -9,7 +9,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
-from plottool import custom_figure, custom_constants
 print, rrr, profile = ut.inject2(__name__)
 
 
