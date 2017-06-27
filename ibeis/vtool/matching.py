@@ -355,43 +355,12 @@ class PairwiseMatch(ut.NiceRepr):
         if verbose is None:
             verbose = True
 
-        K = 3
-        Knorm = 3
-
-        num_neighbors = K + Knorm
-
         # Search for nearest neighbors
         if symmetric:
-            fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
-                annot2['flann'], annot1['vecs'], num_neighbors, checks)
-
-            fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
-                annot1['flann'], annot2['vecs'], num_neighbors, checks)
-
-            fx2_to_flags = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
-
-            # if cfgdict.get('newsym'):
-            assigntup2 = assign_symmetric_matches(
-                fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist, K, Knorm)
-
-            (fm, match_dist, fx1_norm, norm_dist1, fx2_norm,
-             norm_dist2) = assigntup2
-            norm_dist = np.minimum(norm_dist1, norm_dist2)
-            # else:
-            #     # Assign correspondences
-            #     assigntup = assign_unconstrained_matches(
-            #         fx2_to_fx1, fx2_to_dist, K, Knorm, fx2_to_flags)
+            tup = symmetric_assign(annot1, annot2, K, Knorm, checks)
         else:
-            # fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
-            #     annot2['flann'], annot1['vecs'], num_neighbors, checks)
-            fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
-                annot1['flann'], annot2['vecs'], num_neighbors, checks)
-            fx2_to_flags = np.ones((len(fx2_to_fx1), K), dtype=np.bool)
-            # Assign correspondences
-            assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
-                                                     Knorm, fx2_to_flags)
-            fm, match_dist, fx1_norm, norm_dist = assigntup
-            fx2_norm = None
+            tup = asymmetric_assign(annot1, annot2, K, Knorm, checks)
+        fm, match_dist, norm_dist, fx1_norm, fx2_norm = tup
 
         ratio = np.divide(match_dist, norm_dist)
         # convert so bigger is better
@@ -1442,6 +1411,73 @@ def empty_neighbors(num_vecs=0, K=0):
 PSEUDO_MAX_VEC_COMPONENT = 512
 PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
+
+
+def symmetric_assign(annot1, annot2, K, Knorm, checks):
+    num_neighbors = K + Knorm
+
+    allow_shrink = True
+    if allow_shrink:
+        n_have = min(len(annot1['vecs']), len(annot2['vecs']))
+        if n_have < num_neighbors:
+            if n_have < 2:
+                fm = np.empty((0, 2), dtype=np.int32)
+                match_dist = np.array([])
+                norm_dist = np.array([])
+                fx1_norm = np.array([], dtype=np.int32)
+                fx2_norm = np.array([], dtype=np.int32)
+                return fm, match_dist, norm_dist, fx1_norm, fx2_norm
+            else:
+                K = n_have - 1
+                Knorm = 1
+
+    fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
+        annot2['flann'], annot1['vecs'], num_neighbors, checks)
+
+    fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
+        annot1['flann'], annot2['vecs'], num_neighbors, checks)
+
+    # fx2_to_flags = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
+
+    assigntup2 = assign_symmetric_matches(
+        fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist, K, Knorm)
+
+    (fm, match_dist, fx1_norm, norm_dist1, fx2_norm,
+     norm_dist2) = assigntup2
+    norm_dist = np.minimum(norm_dist1, norm_dist2)
+
+    return fm, match_dist, norm_dist, fx1_norm, fx2_norm
+    pass
+
+
+def asymmetric_assign(annot1, annot2, K, Knorm, checks):
+    num_neighbors = K + Knorm
+
+    allow_shrink = True
+    if allow_shrink:
+        n_have = min(len(annot1['vecs']), len(annot2['vecs']))
+        if n_have < num_neighbors:
+            if n_have < 2:
+                fm = np.empty((0, 2), dtype=np.int32)
+                match_dist = np.array([])
+                norm_dist = np.array([])
+                fx1_norm = np.array([], dtype=np.int32)
+                fx2_norm = np.array([], dtype=np.int32)
+                return fm, match_dist, norm_dist, fx1_norm, fx2_norm
+            else:
+                K = n_have - 1
+                Knorm = 1
+
+    fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
+        annot1['flann'], annot2['vecs'], num_neighbors, checks)
+    fx2_to_flags = np.ones((len(fx2_to_fx1), K), dtype=np.bool)
+    # Assign correspondences
+    assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
+                                             Knorm, fx2_to_flags)
+    fm, match_dist, fx1_norm, norm_dist = assigntup
+    fx2_norm = None
+
+    return fm, match_dist, norm_dist, fx1_norm, fx2_norm
 
 
 def normalized_nearest_neighbors(flann1, vecs2, K, checks=800):

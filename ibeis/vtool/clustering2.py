@@ -165,16 +165,18 @@ def group_indices(idx2_groupid, assume_sorted=False):
             np.array([7], dtype=np.int64),
         ],
 
-
     Example2:
-        >>> # TIMING_TEST
-        >>> from vtool.clustering2 import np, ut  # NOQA
-        >>> import vtool as vt
-        >>> rng = np.random.RandomState(0)
-        >>> assume_sorted = False
-        >>> idx2_groupid = rng.randint(0, 2000, 5000)
-        >>> #group_indices(idx2_groupid)
-        >>> #[group_indices(rng.randint(100, 200, 1000)) for _ in range(1000)]
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> idx2_groupid = np.array([True, True, False, True, False, False, True])
+        >>> (keys, groupxs) = group_indices(idx2_groupid)
+        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> print(result)
+        np.array([False,  True], dtype=bool),
+        [
+            np.array([2, 4, 5], dtype=np.int64),
+            np.array([0, 1, 3, 6], dtype=np.int64),
+        ],
 
     Time:
         >>> import vtool as vt
@@ -222,18 +224,23 @@ def group_indices(idx2_groupid, assume_sorted=False):
         getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
     """
     # Sort items and idx2_groupid by groupid
-    # <len(data) bottlneck>
     if assume_sorted:
         sortx = np.arange(len(idx2_groupid))
         groupids_sorted = idx2_groupid
     else:
         sortx = idx2_groupid.argsort()
         groupids_sorted = idx2_groupid.take(sortx)
+
+    # Ensure bools are internally cast to integers
+    if groupids_sorted.dtype.kind == 'b':
+        cast_groupids = groupids_sorted.astype(np.int8)
+    else:
+        cast_groupids = groupids_sorted
+
     num_items = idx2_groupid.size
     # Find the boundaries between groups
-    diff = np.ones(num_items + 1, idx2_groupid.dtype)
-    np.subtract(groupids_sorted[1:], groupids_sorted[:-1], out=diff[1:num_items])
-    #diff[1:num_items] = np.subtract(groupids_sorted[1:], groupids_sorted[:-1])
+    diff = np.ones(num_items + 1, cast_groupids.dtype)
+    np.subtract(cast_groupids[1:], cast_groupids[:-1], out=diff[1:num_items])
     idxs = np.flatnonzero(diff)
     # Groups are between bounding indexes
     # <len(keys) bottlneck>
@@ -248,8 +255,10 @@ def sorted_indices_ranges(groupids_sorted):
     Like group sorted indices but returns a list of slices
     """
     num_items = groupids_sorted.size
+    # Ensure bools are cast to integers
+    dtype = np.find_common_type([], [groupids_sorted.dtype, np.int8])
     # Find the boundaries between groups
-    diff = np.ones(num_items + 1, groupids_sorted.dtype)
+    diff = np.ones(num_items + 1, dtype)
     np.subtract(groupids_sorted[1:], groupids_sorted[:-1], out=diff[1:num_items])
     idxs = np.flatnonzero(diff)
     group_ranges = [(lx, rx) for lx, rx in ut.itertwo(idxs)]  # 34.5%
