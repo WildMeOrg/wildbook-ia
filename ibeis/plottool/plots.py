@@ -4,6 +4,7 @@ import warnings
 from six.moves import zip, range, zip_longest
 from plottool import draw_func2 as df2
 import six
+from six.moves import reduce
 import scipy.stats
 import matplotlib as mpl
 import matplotlib.pyplot as plt
