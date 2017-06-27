@@ -1295,7 +1295,6 @@ class QueryRequest(ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         if qaids is not None:
-            ut.embed()
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
             cm_list = shallow_qreq_.execute(prog_hook=prog_hook)
             #cm_list = qreq_.ibs.query_chips(
