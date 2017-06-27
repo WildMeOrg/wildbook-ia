@@ -573,6 +573,12 @@ class QueryRequest(ut.NiceRepr):
         #state['ibs'] = ibeis.opendb(dbdir=dbdir, web=False)
         qreq_.__dict__.update(state)
 
+        # Internal caching objects and views
+        _annots = qreq_.ibs.annots(qreq_.unique_aids)
+        # I think the views copy the original cache
+        qreq_._unique_annots = _annots.view(_annots.aids)
+        qreq_._unique_dannots = qreq_._unique_annots.view(sorted(qreq_.daids))
+
     def _custom_str(qreq_):
         r"""
         CommandLine:
