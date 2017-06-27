@@ -1260,7 +1260,8 @@ def plot_score_histograms(scores_list,
         xvalues = [score_thresh] * len(ydomain)
         plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
-    df2.legend(loc='best', size=kwargs.get('legendsize', custom_constants.FONTS.legend))
+    size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
+    df2.legend(loc='best', size=size)
 
 
 def plot_probabilities(prob_list,
