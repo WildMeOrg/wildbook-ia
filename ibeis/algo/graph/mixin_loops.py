@@ -459,7 +459,7 @@ class InfrLoops(object):
             infr.print('=============================', color='white')
             infr.print('--- RECOVERY REVEIEW LOOP ---', color='white')
         while infr.is_recovering():
-            edge, priority = infr.pop()
+            edge, priority = infr.peek()
             try:
                 feedback = infr.request_user_review(edge)
             except ReviewCanceled:
@@ -586,7 +586,7 @@ class InfrLoops(object):
 
             while len(infr.queue) > 0:
                 # Top of priority queue is determined dynamically
-                edge, _ = infr.pop()
+                edge, _ = infr.peek()
                 # Automatic / manual edge review
                 feedback = infr.request_review(edge)
                 # Insert edge and dynamically update the priority
@@ -600,7 +600,7 @@ class InfrLoops(object):
                 infr.queue.clear()
                 infr.add_candidate_edges(new_edges)
                 while len(infr.queue) > 0:
-                    edge, _ = infr.pop()
+                    edge, _ = infr.peek()
                     feedback = infr.request_review(edge)
                     infr.add_feedback(edge, **feedback)
                 new_edges = list(infr.find_pos_redun_candidate_edges())
@@ -798,12 +798,6 @@ class InfrReviewers(object):
 
         def qt_on_request_review(reviews):
             edge, priority, edge_data = reviews[0]
-            edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default').copy()
-            edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
-            edge_data['n_ccs'] = (
-                len(infr.pos_graph.connected_to(edge[0])),
-                len(infr.pos_graph.connected_to(edge[1]))
-            )
             info_text = 'priority=%r' % (priority,)
             info_text += '\n' + ut.repr4(edge_data)
             infr.manual_wgt.set_edge(edge, info_text, external=True)
@@ -823,20 +817,31 @@ class InfrReviewers(object):
         return infr.manual_wgt
 
     def emit_manual_review(infr, edge, priority=None):
-        on_request_review = infr.callbacks['request_review']
+        """
+        Emits a signal containing edges that need review. The callback should
+        present them to a user, get feedback, and then call on_accpet.
+        """
+        on_request_review = infr.callbacks.get('request_review', None)
         if on_request_review is None:
             raise KeyError('request_review not connected in infr.callbacks')
 
         # Emit a list of reviews that can be considered.
         # The first is the most important
-        n = infr.params['manual.n_peek']
-        reviews = [
-            (edge, priority, infr.get_nonvisual_edge_data(edge, on_missing='default'))
-            for edge, priority in infr.peek_many(n)
-        ]
 
-        reviews
-        on_request_review(edge, priority)
+        reviews = []
+        for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
+            edge_data = infr.get_nonvisual_edge_data(
+                edge, on_missing='default')
+            # Extra information
+            edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+            edge_data['n_ccs'] = (
+                len(infr.pos_graph.connected_to(edge[0])),
+                len(infr.pos_graph.connected_to(edge[1]))
+            )
+            reviews.append((edge, priority, edge_data))
+
+        # Send these reviews to a user
+        on_request_review(reviews)
 
     @profile
     def next_review(infr):
@@ -928,7 +933,7 @@ class SimulationHelpers(object):
         infr.name = name
         infr.simulation_mode = True
 
-        infr.classifiers = classifiers
+        infr.verifiers = classifiers
         infr.params['inference.enabled'] = enable_inference
         infr.params['autoreview.enabled'] = enable_autoreview
 

@@ -1557,7 +1557,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.fix_mode_split = False
         infr.fix_mode_merge = False
         infr.fix_mode_predict = True
-        infr.classifiers = None
+        infr.verifiers = None
 
         # TODO: force it to re-review non-confident edges with the hardness
         # as priority ignoring the connectivity criteria

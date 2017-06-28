@@ -1033,6 +1033,9 @@ class Priority(object):
             assert edge[0] < edge[1]
             return edge, priority
 
+    def peek(infr):
+        return infr.peek_many(n=1)[0]
+
     def peek_many(infr, n):
         """
         Peeks at the top n edges in the queue.

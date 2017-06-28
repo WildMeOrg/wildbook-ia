@@ -389,13 +389,13 @@ class InfrLearning(object):
                       pblm.qreq_.get_cfgstr() + feat_cfgstr)
         pblm.learn_evaluation_classifiers(cfg_prefix=cfg_prefix)
         infr.pblm = pblm
-        # infr.classifiers = pblm
+        # infr.verifiers = pblm
 
     def load_published(infr):
         from ibeis.algo.verif import vsone
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
-        infr.classifiers = vsone.Deployer().load_published(ibs, species)
+        infr.verifiers = vsone.Deployer().load_published(ibs, species)
 
     def load_latest_classifiers(infr, dpath):
         from ibeis.algo.verif import vsone
@@ -406,7 +406,7 @@ class InfrLearning(object):
             assert clf_info['metadata']['task_key'] == task_key, (
                 'bad saved clf at fpath={}'.format(fpath))
             classifiers[task_key] = clf_info
-        infr.classifiers = classifiers
+        infr.verifiers = classifiers
         # return classifiers
 
     def photobomb_samples(infr):
@@ -621,7 +621,7 @@ class CandidateSearch(object):
             >>> priority_edges = list(infr.edges())
             >>> infr.ensure_priority_scores(priority_edges)
         """
-        if infr.classifiers:
+        if infr.verifiers:
             infr.print('Prioritizing {} edges with one-vs-one probs'.format(
                 len(priority_edges)), 1)
             # Construct pairwise features on edges in infr
@@ -761,17 +761,17 @@ class CandidateSearch(object):
         """
         Predict edge probs for each pairwise classifier task
         """
-        if infr.classifiers is None:
+        if infr.verifiers is None:
             raise ValueError('no classifiers exist')
-        if not isinstance(infr.classifiers, dict):
+        if not isinstance(infr.verifiers, dict):
             raise NotImplementedError(
                 'need to deploy or implement eval prediction')
-        task_keys = list(infr.classifiers.keys())
+        task_keys = list(infr.verifiers.keys())
         task_probs = {}
         infr.print('predict {} for {} edges'.format(
             ut.conj_phrase(task_keys, 'and'), len(edges)))
         for task_key in task_keys:
-            verif = infr.classifiers[task_key]
+            verif = infr.verifiers[task_key]
             probs_df = verif.predict_proba_df(edges)
             task_probs[task_key] = probs_df
         return task_probs

@@ -42,7 +42,7 @@ def qt_review():
         infr.write_ibeis_staging_feedback()
 
     infr.prioritize()
-    infr.classifiers = None
+    infr.verifiers = None
     if False:
         pccs = list(infr.non_pos_redundant_pccs())
         pccs = ut.sortedby(pccs, ut.lmap(len, pccs))
@@ -124,7 +124,7 @@ def gt_review():
         infr.learn_evaluataion_clasifiers()
 
         want_edges = list(infr.edges())
-        pblm = infr.classifiers
+        pblm = infr.verifiers
         task_probs = pblm.predict_proba_evaluation(
             infr, want_edges, ['match_state'])
         match_probs = task_probs[pblm.primary_task_key]
@@ -153,7 +153,7 @@ def gt_review():
             pred_probs['hardness'].loc[hardness.index] = hardness
         pred_probs = pred_probs.sort_values('hardness')[::-1]
         data = infr, pred_probs
-        infr.classifiers = None
+        infr.verifiers = None
         cacher.save(data)
     infr, pred_probs = data
 
@@ -936,7 +936,7 @@ def end_to_end():
         infr.ibs = None
         infr.qreq_ = None
         infr.vsmany_qreq_ = None
-        infr.classifiers = None
+        infr.verifiers = None
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')

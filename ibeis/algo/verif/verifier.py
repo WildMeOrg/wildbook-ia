@@ -72,10 +72,10 @@ class Verifier(ut.NiceRepr):
                                                   verif.class_names)
         return probs_df
         # prev_data_info = None
-        # task_keys = list(infr.classifiers.keys())
+        # task_keys = list(infr.verifiers.keys())
         # task_probs = {}
         # for task_key in task_keys:
-        #     deploy_info = infr.classifiers[task_key]
+        #     deploy_info = infr.verifiers[task_key]
         #     data_info = deploy_info['metadata']['data_info']
         #     class_names = deploy_info['metadata']['class_names']
         #     clf = deploy_info['clf']

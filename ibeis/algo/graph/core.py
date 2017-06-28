@@ -16,7 +16,7 @@ from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
-from ibeis.algo.graph import nx_utils
+from ibeis.algo.graph import nx_utils as nxu
 import pandas as pd
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 import networkx as nx
@@ -110,7 +110,10 @@ class Feedback(object):
         prev_verbose = infr.verbose
         if verbose is not None:
             infr.verbose = verbose
-        edge = aid1, aid2 = nx_utils.e_(*edge)
+        edge = aid1, aid2 = nxu.e_(*edge)
+
+        if edge in infr.queue:
+            del infr.queue[edge]
 
         if not infr.has_edge(edge):
             if True:
@@ -968,23 +971,22 @@ class AnnotInference(ut.NiceRepr,
         infr.logs = collections.deque(maxlen=10000)
         infr.log_index = 0
 
-        infr.review_counter = it.count(0)
-        infr.nid_counter = None
-
-        infr.classifiers = None
-        infr.ibs = ibs
-        infr.aids = None
-        infr.aids_set = None
-        infr.orig_name_labels = None
-
         # If not dirty, new feedback should dynamically maintain a consistent
         # state. If dirty it means we need to recompute connected compoments
         # before we can continue with dynamic review.
         infr.dirty = False
         infr.readonly = False
 
-        infr.graph = None
+        # ibeis controller and initial nodes
+        # TODO: aids can be abstracted as a property that simply looks at the
+        # nodes in infr.graph.
+        infr.ibs = ibs
+        infr.aids = None
+        infr.aids_set = None
+        infr.orig_name_labels = None
 
+        # Underlying graph structure
+        infr.graph = None
         infr.review_graphs = {
             POSTV: None,
             NEGTV: None,
@@ -993,9 +995,12 @@ class AnnotInference(ut.NiceRepr,
             UNREV: None,
         }
 
-        # Bookkeeping
-        infr.edge_truth = {}
-        infr.task_probs = ut.ddict(dict)
+        # Criterion
+        infr.queue = None
+        infr.refresh = None
+
+        infr.review_counter = it.count(0)
+        infr.nid_counter = None
 
         # Dynamic Properties (requires bookkeeping)
         infr.nid_to_errors = {}
@@ -1015,12 +1020,30 @@ class AnnotInference(ut.NiceRepr,
         # Once we sync, this is merged into external feedback.
         infr.internal_feedback = ut.ddict(list)
 
-        # Criterion
-        infr.refresh = None
-        infr.queue = None
+        # Bookkeeping
+        infr.edge_truth = {}
+        infr.task_probs = ut.ddict(dict)
 
-        # Params
-        infr._max_outer_loops = None
+        # Computer vision algorithms
+        infr.ranker = None
+        infr.verifiers = None
+
+        infr.task_thresh = {
+            'match_state': {
+                POSTV: np.inf,
+                NEGTV: np.inf,
+                INCMP: np.inf,
+            },
+            'photobomb_state': {
+                'pb': np.inf,
+                'nopb': np.inf,
+            }
+        }
+
+        # Parameters / Configurations / Callbacks
+        infr.callbacks = {
+            'request_review': None,
+        }
 
         infr.params = {
             'manual.n_peek': 1,
@@ -1038,7 +1061,7 @@ class AnnotInference(ut.NiceRepr,
 
             # Redundancy
             # if redun.enabled is True, then redundant edges will be ignored by
-            # the priority queue and extra edges needed to achieve minimum
+            # # the priority queue and extra edges needed to achieve minimum
             # redundancy will be searched for if the queue is empty.
             'redun.enabled': True,
             'redun.pos': 2,  # positive-k
@@ -1055,24 +1078,10 @@ class AnnotInference(ut.NiceRepr,
             'thumbsize': 221,
         }
 
-        # primary_task = 'match_state'
-        infr.task_thresh = {
-            'match_state': {
-                POSTV: np.inf,
-                NEGTV: np.inf,
-                INCMP: np.inf,
-            },
-            'photobomb_state': {
-                'pb': np.inf,
-                'nopb': np.inf,
-            }
-        }
+        infr.verifier_params = {}  # TODO
+        infr.ranker_params = {}
 
-        infr.callbacks = {
-            'request_review': None,
-        }
-
-        # Modes
+        # Developer modes (consoldate this)
         infr.test_mode = False
         infr.simulation_mode = False
 
@@ -1084,18 +1093,16 @@ class AnnotInference(ut.NiceRepr,
         infr.node_truth = None
         infr.real_n_pcc_mst_edges = None
 
-        # Can we remove these?
+        # External: Can we remove these?
         infr.cm_list = None
         infr.vsone_matches = {}
         infr.qreq_ = None
-
         infr.manual_wgt = None
 
         infr.print('__init__', level=1)
         if aids == 'all':
             aids = ibs.get_valid_aids()
         infr.add_aids(aids, nids)
-
         if autoinit:
             infr.initialize_graph()
 
@@ -1116,7 +1123,7 @@ class AnnotInference(ut.NiceRepr,
             copy.deepcopy(infr.orig_name_labels), autoinit=False,
             verbose=infr.verbose)
         # shallow copy classifiers
-        infr2.classifiers = infr.classifiers
+        infr2.classifiers = infr.verifiers
 
         infr2.graph = infr.graph.copy()
         infr2.external_feedback = copy.deepcopy(infr.external_feedback)
@@ -1130,8 +1137,6 @@ class AnnotInference(ut.NiceRepr,
         infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
         infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
 
-        infr2._viz_image_config = infr._viz_image_config.copy()
-
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
         infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
         infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
@@ -1143,14 +1148,10 @@ class AnnotInference(ut.NiceRepr,
         infr2.test_mode = infr.test_mode
         infr2.simulation_mode = infr.simulation_mode
 
-        infr2.enable_redundancy = infr.params['redun.enabled']
-        infr2.enable_inference = infr.params['inference.enabled']
-        infr2.enable_autoreview = infr.params['autoreview.enabled']
-        infr2.enable_attr_update = infr.params['inference.update_attrs']
-        infr2.enable_auto_prioritize_nonpos = infr.params['autoreview.prioritize_nonpos']
-
         infr.queue = copy.deepcopy(infr.queue)
+
         infr.params = copy.deepcopy(infr.params)
+        infr2._viz_image_config = infr._viz_image_config.copy()
 
         if infr.test_mode:
             infr2.test_state = copy.deepcopy(infr.test_state)
@@ -1170,9 +1171,11 @@ class AnnotInference(ut.NiceRepr,
         # deep copy the graph structure
         infr2.graph = infr.graph.subgraph(aids).copy()
         infr2.readonly = True
-        infr2.classifiers = infr.classifiers
+        infr2.classifiers = infr.verifiers
 
+        infr.params = copy.deepcopy(infr.params)
         infr2._viz_image_config = infr._viz_image_config.copy()
+
         # infr2._viz_init_nodes = infr._viz_image_config
         # infr2._viz_image_config_dirty = infr._viz_image_config_dirty
         infr2.edge_truth = {
@@ -1186,8 +1189,6 @@ class AnnotInference(ut.NiceRepr,
         infr2.dirty = True
         infr2.cm_list = None
         infr2.qreq_ = None
-
-        infr.params = copy.deepcopy(infr.params)
 
         # TODO:
         # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)
