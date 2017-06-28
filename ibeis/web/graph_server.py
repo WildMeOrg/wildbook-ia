@@ -48,14 +48,18 @@ class GraphServer(ut.KillableProcess):
                 status = 'success'
 
             # Send back result
-            respose = {
+            response = {
                 'status': status,
                 'content': content
             }
             if True:
-                print('Done. self.name, message = {}, {}'.format(self.name, message))
+                print('GraphServer Task Done')
+                print('\tself.name = {}'.format(self.name))
+                print('\tmessage   = {}'.format(message))
+                print('\tstatus    = {}'.format(status))
+                print('\tcontent   = {}'.format(content))
             self.task_queue.task_done()
-            self.result_queue.put(respose)
+            self.result_queue.put(response)
 
 
 class GraphActor(object):
