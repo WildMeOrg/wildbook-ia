@@ -1046,6 +1046,10 @@ class AnnotInference(ut.NiceRepr,
             }
         }
 
+        infr.callbacks = {
+            'request_review': None,
+        }
+
         # Modes
         infr.test_mode = False
         infr.simulation_mode = False
@@ -1058,6 +1062,14 @@ class AnnotInference(ut.NiceRepr,
         infr.enable_autoreview = False
         infr.enable_attr_update = True
         infr.enable_auto_prioritize_nonpos = True
+
+        # Testing state
+        infr.metrics_list = None
+        infr.test_state = None
+        infr.test_gt_pos_graph = None
+        infr.nid_to_gt_cc = None
+        infr.node_truth = None
+        infr.real_n_pcc_mst_edges = None
 
         # Can we remove these?
         infr.cm_list = None
@@ -1169,10 +1181,7 @@ class AnnotInference(ut.NiceRepr,
                 infr2.review_graphs[k] = g.subgraph(aids)
         return infr2
 
-    def set_config(infr, **config_dict):
-        pass
-
-    def set_callbacks(infr, **callback_dict):
+    def set_config(infr, config, **kw):
         pass
 
 

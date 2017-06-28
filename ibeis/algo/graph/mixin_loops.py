@@ -520,7 +520,9 @@ class InfrLoops(object):
                                (count,), 1, color='yellow')
                     break
             try:
-                infr.next_review()
+                if not infr.next_review():
+                    # Break for manual review
+                    break
             except StopIteration:
                 assert len(infr.queue) == 0
                 infr.print('No more edges after %d iterations, need refresh' %
@@ -789,6 +791,21 @@ class InfrReviewers(object):
             >>> import guitool as gt
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
+
+        def qt_on_request_review(edge, priority):
+            edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default').copy()
+            edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+            edge_data['n_ccs'] = (
+                len(infr.pos_graph.connected_to(edge[0])),
+                len(infr.pos_graph.connected_to(edge[1]))
+            )
+            info_text = 'priority=%r' % (priority,)
+            info_text += '\n' + ut.repr4(edge_data)
+            infr.manual_wgt.set_edge(edge, info_text, external=True)
+            infr.manual_wgt.show()
+
+        infr.callbacks['request_review'] = qt_on_request_review
+
         import guitool as gt
         gt.ensure_qapp()
         from ibeis.viz import viz_graph2
@@ -801,21 +818,10 @@ class InfrReviewers(object):
         return infr.manual_wgt
 
     def emit_manual_review(infr, edge, priority=None):
-        on_manual_review_request = infr.callbacks.get('manual_review', None)
-        if on_manual_review_request is None:
-            raise KeyError('manual_review not connected in infr.callbacks')
-        on_manual_review_request(edge, priority)
-
-        # edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default').copy()
-        # edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
-        # edge_data['n_ccs'] = (
-        #     len(infr.pos_graph.connected_to(edge[0])),
-        #     len(infr.pos_graph.connected_to(edge[1]))
-        # )
-        # info_text = 'priority=%r' % (priority,)
-        # info_text += '\n' + ut.repr4(edge_data)
-        # infr.manual_wgt.set_edge(edge, info_text, external=True)
-        # infr.manual_wgt.show()
+        on_request_review = infr.callbacks['request_review']
+        if on_request_review is None:
+            raise KeyError('request_review not connected in infr.callbacks')
+        on_request_review(edge, priority)
 
     @profile
     def next_review(infr):
@@ -846,6 +852,14 @@ class InfrReviewers(object):
     def continue_review(infr):
         try:
             while True:
+                # TODO: make this the inner loop?
+                # if infr.is_recovering():
+                #     infr.print('Still recovering after %d iterations' % (count,),
+                #                3, color='turquoise')
+                # else:
+                #     # Do not check for refresh if we are recovering
+                #     if use_refresh and infr.refresh.check():
+                #         break
                 if not infr.next_review():
                     break
         except StopIteration:

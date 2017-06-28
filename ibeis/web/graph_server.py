@@ -1,21 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-#if False:
-#    import os
-#    os.environ['UTOOL_NOCNN'] = 'True'
 import utool as ut
 import time
 import zmq
-import uuid  # NOQA
 import random
 import ibeis
 from functools import partial
+import multiprocessing
 print, rrr, profile = ut.inject2(__name__)
-
-ctx = zmq.Context.instance()
-
-URL = 'tcp://127.0.0.1'
-VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--verbose-jobs')
 
 
 def _get_random_open_port():
@@ -26,11 +18,167 @@ def _get_random_open_port():
     return port
 
 
+PARALLEL_MODULE = 'thread'
+if PARALLEL_MODULE == 'multiprocessing':
+    ParUnit = multiprocessing.Process
+else:
+    import threading
+    ParUnit = threading.Thread
+
+
+class GraphServer2(ParUnit):
+
+    def __init__(self, task_queue, result_queue):
+        super(GraphServer2, self).__init__()
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        """ main loop """
+        terminate = False
+
+        # Create GraphActor in separate process and send messages to it
+        handler = GraphActor()
+
+        while not terminate:
+            message = self.task_queue.get()
+            if True:
+                print('self.name, message = {}, {}'.format(self.name, message))
+            try:
+                if message is StopIteration:
+                    content = 'shutdown'
+                    terminate = True
+                else:
+                    content = handler.handle(message)
+            except Exception as ex:
+                print('Error handling message')
+                status = 'error'
+                content = ut.formatex(ex, tb=True)
+                content = ut.strip_ansi(content)
+            else:
+                status = 'success'
+
+            # Send back result
+            respose = {
+                'status': status,
+                'content': content
+            }
+            if True:
+                print('Done. self.name, message = {}, {}'.format(self.name, message))
+            self.task_queue.task_done()
+            self.result_queue.put(respose)
+
+
+class GraphActor(object):
+    def __init__(handler):
+        handler.infr = None
+
+    def handle(handler, message):
+        if not isinstance(message, dict):
+            raise ValueError('Commands must be passed in a message dict')
+        action = message.pop('action', None)
+        if action is None:
+            raise ValueError('Payload must have an action item')
+        if action == 'hello world':
+            import time
+            time.sleep(message.get('wait', 0))
+            content = 'hello world'
+            print(content)
+            return content
+        elif action == 'debug':
+            return handler
+        elif action == 'start':
+            return handler.start(**message)
+        elif action == 'continue_review':
+            return handler.continue_review(**message)
+        else:
+            raise ValueError('Unknown action=%r' % (action,))
+
+    def start(handler, dbdir, aids='all', config={}):
+        import ibeis
+        assert dbdir is not None, 'must specify dbdir'
+        assert handler.infr is None, ('AnnotInference already running')
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False,
+                           force_serial=True)
+        handler.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        # Configure callbacks
+        handler.infr.callbacks['request_review'] = handler.on_request_review
+        # Configure query_annot_infr
+        handler.infr.set_config(config)
+        handler.infr.queue_params['pos_redun'] = 2
+        handler.infr.queue_params['neg_redun'] = 2
+        # Initialize
+        handler.infr.reset_feedback('annotmatch', apply=True)
+        handler.infr.ensure_mst()
+        handler.infr.apply_nondynamic_update()
+
+        # Start Main Loop
+        handler.infr.refresh_candidate_edges()
+        return handler.continue_review()
+
+    def continue_review(handler):
+        handler.infr.continue_review()
+        return 'ready_for_interaction'
+
+    def on_request_review(handler, edge, priority):
+        print('handler.on_request_review edge = %r' % (edge,))
+        import requests
+        data_dict = {
+            'graph_uuid': 'TADA',
+            'nonce': '0123456789',
+            'edge': edge,
+            'priority': priority,
+        }
+        ibeis_flask_url = 'http://127.0.0.1:5000/internal/query/graph/v2/'
+        if False:
+            requests.post(ibeis_flask_url, data=data_dict)
+
+
 class GraphClient2(object):
     """
+    Example:
+        >>> from ibeis.web.graph_server import *
+        >>> import ibeis
+        >>> dbdir = ibeis.sysres.db_to_dbdir('PZ_MTEST')
+        >>> client = GraphClient2(dbdir, autoinit=True)
+        >>> #client.post({'action': 'debug'})
+        >>> #sofar = list(client.results())
+        >>> #pass
+        >>> #payload = {'action': 'hello world'}
+        >>> #client.post(payload)
+        >>> #sofar = list(client.results())
+        >>> client.post({'action': 'start', 'dbdir': dbdir})
+        >>> sofar = list(client.results())
+        >>> print('sofar = %r' % (sofar,))
+        >>> print(sofar[0]['content'])
     """
-    pass
+    def __init__(client, dbdir, autoinit=False):
+        client.task_queue = None
+        client.result_queue = None
+        client.server = None
+        if autoinit:
+            client.initialize()
 
+    def initialize(client):
+        client.task_queue = multiprocessing.JoinableQueue()
+        client.result_queue = multiprocessing.Queue()
+        client.server = GraphServer2(client.task_queue, client.result_queue)
+        client.server.start()
+
+    def post(client, payload):
+        client.task_queue.put(payload)
+
+    def results(client):
+        while not client.result_queue.empty():
+            yield client.result_queue.get()
+
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+
+ctx = zmq.Context.instance()
+
+URL = 'tcp://127.0.0.1'
+VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--verbose-jobs')
 
 
 class GraphClient(object):
@@ -210,7 +358,7 @@ class GraphServer(ZMQServer):
         # Configure callbacks
         server.infr.connect_manual_review_callback(server.on_manual_review)
         # Configure query_annot_infr
-        server.infr.set_config(**query_config_dict)
+        server.infr.set_config(query_config_dict)
         server.infr.queue_params['pos_redun'] = 2
         server.infr.queue_params['neg_redun'] = 2
         # Initialize
