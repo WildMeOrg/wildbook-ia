@@ -106,6 +106,7 @@ class GraphActor(object):
         handler.infr.callbacks['review_finished'] = handler.on_review_finished
         # Configure query_annot_infr
         handler.infr.params['manual.n_peek'] = 50
+        handler.infr.params['autoreview.enabled'] = False
         handler.infr.params['redun.pos'] = 2
         handler.infr.params['redun.neg'] = 2
         # Initialize
