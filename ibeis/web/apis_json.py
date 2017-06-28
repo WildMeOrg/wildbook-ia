@@ -183,6 +183,8 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         )
         return param_tup
 
+    ut.embed()
+
     # TODO: FIX ME SO THAT WE DON'T HAVE TO LOCALIZE EVERYTHING
     kwargs['auto_localize'] = kwargs.get('auto_localize', True)
     kwargs['sanitize'] = kwargs.get('sanitize', False)

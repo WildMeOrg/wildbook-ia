@@ -4,7 +4,6 @@ import utool as ut
 import random
 import time
 import uuid
-import cv2
 import multiprocessing
 print, rrr, profile = ut.inject2(__name__)
 
@@ -24,8 +23,6 @@ class GraphServer(ut.KillableProcess):
         self.result_queue = result_queue
 
     def run(self):
-        cv2.setNumThreads(-1)
-
         """ main loop """
         terminate = False
 
@@ -220,8 +217,6 @@ class GraphClient(object):
         client.server = GraphServer(client.task_queue, client.result_queue)
 
     def initialize(client):
-        cv2.setNumThreads(0)
-        ut.embed()
         client.task_queue = multiprocessing.JoinableQueue()
         client.result_queue = multiprocessing.Queue()
         client.server = GraphServer(client.task_queue, client.result_queue)

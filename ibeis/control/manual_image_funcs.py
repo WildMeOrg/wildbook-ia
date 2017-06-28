@@ -282,8 +282,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     from ibeis.algo.preproc import preproc_image
     from ibeis.other import ibsfuncs
 
-    ut.embed()
-
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
     if auto_localize is None:
