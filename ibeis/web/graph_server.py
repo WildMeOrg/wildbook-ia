@@ -4,6 +4,7 @@ import utool as ut
 import random
 import time
 import uuid
+import cv2
 import multiprocessing
 print, rrr, profile = ut.inject2(__name__)
 
@@ -15,7 +16,7 @@ def ut_to_json_encode(dict_):
     return dict_
 
 
-class GraphServer(multiprocessing.Process):
+class GraphServer(ut.KillableProcess):
 
     def __init__(self, task_queue, result_queue):
         super(GraphServer, self).__init__()
@@ -23,6 +24,8 @@ class GraphServer(multiprocessing.Process):
         self.result_queue = result_queue
 
     def run(self):
+        cv2.setNumThreads(-1)
+
         """ main loop """
         terminate = False
 
@@ -105,7 +108,7 @@ class GraphActor(object):
         handler.infr.callbacks['review_ready'] = handler.on_review_ready
         handler.infr.callbacks['review_finished'] = handler.on_review_finished
         # Configure query_annot_infr
-        handler.infr.set_config(config)
+        handler.infr.params['manual.n_peek'] = 50
         handler.infr.params['redun.pos'] = 2
         handler.infr.params['redun.neg'] = 2
         # Initialize
@@ -211,7 +214,14 @@ class GraphClient(object):
         if autoinit:
             client.initialize()
 
+    def __del__(client):
+        client.task_queue = multiprocessing.JoinableQueue()
+        client.result_queue = multiprocessing.Queue()
+        client.server = GraphServer(client.task_queue, client.result_queue)
+
     def initialize(client):
+        cv2.setNumThreads(0)
+        ut.embed()
         client.task_queue = multiprocessing.JoinableQueue()
         client.result_queue = multiprocessing.Queue()
         client.server = GraphServer(client.task_queue, client.result_queue)
@@ -233,7 +243,7 @@ class GraphClient(object):
             client.review_dict[edge] = (priority, edge_data_dict, )
 
     def sample(client):
-        edge_list = client.reviews.keys()
+        edge_list = client.review_dict.keys()
         if len(edge_list) == 0:
             return None
         if client.review_vip is not None and client.review_vip in edge_list:
@@ -256,7 +266,6 @@ if __name__ == '__main__':
         python -m ibeis.web.job_engine --allexamples
         python -m ibeis.web.job_engine --allexamples --noface --nosrc
     """
-    import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()

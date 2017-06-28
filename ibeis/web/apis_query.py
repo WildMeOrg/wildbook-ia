@@ -14,8 +14,9 @@ import cv2
 import numpy as np   # NOQA
 import utool as ut
 from ibeis.web import appfuncs as appf
-import traceback
 from ibeis import constants as const
+import traceback
+import requests
 import six
 from datetime import datetime
 ut.noinject('[apis_query]')
@@ -171,9 +172,9 @@ def process_graph_match_html(ibs, **kwargs):
         tag_list = None
     tag_str = ';'.join(tag_list)
     user_times = {
-        'server_time_start' : request.form.get('server_time_start', None)
-        'client_time_start' : request.form.get('client_time_start', None)
-        'client_time_end'   : request.form.get('client_time_end',   None)
+        'server_time_start' : request.form.get('server_time_start', None),
+        'client_time_start' : request.form.get('client_time_start', None),
+        'client_time_end'   : request.form.get('client_time_end',   None),
     }
     return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-api', 1.0, user_times)
 
@@ -241,6 +242,11 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
         cv2.imwrite(match_thumb_filepath, image)
     return image
+
+
+@register_api('/api/review/query/graph/alias/', methods=['POST'], __api_plural_check__=False)
+def review_graph_match_html_alias(*args, **kwargs):
+    review_graph_match_html(*args, **kwargs)
 
 
 @register_api('/api/review/query/graph/', methods=['GET'])
@@ -463,11 +469,6 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     return appf.template('turk', 'identification_insert', **embedded)
 
 
-
-
-
-
-
 @register_route('/test/review/query/chip/', methods=['GET'])
 def review_query_chips_test(**kwargs):
     """
@@ -605,8 +606,6 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
         result_dict['database_annot_uuid_list'] = ibs.get_annot_uuids(daid_list)
         result_dict['query_config_dict'] = query_config_dict
     return result_dict
-
-
 
 
 @register_ibs_method
@@ -793,7 +792,7 @@ def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
 
 
 def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
-                           match_config={})
+                           view_orientation='vertical', match_config={}):
     from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
     import plottool as pt
     render_config = {
@@ -813,7 +812,7 @@ def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
 
 @register_ibs_method
 def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
-    from ibeis.web.graph_server import GraphClient, ut_to_json_encode
+    from ibeis.web.graph_server import ut_to_json_encode
     assert callback_type in ['review', 'ready', 'finished']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
     if callback_tuple is not None:
@@ -924,20 +923,24 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
         raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
     edge, priority, data_dict = data
-    args = (edge, priority, len(graph_client.reviews) - 1)
+    args = (edge, priority, )
     print('Sampled edge %r with priority %0.02f' % args)
 
     raise NotImplementedError('Cannot lookup ChipMatch from AnnotInference')
 
+    aid_1, aid_2 = edge
     annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
     annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
 
     match_config = {}  # TODO: Get from Inference Object from GraphClient
-    image_clean = ensure_review_image_v2(ibs, edge, match_config=match_config)
+    image_clean = ensure_review_image_v2(ibs, edge, match_config=match_config,
+                                         view_orientation=view_orientation)
     image_matches = ensure_review_image_v2(ibs, edge, draw_matches=True,
-                                           match_config=match_config)
+                                           match_config=match_config,
+                                           view_orientation=view_orientation)
     image_heatmask = ensure_review_image_v2(ibs, edge, draw_heatmask=True,
-                                            match_config=match_config)
+                                            match_config=match_config,
+                                            view_orientation=view_orientation)
 
     image_clean_src = appf.embed_image_html(image_clean)
     image_matches_src = appf.embed_image_html(image_matches)
@@ -1015,27 +1018,27 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
 def sync_query_chips_graph_v2(ibs, graph_uuid):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
-    # # Ensure internal state is up to date
-    # graph_client.relabel_using_reviews(rectify=True)
-    # edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
-    # name_delta_df = graph_client.get_ibeis_name_delta()
-    # graph_client.write_ibeis_staging_feedback()
-    # graph_client.write_ibeis_annotmatch_feedback(edge_delta_df)
-    # graph_client.write_ibeis_name_assignment(name_delta_df)
+    # Ensure internal state is up to date
+    graph_client.relabel_using_reviews(rectify=True)
+    edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
+    name_delta_df = graph_client.get_ibeis_name_delta()
+    graph_client.write_ibeis_staging_feedback()
+    graph_client.write_ibeis_annotmatch_feedback(edge_delta_df)
+    graph_client.write_ibeis_name_assignment(name_delta_df)
 
-    # edge_delta_df_ = edge_delta_df.reset_index()
+    edge_delta_df_ = edge_delta_df.reset_index()
 
-    # review_state_list = []
+    review_state_list = []
 
-    # # Set residual matching data
-    # aid1_list = edge_delta_df_['aid1']
-    # aid2_list = edge_delta_df_['aid2']
-    # annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
-    # annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
-    # decision_list = ut.take(ibs.const.REVIEW.CODE_TO_INT, edge_delta_df_['new_decision'])
-    # tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
-    # reviewer_list = edge_delta_df_['new_user_id']
-    # conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
+    # Set residual matching data
+    aid1_list = edge_delta_df_['aid1']
+    aid2_list = edge_delta_df_['aid2']
+    annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
+    annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
+    decision_list = ut.take(ibs.const.REVIEW.CODE_TO_INT, edge_delta_df_['new_decision'])
+    tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
+    reviewer_list = edge_delta_df_['new_user_id']
+    conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
 
     matching_state_list = zip(
         annot_uuid1_list,
@@ -1094,6 +1097,7 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
             current_app.GRAPH_CLIENT_DICT[graph_uuid_] = None
             current_app.GRAPH_CLIENT_DICT.pop(graph_uuid_)
     return True
+
 
 @register_api('/internal/query/graph/v2/review/', methods=['POST'])
 def query_graph_v2_on_request_review(ibs, nonce, graph_uuid, data_list):
