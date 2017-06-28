@@ -1187,9 +1187,9 @@ class _AnnotMatchConvenienceGetter(object):
         if cm.qnid <= 0:
             isunknown_list[:] = True
         truth_list = np.array((cm.qnid == _top_nids), dtype=np.int32)
-        truth_list[isunknown_list] = ibs.const.REVIEW.UNKNOWN
+        truth_list[isunknown_list] = ibs.const.EVIDENCE_DECISION.UNKNOWN
 
-        # truth_list = ibs.get_aidpair_truths([cm.qaid] * len(_top_aids), _top_aids)
+        # truth_list = ibs.get_match_truths([cm.qaid] * len(_top_aids), _top_aids)
         flag_list = truth_list == truth
         if invert:
             flag_list = np.logical_not(flag_list)
@@ -1198,10 +1198,10 @@ class _AnnotMatchConvenienceGetter(object):
         return top_truth_aids
 
     def get_top_gf_aids(cm, ibs, ntop=None):
-        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.NEGATIVE, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.EVIDENCE_DECISION.NEGATIVE, ntop)
 
     def get_top_gt_aids(cm, ibs, ntop=None):
-        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.POSITIVE, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.EVIDENCE_DECISION.POSITIVE, ntop)
 
     #------------------
     # Getter Functions
@@ -1656,7 +1656,7 @@ class _ChipMatchDebugger(object):
         top_list   = [top_aids, top_scores, top_ranks]
 
         top_lbls += [' isgt']
-        istrue = ibs.get_aidpair_truths([cm.qaid] * len(top_aids), top_aids)
+        istrue = ibs.get_match_truths([cm.qaid] * len(top_aids), top_aids)
         top_list.append(np.array(istrue, dtype=np.int32))
 
         top_lbls = ['top nid'] + top_lbls

@@ -232,7 +232,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         qres_wgt.logger = logger
         logger.info('START QUERY_RESULT_REVIEW')
         logger.info('NUM CHIP_MATCH OBJECTS (len(cm_list)=%d)' % (len(cm_list),))
-        logger.info('NUM PAIRS TO REVIEW (nRows=%d)' % (qres_wgt.review_api.nRows,))
+        logger.info('NUM PAIRS TO EVIDENCE_DECISION (nRows=%d)' % (qres_wgt.review_api.nRows,))
         logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
 
     def edit_filters(qres_wgt):
@@ -561,8 +561,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                     aid1_list = ut.take_column(thresh_aid_pairs, 0)
                     aid2_list = ut.take_column(thresh_aid_pairs, 1)
                     am_rowids = ibs.add_annotmatch_undirected(aid1_list, aid2_list)
-                    MASS_REVIEW_CODE = 2
-                    ibs.set_annotmatch_reviewed(am_rowids, [MASS_REVIEW_CODE] * len(am_rowids))
+                    ibs.set_annotmatch_reviewer(am_rowids, ['algo:lnbnn_thresh'] * len(am_rowids))
 
                     logger.info('START GROUP %d' % (count,))
                     logger.info('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (len(thresh_uuid_pairs), thresh,))
@@ -576,8 +575,6 @@ class QueryResultsWidget(gt.APIItemWidget):
                     new_nids = [merge_nid] * len(aids)
                     ibs.set_annot_name_rowids(aids, new_nids)
                 logger.info('END MASS_THRESHOLD_MERGE')
-
-            #ibs.get_annotmatch_truth(am_rowids)
         else:
             print('[context] Multiple %d selection' % (len(selected_qtindex_list),))
 
@@ -652,7 +649,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             log('FLAG SplitCase: (annot_uuid_pair=%r)' % annot_uuid_pair)
             am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             ibs.set_annotmatch_prop(prop, [am_rowid], [True])
-            ibs.set_annotmatch_truth([am_rowid], [ibs.const.REVIEW.NEGATIVE])
+            ibs.set_annotmatch_evidence_decision([am_rowid], [ibs.const.EVIDENCE_DECISION.NEGATIVE])
         elif reply == options[1]:
             review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
@@ -661,7 +658,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
 
 def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None,
                  qreq_=None, cm=None, **kwargs):
-    print('Review match: %r-vs-%r' + (aid1, aid2))
+    print('Review match: {}-vs-{}'.format(aid1, aid2))
     from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     mvinteract = interact_name.MatchVerificationInteraction(

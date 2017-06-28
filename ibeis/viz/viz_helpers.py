@@ -126,11 +126,11 @@ def is_unknown(ibs, nid_list):
 def get_truth_color(truth, base255=False, lighten_amount=None):
     import ibeis.constants as const
     truth_colors = {
-        const.REVIEW.NEGATIVE: df2.FALSE_RED,
-        const.REVIEW.POSITIVE: df2.TRUE_BLUE,
-        const.REVIEW.INCOMPARABLE: df2.YELLOW,
-        const.REVIEW.UNKNOWN: df2.UNKNOWN_PURP,
-        const.REVIEW.UNREVIEWED: df2.UNKNOWN_PURP,
+        const.EVIDENCE_DECISION.NEGATIVE: df2.FALSE_RED,
+        const.EVIDENCE_DECISION.POSITIVE: df2.TRUE_BLUE,
+        const.EVIDENCE_DECISION.INCOMPARABLE: df2.YELLOW,
+        const.EVIDENCE_DECISION.UNKNOWN: df2.UNKNOWN_PURP,
+        const.EVIDENCE_DECISION.UNREVIEWED: df2.UNKNOWN_PURP,
     }
     color = truth_colors[truth]
     if lighten_amount is not None:
@@ -329,7 +329,7 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
         rawscore      = kwargs.get('rawscore', None)
         aid2_raw_rank = kwargs.get('aid2_raw_rank', None)
     if kwargs.get('show_truth', False):
-        truth_str = '*%s*' % ibs.const.REVIEW.INT_TO_NICE.get(truth, None)
+        truth_str = '*%s*' % ibs.const.EVIDENCE_DECISION.INT_TO_NICE.get(truth, None)
         text_list.append(truth_str)
     if kwargs.get('show_rank', aid2_raw_rank is not None or cm is not None):
         try:

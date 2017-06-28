@@ -143,11 +143,11 @@ def process_graph_match_html(ibs, **kwargs):
         return state
     import uuid
     map_dict = {
-        'sameanimal'       : const.REVIEW.POSITIVE,
-        'differentanimals' : const.REVIEW.NEGATIVE,
-        'cannottell'       : const.REVIEW.INCOMPARABLE,
-        'unreviewed'       : const.REVIEW.UNREVIEWED,
-        'unknown'          : const.REVIEW.UNKNOWN,
+        'sameanimal'       : const.EVIDENCE_DECISION.POSITIVE,
+        'differentanimals' : const.EVIDENCE_DECISION.NEGATIVE,
+        'cannottell'       : const.EVIDENCE_DECISION.INCOMPARABLE,
+        'unreviewed'       : const.EVIDENCE_DECISION.UNREVIEWED,
+        'unknown'          : const.EVIDENCE_DECISION.UNKNOWN,
         'photobomb'        : 'photobomb',
         'scenerymatch'     : 'scenerymatch',
     }
@@ -159,7 +159,7 @@ def process_graph_match_html(ibs, **kwargs):
     tag_list = []
     if state in ['photobomb', 'scenerymatch']:
         tag_list.append(state)
-        state = const.REVIEW.NEGATIVE
+        state = const.EVIDENCE_DECISION.NEGATIVE
     assert state in map_dict.values(), 'matching state is unrecognized'
     # Get checbox tags
     checbox_tag_list = ['photobomb', 'scenerymatch']
@@ -837,7 +837,6 @@ def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
 @register_api('/api/query/graph/v2/', methods=['POST'])
 def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          annot_name_list=None,
-                         matching_state_list=[],
                          query_config_dict={},
                          review_callback_url=None,
                          review_callback_method='POST',
@@ -846,19 +845,6 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          finished_callback_url=None,
                          finished_callback_method='POST'):
     from ibeis.web.graph_server import GraphClient
-    valid_states = {
-        'match': ['matched'],  # ['match', 'matched'],
-        'nomatch': ['notmatched', 'nonmatch'],  # ['nomatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
-        'notcomp' :  ['notcomparable'],
-    }
-    prefered_states = ut.take_column(valid_states.values(), 0)
-    flat_states = ut.flatten(valid_states.values())
-
-    def sanitize(state):
-        state = state.strip().lower()
-        state = ''.join(state.split())
-        assert state in flat_states, 'matching_state_list has unrecognized states. Should be one of %r' % (prefered_states,)
-        return state
 
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
@@ -879,8 +865,6 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         assert len(annot_name_list) == len(annot_uuid_list)
         nid_list = ibs.add_names(annot_name_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
-
-    ibs.query_chips_graph_v2_matching_state_sync(matching_state_list)
 
     graph_uuid = ut.random_uuid()
     callback_dict = {
@@ -1035,7 +1019,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     aid2_list = edge_delta_df_['aid2']
     annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
     annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
-    decision_list = ut.take(ibs.const.REVIEW.CODE_TO_INT, edge_delta_df_['new_decision'])
+    decision_list = ut.take(ibs.const.EVIDENCE_DECISION.CODE_TO_INT, edge_delta_df_['new_decision'])
     tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
     reviewer_list = edge_delta_df_['new_user_id']
     conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
@@ -1058,8 +1042,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
 
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['PUT'])
-def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name_list=None,
-                                    matching_state_list=[]):
+def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name_list=None):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -1077,8 +1060,6 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name
         assert len(annot_name_list) == len(annot_uuid_list)
         nid_list = ibs.add_names(annot_name_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
-
-    ibs.query_chips_graph_v2_matching_state_sync(matching_state_list)
 
     graph_uuid_ = graph_client.add_annots(aid_list)
     current_app.GRAPH_CLIENT_DICT[graph_uuid_] = graph_client

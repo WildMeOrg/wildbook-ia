@@ -6,9 +6,8 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import six
-import ibeis.algo.graph.nx_utils as nxu
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -233,15 +232,31 @@ class IBEISIO(object):
         # set(staging_fb.keys()) == set(am_fb.keys())
 
     def _write_ibeis_staging_feedback(infr, feedback):
-        infr.print('write_ibeis_staging_feedback %d' %
-                   (len(feedback),), 1)
-        aid_1_list = []
-        aid_2_list = []
-        decision_list = []
-        timestamp_list = []
-        tags_list = []
-        confidence_list = []
-        userid_list = []
+        infr.print('write_ibeis_staging_feedback %d' % (len(feedback),), 1)
+
+        # Map what add_review expects to the keys used by feedback items
+        add_review_alias = {
+            'evidence_decision_list'         : 'decision',
+            'meta_decision_list'             : 'meta_decision',
+            'review_uuid_list'               : 'uuid',
+            'identity_list'                  : 'user_id',
+            'user_confidence_list'           : 'confidence',
+            'tags_list'                      : 'tags',
+            'review_client_start_time_posix' : 'timestamp_c1',
+            'review_client_end_time_posix'   : 'timestamp_c2',
+            'review_server_start_time_posix' : 'timestamp_s1',
+            'review_server_end_time_posix'   : 'timestamp',
+        }
+
+        # Initialize kwargs we will pass to add_review
+        add_review_kw = {
+            'aid_1_list': [],
+            'aid_2_list': [],
+        }
+        for k in add_review_alias:
+            add_review_kw[k] = []
+
+        # Translate data from feedback items into add_review format
         ibs = infr.ibs
         _iter = (
             (aid1, aid2, feedback_item)
@@ -249,31 +264,27 @@ class IBEISIO(object):
             for feedback_item in feedbacks
         )
         for aid1, aid2, feedback_item in _iter:
-            decision_key = feedback_item['decision']
-            tags = feedback_item['tags']
-            if tags is None:
-                tags = []
-            timestamp = feedback_item.get('timestamp', None)
-            conf_key = feedback_item.get('confidence', None)
-            user_id = feedback_item.get('user_id', None)
-            decision_int = ibs.const.REVIEW.CODE_TO_INT[decision_key]
-            confidence_int = ibs.const.CONFIDENCE.CODE_TO_INT[conf_key]
-            # confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
-            #         confidence_key, None)
-            aid_1_list.append(aid1)
-            aid_2_list.append(aid2)
-            decision_list.append(decision_int)
-            tags_list.append(tags)
-            confidence_list.append(confidence_int)
-            timestamp_list.append(timestamp)
-            userid_list.append(user_id)
-        review_id_list = ibs.add_review(
-                aid_1_list, aid_2_list, decision_list,
-                tags_list=tags_list,
-                identity_list=userid_list,
-                user_confidence_list=confidence_list,
-                timestamp_list=timestamp_list)
-        assert len(ut.find_duplicate_items(review_id_list)) == 0
+            add_review_kw['aid_1_list'].append(aid1)
+            add_review_kw['aid_2_list'].append(aid2)
+            for review_key, fbkey in add_review_alias.items():
+                value = feedback_item.get(fbkey, None)
+                # Do mapping for particular keys
+                if fbkey == 'tags' and value is None:
+                    value = []
+                elif fbkey == 'confidence':
+                    value = ibs.const.CONFIDENCE.CODE_TO_INT[value]
+                elif fbkey == 'decision':
+                    value = ibs.const.EVIDENCE_DECISION.CODE_TO_INT[value]
+                elif fbkey == 'meta_decision':
+                    value = ibs.const.META_DECISION.CODE_TO_INT[value]
+                add_review_kw[review_key].append(value)
+
+        review_id_list = ibs.add_review(**add_review_kw)
+        if len(ut.find_duplicate_items(review_id_list)) != 0:
+            raise AssertionError(
+                'Staging should only be appended to but we found a duplicate'
+                ' row'
+            )
 
     def write_ibeis_staging_feedback(infr):
         """
@@ -313,19 +324,25 @@ class IBEISIO(object):
         edge_delta_df_.loc[is_add, 'am_rowid'] = add_ams
 
         # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW.CODE_TO_INT,
-                            edge_delta_df_['new_decision'])
+        new_evidence_decisions = ut.take(
+            ibs.const.EVIDENCE_DECISION.CODE_TO_INT,
+            edge_delta_df_['new_decision'])
+        new_meta_decisions = ut.take(
+            ibs.const.META_DECISION.CODE_TO_INT,
+            edge_delta_df_['new_meta_decision'])
         new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
         new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
                                 edge_delta_df_['new_confidence'], None)
         new_timestamp = edge_delta_df_['new_timestamp']
         new_reviewer = edge_delta_df_['new_user_id']
         am_rowids = edge_delta_df_['am_rowid'].values
-        ibs.set_annotmatch_truth(am_rowids, new_truth)
+        ibs.set_annotmatch_evidence_decision(am_rowids, new_evidence_decisions)
+        ibs.set_annotmatch_meta_decision(am_rowids, new_meta_decisions)
         ibs.set_annotmatch_tag_text(am_rowids, new_tags)
         ibs.set_annotmatch_confidence(am_rowids, new_conf)
         ibs.set_annotmatch_reviewer(am_rowids, new_reviewer)
         ibs.set_annotmatch_posixtime_modified(am_rowids, new_timestamp)
+        # ibs.set_annotmatch_count(am_rowids, new_timestamp) TODO
 
     def write_ibeis_name_assignment(infr, name_delta_df=None):
         if name_delta_df is None:
@@ -406,69 +423,75 @@ class IBEISIO(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> infr = testdata_infr('GZ_Master1')
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('GZ_Master1')
+            >>> infr = ibeis.AnnotInference(ibs=ibs, aids='all')
             >>> feedback = infr.read_ibeis_staging_feedback()
             >>> result = ('feedback = %s' % (ut.repr2(feedback),))
             >>> print(result)
         """
+
+        # TODO: READ ONLY AFTER THE LATEST ANNOTMATCH TIME STAMP
+
         infr.print('read_ibeis_staging_feedback', 1)
         ibs = infr.ibs
-        # annots = ibs.annots(infr.aids)
-        review_ids = ibs.get_review_rowids_between(infr.aids)
-        review_ids = sorted(review_ids)
-        # aid_pairs = ibs.get_review_aid_tuple(review_ids)
-        # flat_review_ids, cumsum = ut.invertible_flatten2(review_ids)
-
-        infr.print('read %d staged reviews' % (len(review_ids)), 2)
 
         from ibeis.control.manual_review_funcs import hack_create_aidpair_index
         hack_create_aidpair_index(ibs)
 
-        # columns =
+        review_ids = ibs.get_review_rowids_between(infr.aids)
+        review_ids = sorted(review_ids)
+
+        infr.print('read %d staged reviews' % (len(review_ids)), 2)
+
         from ibeis.control.manual_review_funcs import (
-            REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-            REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
-            REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
-            REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END, REVIEW_TAGS)
+            REVIEW_UUID,
+            REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_EVIDENCE_DECISION,
+            REVIEW_META_DECISION, REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
+            REVIEW_TAGS, REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
+            REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END)
 
-        table = infr.ibs.staging.get_table_as_pandas(
-            ibs.const.REVIEW_TABLE, rowids=review_ids, columns=columns)
-
-
-        colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-                    REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
-                    REVIEW_TIMESTAMP, REVIEW_TAGS)
-        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, colnames,
+        add_review_alias = ut.odict([
+            (REVIEW_AID1              , 'aid1'),
+            (REVIEW_AID2              , 'aid2'),
+            (REVIEW_UUID              , 'uuid'),
+            (REVIEW_EVIDENCE_DECISION , 'decision'),
+            (REVIEW_META_DECISION     , 'meta_decision'),
+            (REVIEW_USER_IDENTITY     , 'user_id'),
+            (REVIEW_USER_CONFIDENCE   , 'confidence'),
+            (REVIEW_TAGS              , 'tags'),
+            (REVIEW_TIME_CLIENT_START , 'timestamp_c1'),
+            (REVIEW_TIME_CLIENT_END   , 'timestamp_c2'),
+            (REVIEW_TIME_SERVER_START , 'timestamp_s1'),
+            (REVIEW_TIME_SERVER_END   , 'timestamp'),
+            (REVIEW_COUNT             , 'count'),
+        ])
+        columns = tuple(add_review_alias.keys())
+        feedback_keys = list(add_review_alias.values())
+        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, columns,
                                       review_ids)
+        # table = infr.ibs.staging.get_table_as_pandas(
+        #     ibs.const.REVIEW_TABLE, rowids=review_ids, columns=columns)
 
-        feedback = ut.ddict(list)
-        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
+        lookup_decision = ibs.const.EVIDENCE_DECISION.INT_TO_CODE
+        lookup_meta = ibs.const.META_DECISION.INT_TO_CODE
         lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
 
+        feedback = ut.ddict(list)
         for data in review_data:
-            (aid1, aid2, count, decision_int,
-             user_id, conf_int, timestamp, tags) = data
+            feedback_item = dict(zip(feedback_keys, data))
+            aid1 = feedback_item.pop('aid1')
+            aid2 = feedback_item.pop('aid2')
             edge = nxu.e_(aid1, aid2)
-            feedback_item = {
-                'decision': lookup_truth[decision_int],
-                'timestamp': timestamp,
-                'user_id': user_id,
-                'tags': [] if not tags else tags.split(';'),
-                'confidence': lookup_conf[conf_int],
-            }
+
+            tags = feedback_item['tags']
+            feedback_item['meta_decision'] = lookup_meta[feedback_item['meta_decision']]
+            feedback_item['decision'] = lookup_decision[feedback_item['decision']]
+            feedback_item['confidence'] = lookup_conf[feedback_item['confidence']]
+            feedback_item['tags'] =  [] if not tags else tags.split(';')
+
             feedback[edge].append(feedback_item)
         return feedback
-
-    def _rectify_annotmatch_direction(infr):
-        ibs = infr
-        ams = ibs._get_all_annotmatch_rowids()
-        aids1 = np.array(ibs.get_annotmatch_aid1(ams))
-        aids2 = np.array(ibs.get_annotmatch_aid2(ams))
-
-        np.setdiff1d(aids1, infr.aids)
-        np.setdiff1d(aids2, infr.aids)
-        pass
 
     def read_ibeis_annotmatch_feedback(infr, only_existing_edges=False):
         r"""
@@ -490,82 +513,36 @@ class IBEISIO(object):
             >>> result = ('feedback = %s' % (ut.repr2(feedback, nl=2),))
             >>> print(result)
             >>> assert len(feedback) >= 2, 'should contain at least 2 edges'
-            >>> assert len(items) >= 1, '2-3 should have one review'
+            >>> assert len(items) == 1, '2-3 should have one review'
             >>> assert items[0]['decision'] == POSTV, '2-3 must match'
         """
         infr.print('read_ibeis_annotmatch_feedback', 1)
         ibs = infr.ibs
         if only_existing_edges:
-            aid_pairs = infr.graph.edges()
-            am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
+            matches = ibs.matches(edges=list(infr.graph.edges()))
         else:
             annots = ibs.annots(infr.aids)
-            am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
+            matches = annots.matches()
 
-        aids1 = ut.take_column(aid_pairs, 0)
-        aids2 = ut.take_column(aid_pairs, 1)
-
-        infr.print('read %d annotmatch rowids' % (len(am_rowids)), 2)
-        infr.print('* checking truth', 2)
-
+        infr.print('read %d annotmatch rowids' % (len(matches)), 2)
         # Use explicit truth state to mark truth
-        truth = np.array(ibs.get_annotmatch_truth(am_rowids))
-        infr.print('* checking tags', 2)
-        tags_list = ibs.get_annotmatch_case_tags(am_rowids)
-        confidence_list = ibs.get_annotmatch_confidence(am_rowids)
-        timestamp_list = ibs.get_annotmatch_posixtime_modified(am_rowids)
-        userid_list = ibs.get_annotmatch_reviewer(am_rowids)
-        # Hack, if we didnt set it, it probably means it matched
-        # FIXME: allow for truth to not be set.
-        need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
-        if np.any(need_truth):
-            need_aids1 = ut.compress(aids1, need_truth)
-            need_aids2 = ut.compress(aids2, need_truth)
-            needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
-            truth[need_truth] = needed_truth
+        aids1 = matches.aid1
+        aids2 = matches.aid2
 
-        truth = np.array(truth, dtype=np.int)
-
-        if False:
-            # Add information from relevant tags
-            infr.print('* checking split and joins', 2)
-            # Use tags to infer truth
-            props = ['SplitCase', 'JoinCase']
-            flags_list = ibs.get_annotmatch_prop(props, am_rowids)
-            is_split, is_merge = flags_list
-            is_split = np.array(is_split).astype(np.bool)
-            is_merge = np.array(is_merge).astype(np.bool)
-            # truth[is_pb] = ibs.const.REVIEW.NEGATIVE
-            truth[is_split] = ibs.const.REVIEW.NEGATIVE
-            truth[is_merge] = ibs.const.REVIEW.POSITIVE
-
-        infr.print('* making feedback dict', 2)
-
-        # CHANGE OF FORMAT
-        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
-        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
+        column_lists = {
+            'decision': matches.evidence_decision_code,
+            'meta_decision': matches.meta_decision_code,
+            'timestamp': matches.posixtime_modified,
+            'tags': matches.case_tags,
+            'user_id': matches.reviewer,
+            'confidence': matches.confidence_code,
+            'count': matches.count,
+        }
 
         feedback = ut.ddict(list)
-        for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
+        for aid1, aid2, row in zip(aids1, aids2, zip(*column_lists.values())):
             edge = nxu.e_(aid1, aid2)
-            conf = confidence_list[count]
-            truth_ = truth[count]
-            timestamp = timestamp_list[count]
-            user_id = userid_list[count]
-            if conf is not None and not isinstance(conf, int):
-                import warnings
-                warnings.warn('CONF WAS NOT AN INTEGER. conf=%r' % (conf,))
-                conf = None
-            decision = lookup_truth[truth_]
-            conf_ = lookup_conf[conf]
-            tag_ = tags_list[count]
-            feedback_item = {
-                'decision': decision,
-                'timestamp': timestamp,
-                'tags': tag_,
-                'user_id': user_id,
-                'confidence': conf_,
-            }
+            feedback_item = dict(zip(column_lists.keys(), row))
             feedback[edge].append(feedback_item)
         infr.print('read %d annotmatch entries' % (len(feedback)), 1)
         return feedback
@@ -597,6 +574,9 @@ class IBEISIO(object):
         decision = ut.dict_take_column(rectified_feedback, 'decision')
         tags = ut.dict_take_column(rectified_feedback, 'tags')
         confidence = ut.dict_take_column(rectified_feedback, 'confidence')
+        timestamp_c1 = ut.dict_take_column(rectified_feedback, 'timestamp_c1')
+        timestamp_c2 = ut.dict_take_column(rectified_feedback, 'timestamp_c2')
+        timestamp_s1 = ut.dict_take_column(rectified_feedback, 'timestamp_s1')
         timestamp = ut.dict_take_column(rectified_feedback, 'timestamp')
         user_id = ut.dict_take_column(rectified_feedback, 'user_id')
         df = pd.DataFrame([])
@@ -606,6 +586,9 @@ class IBEISIO(object):
         df['tags'] = [None if ts is None else [t.lower() for t in ts if t]
                       for ts in tags]
         df['confidence'] = confidence
+        df['timestamp_c1'] = timestamp_c1
+        df['timestamp_c2'] = timestamp_c2
+        df['timestamp_s1'] = timestamp_s1
         df['timestamp'] = timestamp
         df['user_id'] = user_id
         df['am_rowid'] = am_rowids
@@ -823,11 +806,11 @@ class IBEISGroundtruth(object):
             is_comp = np.full(len(aid_pairs), np.nan)
         # But use information that we have
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
-        truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
+        truths = ut.replace_nones(ibs.get_annotmatch_evidence_decision(am_rowids), np.nan)
         truths = np.asarray(truths)
-        is_notcomp_have = truths == ibs.const.REVIEW.INCOMPARABLE
-        is_comp_have = ((truths == ibs.const.REVIEW.POSITIVE) |
-                        (truths == ibs.const.REVIEW.NEGATIVE))
+        is_notcomp_have = truths == ibs.const.EVIDENCE_DECISION.INCOMPARABLE
+        is_comp_have = ((truths == ibs.const.EVIDENCE_DECISION.POSITIVE) |
+                        (truths == ibs.const.EVIDENCE_DECISION.NEGATIVE))
         is_comp[is_notcomp_have] = False
         is_comp[is_comp_have] = True
         return is_comp
@@ -878,9 +861,11 @@ def fix_annotmatch_to_undirected_upper(ibs):
 
         df3 = df1.copy()
 
-        cols = ['annotmatch_truth', 'annotmatch_confidence', 'annotmatch_tag_text',
-                'annotmatch_posixtime_modified', 'annotmatch_reviewed',
-                'annotmatch_reviewer']
+        cols = ['annotmatch_evidence_decision', 'annotmatch_meta_decision',
+                'annotmatch_confidence', 'annotmatch_tag_text',
+                'annotmatch_posixtime_modified', 'annotmatch_reviewer']
+
+        ed_key = 'annotmatch_evidence_decision'
 
         for col in cols:
             idxs = np.where(pd.isnull(df3[col]))[0]
@@ -889,9 +874,8 @@ def fix_annotmatch_to_undirected_upper(ibs):
         assert all(pd.isnull(df2.annotmatch_posixtime_modified)), 'should not happen'
         assert all(pd.isnull(df2.annotmatch_reviewer)), 'should not happen'
         assert all(pd.isnull(df2.annotmatch_confidence)), 'should not happen'
-        assert all(pd.isnull(df2.annotmatch_pairwise_prob)), 'should not happen'
 
-        flags = (df3.annotmatch_truth != df2.annotmatch_truth) & ~pd.isnull(df3.annotmatch_truth) & ~pd.isnull(df2.annotmatch_truth)
+        flags = (df3[ed_key] != df2[ed_key]) & ~pd.isnull(df3[ed_key]) & ~pd.isnull(df2[ed_key])
         if any(flags & ~pd.isnull(df2.annotmatch_posixtime_modified)):
             assert False, 'need to rectify'
 
@@ -901,10 +885,10 @@ def fix_annotmatch_to_undirected_upper(ibs):
         # Merge the tags
         df3['annotmatch_tag_text'] = [';'.join(sorted(t1.union(t2))) for t1, t2 in zip(tags3, tags2)]
 
-        delete_df = df3[pd.isnull(df3.annotmatch_truth)]
+        delete_df = df3[pd.isnull(df3[ed_key])]
 
-        df4 = df3[~pd.isnull(df3.annotmatch_truth)]
-        ibs.set_annotmatch_truth(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_truth])
+        df4 = df3[~pd.isnull(df3[ed_key])]
+        ibs.set_annotmatch_evidence_decision(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4[ed_key]])
         ibs.set_annotmatch_tag_text(df4.annotmatch_rowid, df4.annotmatch_tag_text.tolist())
         ibs.set_annotmatch_confidence(df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4.annotmatch_confidence])
         ibs.set_annotmatch_reviewer(df4.annotmatch_rowid, [None if pd.isnull(x) else str(x) for x in df4.annotmatch_reviewer])

@@ -1218,10 +1218,6 @@ def get_dbinfo(ibs, verbose=True,
         tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
         tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
         pair_tag_info = ut.map_dict_vals(len, tag_dict)
-
-        reviewed_type_hist = ut.dict_hist(ibs.get_annot_pair_is_reviewed(aid_pairs.T[0], aid_pairs.T[1]))
-
-        pair_tag_info['reviewed_type_hist'] = reviewed_type_hist
     except Exception:
         pair_tag_info = {}
 

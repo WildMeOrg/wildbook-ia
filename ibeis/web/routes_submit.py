@@ -652,27 +652,27 @@ def submit_identification(**kwargs):
     # FIXME:
     # photobomb and scenerymatch tags should be disjoint from match-state
     if state == 'matched':
-        decision = const.REVIEW.POSITIVE
+        decision = const.EVIDENCE_DECISION.POSITIVE
     elif state == 'notmatched':
-        decision = const.REVIEW.NEGATIVE
+        decision = const.EVIDENCE_DECISION.NEGATIVE
     elif state == 'notcomparable':
-        decision = const.REVIEW.INCOMPARABLE
+        decision = const.EVIDENCE_DECISION.INCOMPARABLE
     elif state == 'photobomb':
-        decision = const.REVIEW.NEGATIVE
+        decision = const.EVIDENCE_DECISION.NEGATIVE
         tag_list = ['photobomb']
     elif state == 'scenerymatch':
-        decision = const.REVIEW.NEGATIVE
+        decision = const.EVIDENCE_DECISION.NEGATIVE
         tag_list = ['scenerymatch']
     else:
         raise ValueError()
 
     # Replace a previous decision
     if replace_review_rowid > 0:
-        print('REPLACING OLD REVIEW ID = %r' % (replace_review_rowid, ))
+        print('REPLACING OLD EVIDENCE_DECISION ID = %r' % (replace_review_rowid, ))
         ibs.delete_review([replace_review_rowid])
 
     # Add a new review row for the new decision (possibly replacing the old one)
-    print('ADDING REVIEW: %r %r %r %r' % (aid1, aid2, decision, tag_list, ))
+    print('ADDING EVIDENCE_DECISION: %r %r %r %r' % (aid1, aid2, decision, tag_list, ))
     tags_list = None if tag_list is None else [tag_list]
     review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
     review_rowid = review_rowid[0]
@@ -680,7 +680,7 @@ def submit_identification(**kwargs):
 
     # Notify any attached web QUERY_OBJECT
     try:
-        state = const.REVIEW.INT_TO_CODE[decision]
+        state = const.EVIDENCE_DECISION.INT_TO_CODE[decision]
         feedback = (aid1, aid2, state, tags_list)
         print('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
         current_app.QUERY_OBJECT_FEEDBACK_BUFFER.append(feedback)

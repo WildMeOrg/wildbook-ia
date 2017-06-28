@@ -112,8 +112,10 @@ class Feedback(object):
             infr.verbose = verbose
         edge = aid1, aid2 = nxu.e_(*edge)
 
-        if edge in infr.queue:
-            del infr.queue[edge]
+        if infr.queue:
+            # Remove the edge from the queue if it is in there.
+            if edge in infr.queue:
+                del infr.queue[edge]
 
         if not infr.has_edge(edge):
             if True:
@@ -124,9 +126,6 @@ class Feedback(object):
                     infr.add_aids([aid2])
             infr._check_edge(edge)
             infr.graph.add_edge(aid1, aid2)
-
-        # if True:
-        #     print('')
 
         msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
@@ -158,6 +157,7 @@ class Feedback(object):
 
         # Keep track of sequential reviews and set properties on global graph
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
+
         if timestamp is None:
             timestamp = ut.get_timestamp('int', isutc=True)
         review_id = next(infr.review_counter)
@@ -223,7 +223,11 @@ class Feedback(object):
     @ut.classproperty
     def feedback_data_keys(Infr):
         """ edge attribute keys used for feedback """
-        return ['decision', 'tags', 'user_id', 'timestamp', 'confidence']
+        return [
+            'decision', 'tags', 'user_id',
+            'meta_decision', 'timestamp_c1', 'timestamp_c2',
+            'timestamp_s1', 'timestamp', 'confidence'
+        ]
 
     @profile
     def apply_feedback_edges(infr):
@@ -281,14 +285,6 @@ class Feedback(object):
 
         for key, val_list in attr_lists.items():
             infr.set_edge_attrs(key, ut.dzip(edges, val_list))
-
-        # use UTC timestamps
-        # timestamp = ut.get_timestamp('int', isutc=True)
-        # infr.set_edge_attrs('tags', _dz(edges, tags_list))
-        # infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
-        # infr.set_edge_attrs('user_id', _dz(edges, userid_list))
-        # infr.set_edge_attrs('num_reviews', _dz(edges, num_review_list))
-        # infr.set_edge_attrs('timestamp', _dz(edges, [timestamp]))
 
         if infr.params['inference.enabled']:
             infr.apply_nondynamic_update()

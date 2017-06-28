@@ -1048,7 +1048,7 @@ class MainWindowBackend(GUIBACK_BASE):
             if filter_reviewed is None:
                 # only filter big queries if not specified
                 filter_reviewed = len(cm_list) > 6
-        print('REVIEW QUERIES')
+        print('EVIDENCE_DECISION QUERIES')
         print('review_cfg = %s' % (ut.repr3(review_cfg),))
         print('filter_reviewed = %s' % (filter_reviewed,))
         review_cfg['filter_reviewed'] = filter_reviewed

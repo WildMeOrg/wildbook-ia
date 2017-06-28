@@ -1579,7 +1579,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.set_edge_attrs('hardness', unsure_cases['hardness'].to_dict())
         infr.set_edge_attrs('probs', res.probs_df.loc[edges].to_dict('index'))
         for key in ['pred', 'real']:
-            vals = unsure_cases[key].map(ibs.const.REVIEW.INT_TO_CODE)
+            vals = unsure_cases[key].map(ibs.const.EVIDENCE_DECISION.INT_TO_CODE)
             infr.set_edge_attrs(key, vals.to_dict())
         infr.prioritize('hardness', unsure_cases['hardness'].to_dict(), reset=True)
         infr.apply_nondynamic_update()

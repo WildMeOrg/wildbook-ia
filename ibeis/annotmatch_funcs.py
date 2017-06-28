@@ -170,12 +170,26 @@ def get_annotmatch_rowids_between_groups(ibs, aids1_list, aids2_list):
 
 
 @register_ibs_method
-def get_annotmatch_rowids_between(ibs, aids1, aids2):
-    if len(aids1) * len(aids2) > 5000:
+def get_annotmatch_rowids_between(ibs, aids1, aids2, method=None):
+    """
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aids1 = aids2 = [2, 3, 4, 5, 6]
+        >>> ams1 = ibs.get_annotmatch_rowids_between(aids1, aids2, method=1)
+        >>> ams2 = ibs.get_annotmatch_rowids_between(aids1, aids2, method=2)
+        >>> assert ams2 == ams1
+
+    """
+    if method is None:
+        if len(aids1) * len(aids2) > 5000:
+            method = 1
+        else:
+            method = 2
+    if method == 1:
         # Strategy 1: get all existing rows and see what intersects
         # This is better when the enumerated set of rows would be larger than
         # the database size
-
         unflat_rowids1L = ibs.get_annotmatch_rowids_from_aid1(aids1)
         unflat_rowids1R = ibs.get_annotmatch_rowids_from_aid2(aids1)
         unflat_rowids2L = ibs.get_annotmatch_rowids_from_aid1(aids2)
@@ -197,7 +211,7 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2):
         # am_rowids2 = {r for r in ut.iflatten(unflat_rowids2) if r is not None}
         # ams = sorted(am_rowids1.intersection(am_rowids2))
         # ams = ut.isect(am_rowids1, am_rowids2)
-    else:
+    elif method == 2:
         # Strategy 2: enumerate what rows could exist and see what does exist
         # This is better when the enumerated set of rows would be smaller than
         # the database size
@@ -206,7 +220,8 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2):
             ams = []
         else:
             aids1_, aids2_ = ut.listT(edges)
-            ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1_, aids2_)
+            # ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1_, aids2_)
+            ams = ibs.get_annotmatch_rowid_from_superkey(aids1_, aids2_)
             if ams is None:
                 ams = []
             ams = ut.filter_Nones(ams)
@@ -214,7 +229,13 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2):
 
 
 @register_ibs_method
-def add_annotmatch_undirected(ibs, aids1, aids2):
+def add_annotmatch_undirected(ibs, aids1, aids2, **kwargs):
+    edges = list(zip(aids1, aids2))
+    from ibeis.algo.graph import nx_utils as nxu
+    # Enforce new undirected constraint
+    edges = ut.estarmap(nxu.e_, edges)
+    aids1, aids2 = list(zip(*edges))
+
     am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
     idxs = ut.where([r is None for r in am_rowids])
     # Check which ones are None
@@ -331,16 +352,6 @@ def get_annotmatch_aids(ibs, annotmatch_rowid_list):
 
 
 @register_ibs_method
-def get_annot_pair_truth(ibs, aid1_list, aid2_list):
-    """
-    CAREFUL: uses annot match table for truth, so only works if reviews have happend
-    """
-    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
-    annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
-    return annotmatch_truth_list
-
-
-@register_ibs_method
 def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
     r"""
     Args:
@@ -369,7 +380,8 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         104
     """
     am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
-    return ibs.get_annotmatch_reviewed(am_rowids)
+    return [None if user is None else user.startswith('user:')
+            for user in ibs.get_annotmatch_reviewer(am_rowids)]
 
 
 @register_ibs_method
@@ -377,20 +389,20 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
     isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
     if isunknown1 or isunknown2:
-        truth = ibs.const.REVIEW.UNKNOWN
+        truth = ibs.const.EVIDENCE_DECISION.UNKNOWN
     else:
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-        truth = (ibs.const.REVIEW.POSITIVE if (nid1 == nid2) else
-                 ibs.const.REVIEW.NEGATIVE)
+        truth = (ibs.const.EVIDENCE_DECISION.POSITIVE if (nid1 == nid2) else
+                 ibs.const.EVIDENCE_DECISION.NEGATIVE)
 
     # Ensure a row exists for this pair
     annotmatch_rowids = ibs.add_annotmatch_undirected([aid1], [aid2])
 
     # Old functionality, remove. Reviewing should not set truth
-    confidence  = 0.5
-    #ibs.add_or_update_annotmatch(aid1, aid2, truth, confidence)
-    ibs.set_annotmatch_reviewed(annotmatch_rowids, [True])
-    ibs.set_annotmatch_truth(annotmatch_rowids, [truth])
+    confidence  = ibs.const.CONFIDENCE.CODE_TO_INT['guessing']
+    ibs.set_annotmatch_evidence_decision(annotmatch_rowids, [truth])
+    user_id = ut.get_user_name() + '@' + ut.get_computer_name()
+    ibs.set_annotmatch_reviewer(annotmatch_rowids, ['user:' + user_id])
     ibs.set_annotmatch_confidence(annotmatch_rowids, [confidence])
     print('... set truth=%r' % (truth,))
 
@@ -461,8 +473,6 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
         print('...images already matched')
-        #truth = get_annot_pair_truth([aid1], [aid2])[0]
-        #if truth != ibs.const.REVIEW.POSITIVE:
         status = None
         ibs.set_annot_pair_as_reviewed(aid1, aid2)
         if logger is not None:
@@ -581,9 +591,56 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
     return status
 
 
-#@register_ibs_method
-#def set_annot_pair_as_unknown_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
-#    pass
+@register_ibs_method
+def get_match_truth(ibs, aid1, aid2):
+    return ibs.get_match_truths([aid1], [aid2])[0]
+
+
+@register_ibs_method
+def get_match_truths(ibs, aids1, aids2):
+    r"""
+    Uses NIDS to verify truth.
+    TODO: rectify with annotmatch table
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aids1 (list):
+        aids2 (list):
+
+    Returns:
+        list[int]: truth_codes - see
+            ibeis.constants.EVIDENCE_DECISION.INT_TO_CODE for code definitions
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_match_truths
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aids1 = ibs.get_valid_aids()
+        >>> aids2 = ut.list_roll(ibs.get_valid_aids(), -1)
+        >>> truth_codes = get_match_truths(ibs, aids1, aids2)
+        >>> print('truth_codes = %s' % ut.repr2(truth_codes))
+        >>> target = np.array([3, 1, 3, 3, 1, 0, 0, 3, 3, 3, 3, 0, 3])
+        >>> assert np.all(truth_codes == target)
+    """
+    nids1 = np.array(ibs.get_annot_name_rowids(aids1))
+    nids2 = np.array(ibs.get_annot_name_rowids(aids2))
+    isunknowns1 = np.array(ibs.is_nid_unknown(nids1))
+    isunknowns2 = np.array(ibs.is_nid_unknown(nids2))
+    any_unknown = np.logical_or(isunknowns1, isunknowns2)
+    truth_codes = np.array((nids1 == nids2), dtype=np.int32)
+    truth_codes[any_unknown] = ibs.const.EVIDENCE_DECISION.UNKNOWN
+    return truth_codes
+
+
+@register_ibs_method
+def get_match_text(ibs, aid1, aid2):
+    truth = ibs.get_match_truth(aid1, aid2)
+    text = ibs.const.EVIDENCE_DECISION.INT_TO_NICE.get(truth, None)
+    return text
 
 
 if __name__ == '__main__':

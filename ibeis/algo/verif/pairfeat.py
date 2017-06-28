@@ -264,7 +264,7 @@ class PairwiseFeatureExtractor(object):
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> extr = PairwiseFeatureExtractor(ibs=infr.ibs)
-            >>> config = {'K': 1, 'Knorm': 3, 'affine_invariance': True,
+            >>> match_config = {'K': 1, 'Knorm': 3, 'affine_invariance': True,
             >>>           'augment_orientation': True, 'checks': 20,
             >>>           'ratio_thresh': 0.8, 'refine_method': 'homog',
             >>>           'sv_on': True, 'sver_xy_thresh': 0.01,
@@ -280,9 +280,10 @@ class PairwiseFeatureExtractor(object):
             >>>     'indices': [],
             >>>     'local_keys': local_keys,
             >>>     'sorters': [],
-            >>>     'summary_ops': ['len', 'mean', 'sum']
+            >>>     'summary_ops': {'len', 'mean', 'sum'}
             >>> }
             >>> global_keys = ['gps', 'qual', 'time', 'view']
+            >>> ibs = infr.ibs
             >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config,
             >>>                                 pairfeat_cfg=pairfeat_cfg,
             >>>                                 global_keys=global_keys)

@@ -723,9 +723,10 @@ def ingest_testdb1(dbname):
         aid2_list = ut.take_column(aidgroups, 1)
         annotmatch_rowids = ibs.add_annotmatch_undirected(aid1_list, aid2_list)
 
-        ibs.set_annotmatch_truth(annotmatch_rowids, [True] * len(annotmatch_rowids))
-        ibs.set_annotmatch_truth(annotmatch_rowids, [True] * len(annotmatch_rowids))
-        ibs.set_annotmatch_prop('photobomb', annotmatch_rowids, [True] * len(annotmatch_rowids))
+        ibs.set_annotmatch_evidence_decision(annotmatch_rowids, [True] *
+                                             len(annotmatch_rowids))
+        ibs.set_annotmatch_prop('photobomb', annotmatch_rowids, [True] *
+                                len(annotmatch_rowids))
 
         for aids in aidgroups:
             pass

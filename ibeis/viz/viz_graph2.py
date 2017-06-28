@@ -450,10 +450,10 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         if user_id is None:
             user_id = 'qt-custom'
 
-        REVIEW = ibeis.const.REVIEW
+        EVIDENCE_DECISION = ibeis.const.EVIDENCE_DECISION
         CONFIDENCE = ibeis.const.CONFIDENCE
 
-        match_state_codes = list(REVIEW.CODE_TO_INT.keys())
+        match_state_codes = list(EVIDENCE_DECISION.CODE_TO_INT.keys())
         user_conf_codes = list(CONFIDENCE.CODE_TO_INT.keys())
 
         match_state_codes = ut.partial_order(match_state_codes, [POSTV, NEGTV])
@@ -461,7 +461,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
                                            # ['absolutely_sure', 'not_sure']
                                            ['pretty_sure', 'not_sure']
                                            )
-        match_state_options = [(REVIEW.CODE_TO_NICE[code], code)
+        match_state_options = [(EVIDENCE_DECISION.CODE_TO_NICE[code], code)
                                for code in match_state_codes]
         user_conf_options = [(CONFIDENCE.CODE_TO_NICE[code], code)
                              for code in user_conf_codes]
@@ -615,7 +615,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         import ibeis
         decision_nice = self.match_state_combo.currentText()
         conf_nice = self.conf_combo.currentText()
-        decision_code = ibeis.const.REVIEW.NICE_TO_CODE[decision_nice]
+        decision_code = ibeis.const.EVIDENCE_DECISION.NICE_TO_CODE[decision_nice]
         tags = [key for key, check in self.tag_checkboxes.items()
                 if check.checkState()]
         tags += self.pairtag_edit.tags()
@@ -1738,7 +1738,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         db = ibs.db
         rowids = ut.flatten(ibs.get_annotmatch_rowids_from_aid([aid]))
         tablename = 'annotmatch'
-        exclude_columns = 'annotmatch_confidence annotmatch_pairwise_prob annotmatch_posixtime_modified annotmatch_reviewed annotmatch_reviewer config_hashid'.split(' ')
+        exclude_columns = 'annotmatch_confidence annotmatch_posixtime_modified annotmatch_reviewer'.split(' ')
         df = db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns)
         df = df.rename(columns={'annot_rowid1': 'aid1', 'annot_rowid2': 'aid2'})
         df.set_index(['aid1', 'aid2'], inplace=True)

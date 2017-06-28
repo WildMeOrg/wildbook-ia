@@ -31,7 +31,8 @@ REVIEW_UUID              = 'review_uuid'
 REVIEW_AID1              = 'annot_1_rowid'
 REVIEW_AID2              = 'annot_2_rowid'
 REVIEW_COUNT             = 'review_count'
-REVIEW_DECISION          = 'review_decision'
+REVIEW_EVIDENCE_DECISION = 'review_evidence_decision'
+REVIEW_META_DECISION     = 'review_meta_decision'
 REVIEW_USER_IDENTITY     = 'review_user_identity'
 REVIEW_USER_CONFIDENCE   = 'review_user_confidence'
 REVIEW_TAGS              = 'review_tags'
@@ -119,7 +120,8 @@ def get_review_rowid_from_superkey(ibs, aid_1_list, aid_2_list, count_list,
 @register_ibs_method
 @accessor_decors.adder
 @register_api('/api/review/', methods=['POST'])
-def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None,
+def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
+               meta_decision_list=None, review_uuid_list=None,
                identity_list=None, user_confidence_list=None, tags_list=None,
                review_client_start_time_posix=None, review_client_end_time_posix=None,
                review_server_start_time_posix=None, review_server_end_time_posix=None):
@@ -137,7 +139,7 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None
         python -m ibeis.control.manual_review_funcs --test-add_review
     """
     assert len(aid_1_list) == len(aid_2_list)
-    assert len(aid_1_list) == len(decision_list)
+    assert len(aid_1_list) == len(evidence_decision_list)
     diff_list =  -np.array(aid_2_list)
     assert np.all(diff_list != 0), (
         'Cannot add a review state between an aid and itself')
@@ -181,6 +183,8 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None
 
     if review_uuid_list is None:
         review_uuid_list = [uuid.uuid4() for _ in range(n_input)]
+    if meta_decision_list:
+        meta_decision_list = [None for _ in range(n_input)]
     if identity_list is None:
         # identity_list = [ut.get_computer_name()] * len(aid_1_list)
         identity_list = [None] * n_input
@@ -207,16 +211,25 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, review_uuid_list=None
     superkey_paramx = (0, 1, 2, )
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
-    colnames = [REVIEW_UUID, REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
+    colnames = [REVIEW_UUID, REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT,
+                REVIEW_EVIDENCE_DECISION, REVIEW_META_DECISION,
                 REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TAGS,
                 REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
                 REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END]
-    params_iter = list(zip(review_uuid_list, aid_1_list, aid_2_list, count_list, decision_list,
-                           identity_list, user_confidence_list, tag_str_list,
-                           review_client_start_time_posix, review_client_end_time_posix,
-                           review_server_start_time_posix, review_server_end_time_posix))
-    review_rowid_list = ibs.staging.add_cleanly(const.REVIEW_TABLE, colnames, params_iter,
-                                                ibs.get_review_rowid_from_superkey, superkey_paramx)
+    params_iter = list(zip(review_uuid_list, aid_1_list, aid_2_list,
+                           count_list,
+                           evidence_decision_list,
+                           meta_decision_list,
+                           identity_list,
+                           user_confidence_list, tag_str_list,
+                           review_client_start_time_posix,
+                           review_client_end_time_posix,
+                           review_server_start_time_posix,
+                           review_server_end_time_posix))
+    review_rowid_list = ibs.staging.add_cleanly(const.REVIEW_TABLE, colnames,
+                                                params_iter,
+                                                ibs.get_review_rowid_from_superkey,
+                                                superkey_paramx)
     return review_rowid_list
 
 
@@ -406,7 +419,7 @@ def get_review_counts_from_pairs(ibs, aid_pairs, eager=True, nInput=None):
 @accessor_decors.getter_1to1
 @register_api('/api/review/decision/', methods=['GET'])
 def get_review_decision(ibs, review_rowid_list):
-    review_decision_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_DECISION,), review_rowid_list)
+    review_decision_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_EVIDENCE_DECISION,), review_rowid_list)
     return review_decision_list
 
 
@@ -424,7 +437,7 @@ def get_review_uuid(ibs, review_rowid_list):
 def get_review_decision_str(ibs, review_rowid_list):
     review_decision_list = ibs.get_review_decision(review_rowid_list)
     review_decision_str_list = [
-        const.REVIEW.INT_TO_NICE.get(review_decision)
+        const.EVIDENCE_DECISION.INT_TO_NICE.get(review_decision)
         for review_decision in review_decision_list
     ]
     return review_decision_str_list
@@ -441,7 +454,7 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
         Method: GET
         URL:    /api/review/decisions/only/
     """
-    colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_DECISION,)
+    colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_EVIDENCE_DECISION,)
     params_iter = [ (aid, ) for aid in aid_list ]
     where_clause = '%s=?' % (REVIEW_AID1)
     review_tuple_decisions_list = ibs.staging.get_where(const.REVIEW_TABLE, colnames,
@@ -503,70 +516,70 @@ def get_review_rowids_from_aid2(ibs, aid_list, eager=True, nInput=None):
     return review_rowids
 
 
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/review/decisions/single/', methods=['GET'], __api_plural_check__=False)
-def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
-    r"""
-    Returns:
-        list_ (list): review_tuple_decisions_list - review decisions
+# @register_ibs_method
+# @accessor_decors.getter_1to1
+# @register_api('/api/review/decisions/single/', methods=['GET'], __api_plural_check__=False)
+# def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
+#     r"""
+#     Returns:
+#         list_ (list): review_tuple_decisions_list - review decisions
 
-    RESTful:
-        Method: GET
-        URL:    /api/review/identities/single/
-    """
-    colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_DECISION,)
-    params_iter = zip(aid_list, aid_list, )
-    where_colnames = [REVIEW_AID1, REVIEW_AID2]
-    review_tuple_decisions_list = ibs.staging.get_where_eq(
-        const.REVIEW_TABLE, colnames, params_iter, where_colnames,
-        eager=eager, nInput=nInput, op='OR', unpack_scalars=False)
-    return review_tuple_decisions_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/review/decisions/tuple/', methods=['GET'], __api_plural_check__=False)
-def get_review_decisions_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):
-    r"""
-    Returns:
-        list_ (list): review_decisions_list - review decisions
-
-    RESTful:
-        Method: GET
-        URL:    /api/review/identities/tuple/
-    """
-    colnames = (REVIEW_DECISION,)
-    params_iter = zip(aid_1_list, aid_2_list)
-    where_colnames = [REVIEW_AID1, REVIEW_AID2]
-    review_decisions_list = ibs.staging.get_where_eq(
-        const.REVIEW_TABLE, colnames, params_iter, where_colnames,
-        eager=eager, nInput=nInput, unpack_scalars=False)
-    return review_decisions_list
+#     RESTful:
+#         Method: GET
+#         URL:    /api/review/identities/single/
+#     """
+#     colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_EVIDENCE_DECISION,)
+#     params_iter = zip(aid_list, aid_list, )
+#     where_colnames = [REVIEW_AID1, REVIEW_AID2]
+#     review_tuple_decisions_list = ibs.staging.get_where_eq(
+#         const.REVIEW_TABLE, colnames, params_iter, where_colnames,
+#         eager=eager, nInput=nInput, op='OR', unpack_scalars=False)
+#     return review_tuple_decisions_list
 
 
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/review/decisions/str/tuple/', methods=['GET'], __api_plural_check__=False)
-def get_review_decisions_str_from_tuple(ibs, aid_1_list, aid_2_list, **kwargs):
-    r"""
-    Returns:
-        list_ (list): review_decisions_list - review decisions
+# @register_ibs_method
+# @accessor_decors.getter_1to1
+# @register_api('/api/review/decisions/tuple/', methods=['GET'], __api_plural_check__=False)
+# def get_review_decisions_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):
+#     r"""
+#     Returns:
+#         list_ (list): review_decisions_list - review decisions
 
-    RESTful:
-        Method: GET
-        URL:    /api/review/identities/str/tuple/
-    """
-    review_decisions_list = ibs.get_review_decisions_from_tuple(
-        aid_1_list, aid_2_list, **kwargs)
-    review_decision_str_list = [
-        [
-            const.REVIEW.INT_TO_NICE.get(review_decision)
-            for review_decision in review_decision_list
-        ]
-        for review_decision_list in review_decisions_list
-    ]
-    return review_decision_str_list
+#     RESTful:
+#         Method: GET
+#         URL:    /api/review/identities/tuple/
+#     """
+#     colnames = (REVIEW_EVIDENCE_DECISION,)
+#     params_iter = zip(aid_1_list, aid_2_list)
+#     where_colnames = [REVIEW_AID1, REVIEW_AID2]
+#     review_decisions_list = ibs.staging.get_where_eq(
+#         const.REVIEW_TABLE, colnames, params_iter, where_colnames,
+#         eager=eager, nInput=nInput, unpack_scalars=False)
+#     return review_decisions_list
+
+
+# @register_ibs_method
+# @accessor_decors.getter_1to1
+# @register_api('/api/review/decisions/str/tuple/', methods=['GET'], __api_plural_check__=False)
+# def get_review_decisions_str_from_tuple(ibs, aid_1_list, aid_2_list, **kwargs):
+#     r"""
+#     Returns:
+#         list_ (list): review_decisions_list - review decisions
+
+#     RESTful:
+#         Method: GET
+#         URL:    /api/review/identities/str/tuple/
+#     """
+#     review_decisions_list = ibs.get_review_decisions_from_tuple(
+#         aid_1_list, aid_2_list, **kwargs)
+#     review_decision_str_list = [
+#         [
+#             const.EVIDENCE_DECISION.INT_TO_NICE.get(review_decision)
+#             for review_decision in review_decision_list
+#         ]
+#         for review_decision_list in review_decisions_list
+#     ]
+#     return review_decision_str_list
 
 
 @register_ibs_method

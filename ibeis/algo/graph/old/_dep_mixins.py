@@ -1048,7 +1048,7 @@ class _AnnotInfrDepMixin(object):
         Args:
             aid1 (int):  annotation id
             aid2 (int):  annotation id
-            decision (str): decision from `ibs.const.REVIEW.CODE_TO_INT`
+            decision (str): decision from `ibs.const.EVIDENCE_DECISION.CODE_TO_INT`
             tags (list of str): specify Photobomb / Scenery / etc
             user_id (str): id of agent who did the review
             confidence (str): See ibs.const.CONFIDENCE
