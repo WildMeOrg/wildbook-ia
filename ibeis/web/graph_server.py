@@ -10,23 +10,7 @@ import multiprocessing
 print, rrr, profile = ut.inject2(__name__)
 
 
-def _get_random_open_port():
-    port = random.randint(1024, 49151)
-    while not ut.is_local_port_open(port):
-        port = random.randint(1024, 49151)
-    assert ut.is_local_port_open(port)
-    return port
-
-
-PARALLEL_MODULE = 'thread'
-if PARALLEL_MODULE == 'multiprocessing':
-    ParUnit = multiprocessing.Process
-else:
-    import threading
-    ParUnit = threading.Thread
-
-
-class GraphServer2(ParUnit):
+class GraphServer2(multiprocessing.Process):
 
     def __init__(self, task_queue, result_queue):
         super(GraphServer2, self).__init__()
@@ -80,7 +64,6 @@ class GraphActor(object):
         if action is None:
             raise ValueError('Payload must have an action item')
         if action == 'hello world':
-            import time
             time.sleep(message.get('wait', 0))
             content = 'hello world'
             print(content)
@@ -174,6 +157,14 @@ class GraphClient2(object):
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
+
+
+def _get_random_open_port():
+    port = random.randint(1024, 49151)
+    while not ut.is_local_port_open(port):
+        port = random.randint(1024, 49151)
+    assert ut.is_local_port_open(port)
+    return port
 
 ctx = zmq.Context.instance()
 
