@@ -15,7 +15,6 @@ import sys
 import dtool
 from datetime import timedelta
 from functools import update_wrapper
-import uuid
 import warnings
 from functools import wraps
 from os.path import abspath, join, dirname
@@ -126,9 +125,7 @@ def get_flask_app(templates_auto_reload=True):
         GLOBAL_APP.QUERY_OBJECT = None
         GLOBAL_APP.QUERY_OBJECT_JOBID = None
         GLOBAL_APP.QUERY_OBJECT_FEEDBACK_BUFFER = []
-
-        GLOBAL_APP.INTERNAL_NONCE = uuid.uuid4()
-        GLOBAL_APP.QUERY_V2_UUID_DICT = {}
+        GLOBAL_APP.GRAPH_CLIENT_DICT = {}
 
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
@@ -214,15 +211,15 @@ class WebUnknownUUIDException(WebException):
         super(WebUnknownUUIDException, self).__init__(message, rawreturn, code)
 
 
-class WebNextReviewExhaustedException(WebException):
+class WebReviewNotReadyException(WebException):
     def __init__(self, query_uuid):
         args = (query_uuid, )
-        message = 'The matches for annotation inference query_uuid %r are exhausted' % args
+        message = 'The query_uuid %r is not yet ready for review' % args
         rawreturn = {
             'query_uuid' : query_uuid,
         }
         code = 603
-        super(WebNextReviewExhaustedException, self).__init__(message, rawreturn, code)
+        super(WebReviewNotReadyException, self).__init__(message, rawreturn, code)
 
 
 class WebUnavailableUUIDException(WebException):

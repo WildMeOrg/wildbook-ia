@@ -1039,6 +1039,8 @@ class AnnotInference(ut.NiceRepr,
         # Parameters / Configurations / Callbacks
         infr.callbacks = {
             'request_review': None,
+            'review_ready': None,
+            'review_finished': None,
         }
 
         infr.params = {

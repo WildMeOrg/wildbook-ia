@@ -14,9 +14,11 @@ import cv2
 import numpy as np   # NOQA
 import utool as ut
 from ibeis.web import appfuncs as appf
-import traceback
 from ibeis import constants as const
+import traceback
+import requests
 import six
+from datetime import datetime
 ut.noinject('[apis_query]')
 
 
@@ -169,27 +171,12 @@ def process_graph_match_html(ibs, **kwargs):
     if len(tag_list) == 0:
         tag_list = None
     tag_str = ';'.join(tag_list)
-    return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-api', 1.0)
-
-
-@register_api('/api/review/query/graph/v2/', methods=['POST'])
-def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
-    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    response_tuple = ibs.process_graph_match_html(**kwargs)
-    annot_uuid_1, annot_uuid_2, decision, tags, user_id, confidence = response_tuple
-    aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
-    aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
-    edge = (aid1, aid2, )
-    payload = {
-        'action'     : 'add_feedback',
-        'edge'       : edge,
-        'decision'   : decision,
-        'tags'       : tags,
-        'user_ud'    : user_id,
-        'confidence' : confidence,
+    user_times = {
+        'server_time_start' : request.form.get('server_time_start', None),
+        'client_time_start' : request.form.get('client_time_start', None),
+        'client_time_end'   : request.form.get('client_time_end',   None),
     }
-    graph_client.post(payload)
-    return True
+    return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-api', 1.0, user_times)
 
 
 def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
@@ -255,6 +242,11 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
         cv2.imwrite(match_thumb_filepath, image)
     return image
+
+
+@register_api('/api/review/query/graph/alias/', methods=['POST'], __api_plural_check__=False)
+def review_graph_match_html_alias(*args, **kwargs):
+    review_graph_match_html(*args, **kwargs)
 
 
 @register_api('/api/review/query/graph/', methods=['GET'])
@@ -470,100 +462,11 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         with open(join(*json_filepath_list)) as json_file:
             EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
 
-    return appf.template('turk', 'identification_insert',
-                         match_score=match_score,
-                         image_clean_src=image_clean_src,
-                         image_matches_src=image_matches_src,
-                         annot_uuid_1=str(annot_uuid_1),
-                         annot_uuid_2=str(annot_uuid_2),
-                         view_orientation=view_orientation,
-                         callback_url=callback_url,
-                         callback_method=callback_method,
-                         EMBEDDED_CSS=EMBEDDED_CSS,
-                         EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
+    annot_uuid_1 = str(annot_uuid_1)
+    annot_uuid_2 = str(annot_uuid_2)
 
-
-@register_api('/api/review/query/graph/v2/', methods=['GET'])
-def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
-                               callback_method='POST',
-                               view_orientation='vertical',
-                               include_jquery=False):
-    ut.embed()
-
-    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    review_uuid = graph_client.sample()
-    if review_uuid is None:
-        raise controller_inject.WebNextReviewExhaustedException(graph_uuid)
-
-    data = graph_client.reviews[review_uuid]
-    edge, priority = data
-    args = (edge, priority, review_uuid, len(graph_client.reviews) - 1)
-    print('Selected edge %r with priority %0.02f (UUID %r out of %d waiting reviews)' % args)
-
-    raise NotImplementedError('Cannot lookup ChipMatch from AnnotInference')
-
-    aid_1, aid_2 = edge
-    annot_uuid_1 = ibs.get_annot_uuids(aid_1)
-    annot_uuid_2 = ibs.get_annot_uuids(aid_2)
-
-    payload = {
-        'action'           : 'render_edge',
-        'edge'             : edge,
-        'view_orientation' : view_orientation,
-    }
-    graph_client.post(payload)
-    result_list = list(graph_client.results())
-    result = result_list[-1]
-
-    match_score, image_matches, image_clean = result
-    image_matches_src = appf.embed_image_html(image_matches)
-    image_clean_src = appf.embed_image_html(image_clean)
-
-    if False:
-        from ibeis.web import apis_query
-        root_path = dirname(abspath(apis_query.__file__))
-    else:
-        root_path = dirname(abspath(__file__))
-    css_file_list = [
-        ['css', 'style.css'],
-        ['include', 'bootstrap', 'css', 'bootstrap.css'],
-    ]
-    json_file_list = [
-        ['javascript', 'script.js'],
-        ['include', 'bootstrap', 'js', 'bootstrap.js'],
-    ]
-
-    if include_jquery:
-        json_file_list = [
-            ['javascript', 'jquery.min.js'],
-        ] + json_file_list
-
-    EMBEDDED_CSS = ''
-    EMBEDDED_JAVASCRIPT = ''
-
-    css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
-    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
-    for css_file in css_file_list:
-        css_filepath_list = [root_path, 'static'] + css_file
-        with open(join(*css_filepath_list)) as css_file:
-            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
-
-    for json_file in json_file_list:
-        json_filepath_list = [root_path, 'static'] + json_file
-        with open(join(*json_filepath_list)) as json_file:
-            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
-
-    return appf.template('turk', 'identification_insert',
-                         match_score=match_score,
-                         image_clean_src=image_clean_src,
-                         image_matches_src=image_matches_src,
-                         annot_uuid_1=str(annot_uuid_1),
-                         annot_uuid_2=str(annot_uuid_2),
-                         view_orientation=view_orientation,
-                         callback_url=callback_url,
-                         callback_method=callback_method,
-                         EMBEDDED_CSS=EMBEDDED_CSS,
-                         EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
+    embedded = dict(globals(), **locals())
+    return appf.template('turk', 'identification_insert', **embedded)
 
 
 @register_route('/test/review/query/chip/', methods=['GET'])
@@ -705,171 +608,6 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
     return result_dict
 
 
-@register_api('/internal/review/query/graph/v2/', methods=['POST'])
-def on_manual_review_request(ibs, nonce, graph_uuid, edge, priority):
-    assert nonce == current_app.INTERNAL_NONCE
-    graph_client = current_app.QUERY_V2_UUID_DICT.get(graph_uuid, None)
-    data = {
-        'edge'     : edge,
-        'priority' : priority,
-    }
-    graph_client.push(data)
-
-
-@register_ibs_method
-@register_api('/api/query/graph/v2/', methods=['POST'])
-def query_chips_graph_v2(ibs, annot_uuid_list=None,
-                         annot_name_list=None,
-                         query_config_dict={},
-                         ready_callback_url=None,
-                         ready_callback_method='POST',
-                         finish_callback_url=None,
-                         finish_callback_method='POST'):
-    from ibeis.web.graph_server import GraphClient
-
-    if annot_uuid_list is None:
-        annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
-
-    ibs.web_check_uuids([], annot_uuid_list, [])
-    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-
-    for graph_uuid_ in current_app.QUERY_V2_UUID_DICT:
-        graph_client_ = current_app.QUERY_V2_UUID_DICT[graph_uuid_]
-        aid_list_ = graph_client_.aids
-        overlap_aid_set = set(aid_list_) & set(aid_list)
-        if len(overlap_aid_set) > 0:
-            overlap_aid_list = list(overlap_aid_set)
-            overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
-            raise controller_inject.WebUnavailableUUIDException(overlap_annot_uuid_list, graph_uuid_)
-
-    if annot_name_list is not None:
-        assert len(annot_name_list) == len(annot_uuid_list)
-        nid_list = ibs.add_names(annot_name_list)
-        ibs.set_annot_name_rowids(aid_list, nid_list)
-
-    graph_uuid = ut.random_uuid()
-    callback_dict = {
-        'ready_url'     : ready_callback_url,
-        'ready_method'  : ready_callback_method,
-        'finish_url'    : finish_callback_url,
-        'finish_method' : finish_callback_method,
-    }
-    graph_client = GraphClient(autoinit=True)
-    payload = {
-        'action'    : 'start',
-        'dbdir'     : ibs.dbdir,
-        'response'  : {
-            'nonce' : current_app.INTERNAL_NONCE,
-            'uuid'  : graph_uuid,
-            'url'   : url_for('on_manual_review_request'),
-        },
-        'callbacks' : callback_dict,
-    }
-    graph_client.post(payload)
-
-    ############################################################################
-
-    assert graph_uuid not in current_app.QUERY_V2_UUID_DICT
-    current_app.QUERY_V2_UUID_DICT[graph_uuid] = graph_client
-    return graph_uuid
-
-
-@register_ibs_method
-def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
-    graph_client = current_app.QUERY_V2_UUID_DICT.get(graph_uuid, None)
-    # We could be redirecting to a newer graph_client
-    graph_uuid_chain = [graph_uuid]
-    while isinstance(graph_client, six.string_types):
-        graph_uuid_chain.append(graph_client)
-        graph_client = current_app.QUERY_V2_UUID_DICT.get(graph_client, None)
-    if graph_client is None:
-        raise controller_inject.WebUnknownUUIDException(['graph_uuid'], [graph_uuid])
-    return graph_client, graph_uuid_chain
-
-
-@register_ibs_method
-@register_api('/api/query/graph/v2/', methods=['GET'])
-def sync_query_chips_graph_v2(ibs, graph_uuid):
-    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-
-    # Ensure internal state is up to date
-    graph_client.relabel_using_reviews(rectify=True)
-    edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
-    name_delta_df = graph_client.get_ibeis_name_delta()
-    graph_client.write_ibeis_staging_feedback()
-    graph_client.write_ibeis_annotmatch_feedback(edge_delta_df)
-    graph_client.write_ibeis_name_assignment(name_delta_df)
-
-    edge_delta_df_ = edge_delta_df.reset_index()
-
-    review_state_list = []
-
-    # Set residual matching data
-    aid1_list = edge_delta_df_['aid1']
-    aid2_list = edge_delta_df_['aid2']
-    annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
-    annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
-    decision_list = ut.take(ibs.const.EVIDENCE_DECISION.CODE_TO_INT, edge_delta_df_['new_decision'])
-    tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
-    reviewer_list = edge_delta_df_['new_user_id']
-    conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
-
-    matching_state_list = zip(
-        annot_uuid1_list,
-        annot_uuid2_list,
-        decision_list,
-        tags_list,
-        reviewer_list,
-        conf_list,
-    )
-    ret_dict = {
-        'review_state_list'   : review_state_list,
-        'matching_state_list' : matching_state_list,
-        'name_list'           : name_delta_df,
-    }
-    return ret_dict
-
-
-@register_ibs_method
-@register_api('/api/query/graph/v2/', methods=['PUT'])
-def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name_list=None):
-    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    ibs.web_check_uuids([], annot_uuid_list, [])
-    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-
-    for graph_uuid_ in current_app.QUERY_V2_UUID_DICT:
-        graph_client_ = current_app.QUERY_V2_UUID_DICT[graph_uuid_]
-        aid_list_ = graph_client_.aids
-        overlap_aid_set = set(aid_list_) & set(aid_list)
-        if len(overlap_aid_set) > 0:
-            overlap_aid_list = list(overlap_aid_set)
-            overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
-            raise controller_inject.WebUnavailableUUIDException(overlap_annot_uuid_list, graph_uuid_)
-
-    if annot_name_list is not None:
-        assert len(annot_name_list) == len(annot_uuid_list)
-        nid_list = ibs.add_names(annot_name_list)
-        ibs.set_annot_name_rowids(aid_list, nid_list)
-
-    graph_uuid_ = graph_client.add_annots(aid_list)
-    current_app.QUERY_V2_UUID_DICT[graph_uuid_] = graph_client
-    current_app.QUERY_V2_UUID_DICT[graph_uuid] = graph_uuid_
-    return graph_uuid_
-
-
-@register_ibs_method
-@register_api('/api/query/graph/v2/', methods=['DELETE'])
-def delete_query_chips_graph_v2(ibs, graph_uuid):
-    values = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    graph_client, graph_uuid_chain = values
-    del graph_client
-    for graph_uuid_ in graph_uuid_chain:
-        if graph_uuid_ in current_app.QUERY_V2_UUID_DICT:
-            current_app.QUERY_V2_UUID_DICT[graph_uuid_] = None
-            current_app.QUERY_V2_UUID_DICT.pop(graph_uuid_)
-    return True
-
-
 @register_ibs_method
 @register_api('/api/query/chip/', methods=['GET'])
 def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
@@ -1000,6 +738,368 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         return cm_list, qreq_
     else:
         return cm_list
+
+
+##########################################################################################
+
+
+@register_ibs_method
+def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
+    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+    # We could be redirecting to a newer graph_client
+    graph_uuid_chain = [graph_uuid]
+    while isinstance(graph_client, six.string_types):
+        graph_uuid_chain.append(graph_client)
+        graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_client, None)
+    if graph_client is None:
+        raise controller_inject.WebUnknownUUIDException(['graph_uuid'], [graph_uuid])
+    return graph_client, graph_uuid_chain
+
+
+@register_ibs_method
+def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
+    if len(matching_state_list) > 0:
+        match_annot_uuid1_list = ut.take_column(matching_state_list, 0)
+        match_annot_uuid2_list = ut.take_column(matching_state_list, 1)
+        match_decision_list    = ut.take_column(matching_state_list, 2)
+        match_tags_list        = ut.take_column(matching_state_list, 3)
+        match_user_list        = ut.take_column(matching_state_list, 4)
+        match_confidence_list  = ut.take_column(matching_state_list, 5)
+        match_count_list       = ut.take_column(matching_state_list, 6)
+
+        ibs.web_check_uuids([], match_annot_uuid1_list, [])
+        ibs.web_check_uuids([], match_annot_uuid2_list, [])
+
+        match_aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
+        match_aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
+        match_reviewed_list = [True] * len(match_aid1_list)
+
+        # Add cleanly
+        match_rowid_list = ibs.add_annotmatch(match_aid1_list, match_aid2_list,
+                                              annotmatch_truth_list=match_decision_list,
+                                              annotmatch_confidence_list=match_confidence_list,
+                                              annotmatch_tag_text_list=match_tags_list,
+                                              annotmatch_reviewed_list=match_reviewed_list,
+                                              annotmatch_reviewer_list=match_user_list,
+                                              annotmatch_count_list=match_count_list)
+        # Set any values that already existed
+        ibs.set_annotmatch_truth(match_rowid_list, match_decision_list)
+        ibs.set_annotmatch_tag_text(match_rowid_list, match_tags_list)
+        ibs.set_annotmatch_reviewer(match_rowid_list, match_user_list)
+        ibs.set_annotmatch_reviewed(match_rowid_list, match_reviewed_list)
+        ibs.set_annotmatch_confidence(match_rowid_list, match_confidence_list)
+        ibs.set_annotmatch_count(match_rowid_list, match_count_list)
+
+
+def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
+                           view_orientation='vertical', match_config={}):
+    from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
+    import plottool as pt
+    render_config = {
+        'show_ell'   : draw_matches,
+        'show_lines' : draw_matches,
+        'show_ori'   : False,
+        'heatmask'   : draw_heatmask,
+        'vert'       : view_orientation == 'vertical',
+    }
+    extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
+    match = extr._exec_pairwise_match([edge])[0]
+    with pt.RenderingContext(dpi=150) as ctx:
+        match.show(**render_config)
+    image = ctx.image
+    return image
+
+
+@register_ibs_method
+def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
+    from ibeis.web.graph_server import ut_to_json_encode
+    assert callback_type in ['review', 'ready', 'finished']
+    callback_tuple = graph_client.callbacks.get(callback_type, None)
+    if callback_tuple is not None:
+        callback_url, callback_method = callback_tuple
+        callback_method = callback_method.lower()
+        data_dict = ut_to_json_encode({
+            'graph_uuid': graph_uuid,
+        })
+        if callback_method == 'post':
+            requests.post(callback_url, data=data_dict)
+        elif callback_method == 'get':
+            requests.get(callback_url, params=data_dict)
+        elif callback_method == 'put':
+            requests.put(callback_url, data=data_dict)
+        elif callback_method == 'delete':
+            requests.delete(callback_url, data=data_dict)
+        else:
+            raise KeyError('Unsupported HTTP callback method')
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['POST'])
+def query_chips_graph_v2(ibs, annot_uuid_list=None,
+                         annot_name_list=None,
+                         query_config_dict={},
+                         review_callback_url=None,
+                         review_callback_method='POST',
+                         ready_callback_url=None,
+                         ready_callback_method='POST',
+                         finished_callback_url=None,
+                         finished_callback_method='POST'):
+    from ibeis.web.graph_server import GraphClient
+
+    if annot_uuid_list is None:
+        annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
+
+    ibs.web_check_uuids([], annot_uuid_list, [])
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+
+    for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
+        graph_client_ = current_app.GRAPH_CLIENT_DICT[graph_uuid_]
+        aid_list_ = graph_client_.aids
+        overlap_aid_set = set(aid_list_) & set(aid_list)
+        if len(overlap_aid_set) > 0:
+            overlap_aid_list = list(overlap_aid_set)
+            overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
+            raise controller_inject.WebUnavailableUUIDException(overlap_annot_uuid_list, graph_uuid_)
+
+    if annot_name_list is not None:
+        assert len(annot_name_list) == len(annot_uuid_list)
+        nid_list = ibs.add_names(annot_name_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list)
+
+    graph_uuid = ut.random_uuid()
+    callback_dict = {
+        'review'   : (review_callback_url,   review_callback_method),
+        'ready'    : (ready_callback_url,    ready_callback_method),
+        'finished' : (finished_callback_url, finished_callback_method),
+    }
+    graph_client = GraphClient(autoinit=True, callbacks=callback_dict)
+    payload = {
+        'action'           : 'start',
+        'dbdir'            : ibs.dbdir,
+        'aids'             : aid_list,
+        'callbacks'        : {
+            'nonce'        : graph_client.nonce,
+            'uuid'         : graph_uuid,
+            'urls'         : {
+                'review'   : url_for('query_graph_v2_on_request_review'),
+                'ready'    : url_for('query_graph_v2_on_request_ready'),
+                'finished' : url_for('query_graph_v2_on_request_finished'),
+            },
+        },
+    }
+    graph_client.post(payload)
+
+    assert graph_uuid not in current_app.GRAPH_CLIENT_DICT
+    current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
+    return graph_uuid
+
+
+@register_api('/api/review/query/graph/v2/', methods=['GET'])
+def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
+                               callback_method='POST',
+                               view_orientation='vertical',
+                               include_jquery=False):
+    ut.embed()
+
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    data = graph_client.sample()
+    if data is None:
+        raise controller_inject.WebReviewNotReadyException(graph_uuid)
+
+    edge, priority, data_dict = data
+    args = (edge, priority, )
+    print('Sampled edge %r with priority %0.02f' % args)
+
+    raise NotImplementedError('Cannot lookup ChipMatch from AnnotInference')
+
+    aid_1, aid_2 = edge
+    annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
+    annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
+
+    match_config = {}  # TODO: Get from Inference Object from GraphClient
+    image_clean = ensure_review_image_v2(ibs, edge, match_config=match_config,
+                                         view_orientation=view_orientation)
+    image_matches = ensure_review_image_v2(ibs, edge, draw_matches=True,
+                                           match_config=match_config,
+                                           view_orientation=view_orientation)
+    image_heatmask = ensure_review_image_v2(ibs, edge, draw_heatmask=True,
+                                            match_config=match_config,
+                                            view_orientation=view_orientation)
+
+    image_clean_src = appf.embed_image_html(image_clean)
+    image_matches_src = appf.embed_image_html(image_matches)
+    image_heatmask_src = appf.embed_image_html(image_heatmask)
+
+    if False:
+        from ibeis.web import apis_query
+        root_path = dirname(abspath(apis_query.__file__))
+    else:
+        root_path = dirname(abspath(__file__))
+    css_file_list = [
+        ['css', 'style.css'],
+        ['include', 'bootstrap', 'css', 'bootstrap.css'],
+    ]
+    json_file_list = [
+        ['javascript', 'script.js'],
+        ['include', 'bootstrap', 'js', 'bootstrap.js'],
+    ]
+
+    if include_jquery:
+        json_file_list = [
+            ['javascript', 'jquery.min.js'],
+        ] + json_file_list
+
+    EMBEDDED_CSS = ''
+    EMBEDDED_JAVASCRIPT = ''
+
+    css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
+    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    for css_file in css_file_list:
+        css_filepath_list = [root_path, 'static'] + css_file
+        with open(join(*css_filepath_list)) as css_file:
+            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
+
+    for json_file in json_file_list:
+        json_filepath_list = [root_path, 'static'] + json_file
+        with open(join(*json_filepath_list)) as json_file:
+            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
+
+    now = datetime.utcnow()
+    server_time_start = float(now.strftime("%s.%f"))
+    embedded = dict(globals(), **locals())
+    return appf.template('turk', 'identification_insert', **embedded)
+
+
+@register_api('/api/review/query/graph/v2/', methods=['POST'])
+def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    response_tuple = ibs.process_graph_match_html(**kwargs)
+    annot_uuid_1, annot_uuid_2, decision, tags, user_id, confidence, user_times = response_tuple
+    aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
+    aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+    edge = (aid1, aid2, )
+    now = datetime.utcnow()
+    payload = {
+        'action'           : 'add_feedback',
+        'edge'             : edge,
+        'decision'         : decision,
+        'tags'             : tags,
+        'user_id'          : user_id,
+        'confidence'       : confidence,
+        'user_times'       : {
+            'server_start' : user_times['server_time_start'],
+            'client_start' : user_times['client_time_start'],
+            'client_end'   : user_times['client_time_end'],
+            'server_end'   : float(now.strftime("%s.%f")),
+        },
+    }
+    graph_client.post(payload)
+    return True
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['GET'])
+def sync_query_chips_graph_v2(ibs, graph_uuid):
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+
+    # Ensure internal state is up to date
+    graph_client.relabel_using_reviews(rectify=True)
+    edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
+    name_delta_df = graph_client.get_ibeis_name_delta()
+    graph_client.write_ibeis_staging_feedback()
+    graph_client.write_ibeis_annotmatch_feedback(edge_delta_df)
+    graph_client.write_ibeis_name_assignment(name_delta_df)
+
+    edge_delta_df_ = edge_delta_df.reset_index()
+
+    review_state_list = []
+
+    # Set residual matching data
+    aid1_list = edge_delta_df_['aid1']
+    aid2_list = edge_delta_df_['aid2']
+    annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
+    annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
+    decision_list = ut.take(ibs.const.EVIDENCE_DECISION.CODE_TO_INT, edge_delta_df_['new_decision'])
+    tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
+    reviewer_list = edge_delta_df_['new_user_id']
+    conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
+
+    matching_state_list = zip(
+        annot_uuid1_list,
+        annot_uuid2_list,
+        decision_list,
+        tags_list,
+        reviewer_list,
+        conf_list,
+    )
+    ret_dict = {
+        'review_state_list'   : review_state_list,
+        'matching_state_list' : matching_state_list,
+        'name_list'           : name_delta_df,
+    }
+    return ret_dict
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['PUT'])
+def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name_list=None):
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    ibs.web_check_uuids([], annot_uuid_list, [])
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+
+    for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
+        graph_client_ = current_app.GRAPH_CLIENT_DICT[graph_uuid_]
+        aid_list_ = graph_client_.aids
+        overlap_aid_set = set(aid_list_) & set(aid_list)
+        if len(overlap_aid_set) > 0:
+            overlap_aid_list = list(overlap_aid_set)
+            overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
+            raise controller_inject.WebUnavailableUUIDException(overlap_annot_uuid_list, graph_uuid_)
+
+    if annot_name_list is not None:
+        assert len(annot_name_list) == len(annot_uuid_list)
+        nid_list = ibs.add_names(annot_name_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list)
+
+    graph_uuid_ = graph_client.add_annots(aid_list)
+    current_app.GRAPH_CLIENT_DICT[graph_uuid_] = graph_client
+    current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_uuid_
+    return graph_uuid_
+
+
+@register_ibs_method
+@register_api('/api/query/graph/v2/', methods=['DELETE'])
+def delete_query_chips_graph_v2(ibs, graph_uuid):
+    values = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    graph_client, graph_uuid_chain = values
+    del graph_client
+    for graph_uuid_ in graph_uuid_chain:
+        if graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
+            current_app.GRAPH_CLIENT_DICT[graph_uuid_] = None
+            current_app.GRAPH_CLIENT_DICT.pop(graph_uuid_)
+    return True
+
+
+@register_api('/internal/query/graph/v2/review/', methods=['POST'])
+def query_graph_v2_on_request_review(ibs, nonce, graph_uuid, data_list):
+    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+    assert nonce == graph_client.nonce
+    graph_client.update(data_list)
+    ibs.query_graph_v2_callback(graph_client, graph_uuid, 'review')
+
+
+@register_api('/internal/query/graph/v2/ready/', methods=['POST'])
+def query_graph_v2_on_request_ready(ibs, nonce, graph_uuid):
+    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+    assert nonce == graph_client.nonce
+    ibs.query_graph_v2_callback(graph_client, graph_uuid, 'ready')
+
+
+@register_api('/internal/query/graph/v2/finished/', methods=['POST'])
+def query_graph_v2_on_request_finished(ibs, nonce, graph_uuid):
+    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+    assert nonce == graph_client.nonce
+    ibs.query_graph_v2_callback(graph_client, graph_uuid, 'finished')
 
 
 if __name__ == '__main__':
