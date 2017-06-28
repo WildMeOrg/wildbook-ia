@@ -617,7 +617,6 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                             kwargs4 = ut.from_json(flask.request.data)
                         except:
                             kwargs4 = {}
-                        ut.embed()
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
                         kwargs.update(kwargs4)
