@@ -174,15 +174,21 @@ def process_graph_match_html(ibs, **kwargs):
 
 @register_api('/api/review/query/graph/v2/', methods=['POST'])
 def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
-    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(graph_uuid)
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     response_tuple = ibs.process_graph_match_html(**kwargs)
     annot_uuid_1, annot_uuid_2, decision, tags, user_id, confidence = response_tuple
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
     edge = (aid1, aid2, )
-    query_annot_infr.add_feedback(edge, decision, tags=tags, user_id=user_id,
-                                  confidence=confidence)
-    query_annot_infr.write_ibeis_staging_feedback()
+    payload = {
+        'action'     : 'add_feedback',
+        'edge'       : edge,
+        'decision'   : decision,
+        'tags'       : tags,
+        'user_ud'    : user_id,
+        'confidence' : confidence,
+    }
+    graph_client.post(payload)
     return True
 
 
@@ -482,45 +488,34 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
                                callback_method='POST',
                                view_orientation='vertical',
                                include_jquery=False):
-    import random
-    # from ibeis.algo.hots.query_request import QueryRequest
-
     ut.embed()
 
-    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(graph_uuid)
-    peak_list = query_annot_infr._peek_many(ANNOT_INFR_PEAK_MAX)
-
-    if len(peak_list) == 0:
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    review_uuid = graph_client.sample()
+    if review_uuid is None:
         raise controller_inject.WebNextReviewExhaustedException(graph_uuid)
-    peak_index = random.randint(0, len(peak_list) - 1)
-    edge, priority = peak_list[peak_index]
-    args = (edge, priority, peak_index, len(peak_list) - 1)
-    print('Selected edge %r with priority %0.02f out of the peak_list %d / %d' % args)
 
-    # Get score
+    data = graph_client.reviews[review_uuid]
+    edge, priority = data
+    args = (edge, priority, review_uuid, len(graph_client.reviews) - 1)
+    print('Selected edge %r with priority %0.02f (UUID %r out of %d waiting reviews)' % args)
+
+    raise NotImplementedError('Cannot lookup ChipMatch from AnnotInference')
+
     aid_1, aid_2 = edge
-    cm, aid_1, aid_2 = query_annot_infr.lookup_cm(aid_1, aid_2)
-    idx = cm.daid2_idx[aid_2]
-    match_score = cm.name_score_list[idx]
-    #match_score = cm.aid2_score[aid_2]
-
     annot_uuid_1 = ibs.get_annot_uuids(aid_1)
     annot_uuid_2 = ibs.get_annot_uuids(aid_2)
 
-    try:
-        image_matches = ensure_review_image(ibs, aid_2, cm, query_annot_infr.qreq_,
-                                            view_orientation=view_orientation)
-    except KeyError:
-        image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
-        traceback.print_exc()
-    try:
-        image_clean = ensure_review_image(ibs, aid_2, cm, query_annot_infr.qreq_,
-                                          view_orientation=view_orientation,
-                                          draw_matches=False)
-    except KeyError:
-        image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
-        traceback.print_exc()
+    payload = {
+        'action'           : 'render_edge',
+        'edge'             : edge,
+        'view_orientation' : view_orientation,
+    }
+    graph_client.post(payload)
+    result_list = list(graph_client.results())
+    result = result_list[-1]
 
+    match_score, image_matches, image_clean = result
     image_matches_src = appf.embed_image_html(image_matches)
     image_clean_src = appf.embed_image_html(image_clean)
 
@@ -745,35 +740,15 @@ def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
         ibs.set_annotmatch_count(match_rowid_list, match_count_list)
 
 
-# def _web_init_annot_inference(ibs, aid_list, query_config_dict, callback_dict):
-#     import ibeis
-#     query_annot_infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list,
-#                                             autoinit=True)
-#     # Configure query_annot_infr
-#     query_annot_infr.set_config(**query_config_dict)
-#     query_annot_infr.queue_params['pos_redun'] = 2
-#     query_annot_infr.queue_params['neg_redun'] = 2
-#     # Initialize
-#     query_annot_infr.reset_feedback('annotmatch', apply=True)
-#     query_annot_infr.ensure_mst()
-#     query_annot_infr.apply_nondynamic_update()
-#     # Register callbacks
-#     query_annot_infr.set_callbacks(**callback_dict)
-
-#     ############################################################################
-#     # TODO: QUARANTINE WITH ITERATIVE WEB INSTANCE
-#     with StartNewProcess():
-#         query_annot_infr.refresh_candidate_edges(**callbacks)
-
-
 @register_api('/internal/review/query/graph/v2/', methods=['POST'])
-def on_manual_review_request(ibs, graph_uuid, edge, priority, nonce):
-    assert nonce == ibs.nonce
-
-    query_annot_infr = current_app.QUERY_V2_UUID_DICT.get(graph_uuid, None)
-    query_annot_infr.push(edge, priority)
-
-    pass
+def on_manual_review_request(ibs, nonce, graph_uuid, edge, priority):
+    assert nonce == current_app.INTERNAL_NONCE
+    graph_client = current_app.QUERY_V2_UUID_DICT.get(graph_uuid, None)
+    data = {
+        'edge'     : edge,
+        'priority' : priority,
+    }
+    graph_client.push(data)
 
 
 @register_ibs_method
@@ -786,7 +761,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          ready_callback_method='POST',
                          finish_callback_url=None,
                          finish_callback_method='POST'):
-
+    from ibeis.web.graph_server import GraphClient
     valid_states = {
         'match': ['matched'],  # ['match', 'matched'],
         'nomatch': ['notmatched', 'nonmatch'],  # ['nomatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
@@ -808,8 +783,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     for graph_uuid_ in current_app.QUERY_V2_UUID_DICT:
-        query_annot_infr_ = current_app.QUERY_V2_UUID_DICT[graph_uuid_]
-        aid_list_ = query_annot_infr_.aids
+        graph_client_ = current_app.QUERY_V2_UUID_DICT[graph_uuid_]
+        aid_list_ = graph_client_.aids
         overlap_aid_set = set(aid_list_) & set(aid_list)
         if len(overlap_aid_set) > 0:
             overlap_aid_list = list(overlap_aid_set)
@@ -823,47 +798,58 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
     ibs.query_chips_graph_v2_matching_state_sync(matching_state_list)
 
+    graph_uuid = ut.random_uuid()
     callback_dict = {
-        'ready_callback_url'     : ready_callback_url,
-        'ready_callback_method'  : ready_callback_method,
-        'finish_callback_url'    : finish_callback_url,
-        'finish_callback_method' : finish_callback_method,
+        'ready_url'     : ready_callback_url,
+        'ready_method'  : ready_callback_method,
+        'finish_url'    : finish_callback_url,
+        'finish_method' : finish_callback_method,
     }
-    query_annot_infr = _web_init_annot_inference(ibs, aid_list, query_config_dict, callback_dict)
+    graph_client = GraphClient(autoinit=True)
+    payload = {
+        'action'    : 'start',
+        'dbdir'     : ibs.dbdir,
+        'response'  : {
+            'nonce' : current_app.INTERNAL_NONCE,
+            'uuid'  : graph_uuid,
+            'url'   : url_for('on_manual_review_request'),
+        },
+        'callbacks' : callback_dict,
+    }
+    graph_client.post(payload)
 
     ############################################################################
 
-    graph_uuid = ut.random_uuid()
     assert graph_uuid not in current_app.QUERY_V2_UUID_DICT
-    current_app.QUERY_V2_UUID_DICT[graph_uuid] = query_annot_infr
+    current_app.QUERY_V2_UUID_DICT[graph_uuid] = graph_client
     return graph_uuid
 
 
 @register_ibs_method
-def get_query_annot_infr_query_chips_graph_v2(ibs, graph_uuid):
-    query_annot_infr = current_app.QUERY_V2_UUID_DICT.get(graph_uuid, None)
-    # We could be redirecting to a newer query_annot_infr
+def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
+    graph_client = current_app.QUERY_V2_UUID_DICT.get(graph_uuid, None)
+    # We could be redirecting to a newer graph_client
     graph_uuid_chain = [graph_uuid]
-    while isinstance(query_annot_infr, six.string_types):
-        graph_uuid_chain.append(query_annot_infr)
-        query_annot_infr = current_app.QUERY_V2_UUID_DICT.get(query_annot_infr, None)
-    if query_annot_infr is None:
+    while isinstance(graph_client, six.string_types):
+        graph_uuid_chain.append(graph_client)
+        graph_client = current_app.QUERY_V2_UUID_DICT.get(graph_client, None)
+    if graph_client is None:
         raise controller_inject.WebUnknownUUIDException(['graph_uuid'], [graph_uuid])
-    return query_annot_infr, graph_uuid_chain
+    return graph_client, graph_uuid_chain
 
 
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['GET'])
 def sync_query_chips_graph_v2(ibs, graph_uuid):
-    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(graph_uuid)
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
     # Ensure internal state is up to date
-    query_annot_infr.relabel_using_reviews(rectify=True)
-    edge_delta_df = query_annot_infr.match_state_delta(old='annotmatch', new='all')
-    name_delta_df = query_annot_infr.get_ibeis_name_delta()
-    query_annot_infr.write_ibeis_staging_feedback()
-    query_annot_infr.write_ibeis_annotmatch_feedback(edge_delta_df)
-    query_annot_infr.write_ibeis_name_assignment(name_delta_df)
+    graph_client.relabel_using_reviews(rectify=True)
+    edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
+    name_delta_df = graph_client.get_ibeis_name_delta()
+    graph_client.write_ibeis_staging_feedback()
+    graph_client.write_ibeis_annotmatch_feedback(edge_delta_df)
+    graph_client.write_ibeis_name_assignment(name_delta_df)
 
     edge_delta_df_ = edge_delta_df.reset_index()
 
@@ -899,13 +885,13 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
 @register_api('/api/query/graph/v2/', methods=['PUT'])
 def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name_list=None,
                                     matching_state_list=[]):
-    query_annot_infr, _ = ibs.get_query_annot_infr_query_chips_graph_v2(graph_uuid)
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     for graph_uuid_ in current_app.QUERY_V2_UUID_DICT:
-        query_annot_infr_ = current_app.QUERY_V2_UUID_DICT[graph_uuid_]
-        aid_list_ = query_annot_infr_.aids
+        graph_client_ = current_app.QUERY_V2_UUID_DICT[graph_uuid_]
+        aid_list_ = graph_client_.aids
         overlap_aid_set = set(aid_list_) & set(aid_list)
         if len(overlap_aid_set) > 0:
             overlap_aid_list = list(overlap_aid_set)
@@ -919,8 +905,8 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name
 
     ibs.query_chips_graph_v2_matching_state_sync(matching_state_list)
 
-    graph_uuid_ = query_annot_infr.add_annots(aid_list)
-    current_app.QUERY_V2_UUID_DICT[graph_uuid_] = query_annot_infr
+    graph_uuid_ = graph_client.add_annots(aid_list)
+    current_app.QUERY_V2_UUID_DICT[graph_uuid_] = graph_client
     current_app.QUERY_V2_UUID_DICT[graph_uuid] = graph_uuid_
     return graph_uuid_
 
@@ -928,9 +914,9 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['DELETE'])
 def delete_query_chips_graph_v2(ibs, graph_uuid):
-    values = ibs.get_query_annot_infr_query_chips_graph_v2(graph_uuid)
-    query_annot_infr, graph_uuid_chain = values
-    del query_annot_infr
+    values = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    graph_client, graph_uuid_chain = values
+    del graph_client
     for graph_uuid_ in graph_uuid_chain:
         if graph_uuid_ in current_app.QUERY_V2_UUID_DICT:
             current_app.QUERY_V2_UUID_DICT[graph_uuid_] = None

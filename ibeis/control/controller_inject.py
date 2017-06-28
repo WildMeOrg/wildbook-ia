@@ -126,6 +126,7 @@ def get_flask_app(templates_auto_reload=True):
         GLOBAL_APP.QUERY_OBJECT_JOBID = None
         GLOBAL_APP.QUERY_OBJECT_FEEDBACK_BUFFER = []
 
+        GLOBAL_APP.INTERNAL_NONCE = uuid.uuid4()
         GLOBAL_APP.QUERY_V2_UUID_DICT = {}
 
         if HAS_FLASK_CORS:
