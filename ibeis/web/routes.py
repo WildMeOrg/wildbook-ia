@@ -1592,8 +1592,8 @@ def turk_cameratrap(**kwargs):
 
     finished = gid is None
     if not finished:
-        # image     = ibs.get_image_imgdata(gid)
-        image     = ibs.get_image_thumbnail(gid)
+        image     = ibs.get_image_imgdata(gid)
+        # image     = ibs.get_image_thumbnail(gid)
         image_src = appf.embed_image_html(image)
         positive  = ibs.get_image_cameratrap(gid) not in [False, None]
     else:
