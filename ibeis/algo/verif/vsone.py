@@ -1515,13 +1515,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> from ibeis.algo.graph import demo
             >>> kwargs = dict(num_pccs=6, p_incon=.4, size_std=2)
             >>> infr = demo.demodata_infr(**kwargs)
-            >>> infr.queue_params['pos_redun'] = 1
-            >>> infr.queue_params['neg_redun'] = 1
+            >>> infr.params['redun.pos'] = 1
+            >>> infr.params['redun.neg'] = 1
             >>> infr.apply_nondynamic_update()
             >>> edges = list(infr.edges())
             >>> prob_match = ut.dzip(edges, infr.dummy_matcher.predict(edges))
             >>> infr.set_edge_attrs('prob_match', prob_match)
-            >>> infr.enable_redundancy = True
+            >>> infr.params['redun.enabled'] = True
             >>> infr.prioritize('prob_match', edges)
             >>> order = []
             >>> while True:
@@ -1553,7 +1553,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                  for a in unsure_cases['aid2']])
             unsure_cases = unsure_cases[(n_other2 > 10) & (n_other1 > 10)]
 
-        infr.enable_redundancy = False
+        infr.params['redun.enabled'] = False
         infr.fix_mode_split = False
         infr.fix_mode_merge = False
         infr.fix_mode_predict = True

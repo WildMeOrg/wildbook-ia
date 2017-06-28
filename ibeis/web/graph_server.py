@@ -102,8 +102,8 @@ class GraphActor(object):
         handler.infr.callbacks['request_review'] = handler.on_request_review
         # Configure query_annot_infr
         handler.infr.set_config(config)
-        handler.infr.queue_params['pos_redun'] = 2
-        handler.infr.queue_params['neg_redun'] = 2
+        handler.infr.params['redun.pos'] = 2
+        handler.infr.params['redun.neg'] = 2
         # Initialize
         handler.infr.reset_feedback('annotmatch', apply=True)
         handler.infr.ensure_mst()
@@ -431,8 +431,8 @@ class GraphClient(object):
 #         server.infr.connect_manual_review_callback(server.on_manual_review)
 #         # Configure query_annot_infr
 #         server.infr.set_config(query_config_dict)
-#         server.infr.queue_params['pos_redun'] = 2
-#         server.infr.queue_params['neg_redun'] = 2
+#         server.infr.params['redun.pos'] = 2
+#         server.infr.params['redun.neg'] = 2
 #         # Initialize
 #         server.infr.reset_feedback('annotmatch', apply=True)
 #         server.infr.ensure_mst()

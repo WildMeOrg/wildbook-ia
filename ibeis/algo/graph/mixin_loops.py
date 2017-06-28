@@ -484,7 +484,7 @@ class InfrLoops(object):
         infr.print(
             'Test Action Histogram: {}'.format(
                 ut.repr4(testaction_hist, si=True)), color='yellow')
-        if infr.enable_inference:
+        if infr.params['inference.enabled']:
             action_hist = ut.dict_hist(
                 ut.emap(frozenset, ut.take_column(history, 'action')))
             infr.print(
@@ -564,6 +564,10 @@ class InfrLoops(object):
             infr.refresh.clear()
         infr.inner_priority_loop(use_refresh)
 
+    def init_refresh(infr):
+        refresh_params = infr.subparams('refresh')
+        infr.refresh = RefreshCriteria(**refresh_params)
+
     def simple_main_loop(infr):
         """
             >>> from ibeis.algo.graph.mixin_loops import *
@@ -572,7 +576,7 @@ class InfrLoops(object):
             >>> infr = demo.demodata_infr(num_pccs=10, size=4)
             >>> infr.clear_edges()
             >>> infr.init_simulation()
-            >>> infr.refresh = RefreshCriteria(**infr._refresh_params)
+            >>> infr.init_refresh()
             >>> infr.simple_main_loop()
         """
 
@@ -608,19 +612,19 @@ class InfrLoops(object):
         """
         infr.print('Starting main loop', 1)
         if max_loops is None:
-            max_loops = infr._max_outer_loops
+            max_loops = infr.params['algo.max_outer_loops']
             if max_loops is None:
                 max_loops = np.inf
 
         if infr.test_mode:
             print('------------------ {} -------------------'.format(infr.name))
 
-        infr.refresh = RefreshCriteria(**infr._refresh_params)
+        infr.init_refresh()
 
         # Initialize a refresh criteria
         for count in it.count(0):
 
-            # if infr.test_mode and infr.enable_inference:
+            # if infr.test_mode and infr.params['inference.enabled']:
             #     checkpoint = infr.copy()
 
             if count >= max_loops:
@@ -636,7 +640,7 @@ class InfrLoops(object):
             if terminate:
                 infr.print('Triggered termination criteria', 1, color='red')
 
-            # if infr.test_mode and infr.enable_inference:
+            # if infr.test_mode and infr.params['inference.enabled']:
             #     count = len(infr.metrics_list) - len(checkpoint.metrics_list)
             #     history = infr.metrics_list[-count:]
             #     testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
@@ -647,7 +651,7 @@ class InfrLoops(object):
             #         # import utool
             #         # utool.embed()
 
-            if infr.enable_redundancy and infr.enable_fixredun:
+            if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
                 # Fix positive redundancy of anything within the loop
                 infr.pos_redun_loop()
 
@@ -657,7 +661,7 @@ class InfrLoops(object):
             if terminate:
                 break
 
-        # if infr.enable_redundancy:
+        # if infr.params['redun.enabled']:
         #     # Do a final fixup, check work of auto criteria
         #     infr.refresh.enabled = False
         #     # infr.rereview_nonconf_auto()
@@ -666,7 +670,7 @@ class InfrLoops(object):
 
         infr.print('Terminate.', 1, color='red')
 
-        if infr.enable_inference:
+        if infr.params['inference.enabled']:
             infr.assert_consistency_invariant()
         # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
         # pred_groups = list(infr.positive_connected_compoments())
@@ -743,7 +747,7 @@ class InfrReviewers(object):
     @profile
     def request_review(infr, edge, priority=None):
         """ function only for test purposes use emit_or_review """
-        if infr.enable_autoreview:
+        if infr.params['autoreview.enabled']:
             flag, feedback = infr.try_auto_review(edge)
             if flag:
                 return feedback
@@ -755,7 +759,7 @@ class InfrReviewers(object):
 
     @profile
     def emit_or_review(infr, edge, priority=None):
-        if infr.enable_autoreview:
+        if infr.params['autoreview.enabled']:
             flag, feedback = infr.try_auto_review(edge)
             if flag:
                 return feedback
@@ -786,7 +790,7 @@ class InfrReviewers(object):
             >>> # Add dummy priorities to each edge
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
-            >>> infr.enable_redundancy = False
+            >>> infr.params['redun.enabled'] = False
             >>> win = infr.qt_review_loop(cfgdict=cfgdict)
             >>> import guitool as gt
             >>> gt.qtapp_loop(qwin=win, freq=10)
@@ -822,6 +826,16 @@ class InfrReviewers(object):
         on_request_review = infr.callbacks['request_review']
         if on_request_review is None:
             raise KeyError('request_review not connected in infr.callbacks')
+
+        # Emit a list of reviews that can be considered.
+        # The first is the most important
+        n = infr.params['manual.n_peek']
+        reviews = [
+            (edge, priority, infr.get_nonvisual_edge_data(edge, on_missing='default'))
+            for edge, priority in infr.peek_many(n)
+        ]
+
+        reviews
         on_request_review(edge, priority)
 
     @profile
@@ -915,11 +929,11 @@ class SimulationHelpers(object):
         infr.simulation_mode = True
 
         infr.classifiers = classifiers
-        infr.enable_inference = enable_inference
-        infr.enable_autoreview = enable_autoreview
+        infr.params['inference.enabled'] = enable_inference
+        infr.params['autoreview.enabled'] = enable_autoreview
 
-        infr.queue_params['pos_redun'] = k_redun
-        infr.queue_params['neg_redun'] = k_redun
+        infr.params['redun.pos'] = k_redun
+        infr.params['redun.neg'] = k_redun
 
         infr.queue = ut.PriorityQueue()
 
@@ -943,7 +957,7 @@ class SimulationHelpers(object):
             'photobomb_state': pd.Series(pb_state_thresh),
             'match_state': pd.Series(match_state_thresh)
         }
-        infr._max_outer_loops = max_outer_loops
+        infr.params['algo.max_outer_loops'] = max_outer_loops
 
     def init_test_mode(infr):
         from ibeis.algo.graph import nx_dynamic_graph

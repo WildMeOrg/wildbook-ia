@@ -49,8 +49,8 @@ def entropy_potential(infr, u, v, decision):
     from ibeis.algo.graph import demo
     infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
     infr.refresh_candidate_edges()
-    infr.queue_params['neg_redun'] = 1
-    infr.queue_params['pos_redun'] = 1
+    infr.params['redun.neg'] = 1
+    infr.params['redun.pos'] = 1
     infr.apply_nondynamic_update()
 
     ut.qtensure()

@@ -83,9 +83,9 @@ def demo2():
     mpl.rcParams.update(TMP_RC)
 
     # ---- Synthetic data params
-    queue_params = {
-        'pos_redun': 2,
-        'neg_redun': 2,
+    params = {
+        'redun.pos': 2,
+        'redun.neg': 2,
     }
     # oracle_accuracy = .98
     # oracle_accuracy = .90
@@ -239,7 +239,7 @@ def demo2():
 
     infr.on_new_candidate_edges = on_new_candidate_edges
 
-    infr.queue_params.update(**queue_params)
+    infr.params.update(**params)
     infr.refresh_candidate_edges()
 
     VIZ_ALL = (VISUALIZE and TARGET_REVIEW is None and START is None)
@@ -248,7 +248,7 @@ def demo2():
     if VIZ_ALL or TARGET_REVIEW == 0:
         show_graph(infr, 'find-candidates')
 
-    # _iter2 = enumerate(infr.generate_reviews(**queue_params))
+    # _iter2 = enumerate(infr.generate_reviews(**params))
     # _iter2 = list(_iter2)
     # assert len(_iter2) > 0
 
@@ -309,9 +309,9 @@ def demo2():
     # ROUND 2 FIGHT
     # if TARGET_REVIEW is None and round2_params is not None:
     #     # HACK TO GET NEW THINGS IN QUEUE
-    #     infr.queue_params = round2_params
+    #     infr.params = round2_params
 
-    #     _iter2 = enumerate(infr.generate_reviews(**queue_params))
+    #     _iter2 = enumerate(infr.generate_reviews(**params))
     #     prog = ut.ProgIter(_iter2, label='round2', bs=False, adjust=False,
     #                        enabled=False)
     #     for count, (aid1, aid2) in prog:

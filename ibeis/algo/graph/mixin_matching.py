@@ -452,7 +452,7 @@ class CandidateSearch(object):
         infr.print('ranking alg found {}/{} unreviewed edges'.format(
             len(candidate_edges), len(lnbnn_results)), 1)
 
-        # if infr.enable_inference:
+        # if infr.params['inference.enabled']:
         #     orig_candidate_edges = candidate_edges
         #     candidate_edges = set(infr.filter_nonredun_edges(candidate_edges))
         #     infr.print('removed {} redundant candidates'.format(
@@ -480,7 +480,7 @@ class CandidateSearch(object):
             >>> print(result)
         """
         if k is None:
-            k = infr.queue_params['neg_redun']
+            k = infr.params['redun.neg']
         # Loop through all pairs
         for cc1, cc2 in infr.find_non_neg_redun_pccs(k=k):
             for u, v in infr.find_neg_augment_edges(cc1, cc2, k):
@@ -492,7 +492,7 @@ class CandidateSearch(object):
         Get pairs of PCCs that are not complete.
         """
         if k is None:
-            k = infr.queue_params['neg_redun']
+            k = infr.params['redun.neg']
         pccs = infr.positive_components()
         # Loop through all pairs
         for cc1, cc2 in it.combinations(pccs, 2):
@@ -504,7 +504,7 @@ class CandidateSearch(object):
         Find enough edges to between two pccs to make them k-negative complete
         """
         if k is None:
-            k = infr.queue_params['neg_redun']
+            k = infr.params['redun.neg']
         existing_edges = set(edges_cross(infr.graph, cc1, cc2))
         reviewed_edges = {
             edge: state
@@ -548,7 +548,7 @@ class CandidateSearch(object):
         pos_sub = nx.Graph([[0, 1], [1, 2], [0, 2], [1, 3]])
         """
         if k is None:
-            pos_k = infr.queue_params['pos_redun']
+            pos_k = infr.params['redun.pos']
         else:
             pos_k = k
         pos_sub = infr.pos_graph.subgraph(pcc)
@@ -591,7 +591,7 @@ class CandidateSearch(object):
             >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
             >>> infr.add_feedback((2, 5), decision='match')
             >>> infr.add_feedback((1, 5), decision='notcomp')
-            >>> infr.queue_params['pos_redun'] = 2
+            >>> infr.params['redun.pos'] = 2
             >>> candidate_edges = list(infr.find_pos_redun_candidate_edges())
             >>> result = ('candidate_edges = %s' % (ut.repr2(candidate_edges),))
             >>> print(result)
@@ -599,7 +599,7 @@ class CandidateSearch(object):
         """
         # Add random edges between exisiting non-redundant PCCs
         if k is None:
-            k = infr.queue_params['pos_redun']
+            k = infr.params['redun.pos']
         # pcc_gen = list(infr.non_pos_redundant_pccs(relax=True))
         pcc_gen = list(infr.positive_components())
         prog = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
@@ -664,14 +664,14 @@ class CandidateSearch(object):
 
             default_priority = prob_match.copy()
             # Give negatives that pass automatic thresholds high priority
-            if infr.enable_auto_prioritize_nonpos:
+            if infr.params['autoreview.prioritize_nonpos']:
                 _probs = primary_probs[NEGTV]
                 flags = _probs > primary_thresh[NEGTV]
                 default_priority[flags] = np.maximum(default_priority[flags],
                                                      _probs[flags])
 
             # Give not-comps that pass automatic thresholds high priority
-            if infr.enable_auto_prioritize_nonpos:
+            if infr.params['autoreview.prioritize_nonpos']:
                 _probs = primary_probs[INCMP]
                 flags = _probs > primary_thresh[INCMP]
                 default_priority[flags] = np.maximum(default_priority[flags],
@@ -718,7 +718,7 @@ class CandidateSearch(object):
         if infr.test_mode:
             infr.apply_edge_truth(new_edges)
 
-        if infr.enable_redundancy:
+        if infr.params['redun.enabled']:
             priority_edges = list(infr.filter_nonredun_edges(candidate_edges))
             infr.print('using only {}/{} non-redun candidate edges'.format(
                 len(priority_edges), len(candidate_edges)))

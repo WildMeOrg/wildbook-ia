@@ -4,6 +4,7 @@ import numpy as np  # NOQA
 import utool as ut
 # import logging
 import itertools as it
+import copy
 import six
 import collections
 from ibeis.algo.graph import nx_dynamic_graph
@@ -172,7 +173,7 @@ class Feedback(object):
         if infr.test_mode:
             infr._dynamic_test_callback(edge, decision, user_id)
 
-        if infr.enable_inference:
+        if infr.params['inference.enabled']:
             assert infr.dirty is False, (
                 'need to recompute before dynamic inference continues')
             # Update priority queue based on the new edge
@@ -186,7 +187,7 @@ class Feedback(object):
             infr.dirty = True
             infr._add_review_edge(edge, decision)
 
-        if infr.refresh and infr.enable_inference:
+        if infr.refresh and infr.params['inference.enabled']:
             # only add to criteria if this wasn't requested as a fix edge
             if priority is not None and priority <= 1.0:
                 meaningful = bool({'merge', 'split'} & set(action))
@@ -234,7 +235,7 @@ class Feedback(object):
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
-            >>> infr.enable_inference = False
+            >>> infr.params['inference.enabled'] = False
             >>> #infr.add_feedback((1, 2), 'unknown', tags=[])
             >>> infr.add_feedback((1, 2), INCMP, tags=[])
             >>> infr.apply_feedback_edges()
@@ -286,7 +287,7 @@ class Feedback(object):
         # infr.set_edge_attrs('num_reviews', _dz(edges, num_review_list))
         # infr.set_edge_attrs('timestamp', _dz(edges, [timestamp]))
 
-        if infr.enable_inference:
+        if infr.params['inference.enabled']:
             infr.apply_nondynamic_update()
 
     def _rectify_feedback(infr, feedback):
@@ -960,6 +961,7 @@ class AnnotInference(ut.NiceRepr,
             pass
         """
         # infr.verbose = verbose
+        infr.name = None
         infr.verbose = verbose
 
         # setup logging
@@ -1019,15 +1021,35 @@ class AnnotInference(ut.NiceRepr,
 
         # Params
         infr._max_outer_loops = None
-        infr._refresh_params = {
-            'window': 50,
-            'patience': 50,
-            'thresh': .1,
+
+        infr.params = {
+            'manual.n_peek': 1,
+
+            'algo.max_outer_loops': None,
+
+            # Dynamic Inference
+            'inference.enabled': True,
+            'inference.update_attrs': True,
+
+            # Termination / Refresh
+            'refresh.window': 20,
+            'refresh.patience': 72,
+            'refresh.thresh': .1,
+
+            # Redundancy
+            # if redun.enabled is True, then redundant edges will be ignored by
+            # the priority queue and extra edges needed to achieve minimum
+            # redundancy will be searched for if the queue is empty.
+            'redun.enabled': True,
+            'redun.pos': 2,  # positive-k
+            'redun.neg': 2,  # negative-k
+            'redun.enforce_pos': True,  # does positive augmentation
+
+            # Autoreviewer params
+            'autoreview.enabled': True,
+            'autoreview.prioritize_nonpos': True,
         }
-        infr.queue_params = {
-            'pos_redun': 2,
-            'neg_redun': 2,
-        }
+
         infr._viz_image_config = {
             'in_image': False,
             'thumbsize': 221,
@@ -1053,15 +1075,6 @@ class AnnotInference(ut.NiceRepr,
         # Modes
         infr.test_mode = False
         infr.simulation_mode = False
-        # if enable_redundancy is True, then redundant edges will be ignored by
-        # the priority queue and extra edges needed to achieve minimum
-        # redundancy will be searched for if the queue is empty.
-        infr.enable_redundancy = True
-        infr.enable_fixredun = True
-        infr.enable_inference = True
-        infr.enable_autoreview = False
-        infr.enable_attr_update = True
-        infr.enable_auto_prioritize_nonpos = True
 
         # Testing state
         infr.metrics_list = None
@@ -1086,8 +1099,17 @@ class AnnotInference(ut.NiceRepr,
         if autoinit:
             infr.initialize_graph()
 
+    def subparams(infr, prefix):
+        """
+        Returns dict of params prefixed with <prefix>.
+        The returned dict does not contain the prefix
+        """
+        prefix_ = prefix + '.'
+        subparams = {k[len(prefix_) + 1:]: v for k, v in infr.params.items()
+                     if k.startswith(prefix_)}
+        return subparams
+
     def copy(infr):
-        import copy
         # shallow copy ibs
         infr2 = AnnotInference(
             infr.ibs, copy.deepcopy(infr.aids),
@@ -1121,14 +1143,14 @@ class AnnotInference(ut.NiceRepr,
         infr2.test_mode = infr.test_mode
         infr2.simulation_mode = infr.simulation_mode
 
-        infr2.enable_redundancy = infr.enable_redundancy
-        infr2.enable_inference = infr.enable_inference
-        infr2.enable_autoreview = infr.enable_autoreview
-        infr2.enable_attr_update = infr.enable_attr_update
-        infr2.enable_auto_prioritize_nonpos = infr.enable_auto_prioritize_nonpos
+        infr2.enable_redundancy = infr.params['redun.enabled']
+        infr2.enable_inference = infr.params['inference.enabled']
+        infr2.enable_autoreview = infr.params['autoreview.enabled']
+        infr2.enable_attr_update = infr.params['inference.update_attrs']
+        infr2.enable_auto_prioritize_nonpos = infr.params['autoreview.prioritize_nonpos']
 
         infr.queue = copy.deepcopy(infr.queue)
-        infr.queue_params = copy.deepcopy(infr.queue_params)
+        infr.params = copy.deepcopy(infr.params)
 
         if infr.test_mode:
             infr2.test_state = copy.deepcopy(infr.test_state)
@@ -1164,6 +1186,8 @@ class AnnotInference(ut.NiceRepr,
         infr2.dirty = True
         infr2.cm_list = None
         infr2.qreq_ = None
+
+        infr.params = copy.deepcopy(infr.params)
 
         # TODO:
         # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)

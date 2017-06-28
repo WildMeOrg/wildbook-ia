@@ -20,8 +20,8 @@ def qt_review():
     ibs = ibeis.opendb(defaultdb=defaultdb)
     infr = ibeis.AnnotInference(ibs=ibs, aids='all',
                                 autoinit=True, verbose=True)
-    infr.queue_params['pos_redun'] = 2
-    infr.queue_params['neg_redun'] = 2
+    infr.params['redun.pos'] = 2
+    infr.params['redun.neg'] = 2
 
     infr.reset_feedback('staging', apply=True)
     if False:
@@ -167,7 +167,7 @@ def gt_review():
     import pandas as pd
 
     ut.qtensure()
-    infr.enable_inference = False
+    infr.params['inference.enabled'] = False
     infr.reset_feedback('staging', apply=True)
 
     # from guitool.__PYQT__ import QtCore

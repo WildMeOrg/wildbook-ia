@@ -390,7 +390,7 @@ class DummyEdges(object):
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
 
-        # k = infr.queue_params['pos_redun']
+        # k = infr.params['redun.pos']
         k = 1
         new_edges = []
         prog = ut.ProgIter(list(label_to_nodes.keys()),
@@ -534,7 +534,7 @@ class AssertInvariants(object):
         if not DEBUG_INCON:
             return
         # infr.print('assert_consistency_invariant', 200)
-        if infr.enable_inference:
+        if infr.params['inference.enabled']:
             incon_ccs = list(infr.inconsistent_components())
             with ut.embed_on_exception_context:
                 if len(incon_ccs) > 0:
