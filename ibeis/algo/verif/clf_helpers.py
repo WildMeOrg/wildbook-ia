@@ -14,6 +14,8 @@ import pandas as pd
 import sklearn
 import sklearn.metrics
 import sklearn.ensemble
+import sklearn.pipeline
+import sklearn.neural_network
 from ibeis.algo.verif import sklearn_utils
 from six.moves import range
 print, rrr, profile = ut.inject2(__name__)
@@ -303,7 +305,6 @@ class ClfProblem(ut.NiceRepr):
         """
         Returns sklearn classifier
         """
-        import sklearn.neural_network
         tup = clf_key.split('-')
         wrap_type = None if len(tup) == 1 else tup[1]
         est_type = tup[0]
@@ -322,7 +323,6 @@ class ClfProblem(ut.NiceRepr):
         est_kw1, est_kw2 = pblm._estimator_params(est_type)
         est_params = ut.merge_dicts(est_kw1, est_kw2)
 
-        # import sklearn.pipeline
         # steps = []
         # steps.append((est_type, est_class(**est_params)))
         # if wrap_type is not None:

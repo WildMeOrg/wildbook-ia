@@ -607,7 +607,7 @@ class Chap5(DBInputs):
             'photobomb_state',
         ]
         task_nice_lookup = {
-            'match_state': const.REVIEW.CODE_TO_NICE,
+            'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
             'photobomb_state': {
                 'pb': 'Photobomb',
                 'notpb': 'Not Photobomb',
@@ -1287,7 +1287,7 @@ class Chap4(DBInputs):
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures4')
 
     task_nice_lookup = {
-        'match_state': const.REVIEW.CODE_TO_NICE,
+        'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
         'photobomb_state': {
             'pb': 'Photobomb',
             'notpb': 'Not Photobomb',

@@ -139,6 +139,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
+    # IS_REVIEWED DOES NOT WORK
     if automatch_kw['filter_reviewed']:
         _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(),
                                                       daid_arr.tolist())
@@ -474,6 +475,7 @@ def get_reviewed_status(ibs, aid_pair):
     aid1, aid2 = aid_pair
     assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
     assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    # FIXME: use new api
     state = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
     state_to_text = {
         None: 'Unreviewed',
@@ -499,8 +501,6 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
-    #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
-    #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
     if annotmach_reviewed == 0 or annotmach_reviewed is None:
         lighten_amount = .9
     elif annotmach_reviewed == 2:

@@ -2804,13 +2804,6 @@ def get_annot_bbox_area(ibs, aid_list):
 
 
 @register_ibs_method
-def get_match_text(ibs, aid1, aid2):
-    truth = ibs.get_match_truth(aid1, aid2)
-    text = const.REVIEW.INT_TO_NICE.get(truth, None)
-    return text
-
-
-@register_ibs_method
 def get_database_species(ibs, aid_list=None):
     r"""
 
@@ -2932,61 +2925,6 @@ def get_database_species_count(ibs, aid_list=None):
     species_list = ibs.get_annot_species_texts(aid_list)
     species_count_dict = ut.item_hist(species_list)
     return species_count_dict
-
-
-@register_ibs_method
-def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-    isunknown_list = ibs.is_nid_unknown((nid1, nid2))
-    if any(isunknown_list):
-        truth = 2  # Unknown
-    elif nid1 == nid2:
-        truth = 1  # True
-    elif nid1 != nid2:
-        truth = 0  # False
-    else:
-        raise AssertionError('invalid_unknown_truth_state')
-    return truth
-
-
-@register_ibs_method
-def get_aidpair_truths(ibs, aids1, aids2):
-    r"""
-    Uses NIDS to verify truth.
-    TODO: rectify with annotmatch table
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aids1 (list):
-        aids2 (list):
-
-    Returns:
-        list[int]: truth_codes - see ibies.constants.REVIEW.INT_TO_CODE for code
-            definitions
-
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_aidpair_truths
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aids1 = ibs.get_valid_aids()
-        >>> aids2 = ut.list_roll(ibs.get_valid_aids(), -1)
-        >>> truth_codes = get_aidpair_truths(ibs, aids1, aids2)
-        >>> print('truth_codes = %s' % ut.repr2(truth_codes))
-        >>> target = np.array([3, 1, 3, 3, 1, 0, 0, 3, 3, 3, 3, 0, 3])
-        >>> assert np.all(truth_codes == target)
-    """
-    nids1 = np.array(ibs.get_annot_name_rowids(aids1))
-    nids2 = np.array(ibs.get_annot_name_rowids(aids2))
-    isunknowns1 = np.array(ibs.is_nid_unknown(nids1))
-    isunknowns2 = np.array(ibs.is_nid_unknown(nids2))
-    any_unknown = np.logical_or(isunknowns1, isunknowns2)
-    truth_codes = np.array((nids1 == nids2), dtype=np.int32)
-    truth_codes[any_unknown] = const.REVIEW.UNKNOWN
-    return truth_codes
 
 
 @register_ibs_method
@@ -4877,14 +4815,14 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
 
     if kwargs.pop('match_state', False or forceall):
         am_rowids = annots.get_am_rowids(internal=True)
-        truths = ibs.get_annotmatch_truth(am_rowids)
+        truths = ibs.get_annotmatch_evidence_decision(am_rowids)
         truths = np.array(ut.replace_nones(truths, np.nan))
         match_state = ut.odict([
             ('None', np.isnan(truths).sum()),
-            ('unknown', (truths == ibs.const.REVIEW.UNKNOWN).sum()),
-            ('incomp', (truths == ibs.const.REVIEW.INCOMPARABLE).sum()),
-            ('nomatch', (truths == ibs.const.REVIEW.NEGATIVE).sum()),
-            ('match', (truths == ibs.const.REVIEW.POSITIVE).sum()),
+            ('unknown', (truths == ibs.const.EVIDENCE_DECISION.UNKNOWN).sum()),
+            ('incomp', (truths == ibs.const.EVIDENCE_DECISION.INCOMPARABLE).sum()),
+            ('nomatch', (truths == ibs.const.EVIDENCE_DECISION.NEGATIVE).sum()),
+            ('match', (truths == ibs.const.EVIDENCE_DECISION.POSITIVE).sum()),
         ])
         keyval_list += [
             (prefix + 'match_state', match_state)

@@ -480,8 +480,9 @@ SPECIES_MAPPING = {
 }
 
 
-class REVIEW(object):
+class EVIDENCE_DECISION(object):
     """
+    TODO: change to EVIDENCE_DECISION / VISUAL_DECISION
     Enumerated types of review codes and texts
 
     Notes:
@@ -519,6 +520,34 @@ class REVIEW(object):
     NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
     MATCH_CODE = CODE_TO_INT
+
+
+class META_DECISION(object):
+    """
+    Enumerated types of review codes and texts
+
+    Notes:
+        unreviewed: we dont have a meta decision
+        same: we know this is the same animal through non-visual means
+        diff: we know this is the different animal through non-visual means
+    """
+    NULL = None
+    DIFF = 0
+    SAME = 1
+    INT_TO_CODE = ut.odict([
+        (NULL , 'null'),
+        (DIFF , 'diff'),
+        (SAME , 'same'),
+    ])
+    INT_TO_NICE = ut.odict([
+        (NULL , 'NULL'),
+        (DIFF , 'Different'),
+        (SAME , 'Same'),
+    ])
+    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
+    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
+    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
+    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
 
 class CONFIDENCE(object):

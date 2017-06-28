@@ -28,6 +28,29 @@ def annots(ibs, aids=None, uuids=None, **kwargs):
 
 
 @register_ibs_method
+def matches(ibs, ams=None, edges=None, uuid_edges=None, **kwargs):
+    """ Makes an Annots object """
+    if uuid_edges is not None:
+        assert ams is None, 'specify one primary key'
+        assert edges is None, 'specify one primary key'
+        uuids1, uuids2 = list(zip(*uuid_edges))
+        aids1 = ibs.get_annot_aids_from_uuid(uuids1)
+        aids2 = ibs.get_annot_aids_from_uuid(uuids2)
+        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+    if edges is not None:
+        assert ams is None, 'specify one primary key'
+        assert uuid_edges is None, 'specify one primary key'
+        aids1, aids2 = list(zip(*edges))
+        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+    if ams is None:
+        ams = ibs._get_all_annotmatch_rowids()
+    elif ams.__class__.__name__ == 'AnnotMatches':
+        return ams
+    ams = ut.ensure_iterable(ams)
+    return AnnotMatches(ams, ibs, **kwargs)
+
+
+@register_ibs_method
 def _annot_groups(ibs, aids_list=None, config=None):
     annots_list = [ibs.annots(aids, config=config) for aids in aids_list]
     return AnnotGroups(annots_list, ibs)
@@ -267,6 +290,10 @@ class Annots(BASE):
             ams = ut.flatten(ibs.get_annotmatch_rowids_from_aid(self.aids))
         return ams
 
+    def matches(self, internal=True):
+        ams = self.get_am_rowids(internal)
+        return self._ibs.matches(ams)
+
     def get_am_rowids_and_pairs(self):
         ibs = self._ibs
         ams = self.get_am_rowids()
@@ -323,9 +350,6 @@ class _AnnotGroupPropInjector(BASE_TYPE):
     def __init__(metaself, name, bases, dct):
         super(_AnnotGroupPropInjector, metaself).__init__(name, bases, dct)
         metaself.rrr = rrr
-
-        #attrs = ANNOT_BASE_ATTRS
-        #objname = 'annot'
 
         # TODO: move to ibeis object as a group call
         def _make_unflat_getter(objname, attrname):
@@ -385,6 +409,88 @@ class AnnotGroups(ut.NiceRepr):
         ams_list = self._ibs.get_unflat_am_rowids(self.aids)
         tags = self._ibs.unflat_map(self._ibs.get_annotmatch_case_tags, ams_list)
         return tags
+
+
+class _AnnotMatchPropInjector(BASE_TYPE):
+    """
+    Example:
+        >>> from ibeis import _ibeis_object
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> objname = 'annotmatch'
+        >>> blacklist = []
+        >>> tup = _ibeis_object._find_ibeis_attrs(ibs, objname, blacklist)
+        >>> attrs, settable_attrs = tup
+        >>> print('attrs = ' + ut.repr4(attrs))
+        >>> print('settable_attrs = ' + ut.repr4(settable_attrs))
+    """
+    def __init__(metaself, name, bases, dct):
+        super(_AnnotMatchPropInjector, metaself).__init__(name, bases, dct)
+        metaself.rrr = rrr
+
+        attrs = [
+            'aid1', 'aid2', 'confidence', 'count', 'evidence_decision',
+            'meta_decision', 'posixtime_modified', 'reviewer', 'tag_text',
+            'case_tags',
+        ]
+        settable_attrs = [
+            'confidence', 'count', 'evidence_decision', 'meta_decision',
+            'posixtime_modified', 'reviewer', 'tag_text',
+        ]
+
+        configurable_attrs = []
+        depcache_attrs = []
+        aliased_attrs = {}
+
+        objname = 'annotmatch'
+        _ibeis_object._inject_getter_attrs(metaself, objname, attrs,
+                                           configurable_attrs, None,
+                                           depcache_attrs, settable_attrs,
+                                           aliased_attrs)
+
+
+@six.add_metaclass(_AnnotMatchPropInjector)
+class AnnotMatches(BASE):
+    """
+    Represents a group of annotations. Efficiently accesses properties from a
+    database using lazy evaluation.
+
+    CommandLine:
+        python -m ibeis.annots Annots
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()
+        >>> annots = Annots(aids, ibs)
+        >>> ams = annots.get_am_rowids()
+        >>> matches = self = ibs.matches()
+        >>> ed1 = matches.evidence_decision
+        >>> md2 = matches.meta_decision
+        >>> table = ibs.db.get_table_as_pandas('annotmatch')
+        >>> assert len(table) == len(matches)
+    """
+
+    @property
+    def edges(self):
+        return list(zip(self.aid1, self.aid2))
+
+    @property
+    def confidence_code(self):
+        INT_TO_CODE = self._ibs.const.CONFIDENCE.INT_TO_CODE
+        return [INT_TO_CODE[c] for c in self.confidence]
+
+    @property
+    def meta_decision_code(self):
+        INT_TO_CODE = self._ibs.const.META_DECISION.INT_TO_CODE
+        return [INT_TO_CODE[c] for c in self.meta_decision]
+
+    @property
+    def evidence_decision_code(self):
+        INT_TO_CODE = self._ibs.const.EVIDENCE_DECISION.INT_TO_CODE
+        return [INT_TO_CODE[c] for c in self.evidence_decision]
 
 
 if __name__ == '__main__':

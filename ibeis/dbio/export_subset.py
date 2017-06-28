@@ -417,17 +417,17 @@ def fix_bidirectional_annotmatch(ibs):
     fixme_edges = []
     d1 = df.loc[isect_edges1].reset_index(drop=False)
     d2 = df.loc[isect_edges2].reset_index(drop=False)
-    flags = d1['annotmatch_truth'] != d2['annotmatch_truth']
+    flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
     from ibeis.tag_funcs import _parse_tags
     for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
         v1, v2 = r1[1], r2[1]
         aid1 = v1['annot_rowid1']
         aid2 = v1['annot_rowid2']
-        truth_real = (ibs.const.REVIEW.POSITIVE
+        truth_real = (ibs.const.EVIDENCE_DECISION.POSITIVE
                       if aid_to_nid[aid1] == aid_to_nid[aid2] else
-                      ibs.const.REVIEW.NEGATIVE)
-        truth1 = v1['annotmatch_truth']
-        truth2 = v2['annotmatch_truth']
+                      ibs.const.EVIDENCE_DECISION.NEGATIVE)
+        truth1 = v1['annotmatch_evidence_decision']
+        truth2 = v2['annotmatch_evidence_decision']
         t1 = _parse_tags(v1['annotmatch_tag_text'])
         t2 = _parse_tags(v2['annotmatch_tag_text'])
         newtag = ut.union_ordered(t1, t2)
@@ -482,7 +482,7 @@ def fix_bidirectional_annotmatch(ibs):
 
     # Add the new
     ams = ibs.add_annotmatch_undirected(aids1, aids2)
-    ibs.set_annotmatch_truth(ams, new_truths)
+    ibs.set_annotmatch_evidence_decision(ams, new_truths)
     ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
     if False:
@@ -521,7 +521,7 @@ def fix_annotmatch_pzmaster1():
     if False:
         annotmatch = ibs.db.get_table_as_pandas('annotmatch')
         import pandas as pd
-        flags1 = pd.isnull(annotmatch['annotmatch_truth'])
+        flags1 = pd.isnull(annotmatch['annotmatch_evidence_decision'])
         flags2 = annotmatch['annotmatch_tag_text'] == ''
         bad_part = annotmatch[flags1 & flags2]
         rowids = bad_part.index.tolist()
@@ -540,7 +540,7 @@ def fix_annotmatch_pzmaster1():
         isect_edges1 = list(isect_edges)
         isect_edges2 = [p[::-1] for p in isect_edges]
 
-        # cols = ['annotmatch_truth', 'annotmatch_tag_text']
+        # cols = ['annotmatch_evidence_decision', 'annotmatch_tag_text']
         import pandas as pd
 
         custom_ = {
@@ -557,17 +557,17 @@ def fix_annotmatch_pzmaster1():
 
         d1 = df.loc[isect_edges1].reset_index(drop=False)
         d2 = df.loc[isect_edges2].reset_index(drop=False)
-        flags = d1['annotmatch_truth'] != d2['annotmatch_truth']
+        flags = d1['annotmatch_evidence_decision'] != d2['annotmatch_evidence_decision']
         from ibeis.tag_funcs import _parse_tags
         for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
             v1, v2 = r1[1], r2[1]
             aid1 = v1['annot_rowid1']
             aid2 = v1['annot_rowid2']
-            truth_real = (ibs.const.REVIEW.POSITIVE
+            truth_real = (ibs.const.EVIDENCE_DECISION.POSITIVE
                           if aid_to_nid[aid1] == aid_to_nid[aid2] else
-                          ibs.const.REVIEW.NEGATIVE)
-            truth1 = v1['annotmatch_truth']
-            truth2 = v2['annotmatch_truth']
+                          ibs.const.EVIDENCE_DECISION.NEGATIVE)
+            truth1 = v1['annotmatch_evidence_decision']
+            truth2 = v2['annotmatch_evidence_decision']
             t1 = _parse_tags(v1['annotmatch_tag_text'])
             t2 = _parse_tags(v2['annotmatch_tag_text'])
             newtag = ut.union_ordered(t1, t2)
@@ -604,7 +604,7 @@ def fix_annotmatch_pzmaster1():
 
         # Add the new
         ams = ibs.add_annotmatch_undirected(aids1, aids2)
-        ibs.set_annotmatch_truth(ams, new_truths)
+        ibs.set_annotmatch_evidence_decision(ams, new_truths)
         ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
         if False:
@@ -629,12 +629,12 @@ def fix_annotmatch_pzmaster1():
     for k, m in prog:
         aid1 = m['annot_rowid1']
         aid2 = m['annot_rowid2']
-        if m['annotmatch_truth'] == ibs.const.REVIEW.POSITIVE:
+        if m['annotmatch_evidence_decision'] == ibs.const.EVIDENCE_DECISION.POSITIVE:
             if aid_to_nid[aid1] == aid_to_nid[aid2]:
                 x['agree1'].append(k)
             else:
                 x['disagree1'].append(k)
-        elif m['annotmatch_truth'] == ibs.const.REVIEW.NEGATIVE:
+        elif m['annotmatch_evidence_decision'] == ibs.const.EVIDENCE_DECISION.NEGATIVE:
             if aid_to_nid[aid1] == aid_to_nid[aid2]:
                 x['disagree2'].append(k)
             else:
@@ -671,7 +671,7 @@ def fix_annotmatch_pzmaster1():
     set(annotmatch.loc[x['disagree2']]['annotmatch_tag_text'])
 
     # aid1, aid2 = 2585, 1875
-    # # pd.unique(annotmatch['annotmatch_truth'])
+    # # pd.unique(annotmatch['annotmatch_evidence_decision'])
     # from ibeis.gui import inspect_gui
     # inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
     # from vtool import inspect_matches

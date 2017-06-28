@@ -434,11 +434,11 @@ class GraphVisualization(object):
         # nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
         selected_edges = kwargs.pop('selected_edges', None)
 
-        # SHADOW: based on review_timestamp
+        # SHADOW: based on most recent
         # Increase visibility of nodes with the most recently changed timestamp
         if show_recent_review and edge_to_reviewid and selected_edges is None:
-            timestamps = list(edge_to_reviewid.values())
-            recent_idxs = ut.where(ut.equal([max(timestamps)], timestamps))
+            review_ids = list(edge_to_reviewid.values())
+            recent_idxs = ut.argmax(review_ids, multi=True)
             recent_edges = ut.take(list(edge_to_reviewid.keys()), recent_idxs)
             selected_edges = recent_edges
 

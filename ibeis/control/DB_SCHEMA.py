@@ -1439,7 +1439,7 @@ def update_1_6_0(db, ibs=None):
 def update_1_6_1(db, ibs=None):
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-    #         'this is a hacked state. to fix bug where REVIEW.UNKNOWN was 2')
+    #         'this is a hacked state. to fix bug where EVIDENCE_DECISION.UNKNOWN was 2')
     db.modify_table(
         'annotmatch',
         colmap_list=[
@@ -1456,7 +1456,7 @@ def post_1_6_1(db, ibs=None, verbose=False):
     print('Setting %d old unknown values to NULL' % (len(ams)))
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-    #         'this is a hacked state. to fix bug where REVIEW.UNKNOWN was 2')
+    #         'this is a hacked state. to fix bug where EVIDENCE_DECISION.UNKNOWN was 2')
     # if False:
     db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
 
@@ -1546,17 +1546,16 @@ def update_1_6_7(db, ibs=None):
     ))
 
 
-def update_XYZ_am_staging(db):
-    """
+def update_1_6_8(db, ibs=None):
+    db.modify_table(const.ANNOTMATCH_TABLE, (
+        # Rename truth to visual decision
+        ('annotmatch_truth', 'annotmatch_evidence_decision', 'INTEGER', None),
+        # Add new meta_decision
+        (None, 'annotmatch_meta_decision', 'INTEGER', None),
+        # remove the reviewed flag. This is basically stored via userid/count
+        ('annotmatch_reviewed', None, None, None),
+    ))
 
-    [c for c in df.columns if np.all(pd.isnull(df[c]))]
-
-    TODO:
-        drop annotmatch_pairwise_prob, config_hashid
-
-    """
-
-    'annotmatch_pairwise_prob'
 
 # ========================
 # Valid Versions & Mapping
@@ -1610,6 +1609,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.5',    (None,                 update_1_6_5,       None                )),
     ('1.6.6',    (None,                 update_1_6_6,       None                )),
     ('1.6.7',    (None,                 update_1_6_7,       None                )),
+    ('1.6.8',    (None,                 update_1_6_8,       None                )),
 ])
 """
 SeeAlso:

@@ -261,7 +261,7 @@ class VerifierExpt(DBInputs):
     base_dpath = ut.truepath('~/Desktop/pair_expts')
 
     task_nice_lookup = {
-        'match_state': const.REVIEW.CODE_TO_NICE,
+        'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
         'photobomb_state': {
             'pb': 'Photobomb',
             'notpb': 'Not Photobomb',

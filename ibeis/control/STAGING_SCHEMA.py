@@ -85,6 +85,13 @@ def post_1_0_2(db, ibs=None):
         ],
     )
 
+
+def update_1_0_3(db, ibs=None):
+    db.modify_table(const.REVIEW_TABLE, (
+        ('review_decision', 'review_evidence_decision', 'INTEGER', None),
+        (None,              'review_meta_decision', 'INTEGER', None),
+    ))
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -99,6 +106,7 @@ VALID_VERSIONS = ut.odict([
     ('1.0.0',    (None,                 update_1_0_0,       None                )),
     ('1.0.1',    (None,                 update_1_0_1,       None                )),
     ('1.0.2',    (None,                 update_1_0_2,       post_1_0_2          )),
+    ('1.0.3',    (None,                 update_1_0_3,       None                )),
 ])
 """
 SeeAlso:
