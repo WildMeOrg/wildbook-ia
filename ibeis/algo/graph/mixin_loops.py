@@ -792,7 +792,8 @@ class InfrReviewers(object):
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
 
-        def qt_on_request_review(edge, priority):
+        def qt_on_request_review(reviews):
+            edge, priority, edge_data = reviews[0]
             edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default').copy()
             edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
             edge_data['n_ccs'] = (
@@ -828,7 +829,7 @@ class InfrReviewers(object):
         """
         does one review step
         """
-        edge, priority = infr.pop()
+        edge, priority = infr.peek()
         feedback = infr.emit_or_review(edge, priority)
         if feedback is None:
             # None feedback means we are waiting for a user response.
