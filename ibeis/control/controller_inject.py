@@ -15,6 +15,7 @@ import sys
 import dtool
 from datetime import timedelta
 from functools import update_wrapper
+import uuid
 import warnings
 from functools import wraps
 from os.path import abspath, join, dirname

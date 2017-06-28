@@ -807,7 +807,6 @@ class Priority(object):
 
     def _push(infr, edge, priority):
         """ Wraps queue so ordering is determenistic """
-
         PSEUDO_RANDOM_TIEBREAKER = False
         if PSEUDO_RANDOM_TIEBREAKER:
             # Make it so tiebreakers have a pseudo-random order
@@ -815,7 +814,6 @@ class Priority(object):
             tiebreaker = (chaotic,) + edge
         else:
             tiebreaker = edge
-
         # tiebreaker = (chaotic(chaotic(u) + chaotic(v)), u, v)
         infr.queue[edge] = (-priority, tiebreaker)
 
@@ -983,16 +981,6 @@ class Priority(object):
         try:
             edge, priority = infr._pop()
         except IndexError:
-            # if infr.enable_redundancy:
-            #     infr.print("ADDING POSITIVE REDUN CANDIDATES")
-            #     new_edges = infr.find_pos_redun_candidate_edges()
-            #     if new_edges:
-            #         # Add edges to complete redundancy
-            #         infr.add_new_candidate_edges(new_edges)
-            #         return infr.pop()
-            #     else:
-            #         raise StopIteration('no more to review!')
-            # else:
             raise StopIteration('no more to review!')
         else:
             if infr.enable_redundancy:
@@ -1010,7 +998,6 @@ class Priority(object):
                         pos_subgraph = infr.pos_graph.subgraph(cc)
                         pos_conn = nx.connectivity.local_edge_connectivity(
                             pos_subgraph, u, v, cutoff=k_pos)
-
                         # Compute local connectivity
                         if pos_conn >= k_pos:
                             return infr.pop()
@@ -1045,6 +1032,31 @@ class Priority(object):
                     print('in error recover mode')
             assert edge[0] < edge[1]
             return edge, priority
+
+    def peek_many(infr, n):
+        """
+        Peeks at the top n edges in the queue.
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=7, size=5)
+            >>> infr.refresh_candidate_edges()
+            >>> infr.peek_many(50)
+        """
+        # Do pops that may invalidate pos redun edges internal to PCCs
+        items = []
+        count = 0
+        # Pop the top n edges off the queue
+        while len(infr.queue) > 0 and count < n:
+            items.append(infr.pop())
+            count += 1
+        # Push them back because we are just peeking
+        # (although we may have invalidated things based on local connectivity)
+        for edge, priority in items:
+            infr.push(edge, priority)
+        return items
 
     def conditionally_connected(infr, u, v, thresh=2):
         """

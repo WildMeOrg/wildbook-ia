@@ -393,6 +393,24 @@ class IBEISIO(object):
     def read_ibeis_staging_feedback(infr):
         """
         Reads feedback from review staging table.
+
+        Args:
+            infr (?):
+
+        Returns:
+            ?: feedback
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_ibeis read_ibeis_staging_feedback
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> infr = testdata_infr('GZ_Master1')
+            >>> feedback = infr.read_ibeis_staging_feedback()
+            >>> result = ('feedback = %s' % (ut.repr2(feedback),))
+            >>> print(result)
         """
         infr.print('read_ibeis_staging_feedback', 1)
         ibs = infr.ibs
@@ -407,10 +425,16 @@ class IBEISIO(object):
         from ibeis.control.manual_review_funcs import hack_create_aidpair_index
         hack_create_aidpair_index(ibs)
 
+        # columns =
         from ibeis.control.manual_review_funcs import (
             REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-            REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP,
-            REVIEW_TAGS)
+            REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
+            REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
+            REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END, REVIEW_TAGS)
+
+        table = infr.ibs.staging.get_table_as_pandas(
+            ibs.const.REVIEW_TABLE, rowids=review_ids, columns=columns)
+
 
         colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
                     REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
