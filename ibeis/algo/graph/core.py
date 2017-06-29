@@ -154,7 +154,7 @@ class Feedback(object):
         feedback_item = {
             'decision': decision,
             'tags': tags,
-            'meta_decision': decision,
+            'meta_decision': 'null',
             'timestamp_c1': None,
             'timestamp_c2': None,
             'timestamp_s1': None,

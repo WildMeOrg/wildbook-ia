@@ -421,6 +421,9 @@ def ensure_pz_mtest():
         python -m ibeis.init.sysres --exec-ensure_pz_mtest
         python -m ibeis --tf ensure_pz_mtest
 
+    Ignore:
+        delete_dbdir('PZ_MTEST')
+
     Example:
         >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
@@ -472,6 +475,14 @@ def ensure_pz_mtest():
     mother_aids = [9, 16, 35, 42, 52, 57, 61, 67, 75, 84, 98, 104, 108, 114]
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
+
+    # TODO: add in annotmatch and staging information
+    # make part of the database complete and the other part semi-complete
+    # make staging ahead of annotmatch.
+
+    infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+    infr.ensure_mst()
+    infr.write_ibeis_annotmatch_feedback()
 
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):
