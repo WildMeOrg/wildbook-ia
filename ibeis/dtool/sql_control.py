@@ -2124,7 +2124,7 @@ class SQLDatabaseController(object):
         db = ibs.db
         rowids = ut.flatten(ibs.get_annotmatch_rowids_from_aid([aid]))
         tablename = 'annotmatch'
-        exclude_columns = 'annotmatch_confidence annotmatch_pairwise_prob annotmatch_posixtime_modified annotmatch_reviewed annotmatch_reviewer config_hashid'.split(' ')
+        exclude_columns = 'annotmatch_confidence annotmatch_posixtime_modified annotmatch_reviewer'.split(' ')
         print(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
         """
         if rowids is None:
@@ -2758,6 +2758,60 @@ class SQLDatabaseController(object):
         # The version of the SQLite library
         print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
         return sql_version
+
+    def __getitem__(db, key):
+        if not db.has_table(key):
+            raise KeyError('Choose on of: ' + str(db.tablenames))
+        table = SQLTable(db, name=key)
+        return table
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class SQLTable(ut.NiceRepr):
+    """
+    convinience object for dealing with a specific table
+
+    table = db
+    table = SQLTable(db, 'annotmatch')
+    """
+
+    def __init__(table, db, name):
+        table.db = db
+        table.name = name
+        table._setup_column_methods()
+
+    def get(table, colnames, id_iter, id_colname='rowid', eager=True):
+        return table.db.get(table.name, colnames, id_iter=id_iter,
+                            id_colname=id_colname, eager=eager)
+
+    def _setup_column_methods(table):
+        def _make_getter(column):
+            def _getter(table, rowids):
+                table.get(column, rowids)
+            return _getter
+        for column in table.db.get_column_names(table.name):
+            getter = _make_getter(column)
+            ut.inject_func_as_method(table, getter, '{}'.format(column))
+
+    def number_of_rows(table):
+        return table.db.get_row_count(table.name)
+
+    def as_pandas(table, rowids=None, columns=None):
+        return table.db.get_table_as_pandas(table.name, rowids=rowids,
+                                            columns=columns)
+
+    def rowids(table):
+        return table.db.get_all_rowids(table.name)
+
+    def delete(table, rowids):
+        table.db.delete_rowids(table.name, rowids)
+
+    def clear(table):
+        rowids = table.rowids()
+        table.delete(rowids)
+
+    def __nice__(table):
+        return table.name + ', n=' + str(table.number_of_rows())
 
 if __name__ == '__main__':
     r"""
