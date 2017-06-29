@@ -576,19 +576,19 @@ class AnnotGraphInteraction(AbstractInteraction):
         #_, edge_weights, edge_colors = self.infr.get_colored_edge_weights()
         #pt.colorbar(edge_weights, edge_colors, lbl='weights')
 
-        _normal_ticks = np.linspace(0, 1, num=11)
-        _normal_scores = np.linspace(0, 1, num=500)
-        _normal_colors = self.infr.get_colored_weights(_normal_scores)
-        cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
-                         ticklabels=_normal_ticks)
+        # _normal_ticks = np.linspace(0, 1, num=11)
+        # _normal_scores = np.linspace(0, 1, num=500)
+        # _normal_colors = self.infr.get_colored_weights(_normal_scores)
+        # cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
+        #                  ticklabels=_normal_ticks)
 
-        cb.ax.annotate('threshold',
-                       xy=(1, self.infr.thresh),
-                       xytext=(2.5, .3 if self.infr.thresh < .5 else .7),
-                       arrowprops=dict(
-                           alpha=.5,
-                           fc="0.6",
-                           connectionstyle="angle3,angleA=90,angleB=0"),)
+        # cb.ax.annotate('threshold',
+        #                xy=(1, self.infr.thresh),
+        #                xytext=(2.5, .3 if self.infr.thresh < .5 else .7),
+        #                arrowprops=dict(
+        #                    alpha=.5,
+        #                    fc="0.6",
+        #                    connectionstyle="angle3,angleA=90,angleB=0"),)
 
         ax = pt.gca()
         self.enable_pan_and_zoom(ax)

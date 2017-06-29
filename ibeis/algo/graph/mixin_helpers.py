@@ -76,9 +76,10 @@ class AttrAccess(object):
         """ Networkx edge setter helper """
         return nx.set_edge_attributes(infr.graph, key, edge_to_prop)
 
-    def get_edge_attr(infr, edge, key, default=ut.NoParam):
+    def get_edge_attr(infr, edge, key, default=ut.NoParam, on_missing='error'):
         """ single edge getter helper """
-        return infr.get_edge_attrs(key, [edge], default=default)[edge]
+        return infr.get_edge_attrs(key, [edge], default=default,
+                                   on_missing=on_missing)[edge]
 
     def set_edge_attr(infr, edge, attr):
         """ single edge setter helper """
@@ -383,10 +384,32 @@ class DummyEdges(object):
             meta_decision (str): if specified adds clique edges as feedback
                 items with this decision. Otherwise the edges are only
                 explicitly added to the graph.
+
+        Args:
+            infr (?):
+            label (str): (default = 'name_label')
+            decision (str): (default = 'unreviewed')
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_helpers ensure_cliques
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> label = 'name_label'
+            >>> infr = demo.demodata_infr(num_pccs=3, size=5)
+            >>> assert infr.status()['nEdges'] == 21
+            >>> infr.ensure_cliques()
+            >>> assert infr.status()['nEdges'] == 33
+            >>> assert infr.status()['nUnrevEdges'] == 15
+            >>> assert len(list(infr.find_clique_edges(label))) > 0
+            >>> infr.ensure_cliques(meta_decision=SAME)
+            >>> assert infr.status()['nUnrevEdges'] == 0
+            >>> assert len(list(infr.find_clique_edges(label))) == 0
         """
         infr.print('ensure_cliques', 1)
         new_edges = infr.find_clique_edges(label)
-        infr.print('adding %d clique edges' % (len(new_edges)), 2)
+        infr.print('ensuring %d clique edges' % (len(new_edges)), 2)
         if meta_decision is None:
             infr.ensure_edges_from(new_edges)
         else:
@@ -418,8 +441,11 @@ class DummyEdges(object):
         new_edges = []
         for label, nodes in label_to_nodes.items():
             for edge in it.combinations(nodes, 2):
-                if not infr.has_edge(edge):
+                if infr.edge_decision(edge) == UNREV:
                     new_edges.append(edge)
+                # if infr.has_edge(edge):
+                # else:
+                #     new_edges.append(edge)
         return new_edges
 
     @profile

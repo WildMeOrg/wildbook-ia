@@ -6,7 +6,8 @@ import utool as ut
 import vtool as vt  # NOQA
 import six
 import networkx as nx
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)
+from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -17,11 +18,11 @@ class GraphVisualization(object):
     def _get_truth_colors(infr):
         import plottool as pt
         truth_colors = {
-            # POSTV: pt.TRUE_GREEN,
             POSTV: pt.TRUE_BLUE,
             NEGTV: pt.FALSE_RED,
             INCMP: pt.YELLOW,
-            UNREV: pt.UNKNOWN_PURP
+            UNKWN: pt.UNKNOWN_PURP,
+            UNREV: pt.GRAY,
         }
         return truth_colors
 
@@ -110,41 +111,48 @@ class GraphVisualization(object):
 
     def get_colored_edge_weights(infr, graph=None, highlight_reviews=True):
         # Update color and linewidth based on scores/weight
+        import plottool as pt
         if graph is None:
             graph = infr.graph
-        edges = list(graph.edges())
+        truth_colors = infr._get_truth_colors()
         if highlight_reviews:
-            edge_to_decision = nx.get_edge_attributes(graph, 'evidence_decision')
-            state_to_weight = {
-                POSTV: 1.0,
-                INCMP: 0.5,
-                NEGTV: 0.0,
-                UNREV: np.nan
-            }
-            edge2_weight = ut.map_dict_vals(state_to_weight, edge_to_decision)
-            # {e: state for e, state in edge_to_decision.items()}
-            # edge2_weight = nx.get_edge_attributes(graph, infr.CUT_WEIGHT_KEY)
+            edges = []
+            colors = []
+            for edge in graph.edges():
+                d = infr.get_edge_data(edge)
+                state = d.get('evidence_decision', UNREV)
+                meta = d.get('meta_decision', NULL)
+                color = truth_colors[state]
+                if state not in {POSTV, NEGTV}:
+                    # Darken and saturated same/diff edges without visual
+                    # evidence
+                    if meta  == SAME:
+                        color = truth_colors[POSTV]
+                    if meta == DIFF:
+                        color = truth_colors[NEGTV]
+                    color = pt.color_funcs.adjust_hsv_of_rgb(
+                        color, sat_adjust=1, val_adjust=-.3)
+                edges.append(edge)
+                colors.append(color)
         else:
-            edge2_weight = nx.get_edge_attributes(graph, 'normscore')
-        #edges = list(edge2_weight.keys())
-        weights = np.array(ut.dict_take(edge2_weight, edges, np.nan))
-        nan_idxs = []
-        if len(weights) > 0:
-            # give nans threshold value
-            nan_idxs = np.where(np.isnan(weights))[0]
-            thresh = .5
-            weights[nan_idxs] = thresh
-        #weights = weights.compress(is_valid, axis=0)
-        #edges = ut.compress(edges, is_valid)
-        colors = infr.get_colored_weights(weights)
-        #print('!! weights = %r' % (len(weights),))
-        #print('!! edges = %r' % (len(edges),))
-        #print('!! colors = %r' % (len(colors),))
-        if len(nan_idxs) > 0:
-            import plottool as pt
-            for idx in nan_idxs:
-                colors[idx] = pt.GRAY
-        return edges, weights, colors
+            edges = list(graph.edges())
+            edge_to_weight = nx.get_edge_attributes(graph, 'normscore')
+            weights = np.array(ut.dict_take(edge_to_weight, edges, np.nan))
+            nan_idxs = []
+            if len(weights) > 0:
+                # give nans threshold value
+                nan_idxs = np.where(np.isnan(weights))[0]
+                thresh = .5
+                weights[nan_idxs] = thresh
+            colors = infr.get_colored_weights(weights)
+            #print('!! weights = %r' % (len(weights),))
+            #print('!! edges = %r' % (len(edges),))
+            #print('!! colors = %r' % (len(colors),))
+            if len(nan_idxs) > 0:
+                import plottool as pt
+                for idx in nan_idxs:
+                    colors[idx] = pt.GRAY
+        return edges, colors
 
     @profile
     def get_colored_weights(infr, weights):
@@ -313,12 +321,11 @@ class GraphVisualization(object):
 
         # EDGES:
         # Grab different types of edges
-        edges, edge_weights, edge_colors = infr.get_colored_edge_weights(
+        edges, edge_colors = infr.get_colored_edge_weights(
             graph, highlight_reviews)
 
         # reviewed_states = nx.get_edge_attributes(graph, 'evidence_decision')
-        reviewed_states = dict(ut.util_graph.nx_gen_edge_attrs(
-            graph, 'evidence_decision', default=UNREV))
+        reviewed_states = {e: infr.edge_decision(e) for e in infr.graph.edges()}
         edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
         # dummy_edges = [edge for edge, flag in
         #                nx.get_edge_attributes(graph, '_dummy_edge').items()
@@ -531,23 +538,23 @@ class GraphVisualization(object):
                 pt.zoom_factory()
                 pt.pan_factory(pt.gca())
 
-        if with_colorbar:
-            # Draw a colorbar
-            _normal_ticks = np.linspace(0, 1, num=11)
-            _normal_scores = np.linspace(0, 1, num=500)
-            _normal_colors = infr.get_colored_weights(_normal_scores)
-            cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
-                             ticklabels=_normal_ticks)
+        # if with_colorbar:
+        #     # Draw a colorbar
+        #     _normal_ticks = np.linspace(0, 1, num=11)
+        #     _normal_scores = np.linspace(0, 1, num=500)
+        #     _normal_colors = infr.get_colored_weights(_normal_scores)
+        #     cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
+        #                      ticklabels=_normal_ticks)
 
-            # point to threshold location
-            thresh = None
-            if thresh is not None:
-                xy = (1, thresh)
-                xytext = (2.5, .3 if thresh < .5 else .7)
-                cb.ax.annotate('threshold', xy=xy, xytext=xytext,
-                               arrowprops=dict(
-                                   alpha=.5, fc="0.6",
-                                   connectionstyle="angle3,angleA=90,angleB=0"),)
+        #     # point to threshold location
+        #     thresh = None
+        #     if thresh is not None:
+        #         xy = (1, thresh)
+        #         xytext = (2.5, .3 if thresh < .5 else .7)
+        #         cb.ax.annotate('threshold', xy=xy, xytext=xytext,
+        #                        arrowprops=dict(
+        #                            alpha=.5, fc="0.6",
+        #                            connectionstyle="angle3,angleA=90,angleB=0"),)
 
         # infr.graph
         if graph.graph.get('dark_background', None):

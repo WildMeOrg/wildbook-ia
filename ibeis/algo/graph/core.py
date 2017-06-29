@@ -75,11 +75,11 @@ class Feedback(object):
                         raise ValueError('invalid edge')
                 if len(item) == 2:
                     # Case where items=[(edge1, state), (edge2, state)]
-                    if isinstance(item[0], int) and isinstance(item[1], int):
-                        edge = item
-                    elif len(item[0]) == 2:
+                    if ut.isiterable(item[0]):
                         edge = item[0]
                         args = item[1:]
+                    else:
+                        edge = item
                 else:
                     raise ValueError('invalid edge')
                     # Case where items=[(u, v, state), (u, v, state)]
@@ -87,6 +87,32 @@ class Feedback(object):
                     raise ValueError('pass in data as a dataframe or '
                                      'use kwargs')
                 infr.add_feedback(edge, *args, verbose=verbose, **kwargs)
+
+    def edge_decision(infr, edge):
+        r"""
+        Gets a decision on an edge, either explicitly or implicitly
+
+        CommandLine:
+            python -m ibeis.algo.graph.core edge_decision
+
+        Doctest:
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=1, p_incon=1)
+            >>> decision = infr.edge_decision((1, 2))
+            >>> print('decision = %r' % (decision,))
+            >>> assert decision == POSTV
+            >>> decision = infr.edge_decision((199, 299))
+            >>> print('decision = %r' % (decision,))
+            >>> assert decision == UNREV
+        """
+        evidence_decision = infr.get_edge_attr(edge, 'evidence_decision',
+                                               on_missing='default',
+                                               default=UNREV)
+        meta_decision = infr.get_edge_attr(edge, 'meta_decision',
+                                           on_missing='default', default=NULL)
+        decision = _rectify_decision(evidence_decision, meta_decision)
+        return decision
 
     def add_node_feedback(infr, aid, **attrs):
         infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
@@ -102,8 +128,7 @@ class Feedback(object):
                      timestamp_c1=None, timestamp_c2=None, timestamp_s1=None,
                      timestamp=None, verbose=None, priority=None):
         r"""
-        Example:
-            >>> # ENABLE_DOCTEST
+        Doctest:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback((5, 6), POSTV)
@@ -250,8 +275,7 @@ class Feedback(object):
         CommandLine:
             python -m ibeis.algo.graph.core apply_feedback_edges
 
-        Example:
-            >>> # ENABLE_DOCTEST
+        Doctest:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
@@ -640,8 +664,7 @@ class MiscHelpers(object):
         CommandLine:
             python -m ibeis.algo.graph.core add_aids --show
 
-        Example:
-            >>> # ENABLE_DOCTEST
+        Doctest:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> aids_ = [1, 2, 3, 4, 5, 6, 7, 9]
             >>> infr = AnnotInference(ibs=None, aids=aids_, autoinit=True)
@@ -903,8 +926,7 @@ class AnnotInference(ut.NiceRepr,
         ibeis AnnotInference:1 --show
         ibeis AnnotInference:2 --show
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.algo.graph.core import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')

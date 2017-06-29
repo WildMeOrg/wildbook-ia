@@ -1196,7 +1196,7 @@ class Redundancy(_RedundancyHelpers):
             >>> infr.params['redun.pos'] = 2
             >>> cc = infr.pos_graph.connected_to(1)
             >>> flag1 = infr.is_pos_redundant(cc)
-            >>> infr.add_feedback((1, 5), decision=POSTV)
+            >>> infr.add_feedback((1, 5), POSTV)
             >>> flag2 = infr.is_pos_redundant(cc)
             >>> flags = [flag1, flag2]
             >>> print('flags = %r' % (flags,))
@@ -1236,9 +1236,9 @@ class Redundancy(_RedundancyHelpers):
             >>> cc1 = infr.pos_graph.connected_to(1)
             >>> cc2 = infr.pos_graph.connected_to(3)
             >>> flag1 = infr.is_neg_redundant(cc1, cc2)
-            >>> infr.add_feedback((1, 3), decision=NEGTV)
+            >>> infr.add_feedback((1, 3), NEGTV)
             >>> flag2 = infr.is_neg_redundant(cc1, cc2)
-            >>> infr.add_feedback((2, 4), decision=NEGTV)
+            >>> infr.add_feedback((2, 4), NEGTV)
             >>> flag3 = infr.is_neg_redundant(cc1, cc2)
             >>> flags = [flag1, flag2, flag3]
             >>> print('flags = %r' % (flags,))
