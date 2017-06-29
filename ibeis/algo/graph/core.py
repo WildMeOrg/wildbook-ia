@@ -263,9 +263,10 @@ class Feedback(object):
             # if feedback_item['decision'] == 'unknown':
             #     continue
             if feedback_item.keys() != attr_lists.keys():
-                raise AssertionError(str((
-                    set(feedback_item.keys()), set(attr_lists.keys())))
-                )
+                # raise AssertionError(str((
+                #     set(feedback_item.keys()), set(attr_lists.keys())))
+                # )
+                pass
             for key, val in feedback_item.items():
                 attr_lists[key].append(val)
             edges.append(edge)
