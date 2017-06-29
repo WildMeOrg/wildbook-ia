@@ -5,60 +5,17 @@ string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-# import utool
-# import six
+import six
 import numpy as np
-from collections import OrderedDict
 import math
-from os.path import join
 import utool as ut
+from collections import OrderedDict
+from os.path import join
 ut.noinject('[const]')
 
 
 PI  = math.pi
 TAU = 2.0 * PI
-
-
-class VIEW(object):
-    """ simplified viewpoint """
-    UNKNOWN = None
-    R  = 1
-    FR = 2
-    F  = 3
-    FL = 4
-    L  = 5
-    BL = 6
-    B  = 7
-    BR = 8
-
-    INT_TO_CODE = ut.odict([
-        (UNKNOWN, 'unknown'),
-        (R,  'right'),
-        (FR, 'frontright'),
-        (F,  'front'),
-        (FL, 'frontleft'),
-        (L,  'left'),
-        (BL, 'backleft'),
-        (B,  'back'),
-        (BR, 'backright'),
-    ])
-
-    INT_TO_NICE = ut.odict([
-        (UNKNOWN, 'Unknown'),
-        (R,  'Right'),
-        (FR, 'Front-Right'),
-        (F,  'Front'),
-        (FL, 'Front-Left'),
-        (L,  'Left'),
-        (BL, 'Back-Left'),
-        (B,  'Back'),
-        (BR, 'Back-Right'),
-    ])
-
-    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
-    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
-    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
-    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
 VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
     ('right'      , 0.000 * TAU,),
@@ -480,6 +437,37 @@ SPECIES_MAPPING = {
 }
 
 
+class _ConstHelper(type):
+    """
+    Adds code and nice constants to an integer version of a class
+    """
+    def __new__(cls, name, parents, dct):
+        """
+        cls = META_DECISION
+        code_cls = META_DECISION_CODE
+        """
+        class CODE(object):
+            pass
+
+        class NICE(object):
+            pass
+
+        for key in dct.keys():
+            if key.isupper():
+                value = dct[key]
+                if value is None or isinstance(value, int):
+                    code = dct['INT_TO_CODE'][value]
+                    nice = dct['INT_TO_NICE'][value]
+                    setattr(CODE, key, code)
+                    setattr(NICE, key, nice)
+
+        dct['CODE'] = CODE
+        dct['NICE'] = NICE
+        # we need to call type.__new__ to complete the initialization
+        return super(_ConstHelper, cls).__new__(cls, name, parents, dct)
+
+
+@six.add_metaclass(_ConstHelper)
 class EVIDENCE_DECISION(object):
     """
     TODO: change to EVIDENCE_DECISION / VISUAL_DECISION
@@ -522,6 +510,7 @@ class EVIDENCE_DECISION(object):
     MATCH_CODE = CODE_TO_INT
 
 
+@six.add_metaclass(_ConstHelper)
 class META_DECISION(object):
     """
     Enumerated types of review codes and texts
@@ -530,6 +519,18 @@ class META_DECISION(object):
         unreviewed: we dont have a meta decision
         same: we know this is the same animal through non-visual means
         diff: we know this is the different animal through non-visual means
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.constants import *  # NOQA
+        >>> assert hasattr(META_DECISION, 'CODE')
+        >>> assert hasattr(META_DECISION, 'NICE')
+        >>> code1 = META_DECISION.INT_TO_CODE[META_DECISION.NULL]
+        >>> code2 = META_DECISION.CODE.NULL
+        >>> assert code1 == code2
+        >>> nice1 = META_DECISION.INT_TO_NICE[META_DECISION.NULL]
+        >>> nice2 = META_DECISION.NICE.NULL
+        >>> assert nice1 == nice2
     """
     NULL = None
     DIFF = 0
@@ -550,6 +551,7 @@ class META_DECISION(object):
     NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
 
+@six.add_metaclass(_ConstHelper)
 class CONFIDENCE(object):
     UNKNOWN         = None
     GUESSING        = 1
@@ -579,9 +581,56 @@ class CONFIDENCE(object):
     NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
 
-# def make_codes(const_class):
-#     class CODES(object):
-#         pass
+@six.add_metaclass(_ConstHelper)
+class VIEW(object):
+    """ simplified viewpoint """
+    UNKNOWN = None
+    R  = 1
+    FR = 2
+    F  = 3
+    FL = 4
+    L  = 5
+    BL = 6
+    B  = 7
+    BR = 8
 
-#     for code_, int_ in const_class.CODE_TO_INT.items():
-#         pass
+    INT_TO_CODE = ut.odict([
+        (UNKNOWN, 'unknown'),
+        (R,  'right'),
+        (FR, 'frontright'),
+        (F,  'front'),
+        (FL, 'frontleft'),
+        (L,  'left'),
+        (BL, 'backleft'),
+        (B,  'back'),
+        (BR, 'backright'),
+    ])
+
+    INT_TO_NICE = ut.odict([
+        (UNKNOWN, 'Unknown'),
+        (R,  'Right'),
+        (FR, 'Front-Right'),
+        (F,  'Front'),
+        (FL, 'Front-Left'),
+        (L,  'Left'),
+        (BL, 'Back-Left'),
+        (B,  'Back'),
+        (BR, 'Back-Right'),
+    ])
+
+    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
+    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
+    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
+    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.constants
+        python -m ibeis.constants --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -1191,7 +1191,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.relabel_using_reviews()
             elif self.init_mode == 'review':
                 self.infr.apply_match_edges()
-                self.infr.review_dummy_edges()
+                self.infr.ensure_mst()
                 self.infr.apply_feedback_edges()
                 # self.infr.apply_match_scores()
                 self.infr.relabel_using_reviews()
@@ -1268,8 +1268,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.graph_widget.set_pin_state(True)
             with ut.Timer('apply_feedback_edges'):
                 infr.apply_feedback_edges()
-            with ut.Timer('review_dummy_edges'):
-                infr.review_dummy_edges()
+            with ut.Timer('ensure_mst'):
+                infr.ensure_mst()
             with ut.Timer('apply_match_edges'):
                 infr.apply_match_edges()
             # with ut.Timer('apply_match_scores'):
@@ -1387,8 +1387,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = statetags[1].split(';') if len(statetags) > 1 else []
         assert state in valid_states
         for aid1, aid2 in pairs:
-            self.infr.add_feedback((aid1, aid2), decision=state, tags=tags,
-                                    user_id='qt-mark')
+            self.infr.add_feedback((aid1, aid2), state, tags=tags,
+                                   user_id='qt-mark')
         self.emit_state_update(disable_global_update=True)
 
     def make_mark_state_funcs(self, selection_func):
@@ -1631,7 +1631,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = tags.map(ut.unique)
 
         for (aid1, aid2), state, tags in zip(aid_pairs, decision, tags):
-            infr.add_feedback((aid1, aid2), decision=state, tags=tags)
+            infr.add_feedback((aid1, aid2), state, tags=tags)
 
         infr.apply_feedback_edges()
         infr.apply_nondynamic_update()

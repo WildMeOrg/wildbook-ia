@@ -914,10 +914,6 @@ def graph_iden_cut_demo():
                 infr.add_feedback(edge=edge, **feedback)
         except StopIteration:
             pass
-    # if postcut:
-    #     # infr.ensure_mst()
-    #     # infr.ensure_cliques()
-    #     infr.review_dummy_edges(method=2)
     else:
         infr.ensure_full()
 

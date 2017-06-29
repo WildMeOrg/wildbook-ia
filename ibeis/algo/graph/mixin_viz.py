@@ -114,7 +114,7 @@ class GraphVisualization(object):
             graph = infr.graph
         edges = list(graph.edges())
         if highlight_reviews:
-            edge_to_decision = nx.get_edge_attributes(graph, 'decision')
+            edge_to_decision = nx.get_edge_attributes(graph, 'evidence_decision')
             state_to_weight = {
                 POSTV: 1.0,
                 INCMP: 0.5,
@@ -316,9 +316,9 @@ class GraphVisualization(object):
         edges, edge_weights, edge_colors = infr.get_colored_edge_weights(
             graph, highlight_reviews)
 
-        # reviewed_states = nx.get_edge_attributes(graph, 'decision')
+        # reviewed_states = nx.get_edge_attributes(graph, 'evidence_decision')
         reviewed_states = dict(ut.util_graph.nx_gen_edge_attrs(
-            graph, 'decision', default=UNREV))
+            graph, 'evidence_decision', default=UNREV))
         edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
         # dummy_edges = [edge for edge, flag in
         #                nx.get_edge_attributes(graph, '_dummy_edge').items()
@@ -626,8 +626,8 @@ class GraphVisualization(object):
         subdf = sub_infr.get_edge_dataframe()
         mistake_edges = []
         if len(subdf) > 0:
-            mistakes = subdf[(subdf.truth != subdf.decision) &
-                             (subdf.decision != UNREV)]
+            mistakes = subdf[(subdf.truth != subdf.evidence_decision) &
+                             (subdf.evidence_decision != UNREV)]
             mistake_edges = mistakes.index.tolist()
         err_edges = mistake_edges + list(error_edges)
         missing = [e for e in err_edges if not sub_infr.has_edge(e)]

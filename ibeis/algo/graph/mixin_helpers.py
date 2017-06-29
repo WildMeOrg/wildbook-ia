@@ -6,7 +6,9 @@ import operator
 import numpy as np
 import utool as ut
 import vtool as vt
+from ibeis import constants as const
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
+from ibeis.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph import nx_utils as nxu
 import six
@@ -116,7 +118,7 @@ class AttrAccess(object):
                 raise KeyError('graph does not have edge %r ' % (edge,))
         return data
 
-    def get_edge_dataframe(infr, edges=None):
+    def get_edge_dataframe(infr, edges=None, all=False):
         import pandas as pd
         if edges is None:
             edges = infr.edges()
@@ -124,8 +126,26 @@ class AttrAccess(object):
         edge_datas = {e: {k: None for k in infr.feedback_data_keys}
                       if d is None else d for e, d in edge_datas.items()}
         edge_df = pd.DataFrame.from_dict(edge_datas, orient='index')
+
+        part = ['evidence_decision', 'meta_decision', 'tags', 'user_id']
+        neworder = ut.partial_order(edge_df.columns, part)
+        edge_df = edge_df.reindex_axis(neworder, axis=1)
+        if not all:
+            edge_df = edge_df.drop(['review_id', 'timestamp', 'timestamp_s1',
+                                    'timestamp_c2', 'timestamp_c1'], axis=1)
         # pd.DataFrame.from_dict(edge_datas, orient='list')
         return edge_df
+
+    def get_edge_df_text(infr, edges=None, highlight=True):
+        df = infr.get_edge_dataframe(edges)
+        df_str = df.to_string()
+        if highlight:
+            df_str = ut.highlight_regex(df_str, ut.regex_word(SAME), color='blue')
+            df_str = ut.highlight_regex(df_str, ut.regex_word(POSTV), color='blue')
+            df_str = ut.highlight_regex(df_str, ut.regex_word(DIFF), color='red')
+            df_str = ut.highlight_regex(df_str, ut.regex_word(NEGTV), color='red')
+            df_str = ut.highlight_regex(df_str, ut.regex_word(INCMP), color='yellow')
+        return df_str
 
 
 class Convenience(object):
@@ -156,6 +176,27 @@ class Convenience(object):
     def print_graph_info(infr):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
+    def print_graph_connections(infr, label='orig_name_label'):
+        """
+        label = 'orig_name_label'
+        """
+        node_to_label = infr.get_node_attrs(label)
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+        print('CC info')
+        for name, cc in label_to_nodes.items():
+            print('\nname = %r' % (name,))
+            edges = list(nxu.edges_between(infr.graph, cc))
+            print(infr.get_edge_df_text(edges))
+
+        print('CC pair info')
+        for (n1, cc1), (n2, cc2) in it.combinations(label_to_nodes.items(), 2):
+            if n1 == n2:
+                continue
+            print('\nname_pair = {}-vs-{}'.format(n1, n2))
+            edges = list(nxu.edges_between(infr.graph, cc1, cc2))
+            print(infr.get_edge_df_text(edges))
+
     def print_within_connection_info(infr, edge=None, cc=None, aid=None, nid=None):
         if edge is not None:
             aid, aid2 = edge
@@ -163,15 +204,10 @@ class Convenience(object):
             cc = infr.pos_graph._ccs[nid]
         if aid is not None:
             cc = infr.pos_graph.connected_to(aid)
-
-        subgraph = infr.graph.subgraph(cc)
-        list(nxu.complement_edges(subgraph))
-
+        # subgraph = infr.graph.subgraph(cc)
+        # list(nxu.complement_edges(subgraph))
         edges = list(nxu.edges_between(infr.graph, cc))
-        df = infr.get_edge_dataframe(edges)
-        print(df)
-
-        # UNFINISHED
+        print(infr.get_edge_df_text(edges))
 
     def pair_connection_info(infr, aid1, aid2):
         """
@@ -211,7 +247,7 @@ class Convenience(object):
                     infr.pos_graph.node_labels(u, v)
                     for u, v in list(df.index)])
                 df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
-                part = ['nid1', 'nid2', 'decision', 'tags', 'user_id']
+                part = ['nid1', 'nid2', 'evidence_decision', 'tags', 'user_id']
                 neworder = ut.partial_order(df.columns, part)
                 df = df.reindex_axis(neworder, axis=1)
                 df = df.drop(['review_id', 'timestamp'], axis=1)
@@ -225,7 +261,6 @@ class Convenience(object):
                 df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid1)), color='darkblue')
             if nid2 not in {aid1, aid2}:
                 df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid2)), color='darkred')
-
             print('\n\n=====')
             print(lbl)
             print('=====')
@@ -309,15 +344,74 @@ class Convenience(object):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class DummyEdges(object):
-    def apply_mst(infr):
+
+    def ensure_mst(infr, label='name_label', meta_decision=SAME):
         """
-        MST edges connect nodes labeled with the same name.
-        This is done in case an explicit feedback or score edge does not exist.
+        Ensures that all names are names are connected.
+
+        Args:
+            label (str): node attribute to use as the group id to form the mst.
+            meta_decision (str): if specified adds clique edges as feedback
+                items with this decision. Otherwise the edges are only
+                explicitly added to the graph.  This makes feedback items with
+                user_id=algo:mst and with a confidence of guessing.
+
+        Ignore:
+            label = 'name_label'
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=3, size=4)
         """
-        infr.print('apply_mst', 2)
-        infr.ensure_mst()
+        infr.print('ensure_mst', 1)
+        new_edges = infr.find_mst_edges(label=label)
+        # Add new MST edges to original graph
+        infr.print('adding %d MST edges' % (len(new_edges)), 2)
+        infr.add_feedback_from(new_edges, meta_decision=SAME,
+                               confidence=const.CONFIDENCE.CODE.GUESSING,
+                               user_id='algo:mst', verbose=False)
+
+    def ensure_cliques(infr, label='name_label', meta_decision=None):
+        """
+        Force each name label to be a clique.
+
+        Args:
+            label (str): node attribute to use as the group id to form the
+                cliques.
+            meta_decision (str): if specified adds clique edges as feedback
+                items with this decision. Otherwise the edges are only
+                explicitly added to the graph.
+        """
+        infr.print('ensure_cliques', 1)
+        new_edges = infr.find_clique_edges(label)
+        infr.print('adding %d clique edges' % (len(new_edges)), 2)
+        if meta_decision is None:
+            infr.ensure_edges_from(new_edges)
+        else:
+            infr.add_feedback_from(new_edges, meta_decision=SAME,
+                                   confidence=const.CONFIDENCE.CODE.GUESSING,
+                                   user_id='algo:clique', verbose=False)
+        # infr.assert_disjoint_invariant()
+
+    def ensure_full(infr):
+        """
+        Explicitly places all edges, but does not make any feedback items
+        """
+        infr.print('ensure_full with %d nodes' % (len(infr.graph)), 2)
+        new_edges = list(nx.complement(infr.graph).edges())
+        infr.ensure_edges_from(new_edges)
 
     def find_clique_edges(infr, label='name_label'):
+        """
+        Augmenting edges that would complete each the specified cliques.
+        (based on the group inferred from `label`)
+
+        Args:
+            label (str): node attribute to use as the group id to form the
+                cliques.
+        """
         node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
@@ -326,89 +420,6 @@ class DummyEdges(object):
             for edge in it.combinations(nodes, 2):
                 if not infr.has_edge(edge):
                     new_edges.append(edge)
-        return new_edges
-
-    def review_dummy_edges(infr, method=1):
-        """
-        Creates just enough dummy reviews to maintain a consistent labeling if
-        relabel_using_reviews is called. (if the existing edges are consistent).
-        """
-        infr.print('review_dummy_edges', 2)
-        if method == 'clique':
-            new_edges = infr.find_clique_edges()
-        elif method == 1:
-            new_edges = infr.find_mst_edges()
-        elif method == 3:
-            new_edges = infr.find_connecting_edges()
-        else:
-            raise ValueError('unknown method')
-        infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
-        # TODO apply set of new edges in bulk
-        for u, v in new_edges:
-            infr.add_feedback((u, v), decision=POSTV, confidence='guessing',
-                               user_id='dummy', verbose=False)
-
-    def ensure_cliques(infr, label='name_label', decision=UNREV):
-        """
-        Force each name label to be a clique
-        """
-        infr.print('ensure_cliques', 1)
-        new_edges = infr.find_clique_edges(label)
-        infr.print('adding %d clique edges' % (len(new_edges)), 2)
-        infr.graph.add_edges_from(new_edges, decision=decision, _dummy_edge=True)
-        infr.review_graphs[decision].add_edges_from(new_edges)
-        # infr.assert_disjoint_invariant()
-
-    def ensure_full(infr):
-        infr.print('ensure_full with %d nodes' % (len(infr.graph)), 2)
-        new_edges = list(nx.complement(infr.graph).edges())
-        # if infr.verbose:
-        #     infr.print('adding %d complement edges' % (len(new_edges)))
-        infr.graph.add_edges_from(new_edges, decision=UNREV, _dummy_edge=True)
-        infr.review_graphs[UNREV].add_edges_from(new_edges)
-
-    def ensure_mst(infr, label='name_label', decision=POSTV):
-        """
-        Ensures that all names are names are connected
-        """
-        infr.print('ensure_mst', 1)
-        new_edges = infr.find_mst_edges(label=label)
-        # Add new MST edges to original graph
-        infr.print('adding %d MST edges' % (len(new_edges)), 2)
-        for u, v in new_edges:
-            infr.add_feedback((u, v), decision=decision, confidence='guessing',
-                              user_id='mst', verbose=False)
-
-    def find_connecting_edges(infr):
-        """
-        Searches for a small set of edges, which if reviewed as positive would
-        ensure that each PCC is k-connected.  Note that in somes cases this is
-        not possible
-        """
-        label = 'name_label'
-        node_to_label = infr.get_node_attrs(label)
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
-
-        # k = infr.params['redun.pos']
-        k = 1
-        new_edges = []
-        prog = ut.ProgIter(list(label_to_nodes.keys()),
-                           label='finding connecting edges',
-                           enabled=infr.verbose > 0)
-        for nid in prog:
-            nodes = set(label_to_nodes[nid])
-            G = infr.pos_graph.subgraph(nodes, dynamic=False)
-            impossible = nxu.edges_inside(infr.neg_graph, nodes)
-            impossible |= nxu.edges_inside(infr.incomp_graph, nodes)
-
-            candidates = set(nx.complement(G).edges())
-            candidates.difference_update(impossible)
-
-            aug_edges = nxu.edge_connected_augmentation(
-                G, k=k, candidates=candidates, hack=False)
-            new_edges += aug_edges
-        prog.ensure_newline()
         return new_edges
 
     @profile
@@ -431,11 +442,7 @@ class DummyEdges(object):
             >>> infr.find_mst_edges()
             >>> infr.ensure_mst()
         """
-        from ibeis.algo.graph import nx_utils as nxu
-        # import networkx as nx
         # Find clusters by labels
-        # label = 'orig_name_label'
-        # label = 'name_label'
         node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
@@ -496,6 +503,38 @@ class DummyEdges(object):
         for edge in new_edges:
             assert not infr.graph.has_edge(*edge), (
                 'alrady have edge={}'.format(edge))
+        return new_edges
+
+    def find_connecting_edges(infr):
+        """
+        Searches for a small set of edges, which if reviewed as positive would
+        ensure that each PCC is k-connected.  Note that in somes cases this is
+        not possible
+        """
+        label = 'name_label'
+        node_to_label = infr.get_node_attrs(label)
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+
+        # k = infr.params['redun.pos']
+        k = 1
+        new_edges = []
+        prog = ut.ProgIter(list(label_to_nodes.keys()),
+                           label='finding connecting edges',
+                           enabled=infr.verbose > 0)
+        for nid in prog:
+            nodes = set(label_to_nodes[nid])
+            G = infr.pos_graph.subgraph(nodes, dynamic=False)
+            impossible = nxu.edges_inside(infr.neg_graph, nodes)
+            impossible |= nxu.edges_inside(infr.incomp_graph, nodes)
+
+            candidates = set(nx.complement(G).edges())
+            candidates.difference_update(impossible)
+
+            aug_edges = nxu.edge_connected_augmentation(
+                G, k=k, candidates=candidates, hack=False)
+            new_edges += aug_edges
+        prog.ensure_newline()
         return new_edges
 
 

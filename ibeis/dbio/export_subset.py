@@ -512,7 +512,7 @@ def fix_annotmatch_pzmaster1():
 
     if False:
         infr.reset_feedback()
-        infr.review_dummy_edges()
+        infr.ensure_mst()
         infr.apply_feedback_edges()
         infr.relabel_using_reviews()
         infr.start_qt_interface()
@@ -873,7 +873,7 @@ def remerge_subset():
     # delta = infr2.match_state_delta()
     # print('delta = %r' % (delta,))
 
-    # infr2.review_dummy_edges()
+    # infr2.ensure_mst()
     # infr2.relabel_using_reviews()
     # infr2.apply_review_inference()
 

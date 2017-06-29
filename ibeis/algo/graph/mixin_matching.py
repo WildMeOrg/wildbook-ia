@@ -589,8 +589,8 @@ class CandidateSearch(object):
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
-            >>> infr.add_feedback((2, 5), decision='match')
-            >>> infr.add_feedback((1, 5), decision='notcomp')
+            >>> infr.add_feedback((2, 5), 'match')
+            >>> infr.add_feedback((1, 5), 'notcomp')
             >>> infr.params['redun.pos'] = 2
             >>> candidate_edges = list(infr.find_pos_redun_candidate_edges())
             >>> result = ('candidate_edges = %s' % (ut.repr2(candidate_edges),))

@@ -19,7 +19,9 @@ from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
 from ibeis.algo.graph import nx_utils as nxu
 import pandas as pd
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
+from ibeis.algo.graph.state import UNINFERABLE
+from ibeis.algo.graph.state import SAME, DIFF, NULL
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -28,8 +30,24 @@ DEBUG_CC = False
 # DEBUG_CC = True
 
 
-class Feedback(object):
+def _rectify_decision(evidence_decision, meta_decision):
+    # Default to the decision based on the media evidence
+    decision = evidence_decision
+    # Overwrite the graph decision with the meta decision if necessary
+    if meta_decision == SAME:
+        if decision in UNINFERABLE:
+            decision = POSTV
+        elif decision == NEGTV:
+            raise ValueError('evidence=negative and meta=same')
+    elif meta_decision == DIFF:
+        if decision in UNINFERABLE:
+            decision = NEGTV
+        elif decision == POSTV:
+            raise ValueError('evidence=positive and meta=diff')
+    return decision
 
+
+class Feedback(object):
     def _check_edge(infr, edge):
         aid1, aid2 = edge
         if aid1 not in infr.aids_set:
@@ -37,7 +55,7 @@ class Feedback(object):
         if aid2 not in infr.aids_set:
             raise ValueError('aid2=%r is not part of the graph' % (aid2,))
 
-    def add_feedback_from(infr, items, verbose=None):
+    def add_feedback_from(infr, items, verbose=None, **kwargs):
         if verbose is None:
             verbose = infr.verbose > 5
         if isinstance(items, pd.DataFrame):
@@ -48,8 +66,27 @@ class Feedback(object):
                 raise ValueError(
                     'Cannot interpret pd.DataFrame without edge index')
         else:
+            # Dangerous if item length > 3
             for item in items:
-                infr.add_feedback(*item)
+                args = []
+                if len(item) == 1:
+                    # Case where items=[edge1, edge2]
+                    if isinstance(item[0], int) or len(item[0]) != 2:
+                        raise ValueError('invalid edge')
+                if len(item) == 2:
+                    # Case where items=[(edge1, state), (edge2, state)]
+                    if isinstance(item[0], int) and isinstance(item[1], int):
+                        edge = item
+                    elif len(item[0]) == 2:
+                        edge = item[0]
+                        args = item[1:]
+                else:
+                    raise ValueError('invalid edge')
+                    # Case where items=[(u, v, state), (u, v, state)]
+                if len(item) > 3:
+                    raise ValueError('pass in data as a dataframe or '
+                                     'use kwargs')
+                infr.add_feedback(edge, *args, verbose=verbose, **kwargs)
 
     def add_node_feedback(infr, aid, **attrs):
         infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
@@ -59,38 +96,18 @@ class Feedback(object):
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
 
-    # def current_feedback(infr, edge):
-    #     """
-    #     Current state (or best guess) for the current feedback of an edge
-    #     """
-    #     feedback_item = []
-    #     if edge in infr.internal_feedback:
-    #         feedback_item += infr.internal_feedback[edge]
-    #     if edge in infr.external_feedback:
-    #         feedback_item += infr.external_feedback[edge]
-    #     if len(feedback_item) == 0:
-    #         nid1, nid2 = infr.pos_graph.node_labels(*edge)
-    #         CONFIDENCE = infr.ibs.const.CONFIDENCE
-    #         feedback = {
-    #             'confidence': CONFIDENCE.INT_TO_CODE[CONFIDENCE.GUESSING],
-    #             'decision': POSTV if nid1 == nid2 else NEGTV,
-    #             'tags': []
-    #         }
-    #     else:
-    #         feedback = infr._rectify_feedback_item(feedback_item)
-    #     return feedback
-
     @profile
-    def add_feedback(infr, edge, decision, tags=None, user_id=None,
-                     meta_decision=None, confidence=None, timestamp=None,
-                     verbose=None, priority=None):
+    def add_feedback(infr, edge, evidence_decision=None, tags=None,
+                     user_id=None, meta_decision=None, confidence=None,
+                     timestamp_c1=None, timestamp_c2=None, timestamp_s1=None,
+                     timestamp=None, verbose=None, priority=None):
         r"""
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback((5, 6), POSTV)
-            >>> infr.add_feedback((5, 6), NEGTV, ['Photobomb'])
+            >>> infr.add_feedback((5, 6), NEGTV, tags=['photobomb'])
             >>> infr.add_feedback((1, 2), INCMP)
             >>> print(ut.repr2(infr.internal_feedback, nl=2))
             >>> assert len(infr.external_feedback) == 0
@@ -103,11 +120,6 @@ class Feedback(object):
             infr.verbose = verbose
         edge = aid1, aid2 = nxu.e_(*edge)
 
-        if infr.queue:
-            # Remove the edge from the queue if it is in there.
-            if edge in infr.queue:
-                del infr.queue[edge]
-
         if not infr.has_edge(edge):
             if True:
                 # Allow new aids
@@ -118,6 +130,9 @@ class Feedback(object):
             infr._check_edge(edge)
             infr.graph.add_edge(aid1, aid2)
 
+        if evidence_decision is None:
+            evidence_decision = UNREV
+
         msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
         msg += ', '.join([
@@ -125,26 +140,25 @@ class Feedback(object):
             # key + '=' + str(val)
             for key, val in (
                 (key, loc[key])
-                for key in ['decision', 'tags', 'user_id', 'confidence'])
+                for key in ['evidence_decision', 'tags', 'user_id',
+                            'confidence', 'meta_decision'])
             if val is not None
         ])
-        infr.print(
-            msg,
-            # 'add_feedback {}, {}, decision={}, tags={}, user_id={}, '
-            # 'confidence={}'.format(
-            #     aid1, aid2, decision, tags, user_id, confidence),
-            2, color='white')
+        infr.print(msg, 2, color='white')
+
+        decision = _rectify_decision(evidence_decision, meta_decision)
 
         if decision == UNREV:
-            # raise NotImplementedError('not done yet')
-            feedback_item = None
+            # Unreviewing an edge deletes anything not yet committed
             if edge in infr.external_feedback:
                 raise ValueError('External edge reviews cannot be undone')
             if edge in infr.internal_feedback:
                 del infr.internal_feedback[edge]
-            # for G in infr.review_graphs.values():
-            #     if G.has_edge(*edge):
-            #         G.remove_edge(*edge)
+
+        # Remove the edge from the queue if it is in there.
+        if infr.queue:
+            if edge in infr.queue:
+                del infr.queue[edge]
 
         # Keep track of sequential reviews and set properties on global graph
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
@@ -152,19 +166,18 @@ class Feedback(object):
         if timestamp is None:
             timestamp = ut.get_timestamp('int', isutc=True)
         if meta_decision is None:
-            META_DECISION = const.META_DECISION
-            meta_decision = META_DECISION.INT_TO_CODE[META_DECISION.NULL]
+            meta_decision = const.META_DECISION.CODE.NULL
         if confidence is None:
-            CONFIDENCE = const.CONFIDENCE
-            confidence = CONFIDENCE.INT_TO_CODE[CONFIDENCE.UNKNOWN]
+            confidence = const.CONFIDENCE.CODE.UNKNOWN
+
         review_id = next(infr.review_counter)
         feedback_item = {
-            'decision': decision,
             'tags': tags,
+            'evidence_decision': evidence_decision,
             'meta_decision': meta_decision,
-            'timestamp_c1': None,
-            'timestamp_c2': None,
-            'timestamp_s1': None,
+            'timestamp_c1': timestamp_c1,
+            'timestamp_c2': timestamp_c2,
+            'timestamp_s1': timestamp_s1,
             'timestamp': timestamp,
             'confidence': confidence,
             'user_id': user_id,
@@ -199,8 +212,7 @@ class Feedback(object):
 
         if infr.test_mode:
             infr.metrics_list.append(infr.measure_metrics())
-        # if infr.verbose:
-        #     print('+-------------------')
+
         infr.verbose = prev_verbose
 
     def _print_debug_ccs(infr):
@@ -225,7 +237,7 @@ class Feedback(object):
     def feedback_data_keys(Infr):
         """ edge attribute keys used for feedback """
         return [
-            'decision', 'tags', 'user_id',
+            'evidence_decision', 'tags', 'user_id',
             'meta_decision', 'timestamp_c1', 'timestamp_c2',
             'timestamp_s1', 'timestamp', 'confidence'
         ]
@@ -285,7 +297,13 @@ class Feedback(object):
             if not infr.graph.has_edge(*edge):
                 infr.graph.add_edge(*edge)
 
-        for state, es in ut.group_items(edges, attr_lists['decision']).items():
+        # take evidence_decision and meta_decision into account
+        decisions = [
+            _rectify_decision(ed, md) for ed, md in
+            zip(attr_lists['evidence_decision'], attr_lists['meta_decision'])
+        ]
+
+        for state, es in ut.group_items(edges, decisions).items():
             infr._add_review_edges_from(es, state)
 
         for key, val_list in attr_lists.items():
@@ -321,6 +339,8 @@ class Feedback(object):
         infr.print('clear_feedback len(edges) = %r' % (len(edges)), 2)
         infr.external_feedback = ut.ddict(list)
         infr.internal_feedback = ut.ddict(list)
+
+        # Kill all feedback, remote edge labels, but leave graph edges alone
         keys = infr.feedback_keys + ['inferred_state']
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
 
@@ -692,9 +712,13 @@ class MiscHelpers(object):
 
         if graph is not None:
             for u, v, d in graph.edges(data=True):
-                decision = d.get('decision', UNREV)
+                evidence_decision = d.get('evidence_decision', UNREV)
+                meta_decision = d.get('meta_decision', NULL)
+                decision = _rectify_decision(evidence_decision, meta_decision)
                 if decision in {POSTV, NEGTV, INCMP, UNREV, UNKWN}:
                     infr.review_graphs[decision].add_edge(u, v)
+                else:
+                    raise ValueError('Unknown decision=%r' % (decision,))
 
         infr.update_node_attributes()
 
@@ -846,7 +870,6 @@ class AnnotInference(ut.NiceRepr,
                      mixin_dynamic.Recovery,
                      mixin_dynamic.Consistency,
                      mixin_dynamic.Redundancy,
-                     mixin_dynamic.Completeness,
                      mixin_dynamic.Priority,
                      mixin_dynamic.DynamicUpdate,
                      mixin_matching.CandidateSearch,
@@ -912,7 +935,7 @@ class AnnotInference(ut.NiceRepr,
         >>> # Note that there are initially no edges
         >>> infr.show_graph(use_image=use_image)
         >>> # But we can add nodes between the same names
-        >>> infr.apply_mst()
+        >>> infr.ensure_mst()
         >>> infr.show_graph(use_image=use_image)
         >>> # Add some feedback
         >>> infr.add_feedback((1, 4), NEGTV)
@@ -932,7 +955,7 @@ class AnnotInference(ut.NiceRepr,
         >>> ut.quit_if_noshow()
         >>> use_image = False
         >>> infr.initialize_visual_node_attrs()
-        >>> infr.apply_mst()
+        >>> infr.ensure_mst()
         >>> # Add some feedback
         >>> infr.add_feedback((1, 4), NEGTV)
         >>> try:

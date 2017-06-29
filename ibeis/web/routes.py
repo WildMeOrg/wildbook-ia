@@ -2271,7 +2271,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     query_object.relabel_using_reviews()
 
     # Create a priority on edge review ands determines inconsistencies
-    query_object.apply_mst()
+    query_object.ensure_mst()
     query_object.apply_nondynamic_update()
 
     print('Precomputing match images')
@@ -2313,7 +2313,7 @@ def load_identification_query_object(autoinit=False,
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
         print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
         aid1, aid2, state, tags = feedback
-        query_object.add_feedback((aid1, aid2), decision=state, tags=tags)
+        query_object.add_feedback((aid1, aid2), state, tags=tags)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
 
     return query_object

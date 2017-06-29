@@ -481,19 +481,60 @@ def ensure_pz_mtest():
     # make part of the database complete and the other part semi-complete
     # make staging ahead of annotmatch.
 
-    infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
-    infr.reset_feedback('annotmatch')
-    infr.ensure_mst()
+    if False:
+        # Delete the graph databases to and set them up for tests
+        import ibeis
+        ibs = ibeis.opendb('PZ_MTEST')
+        annotmatch = ibs.db['annotmatch']
+        staging = ibs.staging['reviews']
+        annotmatch.clear()
+        staging.clear()
 
+    # Make this CC connected using positive edges
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, DIFF, NULL, SAME  # NOQA
+    from ibeis.algo.graph import nx_utils as nxu
+    import itertools as it
+
+    # Add some graph properties to MTEST
+    infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+    # Connect the names with meta decisions
+    infr.ensure_mst(meta_decision=SAME)
+
+    # big_ccs = [cc for cc in infr.positive_components() if len(cc) > 3]
+    small_ccs = [cc for cc in infr.positive_components() if len(cc) <= 3 and len(cc) > 1]
+    # single_ccs = [cc for cc in infr.positive_components() if len(cc) == 1]
+
+    cc = infr.pos_graph.connected_to(1)
+    for edge in nxu.edges_between(infr.graph, cc):
+        infr.add_feedback(edge, POSTV, user_id='user:setup1')
+
+    # Make all small PCCs k-negative-redundant
+    count = 0
+    for cc1, cc2 in it.combinations(small_ccs, 2):
+        count += 1
+        for u, v in infr.find_neg_augment_edges(cc1, cc2, k=1):
+            if count > 10:
+                # So some with meta
+                infr.add_feedback(edge, meta_decision=DIFF, user_id='user:setup2')
+            else:
+                # So some with evidence
+                infr.add_feedback(edge, NEGTV, user_id='user:setup3')
+
+    # Make some small PCCs k-positive-redundant
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    cand = list(infr.find_pos_redun_candidate_edges())
+    for edge in cand[0:2]:
+        infr.add_feedback(edge, evidence_decision=POSTV, user_id='user:setup4')
+
+    # Write consistent state to both annotmatch and staging
     infr.write_ibeis_staging_feedback()
     infr.write_ibeis_annotmatch_feedback()
 
-    if False:
-        from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
-        cand = list(infr.find_pos_redun_candidate_edges())
-        for edge in cand[0:2]:
-            infr.add_feedback(edge, decision=POSTV)
-        infr.write_ibeis_staging_feedback()
+    # Add an 2 inconsistencies to the staging database ONLY
+    cand = list(infr.find_pos_redun_candidate_edges())
+    for edge in cand[0:2]:
+        infr.add_feedback(edge, evidence_decision=NEGTV, user_id='user:voldemort')
+    infr.write_ibeis_staging_feedback()
 
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):

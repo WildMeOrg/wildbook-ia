@@ -45,7 +45,7 @@ class IBEISIO(object):
 
         # Look at what changed
         tag_flags = edge_delta_df['old_tags'] != edge_delta_df['new_tags']
-        state_flags = edge_delta_df['old_decision'] != edge_delta_df['new_decision']
+        state_flags = edge_delta_df['old_evidence_decision'] != edge_delta_df['new_evidence_decision']
         is_added_to_am = edge_delta_df['am_rowid'].isnull()
         is_new = edge_delta_df['is_new']
         info = ut.odict([
@@ -168,9 +168,9 @@ class IBEISIO(object):
             for cc1, cc2 in ut.combinations(ccs, 2):
                 edges = list(nxu.edges_between(infr.graph, cc1, cc2))
                 df = infr.get_edge_dataframe(edges)
-                if len(df) == 0 or not (df['decision'] == NEGTV).any(axis=0):
+                if len(df) == 0 or not (df['evidence_decision'] == NEGTV).any(axis=0):
                     if len(df) > 0:
-                        n_incmp = (df['decision'] == INCMP).sum()
+                        n_incmp = (df['evidence_decision'] == INCMP).sum()
                         if n_incmp > 0:
                             continue
                     unjustified.append((cc1, cc2))
@@ -217,7 +217,7 @@ class IBEISIO(object):
         print(ut.repr4(infr.ibeis_edge_delta_info(df)))
 
         # Find places that exist in annotmatch but not in staging
-        flags = pd.isnull(df['old_decision'])
+        flags = pd.isnull(df['old_evidence_decision'])
         missing_df = df[flags]
         alias = {'new_' + k: k for k in infr.feedback_data_keys}
         tmp = missing_df[list(alias.keys())].rename(columns=alias)
@@ -240,7 +240,7 @@ class IBEISIO(object):
 
         # Map what add_review expects to the keys used by feedback items
         add_review_alias = {
-            'evidence_decision_list'         : 'decision',
+            'evidence_decision_list'         : 'evidence_decision',
             'meta_decision_list'             : 'meta_decision',
             'review_uuid_list'               : 'uuid',
             'identity_list'                  : 'user_id',
@@ -280,7 +280,7 @@ class IBEISIO(object):
                     value = uuid.uuid4()
                 elif fbkey == 'confidence':
                     value = ibs.const.CONFIDENCE.CODE_TO_INT[value]
-                elif fbkey == 'decision':
+                elif fbkey == 'evidence_decision':
                     value = ibs.const.EVIDENCE_DECISION.CODE_TO_INT[value]
                 elif fbkey == 'meta_decision':
                     value = ibs.const.META_DECISION.CODE_TO_INT[value]
@@ -334,7 +334,7 @@ class IBEISIO(object):
         # Set residual matching data
         new_evidence_decisions = ut.take(
             ibs.const.EVIDENCE_DECISION.CODE_TO_INT,
-            edge_delta_df_['new_decision'])
+            edge_delta_df_['new_evidence_decision'])
         new_meta_decisions = ut.take(
             ibs.const.META_DECISION.CODE_TO_INT,
             edge_delta_df_['new_meta_decision'])
@@ -464,7 +464,7 @@ class IBEISIO(object):
             (REVIEW_AID1              , 'aid1'),
             (REVIEW_AID2              , 'aid2'),
             (REVIEW_UUID              , 'uuid'),
-            (REVIEW_EVIDENCE_DECISION , 'decision'),
+            (REVIEW_EVIDENCE_DECISION , 'evidence_decision'),
             (REVIEW_META_DECISION     , 'meta_decision'),
             (REVIEW_USER_IDENTITY     , 'user_id'),
             (REVIEW_USER_CONFIDENCE   , 'confidence'),
@@ -495,7 +495,7 @@ class IBEISIO(object):
 
             tags = feedback_item['tags']
             feedback_item['meta_decision'] = lookup_meta[feedback_item['meta_decision']]
-            feedback_item['decision'] = lookup_decision[feedback_item['decision']]
+            feedback_item['evidence_decision'] = lookup_decision[feedback_item['evidence_decision']]
             feedback_item['confidence'] = lookup_conf[feedback_item['confidence']]
             feedback_item['tags'] =  [] if not tags else tags.split(';')
 
@@ -523,7 +523,7 @@ class IBEISIO(object):
             >>> print(result)
             >>> assert len(feedback) >= 2, 'should contain at least 2 edges'
             >>> assert len(items) == 1, '2-3 should have one review'
-            >>> assert items[0]['decision'] == POSTV, '2-3 must match'
+            >>> assert items[0]['evidence_decision'] == POSTV, '2-3 must match'
         """
         infr.print('read_ibeis_annotmatch_feedback', 1)
         ibs = infr.ibs
@@ -539,7 +539,7 @@ class IBEISIO(object):
         aids2 = matches.aid2
 
         column_lists = {
-            'decision': matches.evidence_decision_code,
+            'evidence_decision': matches.evidence_decision_code,
             'meta_decision': matches.meta_decision_code,
             'timestamp_c1': [None] * len(matches),
             'timestamp_c2': [None] * len(matches),
@@ -583,7 +583,7 @@ class IBEISIO(object):
                                                                       aids2)
         rectified_feedback_ = infr._rectify_feedback(feedback)
         rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
-        decision = ut.dict_take_column(rectified_feedback, 'decision')
+        decision = ut.dict_take_column(rectified_feedback, 'evidence_decision')
         tags = ut.dict_take_column(rectified_feedback, 'tags')
         confidence = ut.dict_take_column(rectified_feedback, 'confidence')
         timestamp_c1 = ut.dict_take_column(rectified_feedback, 'timestamp_c1')
@@ -593,7 +593,7 @@ class IBEISIO(object):
         user_id = ut.dict_take_column(rectified_feedback, 'user_id')
         meta_decision = ut.dict_take_column(rectified_feedback, 'meta_decision')
         df = pd.DataFrame([])
-        df['decision'] = decision
+        df['evidence_decision'] = decision
         df['meta_decision'] = meta_decision
         df['aid1'] = aids1
         df['aid2'] = aids2
@@ -675,7 +675,7 @@ class IBEISIO(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> import pandas as pd
-            >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
+            >>> columns = ['evidence_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> new_feedback = old_feedback = pd.DataFrame([
             >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
             >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
@@ -684,14 +684,14 @@ class IBEISIO(object):
             >>> print(result)
             edge_delta_df =
             Empty DataFrame
-            Columns: [am_rowid, old_decision, new_decision, old_tags, new_tags, is_new]
+            Columns: [am_rowid, old_evidence_decision, new_evidence_decision, old_tags, new_tags, is_new]
             Index: []
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> import pandas as pd
-            >>> columns = ['decision', 'meta_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
+            >>> columns = ['evidence_decision', 'meta_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> old_feedback = pd.DataFrame([
             >>>     [NEGTV, 'diff', 100, 101, 1000, []],
             >>>     [POSTV, 'same', 101, 102, 1001, []],
@@ -736,7 +736,7 @@ class IBEISIO(object):
 
         # If any important column is different we mark the row as changed
         data_columns = ibeis.AnnotInference.feedback_data_keys
-        important_columns = ['meta_decision', 'decision', 'tags']
+        important_columns = ['meta_decision', 'evidence_decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
             changed_gen = [isect_new[c] != isect_old[c]
@@ -767,8 +767,9 @@ class IBEISIO(object):
         merged_df = prep_old.merge(
             prep_new, how='outer', left_on=merge_keys, right_on=merge_keys)
         # Reorder the columns
-        col_order = ['old_decision', 'new_decision', 'old_tags', 'new_tags',
-                     'old_meta_decision', 'new_meta_decision']
+        col_order = ['old_evidence_decision', 'new_evidence_decision',
+                     'old_tags', 'new_tags', 'old_meta_decision',
+                     'new_meta_decision']
         edge_delta_df = merged_df.reindex(columns=(
             ut.setdiff(merged_df.columns.values, col_order) + col_order))
         edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
