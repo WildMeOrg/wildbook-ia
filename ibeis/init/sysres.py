@@ -422,6 +422,7 @@ def ensure_pz_mtest():
         python -m ibeis --tf ensure_pz_mtest
 
     Ignore:
+        from ibeis.tests.reset_testdbs import delete_dbdir
         delete_dbdir('PZ_MTEST')
 
     Example:
@@ -481,8 +482,18 @@ def ensure_pz_mtest():
     # make staging ahead of annotmatch.
 
     infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+    infr.reset_feedback('annotmatch')
     infr.ensure_mst()
+
+    infr.write_ibeis_staging_feedback()
     infr.write_ibeis_annotmatch_feedback()
+
+    if False:
+        from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+        cand = list(infr.find_pos_redun_candidate_edges())
+        for edge in cand[0:2]:
+            infr.add_feedback(edge, decision=POSTV)
+        infr.write_ibeis_staging_feedback()
 
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):

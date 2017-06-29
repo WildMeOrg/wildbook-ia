@@ -137,6 +137,28 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
 
     CommandLine:
         python -m ibeis.control.manual_review_funcs --test-add_review
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> from ibeis.control.manual_review_funcs import *
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.staging.get_table_as_pandas('reviews')
+        >>> # ensure it is empty
+        >>> rowids = ibs.staging.get_all_rowids('reviews')
+        >>> ibs.staging.delete_rowids('reviews', rowids)
+        >>> ut.exec_funckw(ibs.add_review, globals())
+        >>> # Add some dummy reviews
+        >>> aid_1_list = [1, 2, 3, 2]
+        >>> aid_2_list = [2, 3, 4, 3]
+        >>> evidence_decision_list = [1, 0, 1, 2]
+        >>> new_rowids = ibs.add_review(aid_1_list, aid_2_list,
+        >>>                             evidence_decision_list)
+        >>> assert new_rowids == [1, 2, 3, 4]
+        >>> table = ibs.staging.get_table_as_pandas('reviews')
+        >>> print(table)
+        >>> # Then delete them
+        >>> ibs.staging.delete_rowids('reviews', new_rowids)
     """
     assert len(aid_1_list) == len(aid_2_list)
     assert len(aid_1_list) == len(evidence_decision_list)
@@ -147,8 +169,8 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
 
     # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
     aid_pair_list = [e_(u, v) for u, v in zip(aid_1_list, aid_2_list)]
-    aid_1_list = [ pair[0] for pair in aid_pair_list ]
-    aid_2_list = [ pair[1] for pair in aid_pair_list ]
+    aid_1_list = [pair[0] for pair in aid_pair_list]
+    aid_2_list = [pair[1] for pair in aid_pair_list]
 
     if True:
         # Get current review counts from database
@@ -183,7 +205,7 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
 
     if review_uuid_list is None:
         review_uuid_list = [uuid.uuid4() for _ in range(n_input)]
-    if meta_decision_list:
+    if meta_decision_list is None:
         meta_decision_list = [None for _ in range(n_input)]
     if identity_list is None:
         # identity_list = [ut.get_computer_name()] * len(aid_1_list)
@@ -204,23 +226,23 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
     if review_server_end_time_posix is None:
         review_server_end_time_posix = [None] * n_input
 
-    assert len(aid_1_list) == len(identity_list)
-    assert len(aid_1_list) == len(tag_str_list)
-    assert len(aid_1_list) == len(user_confidence_list)
+    assert n_input == len(identity_list)
+    assert n_input == len(tag_str_list)
+    assert n_input == len(user_confidence_list)
+    assert n_input == len(review_uuid_list)
+    assert n_input == len(count_list)
 
     superkey_paramx = (0, 1, 2, )
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
-    colnames = [REVIEW_UUID, REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT,
-                REVIEW_EVIDENCE_DECISION, REVIEW_META_DECISION,
+    colnames = [REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT,
+                REVIEW_UUID, REVIEW_EVIDENCE_DECISION, REVIEW_META_DECISION,
                 REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TAGS,
                 REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
                 REVIEW_TIME_SERVER_START, REVIEW_TIME_SERVER_END]
-    params_iter = list(zip(review_uuid_list, aid_1_list, aid_2_list,
-                           count_list,
-                           evidence_decision_list,
-                           meta_decision_list,
-                           identity_list,
+    params_iter = list(zip(aid_1_list, aid_2_list, count_list,
+                           review_uuid_list, evidence_decision_list,
+                           meta_decision_list, identity_list,
                            user_confidence_list, tag_str_list,
                            review_client_start_time_posix,
                            review_client_end_time_posix,

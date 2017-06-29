@@ -7,6 +7,7 @@ import itertools as it
 import copy
 import six
 import collections
+from ibeis import constants as const
 from ibeis.algo.graph import nx_dynamic_graph
 # from ibeis.algo.graph import _dep_mixins
 from ibeis.algo.graph import mixin_viz
@@ -81,8 +82,8 @@ class Feedback(object):
 
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
-                     confidence=None, timestamp=None, verbose=None,
-                     priority=None):
+                     meta_decision=None, confidence=None, timestamp=None,
+                     verbose=None, priority=None):
         r"""
         Example:
             >>> # ENABLE_DOCTEST
@@ -150,11 +151,17 @@ class Feedback(object):
 
         if timestamp is None:
             timestamp = ut.get_timestamp('int', isutc=True)
+        if meta_decision is None:
+            META_DECISION = const.META_DECISION
+            meta_decision = META_DECISION.INT_TO_CODE[META_DECISION.NULL]
+        if confidence is None:
+            CONFIDENCE = const.CONFIDENCE
+            confidence = CONFIDENCE.INT_TO_CODE[CONFIDENCE.UNKNOWN]
         review_id = next(infr.review_counter)
         feedback_item = {
             'decision': decision,
             'tags': tags,
-            'meta_decision': 'null',
+            'meta_decision': meta_decision,
             'timestamp_c1': None,
             'timestamp_c2': None,
             'timestamp_s1': None,

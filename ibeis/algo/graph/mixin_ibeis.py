@@ -232,6 +232,10 @@ class IBEISIO(object):
         # set(staging_fb.keys()) == set(am_fb.keys())
 
     def _write_ibeis_staging_feedback(infr, feedback):
+        """
+        feedback = infr.internal_feedback
+        ibs.staging.get_table_as_pandas('reviews')
+        """
         infr.print('write_ibeis_staging_feedback %d' % (len(feedback),), 1)
 
         # Map what add_review expects to the keys used by feedback items
@@ -249,10 +253,10 @@ class IBEISIO(object):
         }
 
         # Initialize kwargs we will pass to add_review
-        add_review_kw = {
-            'aid_1_list': [],
-            'aid_2_list': [],
-        }
+        aid_1_list = []
+        aid_2_list = []
+
+        add_review_kw = {}
         for k in add_review_alias:
             add_review_kw[k] = []
 
@@ -263,14 +267,17 @@ class IBEISIO(object):
             for (aid1, aid2), feedbacks in feedback.items()
             for feedback_item in feedbacks
         )
+        import uuid
         for aid1, aid2, feedback_item in _iter:
-            add_review_kw['aid_1_list'].append(aid1)
-            add_review_kw['aid_2_list'].append(aid2)
+            aid_1_list.append(aid1)
+            aid_2_list.append(aid2)
             for review_key, fbkey in add_review_alias.items():
                 value = feedback_item.get(fbkey, None)
                 # Do mapping for particular keys
                 if fbkey == 'tags' and value is None:
                     value = []
+                elif fbkey == 'uuid' and value is None:
+                    value = uuid.uuid4()
                 elif fbkey == 'confidence':
                     value = ibs.const.CONFIDENCE.CODE_TO_INT[value]
                 elif fbkey == 'decision':
@@ -279,11 +286,12 @@ class IBEISIO(object):
                     value = ibs.const.META_DECISION.CODE_TO_INT[value]
                 add_review_kw[review_key].append(value)
 
-        review_id_list = ibs.add_review(**add_review_kw)
-        if len(ut.find_duplicate_items(review_id_list)) != 0:
+        review_id_list = ibs.add_review(aid_1_list, aid_2_list, **add_review_kw)
+        duplicates = ut.find_duplicate_items(review_id_list)
+        if len(duplicates) != 0:
             raise AssertionError(
                 'Staging should only be appended to but we found a duplicate'
-                ' row'
+                ' row. ' + str(duplicates)
             )
 
     def write_ibeis_staging_feedback(infr):
@@ -330,7 +338,8 @@ class IBEISIO(object):
         new_meta_decisions = ut.take(
             ibs.const.META_DECISION.CODE_TO_INT,
             edge_delta_df_['new_meta_decision'])
-        new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
+        new_tags = ['' if tags is None else ';'.join(tags)
+                    for tags in edge_delta_df_['new_tags']]
         new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
                                 edge_delta_df_['new_confidence'], None)
         new_timestamp = edge_delta_df_['new_timestamp']
@@ -347,7 +356,7 @@ class IBEISIO(object):
     def write_ibeis_name_assignment(infr, name_delta_df=None):
         if name_delta_df is None:
             name_delta_df = infr.get_ibeis_name_delta()
-        infr.print('write_ibeis_name_assignment %d' % len(name_delta_df))
+        infr.print('write_ibeis_name_assignment id' % len(name_delta_df))
         aid_list = name_delta_df.index.values
         new_name_list = name_delta_df['new_name'].values
         infr.ibs.set_annot_names(aid_list, new_name_list)
@@ -582,8 +591,10 @@ class IBEISIO(object):
         timestamp_s1 = ut.dict_take_column(rectified_feedback, 'timestamp_s1')
         timestamp = ut.dict_take_column(rectified_feedback, 'timestamp')
         user_id = ut.dict_take_column(rectified_feedback, 'user_id')
+        meta_decision = ut.dict_take_column(rectified_feedback, 'meta_decision')
         df = pd.DataFrame([])
         df['decision'] = decision
+        df['meta_decision'] = meta_decision
         df['aid1'] = aids1
         df['aid2'] = aids2
         df['tags'] = [None if ts is None else [t.lower() for t in ts if t]
@@ -599,6 +610,14 @@ class IBEISIO(object):
         return df
 
     def _feedback_df(infr, key):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> import pandas as pd
+            >>> infr = testdata_infr('testdb1')
+            >>> assert 'meta_decision' in infr._feedback_df('annotmatch').columns
+        """
         if key == 'annotmatch':
             feedback = infr.read_ibeis_annotmatch_feedback()
         elif key == 'staging':
@@ -650,6 +669,7 @@ class IBEISIO(object):
         r"""
         CommandLine:
             python -m ibeis.algo.graph.mixin_ibeis IBEISIO._make_state_delta
+            python -m ibeis.algo.graph.mixin_ibeis IBEISIO._make_state_delta:0
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -671,20 +691,20 @@ class IBEISIO(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> import pandas as pd
-            >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
+            >>> columns = ['decision', 'meta_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> old_feedback = pd.DataFrame([
-            >>>     [NEGTV, 100, 101, 1000, []],
-            >>>     [POSTV, 101, 102, 1001, []],
-            >>>     [POSTV, 103, 104, 1002, []],
-            >>>     [NEGTV, 101, 104, 1004, []],
+            >>>     [NEGTV, 'diff', 100, 101, 1000, []],
+            >>>     [POSTV, 'same', 101, 102, 1001, []],
+            >>>     [POSTV, 'null', 103, 104, 1002, []],
+            >>>     [NEGTV, 'null', 101, 104, 1004, []],
             >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
             >>> new_feedback = pd.DataFrame([
-            >>>     [POSTV, 101, 102, 1001, []],
-            >>>     [NEGTV, 103, 104, 1002, []],
-            >>>     [POSTV, 101, 104, 1004, []],
-            >>>     [NEGTV, 102, 103, None, []],
-            >>>     [NEGTV, 100, 103, None, []],
-            >>>     [INCMP, 107, 109, None, []],
+            >>>     [POSTV, 'null', 101, 102, 1001, []],
+            >>>     [NEGTV, 'null', 103, 104, 1002, []],
+            >>>     [POSTV, 'null', 101, 104, 1004, []],
+            >>>     [NEGTV, 'null', 102, 103, None, []],
+            >>>     [NEGTV, 'null', 100, 103, None, []],
+            >>>     [INCMP, 'same', 107, 109, None, []],
             >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
             >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
             >>>                                                  new_feedback)
@@ -698,6 +718,7 @@ class IBEISIO(object):
             102  103        NaN          NaN      nomatch      NaN       []   True
             107  109        NaN          NaN      notcomp      NaN       []   True
         """
+        import ibeis
         import pandas as pd
         from six.moves import reduce
         import operator as op
@@ -714,12 +735,12 @@ class IBEISIO(object):
         isect_old = old_feedback.loc[isect_edges]
 
         # If any important column is different we mark the row as changed
-        data_columns = AnnotInference.feedback_data_keys
-        important_columns = ['decision', 'tags']
+        data_columns = ibeis.AnnotInference.feedback_data_keys
+        important_columns = ['meta_decision', 'decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
-            changed_gen = (isect_new[c] != isect_old[c]
-                           for c in important_columns)
+            changed_gen = [isect_new[c] != isect_old[c]
+                           for c in important_columns]
             is_changed = reduce(op.or_, changed_gen)
             new_df_ = isect_new[is_changed]
             old_df = isect_old[is_changed]
@@ -746,7 +767,8 @@ class IBEISIO(object):
         merged_df = prep_old.merge(
             prep_new, how='outer', left_on=merge_keys, right_on=merge_keys)
         # Reorder the columns
-        col_order = ['old_decision', 'new_decision', 'old_tags', 'new_tags']
+        col_order = ['old_decision', 'new_decision', 'old_tags', 'new_tags',
+                     'old_meta_decision', 'new_meta_decision']
         edge_delta_df = merged_df.reindex(columns=(
             ut.setdiff(merged_df.columns.values, col_order) + col_order))
         edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)

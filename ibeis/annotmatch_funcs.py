@@ -230,6 +230,8 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2, method=None):
 
 @register_ibs_method
 def add_annotmatch_undirected(ibs, aids1, aids2, **kwargs):
+    if len(aids1) == 0 and len(aids2) == 0:
+        return []
     edges = list(zip(aids1, aids2))
     from ibeis.algo.graph import nx_utils as nxu
     # Enforce new undirected constraint
