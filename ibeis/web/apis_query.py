@@ -551,6 +551,7 @@ def query_chips_test(ibs, **kwargs):
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
     from ibeis.algo.hots.orig_graph_iden import OrigAnnotInference
+    import theano  # NOQA
     import uuid
 
     def convert_to_uuid(nid):
