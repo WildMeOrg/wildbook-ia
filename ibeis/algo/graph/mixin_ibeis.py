@@ -464,7 +464,7 @@ class IBEISIO(object):
             (REVIEW_TIME_CLIENT_END   , 'timestamp_c2'),
             (REVIEW_TIME_SERVER_START , 'timestamp_s1'),
             (REVIEW_TIME_SERVER_END   , 'timestamp'),
-            (REVIEW_COUNT             , 'count'),
+            (REVIEW_COUNT             , 'num_reviews'),
         ])
         columns = tuple(add_review_alias.keys())
         feedback_keys = list(add_review_alias.values())
@@ -532,11 +532,14 @@ class IBEISIO(object):
         column_lists = {
             'decision': matches.evidence_decision_code,
             'meta_decision': matches.meta_decision_code,
+            'timestamp_c1': [None] * len(matches),
+            'timestamp_c2': [None] * len(matches),
+            'timestamp_s1': [None] * len(matches),
             'timestamp': matches.posixtime_modified,
             'tags': matches.case_tags,
             'user_id': matches.reviewer,
             'confidence': matches.confidence_code,
-            'count': matches.count,
+            'num_reviews': matches.count,
         }
 
         feedback = ut.ddict(list)

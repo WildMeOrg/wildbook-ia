@@ -58,36 +58,26 @@ class Feedback(object):
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
 
-    def current_feedback(infr, edge):
-        """
-        Current state (or best guess) for the current feedback of an edge
-        """
-        feedback_item = []
-        if edge in infr.internal_feedback:
-            feedback_item += infr.internal_feedback[edge]
-        if edge in infr.external_feedback:
-            feedback_item += infr.external_feedback[edge]
-        if len(feedback_item) == 0:
-            nid1, nid2 = infr.pos_graph.node_labels(*edge)
-            CONFIDENCE = infr.ibs.const.CONFIDENCE
-            feedback = {
-                'confidence': CONFIDENCE.INT_TO_CODE[CONFIDENCE.GUESSING],
-                'decision': POSTV if nid1 == nid2 else NEGTV,
-                'tags': []
-            }
-        else:
-            feedback = infr._rectify_feedback_item(feedback_item)
-        return feedback
-
-    def modify_feedback(infr, edge, **kw):
-        """
-        Current state (or best guess) for the current feedback of an edge
-        """
-        old = infr.current_feedback(edge)
-        new = ut.dict_subset(old, ['decision', 'tags', 'confidence'],
-                             default=None)
-        new.update(kw)
-        infr.add_feedback(edge, **new)
+    # def current_feedback(infr, edge):
+    #     """
+    #     Current state (or best guess) for the current feedback of an edge
+    #     """
+    #     feedback_item = []
+    #     if edge in infr.internal_feedback:
+    #         feedback_item += infr.internal_feedback[edge]
+    #     if edge in infr.external_feedback:
+    #         feedback_item += infr.external_feedback[edge]
+    #     if len(feedback_item) == 0:
+    #         nid1, nid2 = infr.pos_graph.node_labels(*edge)
+    #         CONFIDENCE = infr.ibs.const.CONFIDENCE
+    #         feedback = {
+    #             'confidence': CONFIDENCE.INT_TO_CODE[CONFIDENCE.GUESSING],
+    #             'decision': POSTV if nid1 == nid2 else NEGTV,
+    #             'tags': []
+    #         }
+    #     else:
+    #         feedback = infr._rectify_feedback_item(feedback_item)
+    #     return feedback
 
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
@@ -164,6 +154,10 @@ class Feedback(object):
         feedback_item = {
             'decision': decision,
             'tags': tags,
+            'meta_decision': decision,
+            'timestamp_c1': None,
+            'timestamp_c2': None,
+            'timestamp_s1': None,
             'timestamp': timestamp,
             'confidence': confidence,
             'user_id': user_id,
@@ -263,8 +257,12 @@ class Feedback(object):
             # if feedback_item['decision'] == 'unknown':
             #     continue
             if feedback_item.keys() != attr_lists.keys():
-                raise AssertionError(str((
-                    set(feedback_item.keys()), set(attr_lists.keys())))
+                set1 = set(feedback_item.keys())
+                set2 = set(attr_lists.keys())
+                raise AssertionError(
+                    ut.repr2(ut.set_overlap_items(set1, set2, 'got', 'want'), nl=1)
+                    # ut.repr2(sorted(feedback_item.keys()), sv=True) + ' ' +
+                    # ut.repr2(sorted(attr_lists.keys()), sv=True)
                 )
             for key, val in feedback_item.items():
                 attr_lists[key].append(val)
