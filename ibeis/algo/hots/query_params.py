@@ -81,7 +81,19 @@ class QueryParams(collections.Mapping):
         qparams.sv_cfgstr         = query_cfg.sv_cfg.get_cfgstr()
         qparams.flann_cfgstr      = query_cfg.flann_cfg.get_cfgstr()
         qparams.query_cfgstr      = query_cfg.get_cfgstr()
-        qparams.rrvsone_cfgstr    = query_cfg.rrvsone_cfg.get_cfgstr()
+
+    def hack_lnbnn_config_trail(qparams):
+        query_cfg = Config.QueryConfig()
+        lnbnn_trail = [
+            query_cfg.nn_cfg.asdict(),
+            query_cfg.nnweight_cfg.asdict(),
+            query_cfg.sv_cfg.asdict(),
+            query_cfg.agg_cfg.asdict(),
+            query_cfg.flann_cfg.asdict(),
+        ]
+        # Does not include feautres. Instead use
+        # print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
+        return lnbnn_trail
 
     @profile
     def get_postsver_filtkey_list(qparams):

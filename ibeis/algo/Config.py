@@ -239,7 +239,7 @@ class NNConfig(ConfigBase):
         # normalizer rule depends on Knorm
         assert nn_cfg.index_method in nn_cfg.valid_index_methods
 
-    def get_param_info_list(rrvsone_cfg):
+    def get_param_info_list(nn_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
         param_info_list = ut.flatten([
@@ -470,65 +470,44 @@ class NNWeightConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class RerankVsOneConfig(ConfigBase):
+class FeatureWeightConfig(ConfigBase):
     """
-    DEPRICATE
 
     CommandLine:
-        python -m ibeis.algo.Config --test-RerankVsOneConfig
+        python -m ibeis.algo.Config --exec-FeatureWeightConfig
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=False)
-        >>> result = rrvsone_cfg.get_cfgstr()
-        >>> assert result.startswith('_RRVsOne(False')
+        >>> featweight_cfg = FeatureWeightConfig(fw_detector='rf',
+        >>>                                      featweight_enabled=True)
+        >>> result = featweight_cfg.get_cfgstr()
+        >>> print(result)
+
+        _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+
+        _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
 
     """
-    def __init__(rrvsone_cfg, **kwargs):
-        super(RerankVsOneConfig, rrvsone_cfg).__init__(name='rrvsone_cfg')
-        rrvsone_cfg.initialize_params()
-        rrvsone_cfg.update(**kwargs)
 
-    def get_config_name(rrvsone_cfg):
-        return 'RRVsOne'
+    @profile
+    def __init__(featweight_cfg, **kwargs):
+        super(FeatureWeightConfig, featweight_cfg).__init__(
+            name='featweight_cfg')
+        # Featweights depend on features
+        featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
+        featweight_cfg.initialize_params()
+        featweight_cfg.update(**kwargs)
 
-    def get_param_info_list(rrvsone_cfg):
-        # from ibeis.algo.hots import distinctiveness_normalizer
-        # new way to try and specify config options.
-        # not sure if i like it yet
-        param_info_list = ut.flatten([
-            [
-                ut.ParamInfo('rrvsone_on', False, ''),
-            ],
-        ])
-        return param_info_list
-
-    def get_constraint_func():
-        # TODO:
-        def constraint_func(cfg):
-            if cfg['rrvsone_on']:
-                return False
-            if cfg['use_gridcov_scoring'] and cfg['use_kptscov_scoring']:
-                return False
-
-    def get_cfgstr_list(rrvsone_cfg, **kwargs):
-        if rrvsone_cfg.rrvsone_on:
-            assert False, 'depricated'
-            rrvsone_cfg_list = rrvsone_cfg.meta_get_cfgstr_list(**kwargs)
-        else:
-            rrvsone_cfg_list = [
-                '_RRVsOne(',
-                six.text_type(rrvsone_cfg.rrvsone_on),
-                ')'
-            ]
-        return rrvsone_cfg_list
+    def get_param_info_list(self):
+        from ibeis import core_annots
+        return core_annots.ProbchipConfig._param_info_list + core_annots.FeatWeightConfig._param_info_list
 
 
 @six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
     """
-    query configuration parameters
+    LNBNN ranking query configuration parameters
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -537,8 +516,12 @@ class QueryConfig(ConfigBase):
         >>> cfg = ibs.cfg.query_cfg
         >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
         >>> print(cfgstr)
-
     """
+
+    # TODO: make this a dtool Config
+    _todo_subconfig_list = [NNConfig, NNWeightConfig, SpatialVerifyConfig,
+                            FlannConfig, FeatureWeightConfig]
+
     @profile
     def __init__(query_cfg, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
@@ -547,13 +530,11 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg         = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg        = AggregateConfig(**kwargs)
         query_cfg.flann_cfg      = FlannConfig(**kwargs)
-        #query_cfg.smk_cfg        = SMKConfig(**kwargs)
-        query_cfg.rrvsone_cfg    = RerankVsOneConfig(**kwargs)
         # causes some bug in Preference widget if these don't have underscore
         query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
         # Start of pipeline
-        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone']
+        query_cfg._valid_pipeline_roots = ['vsmany']
         query_cfg.pipeline_root = 'vsmany'
         # <Hack Paramaters>
         # query_cfg.with_metadata = False
@@ -578,7 +559,7 @@ class QueryConfig(ConfigBase):
         #        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
         #    if kwargs.get('use_sv', True):
         #        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        if six.text_type(query_cfg.pipeline_root) == 'vsmany' or six.text_type(query_cfg.pipeline_root) == 'vsone':
+        if six.text_type(query_cfg.pipeline_root) == 'vsmany':
             # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
@@ -590,8 +571,6 @@ class QueryConfig(ConfigBase):
                 cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_flann', True):
                 cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_rrvsone', True):
-                cfgstr_list += query_cfg.rrvsone_cfg.get_cfgstr_list(**kwargs)
         else:
             raise AssertionError('bad pipeline root: ' + six.text_type(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
@@ -620,10 +599,6 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg.update(**cfgdict)
         query_cfg.agg_cfg.update(**cfgdict)
         query_cfg.flann_cfg.update(**cfgdict)
-        #query_cfg.smk_cfg.update(**cfgdict)
-        #query_cfg.smk_cfg.vocabassign_cfg.update(**cfgdict)
-        #query_cfg.smk_cfg.vocabtrain_cfg.update(**cfgdict)
-        query_cfg.rrvsone_cfg.update(**cfgdict)
         query_cfg._featweight_cfg.update(**cfgdict)
         query_cfg._featweight_cfg._feat_cfg.update(**cfgdict)
         query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**cfgdict)
@@ -704,41 +679,6 @@ class QueryConfig(ConfigBase):
         copy_ = copy.deepcopy(query_cfg)
         copy_.update_query_cfg(**kwargs)
         return copy_
-
-
-@six.add_metaclass(ConfigMetaclass)
-class FeatureWeightConfig(ConfigBase):
-    """
-
-    CommandLine:
-        python -m ibeis.algo.Config --exec-FeatureWeightConfig
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> featweight_cfg = FeatureWeightConfig(fw_detector='rf',
-        >>>                                      featweight_enabled=True)
-        >>> result = featweight_cfg.get_cfgstr()
-        >>> print(result)
-
-        _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
-
-        _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
-
-    """
-
-    @profile
-    def __init__(featweight_cfg, **kwargs):
-        super(FeatureWeightConfig, featweight_cfg).__init__(
-            name='featweight_cfg')
-        # Featweights depend on features
-        featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
-        featweight_cfg.initialize_params()
-        featweight_cfg.update(**kwargs)
-
-    def get_param_info_list(self):
-        from ibeis import core_annots
-        return core_annots.ProbchipConfig._param_info_list + core_annots.FeatWeightConfig._param_info_list
 
 
 @six.add_metaclass(ConfigMetaclass)
