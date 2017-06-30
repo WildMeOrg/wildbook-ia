@@ -231,8 +231,9 @@ class NNConfig(ConfigBase):
         # number of annots before a new multi-indexer is built
         nn_cfg.min_reindex_thresh = 200
         # number of annots before a new multi-indexer is built
-        nn_cfg.max_subindexers = 2
-        nn_cfg.valid_index_methods = ['single', 'multi', 'name']
+        # nn_cfg.max_subindexers = 2
+        # nn_cfg.valid_index_methods = ['single', 'multi', 'name']
+        nn_cfg.valid_index_methods = ['single']
         nn_cfg.update(**kwargs)
 
     def make_feasible(nn_cfg):

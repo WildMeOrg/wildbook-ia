@@ -1,3 +1,6 @@
+"""
+NEEDS CLEANUP
+"""
 from __future__ import absolute_import, division, print_function
 from os.path import join
 import six
@@ -5,7 +8,7 @@ import utool as ut
 from six.moves import range, zip, map  # NOQA
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.algo.hots.neighbor_index import NeighborIndex, get_support_data
-(print, rrr, profile) = ut.inject2(__name__, '[neighbor_index]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')

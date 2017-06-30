@@ -125,8 +125,10 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     ibs = ibeis.opendb(dbdir=dbdir)
 
 
-    # Some of the available config settings
-    print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
+    if False:
+        # Set to True to see some of the available LNBNN config settings
+        print(ut.repr3(ibs.new_query_request([], []).qparams.hack_lnbnn_config_trail()))
+        print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
     # ENDBLOCK
     '''))
 

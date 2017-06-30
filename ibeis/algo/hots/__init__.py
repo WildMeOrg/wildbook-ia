@@ -7,7 +7,6 @@ from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import exceptions
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import match_chips4
-from ibeis.algo.hots import multi_index
 from ibeis.algo.hots import name_scoring
 from ibeis.algo.hots import neighbor_index
 from ibeis.algo.hots import neighbor_index_cache
@@ -75,7 +74,6 @@ def reload_subs(verbose=True):
     get_rrr(exceptions)(verbose=verbose)
     get_rrr(hstypes)(verbose=verbose)
     get_rrr(match_chips4)(verbose=verbose)
-    get_rrr(multi_index)(verbose=verbose)
     get_rrr(name_scoring)(verbose=verbose)
     get_rrr(neighbor_index)(verbose=verbose)
     get_rrr(neighbor_index_cache)(verbose=verbose)
@@ -99,7 +97,6 @@ IMPORT_TUPLES = [
     ('exceptions', None),
     ('hstypes', None),
     ('match_chips4', None),
-    ('multi_index', None),
     ('name_scoring', None),
     ('neighbor_index', None),
     ('neighbor_index_cache', None),
