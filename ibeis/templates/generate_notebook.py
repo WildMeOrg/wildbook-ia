@@ -68,6 +68,9 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
         python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
 
+    Ignore:
+        python -m ibeis autogen_ipynb --db WS_ALL
+
     Example:
         >>> # SCRIPT
         >>> from ibeis.templates.generate_notebook import *  # NOQA

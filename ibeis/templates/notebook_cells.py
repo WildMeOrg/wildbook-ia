@@ -123,6 +123,10 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     import ibeis
     ibeis.expt.harness.USE_BIG_TEST_CACHE = True
     ibs = ibeis.opendb(dbdir=dbdir)
+
+
+    # Some of the available config settings
+    print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
     # ENDBLOCK
     '''))
 
