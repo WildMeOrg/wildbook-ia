@@ -845,6 +845,36 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          ready_callback_method='POST',
                          finished_callback_url=None,
                          finished_callback_method='POST'):
+    """
+    Ignore:
+        >>> from ibeis.web.apis_query import *
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ut.exec_funckw(query_chips_graph_v2, globals())
+        >>> def url_for(suffix):
+        >>>     return 'localhost:5001/{}'.format(suffix)
+
+    Ignore:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.apis_query import *
+        >>> import time
+        >>> import ibeis
+        >>> import requests
+        >>> # Start up the web instance
+        >>> web_instance = ibeis.opendb_in_background(db='PZ_MTEST', web=True, browser=False)
+        >>> time.sleep(10)
+        >>> web_port = ibs.get_web_port_via_scan()
+        >>> if web_port is None:
+        >>>     raise ValueError('IA web server is not on expected port')
+        >>> baseurl = 'http://127.0.1.1:%s' % (web_port,)
+        >>> data = dict(qaid_list=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        >>> resp = requests.get(baseurl + '/api/query/graph/v2/', data=data)
+        >>> print(resp)
+        >>> web_instance.terminate()
+        >>> json_dict = resp.json()
+        >>> cmdict_list = json_dict['response']
+        >>> assert 'score_list' in cmdict_list[0]
+    """
     from ibeis.web.graph_server import GraphClient
 
     if annot_uuid_list is None:
@@ -864,6 +894,11 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
     if annot_name_list is not None:
         assert len(annot_name_list) == len(annot_uuid_list)
+        # NOTE FROM JON:
+        # FIXME: Dont set the name list here, you can just pass these to the
+        # AnnotInference object (using the nids) attribute (which can be
+        # strings) and this will cause AnnotInfr to use those names without
+        # influencing the state of the underlying database.
         nid_list = ibs.add_names(annot_name_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
 
@@ -900,8 +935,6 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
                                callback_method='POST',
                                view_orientation='vertical',
                                include_jquery=False):
-    ut.embed()
-
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     data = graph_client.sample()
     if data is None:
@@ -981,18 +1014,21 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     edge = (aid1, aid2, )
     now = datetime.utcnow()
     payload = {
-        'action'           : 'add_feedback',
-        'edge'             : edge,
-        'decision'         : decision,
-        'tags'             : tags,
-        'user_id'          : user_id,
-        'confidence'       : confidence,
-        'user_times'       : {
-            'server_start' : user_times['server_time_start'],
-            'client_start' : user_times['client_time_start'],
-            'client_end'   : user_times['client_time_end'],
-            'server_end'   : float(now.strftime("%s.%f")),
-        },
+        'action'            : 'add_feedback',
+        'edge'              : edge,
+        'evidence_decision' : decision,
+        # TODO: meta_decision should come from the html resp.  When generating
+        # the html page, the default value should be its previous value. If the
+        # user changes it to be something incompatible them perhaps just reset
+        # it to null.
+        'meta_decision'     : 'null',
+        'tags'              : tags,
+        'user_id'           : user_id,
+        'confidence'        : confidence,
+        'timestamp_s1'      : user_times['server_time_start'],
+        'timestamp_c1'      : user_times['client_time_start'],
+        'timestamp_c2'      : user_times['client_time_end'],
+        'timestamp'         : float(now.strftime("%s.%f"))
     }
     graph_client.post(payload)
     return True

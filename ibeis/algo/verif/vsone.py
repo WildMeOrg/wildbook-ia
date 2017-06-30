@@ -1644,7 +1644,7 @@ class Deployer(object):
         deploy_url = base_url + '/' + fname
         deploy_fpath = ut.grab_file_url(deploy_url, **grabkw)
 
-        verif = self._load_verifier(ibs, deploy_fpath, task_key)
+        verif = self._make_verifier(ibs, deploy_fpath, task_key)
         return verif
 
     def _make_ensemble_verifier(self, task_key, clf_key, data_key):

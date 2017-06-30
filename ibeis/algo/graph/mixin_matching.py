@@ -6,7 +6,7 @@ import utool as ut
 import itertools as it
 import networkx as nx
 import vtool as vt
-from os.path import join
+from os.path import join  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
@@ -612,7 +612,15 @@ class CandidateSearch(object):
     @profile
     def ensure_priority_scores(infr, priority_edges):
         """
-        Example:
+        Doctest:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> infr = ibeis.AnnotInference(ibs, aids='all')
+            >>> infr.ensure_mst()
+            >>> priority_edges = list(infr.edges())[0:1]
+            >>> infr.ensure_priority_scores(priority_edges)
+
+        Doctest:
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
@@ -696,7 +704,6 @@ class CandidateSearch(object):
         elif infr.cm_list is not None:
             infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
-            infr.task_probs = None
             scores = infr._make_lnbnn_scores(priority_edges)
             metric = 'normscore'
             priority = scores

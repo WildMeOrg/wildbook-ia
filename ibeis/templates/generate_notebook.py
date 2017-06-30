@@ -19,6 +19,11 @@ CommandLine:
     firefox localhost:8889
 
 
+    # Running a server:
+    jupyter-notebook password
+    jupyter-notebook --no-browser --NotebookApp.iopub_data_rate_limit=100000000 --NotebookApp.token=
+
+
     # To allow remote jupyter-noteobok connections
     jupyter notebook --generate-config
 

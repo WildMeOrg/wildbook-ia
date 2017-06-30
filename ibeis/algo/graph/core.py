@@ -1026,6 +1026,9 @@ class AnnotInference(ut.NiceRepr,
         # ibeis controller and initial nodes
         # TODO: aids can be abstracted as a property that simply looks at the
         # nodes in infr.graph.
+        if isinstance(ibs, six.string_types):
+            import ibeis
+            ibs = ibeis.opendb(ibs)
         infr.ibs = ibs
         infr.aids = None
         infr.aids_set = None

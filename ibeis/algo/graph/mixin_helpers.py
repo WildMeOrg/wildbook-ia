@@ -360,11 +360,31 @@ class DummyEdges(object):
         Ignore:
             label = 'name_label'
 
-        Example:
-            >>> # ENABLE_DOCTEST
+        Doctest:
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=3, size=4)
+            >>> assert infr.status()['nCCs'] == 3
+            >>> infr.clear_edges()
+            >>> assert infr.status()['nCCs'] == 12
+            >>> infr.ensure_mst()
+            >>> assert infr.status()['nCCs'] == 3
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', 'all', autoinit=True)
+            >>> infr.reset_feedback('annotmatch', apply=True)
+            >>> assert infr.status()['nInconsistentCCs'] == 0
+            >>> assert infr.status()['nCCs'] == 41
+            >>> label = 'name_label'
+            >>> new_edges = infr.find_mst_edges(label=label)
+            >>> assert len(new_edges) == 0
+            >>> infr.clear_edges()
+            >>> assert infr.status()['nCCs'] == 119
+            >>> infr.ensure_mst()
+            >>> assert infr.status()['nCCs'] == 41
+
         """
         infr.print('ensure_mst', 1)
         new_edges = infr.find_mst_edges(label=label)
@@ -601,10 +621,9 @@ class AssertInvariants(object):
         # infr.print('assert_consistency_invariant', 200)
         if infr.params['inference.enabled']:
             incon_ccs = list(infr.inconsistent_components())
-            with ut.embed_on_exception_context:
-                if len(incon_ccs) > 0:
-                    raise AssertionError('The graph is not consistent. ' +
-                                         msg)
+            if len(incon_ccs) > 0:
+                raise AssertionError('The graph is not consistent. ' +
+                                     msg)
 
     def assert_recovery_invariant(infr, msg=''):
         if not DEBUG_INCON:

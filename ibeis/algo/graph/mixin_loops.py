@@ -6,7 +6,7 @@ import utool as ut
 import pandas as pd
 import itertools as it
 from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, NULL)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -88,7 +88,7 @@ class RefreshCriteria(object):
             >>> n_real_list = []
             >>> xdata = []
             >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     refresh.add(y, user_id='oracle')
+            >>>     refresh.add(y, user_id='user:oracle')
             >>>     n_remain_edges = len(edges) - count
             >>>     n_real = y_remainsum[count]
             >>>     n_real_list.append(n_real)
@@ -215,7 +215,7 @@ class RefreshCriteria(object):
             >>> n_real_list = []
             >>> xdata = []
             >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     refresh.add(y, user_id='oracle')
+            >>>     refresh.add(y, user_id='user:oracle')
             >>>     n_remain_edges = len(edges) - count
             >>>     n_pred = refresh.pred_num_positives(n_remain_edges)
             >>>     n_real = y_remainsum[count]
@@ -255,7 +255,7 @@ class RefreshCriteria(object):
         if not refresh.enabled:
             return
 
-        if user_id is not None and not user_id.startswith('auto'):
+        if user_id is not None and not user_id.startswith('algo'):
             refresh.manual_decisions.append(meaningful)
             m = meaningful
             # span corresponds roughly to window size
@@ -266,22 +266,6 @@ class RefreshCriteria(object):
         refresh.num_meaningful += meaningful
         if decision == POSTV:
             refresh.num_pos += 1
-
-    # def add(refresh, decision, user_id):
-    #     decision_code = 1 if decision == POSTV else 0
-    #     # dont add auto reviews to refresh criteria
-    #     if user_id is not None and not user_id.startswith('auto'):
-    #         refresh.manual_decisions.append(decision_code)
-    #         x = decision_code
-    #         # span corresponds roughly to window size
-    #         # http://greenteapress.com/thinkstats2/html/thinkstats2013.html
-    #         span = refresh.window
-    #         alpha = 2 / (span + 1)
-    #         if refresh._ewma is None:
-    #             refresh._ewma = x
-    #         refresh._ewma = (alpha * x) + (1 - alpha) * refresh._ewma
-    #     if decision_code:
-    #         refresh.num_pos += 1
 
     def ave(refresh, method='exp'):
         """
@@ -303,7 +287,7 @@ class RefreshCriteria(object):
             >>> reals = []
             >>> xdata = []
             >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     refresh.add(y, user_id='oracle')
+            >>>     refresh.add(y, user_id='user:oracle')
             >>>     ma1.append(refresh._ewma)
             >>>     ma2.append(refresh.pos_frac)
             >>>     n_real = y_remainsum[count] / (len(edges) - count)
@@ -353,9 +337,13 @@ class UserOracle(object):
 
     def review(oracle, edge, truth, infr, accuracy=None):
         feedback = {
-            'user_id': 'oracle',
+            'user_id': 'user:oracle',
             'confidence': 'absolutely_sure',
-            'decision': None,
+            'evidence_decision': None,
+            'meta_decision': NULL,
+            'timestamp_s1': ut.get_timestamp('int', isutc=True),
+            'timestamp_c1': ut.get_timestamp('int', isutc=True),
+            'timestamp_c2': ut.get_timestamp('int', isutc=True),
             'tags': [],
         }
         is_recovering = infr.is_recovering()
@@ -381,7 +369,7 @@ class UserOracle(object):
             feedback['confidence'] = 'pretty_sure'
         if accuracy < .5:
             feedback['confidence'] = 'guessing'
-        feedback['decision'] = observed
+        feedback['evidence_decision'] = observed
         if error:
             infr.print(
                 'ORACLE ERROR real={} pred={} acc={:.2f} hard={:.2f}'.format(truth, observed, accuracy, hardness), 2, color='red')
@@ -520,7 +508,8 @@ class InfrLoops(object):
                                (count,), 1, color='yellow')
                     break
             try:
-                if not infr.next_review():
+                proceed, user_request = infr.next_review()
+                if not proceed:
                     # Break for manual review
                     break
             except StopIteration:
@@ -588,7 +577,7 @@ class InfrLoops(object):
                 # Top of priority queue is determined dynamically
                 edge, _ = infr.peek()
                 # Automatic / manual edge review
-                feedback = infr.request_review(edge)
+                proceed, feedback = infr.emit_or_review(edge)[1]
                 # Insert edge and dynamically update the priority
                 infr.add_feedback(edge, **feedback)
                 if infr.refresh.check():
@@ -601,7 +590,7 @@ class InfrLoops(object):
                 infr.add_candidate_edges(new_edges)
                 while len(infr.queue) > 0:
                     edge, _ = infr.peek()
-                    feedback = infr.request_review(edge)
+                    proceed, feedback = infr.emit_or_review(edge)[1]
                     infr.add_feedback(edge, **feedback)
                 new_edges = list(infr.find_pos_redun_candidate_edges())
 
@@ -689,9 +678,13 @@ class InfrReviewers(object):
     @profile
     def try_auto_review(infr, edge):
         review = {
-            'user_id': 'auto_clf',
-            'confidence': 'pretty_sure',
-            'decision': None,
+            'user_id': 'algo:auto_clf',
+            'confidence': infr.ibs.const.CONFIDENCE.CODE.PRETTY_SURE,
+            'evidence_decision': None,
+            'meta_decision': NULL,
+            'timestamp_s1': None,
+            'timestamp_c1': None,
+            'timestamp_c2': None,
             'tags': [],
         }
         if infr.is_recovering():
@@ -700,23 +693,16 @@ class InfrReviewers(object):
             return False, review
         # Determine if anything passes the match threshold
         primary_task = 'match_state'
-        # data = infr.get_nonvisual_edge_data(edge)
-        # decision_probs = infr.task_probs[primary_task].loc[edge]
-        # decision_probs = pd.Series(data['task_probs'][primary_task])
 
-        # if False:
-        #     decision_probs = pd.Series(infr.task_probs[primary_task][edge])
-        #     a, b = decision_probs.align(infr.task_thresh[primary_task])
-        #     decision_flags = a > b
-        #     hasone = sum(decision_flags) == 1
-        #     # decision = decision_flags.argmax()
-        # TODO: don't autodecide if secondary classifiers are on
         try:
             decision_probs = infr.task_probs[primary_task][edge]
         except KeyError:
             # Compute probs if they haven't been done yet
             infr.ensure_priority_scores([edge])
-            decision_probs = infr.task_probs[primary_task][edge]
+            try:
+                decision_probs = infr.task_probs[primary_task][edge]
+            except KeyError:
+                return False, review
 
         primary_thresh = infr.task_thresh[primary_task]
         decision_flags = {k: decision_probs[k] > thresh
@@ -732,12 +718,13 @@ class InfrReviewers(object):
             confounded = pb_probs['pb'] > pb_thresh
             if not confounded:
                 # decision = decision_flags.argmax()
-                decision = ut.argmax(decision_probs)
-                review['decision'] = decision
+                evidence_decision = ut.argmax(decision_probs)
+                review['evidence_decision'] = evidence_decision
                 truth = infr.match_state_gt(edge)
-                if review['decision'] != truth:
+                if review['evidence_decision'] != truth:
                     infr.print('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
-                               (edge, truth, review['decision']), 2, color='darkred')
+                               (edge, truth, review['evidence_decision']), 2,
+                               color='darkred')
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
             infr.print('Automatic review success')
@@ -745,30 +732,24 @@ class InfrReviewers(object):
         return auto_flag, review
 
     @profile
-    def request_review(infr, edge, priority=None):
-        """ function only for test purposes use emit_or_review """
-        if infr.params['autoreview.enabled']:
-            flag, feedback = infr.try_auto_review(edge)
-            if flag:
-                return feedback
-        if infr.simulation_mode:
-            feedback = infr.request_oracle_review(edge)
-            return feedback
-        else:
-            raise Exception('use emit_or_review instead')
-
-    @profile
     def emit_or_review(infr, edge, priority=None):
+        """
+        Returns:
+            tuple proceed, data
+        """
         if infr.params['autoreview.enabled']:
             flag, feedback = infr.try_auto_review(edge)
             if flag:
-                return feedback
+                proceed = True
+                return proceed, feedback
         if infr.simulation_mode:
             feedback = infr.request_oracle_review(edge)
-            return feedback
+            proceed = True
+            return proceed, feedback
         else:
-            infr.emit_manual_review(edge, priority)
-            return None
+            user_request = infr.emit_manual_review(edge, priority)
+            proceed = False
+            return proceed, user_request
 
     def qt_review_loop(infr, cfgdict=None):
         r"""
@@ -828,7 +809,7 @@ class InfrReviewers(object):
         # Emit a list of reviews that can be considered.
         # The first is the most important
 
-        reviews = []
+        user_request = []
         for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
             edge_data = infr.get_nonvisual_edge_data(
                 edge, on_missing='default')
@@ -838,10 +819,12 @@ class InfrReviewers(object):
                 len(infr.pos_graph.connected_to(edge[0])),
                 len(infr.pos_graph.connected_to(edge[1]))
             )
-            reviews.append((edge, priority, edge_data))
+            user_request.append((edge, priority, edge_data))
 
         # Send these reviews to a user
-        on_request_review(reviews)
+        on_request_review(user_request)
+        # Also return them in case the current process can deal with them
+        return user_request
 
     @profile
     def next_review(infr):
@@ -849,13 +832,15 @@ class InfrReviewers(object):
         does one review step
         """
         edge, priority = infr.peek()
-        feedback = infr.emit_or_review(edge, priority)
-        if feedback is None:
-            # None feedback means we are waiting for a user response.
-            return False
+        infr.print('next_review. edge={}'.format(edge), 100)
+        proceed, feedback = infr.emit_or_review(edge, priority)
+        if not proceed:
+            infr.print('need_user_feedback', 100)
+            # We need to wait for user feedback
+            return proceed, feedback
         # Add feedback from the automated method
         infr.add_feedback(edge, priority=priority, **feedback)
-        return True
+        return proceed, None
 
     def on_accept(infr, feedback, need_next=True):
         annot1_state = feedback.pop('annot1_state', None)
@@ -880,8 +865,9 @@ class InfrReviewers(object):
                 #     # Do not check for refresh if we are recovering
                 #     if use_refresh and infr.refresh.check():
                 #         break
-                if not infr.next_review():
-                    break
+                proceed, user_request = infr.next_review()
+                if not proceed:
+                    return user_request
         except StopIteration:
             infr.on_queue_empty()
 
@@ -998,7 +984,7 @@ class SimulationHelpers(object):
     def measure_error_edges(infr):
         for edge, data in infr.edges(data=True):
             true_state = data['truth']
-            pred_state = data.get('decision', UNREV)
+            pred_state = data.get('evidence_decision', UNREV)
             if pred_state != UNREV:
                 if true_state != pred_state:
                     error = ut.odict([('real', true_state),
@@ -1060,7 +1046,7 @@ class SimulationHelpers(object):
             n_fn2 = 0
             n_fp2 = 0
             for edge, data in infr.edges(data=True):
-                decision = data.get('decision', UNREV)
+                decision = data.get('evidence_decision', UNREV)
                 true_state = infr.edge_truth[edge]
                 if true_state == decision and true_state == POSTV:
                     real_pos_edges.append(edge)

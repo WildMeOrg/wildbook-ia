@@ -512,7 +512,7 @@ def ensure_pz_mtest():
     count = 0
     for cc1, cc2 in it.combinations(small_ccs, 2):
         count += 1
-        for u, v in infr.find_neg_augment_edges(cc1, cc2, k=1):
+        for edge in infr.find_neg_augment_edges(cc1, cc2, k=1):
             if count > 10:
                 # So some with meta
                 infr.add_feedback(edge, meta_decision=DIFF, user_id='user:setup2')
@@ -526,6 +526,8 @@ def ensure_pz_mtest():
     for edge in cand[0:2]:
         infr.add_feedback(edge, evidence_decision=POSTV, user_id='user:setup4')
 
+    assert infr.status()['nInconsistentCCs'] == 0
+
     # Write consistent state to both annotmatch and staging
     infr.write_ibeis_staging_feedback()
     infr.write_ibeis_annotmatch_feedback()
@@ -534,7 +536,12 @@ def ensure_pz_mtest():
     cand = list(infr.find_pos_redun_candidate_edges())
     for edge in cand[0:2]:
         infr.add_feedback(edge, evidence_decision=NEGTV, user_id='user:voldemort')
+
+    assert infr.status()['nInconsistentCCs'] == 2
     infr.write_ibeis_staging_feedback()
+
+    infr.reset_feedback('annotmatch', apply=True)
+    assert infr.status()['nInconsistentCCs'] == 0
 
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):
