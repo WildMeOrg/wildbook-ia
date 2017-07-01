@@ -167,7 +167,7 @@ def test_cancel(ActorClass):
 
 def test_actor_args(ActorClass):
     ex1 = ActorClass.executor(8, factor=8)
-    f1 = ex1.submit({'action': 'add'})
+    f1 = ex1.post({'action': 'add'})
     assert f1.result()[1] == 10000064
 
 
@@ -201,15 +201,15 @@ def main():
 
     """
     classes = [
-        TestProcessActor
-        # TestThreadActor,
+        TestProcessActor,
+        TestThreadActor,
     ]
     for ActorClass in classes:
         test_multiple(ActorClass)
-        # test_actor_args(ActorClass)
-        # test_simple(ActorClass)
-        # test_callbacks(ActorClass)
-        # test_cancel(ActorClass)
+        test_actor_args(ActorClass)
+        test_simple(ActorClass)
+        test_callbacks(ActorClass)
+        test_cancel(ActorClass)
 
 if __name__ == '__main__':
     r"""
