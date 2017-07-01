@@ -1,45 +1,51 @@
-"""
-A simple actor model using multiprocessing Futures
-"""
-from concurrent import futures
+""" Implements ProcessActor """
 from concurrent.futures import _base
-import os
+from concurrent.futures import process
 from multiprocessing.connection import wait
+from ibeis.web.futures_utils import _base_actor
+import os
 import queue
 import weakref
 import threading
 import multiprocessing
 
 
-class ActorManager(multiprocessing.Process):
-    """
-    ActorManager manages a single actor.
-    """
-    def __init__(self, _ActorClass, _task_queue, _result_queue):
-        super(ActorManager, self).__init__()
-        self._task_queue = _task_queue
-        self._result_queue = _result_queue
-        self._ActorClass = _ActorClass
+# Most of this code is duplicated from the concurrent.futures.thread and
+# concurrent.futures.process modules, writen by Brian Quinlan. The main
+# difference is that we expose an `Actor` class which can be inherited from and
+# provides the `executor` classmethod. This creates an asynchronously
+# maintained instance of this class in a separate thread/process
 
-    def run(self):
-        """ actor event loop """
+__author__ = 'Jon Crall (erotemic@gmail.com)'
 
-        actor = self._ActorClass()
-        while True:
-            call_item = self._task_queue.get(block=True)
-            if call_item is None:
-                # Wake up queue management thread
-                self._result_queue.put(os.getpid())
-                return
-            try:
-                r = actor.handle(call_item.message)
-            except BaseException as e:
-                exc = futures.process._ExceptionWithTraceback(e, e.__traceback__)
-                self._result_queue.put(futures.process._ResultItem(
-                    call_item.work_id, exception=exc))
-            else:
-                self._result_queue.put(futures.process._ResultItem(
-                    call_item.work_id, result=r))
+
+def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
+                             **kwargs):
+    """
+    actor event loop run in a separate process.
+
+    Creates the instance of the actor (passing in the required *args, and
+    **kwargs). Then the eventloop starts and feeds the actor messages from the
+    _call_queue. Results are placed in the _result_queue, which are then placed
+    in Future objects.
+    """
+
+    actor = _ActorClass(*args, **kwargs)
+    while True:
+        call_item = _call_queue.get(block=True)
+        if call_item is None:
+            # Wake up queue management thread
+            _result_queue.put(os.getpid())
+            return
+        try:
+            r = actor.handle(call_item.message)
+        except BaseException as e:
+            exc = process._ExceptionWithTraceback(e, e.__traceback__)
+            _result_queue.put(process._ResultItem(
+                call_item.work_id, exception=exc))
+        else:
+            _result_queue.put(process._ResultItem(
+                call_item.work_id, result=r))
 
 
 class _WorkItem(object):
@@ -91,35 +97,35 @@ def _add_call_item_to_queue(pending_work_items,
 
 
 def _queue_management_worker(executor_reference,
-                             _manager_proc,
+                             _manager,
                              pending_work_items,
                              work_ids_queue,
-                             _task_queue,
+                             _call_queue,
                              _result_queue):
     """Manages the communication between this process and the worker processes."""
     executor = None
 
     def shutting_down():
-        return futures.process._shutdown or executor is None or executor._shutdown_thread
+        return process._shutdown or executor is None or executor._shutdown_thread
 
     def shutdown_worker():
         # This is an upper bound
-        if _manager_proc.is_alive():
-            _task_queue.put_nowait(None)
+        if _manager.is_alive():
+            _call_queue.put_nowait(None)
         # Release the queue's resources as soon as possible.
-        _task_queue.close()
+        _call_queue.close()
         # If .join() is not called on the created processes then
         # some multiprocessing.Queue methods may deadlock on Mac OS X.
-        _manager_proc.join()
+        _manager.join()
 
     reader = _result_queue._reader
 
     while True:
         _add_call_item_to_queue(pending_work_items,
                                 work_ids_queue,
-                                _task_queue)
+                                _call_queue)
 
-        sentinel = _manager_proc.sentinel
+        sentinel = _manager.sentinel
         assert sentinel
         ready = wait([reader, sentinel])
         if reader in ready:
@@ -134,7 +140,7 @@ def _queue_management_worker(executor_reference,
             # All futures in flight must be marked failed
             for work_id, work_item in pending_work_items.items():
                 work_item.future.set_exception(
-                    futures.process.BrokenProcessPool(
+                    process.BrokenProcessPool(
                         "A process in the process pool was "
                         "terminated abruptly while the future was "
                         "running or pending."
@@ -144,15 +150,15 @@ def _queue_management_worker(executor_reference,
             pending_work_items.clear()
             # Terminate remaining workers forcibly: the queues or their
             # locks may be in a dirty state and block forever.
-            _manager_proc.terminate()
+            _manager.terminate()
             shutdown_worker()
             return
         if isinstance(result_item, int):
             # Clean shutdown of a worker using its PID
             # (avoids marking the executor broken)
             assert shutting_down()
-            _manager_proc.join()
-            if _manager_proc is None:
+            _manager.join()
+            if _manager is None:
                 shutdown_worker()
                 return
         elif result_item is not None:
@@ -185,25 +191,22 @@ def _queue_management_worker(executor_reference,
         executor = None
 
 
-class ProcessActorExecutor(_base.Executor):
-    """
-    Executor to manage exactly one actor
-    """
+class ProcessActorExecutor(_base_actor.ActorExecutor):
 
-    def __init__(self, _ActorClass):
-        futures.process._check_system_limits()
+    def __init__(self, _ActorClass, *args, **kwargs):
+        process._check_system_limits()
 
         self._ActorClass = _ActorClass
         # todo: If we want to cancel futures we need to give the task_queue a
         # maximum size
-        self._task_queue = multiprocessing.JoinableQueue()
-        self._task_queue._ignore_epipe = True
+        self._call_queue = multiprocessing.JoinableQueue()
+        self._call_queue._ignore_epipe = True
         self._result_queue = multiprocessing.Queue()
         self._work_ids = queue.Queue()
         self._queue_management_thread = None
 
         # We only maintain one process for our actor
-        self._manager_proc = None
+        self._manager = None
 
         # Shutdown is a two-step process.
         self._shutdown_thread = False
@@ -212,41 +215,19 @@ class ProcessActorExecutor(_base.Executor):
         self._queue_count = 0
         self._pending_work_items = {}
 
-    def _start_queue_management_thread(self):
-        # When the executor gets lost, the weakref callback will wake up
-        # the queue management thread.
+        self._did_initialize = False
 
-        def weakref_cb(_, q=self._result_queue):
-            q.put(None)
-
-        if self._queue_management_thread is None:
-            # Start the processes so that their sentinel are known.
-            self._manager_proc = ActorManager(self._ActorClass,
-                                              self._task_queue,
-                                              self._result_queue)
-            self._manager_proc.start()
-
-            self._queue_management_thread = threading.Thread(
-                    target=_queue_management_worker,
-                    args=(weakref.ref(self, weakref_cb),
-                          self._manager_proc,
-                          self._pending_work_items,
-                          self._work_ids,
-                          self._task_queue,
-                          self._result_queue))
-            self._queue_management_thread.daemon = True
-            self._queue_management_thread.start()
-            # use structures already in futures as much as possible
-            futures.process._threads_queues[self._queue_management_thread] = self._result_queue
+        if args or kwargs:
+            # If given actor initialization args we must start the Actor
+            # immediately. Otherwise just wait until we get a message
+            print('Init with args')
+            print('args = %r' % (args,))
+            self._initialize_actor(*args, **kwargs)
 
     def post(self, message):
-        """
-        analagous to submit.
-        sends a message to an actor and returns a future
-        """
         with self._shutdown_lock:
             if self._broken:
-                raise futures.process.BrokenProcessPool(
+                raise process.BrokenProcessPool(
                     'A child process terminated '
                     'abruptly, the process pool is not usable anymore')
             if self._shutdown_thread:
@@ -263,6 +244,42 @@ class ProcessActorExecutor(_base.Executor):
 
             self._start_queue_management_thread()
             return f
+    post.__doc__ = _base_actor.ActorExecutor.post.__doc__
+
+    def _start_queue_management_thread(self):
+        # When the executor gets lost, the weakref callback will wake up
+        # the queue management thread.
+
+        def weakref_cb(_, q=self._result_queue):
+            q.put(None)
+
+        if self._queue_management_thread is None:
+            # Start the processes so that their sentinel are known.
+            self._initialize_actor()
+            self._queue_management_thread = threading.Thread(
+                    target=_queue_management_worker,
+                    args=(weakref.ref(self, weakref_cb),
+                          self._manager,
+                          self._pending_work_items,
+                          self._work_ids,
+                          self._call_queue,
+                          self._result_queue))
+            self._queue_management_thread.daemon = True
+            self._queue_management_thread.start()
+            # use structures already in futures as much as possible
+            process._threads_queues[self._queue_management_thread] = self._result_queue
+
+    def _initialize_actor(self, *args, **kwargs):
+        if self._manager is None:
+            assert self._did_initialize is False, 'only initialize actor once'
+            self._did_initialize = True
+            # We only maintain one thread process for an actor
+            self._manager = multiprocessing.Process(
+                    target=_process_actor_eventloop,
+                    args=(self._call_queue,
+                          self._result_queue, self._ActorClass) + args,
+                    kwargs=kwargs)
+            self._manager.start()
 
     def shutdown(self, wait=True):
         with self._shutdown_lock:
@@ -275,90 +292,17 @@ class ProcessActorExecutor(_base.Executor):
         # To reduce the risk of opening too many files, remove references to
         # objects that use file descriptors.
         self._queue_management_thread = None
-        self._task_queue = None
+        self._call_queue = None
         self._result_queue = None
-        self._manager_proc = None
+        self._manager = None
+    shutdown.__doc__ = _base.Executor.shutdown.__doc__
 
 
-class Actor(object):
-    """
-    Base actor class.
-
-    Actors receive messages, which are arbitrary objects from their managing
-    executor.
-
-    """
+class ProcessActor(_base_actor.Actor):
 
     @classmethod
-    def executor(cls):
-        return ProcessActorExecutor(cls)
+    def executor(cls, *args, **kwargs):
+        return ProcessActorExecutor(cls, *args, **kwargs)
+    # executor.__doc__ = _base_actor.Actor.executor.__doc___
 
-    def handle(self, message):
-        raise NotImplementedError('must implement message handler')
-
-
-class TestActor(Actor):
-    """
-    An actor is given messages from its manager and performs actions in a
-    single thread. Its state is private and threadsafe.
-    """
-    def __init__(actor):
-        actor.state = {}
-
-    def handle(actor, message):
-        if not isinstance(message, dict):
-            raise ValueError('Commands must be passed in a message dict')
-        message = message.copy()
-        action = message.pop('action', None)
-        if action is None:
-            raise ValueError('message must have an action item')
-        if action == 'hello world':
-            content = 'hello world'
-            return content
-        elif action == 'wait':
-            import time
-            time.wait(message.get('time', 0))
-            return 'finished'
-        elif action == 'debug':
-            return actor
-        elif action == 'start':
-            actor.state['a'] = 3
-            return 'started'
-        elif action == 'add':
-            for i in range(10000000):
-                actor.state['a'] += 1
-            return 'added', actor.state['a']
-        else:
-            raise ValueError('Unknown action=%r' % (action,))
-
-
-def test():
-    # from actor2 import *
-    # from actor2 import _add_call_item_to_queue, _queue_management_worker
-
-    def done_callback(result):
-        print('result = %r' % (result,))
-        print('DOING DONE CALLBACK')
-
-    print('Starting Test')
-    executor = TestActor.executor()
-    print('About to send messages')
-
-    f1 = executor.post({'action': 'hello world'})
-    print(f1.result())
-
-    f2 = executor.post({'action': 'start'})
-    print(f2.result())
-
-    f3 = executor.post({'action': 'add'})
-    print(f3.result())
-
-    f4 = executor.post({'action': 'wait', 'time': 0})
-    f4.add_done_callback(done_callback)
-
-    print(f4.result())
-
-    print('Test completed')
-
-# if __name__ == '__main__':
-#     test()
+# ProcessActor.__doc__ = _base_actor.Actor.__doc___

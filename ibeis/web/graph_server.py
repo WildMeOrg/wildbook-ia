@@ -4,7 +4,7 @@ import utool as ut
 import random
 import time
 import uuid
-from ibeis.web import actor_futures
+from ibeis.web import futures_utils
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -15,7 +15,7 @@ def ut_to_json_encode(dict_):
     return dict_
 
 
-class GraphActor(actor_futures.Actor):
+class GraphActor(futures_utils.ProcessActor):
     """
 
     Doctest:
