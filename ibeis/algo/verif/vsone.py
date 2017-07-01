@@ -1614,7 +1614,12 @@ class Deployer(object):
     #     },
     #     'zebra_grevys': {},
     # }
+
     published = {
+        'zebra_grevys': {
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',
+            'photobomb_state': 'vsone.zebra_grevys.photobomb_state.RF.131.thwzdtnkjcwjqeve.cPkl',
+        },
         'zebra_plains': {
             'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
         },
@@ -1701,6 +1706,15 @@ class Deployer(object):
     def find_latest_remote(self):
         """
         Used to update the published dict
+
+        CommandLine:
+            python -m ibeis.algo.verif.vsone find_latest_remote
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> self = Deployer()
+            >>> task_clf_names = self.find_latest_remote()
         """
         base_url = 'https://{remote}/public/models/pairclf'.format(
             **self.publish_info)

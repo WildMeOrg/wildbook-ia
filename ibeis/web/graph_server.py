@@ -4,8 +4,7 @@ import utool as ut
 import random
 import time
 import uuid
-import multiprocessing
-import collections
+from ibeis.web import actor_futures
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -16,57 +15,7 @@ def ut_to_json_encode(dict_):
     return dict_
 
 
-class GraphServer(ut.KillableProcess):
-
-    def __init__(self, task_queue, result_queue):
-        super(GraphServer, self).__init__()
-        self.task_queue = task_queue
-        self.result_queue = result_queue
-
-    def run(self):
-        """ main loop """
-        terminate = False
-
-        # Create GraphActor in separate process and send messages to it
-        actor = GraphActor()
-
-        while not terminate:
-            message = self.task_queue.get()
-            if True:
-                print('self.name, message = {}, {}'.format(self.name, message))
-            try:
-                if message is StopIteration:
-                    content = 'shutdown'
-                    terminate = True
-                else:
-                    # TODO: Maybe we can make a Futures object that will store
-                    # the results of this message instead of using the results
-                    # queue
-                    content = actor.handle(message)
-            except Exception as ex:
-                print('Error handling message')
-                status = 'error'
-                content = ut.formatex(ex, tb=True)
-                content = ut.strip_ansi(content)
-            else:
-                status = 'success'
-
-            # Send back result
-            response = {
-                'status': status,
-                'content': content
-            }
-            if True:
-                print('GraphServer Task Done')
-                print('\tself.name = {}'.format(self.name))
-                print('\tmessage   = {}'.format(message))
-                print('\tstatus    = {}'.format(status))
-                print('\tcontent   = {}'.format(content))
-            self.task_queue.task_done()
-            self.result_queue.put(response)
-
-
-class GraphActor(object):
+class GraphActor(actor_futures.Actor):
     """
 
     Doctest:
@@ -240,8 +189,8 @@ class GraphClient(object):
         >>> client = GraphClient(autoinit=True)
         >>> # Start the GraphActor in another proc
         >>> payload = client._test_start_payload()
-        >>> result = client.get(payload)
-        >>> user_request = result['content']['user_request']
+        >>> f1 = client.post(payload)
+        >>> user_request = f1.result()['user_request']
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
         >>> user_resp_payload = {
@@ -257,29 +206,19 @@ class GraphClient(object):
         >>>     'timestamp_c2': 3,
         >>>     'timestamp': 4,
         >>> }
-        >>> result = client.get(user_resp_payload)
-        >>>
-        >>> content = actor.handle(user_resp_payload)
+        >>> f2 = client.post(user_resp_payload)
+        >>> f2.result()
         >>> # Debug by getting the actor over a mp.Pipe
-        >>> result = client.get({'action': 'debug'})
-        >>> actor = result['content']
+        >>> f3 = client.post({'action': 'debug'})
+        >>> actor = f3.result()
         >>> actor.infr.dump_logs()
-        >>> #print(client.get({'action': 'logs'})['content'])
-        >>> #actor = result['content']
+        >>> #print(client.post({'action': 'logs'}).result())
 
     """
     def __init__(client, autoinit=False, callbacks={}):
         client.nonce = uuid.uuid4()
-
-        client.task_queue = None
-        client.result_queue = None
-        client.server = None
-
         client.review_dict = {}
         client.review_vip = None
-
-        client.result_history = collections.deque(maxlen=1000)
-
         client.callbacks = callbacks
         if autoinit:
             client.initialize()
@@ -302,38 +241,11 @@ class GraphClient(object):
         }
         return payload
 
-    def __del__(client):
-        if client.server and client.server.is_alive():
-            client.get(StopIteration)
-    #     client.task_queue = multiprocessing.JoinableQueue()
-    #     client.result_queue = multiprocessing.Queue()
-    #     client.server = GraphServer(client.task_queue, client.result_queue)
-
     def initialize(client):
-        client.task_queue = multiprocessing.JoinableQueue()
-        client.result_queue = multiprocessing.Queue()
-        client.server = GraphServer(client.task_queue, client.result_queue)
-        client.server.start()
+        client.executor = GraphActor.executor()
 
     def post(client, payload):
-        client.task_queue.put(payload)
-
-    def get(client, payload):
-        # Exhaust any existing results
-        list(client.results())
-        # Post the command
-        client.post(payload)
-        # Wait for a response
-        result = client.wait_for_result()
-        return result
-
-    def wait_for_result(client):
-        wait = 0
-        while True:
-            for result in client.results():
-                return result
-            time.sleep(wait)
-            wait = max(1, wait + .01)
+        return client.executor.post(payload)
 
     def update(client, data_list):
         client.review_dict = []
@@ -359,12 +271,6 @@ class GraphClient(object):
         priority, data_dict = client.review_dict[edge]
         return edge, priority, data_dict
 
-    def results(client):
-        while not client.result_queue.empty():
-            item = client.result_queue.get()
-            client.result_history.append(item)
-            yield item
-
 
 if __name__ == '__main__':
     """
@@ -373,6 +279,7 @@ if __name__ == '__main__':
         python -m ibeis.web.job_engine --allexamples
         python -m ibeis.web.job_engine --allexamples --noface --nosrc
     """
+    import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
