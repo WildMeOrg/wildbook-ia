@@ -183,6 +183,9 @@ class GraphActor(futures_utils.ProcessActor):
 @ut.reloadable_class
 class GraphClient(object):
     """
+    CommandLine:
+        python -m ibeis.web.graph_server GraphClient
+
     Example:
         >>> from ibeis.web.graph_server import *
         >>> import ibeis
