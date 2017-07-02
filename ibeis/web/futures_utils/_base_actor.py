@@ -1,3 +1,17 @@
+"""
+TODO:
+    Actors need to be able to reference each other.
+        * this means we need to be able to pass a reference
+          that can post a message to an actor's executor.
+    Actors need to be able to create more actors.
+        * This should be fairly simple if the first task is complete.
+
+    Idea:
+        maintain a list of weakreferences to all actor executors ever created
+        in a thread. Actors must have a way of interacting with this thread.
+
+"""
+
 from concurrent.futures import _base
 
 
