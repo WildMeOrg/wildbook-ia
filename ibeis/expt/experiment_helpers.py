@@ -49,6 +49,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     CommandLine:
         python -m ibeis get_pipecfg_list:0
         python -m ibeis get_pipecfg_list:1 --db humpbacks
+        python -m ibeis get_pipecfg_list:2
 
     Example:
         >>> # ENABLE_DOCTEST

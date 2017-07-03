@@ -206,7 +206,6 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         func = mod.names_dict['testdata_pipecfg'][0].parent
         docstrings.find_return_types(script._evaluator, func)
 
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA

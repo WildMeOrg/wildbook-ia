@@ -4975,11 +4975,11 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         ibs.print_annotconfig_stats(qaid_list, daid_list)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a default
-        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db testdb1  -a default
-        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
-        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
-        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
+        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a default
+        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db testdb1  -a default
+        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a controlled
+        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
+        python -m ibeis.other.ibsfuncs get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4989,8 +4989,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(
         ...    defaultdb='testdb1', a='default:qsize=3')
         >>> stat_dict = get_annotconfig_stats(ibs, qaids, daids, **kwargs)
-        >>> stats_str2 = ut.repr2(stat_dict, strvals=True,
-        >>>                          newlines=True, explicit=False, nobraces=False)
+        >>> stats_str2 = ut.repr2(stat_dict, si=True, nl=100, nobr=False)
         >>> print(stats_str2)
     """
     import numpy as np

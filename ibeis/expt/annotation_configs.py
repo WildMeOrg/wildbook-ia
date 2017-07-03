@@ -358,7 +358,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         combined (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-print_acfg_list --show
+        python -m ibeis.expt.annotation_configs --exec-print_acfg_list
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -371,9 +371,6 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         >>> combined = False
         >>> result = print_acfg_list(acfg_list, expanded_aids_list, ibs, combined)
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
     """
     _tup = compress_acfg_list_for_printing(acfg_list)
     nonvaried_compressed_dict, varied_compressed_dict_list = _tup
@@ -400,7 +397,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
             ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
                           (acfgx + 1, len(acfg_list), title), 'lightgray')
             print('acfg = ' + ut.repr2(varied_compressed_dict_list[acfgx],
-                                          strvals=True))
+                                       si=True))
 
         if expanded_aids_list is not None:
             qaids, daids = expanded_aids_list[acfgx]
@@ -415,9 +412,8 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                     hashids = (stats_['qaid_stats']['qhashid'],
                                stats_['daid_stats']['dhashid'])
                     hashid_list.append(hashids)
-                    stats_str2 = ut.repr2(stats_, strvals=True,
-                                             newlines=True, explicit=False,
-                                             nobraces=False)
+                    stats_str2 = ut.repr2(stats_, si=True, nl=True,
+                                          explicit=False, nobraces=False)
                     if not only_summary:
                         print('annot_config_stats = ' + stats_str2)
             else:
@@ -425,7 +421,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                 dupdict = varied_compressed_dict_list[dupindex[0]]
                 if not only_summary:
                     print('DUPLICATE of index %r' % (dupindex,))
-                    print('DUP OF acfg = ' + ut.repr2(dupdict, strvals=True))
+                    print('DUP OF acfg = ' + ut.repr2(dupdict, si=True))
     print('hashid summary = ' + ut.repr2(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 

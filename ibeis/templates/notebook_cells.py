@@ -124,7 +124,6 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
     ibeis.expt.harness.USE_BIG_TEST_CACHE = True
     ibs = ibeis.opendb(dbdir=dbdir)
 
-
     if False:
         # Set to True to see some of the available LNBNN config settings
         print(ut.repr3(ibs.new_query_request([], []).qparams.hack_lnbnn_config_trail()))
