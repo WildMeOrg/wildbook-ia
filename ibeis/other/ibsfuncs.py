@@ -4438,28 +4438,10 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
 
 @register_ibs_method
 def group_annots_by_prop(ibs, aids, getter_func):
-    # RECTIFY WITH make_property_stats_dict
     # Make a dictionary that maps props into a dictionary of names to aids
     annot_prop_list = getter_func(aids)
     prop_to_aids = ut.group_items(aids, annot_prop_list)
     return prop_to_aids
-
-
-@register_ibs_method
-def make_property_stats_dict(ibs, aid_list, prop_getter, key_order=None):
-    prop_to_aids = group_annots_by_prop(ibs, aid_list, prop_getter)
-    if key_order is None:
-        key_order = list(prop_to_aids.keys())
-    # assert set(key_order) >= set(annot_prop_list), (
-    #     'bad keys: ' + str(set(annot_prop_list) - set(key_order)))
-    prop_to_aids = ut.order_dict_by(prop_to_aids, key_order)
-    prop_to_num_annots = ut.map_vals(len, prop_to_aids)
-    # prop2_nAnnots = ut.odict([
-    #     (key, len(prop2_aids.get(key, []))) for key in key_order])
-    # Filter 0's
-    prop_to_num_annots = ut.odict([
-        (key, val) for key, val in prop_to_num_annots.items() if val != 0])
-    return prop_to_num_annots
 
 
 @register_ibs_method
@@ -4754,24 +4736,26 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
     #                                 use_nan=True, use_median=True))]
 
     if kwargs.pop('per_qual', False or forceall):
-        key_order = list(const.QUALITY_TEXT_TO_INT.keys())
-        prop_getter = ibs.get_annot_quality_texts
-        qualtext2_nAnnots = ibs.make_property_stats_dict(aids, prop_getter, key_order)
+        qualtext2_nAnnots = ut.order_dict_by(
+            ut.map_vals(len, annots.group_items(annots.quality_texts)),
+            list(ibs.const.QUALITY_TEXT_TO_INT.keys())
+        )
         keyval_list += [(prefix + 'per_qual',
                          statwrap(qualtext2_nAnnots))]
 
     #if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True or forceall):
-        key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-        prop_getter = ibs.get_annot_yaw_texts
-        yawtext2_nAnnots = ibs.make_property_stats_dict(aids, prop_getter, key_order)
+        yawtext2_nAnnots = ut.order_dict_by(
+            ut.map_vals(len, annots.group_items(annots.yaw_texts)),
+            list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        )
         keyval_list += [(prefix + 'per_vp',
                          statwrap(yawtext2_nAnnots))]
 
     if kwargs.pop('per_multiple', True or forceall):
-        keyval_list += [(prefix + 'per_multiple',
-                         statwrap(
-                             ibs.make_property_stats_dict(aids, ibs.get_annot_multiple)))]
+        keyval_list += [
+            (prefix + 'per_multiple', statwrap(
+                ut.map_vals(len, annots.group_items(annots.multiple))))]
 
     # information about overlapping viewpoints
     if kwargs.pop('per_name_vpedge', False or forceall):
@@ -4989,7 +4973,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(
         ...    defaultdb='testdb1', a='default:qsize=3')
         >>> stat_dict = get_annotconfig_stats(ibs, qaids, daids, **kwargs)
-        >>> stats_str2 = ut.repr2(stat_dict, si=True, nl=100, nobr=False)
+        >>> stats_str2 = ut.repr2(stat_dict, si=True, nl=True, nobr=False)
         >>> print(stats_str2)
     """
     import numpy as np

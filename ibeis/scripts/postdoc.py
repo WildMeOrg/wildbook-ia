@@ -98,7 +98,7 @@ def entropy_potential(infr, u, v, decision):
         neg_redun_after = neg_redun_set1.union(neg_redun_set2) - {nid1, nid2}
         n_neg_need_after = (n_ccs - 2) - len(neg_redun_after)
 
-        neg_entropy = n_neg_need_before - n_neg_need_after
+        neg_entropy = n_neg_need_before - n_neg_need_after  # NOQA
 
 
 @ut.reloadable_class
@@ -150,7 +150,7 @@ class GraphExpt(DBInputs):
         python -m ibeis Chap5._setup
 
         Example:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> #self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_Master1')
             >>> #self = Chap5('PZ_MTEST')
@@ -199,7 +199,7 @@ class GraphExpt(DBInputs):
             python -m ibeis Chap5.measure graphsim PZ_Master1
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> self = Chap5('GZ_Master1')
         """
         import ibeis
@@ -254,7 +254,7 @@ class VerifierExpt(DBInputs):
     Collect data from experiments to visualize
 
     Ignore:
-        >>> from ibeis.scripts.thesis import *
+        >>> from ibeis.scripts.postdoc import *
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
@@ -280,17 +280,20 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
 
         Example:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = VerifierExpt(dbname)
             >>> self._setup()
 
         Ignore:
-            from ibeis.scripts.thesis import *
+            from ibeis.scripts.postdoc import *
             self = VerifierExpt('PZ_Master1')
 
-            from ibeis.scripts.thesis import *
+            from ibeis.scripts.postdoc import *
             self = VerifierExpt('PZ_PB_RF_TRAIN')
+
+            from ibeis.scripts.postdoc import *
+            self = VerifierExpt('LF_ALL')
 
             self.ibs.print_annot_stats(aids, prefix='P')
         """
@@ -376,7 +379,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.measure_all --db GZ_Master1
 
         Example:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -443,7 +446,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.draw_all --db PZ_Master1
 
         Example:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
             >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
             >>> for dbname in dbnames:
@@ -490,7 +493,7 @@ class VerifierExpt(DBInputs):
 
     def measure_prune(self):
         """
-        >>> from ibeis.scripts.thesis import *
+        >>> from ibeis.scripts.postdoc import *
         >>> self = VerifierExpt('GZ_Master1')
         >>> self = VerifierExpt('PZ_Master1')
         >>> self = VerifierExpt('PZ_MTEST')
@@ -562,7 +565,7 @@ class VerifierExpt(DBInputs):
 
     def measure_rerank(self):
         """
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
             >>> self = VerifierExpt(defaultdb)
@@ -665,7 +668,7 @@ class VerifierExpt(DBInputs):
         Ignore:
             >>> task_key = 'match_state'
             >>> task_key = 'photobomb_state'
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('GZ_Master1')
             >>> self._setup()
         """
@@ -834,7 +837,7 @@ class VerifierExpt(DBInputs):
 
 
 
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('PZ_MTEST')
             >>> task_key = 'match_state'
             >>> self.draw_hard_cases(task_key)
@@ -997,7 +1000,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.draw metrics PZ_Master1,GZ_Master1 photobomb_state,match_state
 
         Ignore:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('PZ_Master1')
             >>> task_key = 'match_state'
         """
@@ -1170,7 +1173,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.draw prune GZ_Master1,PZ_Master1
             python -m ibeis VerifierExpt.draw prune PZ_Master1
 
-        >>> from ibeis.scripts.thesis import *
+        >>> from ibeis.scripts.postdoc import *
         >>> self = VerifierExpt('PZ_Master1')
         >>> self = VerifierExpt('GZ_Master1')
         >>> self = VerifierExpt('PZ_MTEST')
@@ -1582,7 +1585,7 @@ class VerifierExpt(DBInputs):
     def custom_single_hard_case(self):
         """
         Example:
-            >>> from ibeis.scripts.thesis import *
+            >>> from ibeis.scripts.postdoc import *
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> #defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_MTEST'

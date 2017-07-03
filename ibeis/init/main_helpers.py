@@ -460,6 +460,8 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
     import numpy as np
     import datetime
+    if len(aids) == 0:
+        return
     annots = ibs.annots(sorted(set(aids)))
     thresh_sec = datetime.timedelta(**kwargs).total_seconds()
     # thresh_sec = datetime.timedelta(minutes=30).seconds

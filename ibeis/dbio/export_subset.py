@@ -53,7 +53,9 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     CommandLine:
         python -m ibeis --test-merge_databases
 
-        python -m ibeis merge_databases:0
+        python -m ibeis merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL
+        python -m ibeis merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL
+
         python -m ibeis merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
         python -m ibeis merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
 

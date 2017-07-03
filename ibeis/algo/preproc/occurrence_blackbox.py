@@ -340,8 +340,8 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         thresh_sec (float) : threshold in seconds
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> from occurrence_blackbox import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
         >>> # Nx3 matrix where each columns are (time, lat, lon)
@@ -362,7 +362,30 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)
         >>> result = ('X_labels = %r' % (X_labels,))
         >>> print(result)
-        X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)
+        X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> # Nx1 matrix denoting groundtruth locations (for testing)
+        >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
+        >>> # Nx3 matrix where each columns are (time, lat, lon)
+        >>> X_data = np.array([
+        >>>     (np.nan, 42.657414, -73.774448),  # Park1
+        >>>     (0, 42.658333, -73.770993),  # Park2
+        >>>     (np.nan, np.nan, np.nan),  # Park3
+        >>>     (np.nan, np.nan, np.nan),  # Park3.5
+        >>>     (0, 42.655039, -73.769048),  # Park4
+        >>>     (0, 42.657872, -73.764148),  # Park5
+        >>> ])
+        >>> posixtimes = X_data.T[0]
+        >>> latlons = X_data.T[1:3].T
+        >>> thresh_sec = 250  # seconds
+        >>> km_per_sec = KM_PER_SEC
+        >>> X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)
+        >>> result = ('X_labels = %r' % (X_labels,))
+        >>> print(result)
+        X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])
     """
     X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec,
                                               'seconds')
@@ -387,6 +410,11 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
 
 
 def _recombine_labels(chunk_labels):
+    """
+    Ensure each group has different indices
+
+    chunk_labels = grouped_labels
+    """
     import utool as ut
     labels = ut.take_column(chunk_labels, 0)
     idxs = ut.take_column(chunk_labels, 1)
@@ -429,7 +457,7 @@ def _cluster_chunk(X_data, dist_func, thresh_sec):
     if len(X_data) == 0:
         X_labels = np.empty(0, dtype=np.int)
     elif len(X_data) == 1:
-        X_labels = np.zeros(1, dtype=np.int)
+        X_labels = np.ones(1, dtype=np.int)
     else:
         # Compute pairwise distances between all inputs
         condenced_dist_mat = distance.pdist(X_data, dist_func)

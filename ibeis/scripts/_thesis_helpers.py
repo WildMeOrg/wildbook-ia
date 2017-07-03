@@ -258,6 +258,8 @@ class DBInputs(object):
         ibs = ibeis.opendb(dbdir=self.dbdir)
         if ibs.dbname.startswith('PZ_PB_RF_TRAIN'):
             aids = ibs.get_valid_aids()
+        elif ibs.dbname.startswith('LF_ALL'):
+            aids = ibs.get_valid_aids()
         elif ibs.dbname.startswith('PZ_Master'):
             # PZ_Master is too big to run in full.  Select a smaller sample.
             # Be sure to include photobomb and incomparable cases.

@@ -413,8 +413,8 @@ def localize_images(ibs, gid_list_=None):
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
-    isnone_list = [gid is None for gid in gid_list_]
-    gid_list = ut.unique_ordered(ut.filterfalse_items(gid_list_, isnone_list))
+    isvalid_list = [gid is not None for gid in gid_list_]
+    gid_list = ut.unique(ut.compress(gid_list_, isvalid_list))
 
     #gpath_list = ibs.get_image_paths(gid_list)
     uri_list = ibs.get_image_uris(gid_list)

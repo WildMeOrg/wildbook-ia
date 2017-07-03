@@ -468,8 +468,6 @@ def split_analysis(ibs):
         infr.graph.add_edges_from(aid_pairs)
 
         if True:
-            #import utool
-            #utool.embed()
             edge_sample_size = 250
             pop_nids = ut.unique(ibs.get_annot_nids(ut.unique(ut.flatten(aid_pairs))))
             sorted_pairs = ut.sortedby(aid_pairs, scores)[::-1][0:edge_sample_size]
@@ -1041,6 +1039,8 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
 
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db LF_Bajo_bonito -a default
+
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA --loadbackup=0
@@ -1140,11 +1140,13 @@ def get_dbinfo(ibs, verbose=True,
         )
         valid_gids = list(set(ibs.get_annot_gids(aid_list)))
     #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
+    valid_images = ibs.images(valid_gids)
+    valid_annots = ibs.annots(valid_aids)
 
     # Image info
     if verbose:
         print('Checking Image Info')
-    gx2_aids = ibs.get_image_aids(valid_gids)
+    gx2_aids = valid_images.aids
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
@@ -1153,7 +1155,7 @@ def get_dbinfo(ibs, verbose=True,
 
     gx2_nAnnots = np.array(list(map(len, gx2_aids)))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
-    gx2_nAnnots_stats  = ut.get_stats_str(gx2_nAnnots, newlines=True, use_median=True)
+    gx2_nAnnots_stats = ut.repr4(ut.get_stats(gx2_nAnnots, use_median=True), nl=0, precision=2, si=True)
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
@@ -1236,10 +1238,10 @@ def get_dbinfo(ibs, verbose=True,
     #
     if verbose:
         print('Checking Annot Species')
-    unknown_aids = ut.compress(valid_aids, ibs.is_aid_unknown(valid_aids))
-    species_list = ibs.get_annot_species_texts(valid_aids)
-    species2_aids = ut.group_items(valid_aids, species_list)
-    species2_nAids = {key: len(val) for key, val in species2_aids.items()}
+    unknown_annots = valid_annots.compress(ibs.is_aid_unknown(valid_annots))
+    species_list = valid_annots.species_texts
+    species2_annots = valid_annots.group_items(valid_annots.species_texts)
+    species2_nAids = {key: len(val) for key, val in species2_annots.items()}
 
     if verbose:
         print('Checking Multiton/Singleton Species')
@@ -1313,17 +1315,16 @@ def get_dbinfo(ibs, verbose=True,
     if verbose:
         print('Building Stats String')
 
-    multiton_stats = ut.get_stats_str(multiton_nid2_nannots, newlines=True, use_median=True)
+    multiton_stats = ut.repr3(ut.get_stats(multiton_nid2_nannots, use_median=True), nl=0, precision=2, si=True)
 
     # Time stats
-    unixtime_list = ibs.get_image_unixtime(valid_gids)
-    unixtime_list = ut.list_replace(unixtime_list, -1, float('nan'))
+    unixtime_list = valid_images.unixtime2
     #valid_unixtime_list = [time for time in unixtime_list if time != -1]
     #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
     if ut.get_argflag('--hackshow-unixtime'):
         show_time_distributions(ibs, unixtime_list)
         ut.show_if_requested()
-    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True, full=True)
+    unixtime_statstr = ut.repr3(ut.get_timestats_dict(unixtime_list, full=True), si=True)
 
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
@@ -1361,15 +1362,19 @@ def get_dbinfo(ibs, verbose=True,
         return sextext2_nAnnots
 
     def get_annot_qual_stats(ibs, aid_list):
-        key_order = list(const.QUALITY_TEXT_TO_INT.keys())
-        prop_getter = ibs.get_annot_quality_texts
-        qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+        annots = ibs.annots(aid_list)
+        qualtext2_nAnnots = ut.order_dict_by(
+            ut.map_vals(len, annots.group_items(annots.quality_texts)),
+            list(ibs.const.QUALITY_TEXT_TO_INT.keys())
+        )
         return qualtext2_nAnnots
 
     def get_annot_yaw_stats(ibs, aid_list):
-        key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-        prop_getter = ibs.get_annot_yaw_texts
-        yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+        annots = ibs.annots(aid_list)
+        yawtext2_nAnnots = ut.order_dict_by(
+            ut.map_vals(len, annots.group_items(annots.yaw_texts)),
+            list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        )
         return yawtext2_nAnnots
 
     if verbose:
@@ -1409,7 +1414,7 @@ def get_dbinfo(ibs, verbose=True,
 
     num_singleton_annots = len(singleton_aids)
     num_multiton_annots = len(multiton_aids)
-    num_unknown_annots = len(unknown_aids)
+    num_unknown_annots = len(unknown_annots)
     num_annots = len(valid_aids)
 
     if with_bytes:
@@ -1424,7 +1429,7 @@ def get_dbinfo(ibs, verbose=True,
         if verbose:
             print('Check asserts')
         try:
-            bad_aids = np.intersect1d(multiton_aids, unknown_aids)
+            bad_aids = np.intersect1d(multiton_aids, unknown_annots)
             _num_names_total_check = num_names_singleton + num_names_unassociated + num_names_multiton
             _num_annots_total_check = num_unknown_annots + num_singleton_annots + num_multiton_annots
             assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
@@ -1457,7 +1462,7 @@ def get_dbinfo(ibs, verbose=True,
         return ut.align(str_, ':', ' :')
 
     def align_dict2(dict_):
-        str_ = ut.repr2(dict_)
+        str_ = ut.repr2(dict_, si=True)
         return align2(str_)
 
     header_block_lines = (
@@ -1833,7 +1838,7 @@ def latex_dbstats(ibs_list, **kwargs):
         row_ = ut.dict_take(dbinfo_locals, col_keys)
         dbname = ibs.get_dbname_alias()
         row_lbls.append(dbname)
-        multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'], use_median=True)
+        multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'], use_median=True, nl=1)
         stat_rows = ut.dict_take(multiton_annot_stats, stat_col_lbls)
         if SINGLE_TABLE:
             row_.extend(stat_rows)
@@ -1965,7 +1970,7 @@ def tst_name_consistency(ibs):
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
 
     """
-    from ibeis import ibsfuncs
+    from ibeis.other import ibsfuncs
     import utool as ut
     max_ = -1
     #max_ = 10
