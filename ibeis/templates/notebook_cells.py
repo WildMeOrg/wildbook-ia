@@ -128,6 +128,11 @@ db_init = ('# Database Configuration (Code)', ut.codeblock(
         # Set to True to see some of the available LNBNN config settings
         print(ut.repr3(ibs.new_query_request([], []).qparams.hack_lnbnn_config_trail()))
         print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
+
+    if False:
+        # Valid Annot Sampling Params
+        from ibeis.expt import annotation_configs
+        print(ut.repr3(annotation_configs.DEFAULT_AIDCFG))
     # ENDBLOCK
     '''))
 
