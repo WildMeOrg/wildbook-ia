@@ -4,7 +4,8 @@ import utool as ut
 import random
 import time
 import uuid
-from ibeis.web import futures_utils
+# from ibeis.web import futures_utils as futures_actors
+import futures_actors
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -15,8 +16,11 @@ def ut_to_json_encode(dict_):
     return dict_
 
 
-class GraphActor(futures_utils.ProcessActor):
+class GraphActor(futures_actors.ProcessActor):
     """
+
+    CommandLine:
+        python -m ibeis.web.graph_server GraphActor
 
     Doctest:
         >>> from ibeis.web.graph_server import *
@@ -107,6 +111,8 @@ class GraphActor(futures_utils.ProcessActor):
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.load_published()
+        import utool
+        utool.embed()
 
         actor.infr.apply_nondynamic_update()
 

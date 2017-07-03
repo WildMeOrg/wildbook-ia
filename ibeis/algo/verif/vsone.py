@@ -1633,6 +1633,8 @@ class Deployer(object):
         """
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> self = Deployer()
+            >>> species = 'zebra_plains'
+            >>> task_key = 'match_state'
         """
 
         base_url = 'https://{remote}/public/models/pairclf'.format(
@@ -1674,6 +1676,109 @@ class Deployer(object):
         return verif
 
     def _make_verifier(self, ibs, deploy_fpath, task_key):
+        """
+        Ignore:
+            # py3 side
+            clf = deploy_info['clf']
+            a = clf.estimators_[0]
+            b = a.tree_
+            ut.save_data('_tree.pkl', b)
+            c = b.__getstate__()
+            d = c['nodes']
+            ut.save_data('_nodes.pkl', d)
+
+            a.estimators_[0].tree_.__getstate__()['nodes']
+
+
+        Ignore:
+            # py2 side
+            ut.load_data('_tree.pkl')
+            ut.load_data('_nodes.pkl')
+
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> params = dict(sample_method='random')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
+            >>> pblm.setup(with_simple=False)
+            >>> task_key = pblm.primary_task_key
+            >>> self = Deployer(dpath='.', pblm=pblm)
+            >>> deploy_info = self.deploy()
+
+            a = deploy_info['clf']
+            d = a.estimators_[0].tree_.__getstate__()['nodes']
+
+
+       Ignore:
+            I'm having a similar issue when trying to use python2 to load a
+            sklearn RandomForestClassifier that I saved in python3. I created a
+            MWE.
+
+            In python 3
+
+                import numpy as np
+                import pickle
+                data = np.array(
+                    [( 1, 26, 69,   5.32214928e+00,  0.69562945, 563,  908.,  1),
+                     ( 2,  7, 62,   1.74883020e+00,  0.33854101, 483,  780.,  1),
+                     (-1, -1, -2,  -2.00000000e+00,  0.76420451,   7,    9., -2),
+                     (-1, -1, -2,  -2.00000000e+00,  0.        ,  62,  106., -2)],
+                  dtype=[('left_child', '<i8'), ('right_child', '<i8'),
+                  ('feature', '<i8'), ('threshold', '<f8'), ('impurity',
+                  '<f8'), ('n_node_samples', '<i8'),
+                  ('weighted_n_node_samples', '<f8'), ('missing_direction',
+                  '<i8')])
+
+                # Save using pickle
+                with open('data.pkl', 'wb') as file_:
+                    # Use protocol 2 to support python2 and 3
+                    pickle.dump(data, file_, protocol=2)
+
+                # Save with numpy directly
+                np.save('data.npy', data)
+
+            Then in python 2
+                # Load with pickle
+                import pickle
+                with open('data.pkl', 'rb') as file_:
+                    data = pickle.load(file_)
+                # This results in `ValueError: non-string names in Numpy dtype unpickling`
+
+                # Load with numpy directly
+                data = np.load('data.npy')
+                # This works
+
+            However this still doesn't make sklearn play nice between 2 and 3.
+            So, how can we get pickle to load this numpy object correctly?
+            Here is the fix suggested in the link:
+
+                from lib2to3.fixes.fix_imports import MAPPING
+                import sys
+                import pickle
+
+                # MAPPING maps Python 2 names to Python 3 names. We want this in reverse.
+                REVERSE_MAPPING = {}
+                for key, val in MAPPING.items():
+                    REVERSE_MAPPING[val] = key
+
+                # We can override the Unpickler and loads
+                class Python_3_Unpickler(pickle.Unpickler):
+                    def find_class(self, module, name):
+                        if module in REVERSE_MAPPING:
+                            module = REVERSE_MAPPING[module]
+                        __import__(module)
+                        mod = sys.modules[module]
+                        klass = getattr(mod, name)
+                        return klass
+
+                with open('data.pkl', 'rb') as file_:
+                    data = Python_3_Unpickler(file_).load()
+
+            This still doesn't work
+
+
+
+            https://stackoverflow.com/questions/41720952/unpickle-sklearn-tree-descisiontreeregressor-in-python-2-from-python3
+
+        """
         deploy_info = ut.load_data(deploy_fpath)
         verif = verifier.Verifier(ibs, deploy_info=deploy_info)
         if task_key is not None:

@@ -454,7 +454,7 @@ class IBEISIO(object):
         infr.print('read %d staged reviews' % (len(review_ids)), 2)
 
         from ibeis.control.manual_review_funcs import (
-            REVIEW_UUID,
+            # REVIEW_UUID,
             REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_EVIDENCE_DECISION,
             REVIEW_META_DECISION, REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
             REVIEW_TAGS, REVIEW_TIME_CLIENT_START, REVIEW_TIME_CLIENT_END,
@@ -463,7 +463,7 @@ class IBEISIO(object):
         add_review_alias = ut.odict([
             (REVIEW_AID1              , 'aid1'),
             (REVIEW_AID2              , 'aid2'),
-            (REVIEW_UUID              , 'uuid'),
+            # (REVIEW_UUID              , 'uuid'),
             (REVIEW_EVIDENCE_DECISION , 'evidence_decision'),
             (REVIEW_META_DECISION     , 'meta_decision'),
             (REVIEW_USER_IDENTITY     , 'user_id'),

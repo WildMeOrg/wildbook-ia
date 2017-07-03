@@ -299,10 +299,11 @@ class Feedback(object):
             feedback_item['num_reviews'] = len(vals)
             # if feedback_item['decision'] == 'unknown':
             #     continue
-            if feedback_item.keys() != attr_lists.keys():
-                set1 = set(feedback_item.keys())
-                set2 = set(attr_lists.keys())
+            set1 = set(feedback_item.keys())
+            set2 = set(attr_lists.keys())
+            if set1 != set2:
                 raise AssertionError(
+                    'Bad feedback keys: ' +
                     ut.repr2(ut.set_overlap_items(set1, set2, 'got', 'want'), nl=1)
                     # ut.repr2(sorted(feedback_item.keys()), sv=True) + ' ' +
                     # ut.repr2(sorted(attr_lists.keys()), sv=True)
