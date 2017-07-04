@@ -516,6 +516,15 @@ class IBEISController(BASE_CLASS):
         # ibs.db.dump()
         ibs._init_rowid_constants()
 
+    def _needs_backup(ibs):
+        needs_backup = not ut.get_argflag('--nobackup')
+        if ibs.get_dbname() == 'PZ_MTEST':
+            needs_backup = False
+        if dtool.sql_control.READ_ONLY:
+            needs_backup = False
+        print('needs_backup = %r' % (needs_backup,))
+        return needs_backup
+
     @profile
     def _init_sqldbcore(ibs, request_dbversion=None):
         """
@@ -550,7 +559,7 @@ class IBEISController(BASE_CLASS):
             print('backups = %r' % (backups,))
             sqldb_fpath = backups[backup_idx]
             print('CHOSE BACKUP sqldb_fpath = %r' % (sqldb_fpath,))
-        if backup_idx is None and not ut.get_argflag('--nobackup'):
+        if backup_idx is None and ibs._needs_backup():
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
                                                           ibs.sqldb_fname,
@@ -635,14 +644,7 @@ class IBEISController(BASE_CLASS):
             sqlstaging_fpath = backups[backup_idx]
             print('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
         # HACK
-        nobackup = ut.get_argflag('--nobackup-staging')
-        if ibs.get_dbname() == 'PZ_MTEST':
-            nobackup = True
-
-        if dtool.sql_control.READ_ONLY:
-            nobackup = True
-
-        if backup_idx is None and not nobackup:
+        if backup_idx is None and ibs._needs_backup():
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
                                                           ibs.sqlstaging_fname,
