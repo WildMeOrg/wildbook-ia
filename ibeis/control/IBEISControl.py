@@ -522,7 +522,6 @@ class IBEISController(BASE_CLASS):
             needs_backup = False
         if dtool.sql_control.READ_ONLY:
             needs_backup = False
-        print('needs_backup = %r' % (needs_backup,))
         return needs_backup
 
     @profile

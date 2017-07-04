@@ -583,7 +583,12 @@ class CONFIDENCE(object):
 
 @six.add_metaclass(_ConstHelper)
 class VIEW(object):
-    """ simplified viewpoint """
+    """
+    categorical viewpoint using the faces of a Rhombicuboctahedron
+
+    References:
+        https://en.wikipedia.org/wiki/Rhombicuboctahedron
+    """
     UNKNOWN = None
     R  = 1
     FR = 2
@@ -593,6 +598,26 @@ class VIEW(object):
     BL = 6
     B  = 7
     BR = 8
+
+    U   = 9
+    UF  = 10
+    UB  = 11
+    UL  = 12
+    UR  = 13
+    UFL = 14
+    UFR = 15
+    UBL = 16
+    UBR = 17
+
+    D   = 18
+    DF  = 19
+    DB  = 20
+    DL  = 21
+    DR  = 22
+    DFL = 23
+    DFR = 24
+    DBL = 25
+    DBR = 26
 
     INT_TO_CODE = ut.odict([
         (UNKNOWN, 'unknown'),
@@ -604,6 +629,27 @@ class VIEW(object):
         (BL, 'backleft'),
         (B,  'back'),
         (BR, 'backright'),
+
+        (U,    'up'),
+        (UF,   'upfront'),
+        (UB,   'upback'),
+        (UL,   'upleft'),
+        (UR,   'upright'),
+        (UFL,  'upfrontleft'),
+        (UFR,  'upfrontright'),
+        (UBL,  'upbackleft'),
+        (UBR,  'upbackright'),
+
+        (D,    'down'),
+        (DF,   'downfront'),
+        (DB,   'downback'),
+        (DL,   'downleft'),
+        (DR,   'downright'),
+        (DFL,  'downfrontleft'),
+        (DFR,  'downfrontright'),
+        (DBL,  'downbackleft'),
+        (DBR,  'downbackright'),
+
     ])
 
     INT_TO_NICE = ut.odict([
@@ -616,6 +662,26 @@ class VIEW(object):
         (BL, 'Back-Left'),
         (B,  'Back'),
         (BR, 'Back-Right'),
+
+        (U,    'Up'),
+        (UF,   'Up-Front'),
+        (UB,   'Up-Back'),
+        (UL,   'Up-Left'),
+        (UR,   'Up-Right'),
+        (UFL,  'Up-Front-Left'),
+        (UFR,  'Up-Front-Right'),
+        (UBL,  'Up-Back-Left'),
+        (UBR,  'Up-Back-Right'),
+
+        (D,    'Down'),
+        (DF,   'Down-Front'),
+        (DB,   'Down-Back'),
+        (DL,   'Down-Left'),
+        (DR,   'Down-Right'),
+        (DFL,  'Down-Front-Left'),
+        (DFR,  'Down-Front-Right'),
+        (DBL,  'Down-Back-Left'),
+        (DBR,  'Down-Back-Right'),
     ])
 
     CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)

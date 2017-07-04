@@ -682,9 +682,9 @@ def fix_annotmatch_pzmaster1():
 
     # pd.unique(annotmatch['annotmatch_tag_text'])
 
-    infr.reset_feedback()
-    infr.apply_feedback_edges()
-    infr.relabel_using_reviews()
+    # infr.reset_feedback()
+    # infr.apply_feedback_edges()
+    # infr.relabel_using_reviews()
 
 
 def remerge_subset():

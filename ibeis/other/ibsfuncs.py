@@ -596,29 +596,75 @@ def check_image_uuid_consistency(ibs, gid_list):
         python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> # Check for very large files
+        >>> # SCRIPT
         >>> import ibeis
+        >>> import utool as ut
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> gid_list_ = ibs.get_valid_gids()
-        >>> gpath_list_ = ibs.get_image_paths(gid_list_)
-        >>> bytes_list_ = [ut.get_file_nBytes(path) for path in gpath_list_]
-        >>> sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
-        >>> gpath_list = ut.take(gpath_list_, sortx)
-        >>> bytes_list = ut.take(bytes_list_, sortx)
-        >>> gid_list   = ut.take(gid_list_, sortx)
+        >>> images = ibs.images()
+        >>> # Check only very the largest files
+        >>> #bytes_list_ = [
+        >>> #    ut.get_file_nBytes(path)
+        >>> #    for path in ut.ProgIter(images.paths, lbl='reading nbytes')]
+        >>> #sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
+        >>> #images = images.take(sortx)
+        >>> gid_list = list(images)
         >>> ibeis.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
     import ibeis.algo.preproc.preproc_image as preproc_image
-    gpath_list = ibs.get_image_paths(gid_list)
-    guuid_list = ibs.get_image_uuids(gid_list)
-    for ix in ut.ProgressIter(range(len(gpath_list))):
-        gpath = gpath_list[ix]
-        guuid_stored = guuid_list[ix]
+    images = ibs.images(gid_list)
+    for gx in ut.ProgIter(range(len(images)), label='check uuids'):
+        image = images[gx]
+        uuid = image.uuids
+        gpath = image.paths
         param_tup = preproc_image.parse_imageinfo(gpath)
         guuid_computed = param_tup[0]
-        assert guuid_stored == guuid_computed, 'image ix=%d had a bad uuid' % ix
+        assert uuid == guuid_computed, 'image={} has a bad uuid'.format(gpath)
+
+
+def check_image_corruption(ibs, gid_list):
+    """
+    Checks to make sure image uuids are computed detemenistically
+    by recomputing all guuids and checking that they are equal to
+    what is already there.
+
+    VERY SLOW
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
+
+    Example:
+        >>> # SCRIPT
+        >>> import ibeis
+        >>> import utool as ut
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> images = ibs.images()
+        >>> # Check only very the largest files
+        >>> #bytes_list_ = [
+        >>> #    ut.get_file_nBytes(path)
+        >>> #    for path in ut.ProgIter(images.paths, lbl='reading nbytes')]
+        >>> #sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
+        >>> #images = images.take(sortx)
+        >>> gid_list = list(images)
+        >>> ibeis.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
+    """
+    print('checking image uuid consistency')
+    import ibeis.algo.preproc.preproc_image as preproc_image
+    import imghdr
+    images = ibs.images(gid_list)
+
+    whats = [imghdr.what(p) for p in ut.ProgIter(images.paths, label='checking types')]
+
+    for gx in ut.ProgIter(range(len(images)), label='check uuids'):
+        image = images[gx]
+        gpath = image.paths
+        print(imghdr.what(gpath))
+        param_tup = preproc_image.parse_imageinfo(gpath)
+        guuid_computed = param_tup[0]
+        assert uuid == guuid_computed, 'image={} has a bad uuid'.format(gpath)
 
 
 @register_ibs_method
@@ -786,7 +832,7 @@ def check_exif_data(ibs, gid_list):
     from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
     exif_dict_list = []
-    for ix in ut.ProgressIter(range(len(gpath_list)), lbl='checking exif: '):
+    for ix in ut.ProgIter(range(len(gpath_list)), lbl='checking exif: '):
         gpath = gpath_list[ix]
         pil_img = Image.open(gpath, 'r')  # NOQA
         exif_dict = exif.get_exif_dict(pil_img)
@@ -964,7 +1010,7 @@ def fix_exif_data(ibs, gid_list):
 
     exif_dict_list = [
         vt.get_exif_dict(pil_img)
-        for pil_img in ut.ProgressIter(
+        for pil_img in ut.ProgIter(
             pil_img_gen, nTotal=len(gpath_list), lbl='reading exif: ',
             adjust=True)
     ]

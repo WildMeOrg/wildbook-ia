@@ -1663,6 +1663,12 @@ class VerifierExpt(DBInputs):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
 
+def draw_match_states():
+    import ibeis
+    infr = ibeis.AnnotInference('PZ_Master1', 'all')
+    infr.reset_feedback('staging', apply=True)
+
+
 def prepare_cdfs(cdfs, labels):
     cdfs = vt.pad_vstack(cdfs, fill_value=1)
     # Sort so the best is on top

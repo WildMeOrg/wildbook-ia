@@ -1261,13 +1261,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
             with ut.Timer('reset_feedback'):
-                infr.reset_feedback('staging')
+                infr.reset_feedback('staging', apply=True)
             with ut.Timer('reinit_name_labels'):
                 infr.reset_labels_to_ibeis()
             if self.graph_widget is not None:
                 self.graph_widget.set_pin_state(True)
-            with ut.Timer('apply_feedback_edges'):
-                infr.apply_feedback_edges()
             with ut.Timer('ensure_mst'):
                 infr.ensure_mst()
             with ut.Timer('apply_match_edges'):
@@ -1322,9 +1320,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(msg='reset name labels')
             infr.reset_name_labels()
             ctx.set_progress(msg='reset feedback')
-            infr.reset_feedback('staging')
-            ctx.set_progress(msg='reset feedback edges')
-            infr.apply_feedback_edges()
+            infr.reset_feedback('staging', apply=True)
             ctx.set_progress(msg='remove name labels')
             infr.clear_name_labels()
             # ctx.set_progress(msg='apply match scores')

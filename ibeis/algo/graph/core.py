@@ -416,7 +416,7 @@ class Feedback(object):
         num_pccs = infr.pos_graph.number_of_components()
         return num_pccs == 0 and num_names > 0
 
-    def reset_feedback(infr, mode='annotmatch', apply=False):
+    def reset_feedback(infr, mode='annotmatch', apply=True):
         """ Resets feedback edges to state of the SQL annotmatch table """
         infr.print('reset_feedback mode=%r' % (mode,), 1)
         infr.clear_feedback()

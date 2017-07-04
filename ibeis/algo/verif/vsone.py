@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+
+CommandLine:
+    # Test how well out-of-the-box vsone classifiers to:
+    python -m ibeis.algo.verif.vsone evaluate_classifiers --db DETECT_SEATURTLES
+
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
@@ -1501,8 +1507,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         Example:
             >>> from ibeis.algo.verif.vsone import *  # NOQA
-            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
-            >>> pblm = OneVsOneProblem.from_empty('GIRM_Master1')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
+            >>> #pblm = OneVsOneProblem.from_empty('GIRM_Master1')
             >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm.evaluate_classifiers()
             >>> win = pblm.qt_review_hardcases()
