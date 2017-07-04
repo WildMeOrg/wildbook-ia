@@ -2363,9 +2363,11 @@ class SQLDatabaseController(object):
                                         if True:
                                             db.set_metadata_val('contributors_superkeys',
                                                                 "[('" + superkey + "',)]")
-                                    raise NotImplementedError(
-                                        'Cannot Handle: len(superkeys) == 0. '
-                                        'Probably a degenerate case')
+                                        return (superkey,)
+                                    else:
+                                        raise NotImplementedError(
+                                            'Cannot Handle: len(superkeys) == 0. '
+                                            'Probably a degenerate case')
                             except Exception as ex:
                                 ut.printex(ex, 'Error Getting superkey colnames',
                                            keys=['tablename_', 'superkeys'])
