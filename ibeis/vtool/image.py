@@ -2,6 +2,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
+import os
 from os.path import exists, join
 from os.path import splitext
 from six.moves import zip, map, range
@@ -375,12 +376,16 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
             if not ut.checkpath(img_fpath, verbose=True):
                 raise IOError('cannot read img_fpath=%s does not exist.' % img_fpath)
             else:
+                if not os.access(img_fpath, os.R_OK):
+                    raise PermissionError(
+                        'cannot read img_fpath={} access denied.'.format(img_fpath))
                 if delete_if_corrupted:
+                    # Probably should depricate this. A bit out of scope
                     msg = (
                         'Cannot read corrupted img_fpath=%s, requires deletion.'
                         % img_fpath
                     )
-                    print('[gtool] deleting corrupted image')
+                    print('[vt.imread] deleting corrupted image')
                     ut.delete(img_fpath)
                 else:
                     msg = (
@@ -388,7 +393,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
                         'seems corrupted or memory error.'
                         % img_fpath
                     )
-                print('[gtool] ' + msg)
+                print('[vt.imread] ' + msg)
                 raise IOError(msg)
         if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
             print('[vt.imread] Applying orientation %r' % (orient, ))
@@ -522,7 +527,7 @@ def imwrite(img_fpath, imgBGR, fallback=False):
                 imwrite_fallback(img_fpath, imgBGR)
             except Exception as ex:
                 pass
-        msg = '[gtool] ERROR writing: %s' % (img_fpath,)
+        msg = '[vt.image] ERROR writing: %s' % (img_fpath,)
         ut.printex(ex, msg, keys=['imgBGR.shape'])
         raise
 
@@ -534,7 +539,7 @@ def imwrite_fallback(img_fpath, imgBGR):
         mpl_image.imsave(img_fpath, imgRGB)
         return None
     except Exception as ex:
-        msg = '[gtool] FALLBACK ERROR writing: %s' % (img_fpath,)
+        msg = '[vt.image] FALLBACK ERROR writing: %s' % (img_fpath,)
         ut.printex(ex, msg, keys=['imgBGR.shape'])
         raise
 
