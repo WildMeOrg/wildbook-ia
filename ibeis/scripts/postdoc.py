@@ -319,13 +319,15 @@ class VerifierExpt(DBInputs):
         pblm = vsone.OneVsOneProblem.from_aids(ibs, aids)
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
-        pblm.eval_task_keys = ['match_state', 'photobomb_state']
+
+        pblm.eval_task_keys = ['match_state']
+
         pblm.eval_data_keys = [data_key]
         pblm.eval_clf_keys = [clf_key]
 
         if ut.get_argflag('--eval'):
-            pblm.eval_task_keys = ['photobomb_state', 'match_state']
-            # pblm.eval_task_keys = ['match_state']
+            # pblm.eval_task_keys = ['photobomb_state', 'match_state']
+            pblm.eval_task_keys = ['match_state']
             pblm.eval_data_keys = None
             pblm.evaluate_classifiers()
             pblm.eval_data_keys = [data_key]

@@ -385,7 +385,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)
         >>> result = ('X_labels = %r' % (X_labels,))
         >>> print(result)
-        X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])
+        X_labels = array([3, 4, 1, 2, 4, 5])
     """
     X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec,
                                               'seconds')

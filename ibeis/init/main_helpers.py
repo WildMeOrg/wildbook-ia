@@ -480,6 +480,8 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
                                      thresh_sec=thresh_sec, km_per_sec=.002)
         cacher.save(data)
     occurrence_ids = data
+    if occurrence_ids is None:
+        return
 
     ndec = int(np.ceil(np.log10(max(occurrence_ids))))
     suffmt = '-monkey-occur%0' + str(ndec) + 'd'

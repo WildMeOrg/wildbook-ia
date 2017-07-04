@@ -157,9 +157,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # if infr.ibs.dbname not in {'GIRM_Master1', 'NNP_MasterGIRM_core'}:
         #     assert infr._is_staging_above_annotmatch()
         infr.reset_feedback('staging', apply=True)
-        if infr.ibs.dbname == 'PZ_MTEST':
-            # assert False, 'need to do conversion'
-            infr.ensure_mst()
+        infr.ensure_mst()
         # if infr.needs_conversion():
         #     infr.ensure_mst()
         pblm = OneVsOneProblem(infr=infr, **params)
