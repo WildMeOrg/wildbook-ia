@@ -1188,7 +1188,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         python -m vtool.score_normalization --test-normalize_scores
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.score_normalization import *  # NOQA
         >>> score_domain = np.linspace(0, 10, 10)
         >>> p_tp_given_score = (score_domain ** 2) / (score_domain.max() ** 2)
