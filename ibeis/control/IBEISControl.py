@@ -639,6 +639,9 @@ class IBEISController(BASE_CLASS):
         if ibs.get_dbname() == 'PZ_MTEST':
             nobackup = True
 
+        if dtool.sql_control.READ_ONLY:
+            nobackup = True
+
         if backup_idx is None and not nobackup:
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),

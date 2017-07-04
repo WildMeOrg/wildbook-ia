@@ -1040,6 +1040,7 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
 
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db LF_Bajo_bonito -a default
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db DETECT_SEATURTLES -a default --readonly
 
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
