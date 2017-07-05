@@ -814,13 +814,8 @@ class InfrReviewers(object):
         Emits a signal containing edges that need review. The callback should
         present them to a user, get feedback, and then call on_accpet.
         """
-        on_request_review = infr.callbacks.get('request_review', None)
-        if on_request_review is None:
-            raise KeyError('request_review not connected in infr.callbacks')
-
         # Emit a list of reviews that can be considered.
         # The first is the most important
-
         user_request = []
         user_request += [infr._make_review_tuple(edge, priority)]
         try:
@@ -828,9 +823,13 @@ class InfrReviewers(object):
                 user_request += [infr._make_review_tuple(edge, priority)]
         except TypeError:
             pass
-        # Send these reviews to a user
-        on_request_review(user_request)
-        # Also return them in case the current process can deal with them
+
+        # If registered, send the request via a callback.
+        on_request_review = infr.callbacks.get('request_review', None)
+        if on_request_review is not None:
+            # Send these reviews to a user
+            on_request_review(user_request)
+        # Otherwise the current process must handle the request by return value
         return user_request
 
     @profile
