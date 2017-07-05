@@ -403,8 +403,6 @@ class SQLDatabaseController(object):
         # Optimize the database (if anything is set)
         if is_new:
             db.optimize()
-        print('db.fpath = %r' % (db.fpath,))
-        print('is_new = %r' % (is_new,))
 
         if not is_new:
             # Check for old database versions
