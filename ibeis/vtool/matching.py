@@ -186,7 +186,7 @@ class PairwiseMatch(ut.NiceRepr):
     def __setstate__(match, state):
         match.__dict__.update(state)
 
-    def show(match, ax=None, show_homog=False, show_ori=True, show_ell=True,
+    def show(match, ax=None, show_homog=False, show_ori=False, show_ell=True,
              show_pts=False, show_lines=True, show_rect=False, show_eig=False,
              show_all_kpts=False, mask_blend=0, ell_alpha=.6, line_alpha=.35,
              modifysize=False, vert=None, overlay=True, heatmask=False,

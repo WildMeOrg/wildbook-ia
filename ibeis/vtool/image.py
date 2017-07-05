@@ -1732,12 +1732,12 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
                                  checkexists=True,
                                  **kwargs):
     """ Resizes images and yeilds results asynchronously  """
-    from vtool.chip import get_scaled_sizes_with_area
+    import vtool as vt
     target_area = sqrt_area ** 2
     # Read image sizes
     gsize_list = get_gpathlist_sizes(gpath_list)
     # Compute new sizes which preserve aspect ratio
-    newsize_list = get_scaled_sizes_with_area(target_area, gsize_list)
+    newsize_list = [vt.ScaleStrat.area(target_area, wh) for wh in gsize_list]
     if new_gpath_list is None:
         # Compute names for the new images if not given
         if output_dir is None:
@@ -2688,13 +2688,13 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
 # /STACK IMAGES STUFF
 
 
-def filterflags_valid_images(gpath_list, valid_formats=None,
+def filterflags_valid_images(gpaths, valid_formats=None,
                              invalid_formats=None, verbose=True):
     r"""
     Flags images with a format that disagrees with its extension
 
     Args:
-        gpath_list (list):
+        gpaths (list): list of image paths
         valid_formats (None): (default = None)
         invalid_formats (None): (default = None)
         verbose (bool):  verbosity flag(default = True)
@@ -2711,11 +2711,12 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
         3D image.
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
-        >>> gpath_list = [ut.grab_test_imgpath('carl.jpg'),
-        >>>               ut.grab_test_imgpath('lena.png')]
-        >>> flags = filterflags_valid_images(gpath_list)
+        >>> gpaths = [ut.grab_test_imgpath('carl.jpg'),
+        >>>           ut.grab_test_imgpath('lena.png')]
+        >>> flags = filterflags_valid_images(gpaths)
+        >>> assert all(flags)
     """
     from PIL import Image
     from os.path import splitext
@@ -2776,12 +2777,12 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
 
     pil_foramt_list = [
         get_image_format_from_pil(gpath)
-        for gpath in ut.ProgIter(gpath_list, lbl='check image pil-format',
+        for gpath in ut.ProgIter(gpaths, lbl='check image pil-format',
                                  enabled=verbose)
     ]
     ext_format_list = [
         get_image_format_from_extension(gpath)
-        for gpath in ut.ProgIter(gpath_list, lbl='check image ext-format',
+        for gpath in ut.ProgIter(gpaths, lbl='check image ext-format',
                                  enabled=verbose)
     ]
     #agree_flags = list(it.starmap(operator.eq, zip(ext_format_list,
@@ -2829,19 +2830,19 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
         if verbose > 1:
             num_examples = 3
             print('Examples of invalid files:')
-            invalid_gpaths = ut.compress(gpath_list, invalid_flags)
+            invalid_gpaths = ut.compress(gpaths, invalid_flags)
             grouped_invalids = ut.group_items(invalid_gpaths, invalid_fmt_list)
             for key in invalid_fmt_hist.keys():
                 val = grouped_invalids[key]
                 print(key)
-                print(ut.indentjoin(join(val[0:num_examples]))[1:])
+                print(ut.indentjoin(val[0:num_examples])[1:])
             print('\nExamples of valid files:')
-            valid_gpaths = ut.compress(gpath_list, valid_flags)
+            valid_gpaths = ut.compress(gpaths, valid_flags)
             grouped_valids = ut.group_items(valid_gpaths, valid_fmt_list)
             for key in valid_fmt_hist.keys():
                 val = grouped_valids[key]
                 print(key)
-                print(ut.indentjoin(join(val[0:num_examples]))[1:])
+                print(ut.indentjoin(val[0:num_examples])[1:])
     return valid_flags
 
 

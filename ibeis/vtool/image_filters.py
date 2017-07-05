@@ -10,16 +10,85 @@ except ImportError as ex:
     print('ERROR: import cv2 is failing!')
 # ---------------
 # Preprocessing funcs
-(print, rrr, profile) = ut.inject2(__name__, '[gfilt]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def adapteq_fn(chipBGR):
-    """ create a CLAHE object (Arguments are optional). """
+    """
+    adaptive histogram equalization with CLAHE
+
+    Example:
+        >>> from vtool.image_filters import *
+        >>> import vtool as vt
+        >>> import utool as ut
+        >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
+        >>> chip2 = adapteq_fn(chipBGR)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(chipBGR, pnum=(1, 2, 1), fnum=1)
+        >>> pt.imshow(chip2, pnum=(1, 2, 2), fnum=1)
+        >>> ut.show_if_requested()
+    """
     chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
     tileGridSize = (8, 8)
     clipLimit = 2.0
     clahe_obj = cv2.createCLAHE(clipLimit, tileGridSize)
     chipLAB[:, :, 0] = clahe_obj.apply(chipLAB[:, :, 0])
+    chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
+    return chipBGR
+
+
+def medianfilter_fn(chipBGR):
+    """
+    median filtering
+
+    Example:
+        >>> from vtool.image_filters import *
+        >>> import vtool as vt
+        >>> import utool as ut
+        >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
+        >>> chip2 = adapteq_fn(chipBGR)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(chipBGR, pnum=(1, 2, 1), fnum=1)
+        >>> pt.imshow(chip2, pnum=(1, 2, 2), fnum=1)
+        >>> ut.show_if_requested()
+    """
+    chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
+    intensity = chipLAB[:, :, 0]
+    noise_thresh = 100
+    ksize = 5 if intensity.std() > noise_thresh else 3
+    intensity = cv2.medianBlur(intensity, ksize)
+    chipLAB[:, :, 0] = intensity
+    chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
+    return chipBGR
+
+
+def manta_matcher_filters(chipBGR):
+    """
+    References:
+        http://onlinelibrary.wiley.com/doi/10.1002/ece3.587/full
+
+    Ignore:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('Mantas')
+        >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
+    """
+    chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
+
+    intensity = chipLAB[:, :, 0]
+    # Median filter
+    noise_thresh = 100
+    ksize = 5 if intensity.std() > noise_thresh else 3
+    intensity = cv2.medianBlur(intensity, ksize)
+
+    tileGridSize = (8, 8)
+    clipLimit = 2.0
+    clahe_obj = cv2.createCLAHE(clipLimit, tileGridSize)
+    intensity = clahe_obj.apply(intensity, dst=intensity)
+
+    chipLAB[:, :, 0] = intensity
     chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
     return chipBGR
 
