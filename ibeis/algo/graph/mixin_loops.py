@@ -751,7 +751,24 @@ class InfrReviewers(object):
             proceed = False
             return proceed, user_request
 
-    def qt_review_loop(infr, cfgdict=None):
+    def qt_edge_reviewer(infr, edge=None):
+        import guitool as gt
+        gt.ensure_qapp()
+        from ibeis.viz import viz_graph2
+        infr.manual_wgt = viz_graph2.AnnotPairDialog(
+            edge=edge, infr=infr, standalone=False,
+            cfgdict=infr.verifier_params)
+        infr.manual_wgt.accepted.connect(infr.on_accept)
+        infr.manual_wgt.skipped.connect(infr.continue_review)
+        infr.manual_wgt.request.connect(infr.emit_manual_review)
+        infr.callbacks['request_review'] = infr.manual_wgt.on_request_review
+        if edge is not None:
+            # infr.emit_manual_review(edge, priority=None)
+            infr.manual_wgt.seek(0)
+            # infr.manual_wgt.show()
+        return infr.manual_wgt
+
+    def qt_review_loop(infr):
         r"""
         TODO: The loop parts should be a non-mixin class
 
@@ -767,35 +784,30 @@ class InfrReviewers(object):
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.ensure_mst()
-            >>> cfgdict = {'ratio_thresh': .8, 'sv_on': False}
+            >>> infr.verifier_params = {'ratio_thresh': .8, 'sv_on': False}
             >>> # Add dummy priorities to each edge
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
             >>> infr.params['redun.enabled'] = False
-            >>> win = infr.qt_review_loop(cfgdict=cfgdict)
+            >>> win = infr.qt_review_loop()
             >>> import guitool as gt
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
-
-        def qt_on_request_review(reviews):
-            edge, priority, edge_data = reviews[0]
-            info_text = 'priority=%r' % (priority,)
-            info_text += '\n' + ut.repr4(edge_data)
-            infr.manual_wgt.set_edge(edge, info_text, external=True)
-            infr.manual_wgt.show()
-
-        infr.callbacks['request_review'] = qt_on_request_review
-
-        import guitool as gt
-        gt.ensure_qapp()
-        from ibeis.viz import viz_graph2
-        infr.manual_wgt = viz_graph2.AnnotPairDialog(
-            infr=infr, standalone=False, cfgdict=cfgdict)
-        infr.manual_wgt.accepted.connect(infr.on_accept)
-        infr.manual_wgt.skipped.connect(infr.continue_review)
-        infr.manual_wgt.request.connect(infr.emit_manual_review)
+        infr.qt_edge_reviewer()
         infr.continue_review()
         return infr.manual_wgt
+
+    def _make_review_tuple(infr, edge, priority=None):
+        """ Makes tuple to be sent back to the user """
+        edge_data = infr.get_nonvisual_edge_data(
+            edge, on_missing='default')
+        # Extra information
+        edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+        edge_data['n_ccs'] = (
+            len(infr.pos_graph.connected_to(edge[0])),
+            len(infr.pos_graph.connected_to(edge[1]))
+        )
+        return (edge, priority, edge_data)
 
     def emit_manual_review(infr, edge, priority=None):
         """
@@ -810,17 +822,12 @@ class InfrReviewers(object):
         # The first is the most important
 
         user_request = []
-        for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
-            edge_data = infr.get_nonvisual_edge_data(
-                edge, on_missing='default')
-            # Extra information
-            edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
-            edge_data['n_ccs'] = (
-                len(infr.pos_graph.connected_to(edge[0])),
-                len(infr.pos_graph.connected_to(edge[1]))
-            )
-            user_request.append((edge, priority, edge_data))
-
+        user_request += [infr._make_review_tuple(edge, priority)]
+        try:
+            for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
+                user_request += [infr._make_review_tuple(edge, priority)]
+        except TypeError:
+            pass
         # Send these reviews to a user
         on_request_review(user_request)
         # Also return them in case the current process can deal with them
@@ -850,8 +857,11 @@ class InfrReviewers(object):
         if annot2_state:
             infr.add_node_feedback(**annot2_state)
         infr.add_feedback(**feedback)
-        infr.write_ibeis_staging_feedback()
-        if need_next:
+
+        if infr.params['manual.autosave']:
+            infr.write_ibeis_staging_feedback()
+
+        if need_next and infr.queue is not None:
             infr.continue_review()
 
     def continue_review(infr):

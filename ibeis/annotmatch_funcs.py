@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import ubelt as ub  # NOQA
 import numpy as np
 from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
@@ -172,14 +173,19 @@ def get_annotmatch_rowids_between_groups(ibs, aids1_list, aids2_list):
 @register_ibs_method
 def get_annotmatch_rowids_between(ibs, aids1, aids2, method=None):
     """
+
+    Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aids1 = aids2 = [2, 3, 4, 5, 6]
-        >>> ams1 = ibs.get_annotmatch_rowids_between(aids1, aids2, method=1)
-        >>> ams2 = ibs.get_annotmatch_rowids_between(aids1, aids2, method=2)
-        >>> assert ams2 == ams1
-
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
+        >>> rowids_between = ibs.get_annotmatch_rowids_between
+        >>> ams1 = sorted(rowids_between(aids1, aids2, method=1))
+        >>> ams2 = sorted(rowids_between(aids1, aids2, method=2))
+        >>> assert len(ub.find_duplicates(ams1)) == 0
+        >>> assert len(ub.find_duplicates(ams2)) == 0
+        >>> assert sorted(ams2) == sorted(ams1)
     """
     if method is None:
         if len(aids1) * len(aids2) > 5000:
@@ -286,6 +292,11 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
     unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
     timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
     return timedelta_list
+
+
+@register_ibs_method
+def get_annotedge_timedelta(ibs, edges):
+    return ibs.get_annot_pair_timedelta(*zip(*edges))
 
 
 @register_ibs_method

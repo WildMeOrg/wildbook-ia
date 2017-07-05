@@ -141,8 +141,8 @@ def compute_chipthumb(depc, aid_list, config=None):
         imgsz_list = ibs.get_image_sizes(gid_list)
         if config['grow']:
             newsize_list = [
-                vt.get_scaled_size_with_width(thumbsize, w, h)
-                for (w, h) in imgsz_list
+                vt.ScaleStrat.width(thumbsize, wh)
+                for wh in imgsz_list
             ]
             newscale_list = [sz[0] / thumbsize for sz in newsize_list]
         else:
@@ -163,13 +163,13 @@ def compute_chipthumb(depc, aid_list, config=None):
     else:
         if config['grow']:
             newsize_list = [
-                vt.get_scaled_size_with_width(thumbsize, w, h)
-                for (w, h) in bbox_size_list
+                vt.ScaleStrat.width(thumbsize, wh)
+                for wh in bbox_size_list
             ]
         else:
             newsize_scale_list = [
-                vt.resized_clamped_thumb_dims((w, h), max_dsize)
-                for (w, h) in bbox_size_list
+                vt.resized_clamped_thumb_dims(wh, max_dsize)
+                for wh in bbox_size_list
             ]
             newsize_list = ut.take_column(newsize_scale_list, 0)
             # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
@@ -238,6 +238,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('preserve_aspect', True, hideif=True),
         ut.ParamInfo('histeq', False, hideif=False),
         ut.ParamInfo('adapteq', False, hideif=False),
+        ut.ParamInfo('medianfilter', False, hideif=False),
         ut.ParamInfo('histeq_thresh', False, hideif=False),
         ut.ParamInfo('pad', 0, hideif=0),
         ut.ParamInfo('ext', '.png', hideif='.png'),
@@ -343,8 +344,9 @@ def compute_chip(depc, aid_list, config=None):
         newsize_list = [dim_size for _ in range(len(bbox_size_list))]
     else:
         scale_func_dict = {
-            'width': vt.get_scaled_size_with_width,
-            'area': vt.get_scaled_size_with_area,  # actually root area
+            'width': vt.ScaleStrat.width,
+            'area': vt.ScaleStrat.area,  # actually root area
+            'maxwh': vt.ScaleStrat.maxwh
         }
         scale_func = scale_func_dict[resize_dim]
 
@@ -354,8 +356,8 @@ def compute_chip(depc, aid_list, config=None):
             if resize_dim == 'area':
                 dim_size = dim_size ** 2
                 dim_tol = dim_tol ** 2
-            newsize_list = [scale_func(dim_size, w, h, dim_tol)
-                            for (w, h) in bbox_size_list]
+            newsize_list = [scale_func(dim_size, wh, dim_tol)
+                            for wh in bbox_size_list]
 
     if pad > 0:
         halfoffset_ms = (pad, pad)
@@ -376,8 +378,11 @@ def compute_chip(depc, aid_list, config=None):
 
     filterfn_list = []
     from vtool import image_filters
+    # TODO: params
     if config['histeq']:
         filterfn_list.append(image_filters.histeq_fn)
+    if config['medianfilter']:
+        filterfn_list.append(image_filters.medianfilter_fn)
     if config['adapteq']:
         filterfn_list.append(image_filters.adapteq_fn)
 

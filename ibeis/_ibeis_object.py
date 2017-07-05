@@ -282,7 +282,10 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
         return 'rowid=%s, uuid=%s' % (self._rowids, self.uuids)
 
     def __getattr__(self, key):
-        return getattr(self.obj1d, key)[0]
+        vals = getattr(self.obj1d, key)
+        if key == 'show':
+            return vals
+        return vals[0]
 
     def __dir__(self):
         attrs = dir(object)

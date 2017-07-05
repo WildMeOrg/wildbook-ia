@@ -11,6 +11,7 @@ from six.moves import zip, map, reduce
 #import numpy as np
 #import vtool as vt
 import numpy as np
+import ubelt as ub  # NOQA
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
@@ -138,8 +139,7 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
     CommandLine:
         python -m ibeis.control.manual_review_funcs --test-add_review
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> import ibeis
         >>> from ibeis.control.manual_review_funcs import *
         >>> ibs = ibeis.opendb('testdb1')
@@ -273,11 +273,15 @@ def delete_review(ibs, review_rowid_list):
 
 
 @register_ibs_method
-def get_review_rowids_from_edges(ibs, edges, eager=True, nInput=None):
+def get_review_rowids_from_edges(ibs, edges, eager=True, nInput=None,
+                                 directed=False):
     colnames = (REVIEW_ROWID,)
     # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
     # params_iter = edges
-    params_iter = [e_(u, v) for u, v in edges]
+    if directed:
+        params_iter = edges
+    else:
+        params_iter = [e_(u, v) for u, v in edges]
     where_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_rowids_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, where_colnames,
@@ -329,16 +333,29 @@ def get_review_rowids_from_aid_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
 @register_ibs_method
 def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
     """
-    r1 = ibs.get_review_rowids_between(aids1, method=0)
-    r2 = ibs.get_review_rowids_between(aids1, method=1)
-    assert set(r1) == set(r2)
+    Find staging rowids between sets of aids
+
+    Doctest:
+        >>> from ibeis.control.manual_review_funcs import *
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
+        >>> rowids_between = ibs.get_review_rowids_between
+        >>> ids1 = sorted(rowids_between(aids1, aids2, method=1))
+        >>> ids2 = sorted(rowids_between(aids1, aids2, method=2))
+        >>> assert len(ub.find_duplicates(ids1)) == 0
+        >>> assert len(ub.find_duplicates(ids2)) == 0
+        >>> assert ids1 == ids2
     """
     if aids2 is None:
         aids2 = aids1
     if method is None:
-        method = int(len(aids1) * len(aids2) <= 5000)
+        if len(aids1) * len(aids2) > 5000:
+            method = 1
+        else:
+            method = 2
 
-    if method == 0:
+    if method == 1:
         # Strategy 1: get all existing rows and see what intersects
         # This is better when the enumerated set of rows would be larger than
         # the database size
@@ -351,7 +368,7 @@ def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
             rowids22 = set(ut.flatten(ibs.get_review_rowids_from_aid2(aids2)))
             rowids = list(reduce(set.intersection, [rowids11, rowids12,
                                                     rowids21, rowids22]))
-    elif method == 1:
+    elif method == 2:
         # Strategy 2: enumerate what rows could exist and see what does exist
         # This is better when the enumerated set of rows would be smaller than
         # the database size
@@ -359,8 +376,7 @@ def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
         if len(edges) == 0:
             rowids = []
         else:
-            aids1_, aids2_ = ut.listT(edges)
-            rowids = ibs.get_review_rowids_from_aid_tuple(aids1_, aids2_)
+            rowids = ibs.get_review_rowids_from_edges(edges, directed=True)
             if rowids is None:
                 rowids = []
             rowids = ut.filter_Nones(rowids)

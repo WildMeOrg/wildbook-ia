@@ -13,6 +13,7 @@ import networkx as nx
 import itertools as it
 import guitool as gt
 import plottool as pt
+import ibeis.constants as const
 from plottool import abstract_interaction
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -55,14 +56,39 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>> win = AnnotPairDialog(ibs=ibs, edge=(1, 2),
         >>>                       info_text='text describing this match')
         >>> gt.qtapp_loop(qwin=win, freq=10)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> import ibeis
+        >>> import guitool as gt
+        >>> gt.ensure_qapp()
+        >>> infr = ibeis.AnnotInference('PZ_Master1', 'all')
+        >>> infr.reset_feedback('staging')
+        >>> edges = [(86, 16273), (86, 5245), (92, 16273), (559, 16240),
+        >>>         (559, 2111),]
+        >>> edge = edges[0]
+        >>> self = AnnotPairDialog(edge=edges, infr=infr, standalone=False)
+        >>> self.accepted.connect(infr.on_accept)
+        >>> #self.skipped.connect(infr.continue_review)
+        >>> self.request.connect(infr.emit_manual_review)
+        >>> infr.callbacks['request_review'] = self.on_request_review
+        >>> self.seek(0)
+        >>> self.show()
+
+
     """
     accepted = QtCore.pyqtSignal(dict, bool)
     skipped = QtCore.pyqtSignal()
     request = QtCore.pyqtSignal(tuple)
 
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
-                   get_index_data=None, total=None,
                    cfgdict=None, standalone=True):
+        """
+        # Args:
+        #     standalone (bool):
+
+        """
 
         from ibeis.gui import inspect_gui
         self.infr = infr
@@ -134,14 +160,22 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self._total = None
         self.was_confirmed = False
 
-        if total is not None:
-            self.get_index_data = get_index_data
+        edges = None
+        if edge is not None:
+            if ut.isiterable(edge) and len(edge) > 0 and ut.isiterable(edge[0]):
+                edges = edge
+                edge = None
+
+        if edges is not None:
+            self.edges = edges
+            for e in edges:
+                self.history.add(e)
             self.count = 0
-            self._total = total
+            self._total = len(edges)
             self.prev_but = np_bar.addNewButton(
                 'Prev', pressed=lambda: self.step_by(-1))
             self.index_edit = np_bar.addNewLineEdit(
-                str(self.count), editingFinishedSlot=self.edit_jump)
+                str(self.count + 1), editingFinishedSlot=self.edit_jump)
             self.next_but = np_bar.addNewButton(
                 'Next', pressed=lambda: self.step_by(1))
             # self.accepted.connect(standalone_write)
@@ -150,15 +184,23 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.prev_but = np_bar.addNewButton(
                 'Prev', pressed=lambda: self.step_by(-1))
             self.index_edit = np_bar.addNewLineEdit(
-                str(self.count), editingFinishedSlot=self.edit_jump)
+                str(self.count + 1), editingFinishedSlot=self.edit_jump)
             self.next_but = np_bar.addNewButton(
                 'Next', pressed=lambda: self.step_by(1))
             self.next_but.setEnabled(False)
 
+        self.index_edit.setText('{} / {}'.format(self.count + 1,
+                                                 self.total))
+
         self.last_external = True
 
+        print('edge = %r' % (edge,))
+        print('self.total = %r' % (self.total,))
+        print('self.standalone = %r' % (self.standalone,))
         if edge is not None:
             self.set_edge(edge, info_text)
+        elif self.total > 0 and not self.standalone:
+            self.seek(0)
 
     @property
     def total(self):
@@ -259,16 +301,28 @@ class AnnotPairDialog(gt.GuitoolWidget):
 
     def seek(self, index):
         assert isinstance(index, int)
+        print('seek index = {}'.format(index))
         self.count = index
         self.count = max(self.count, 0)
         self.count = min(self.count, self.total - 1)
         if self.standalone:
-            self.index_edit.setText('{} / {}'.format(self.count, self.total))
-            edge, info_text = self.get_index_data(self.count)
-            self.set_edge(edge, info_text)
+            self.index_edit.setText('{} / {}'.format(self.count + 1,
+                                                     self.total))
+            edge = self.edges[self.count]
+            self.on_request_review([edge, None, {'standalone': True}])
         else:
             edge = self.history[index]
+            print('request edge = %r' % (edge,))
             self.request.emit(edge)
+
+    def on_request_review(self, reviews):
+        edge, priority, edge_data = reviews[0]
+        print('Got request for edge={}'.format(edge))
+        info_text = 'edge=%r' % (edge,)
+        info_text += '\npriority=%r' % (priority,)
+        info_text += '\n' + ut.repr4(edge_data, si=True)
+        self.set_edge(edge, info_text, external=True)
+        self.show()
 
 
 class AnnotStateDialog(gt.GuitoolWidget):
@@ -448,9 +502,10 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         import ibeis
 
         if user_id is None:
-            user_id = 'qt-custom'
+            user_id = ut.get_user_name() + '@' + ut.get_computer_name() + ':qt'
 
         EVIDENCE_DECISION = ibeis.const.EVIDENCE_DECISION
+        # TODO: meta decision
         CONFIDENCE = ibeis.const.CONFIDENCE
 
         match_state_codes = list(EVIDENCE_DECISION.CODE_TO_INT.keys())
@@ -561,19 +616,21 @@ class EdgeReviewDialog(gt.GuitoolWidget):
             super(EdgeReviewDialog, self).keyPressEvent(event)
 
     def read_edge_state(self, edge, edge_data):
-        print('edge_data = %s' % (ut.repr4(edge_data),))
         edge_state = {
             'edge': edge,
-            'decision': UNREV,
-            'user_id': self.user_edit.text(),
+            'evidence_decision': UNREV,
+            'meta_decision': 'null',
+            'user_id': 'user:' + self.user_edit.text(),
             'tags': [],
+            'timestamp_c1': ut.get_timestamp('int', isutc=True),
             # 'confidence': 'unspecified'
-            'confidence': 'not_sure'
+            'confidence': const.CONFIDENCE.CODE.NOT_SURE,
         }
+        print('edge_data = %s' % (ut.repr4(edge_data),))
         if edge_data is not None:
             # Read edge state from edge_data
             edge_state['tags'] = edge_data.get('tags', [])
-            edge_state['decision'] = edge_data.get('decision', UNREV)
+            edge_state['evidence_decision'] = edge_data.get('evidence_decision', UNREV)
             # Use previous confidence if you are the same user
             if edge_state['user_id'] == edge_data.get('user_id', None):
                 edge_state['confidence'] = edge_data.get(
@@ -590,7 +647,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         # set qt state
         self.edge = edge_state['edge']
         self.edge_label.setText(repr(edge_state['edge']))
-        self.match_state_combo.setCurrentValue(edge_state['decision'])
+        self.match_state_combo.setCurrentValue(edge_state['evidence_decision'])
         tags = edge_state['tags']
         tags = [] if tags is None else tags[:]
         remaining_tags = tags[:]
@@ -602,6 +659,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
                 checkbox.setChecked(False)
         self.pairtag_edit.setTags(remaining_tags)
         self.conf_combo.setCurrentValue(edge_state['confidence'])
+        self.timestamp_c1 = edge_state['timestamp_c1']
 
     def cancel(self):
         self.was_confirmed = False
@@ -626,10 +684,12 @@ class EdgeReviewDialog(gt.GuitoolWidget):
             'edge': self.edge,
             # 'aid1': self.edge[0],
             # 'aid2': self.edge[1],
-            'decision': decision_code,
+            'evidence_decision': decision_code,
+            'timestamp_c1': self.timestamp_c1,
+            'timestamp_c2': ut.get_timestamp('int', isutc=True),
             'tags': tags,
             'confidence': confidence,
-            'user_id': user_id,
+            'user_id': 'user:' + user_id,
         }
         return feedback
 
@@ -1383,8 +1443,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = statetags[1].split(';') if len(statetags) > 1 else []
         assert state in valid_states
         for aid1, aid2 in pairs:
+            user_id = ut.get_user_name() + '@' + ut.get_computer_name() + ':qt-mark'
             self.infr.add_feedback((aid1, aid2), state, tags=tags,
-                                   user_id='qt-mark')
+                                   user_id=user_id)
         self.emit_state_update(disable_global_update=True)
 
     def make_mark_state_funcs(self, selection_func):
@@ -1900,7 +1961,7 @@ class EdgeAPIHelper(object):
     def get_edge_data(self, edge):
         aid1, aid2 = edge
         attrs = self.graph.get_edge_data(aid1, aid2).copy()
-        remove_attrs = self.infr.visual_edge_attrs + ['rank', 'decision', 'score']
+        remove_attrs = self.infr.visual_edge_attrs + ['rank', 'evidence_decision', 'score']
         try:
             remove_attrs.remove('style')
         except ValueError:
@@ -1992,7 +2053,7 @@ class EdgeAPIHelper(object):
 
     def get_review_text(self, edge):
         graph = self.infr.graph
-        text = graph.get_edge_data(*edge).get('decision', UNREV)
+        text = graph.get_edge_data(*edge).get('evidence_decision', UNREV)
         return text
 
     def get_inference_bgrole(self, edge):
@@ -2016,7 +2077,7 @@ class EdgeAPIHelper(object):
                 color = truth_colors[UNREV]
             else:
                 color = truth_colors[POSTV] if state == 'same' else truth_colors[NEGTV]
-            #self.graph.get_edge_data(*edge).get('decision', UNREV)]
+            #self.graph.get_edge_data(*edge).get('evidence_decision', UNREV)]
             if lighten_amount is not None:
                 color = pt.lighten_rgb(color, lighten_amount)
         color = pt.to_base255(color)
@@ -2025,7 +2086,7 @@ class EdgeAPIHelper(object):
     def get_review_bgrole(self, edge):
         """ Background role for status column """
         data = self.graph.get_edge_data(*edge)
-        state = data.get('decision', UNREV)
+        state = data.get('evidence_decision', UNREV)
         truth_colors = self.infr._get_truth_colors()
         if state == UNREV:
             inference_state, text, maybe_error = self._get_inference_info(edge)
@@ -2185,7 +2246,7 @@ def make_edge_api(infr, review_cfg={}):
                               if 'photobomb' not in d.get('tags')]
         if review_cfg['filter_reviewed']:
             edges_and_data = [(edge, d) for edge, d in edges_and_data
-                              if d.get('decision', UNREV) != UNREV]
+                              if d.get('evidence_decision', UNREV) != UNREV]
         if review_cfg['filter_true_matches']:
             edges_and_data = [(edge, d) for edge, d in edges_and_data
                               if not infr.pos_redun_edge_flag(edge)]

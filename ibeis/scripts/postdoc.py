@@ -1666,7 +1666,78 @@ class VerifierExpt(DBInputs):
 def draw_match_states():
     import ibeis
     infr = ibeis.AnnotInference('PZ_Master1', 'all')
-    infr.reset_feedback('staging', apply=True)
+
+    if infr.ibs.dbname == 'PZ_Master1':
+        # [UUID('0cb1ebf5-2a4f-4b80-b172-1b449b8370cf'),
+        #  UUID('cd644b73-7978-4a5f-b570-09bb631daa75')]
+        chosen = {
+            POSTV: (17095, 17225),
+            NEGTV: (3966, 5080),
+            INCMP: (3197, 8455),
+        }
+    else:
+        infr.reset_feedback('staging')
+        chosen = {
+            POSTV: list(infr.pos_graph.edges())[0],
+            NEGTV: list(infr.neg_graph.edges())[0],
+            INCMP: list(infr.incmp_graph.edges())[0],
+        }
+    import plottool as pt
+    import vtool as vt
+    for key, edge in chosen.items():
+        match = infr._make_matches_from([edge], config={
+            'match_config': {'ratio_thresh': .7}})[0]
+        with pt.RenderingContext(dpi=300) as ctx:
+            match.show(heatmask=True, show_ell=False, show_ori=False,
+                       show_lines=False)
+        vt.imwrite('matchstate_' + key + '.jpg', ctx.image)
+
+
+def _find_good_match_states(infr):
+    pos_edges = list(infr.pos_graph.edges())
+    timedelta = ibs.get_annot_pair_timedelta(*zip(*edges))
+    edges = ut.take(pos_edges, ut.argsort(timedelta))[::-1]
+    wgt = infr.qt_edge_reviewer(edges)
+
+    neg_edges = ut.shuffle(list(infr.neg_graph.edges()))
+    wgt = infr.qt_edge_reviewer(neg_edges)
+
+    if infr.incomp_graph.number_of_edges() > 0:
+        incmp_edges = list(infr.incomp_graph.edges())
+        if False:
+            ibs = infr.ibs
+            # a1, a2 = map(ibs.annots, zip(*incmp_edges))
+            # q1 = np.array(ut.replace_nones(a1.qual, np.nan))
+            # q2 = np.array(ut.replace_nones(a2.qual, np.nan))
+            # edges = ut.compress(incmp_edges,
+            #                     ((q1 > 3) | np.isnan(q1)) &
+            #                     ((q2 > 3) | np.isnan(q2)))
+
+            # a = ibs.annots(asarray=True)
+            # flags = [t is not None and 'right' == t for t in a.yaw_texts]
+            # r = a.compress(flags)
+            # flags = [q is not None and q > 4 for q in r.qual]
+
+            rights = ibs.filter_annots_general(view='right',
+                                               minqual='excellent',
+                                               require_quality=True,
+                                               require_viewpoint=True)
+            lefts = ibs.filter_annots_general(view='left',
+                                              minqual='excellent',
+                                              require_quality=True,
+                                              require_viewpoint=True)
+
+            if False:
+                edges = list(infr._make_rankings(3197, rights))
+                wgt = infr.qt_edge_reviewer(edges)
+
+            edges = list(ut.random_product((rights, lefts), num=10, rng=0))
+            wgt = infr.qt_edge_reviewer(edges)
+
+        for edge in incmp_edges:
+            match = infr._make_matches_from([edge])[0]
+            # infr._debug_edge_gt(edge)
+
 
 
 def prepare_cdfs(cdfs, labels):

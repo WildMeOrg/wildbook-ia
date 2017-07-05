@@ -345,6 +345,13 @@ class Annots(BASE):
             return all(a == b for a, b in zip(self, other))
         return False
 
+    def show(self, *args, **kwargs):
+        if len(self) != 1:
+            raise ValueError('Can only show one, got {}'.format(len(self)))
+        from ibeis.viz import viz_chip
+        for aid in self:
+            return viz_chip.show_chip(self._ibs, aid, *args, **kwargs)
+
 
 class _AnnotGroupPropInjector(BASE_TYPE):
     def __init__(metaself, name, bases, dct):

@@ -1099,6 +1099,7 @@ class AnnotInference(ut.NiceRepr,
 
         infr.params = {
             'manual.n_peek': 1,
+            'manual.autosave': True,
 
             'algo.max_outer_loops': None,
 

@@ -652,7 +652,7 @@ def fix_annotmatch_pzmaster1():
     aid_pairs = list(zip(aids1, aids2))
     infr = ibeis.AnnotInference.from_pairs(aid_pairs, ibs=ibs, verbose=5)
     if False:
-        feedback = infr.read_ibeis_annotmatch_feedback(only_existing_edges=True)
+        feedback = infr.read_ibeis_annotmatch_feedback(edges=infr.edges())
         infr.external_feedback = feedback
         infr.apply_feedback_edges()
         infr.start_qt_interface(loop=False)
@@ -683,7 +683,6 @@ def fix_annotmatch_pzmaster1():
     # pd.unique(annotmatch['annotmatch_tag_text'])
 
     # infr.reset_feedback()
-    # infr.apply_feedback_edges()
     # infr.relabel_using_reviews()
 
 

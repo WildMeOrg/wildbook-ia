@@ -416,7 +416,7 @@ class IBEISIO(object):
         infr.print('finished making name delta', 3)
         return name_delta_df
 
-    def read_ibeis_staging_feedback(infr):
+    def read_ibeis_staging_feedback(infr, edges=None):
         """
         Reads feedback from review staging table.
 
@@ -448,7 +448,11 @@ class IBEISIO(object):
         from ibeis.control.manual_review_funcs import hack_create_aidpair_index
         hack_create_aidpair_index(ibs)
 
-        review_ids = ibs.get_review_rowids_between(infr.aids)
+        if edges:
+            review_ids = ut.flatten(ibs.get_review_rowids_from_edges(edges))
+        else:
+            review_ids = ibs.get_review_rowids_between(infr.aids)
+
         review_ids = sorted(review_ids)
 
         infr.print('read %d staged reviews' % (len(review_ids)), 2)
@@ -502,7 +506,7 @@ class IBEISIO(object):
             feedback[edge].append(feedback_item)
         return feedback
 
-    def read_ibeis_annotmatch_feedback(infr, only_existing_edges=False):
+    def read_ibeis_annotmatch_feedback(infr, edges=None):
         r"""
         Reads feedback from annotmatch table and returns the result.
         Internal state is not changed.
@@ -527,11 +531,10 @@ class IBEISIO(object):
         """
         infr.print('read_ibeis_annotmatch_feedback', 1)
         ibs = infr.ibs
-        if only_existing_edges:
-            matches = ibs.matches(edges=list(infr.graph.edges()))
+        if edges is not None:
+            matches = ibs.matches(edges=edges)
         else:
-            annots = ibs.annots(infr.aids)
-            matches = annots.matches()
+            matches = ibs.annots(infr.aids).matches()
 
         infr.print('read %d annotmatch rowids' % (len(matches)), 2)
         # Use explicit truth state to mark truth
@@ -777,6 +780,63 @@ class IBEISIO(object):
         if len(add_edges):
             edge_delta_df.loc[add_edges, 'is_new'] = True
         return edge_delta_df
+
+    def _debug_edge_gt(infr, edge):
+        ibs = infr.ibs
+        # Look at annotmatch and staging table for this edge
+        matches = ibs.matches(edges=[edge])
+        review_ids = ibs.get_review_rowids_between(edge)
+
+        import pandas as pd
+        pd.options.display.max_rows = 20
+        pd.options.display.max_columns = 40
+        pd.options.display.width = 160
+        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
+        df_a = ibs.db['annotmatch'].as_pandas(matches._rowids)
+        df_s = ibs.staging['reviews'].as_pandas(review_ids)
+
+        print('=====')
+
+        print('AnnotMatch Raw')
+        df_a = df_a.rename(columns={c: c.replace('annotmatch_', '')
+                                    for c in df_a.columns})
+        df_s = df_s.rename(columns={
+            'annot_rowid1': 'aid1',
+            'annot_rowid2': 'aid2',
+            'reviewer': 'user_id',
+            'tag_text': 'tag',
+            'posixtime_modified': 'ts_s2',
+        })
+        print(df_a)
+
+        print('AnnotMatch Feedback')
+        print(infr._pandas_feedback_format(infr.read_ibeis_staging_feedback([edge])))
+
+        print('----')
+
+        print('Staging Raw')
+        df_s = df_s.rename(columns={c: c.replace('review_', '')
+                                    for c in df_s.columns})
+        df_s = df_s.rename(columns={
+            'annot_1_rowid': 'aid1',
+            'annot_2_rowid': 'aid2',
+            'user_identity': 'user_id',
+            'user_confidence': 'confidence',
+            'client_start_time_posix': 'ts_c1',
+            'client_end_time_posix': 'ts_c2',
+            'server_end_time_posix': 'ts_s2',
+            'server_start_time_posix': 'ts_s1',
+        })
+        df_s = ut.pandas_reorder(df_s, [
+            'rowid', 'aid1', 'aid2', 'count', 'evidence_decision', 'meta_decision',
+            'tags', 'confidence', 'user_id', 'ts_s1', 'ts_c1',
+            'ts_c2', 'ts_s2', 'uuid'])
+        print(df_s)
+
+        print('Staging Feedback')
+        print(infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback([edge])))
+        print('____')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

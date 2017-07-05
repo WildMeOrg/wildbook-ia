@@ -132,6 +132,13 @@ class Images(IMAGE_BASE):
             gsids = ibs.get_imageset_imgsetids_from_text(imageset_text)
         ibs.add_image_relationship(self.gids, gsids)
 
+    def show(self, *args, **kwargs):
+        if len(self) != 1:
+            raise ValueError('Can only show one, got {}'.format(len(self)))
+        from ibeis.viz import viz_image
+        for gid in self:
+            return viz_image.show_image(self._ibs, gid, *args, **kwargs)
+
 
 class ImageSetAttrInjector(BASE_TYPE):
     """

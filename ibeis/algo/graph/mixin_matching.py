@@ -21,17 +21,30 @@ class AnnotInfrMatching(object):
     """
 
     @profile
-    def exec_matching(infr, aids=None, prog_hook=None, cfgdict=None,
-                      name_method='node'):
+    def exec_matching(infr, qaids=None, daids=None, prog_hook=None,
+                      cfgdict=None, name_method='node'):
         """
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores ibeis labeling
         """
         infr.print('exec_matching', 1)
+        infr._make_rankings(qaids, daids, prog_hook, cfgdict, name_method)
+
+    def _set_vsmany_info(infr, qreq_, cm_list):
+        infr.vsmany_qreq_ = qreq_
+        infr.vsmany_cm_list = cm_list
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
+
+    def _make_rankings(infr, qaids=None, daids=None, prog_hook=None,
+                       cfgdict=None, name_method='node'):
         #from ibeis.algo.graph import graph_iden
         ibs = infr.ibs
-        if aids is None:
-            aids = infr.aids
+        if qaids is None:
+            qaids = infr.aids
+        qaids = ut.ensure_iterable(qaids)
+        if daids is None:
+            daids = infr.aids
         if cfgdict is None:
             cfgdict = {
                 # 'can_match_samename': False,
@@ -43,8 +56,10 @@ class AnnotInfrMatching(object):
                 'prescore_method': 'csum',
                 'score_method': 'csum'
             }
+            cfgdict.update(infr.ranker_params)
         # hack for using current nids
         if name_method == 'node':
+            aids = sorted(set(ut.aslist(qaids) + ut.aslist(daids)))
             custom_nid_lookup = infr.get_node_attrs('name_label', aids)
         elif name_method == 'edge':
             custom_nid_lookup = {
@@ -55,7 +70,7 @@ class AnnotInfrMatching(object):
         else:
             raise KeyError('Unknown name_method={}'.format(name_method))
 
-        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict,
                                       custom_nid_lookup=custom_nid_lookup,
                                       verbose=infr.verbose >= 2)
 
@@ -68,11 +83,18 @@ class AnnotInfrMatching(object):
         cm_list = qreq_.execute(prog_hook=prog_hook)
         infr._set_vsmany_info(qreq_, cm_list)
 
-    def _set_vsmany_info(infr, qreq_, cm_list):
-        infr.vsmany_qreq_ = qreq_
-        infr.vsmany_cm_list = cm_list
-        infr.cm_list = cm_list
-        infr.qreq_ = qreq_
+        edges = set(infr._cm_breaking(
+            cm_list, review_cfg={'ranks_top': 5}))
+        return edges
+        # return cm_list
+
+    def _make_matches_from(infr, edges, prog_hook=None, config=None):
+        from ibeis.algo.verif import pairfeat
+        if config is None:
+            config = infr.verifier_params
+        extr = pairfeat.PairwiseFeatureExtractor(infr.ibs, **config)
+        match_list = extr._exec_pairwise_match(edges, prog_hook=prog_hook)
+        return match_list
 
     def exec_vsone_subset(infr, edges, prog_hook=None):
         r"""
@@ -91,10 +113,9 @@ class AnnotInfrMatching(object):
             >>> result = infr.exec_vsone_subset(edges)
             >>> print(result)
         """
-        from ibeis.algo.verif import pairfeat
-        extr = pairfeat.PairwiseFeatureExtractor(infr.ibs)
-        match_list = extr._exec_pairwise_match(edges, prog_hook=prog_hook)
+        match_list = infr._make_matches_from(edges, prog_hook)
 
+        # TODO: is this code necessary anymore?
         vsone_matches = {e_(u, v): match
                          for (u, v), match in zip(edges, match_list)}
         infr.vsone_matches.update(vsone_matches)
@@ -148,12 +169,13 @@ class AnnotInfrMatching(object):
         infr.graph.add_edges_from(edges)
         infr.apply_match_scores()
 
-    def _cm_breaking(infr, review_cfg={}):
+    def _cm_breaking(infr, cm_list=None, review_cfg={}):
         """
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> review_cfg = {}
         """
-        cm_list = infr.cm_list
+        if cm_list is None:
+            cm_list = infr.cm_list
         ranks_top = review_cfg.get('ranks_top', None)
         ranks_bot = review_cfg.get('ranks_bot', None)
 
