@@ -849,6 +849,9 @@ class InfrReviewers(object):
         return proceed, None
 
     def on_accept(infr, feedback, need_next=True):
+        """
+        Called when user has completed feedback from qt or web
+        """
         annot1_state = feedback.pop('annot1_state', None)
         annot2_state = feedback.pop('annot2_state', None)
         if annot1_state:

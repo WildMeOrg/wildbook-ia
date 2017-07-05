@@ -811,7 +811,7 @@ def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
     return image
 
 
-def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
+def query_graph_v2_callback(graph_client, callback_type):
     from ibeis.web.graph_server import ut_to_json_encode
     assert callback_type in ['review', 'ready', 'finished']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
@@ -819,7 +819,7 @@ def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
         callback_url, callback_method = callback_tuple
         callback_method = callback_method.lower()
         data_dict = ut_to_json_encode({
-            'graph_uuid': graph_uuid,
+            'graph_uuid': graph_client.graph_uuid,
         })
         if callback_method == 'post':
             requests.post(callback_url, data=data_dict)
@@ -836,7 +836,6 @@ def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['POST'])
 def query_chips_graph_v2(ibs, annot_uuid_list=None,
-                         annot_name_list=None,
                          query_config_dict={},
                          review_callback_url=None,
                          review_callback_method='POST',
@@ -845,34 +844,39 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          finished_callback_url=None,
                          finished_callback_method='POST'):
     """
-    Ignore:
-        >>> from ibeis.web.apis_query import *
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> ut.exec_funckw(query_chips_graph_v2, globals())
-        >>> def url_for(suffix):
-        >>>     return 'localhost:5001/{}'.format(suffix)
+    CommandLine:
+        python -m ibeis.web.apis_query --test-query_chips_graph_v2:0
 
-    Ignore:
+    Example:
         >>> # WEB_DOCTEST
         >>> from ibeis.web.apis_query import *
-        >>> import time
         >>> import ibeis
-        >>> import requests
+        >>> # Open local instance
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> uuid_list = ibs.annots().uuids[0:10]
         >>> # Start up the web instance
-        >>> web_instance = ibeis.opendb_in_background(db='PZ_MTEST', web=True, browser=False)
-        >>> time.sleep(10)
-        >>> web_port = ibs.get_web_port_via_scan()
-        >>> if web_port is None:
-        >>>     raise ValueError('IA web server is not on expected port')
-        >>> baseurl = 'http://localhost:%s' % (web_port,)
-        >>> data = dict(qaid_list=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        >>> resp = requests.get(baseurl + '/api/query/graph/v2/', data=data)
-        >>> print(resp)
-        >>> web_instance.terminate()
-        >>> json_dict = resp.json()
-        >>> cmdict_list = json_dict['response']
-        >>> assert 'score_list' in cmdict_list[0]
+        >>> web_ibs = ibeis.opendb_bg_web(db='PZ_MTEST', web=True, browser=False)
+        >>> data = dict(annot_uuid_list=uuid_list)
+        >>> resp = web_ibs.send_ibeis_request('/api/query/graph/v2/', **data)
+        >>> print('resp = %r' % (resp,))
+        >>> #cmdict_list = json_dict['response']
+        >>> #assert 'score_list' in cmdict_list[0]
+
+    Example:
+        >>> # DEBUG_SCRIPT
+        >>> from ibeis.web.apis_query import *
+        >>> # Hack a flask context
+        >>> current_app = ut.DynStruct()
+        >>> current_app.GRAPH_CLIENT_DICT = {}
+        >>> old = query_chips_graph_v2.__globals__.get('current_app', None)
+        >>> query_chips_graph_v2.__globals__['current_app'] = current_app
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> #ut.exec_funckw(query_chips_graph_v2, globals())
+        >>> # Run function in main process
+        >>> query_chips_graph_v2(ibs)
+        >>> # Reset context
+        >>> query_chips_graph_v2.__globals__['current_app'] = old
     """
     from ibeis.web.graph_server import GraphClient
 
@@ -889,17 +893,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         if len(overlap_aid_set) > 0:
             overlap_aid_list = list(overlap_aid_set)
             overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
-            raise controller_inject.WebUnavailableUUIDException(overlap_annot_uuid_list, graph_uuid_)
-
-    if annot_name_list is not None:
-        assert len(annot_name_list) == len(annot_uuid_list)
-        # NOTE FROM JON:
-        # FIXME: Dont set the name list here, you can just pass these to the
-        # AnnotInference object (using the nids) attribute (which can be
-        # strings) and this will cause AnnotInfr to use those names without
-        # influencing the state of the underlying database.
-        nid_list = ibs.add_names(annot_name_list)
-        ibs.set_annot_name_rowids(aid_list, nid_list)
+            raise controller_inject.WebUnavailableUUIDException(
+                overlap_annot_uuid_list, graph_uuid_)
 
     graph_uuid = ut.random_uuid()
     assert graph_uuid not in current_app.GRAPH_CLIENT_DICT
@@ -909,7 +904,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         'ready'    : (ready_callback_url,    ready_callback_method),
         'finished' : (finished_callback_url, finished_callback_method),
     }
-    graph_client = GraphClient(autoinit=True, callbacks=callback_dict)
+    graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
+                               autoinit=True)
 
     # Ensure no race-conditions
     current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
@@ -924,11 +920,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     future.result()  # Guarantee that this has happened before calling refresh
 
     # Start main loop
-    payload = {
-        'action' : 'refresh',
-    }
-    future = graph_client.post(payload)
-    future.graph_uuid = graph_uuid
+    future = graph_client.post({'action' : 'refresh'})
+    future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
     return graph_uuid
@@ -1122,23 +1115,20 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
 
 
 def query_graph_v2_on_request_review(future):
-    graph_uuid = future.graph_uuid
-    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+    graph_client = future.graph_client
     data_list = future.result()
     graph_client.update(data_list)
-    query_graph_v2_callback(graph_client, graph_uuid, 'review')
+    query_graph_v2_callback(graph_client, 'review')
 
 
 def query_graph_v2_on_request_ready(future):
-    graph_uuid = future.graph_uuid
-    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
-    query_graph_v2_callback(graph_client, graph_uuid, 'ready')
+    graph_client = future.graph_client
+    query_graph_v2_callback(graph_client, 'ready')
 
 
 def query_graph_v2_on_request_finished(future):
-    graph_uuid = future.graph_uuid
-    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
-    query_graph_v2_callback(graph_client, graph_uuid, 'finished')
+    graph_client = future.graph_client
+    query_graph_v2_callback(graph_client, 'finished')
 
 
 if __name__ == '__main__':

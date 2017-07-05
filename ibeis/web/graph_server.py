@@ -15,12 +15,29 @@ def ut_to_json_encode(dict_):
     return dict_
 
 
-def testdata_start_payload():
+def testdata_start_payload(aids='all'):
     import ibeis
     payload = {
         'action'       : 'start',
         'dbdir'        : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
-        'aids'         : 'all',
+        'aids'         : aids,
+    }
+    return payload
+
+
+def testdata_feedback_payload(edge, decision):
+    payload = {
+        'action': 'add_feedback',
+        'edge': edge,
+        'evidence_decision': decision,
+        'meta_decision': 'null',
+        'tags': [],
+        'user_id': 'user:doctest',
+        'confidence': 'pretty_sure',
+        'timestamp_s1': 1,
+        'timestamp_c1': 2,
+        'timestamp_c2': 3,
+        'timestamp': 4,
     }
     return payload
 
@@ -41,8 +58,7 @@ class GraphActor(futures_actors.ProcessActor):
         >>> payload = testdata_start_payload()
         >>> locals().update(payload)
         >>> # Start the process
-        >>> content = actor.handle(payload)
-        >>> user_request = content['user_request']
+        >>> user_request = actor.handle(payload)
         >>> # Respond with a user decision
         >>> edge, priority, edge_data = user_request[0]
         >>> user_resp_payload = {
@@ -72,25 +88,22 @@ class GraphActor(futures_actors.ProcessActor):
         action = message.pop('action', None)
         if action is None:
             raise ValueError('Payload must have an action item')
-        if action == 'hello world':
-            time.sleep(message.get('wait', 0))
-            content = 'hello world'
-            print(content)
-            return content
+        if action == 'wait':
+            num = message.get('num', 0)
+            time.sleep(num)
+            return message
         elif action == 'debug':
             return actor
+        elif action == 'error':
+            raise Exception('FOOBAR')
         elif action == 'logs':
             return actor.infr.logs
-        elif action == 'start':
-            return actor.start(**message)
-        elif action == 'refresh':
-            return actor.refresh_candidate_edges(**message)
-        elif action == 'continue_review':
-            return actor.continue_review(**message)
-        elif action == 'add_feedback':
-            return actor.add_feedback(**message)
         else:
-            raise ValueError('Unknown action=%r' % (action,))
+            func = getattr(actor, action, None)
+            if func is None:
+                raise ValueError('Unknown action=%r' % (action,))
+            else:
+                return func(**message)
 
     def start(actor, dbdir, aids='all', config={},
               **kwargs):
@@ -118,7 +131,7 @@ class GraphActor(futures_actors.ProcessActor):
         actor.infr.apply_nondynamic_update()
         return 'started'
 
-    def refresh_candidate_edges(actor):
+    def refresh(actor):
         # Start actor.infr Main Loop
         actor.infr.refresh_candidate_edges()
         return actor.continue_review()
@@ -126,29 +139,10 @@ class GraphActor(futures_actors.ProcessActor):
     def continue_review(actor):
         # This will signal on_request_review with the same data
         user_request = actor.infr.continue_review()
-        if user_request:
-            msg = 'waiting_for_user'
-        else:
-            msg = 'queue_is_empty'
-        # we return it here as well for local tests
-        content = {
-            'message': msg,
-            'user_request': user_request,
-        }
-        return content
+        return user_request
 
-    def add_feedback(actor, edge, evidence_decision, meta_decision, tags,
-                     user_id, confidence, timestamp_s1, timestamp_c1,
-                     timestamp_c2, timestamp):
-        content = actor.infr.add_feedback(
-            edge, evidence_decision=evidence_decision,
-            meta_decision=meta_decision, tags=tags, user_id=user_id,
-            confidence=confidence, timestamp_s1=timestamp_s1,
-            timestamp_c1=timestamp_c1, timestamp_c2=timestamp_c2,
-            timestamp=timestamp,
-        )
-        actor.infr.write_ibeis_staging_feedback()
-        return content
+    def add_feedback(actor, **feedback):
+        return actor.infr.on_accept(feedback, need_next=False)
 
 
 @ut.reloadable_class
@@ -166,22 +160,10 @@ class GraphClient(object):
         >>> client.post(payload).result()
         >>> f1 = client.post({'action': 'refresh'})
         >>> f1.add_done_callback(test_foo)
-        >>> user_request = f1.result()['user_request']
+        >>> user_request = f1.result()
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
-        >>> user_resp_payload = {
-        >>>     'action': 'add_feedback',
-        >>>     'edge': edge,
-        >>>     'evidence_decision': 'match',
-        >>>     'meta_decision': 'null',
-        >>>     'tags': [],
-        >>>     'user_id': 'user:doctest',
-        >>>     'confidence': 'pretty_sure',
-        >>>     'timestamp_s1': 1,
-        >>>     'timestamp_c1': 2,
-        >>>     'timestamp_c2': 3,
-        >>>     'timestamp': 4,
-        >>> }
+        >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
         >>> f2 = client.post(user_resp_payload)
         >>> f2.result()
         >>> # Debug by getting the actor over a mp.Pipe
@@ -190,11 +172,55 @@ class GraphClient(object):
         >>> actor.infr.dump_logs()
         >>> #print(client.post({'action': 'logs'}).result())
 
+    Ignore:
+        >>> from ibeis.web.graph_server import *
+        >>> import ibeis
+        >>> client = GraphClient(autoinit=True)
+        >>> # Start the GraphActor in another proc
+        >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
+        >>> #
+        >>> f1 = client.post({'action': 'refresh'})
+        >>> user_request = f1.result()
+        >>> # The infr algorithm needs a review
+        >>> edge, priority, edge_data = user_request[0]
+        >>> #
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'wait', 'num': float(30)})
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+        >>> client.post(testdata_feedback_payload(edge, 'match'))
+        >>> client.post({'action': 'continue_review'})
+
     """
-    def __init__(client, autoinit=False, callbacks={}):
+    def __init__(client, graph_uuid=None, callbacks={}, autoinit=False):
+        client.graph_uuid = graph_uuid
+        client.callbacks = callbacks
         client.review_dict = {}
         client.review_vip = None
-        client.callbacks = callbacks
+        client.futures = []
         if autoinit:
             client.initialize()
 
@@ -202,10 +228,27 @@ class GraphClient(object):
         client.executor = GraphActor.executor()
 
     def post(client, payload):
-        return client.executor.post(payload)
+        if not isinstance(payload, dict) or 'action' not in payload:
+            raise ValueError('payload must be a dict with an action')
+        future = client.executor.post(payload)
+        client.futures.append((payload['action'], future))
+        return future
+
+    def cleanup(client):
+        # remove done items from our list
+        new_futures = []
+        for action, future in client.futures:
+            if not future.done():
+                if future.running():
+                    new_futures.append((action, future))
+                elif action == 'continue_review':
+                    future.cancel()
+                else:
+                    new_futures.append((action, future))
+        client.futures = new_futures
 
     def update(client, data_list):
-        client.review_dict = []
+        client.review_dict = {}
         client.review_vip = None
         for (edge, priority, edge_data_dict) in data_list:
             aid1, aid2 = edge
@@ -217,7 +260,7 @@ class GraphClient(object):
             client.review_dict[edge] = (priority, edge_data_dict, )
 
     def sample(client):
-        edge_list = client.review_dict.keys()
+        edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
         if client.review_vip is not None and client.review_vip in edge_list:
