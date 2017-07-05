@@ -403,6 +403,15 @@ class SQLDatabaseController(object):
         # Optimize the database (if anything is set)
         if is_new:
             db.optimize()
+        print('db.fpath = %r' % (db.fpath,))
+        print('is_new = %r' % (is_new,))
+
+        if not is_new:
+            # Check for old database versions
+            try:
+                db.get_db_version(ensure=False)
+            except lite.OperationalError:
+                always_check_metadata = True
 
         if not db.readonly:
             if is_new or always_check_metadata:
