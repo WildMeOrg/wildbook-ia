@@ -158,7 +158,6 @@ def initialize_job_manager(ibs):
 
     # import ibeis
     # #dbdir = '/media/raid/work/testdb1'
-    # ibs = ibeis.opendb('testdb1', asproxy=True)
     # from ibeis.web import app
     # web_port = ibs.get_web_port_via_scan()
     # if web_port is None:

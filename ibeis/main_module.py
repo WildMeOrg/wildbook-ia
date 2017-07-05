@@ -91,11 +91,11 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     else:
         kwargs = kwargs.copy()
         request_dbversion = kwargs.pop('request_dbversion', None)
-        asproxy = kwargs.pop('asproxy', None)
+        force_serial = kwargs.get('force_serial', None)
         ibs = IBEISControl.request_IBEISController(
             dbdir=dbdir, use_cache=use_cache,
             request_dbversion=request_dbversion,
-            asproxy=asproxy)
+            force_serial=force_serial)
         if web is None:
             web = ut.get_argflag(('--webapp', '--webapi', '--web', '--browser'),
                                  help_='automatically launch the web app / web api')

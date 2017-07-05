@@ -42,6 +42,7 @@ import utool as ut
 from six.moves import zip
 from os.path import join, split
 from ibeis.init import sysres
+from ibeis.dbio import ingest_hsdb
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 # Inject utool functions
@@ -154,7 +155,7 @@ CORE_DB_UUID_INIT_API_RULE = '/api/core/db/uuid/init/'
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
         use_cache=True, request_dbversion=None, request_stagingversion=None,
-        asproxy=None, check_hsdb=True):
+        force_serial=False, asproxy=None, check_hsdb=True):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -189,28 +190,15 @@ def request_IBEISController(
         >>> print(result)
     """
     global __IBEIS_CONTROLLER_CACHE__
-    if asproxy:
-        # Not sure if this is the correct way to do a controller proxy
-        # UNFINISHED MAYBE SCRAP
-        from multiprocessing.managers import BaseManager
-        class IBEISManager(BaseManager):
-            pass
-        IBEISManager.register(str('IBEISController'), IBEISController)
-        manager = IBEISManager()
-        manager.start()
-        ibs = manager.IBEISController(
-            dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-            request_dbversion=request_dbversion,
-            request_stagingversion=request_stagingversion)
-        return ibs
 
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
             print('[request_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
+        if force_serial:
+            assert ibs.force_serial, 'set use_cache=False in ibeis.opendb'
     else:
         # Convert hold hotspotter dirs if necessary
-        from ibeis.dbio import ingest_hsdb
         if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,
@@ -218,7 +206,7 @@ def request_IBEISController(
         else:
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-                request_dbversion=request_dbversion,
+                force_serial=force_serial, request_dbversion=request_dbversion,
                 request_stagingversion=request_stagingversion)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
