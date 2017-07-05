@@ -111,8 +111,6 @@ class GraphActor(futures_actors.ProcessActor):
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.load_published()
-        import utool
-        utool.embed()
 
         actor.infr.apply_nondynamic_update()
 
