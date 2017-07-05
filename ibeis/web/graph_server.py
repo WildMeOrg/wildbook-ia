@@ -46,7 +46,10 @@ def test_foo(future):
     print('FOO %r' % (future, ))
 
 
-class GraphActor(futures_actors.ProcessActor):
+GRAPH_ACTOR_CLASS = futures_actors.ProcessActor if ut.LINUX or ut.WIN32 else futures_actors.ThreadActor
+
+
+class GraphActor(GRAPH_ACTOR_CLASS):
     """
 
     CommandLine:
@@ -60,20 +63,12 @@ class GraphActor(futures_actors.ProcessActor):
         >>> # Start the process
         >>> user_request = actor.handle(payload)
         >>> # Respond with a user decision
+        >>> f1 = actor.handle({'action': 'refresh'})
+        >>> f1.add_done_callback(test_foo)
+        >>> user_request = f1.result()
+        >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
-        >>> user_resp_payload = {
-        >>>     'action': 'add_feedback',
-        >>>     'edge': edge,
-        >>>     'evidence_decision': 'match',
-        >>>     'meta_decision': 'null',
-        >>>     'tags': [],
-        >>>     'user_id': 'user:doctest',
-        >>>     'confidence': 'pretty_sure',
-        >>>     'timestamp_s1': 1,
-        >>>     'timestamp_c1': 2,
-        >>>     'timestamp_c2': 3,
-        >>>     'timestamp': 4,
-        >>> }
+        >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
         >>> content = actor.handle(user_resp_payload)
         >>> actor.infr.dump_logs()
 
@@ -134,7 +129,8 @@ class GraphActor(futures_actors.ProcessActor):
     def refresh(actor):
         # Start actor.infr Main Loop
         actor.infr.refresh_candidate_edges()
-        return actor.continue_review()
+        user_request = actor.infr.continue_review()
+        return user_request
 
     def continue_review(actor):
         # This will signal on_request_review with the same data
@@ -143,6 +139,11 @@ class GraphActor(futures_actors.ProcessActor):
 
     def add_feedback(actor, **feedback):
         return actor.infr.on_accept(feedback, need_next=False)
+
+    def get_feat_extractor(actor):
+        match_state_verifier = actor.infr.verifiers.get('match_state', None)
+        if match_state_verifier is not None:
+            return match_state_verifier.extr
 
 
 @ut.reloadable_class
@@ -222,6 +223,11 @@ class GraphClient(object):
         client.review_dict = {}
         client.review_vip = None
         client.futures = []
+
+        client.aids = None
+        client.config = None
+        client.extr = None
+
         if autoinit:
             client.initialize()
 
@@ -257,6 +263,8 @@ class GraphClient(object):
         client.futures = new_futures
 
     def update(client, data_list):
+        print('UPDATING GRAPH CLIENT WITH:')
+        print(ut.repr4(data_list))
         client.review_dict = {}
         client.review_vip = None
         for (edge, priority, edge_data_dict) in data_list:
@@ -273,6 +281,7 @@ class GraphClient(object):
         if len(edge_list) == 0:
             return None
         if client.review_vip is not None and client.review_vip in edge_list:
+            print('SHOWING VIP TO USER!!!')
             edge = client.review_vip
             client.review_vip = None
         else:

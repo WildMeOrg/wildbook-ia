@@ -695,6 +695,32 @@ def submit_identification(**kwargs):
         return redirect(url_for('turk_identification', imgsetid=imgsetid, previous=previous))
 
 
+@register_route('/submit/identification/v2/', methods=['POST'])
+def submit_identification_v2(graph_uuid, **kwargs):
+    ibs = current_app.ibs
+
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    # Process form data
+    annot_uuid_1, annot_uuid_2 = ibs.process_graph_match_html_v2(graph_uuid, **kwargs)
+    aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
+    aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+    previous = '%s;%s;-1' % (aid1, aid2, )
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        base = url_for('turk_identification_graph')
+        sep = '&' if '?' in base else '?'
+        args = (base, sep, ut.to_json(graph_uuid), previous, )
+        url = '%s%sgraph_uuid=%s&previous=%s' % args
+        url = url.replace(': ', ':')
+        return redirect(url)
+
+
 @register_route('/submit/group_review/', methods=['POST'])
 def group_review_submit(**kwargs):
     """

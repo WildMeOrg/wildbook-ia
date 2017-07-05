@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from six.moves import cStringIO as StringIO
-# import cStringIO as StringIO
 import flask
 import random
 from ibeis import constants as const
@@ -15,6 +13,7 @@ import utool as ut
 import pynmea2
 import simplejson as json
 import numpy as np
+import six
 
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
@@ -109,9 +108,18 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEI
         imgBGR = _resize(imgBGR, t_height=target_height)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
-    string_buf = StringIO()
-    pil_img.save(string_buf, format='jpeg')
-    data = string_buf.getvalue().encode('base64').replace('\n', '')
+    if six.PY2:
+        from six.moves import cStringIO as StringIO
+        string_buf = StringIO()
+        pil_img.save(string_buf, format='jpeg')
+        data = string_buf.getvalue().encode('base64').replace('\n', '')
+    else:
+        import io
+        byte_buf = io.BytesIO()
+        pil_img.save(byte_buf, format='jpeg')
+        byte_buf.seek(0)
+        img_bytes = base64.b64encode(byte_buf.read())
+        data = img_bytes.decode('ascii')
     return 'data:image/jpeg;base64,' + data
 
 
@@ -120,10 +128,16 @@ def check_valid_function_name(string):
 
 
 def encode_refer_url(url):
-    return base64.urlsafe_b64encode(str(url))
+    if six.PY2:
+        url = str(url)
+    else:
+        url = url.encode()
+    return base64.urlsafe_b64encode(url)
 
 
 def decode_refer_url(encode):
+    if len(encode) == 0:
+        return encode
     return base64.urlsafe_b64decode(str(encode))
 
 

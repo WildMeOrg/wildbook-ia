@@ -130,6 +130,7 @@ def query_chips_dict(ibs, *args, **kwargs):
     return ibs.query_chips(*args, **kwargs)
 
 
+@register_ibs_method
 @register_api('/api/review/query/graph/', methods=['POST'])
 def process_graph_match_html(ibs, **kwargs):
     """
@@ -143,11 +144,11 @@ def process_graph_match_html(ibs, **kwargs):
         return state
     import uuid
     map_dict = {
-        'sameanimal'       : const.EVIDENCE_DECISION.POSITIVE,
-        'differentanimals' : const.EVIDENCE_DECISION.NEGATIVE,
-        'cannottell'       : const.EVIDENCE_DECISION.INCOMPARABLE,
-        'unreviewed'       : const.EVIDENCE_DECISION.UNREVIEWED,
-        'unknown'          : const.EVIDENCE_DECISION.UNKNOWN,
+        'sameanimal'       : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.POSITIVE],
+        'differentanimals' : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.NEGATIVE],
+        'cannottell'       : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.INCOMPARABLE],
+        'unreviewed'       : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.UNREVIEWED],
+        'unknown'          : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.UNKNOWN],
         'photobomb'        : 'photobomb',
         'scenerymatch'     : 'scenerymatch',
     }
@@ -169,8 +170,9 @@ def process_graph_match_html(ibs, **kwargs):
             tag_list.append(checbox_tag)
     tag_list = sorted(set(tag_list))
     if len(tag_list) == 0:
-        tag_list = None
-    tag_str = ';'.join(tag_list)
+        tag_str = ''
+    else:
+        tag_str = ';'.join(tag_list)
     user_times = {
         'server_time_start' : request.form.get('server_time_start', None),
         'client_time_start' : request.form.get('client_time_start', None),
@@ -792,9 +794,8 @@ def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
         ibs.set_annotmatch_count(match_rowid_list, match_count_list)
 
 
-def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
-                           view_orientation='vertical', match_config={}):
-    from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
+def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
+                           view_orientation='vertical'):
     import plottool as pt
     render_config = {
         'show_ell'   : draw_matches,
@@ -803,8 +804,6 @@ def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
         'heatmask'   : draw_heatmask,
         'vert'       : view_orientation == 'vertical',
     }
-    extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
-    match = extr._exec_pairwise_match([edge])[0]
     with pt.RenderingContext(dpi=150) as ctx:
         match.show(**render_config)
     image = ctx.image
@@ -817,20 +816,21 @@ def query_graph_v2_callback(graph_client, callback_type):
     callback_tuple = graph_client.callbacks.get(callback_type, None)
     if callback_tuple is not None:
         callback_url, callback_method = callback_tuple
-        callback_method = callback_method.lower()
-        data_dict = ut_to_json_encode({
-            'graph_uuid': graph_client.graph_uuid,
-        })
-        if callback_method == 'post':
-            requests.post(callback_url, data=data_dict)
-        elif callback_method == 'get':
-            requests.get(callback_url, params=data_dict)
-        elif callback_method == 'put':
-            requests.put(callback_url, data=data_dict)
-        elif callback_method == 'delete':
-            requests.delete(callback_url, data=data_dict)
-        else:
-            raise KeyError('Unsupported HTTP callback method')
+        if callback_url is not None:
+            callback_method = callback_method.lower()
+            data_dict = ut_to_json_encode({
+                'graph_uuid': graph_client.graph_uuid,
+            })
+            if callback_method == 'post':
+                requests.post(callback_url, data=data_dict)
+            elif callback_method == 'get':
+                requests.get(callback_url, params=data_dict)
+            elif callback_method == 'put':
+                requests.put(callback_url, data=data_dict)
+            elif callback_method == 'delete':
+                requests.delete(callback_url, data=data_dict)
+            else:
+                raise KeyError('Unsupported HTTP callback method')
 
 
 @register_ibs_method
@@ -886,52 +886,60 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
-    for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
-        graph_client_ = current_app.GRAPH_CLIENT_DICT[graph_uuid_]
-        aid_list_ = graph_client_.aids
-        overlap_aid_set = set(aid_list_) & set(aid_list)
-        if len(overlap_aid_set) > 0:
-            overlap_aid_list = list(overlap_aid_set)
-            overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
-            raise controller_inject.WebUnavailableUUIDException(
-                overlap_annot_uuid_list, graph_uuid_)
+    graph_uuid = ut.hashable_to_uuid(sorted(aid_list))
+    if graph_uuid not in current_app.GRAPH_CLIENT_DICT:
+        for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
+            graph_client_ = current_app.GRAPH_CLIENT_DICT[graph_uuid_]
+            aid_list_ = graph_client_.aids
+            assert aid_list_ is not None
+            overlap_aid_set = set(aid_list_) & set(aid_list)
+            if len(overlap_aid_set) > 0:
+                overlap_aid_list = list(overlap_aid_set)
+                overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
+                raise controller_inject.WebUnavailableUUIDException(
+                    overlap_annot_uuid_list, graph_uuid_)
 
-    graph_uuid = ut.random_uuid()
-    assert graph_uuid not in current_app.GRAPH_CLIENT_DICT
+        callback_dict = {
+            'review'   : (review_callback_url,   review_callback_method),
+            'ready'    : (ready_callback_url,    ready_callback_method),
+            'finished' : (finished_callback_url, finished_callback_method),
+        }
+        graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
+                                   autoinit=True)
+        graph_client.aids = aid_list
+        graph_client.config = query_config_dict
 
-    callback_dict = {
-        'review'   : (review_callback_url,   review_callback_method),
-        'ready'    : (ready_callback_url,    ready_callback_method),
-        'finished' : (finished_callback_url, finished_callback_method),
-    }
-    graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
-                               autoinit=True)
+        # Ensure no race-conditions
+        current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
 
-    # Ensure no race-conditions
-    current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
+        # Start (create the Graph Inference object)
+        payload = {
+            'action' : 'start',
+            'dbdir'  : ibs.dbdir,
+            'aids'   : graph_client.aids,
+        }
+        future = graph_client.post(payload)
+        future.result()  # Guarantee that this has happened before calling refresh
 
-    # Start (create the Graph Inference object)
-    payload = {
-        'action'           : 'start',
-        'dbdir'            : ibs.dbdir,
-        'aids'             : aid_list,
-    }
-    future = graph_client.post(payload)
-    future.result()  # Guarantee that this has happened before calling refresh
+        # Start (create the Graph Inference object)
+        payload = {
+            'action' : 'get_feat_extractor',
+        }
+        future = graph_client.post(payload)
+        graph_client.extr = future.result()
 
-    # Start main loop
-    future = graph_client.post({'action' : 'refresh'})
-    future.graph_client = graph_client
-    future.add_done_callback(query_graph_v2_on_request_review)
+        # Start main loop
+        future = graph_client.post({'action' : 'refresh'})
+        future.graph_client = graph_client
+        future.add_done_callback(query_graph_v2_on_request_review)
 
     return graph_uuid
 
 
-@register_api('/api/review/query/graph/v2/', methods=['GET'])
-def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
-                               callback_method='POST',
-                               view_orientation='vertical',
-                               include_jquery=False):
+@register_ibs_method
+def review_graph_match_config_v2(ibs, graph_uuid, view_orientation='vertical'):
+    from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
+
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     data = graph_client.sample()
     if data is None:
@@ -941,25 +949,51 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
     args = (edge, priority, )
     print('Sampled edge %r with priority %0.02f' % args)
 
-    raise NotImplementedError('Cannot lookup ChipMatch from AnnotInference')
-
     aid_1, aid_2 = edge
     annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
     annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
 
-    match_config = {}  # TODO: Get from Inference Object from GraphClient
-    image_clean = ensure_review_image_v2(ibs, edge, match_config=match_config,
-                                         view_orientation=view_orientation)
-    image_matches = ensure_review_image_v2(ibs, edge, draw_matches=True,
-                                           match_config=match_config,
-                                           view_orientation=view_orientation)
-    image_heatmask = ensure_review_image_v2(ibs, edge, draw_heatmask=True,
-                                            match_config=match_config,
-                                            view_orientation=view_orientation)
+    if graph_client.extr is None:
+        match_config = {}  # TODO: Get from Inference Object from GraphClient
+        extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
+    else:
+        extr = graph_client.extr
 
-    image_clean_src = appf.embed_image_html(image_clean)
-    image_matches_src = appf.embed_image_html(image_matches)
-    image_heatmask_src = appf.embed_image_html(image_heatmask)
+    with ut.Timer('_exec_pairwise_match'):
+        match = extr._exec_pairwise_match([edge])[0]
+
+    with ut.Timer('_exec_pairwise_match render'):
+        image_clean = ensure_review_image_v2(ibs, match,
+                                             view_orientation=view_orientation)
+        image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
+                                               view_orientation=view_orientation)
+        image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
+                                                view_orientation=view_orientation)
+
+    with ut.Timer('_exec_pairwise_match encode'):
+        image_clean_src = appf.embed_image_html(image_clean)
+        image_matches_src = appf.embed_image_html(image_matches)
+        image_heatmask_src = appf.embed_image_html(image_heatmask)
+
+    now = datetime.utcnow()
+    server_time_start = float(now.strftime("%s.%f"))
+
+    return (edge, priority, data_dict, aid_1, aid_2, annot_uuid_1, annot_uuid_2,
+            image_clean_src, image_matches_src, image_heatmask_src,
+            server_time_start)
+
+
+@register_api('/api/review/query/graph/v2/', methods=['GET'])
+def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
+                               callback_method='POST',
+                               view_orientation='vertical',
+                               include_jquery=False):
+    values = ibs.review_graph_match_config_v2(graph_uuid,
+                                              view_orientation=view_orientation)
+
+    (edge, priority, data_dict, aid1, aid2, annot_uuid_1, annot_uuid_2,
+        image_clean_src, image_matches_src, image_heatmask_src,
+        server_time_start) = values
 
     if False:
         from ibeis.web import apis_query
@@ -995,16 +1029,15 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
         with open(join(*json_filepath_list)) as json_file:
             EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
 
-    now = datetime.utcnow()
-    server_time_start = float(now.strftime("%s.%f"))
     embedded = dict(globals(), **locals())
     return appf.template('turk', 'identification_insert', **embedded)
 
 
+@register_ibs_method
 @register_api('/api/review/query/graph/v2/', methods=['POST'])
 def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    response_tuple = ibs.process_graph_match_html(**kwargs)
+    response_tuple = process_graph_match_html(ibs, **kwargs)
     annot_uuid_1, annot_uuid_2, decision, tags, user_id, confidence, user_times = response_tuple
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
@@ -1019,16 +1052,26 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         # user changes it to be something incompatible them perhaps just reset
         # it to null.
         'meta_decision'     : 'null',
-        'tags'              : tags,
-        'user_id'           : user_id,
-        'confidence'        : confidence,
+        'tags'              : [] if len(tags) == 0 else tags.split(';'),
+        'user_id'           : 'user:web',
+        'confidence'        : 'pretty_sure',
         'timestamp_s1'      : user_times['server_time_start'],
         'timestamp_c1'      : user_times['client_time_start'],
         'timestamp_c2'      : user_times['client_time_end'],
         'timestamp'         : float(now.strftime("%s.%f"))
     }
+    print('POSTING GRAPH CLIENT REVIEW:')
+    print(ut.repr4(payload))
     graph_client.post(payload)
-    return True
+
+    # Clean any old continue_reviews
+    graph_client.cleanup()
+
+    # Continue review
+    future = graph_client.post({'action' : 'continue_review'})
+    future.graph_client = graph_client
+    future.add_done_callback(query_graph_v2_on_request_review)
+    return (annot_uuid_1, annot_uuid_2, )
 
 
 @register_ibs_method
@@ -1115,10 +1158,11 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
 
 
 def query_graph_v2_on_request_review(future):
-    graph_client = future.graph_client
-    data_list = future.result()
-    graph_client.update(data_list)
-    query_graph_v2_callback(graph_client, 'review')
+    if not future.cancelled():
+        graph_client = future.graph_client
+        data_list = future.result()
+        graph_client.update(data_list)
+        query_graph_v2_callback(graph_client, 'review')
 
 
 def query_graph_v2_on_request_ready(future):

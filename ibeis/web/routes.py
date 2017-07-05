@@ -2358,7 +2358,7 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
     return False
 
 
-@register_route('/turk/identification/', methods=['GET'])
+@register_route('/turk/identification/lnbnn/', methods=['GET'])
 def turk_identification(aid1=None, aid2=None, use_engine=False,
                         global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
                         **kwargs):
@@ -2373,7 +2373,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')
-        >>> resp = web_ibs.get('/turk/identification/')
+        >>> resp = web_ibs.get('/turk/identification/lnbnn/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -2563,6 +2563,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                          aid1=aid1,
                          aid2=aid2,
                          progress=progress,
+                         session=True,
                          session_counter=session_counter,
                          session_limit=session_limit,
                          timedelta_str=timedelta_str,
@@ -2571,6 +2572,123 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                          annot_uuid_2=str(annot_uuid_2),
                          previous=previous,
                          replace_review_rowid=replace_review_rowid,
+                         view_orientation=view_orientation,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_CSS=None,
+                         EMBEDDED_JAVASCRIPT=None)
+
+
+@register_route('/turk/identification/graph/', methods=['GET'])
+def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
+                              **kwargs):
+    """
+    CommandLine:
+        python -m ibeis.web.routes turk_identification --db PZ_Master1
+        python -m ibeis.web.routes turk_identification --db PZ_MTEST
+        python -m ibeis.web.routes turk_identification --db testdb1 --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')
+        >>> resp = web_ibs.get('/turk/identification/graph/')
+        >>> web_ibs.terminate2()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.render_html(resp.content)
+        >>> ut.show_if_requested()
+    """
+    ibs = current_app.ibs
+
+    if graph_uuid is None:
+        aid_list = ibs.get_valid_aids()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+        graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list)
+        print('Calculating graph_uuid %r from all annotations' % (graph_uuid, ))
+        base = request.url
+        sep = '&' if '?' in base else '?'
+        url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid), )
+        url = url.replace(': ', ':')
+        return redirect(url)
+
+    try:
+        values = ibs.review_graph_match_config_v2(graph_uuid,
+                                                  view_orientation=view_orientation)
+        finished = False
+    except controller_inject.WebReviewNotReadyException:
+        finished = 'engine'
+    except controller_inject.WebUnknownUUIDException:
+        return redirect(url_for('turk'))
+
+    if not finished:
+        (edge, priority, data_dict, aid1, aid2, annot_uuid_1, annot_uuid_2,
+            image_clean_src, image_matches_src, image_heatmask_src,
+            server_time_start) = values
+
+        timedelta_str = 'Unknown'
+        if aid1 is not None and aid2 is not None:
+            unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids([aid1, aid2]))
+            if -1.0 not in unixtime_list and 0.0 not in unixtime_list:
+                timedelta = abs(unixtime_list[1] - unixtime_list[0])
+                secs = 60.0
+                mins = 60.0 * 60.0
+                hrs  = 60.0 * 60.0 * 24.0
+                days = 60.0 * 60.0 * 24.0 * 365.0
+
+                if timedelta < secs:
+                    timedelta_str = '%0.2f seconds' % (timedelta, )
+                elif timedelta < mins:
+                    timedelta /= secs
+                    timedelta_str = '%0.2f minutes' % (timedelta, )
+                elif timedelta < hrs:
+                    timedelta /= mins
+                    timedelta_str = '%0.2f hours' % (timedelta, )
+                elif timedelta < days:
+                    timedelta /= hrs
+                    timedelta_str = '%0.2f days' % (timedelta, )
+                else:
+                    timedelta /= days
+                    timedelta_str = '%0.2f years' % (timedelta, )
+
+        progress = False
+        match_score = data_dict['prob_match']
+        previous = request.args.get('previous', None)
+        if previous is not None and ';' in previous:
+            previous = tuple(map(int, previous.split(';')))
+            assert len(previous) == 3
+    else:
+        progress = False
+        aid1 = None
+        aid2 = None
+        annot_uuid_1 = None
+        annot_uuid_2 = None
+        image_clean_src = None
+        image_matches_src = None
+        previous = None
+        view_orientation = None
+        match_score = None
+        timedelta_str = None
+
+    base = url_for('submit_identification_v2')
+    callback_url = '%s?graph_uuid=%s' % (base, ut.to_json(graph_uuid))
+    callback_url = callback_url.replace(': ', ':')
+
+    return appf.template('turk', 'identification',
+                         match_score=match_score,
+                         image_clean_src=image_clean_src,
+                         image_matches_src=image_matches_src,
+                         aid1=aid1,
+                         aid2=aid2,
+                         session=False,
+                         progress=progress,
+                         timedelta_str=timedelta_str,
+                         finished=finished,
+                         annot_uuid_1=str(annot_uuid_1),
+                         annot_uuid_2=str(annot_uuid_2),
+                         previous=previous,
+                         replace_review_rowid=-1,
                          view_orientation=view_orientation,
                          callback_url=callback_url,
                          callback_method='POST',

@@ -2,7 +2,7 @@
 {% block content %}
   {% if finished == 'engine' %}
   <div class="alert alert-info text-center" role="alert">
-    Please wait, the identification computation are being computed for the first time or are being refreshed.  This page will automatically refresh to check for status updates in <span id="ia-identification-engine-refresh-timer"></span> seconds.  You may safely navigate to other pages and return here when identification turking is ready.
+    Please wait, ID is currently being started and will soon have matches to review.<br/><br/>This page will automatically refresh to check for status updates in <span id="ia-identification-engine-refresh-timer"></span> seconds.  You may safely navigate to other pages and return here when identification turking is ready.
   </div>
 
   <script type="text/javascript">
@@ -39,7 +39,7 @@
           </div>
         {% endif %}
 
-        {% if not REFER_DST_ENCODED %}
+        {% if not REFER_DST_ENCODED and progress %}
           <div class="progress">
             <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
               {{ progress }}% (approximate)
@@ -47,7 +47,9 @@
           </div>
         {% endif %}
 
-        Session: [ {{ session_counter }} / {{ session_limit }} ]
+        {% if session %}
+          Session: [ {{ session_counter }} / {{ session_limit }} ]
+        {% endif %}
         <br/>
         Time Delta: {{ timedelta_str }}
         <br/>
