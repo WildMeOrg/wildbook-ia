@@ -218,6 +218,7 @@ class GraphClient(object):
     def __init__(client, graph_uuid=None, callbacks={}, autoinit=False):
         client.graph_uuid = graph_uuid
         client.callbacks = callbacks
+        client.executor = None
         client.review_dict = {}
         client.review_vip = None
         client.futures = []
@@ -226,6 +227,14 @@ class GraphClient(object):
 
     def initialize(client):
         client.executor = GraphActor.executor()
+
+    def __del__(client):
+        client.shutdown()
+
+    def shutdown(client):
+        if client.executor is not None:
+            client.executor.shutdown(wait=True)
+            client.executor = None
 
     def post(client, payload):
         if not isinstance(payload, dict) or 'action' not in payload:
