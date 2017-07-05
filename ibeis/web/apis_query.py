@@ -811,7 +811,6 @@ def ensure_review_image_v2(ibs, edge, draw_matches=False, draw_heatmask=False,
     return image
 
 
-@register_ibs_method
 def query_graph_v2_callback(graph_client, graph_uuid, callback_type):
     from ibeis.web.graph_server import ut_to_json_encode
     assert callback_type in ['review', 'ready', 'finished']
@@ -866,7 +865,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         >>> web_port = ibs.get_web_port_via_scan()
         >>> if web_port is None:
         >>>     raise ValueError('IA web server is not on expected port')
-        >>> baseurl = 'http://127.0.1.1:%s' % (web_port,)
+        >>> baseurl = 'http://localhost:%s' % (web_port,)
         >>> data = dict(qaid_list=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         >>> resp = requests.get(baseurl + '/api/query/graph/v2/', data=data)
         >>> print(resp)
@@ -903,30 +902,35 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         ibs.set_annot_name_rowids(aid_list, nid_list)
 
     graph_uuid = ut.random_uuid()
+    assert graph_uuid not in current_app.GRAPH_CLIENT_DICT
+
     callback_dict = {
         'review'   : (review_callback_url,   review_callback_method),
         'ready'    : (ready_callback_url,    ready_callback_method),
         'finished' : (finished_callback_url, finished_callback_method),
     }
     graph_client = GraphClient(autoinit=True, callbacks=callback_dict)
+
+    # Ensure no race-conditions
+    current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
+
+    # Start (create the Graph Inference object)
     payload = {
         'action'           : 'start',
         'dbdir'            : ibs.dbdir,
         'aids'             : aid_list,
-        'callbacks'        : {
-            'nonce'        : graph_client.nonce,
-            'uuid'         : graph_uuid,
-            'urls'         : {
-                'review'   : url_for('query_graph_v2_on_request_review'),
-                'ready'    : url_for('query_graph_v2_on_request_ready'),
-                'finished' : url_for('query_graph_v2_on_request_finished'),
-            },
-        },
     }
-    graph_client.post(payload)
+    future = graph_client.post(payload)
+    future.result()  # Guarantee that this has happened before calling refresh
 
-    assert graph_uuid not in current_app.GRAPH_CLIENT_DICT
-    current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
+    # Start main loop
+    payload = {
+        'action' : 'refresh',
+    }
+    future = graph_client.post(payload)
+    future.graph_uuid = graph_uuid
+    future.add_done_callback(query_graph_v2_on_request_review)
+
     return graph_uuid
 
 
@@ -1117,26 +1121,24 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
     return True
 
 
-@register_api('/internal/query/graph/v2/review/', methods=['POST'])
-def query_graph_v2_on_request_review(ibs, nonce, graph_uuid, data_list):
+def query_graph_v2_on_request_review(future):
+    graph_uuid = future.graph_uuid
     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
-    assert nonce == graph_client.nonce
+    data_list = future.result()
     graph_client.update(data_list)
-    ibs.query_graph_v2_callback(graph_client, graph_uuid, 'review')
+    query_graph_v2_callback(graph_client, graph_uuid, 'review')
 
 
-@register_api('/internal/query/graph/v2/ready/', methods=['POST'])
-def query_graph_v2_on_request_ready(ibs, nonce, graph_uuid):
+def query_graph_v2_on_request_ready(future):
+    graph_uuid = future.graph_uuid
     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
-    assert nonce == graph_client.nonce
-    ibs.query_graph_v2_callback(graph_client, graph_uuid, 'ready')
+    query_graph_v2_callback(graph_client, graph_uuid, 'ready')
 
 
-@register_api('/internal/query/graph/v2/finished/', methods=['POST'])
-def query_graph_v2_on_request_finished(ibs, nonce, graph_uuid):
+def query_graph_v2_on_request_finished(future):
+    graph_uuid = future.graph_uuid
     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
-    assert nonce == graph_client.nonce
-    ibs.query_graph_v2_callback(graph_client, graph_uuid, 'finished')
+    query_graph_v2_callback(graph_client, graph_uuid, 'finished')
 
 
 if __name__ == '__main__':

@@ -40,7 +40,7 @@ def main():
     mixins = [
         # 'mbkm_fixup',
         # 'progiter',
-        'multiclass_mcc',
+        # 'multiclass_mcc',
         'missing_values_rf',
     ]
     ut.cprint('--- OPEN REPO ---', 'blue')

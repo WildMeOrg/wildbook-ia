@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import random
 import time
-import uuid
 # from ibeis.web import futures_utils as futures_actors
 import futures_actors
 print, rrr, profile = ut.inject2(__name__)
@@ -16,6 +15,20 @@ def ut_to_json_encode(dict_):
     return dict_
 
 
+def testdata_start_payload():
+    import ibeis
+    payload = {
+        'action'       : 'start',
+        'dbdir'        : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
+        'aids'         : 'all',
+    }
+    return payload
+
+
+def test_foo(future):
+    print('FOO %r' % (future, ))
+
+
 class GraphActor(futures_actors.ProcessActor):
     """
 
@@ -24,9 +37,8 @@ class GraphActor(futures_actors.ProcessActor):
 
     Doctest:
         >>> from ibeis.web.graph_server import *
-        >>> client = GraphClient(autoinit=False)
         >>> actor = GraphActor()
-        >>> payload = client._test_start_payload()
+        >>> payload = testdata_start_payload()
         >>> locals().update(payload)
         >>> # Start the process
         >>> content = actor.handle(payload)
@@ -52,7 +64,6 @@ class GraphActor(futures_actors.ProcessActor):
     """
     def __init__(actor):
         actor.infr = None
-        actor.callbacks = None
 
     def handle(actor, message):
         if not isinstance(message, dict):
@@ -72,6 +83,8 @@ class GraphActor(futures_actors.ProcessActor):
             return actor.infr.logs
         elif action == 'start':
             return actor.start(**message)
+        elif action == 'refresh':
+            return actor.refresh_candidate_edges(**message)
         elif action == 'continue_review':
             return actor.continue_review(**message)
         elif action == 'add_feedback':
@@ -79,25 +92,15 @@ class GraphActor(futures_actors.ProcessActor):
         else:
             raise ValueError('Unknown action=%r' % (action,))
 
-    def start(actor, dbdir, callbacks, aids='all', config={},
+    def start(actor, dbdir, aids='all', config={},
               **kwargs):
         import ibeis
         assert dbdir is not None, 'must specify dbdir'
         assert actor.infr is None, ('AnnotInference already running')
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False,
                            force_serial=True)
-        # Save the callbacks config
-        actor.callbacks = callbacks
-        for key in ['uuid', 'nonce', 'urls']:
-            assert key in actor.callbacks
-        for key in ['review', 'ready', 'finished']:
-            assert key in actor.callbacks['urls']
         # Create the AnnotInference
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
-        # Configure callbacks
-        actor.infr.callbacks['request_review'] = actor.on_request_review
-        actor.infr.callbacks['review_ready'] = actor.on_review_ready
-        actor.infr.callbacks['review_finished'] = actor.on_review_finished
         # Configure query_annot_infr
         actor.infr.params['manual.n_peek'] = 50
         # actor.infr.params['autoreview.enabled'] = False
@@ -113,13 +116,14 @@ class GraphActor(futures_actors.ProcessActor):
         actor.infr.load_published()
 
         actor.infr.apply_nondynamic_update()
+        return 'started'
 
-        # Start Main Loop
+    def refresh_candidate_edges(actor):
+        # Start actor.infr Main Loop
         actor.infr.refresh_candidate_edges()
-        actor.infr.print('begin review loop')
         return actor.continue_review()
 
-    def continue_review(actor, **kwargs):
+    def continue_review(actor):
         # This will signal on_request_review with the same data
         user_request = actor.infr.continue_review()
         if user_request:
@@ -146,43 +150,6 @@ class GraphActor(futures_actors.ProcessActor):
         actor.infr.write_ibeis_staging_feedback()
         return content
 
-    def on_request_review(actor, data_list):
-        print('actor.on_request_review %d edges' % (len(data_list), ))
-        import requests
-        callback_url = actor.callbacks['urls']['review']
-        if callback_url is not None:
-            data_dict = ut_to_json_encode({
-                'nonce': actor.callbacks['nonce'],
-                'graph_uuid': actor.callbacks['uuid'],
-                'data': data_list,
-            })
-            # Send
-            requests.post(callback_url, data=data_dict)
-
-    def on_review_ready(actor):
-        print('actor.on_review_ready')
-        import requests
-        callback_url = actor.callbacks['urls']['ready']
-        if callback_url is not None:
-            data_dict = ut_to_json_encode({
-                'nonce': actor.callbacks['nonce'],
-                'graph_uuid': actor.callbacks['uuid'],
-            })
-            # Send
-            requests.post(callback_url, data=data_dict)
-
-    def on_review_finished(actor):
-        print('actor.on_review_ready')
-        import requests
-        callback_url = actor.callbacks['urls']['finished']
-        if callback_url is not None:
-            data_dict = ut_to_json_encode({
-                'nonce': actor.callbacks['nonce'],
-                'graph_uuid': actor.callbacks['uuid'],
-            })
-            # Send
-            requests.post(callback_url, data=data_dict)
-
 
 @ut.reloadable_class
 class GraphClient(object):
@@ -195,8 +162,10 @@ class GraphClient(object):
         >>> import ibeis
         >>> client = GraphClient(autoinit=True)
         >>> # Start the GraphActor in another proc
-        >>> payload = client._test_start_payload()
-        >>> f1 = client.post(payload)
+        >>> payload = testdata_start_payload()
+        >>> client.post(payload).result()
+        >>> f1 = client.post({'action': 'refresh'})
+        >>> f1.add_done_callback(test_foo)
         >>> user_request = f1.result()['user_request']
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
@@ -223,30 +192,11 @@ class GraphClient(object):
 
     """
     def __init__(client, autoinit=False, callbacks={}):
-        client.nonce = uuid.uuid4()
         client.review_dict = {}
         client.review_vip = None
         client.callbacks = callbacks
         if autoinit:
             client.initialize()
-
-    def _test_start_payload(client):
-        import ibeis
-        payload = {
-            'action'           : 'start',
-            'dbdir'            : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
-            'aids'             : 'all',
-            'callbacks'        : {
-                'nonce'        : client.nonce,
-                'uuid'         : None,
-                'urls'         : {
-                    'review'   : None,
-                    'ready'    : None,
-                    'finished' : None,
-                },
-            },
-        }
-        return payload
 
     def initialize(client):
         client.executor = GraphActor.executor()

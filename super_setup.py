@@ -747,48 +747,51 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     #===================
 
     if ut.in_virtual_env():
-        fmtdict = {
-            'sys_dist_packages': ut.get_global_dist_packages_dir(),
-            'venv_site_packages': ut.get_site_packages_dir(),
-            'pyqt'              : 'PyQt4' if PY2 else 'PyQt5',
-            # Need the PyQT5 SVG module for IPython to work properly
-            'debian-python-qt'  : (
-                'python-qt4' if PY2 else
-                'qt5-default python3-pyqt5 debian-python-qt-svg'),
-            'pip-python-qt'  : 'python-qt4' if PY2 else 'python-qt5'
-        }
-        # sys_dist_packages = ut.get_global_dist_packages_dir()
-        # sys_pyqt_dir = sys_dist_packages + '/{pyqt}'
-        # Allows us to use a system qt install in a virtual environment.
-        system_to_venv = ut.codeblock(
-            r'''
-            # STARTBLOCK bash
-            # Creates a symlink to the global PyQt in a virtual env
-            export GLOBAL_DIST_PACKAGES="{sys_dist_packages}"
-            export VENV_DIST_PACKAGES="{venv_site_packages}"
-            if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
-                echo "have qt"
-                ls $GLOBAL_DIST_PACKAGES/{pyqt}
-                ls $VENV_DIST_PACKAGES/{pyqt}
-            else
-                # Ensure PyQt is installed first (FIXME make this work for non-debian systems)
-                sudo apt-get install {debian-python-qt}
-                # pip install {pip-python-qt}
-            fi
-            if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
-                # Install system pyqt packages to virtual envirment via symlink
-                ln -s $GLOBAL_DIST_PACKAGES/{pyqt}/ $VENV_DIST_PACKAGES/{pyqt}
-                ln -s $GLOBAL_DIST_PACKAGES/sip*.so $VENV_DIST_PACKAGES/
-                ln -s $GLOBAL_DIST_PACKAGES/sip*.py $VENV_DIST_PACKAGES/
-            else
-                echo "{pyqt} DOES NOT SEEM TO BE INSTALLED ON THE SYSTEM"
-            fi
-            echo "testing"
-            python -c "import {pyqt}; print({pyqt})"
-            # ENDBLOCK bash
-            ''').format(**fmtdict)
-        # TODO: add custom build alternative
-        tpl_rman['PyQt'].add_script('system_to_venv', system_to_venv)
+        try:
+            fmtdict = {
+                'sys_dist_packages': ut.get_global_dist_packages_dir(),
+                'venv_site_packages': ut.get_site_packages_dir(),
+                'pyqt'              : 'PyQt4' if PY2 else 'PyQt5',
+                # Need the PyQT5 SVG module for IPython to work properly
+                'debian-python-qt'  : (
+                    'python-qt4' if PY2 else
+                    'qt5-default python3-pyqt5 debian-python-qt-svg'),
+                'pip-python-qt'  : 'python-qt4' if PY2 else 'python-qt5'
+            }
+            # sys_dist_packages = ut.get_global_dist_packages_dir()
+            # sys_pyqt_dir = sys_dist_packages + '/{pyqt}'
+            # Allows us to use a system qt install in a virtual environment.
+            system_to_venv = ut.codeblock(
+                r'''
+                # STARTBLOCK bash
+                # Creates a symlink to the global PyQt in a virtual env
+                export GLOBAL_DIST_PACKAGES="{sys_dist_packages}"
+                export VENV_DIST_PACKAGES="{venv_site_packages}"
+                if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
+                    echo "have qt"
+                    ls $GLOBAL_DIST_PACKAGES/{pyqt}
+                    ls $VENV_DIST_PACKAGES/{pyqt}
+                else
+                    # Ensure PyQt is installed first (FIXME make this work for non-debian systems)
+                    sudo apt-get install {debian-python-qt}
+                    # pip install {pip-python-qt}
+                fi
+                if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
+                    # Install system pyqt packages to virtual envirment via symlink
+                    ln -s $GLOBAL_DIST_PACKAGES/{pyqt}/ $VENV_DIST_PACKAGES/{pyqt}
+                    ln -s $GLOBAL_DIST_PACKAGES/sip*.so $VENV_DIST_PACKAGES/
+                    ln -s $GLOBAL_DIST_PACKAGES/sip*.py $VENV_DIST_PACKAGES/
+                else
+                    echo "{pyqt} DOES NOT SEEM TO BE INSTALLED ON THE SYSTEM"
+                fi
+                echo "testing"
+                python -c "import {pyqt}; print({pyqt})"
+                # ENDBLOCK bash
+                ''').format(**fmtdict)
+            # TODO: add custom build alternative
+            tpl_rman['PyQt'].add_script('system_to_venv', system_to_venv)
+        except NotImplementedError:
+            pass
 
 
 #-----------
