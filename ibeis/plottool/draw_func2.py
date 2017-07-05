@@ -461,7 +461,6 @@ def render_figure_to_image(fig, **savekw):
     with io.BytesIO() as stream:
         # This call takes 23% - 15% of the time depending on settings
         fig.savefig(stream, bbox_inches=extent, **savekw)
-        fig.savefig('foo.png', bbox_inches=extent, **savekw)
         stream.seek(0)
         data = np.fromstring(stream.getvalue(), dtype=np.uint8)
     image = cv2.imdecode(data, 1)
@@ -476,25 +475,28 @@ class RenderingContext(object):
         self.savekw = savekw
 
     def __enter__(self):
-        import plottool as pt
-        tmp_fnum = -1
-        import matplotlib as mpl
-        self.fig = pt.figure(fnum=tmp_fnum)
-        self.was_interactive = mpl.is_interactive()
-        if self.was_interactive:
-            mpl.interactive(False)
-        return self
+        with ut.Timer('RenderingContext __enter__'):
+            import plottool as pt
+            tmp_fnum = -1
+            import matplotlib as mpl
+            self.fig = pt.figure(fnum=tmp_fnum)
+            self.was_interactive = mpl.is_interactive()
+            if self.was_interactive:
+                mpl.interactive(False)
+            return self
 
     def __exit__(self, type_, value, trace):
-        if trace is not None:
-            #print('[util_time] Error in context manager!: ' + str(value))
-            return False  # return a falsey value on error
-        # Ensure that this figure will not pop up
-        import plottool as pt
-        self.image = pt.render_figure_to_image(self.fig, **self.savekw)
-        pt.plt.close(self.fig)
-        if self.was_interactive:
-            mpl.interactive(self.was_interactive)
+        with ut.Timer('RenderingContext __exit__'):
+            if trace is not None:
+                #print('[util_time] Error in context manager!: ' + str(value))
+                return False  # return a falsey value on error
+            # Ensure that this figure will not pop up
+            import plottool as pt
+            with ut.Timer('RenderingContext render_figure_to_image'):
+                self.image = pt.render_figure_to_image(self.fig, **self.savekw)
+            pt.plt.close(self.fig)
+            if self.was_interactive:
+                mpl.interactive(self.was_interactive)
 
 
 def extract_axes_extents(fig, combine=False, pad=0.0):
