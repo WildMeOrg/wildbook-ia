@@ -879,15 +879,13 @@ class InfrReviewers(object):
                 if not proceed:
                     return user_request
         except StopIteration:
-            infr.on_queue_empty()
-
-    def on_queue_empty(infr):
-        # TODO: refresh criteria
-        if infr.manual_wgt is not None:
-            if infr.manual_wgt.isVisible():
-                import guitool as gt
-                gt.user_info(infr.manual_wgt, 'Review Complete')
-        print('review lop complete')
+            # TODO: refresh criteria
+            if infr.manual_wgt is not None:
+                if infr.manual_wgt.isVisible():
+                    import guitool as gt
+                    gt.user_info(infr.manual_wgt, 'Review Complete')
+            print('queue is empty')
+            return 'queue is empty'
 
     def manual_review(infr, edge):
         # OLD
