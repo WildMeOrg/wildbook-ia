@@ -27,12 +27,11 @@ def sync_wildbook():
     if True:
         # Read ALL data from whaleshark.org
         parsed = getshark.parse_whaleshark_org()
-        output_dir = 'sharkimages'
         db = 'WS_ALL'
         species = 'whale_shark'
         # images_url = 'http://www.whaleshark.org/listImages.jsp'
         # keyword_url = 'http://www.whaleshark.org/getKeywordImages.jsp'
-        download_dir = join('/media/raid/raw/WhaleSharks_WB/', output_dir)
+        download_dir = join('/media/raid/raw/Wildbook/', 'sharkimages')
     else:
         # Read ALL data from whaleshark.org
         images_url = 'http://www.mantamatcher.org/listImages.jsp'
@@ -40,8 +39,10 @@ def sync_wildbook():
         db = 'Mantas'
         species = 'manta_ray'
         parsed = parse_wildbook(images_url, keyword_url)
-        output_dir = 'mantas'
-        download_dir = join('/media/raid/raw/Wildbook/', output_dir)
+        download_dir = join('/media/raid/raw/Wildbook/', 'mantas')
+
+    DRY = False
+    DRY = True
 
     ut.ensuredir(download_dir)
     parsed = getshark.postprocess_filenames(parsed, download_dir)
@@ -71,7 +72,6 @@ def sync_wildbook():
     ibs = ibeis.opendb(db, allow_newdir=True)
     all_images = ibs.images()
 
-    DRY = True
     num_ia_unique = len(set(all_images.uuids) - set(info['uuid']))
 
     # TODO: Check that all the UUIDs in the IA database are indeed ok
@@ -1570,15 +1570,15 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
             if key in valid_tags
         ])[::-1]
 
-        print('Known')
-        print(ut.repr2(known_taghist[0:100], nl=1))
-
         print('Unknown')
-        print(ut.repr2(unknown_taghist[0:100], nl=1))
+        print(ut.repr2(unknown_taghist[0:100][::-1], nl=1))
+
+        print('Known')
+        print(ut.repr2(known_taghist[0:100][::-1], nl=1))
 
         print(ut.repr2(
             ut.dict_hist(ut.flatten(known_img_tag_list)),
-            key_order_metric='val'
+            key_order_metric='val', nl=1
         ))
 
     return known_img_tag_list
