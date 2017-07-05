@@ -33,3 +33,5 @@ opencv-python
 futures
 pathlib
 delorean
+ubelt
+futures_actors
