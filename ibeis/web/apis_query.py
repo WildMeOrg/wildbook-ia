@@ -795,9 +795,10 @@ def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
 
 
 def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
-                           view_orientation='vertical'):
+                           view_orientation='vertical', overlay=True):
     import plottool as pt
     render_config = {
+        'overlay'    : overlay,
         'show_ell'   : draw_matches,
         'show_lines' : draw_matches,
         'show_ori'   : False,
@@ -953,33 +954,29 @@ def review_graph_match_config_v2(ibs, graph_uuid, view_orientation='vertical'):
     annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
     annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
 
-    if graph_client.extr is None:
-        match_config = {}  # TODO: Get from Inference Object from GraphClient
-        extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
-    else:
-        extr = graph_client.extr
+    match_config = {} if graph_client.extr is None else graph_client.extr.match_config
+    extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
 
-    with ut.Timer('_exec_pairwise_match'):
-        match = extr._exec_pairwise_match([edge])[0]
+    match = extr._exec_pairwise_match([edge])[0]
 
-    with ut.Timer('_exec_pairwise_match render'):
-        image_clean = ensure_review_image_v2(ibs, match,
-                                             view_orientation=view_orientation)
-        image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
-                                               view_orientation=view_orientation)
-        image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
-                                                view_orientation=view_orientation)
+    image_clean = ensure_review_image_v2(ibs, match,
+                                         view_orientation=view_orientation,
+                                         overlay=False)
+    # image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
+    #                                        view_orientation=view_orientation)
 
-    with ut.Timer('_exec_pairwise_match encode'):
-        image_clean_src = appf.embed_image_html(image_clean)
-        image_matches_src = appf.embed_image_html(image_matches)
-        image_heatmask_src = appf.embed_image_html(image_heatmask)
+    image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
+                                            view_orientation=view_orientation)
+
+    image_clean_src = appf.embed_image_html(image_clean)
+    # image_matches_src = appf.embed_image_html(image_matches)
+    image_heatmask_src = appf.embed_image_html(image_heatmask)
 
     now = datetime.utcnow()
     server_time_start = float(now.strftime("%s.%f"))
 
     return (edge, priority, data_dict, aid_1, aid_2, annot_uuid_1, annot_uuid_2,
-            image_clean_src, image_matches_src, image_heatmask_src,
+            image_clean_src, image_heatmask_src, image_heatmask_src,
             server_time_start)
 
 
@@ -1068,7 +1065,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     graph_client.cleanup()
 
     # Continue review
-    future = graph_client.post({'action' : 'continue_review'})
+    future = graph_client.post({'action' : 'refresh_pos_redun'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
     return (annot_uuid_1, annot_uuid_2, )
@@ -1161,6 +1158,17 @@ def query_graph_v2_on_request_review(future):
     if not future.cancelled():
         graph_client = future.graph_client
         data_list = future.result()
+        if data_list is None or len(data_list) == 0:
+            if graph_client.state.get('pos_redun', False):
+                future = graph_client.post({'action' : 'refresh_pos_redun'})
+                future.graph_client = graph_client
+                future.add_done_callback(query_graph_v2_on_request_review)
+                graph_client.state['pos_redun'] = False
+            else:
+                future = graph_client.post({'action' : 'continue_review'})
+                future.graph_client = graph_client
+                future.add_done_callback(query_graph_v2_on_request_review)
+                graph_client.state['pos_redun'] = True
         graph_client.update(data_list)
         query_graph_v2_callback(graph_client, 'review')
 

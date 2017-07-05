@@ -2653,7 +2653,8 @@ def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
                     timedelta_str = '%0.2f years' % (timedelta, )
 
         progress = False
-        match_score = data_dict['prob_match']
+        match_score = priority
+        alert = match_score is not None and match_score > 10.0
         previous = request.args.get('previous', None)
         if previous is not None and ';' in previous:
             previous = tuple(map(int, previous.split(';')))
@@ -2669,6 +2670,7 @@ def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
         previous = None
         view_orientation = None
         match_score = None
+        alert = False
         timedelta_str = None
 
     base = url_for('submit_identification_v2')
@@ -2681,6 +2683,7 @@ def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
                          image_matches_src=image_matches_src,
                          aid1=aid1,
                          aid2=aid2,
+                         alert=alert,
                          session=False,
                          progress=progress,
                          timedelta_str=timedelta_str,

@@ -129,8 +129,13 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     def refresh(actor):
         # Start actor.infr Main Loop
         actor.infr.refresh_candidate_edges()
-        user_request = actor.infr.continue_review()
-        return user_request
+        return actor.continue_review()
+
+    def refresh_pos_redun(actor):
+        new_edges = list(actor.infr.find_pos_redun_candidate_edges())
+        actor.infr.queue.clear()
+        actor.infr.add_candidate_edges(new_edges)
+        return actor.continue_review()
 
     def continue_review(actor):
         # This will signal on_request_review with the same data
@@ -228,6 +233,8 @@ class GraphClient(object):
         client.config = None
         client.extr = None
 
+        client.state = {}
+
         if autoinit:
             client.initialize()
 
@@ -267,16 +274,21 @@ class GraphClient(object):
         print(ut.repr4(data_list))
         client.review_dict = {}
         client.review_vip = None
-        for (edge, priority, edge_data_dict) in data_list:
-            aid1, aid2 = edge
-            if aid2 < aid1:
-                aid1, aid2 = aid2, aid1
-            edge = (aid1, aid2, )
-            if client.review_vip is None:
-                client.review_vip = edge
-            client.review_dict[edge] = (priority, edge_data_dict, )
+        if data_list is None:
+            client.review_dict = None
+        else:
+            for (edge, priority, edge_data_dict) in data_list:
+                aid1, aid2 = edge
+                if aid2 < aid1:
+                    aid1, aid2 = aid2, aid1
+                edge = (aid1, aid2, )
+                if client.review_vip is None:
+                    client.review_vip = edge
+                client.review_dict[edge] = (priority, edge_data_dict, )
 
     def sample(client):
+        if client.review_dict is None:
+            raise NotImplementedError('Needs to throw random samples')
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
