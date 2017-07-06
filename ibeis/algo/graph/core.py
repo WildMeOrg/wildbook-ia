@@ -1177,9 +1177,16 @@ class AnnotInference(ut.NiceRepr,
         """
         Returns dict of params prefixed with <prefix>.
         The returned dict does not contain the prefix
+
+        Doctest:
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference(None)
+            >>> result = ut.repr2(infr.subparams('refresh'))
+            >>> print(result)
+            {'patience': 72, 'thresh': 0.1, 'window': 20}
         """
         prefix_ = prefix + '.'
-        subparams = {k[len(prefix_) + 1:]: v for k, v in infr.params.items()
+        subparams = {k[len(prefix_):]: v for k, v in infr.params.items()
                      if k.startswith(prefix_)}
         return subparams
 

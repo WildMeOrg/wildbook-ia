@@ -131,7 +131,6 @@ class InfrLoops(object):
                 proceed, user_request = infr.next_review()
                 if not proceed:
                     yield user_request
-
             except StopIteration:
                 assert len(infr.queue) == 0
                 infr.print('No more edges after %d iterations, need refresh' %
@@ -193,6 +192,24 @@ class InfrLoops(object):
     def main_gen(infr, max_loops=None, use_refresh=True):
         """
         The main outer loop
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_loops import *
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)), autoinit='staging', verbose=4)
+            >>> infr.oracle = UserOracle(.8, rng=0)
+            >>> infr.simulation_mode = False
+            >>> # TODO: fixme if we dont load published
+            >>> infr.load_published()
+            >>> gen = infr.main_gen()
+            >>> while True:
+            >>>     try:
+            >>>         reviews = next(gen)
+            >>>     except StopIteration:
+            >>>         break
+            >>>     edge, priority, data = reviews[0]
+            >>>     feedback = infr.request_oracle_review(edge)
+            >>>     infr.add_feedback(edge, **feedback)
         """
         infr.print('Starting main loop', 1)
         if max_loops is None:
@@ -208,15 +225,12 @@ class InfrLoops(object):
         # Initialize a refresh criteria
         for count in it.count(0):
 
-            # if infr.test_mode and infr.params['inference.enabled']:
-            #     checkpoint = infr.copy()
-
             if count >= max_loops:
                 infr.print('early stop', 1, color='red')
                 break
             infr.print('Outer loop iter %d ' % (count,))
-            # Do priority loop over lnbnn candidates
 
+            # Do priority loop over lnbnn candidates
             for _ in infr.lnbnn_priority_gen(use_refresh):
                 yield _
 
@@ -226,17 +240,6 @@ class InfrLoops(object):
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
             if terminate:
                 infr.print('Triggered termination criteria', 1, color='red')
-
-            # if infr.test_mode and infr.params['inference.enabled']:
-            #     count = len(infr.metrics_list) - len(checkpoint.metrics_list)
-            #     history = infr.metrics_list[-count:]
-            #     testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
-            #     badness = testaction_hist.get('incorrect new merge', 0)
-            #     rewind = (infr.refresh.num_meaningful == badness) and badness > 0
-            #     if rewind:
-            #         pass
-            #         # import utool
-            #         # utool.embed()
 
             if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
                 # Fix positive redundancy of anything within the loop
@@ -249,23 +252,10 @@ class InfrLoops(object):
             if terminate:
                 break
 
-        # if infr.params['redun.enabled']:
-        #     # Do a final fixup, check work of auto criteria
-        #     infr.refresh.enabled = False
-        #     # infr.rereview_nonconf_auto()
-        #     print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
-        #     # infr.recovery_review_loop()
-
         infr.print('Terminate.', 1, color='red')
 
         if infr.params['inference.enabled']:
             infr.assert_consistency_invariant()
-        # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
-        # pred_groups = list(infr.positive_connected_compoments())
-        # from ibeis.algo.hots import simulate
-        # comparisons = simulate.compare_groups(true_groups, pred_groups)
-        # pred_merges = comparisons['pred_merges']
-        # print(pred_merges)
         infr.print('Exiting main loop')
 
 
@@ -350,6 +340,12 @@ class InfrReviewers(object):
             proceed = False
             return proceed, user_request
 
+    @profile
+    def request_oracle_review(infr, edge, **kw):
+        truth = infr.match_state_gt(edge)
+        feedback = infr.oracle.review(edge, truth, infr, **kw)
+        return feedback
+
     def qt_edge_reviewer(infr, edge=None):
         import guitool as gt
         gt.ensure_qapp()
@@ -431,23 +427,6 @@ class InfrReviewers(object):
         # Otherwise the current process must handle the request by return value
         return user_request
 
-    @profile
-    def next_review(infr):
-        """
-        does one review step
-        """
-        edge, priority = infr.peek()
-        infr.print('next_review. edge={}'.format(edge), 100)
-        proceed, feedback = infr.emit_or_review(edge, priority)
-        if proceed:
-            # Add feedback from the automated method
-            infr.add_feedback(edge, priority=priority, **feedback)
-            return proceed, None
-        else:
-            infr.print('need_user_feedback', 100)
-            # We need to wait for user feedback
-            return proceed, feedback
-
     def on_accept(infr, feedback, need_next=True):
         """
         Called when user has completed feedback from qt or web
@@ -465,6 +444,25 @@ class InfrReviewers(object):
 
         if need_next and infr.queue is not None:
             infr.continue_review()
+
+    @profile
+    def next_review(infr):
+        """
+        does one review step
+        """
+        if len(infr.queue) == 0:
+            raise StopIteration('empty queue')
+        edge, priority = infr.peek()
+        infr.print('next_review. edge={}'.format(edge), 100)
+        proceed, feedback = infr.emit_or_review(edge, priority)
+        if proceed:
+            # Add feedback from the automated method
+            infr.add_feedback(edge, priority=priority, **feedback)
+            return proceed, None
+        else:
+            infr.print('need_user_feedback', 100)
+            # We need to wait for user feedback
+            return proceed, feedback
 
     def continue_review(infr):
         try:
@@ -489,34 +487,28 @@ class InfrReviewers(object):
             print('queue is empty')
             return 'queue is empty'
 
-    def manual_review(infr, edge):
-        # OLD
-        from ibeis.viz import viz_graph2
-        dlg = viz_graph2.AnnotPairDialog.as_dialog(
-            infr=infr, edge=edge, standalone=False)
-        # dlg.resize(700, 500)
-        dlg.exec_()
-        if dlg.widget.was_confirmed:
-            feedback = dlg.widget.feedback_dict()
-            feedback.pop('edge', None)
-        else:
-            raise ReviewCanceled('user canceled')
-        dlg.close()
-        # raise NotImplementedError('no user review')
-        pass
+    # def request_user_review(infr, edge):
+    #     if infr.simulation_mode:
+    #         feedback = infr.request_oracle_review(edge)
+    #     else:
+    #         feedback = infr.manual_review(edge)
+    #     return feedback
 
-    @profile
-    def request_oracle_review(infr, edge, **kw):
-        truth = infr.match_state_gt(edge)
-        feedback = infr.oracle.review(edge, truth, infr, **kw)
-        return feedback
-
-    def request_user_review(infr, edge):
-        if infr.simulation_mode:
-            feedback = infr.request_oracle_review(edge)
-        else:
-            feedback = infr.manual_review(edge)
-        return feedback
+    # def manual_review(infr, edge):
+    #     # OLD
+    #     from ibeis.viz import viz_graph2
+    #     dlg = viz_graph2.AnnotPairDialog.as_dialog(
+    #         infr=infr, edge=edge, standalone=False)
+    #     # dlg.resize(700, 500)
+    #     dlg.exec_()
+    #     if dlg.widget.was_confirmed:
+    #         feedback = dlg.widget.feedback_dict()
+    #         feedback.pop('edge', None)
+    #     else:
+    #         raise ReviewCanceled('user canceled')
+    #     dlg.close()
+    #     # raise NotImplementedError('no user review')
+    #     pass
 
 
 class SimulationHelpers(object):

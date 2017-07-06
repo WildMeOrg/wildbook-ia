@@ -859,7 +859,10 @@ class Priority(object):
             priorities[np.isnan(priorities)] = low
         else:
             priorities = np.asarray(scores)
-            assert not np.any(np.isnan(priorities))
+            if np.any(np.isnan(priorities)):
+                infr.print('Error prioritizing edges={}'.format(edges))
+                infr.print('Error prioritizing priorities={}'.format(priorities))
+                raise AssertionError('nan priorities')
 
         if infr.params['inference.enabled']:
             # Increase priority of any flagged maybe_error edges
