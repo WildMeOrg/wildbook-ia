@@ -742,7 +742,7 @@ class Priority(object):
             return
         edges_ = [edge for edge in edges if edge in infr.queue]
         if len(edges_) > 0:
-            infr.print('removed priority from {} edges'.format(len(edges_)), 4)
+            infr.print('removed priority from {} edges'.format(len(edges_)), 5)
             infr.queue.delete_items(edges_)
 
     def _reinstate_edge_priority(infr, edges):
@@ -752,7 +752,7 @@ class Priority(object):
         if len(edges_) > 0:
             # TODO: use whatever the current metric is
             metric = 'prob_match'
-            infr.print('reprioritize {} edges'.format(len(edges_)), 4)
+            infr.print('reprioritize {} edges'.format(len(edges_)), 5)
             priorities = infr.gen_edge_values(metric, edges_, default=1e-9)
             for edge, priority in zip(edges_, priorities):
                 infr._push(edge, priority)
@@ -760,7 +760,7 @@ class Priority(object):
     def _increase_priority(infr, edges, amount=10):
         if infr.queue is None:
             return
-        infr.print('increase priority of {} edges'.format(len(edges)), 4)
+        infr.print('increase priority of {} edges'.format(len(edges)), 5)
         metric = 'prob_match'
         priorities = infr.gen_edge_values(metric, edges, default=1e-9)
         for edge, base in zip(edges, priorities):
@@ -1127,7 +1127,7 @@ class Redundancy(_RedundancyHelpers):
         """
         if not infr.params['redun.enabled']:
             return
-        # infr.print('neg_redun external update nid={}'.format(nid), 4)
+        # infr.print('neg_redun external update nid={}'.format(nid), 5)
         k_neg = infr.params['redun.neg']
         cc1 = infr.pos_graph.component(nid)
         force = True
@@ -1150,7 +1150,7 @@ class Redundancy(_RedundancyHelpers):
             if len(other_nids) > 0:
                 infr._set_neg_redun_flags(nid, other_nids, flags)
             else:
-                infr.print('neg_redun skip update nid=%r' % (nid,), 5)
+                infr.print('neg_redun skip update nid=%r' % (nid,), 6)
 
     @profile
     def update_neg_redun_to(infr, nid1, other_nids, may_add=True, may_remove=True,
@@ -1161,7 +1161,7 @@ class Redundancy(_RedundancyHelpers):
         """
         if not infr.params['redun.enabled']:
             return
-        # infr.print('update_neg_redun', 4)
+        # infr.print('update_neg_redun', 5)
         force = True
         cc1 = infr.pos_graph.component(nid1)
         if not force:
@@ -1402,7 +1402,7 @@ class Redundancy(_RedundancyHelpers):
         elif need_remove:
             infr._set_pos_redun_flag(nid, False)
         else:
-            infr.print('pos_redun skip update nid=%r' % (nid,), 5)
+            infr.print('pos_redun skip update nid=%r' % (nid,), 6)
 
     @profile
     def _set_pos_redun_flag(infr, nid, flag):
@@ -1412,9 +1412,9 @@ class Redundancy(_RedundancyHelpers):
         was_pos_redun = nid in infr.pos_redun_nids
         if flag:
             if not was_pos_redun:
-                infr.print('pos_redun flag=T nid=%r' % (nid,), 4)
+                infr.print('pos_redun flag=T nid=%r' % (nid,), 5)
             else:
-                infr.print('pos_redun flag=T nid=%r (already done)' % (nid,), 5)
+                infr.print('pos_redun flag=T nid=%r (already done)' % (nid,), 6)
             infr.pos_redun_nids.add(nid)
             cc = infr.pos_graph.component(nid)
             infr.remove_internal_priority(cc)
@@ -1425,9 +1425,9 @@ class Redundancy(_RedundancyHelpers):
                 )
         else:
             if was_pos_redun:
-                infr.print('pos_redun flag=F nid=%r' % (nid,), 4)
+                infr.print('pos_redun flag=F nid=%r' % (nid,), 5)
             else:
-                infr.print('pos_redun flag=F nid=%r (already done)' % (nid,), 5)
+                infr.print('pos_redun flag=F nid=%r (already done)' % (nid,), 6)
             cc = infr.pos_graph.component(nid)
             infr.pos_redun_nids -= {nid}
             infr.reinstate_internal_priority(cc)
@@ -1474,7 +1474,7 @@ class Redundancy(_RedundancyHelpers):
                 omsg = 'others={}'.format(others)
             amsg = '(already done)' if already else ''
             msg = '{} nid={}, {} {}'.format(what, nid1, omsg, amsg)
-            infr.print(msg, 4 + already)
+            infr.print(msg, 5 + already)
 
         _print_helper('neg_redun flag=T', needs_flag)
         _print_helper('neg_redun flag=T', already_flagged, already=True)
@@ -1533,10 +1533,10 @@ class Redundancy(_RedundancyHelpers):
         was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
         if flag:
             if not was_neg_redun:
-                infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2), 4)
+                infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2), 5)
             else:
                 infr.print('flag_neg_redun nids=%r,%r (already done)' % (
-                    nid1, nid2), 5)
+                    nid1, nid2), 6)
 
             infr.neg_redun_nids.add_edge(nid1, nid2)
             cc1 = infr.pos_graph.component(nid1)
@@ -1550,10 +1550,10 @@ class Redundancy(_RedundancyHelpers):
         else:
             was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
             if was_neg_redun:
-                infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2), 4)
+                infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2), 5)
             else:
                 infr.print('unflag_neg_redun nids=%r,%r (already done)' % (
-                    nid1, nid2), 5)
+                    nid1, nid2), 6)
             try:
                 infr.neg_redun_nids.remove_edge(nid1, nid2)
             except nx.exception.NetworkXError:

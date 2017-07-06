@@ -547,10 +547,22 @@ class NameRelabel(object):
     @profile
     def relabel_using_reviews(infr, graph=None, rectify=True):
         r"""
-        Relabels nodes in graph based on poasitive-review connected components
+        Relabels nodes in graph based on positive connected components
+
+        This will change all of the names on the nodes to be consistent while
+        preserving any existing names as best as possible. If rectify=False,
+        this will be faster, but the old names will not be preserved and each
+        PCC will be assigned an arbitrary name.
+
+        Note:
+            if something messes up you can call infr.reset_labels_to_ibeis() to
+            reset node labels to their original values --- this will almost
+            always put the graph in an inconsistent state --- but then you can
+            this with rectify=True to fix everything up.
 
         Args:
             graph (nx.Graph, optional): only edges in `graph` are relabeled
+                defaults to current graph.
             rectify (bool, optional): if True names attempt to remain
                 consistent otherwise there are no restrictions on name labels
                 other than that they are distinct.
@@ -1158,6 +1170,8 @@ class AnnotInference(ut.NiceRepr,
         infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
+            if isinstance(autoinit, six.string_types):
+                infr.reset_feedback(autoinit)
 
     def subparams(infr, prefix):
         """
