@@ -385,78 +385,6 @@ class InfrLoops(object):
     Algorithm control flow loops
     """
 
-    def groundtruth_split_loop(infr):
-        # TODO
-        pass
-
-    @profile
-    def groundtruth_merge_loop(infr):
-        """
-        Finds edges to make sure the ground truth is merged
-        """
-        infr.print('==============================', color='white')
-        infr.print('--- GROUNDTRUTH MERGE LOOP ---', color='white')
-        assert infr.test_mode, 'only run this in test mode'
-
-        group = ut.group_items(infr.aids, infr.orig_name_labels)
-        fix_edges = []
-
-        # Tell the oracle its time to get serious
-        # infr.oracle.normal_accuracy = 1.0
-        # infr.oracle.recover_accuracy = 1.0
-
-        for gt_nid, aids in group.items():
-            pos_sub = infr.pos_graph.subgraph(aids)
-            aug_edges = nxu.edge_connected_augmentation(
-                pos_sub, 1, return_anyway=True)
-            fix_edges.extend(aug_edges)
-
-        if infr.test_mode:
-            infr.ensure_edges_from(fix_edges)
-            infr.apply_edge_truth(fix_edges)
-
-        for edge in fix_edges:
-            try:
-                feedback = infr.request_user_review(edge)
-            except ReviewCanceled:
-                raise
-            infr.add_feedback(edge=edge, **feedback)
-            infr.recovery_review_loop(verbose=0)
-
-    @profile
-    def rereview_nonconf_auto(infr):
-        infr.print('=========================', color='white')
-        infr.print('--- REREVIEW NONCONF AUTO', color='white')
-        # Enforce that a user checks any PCC that was auto-reviewed
-        # but was unable to achieve k-positive-consistency
-        for pcc in list(infr.non_pos_redundant_pccs(relax=False)):
-            subgraph = infr.graph.subgraph(pcc)
-            for u, v, data in subgraph.edges(data=True):
-                edge = infr.e_(u, v)
-                if data.get('user_id', '').startswith('auto'):
-                    try:
-                        feedback = infr.request_user_review(edge)
-                    except ReviewCanceled:
-                        raise
-                    infr.add_feedback(edge=edge, **feedback)
-            infr.recovery_review_loop(verbose=0)
-
-    @profile
-    def recovery_review_loop(infr, verbose=1):
-        if verbose:
-            infr.print('=============================', color='white')
-            infr.print('--- RECOVERY REVEIEW LOOP ---', color='white')
-        while infr.is_recovering():
-            edge, priority = infr.peek()
-            try:
-                feedback = infr.request_user_review(edge)
-            except ReviewCanceled:
-                # Place edge back on the queue
-                if not infr.is_redundant(edge):
-                    infr.push(edge, priority)
-                continue
-            infr.add_feedback(edge=edge, **feedback)
-
     def _print_previous_loop_statistics(infr, count):
         # Print stats about what happend in the this loop
         history = infr.metrics_list[-count:]
@@ -486,10 +414,9 @@ class InfrLoops(object):
             'User Histogram: {}'.format(ut.repr2(ut.dict_hist(
                 ut.take_column(history, 'user_id')
             ), si=True)), color='yellow')
-        pass
 
     @profile
-    def inner_priority_loop(infr, use_refresh=True):
+    def inner_priority_gen(infr, use_refresh=True):
         """
         Executes reviews until the queue is empty or needs refresh
         """
@@ -510,8 +437,8 @@ class InfrLoops(object):
             try:
                 proceed, user_request = infr.next_review()
                 if not proceed:
-                    # Break for manual review
-                    break
+                    yield user_request
+
             except StopIteration:
                 assert len(infr.queue) == 0
                 infr.print('No more edges after %d iterations, need refresh' %
@@ -520,7 +447,7 @@ class InfrLoops(object):
         if infr.metrics_list:
             infr._print_previous_loop_statistics(count)
 
-    def pos_redun_loop(infr):
+    def pos_redun_gen(infr):
         infr.print('===========================', color='white')
         infr.print('--- POSITIVE REDUN LOOP ---', color='white')
         new_edges = list(infr.find_pos_redun_candidate_edges())
@@ -529,7 +456,8 @@ class InfrLoops(object):
             # print('pos_redun_candidates = %r' % (len(new_edges),))
             infr.queue.clear()
             infr.add_candidate_edges(new_edges)
-            infr.inner_priority_loop(use_refresh=False)
+            for _ in infr.inner_priority_gen(use_refresh=False):
+                yield _
             new_edges = list(infr.find_pos_redun_candidate_edges())
             # if len(new_edges) < 10:
             #     print('new_edges = %r' % (new_edges,))
@@ -542,7 +470,7 @@ class InfrLoops(object):
                 break
             infr.print('not pos-reduntant yet.', color='white')
 
-    def lnbnn_priority_loop(infr, use_refresh=True):
+    def lnbnn_priority_gen(infr, use_refresh=True):
         infr.print('============================', color='white')
         infr.print('--- LNBNN PRIORITY LOOP ---', color='white')
         n_prioritized = infr.refresh_candidate_edges()
@@ -551,51 +479,25 @@ class InfrLoops(object):
             return
         if use_refresh:
             infr.refresh.clear()
-        infr.inner_priority_loop(use_refresh)
+        for _ in infr.inner_priority_gen(use_refresh):
+            yield _
 
     def init_refresh(infr):
         refresh_params = infr.subparams('refresh')
         infr.refresh = RefreshCriteria(**refresh_params)
 
-    def simple_main_loop(infr):
-        """
-            >>> from ibeis.algo.graph.mixin_loops import *
-            >>> import utool as ut
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr(num_pccs=10, size=4)
-            >>> infr.clear_edges()
-            >>> infr.init_simulation()
-            >>> infr.init_refresh()
-            >>> infr.simple_main_loop()
-        """
-
-        while not infr.refresh.is_id_complete():
-            # Search for candidate edges with LNBNN
-            infr.refresh_candidate_edges()
-
-            while len(infr.queue) > 0:
-                # Top of priority queue is determined dynamically
-                edge, _ = infr.peek()
-                # Automatic / manual edge review
-                proceed, feedback = infr.emit_or_review(edge)[1]
-                # Insert edge and dynamically update the priority
-                infr.add_feedback(edge, **feedback)
-                if infr.refresh.check():
-                    break
-
-            # Ensure all PCCs are positive redundant
-            new_edges = list(infr.find_pos_redun_candidate_edges())
-            while len(new_edges) > 0:
-                infr.queue.clear()
-                infr.add_candidate_edges(new_edges)
-                while len(infr.queue) > 0:
-                    edge, _ = infr.peek()
-                    proceed, feedback = infr.emit_or_review(edge)[1]
-                    infr.add_feedback(edge, **feedback)
-                new_edges = list(infr.find_pos_redun_candidate_edges())
-
     @profile
     def main_loop(infr, max_loops=None, use_refresh=True):
+        # Just exhaust the main generator
+        gen = infr.main_gen(max_loops, use_refresh)
+        try:
+            while True:
+                next(gen)
+        except StopIteration:
+            pass
+
+    @profile
+    def main_gen(infr, max_loops=None, use_refresh=True):
         """
         The main outer loop
         """
@@ -621,7 +523,10 @@ class InfrLoops(object):
                 break
             infr.print('Outer loop iter %d ' % (count,))
             # Do priority loop over lnbnn candidates
-            infr.lnbnn_priority_loop(use_refresh)
+
+            for _ in infr.lnbnn_priority_gen(use_refresh):
+                yield _
+
             print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
 
             terminate = (infr.refresh.num_meaningful == 0)
@@ -642,7 +547,8 @@ class InfrLoops(object):
 
             if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
                 # Fix positive redundancy of anything within the loop
-                infr.pos_redun_loop()
+                for _ in infr.pos_redun_gen():
+                    yield _
 
             print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
@@ -840,13 +746,14 @@ class InfrReviewers(object):
         edge, priority = infr.peek()
         infr.print('next_review. edge={}'.format(edge), 100)
         proceed, feedback = infr.emit_or_review(edge, priority)
-        if not proceed:
+        if proceed:
+            # Add feedback from the automated method
+            infr.add_feedback(edge, priority=priority, **feedback)
+            return proceed, None
+        else:
             infr.print('need_user_feedback', 100)
             # We need to wait for user feedback
             return proceed, feedback
-        # Add feedback from the automated method
-        infr.add_feedback(edge, priority=priority, **feedback)
-        return proceed, None
 
     def on_accept(infr, feedback, need_next=True):
         """

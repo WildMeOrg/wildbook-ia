@@ -300,6 +300,10 @@ class IBEISIO(object):
         edges are removed from interal_feedback and added to external feedback.
         The staging tables stores each review in the order it happened so
         history is fully reconstructable if staging is never deleted.
+
+        This write function is done using the implicit delta maintained by
+        infr.internal_feedback. Therefore, it take no args. This is generally
+        called automatically by `infr.on_accept`.
         """
         if len(infr.internal_feedback) == 0:
             infr.print('write_ibeis_staging_feedback 0', 1)
@@ -316,6 +320,15 @@ class IBEISIO(object):
         """
         Commits the current state in external and internal into the annotmatch
         table. Annotmatch only stores the final review in the history of reviews.
+
+        By default this will sync the current graph state to the annotmatch
+        table. It computes the edge_delta under the hood, so if you already
+        made one then you can pass it in for a little extra speed.
+
+        Args:
+            edge_delta_df (pd.DataFrame): precomputed using match_state_delta.
+                if None it will be computed under the hood.
+
         """
         if edge_delta_df is None:
             edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
@@ -354,6 +367,21 @@ class IBEISIO(object):
         # ibs.set_annotmatch_count(am_rowids, new_timestamp) TODO
 
     def write_ibeis_name_assignment(infr, name_delta_df=None):
+        """
+        Write the name delta to the annotations table.
+
+        It computes the name delta under the hood, so if you already made one
+        then you can pass it in for a little extra speed.
+
+        Note:
+            This will call infr.relabel_using_reviews(rectify=True) if
+            name_delta_df is not given directly.
+
+        Args:
+            name_delta_df (pd.DataFrame): if None, the value is computed using
+                `get_ibeis_name_delta`. Note you should ensure this delta is made
+                after nodes have been relabeled using reviews.
+        """
         if name_delta_df is None:
             name_delta_df = infr.get_ibeis_name_delta()
         infr.print('write_ibeis_name_assignment id' % len(name_delta_df))
@@ -361,16 +389,91 @@ class IBEISIO(object):
         new_name_list = name_delta_df['new_name'].values
         infr.ibs.set_annot_names(aid_list, new_name_list)
 
-    def get_ibeis_name_delta(infr, ignore_unknown=True):
+    def get_ibeis_name_delta(infr, ignore_unknown=True, relabel=True):
         """
         Rectifies internal name_labels with the names stored in the name table.
 
+        Return a pandas dataframe indicating which names have changed for what
+        annotations.
+
+        Args:
+            ignore_unknown (bool): if True does not return deltas for unknown
+                annotations (those with degree 0).
+            relabel (bool): if True, ensures that all nodes are labeled based
+                on the current PCCs.
+
         Returns:
-            df: pd.DataFrame: data frame where each row specifies an aid
-                and its `old_name` which is in the ibeis database and the
-                `new_name` which is what we infer it should be renamed to.
+            pd.DataFrame - name_delta_df - data frame where each row specifies
+                an aid and its `old_name` which is in the ibeis database and
+                the `new_name` which is what we infer it should be renamed to.
+
+        Example:
+            infr.write_ibeis_name_assignment
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_ibeis get_ibeis_name_delta
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>>                             autoinit='annotmatch', verbose=4)
+            >>> pccs1 = list(infr.positive_components())
+            >>> print('pccs1 = %r' % (pccs1,))
+            >>> print(list(infr.gen_node_values('name_label', infr.aids)))
+            >>> assert pccs1 == [{1, 2, 3, 4}, {5, 6, 7, 8}, {9}]
+            >>> # Split a PCC and then merge two other PCCs
+            >>> infr.add_feedback((1, 2), NEGTV)
+            >>> infr.add_feedback((6, 7), NEGTV)
+            >>> infr.add_feedback((5, 8), NEGTV)
+            >>> infr.add_feedback((4, 5), POSTV)
+            >>> infr.add_feedback((7, 8), POSTV)
+            >>> pccs2 = list(infr.positive_components())
+            >>> print('pccs2 = %r' % (pccs2,))
+            >>> print(list(infr.gen_node_values('name_label', infr.aids)))
+            >>> assert pccs2 == [{1}, {2, 3, 4, 5, 6}, {7, 8}, {9}]
+            >>> name_delta_df = infr.get_ibeis_name_delta()
+            >>> result = str(name_delta_df)
+            >>> print(result)
+                old_name       new_name
+            aid
+            1     06_410  IBEIS_PZ_0042
+            5     07_061         06_410
+            6     07_061         06_410
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>>                             autoinit='annotmatch', verbose=4)
+            >>> infr.add_feedback((1, 2), NEGTV)
+            >>> infr.add_feedback((4, 5), POSTV)
+            >>> name_delta_df = infr.get_ibeis_name_delta()
+            >>> result = str(name_delta_df)
+            >>> print(result)
+                old_name new_name
+            aid
+            2     06_410   07_061
+            3     06_410   07_061
+            4     06_410   07_061
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>>                             autoinit='annotmatch', verbose=4)
+            >>> name_delta_df = infr.get_ibeis_name_delta()
+            >>> result = str(name_delta_df)
+            >>> print(result)
+            Empty DataFrame
+            Columns: [old_name, new_name]
+            Index: []
         """
         infr.print('constructing name delta', 3)
+
+        if relabel:
+            infr.relabel_using_reviews(rectify=True)
+
         import pandas as pd
         graph = infr.graph
         node_to_new_label = nx.get_node_attributes(graph, 'name_label')
@@ -641,26 +744,56 @@ class IBEISIO(object):
         r"""
         Returns information about state change of annotmatches
 
+        By default this will return a pandas dataframe indicating which edges
+        in the annotmatch table have changed and all new edges relative to the
+        current infr.graph state.
+
+        Notes:
+            valid values for `old` and `new` are {'annotmatch', 'staging',
+            'all', 'internal', or 'external'}.
+
+            The args old/new='all' resolves to the internal graph state,
+            'annotmatch' resolves to the on-disk annotmatch table, and
+            'staging' resolves to the on-disk staging table (you can further
+            separate all by specifying 'internal' or 'external').  You any of
+            these old/new combinations to check differences in the state.
+            However, the default values are what you use to sync the graph
+            state to annotmatch.
+
+        Args:
+            old (str): indicates the old data (i.e. the place that will be
+                written to)
+            new (str): indicates the new data (i.e. the data to write)
+
         Returns:
-            tuple: (new_df, old_df)
+            pd.DataFrame - edge_delta_df - indicates the old and new values
+                of the changed edge attributes.
 
         CommandLine:
             python -m ibeis.algo.graph.core match_state_delta
 
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.reset_feedback()
-            >>> infr.add_feedback_from([(2, 3), POSTV) (5, 6), NEGTV)
-            >>>                         (5, 4), NEGTV)]
-            >>> (edge_delta_df) = infr.match_state_delta()
-            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>>                             autoinit='annotmatch', verbose=4)
+            >>> # Split a PCC and then merge two other PCCs
+            >>> infr.add_feedback((1, 2), NEGTV)
+            >>> infr.add_feedback((6, 7), NEGTV)
+            >>> infr.add_feedback((5, 8), NEGTV)
+            >>> infr.add_feedback((4, 5), POSTV)
+            >>> infr.add_feedback((7, 8), POSTV)
+            >>> edge_delta_df = infr.match_state_delta()
+            >>> subset = edge_delta_df[['old_evidence_decision', 'new_evidence_decision']]
+            >>> result = str(subset)
             >>> print(result)
-
-        Ignore:
-            old = 'annotmatch'
-            new = 'all'
+                      old_evidence_decision new_evidence_decision
+            aid1 aid2
+            1    2                    match               nomatch
+            5    8                    match               nomatch
+            6    7                    match               nomatch
+            4    5                      NaN                 match
+            7    8                      NaN                 match
         """
         old_feedback = infr._feedback_df(old)
         new_feedback = infr._feedback_df(new)
