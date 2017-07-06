@@ -54,6 +54,7 @@ class NavbarClass(object):
             ('view_images', 'Images'),
             ('view_annotations', 'Annotations'),
             ('view_names', 'Names'),
+            ('view_graphs', 'Graphs'),
             # ('action', 'Action'),
             ('turk', 'Turk'),
             ('view_experiments', 'Experiments'),

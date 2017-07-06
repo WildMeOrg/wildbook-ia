@@ -17,7 +17,7 @@
     <input type="text" name="identification-annot-uuid-2" value="{{ annot_uuid_2 }}" style="display: none;" readonly>
     <div class="row">
       <div class="col-lg-2"></div>
-      <div class="col-lg-8" id="identification-score-container">
+      <div class="col-lg-8" id="identification-score-container"{% if alert %}style="background-color: #c9302c; color: white;" {% endif %}>
         <span id="identification-score">Score: {{ match_score }}</span>
       </div>
       <div class="col-lg-2"></div>
@@ -75,7 +75,11 @@
 
             <div class="col-lg-12">
               {% if previous %}
-                <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                {% if previous_version == 1 %}
+                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                {% else %}
+                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                {% endif %}
               {% endif %}
             </div>
           </div>

@@ -938,13 +938,27 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
 
 @register_ibs_method
-def review_graph_match_config_v2(ibs, graph_uuid, view_orientation='vertical'):
+def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
+                                 view_orientation='vertical'):
     from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
 
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    data = graph_client.sample()
-    if data is None:
-        raise controller_inject.WebReviewNotReadyException(graph_uuid)
+
+    if aid1 is not None and aid2 is not None:
+        if aid1 > aid2:
+            aid1, aid2 = aid2, aid1
+        edge = (aid1, aid2)
+        data = graph_client.check(edge)
+        if data is None:
+            data = (
+                edge,
+                np.nan,
+                {},
+            )
+    else:
+        data = graph_client.sample()
+        if data is None:
+            raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
     edge, priority, data_dict = data
     args = (edge, priority, )
