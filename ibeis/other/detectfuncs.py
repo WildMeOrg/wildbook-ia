@@ -1983,15 +1983,17 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
 
 
 @register_ibs_method
-def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
+def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(16, 16)):
     import matplotlib.pyplot as plt
+    import plottool as pt
 
     fig_ = plt.figure(figsize=figsize)
 
-    label = 'Camera Trap Classifier'
-    kwargs['classifier_weight_filepath'] = 'megan'
-    positive_imageset_id = 6
-    negative_imageset_id = 7
+    config_list = [
+        {'label': 'Initial Model', 'classifier_weight_filepath': 'megan'},
+        {'label': 'Retrained Model', 'classifier_weight_filepath': 'megan2'},
+    ]
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -2000,8 +2002,23 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), *
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf1, _ = classifier_cameratrap_precision_recall_algo_plot(ibs, label=label, color='r', positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
-    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    ret_list = [
+        classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
+                                                         positive_imageset_id=positive_imageset_id,
+                                                         negative_imageset_id=negative_imageset_id,
+                                                         **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    index = np.argmax(area_list)
+    # index = 0
+    best_label1 = config_list[index]['label']
+    best_config1 = config_list[index]
+    best_color1 = color_list[index]
+    best_area1 = area_list[index]
+    best_conf1 = conf_list[index]
+    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2012,8 +2029,23 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), *
     axes_.set_ylabel('True-Positive Rate')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf2, _ = classifier_cameratrap_roc_algo_plot(ibs, label=label, color='r', positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
-    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    ret_list = [
+        classifier_cameratrap_roc_algo_plot(ibs, color=color,
+                                            positive_imageset_id=positive_imageset_id,
+                                            negative_imageset_id=negative_imageset_id,
+                                            **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    index = np.argmax(area_list)
+    # index = 0
+    best_label2 = config_list[index]['label']
+    best_config2 = config_list[index]
+    best_color2 = color_list[index]
+    best_area2 = area_list[index]
+    best_conf2 = conf_list[index]
+    plt.title('ROC Curve (Best: %s, mAP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2021,7 +2053,11 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), *
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, output_cases=True, **kwargs)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, best_label1, best_color1,
+                                                                       conf=best_conf1, fig_=fig_, axes_=axes_,
+                                                                       positive_imageset_id=positive_imageset_id,
+                                                                       negative_imageset_id=negative_imageset_id,
+                                                                       output_cases=True, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
@@ -2030,7 +2066,11 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), *
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, best_label2, best_color2,
+                                                                       conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                                       positive_imageset_id=positive_imageset_id,
+                                                                       negative_imageset_id=negative_imageset_id,
+                                                                       **best_config2)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
