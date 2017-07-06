@@ -2053,7 +2053,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, best_label1, best_color1,
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
                                                                        conf=best_conf1, fig_=fig_, axes_=axes_,
                                                                        positive_imageset_id=positive_imageset_id,
                                                                        negative_imageset_id=negative_imageset_id,
@@ -2066,7 +2066,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, best_label2, best_color2,
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
                                                                        conf=best_conf2, fig_=fig_, axes_=axes_,
                                                                        positive_imageset_id=positive_imageset_id,
                                                                        negative_imageset_id=negative_imageset_id,
