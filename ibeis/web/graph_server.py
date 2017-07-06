@@ -286,6 +286,12 @@ class GraphClient(object):
                     client.review_vip = edge
                 client.review_dict[edge] = (priority, edge_data_dict, )
 
+    def check(client, edge):
+        if edge not in client.review_dict:
+            return None
+        priority, data_dict = client.review_dict[edge]
+        return edge, priority, data_dict
+
     def sample(client):
         if client.review_dict is None:
             raise NotImplementedError('Needs to throw random samples')

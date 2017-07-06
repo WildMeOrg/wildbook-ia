@@ -224,6 +224,7 @@ class WebReviewNotReadyException(WebException):
 
 class WebUnavailableUUIDException(WebException):
     def __init__(self, unavailable_annot_uuid_list, query_uuid):
+        self.query_uuid = query_uuid
         args = (query_uuid, )
         message = 'A running query %s is using (at least one of) the requested annotations.  Filter out these annotations from the new query or stop the previous query.' % args
         rawreturn = {

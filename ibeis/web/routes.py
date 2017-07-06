@@ -1248,7 +1248,7 @@ def view_imagesets(**kwargs):
     annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
     reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
     is_normal_list = ut.not_list(ibs.is_special_imageset(imgsetid_list))
-    imageset_list = zip(
+    imageset_list = list(zip(
         is_normal_list,
         imgsetid_list,
         ibs.get_imageset_text(imgsetid_list),
@@ -1260,7 +1260,7 @@ def view_imagesets(**kwargs):
         start_time_posix_list,
         datetime_list,
         reviewed_list,
-    )
+    ))
     imageset_list.sort(key=lambda t: t[0])
     return appf.template('view', 'imagesets',
                          filtered=filtered,
@@ -1269,6 +1269,31 @@ def view_imagesets(**kwargs):
                          num_imgsetids=len(imgsetid_list),
                          imageset_list=imageset_list,
                          num_imagesets=len(imageset_list))
+
+
+@register_route('/view/graphs/', methods=['GET'])
+def view_graphs(**kwargs):
+    ibs = current_app.ibs
+
+    graph_uuid_list = current_app.GRAPH_CLIENT_DICT
+    num_graphs = len(graph_uuid_list)
+
+    graph_list = []
+    for graph_uuid in graph_uuid_list:
+        graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+        if graph_client is None:
+            continue
+        graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
+        graph_uuid_str = graph_uuid_str.replace(': ', ':')
+        graph = (
+            graph_uuid,
+            len(graph_client.aids),
+            graph_uuid_str,
+        )
+        graph_list.append(graph)
+
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'graphs', **embedded)
 
 
 @register_route('/view/image/<gid>/', methods=['GET'])
@@ -1318,7 +1343,7 @@ def view_images(**kwargs):
         'Unknown'
         for image_unixtime in image_unixtime_list
     ]
-    image_list = zip(
+    image_list = list(zip(
         gid_list,
         [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_image_imgsetids(gid_list) ],
         ibs.get_image_gnames(gid_list),
@@ -1329,7 +1354,7 @@ def view_images(**kwargs):
         ibs.get_image_contributor_tag(gid_list),
         ibs.get_image_notes(gid_list),
         appf.imageset_image_processed(ibs, gid_list),
-    )
+    ))
     image_list.sort(key=lambda t: t[3])
     return appf.template('view', 'images',
                          filtered=filtered,
@@ -1382,7 +1407,7 @@ def view_annotations(**kwargs):
     page_next = None if page_end == len(aid_list) else page + 1
     aid_list = aid_list[page_start:page_end]
     print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
-    annotation_list = zip(
+    annotation_list = list(zip(
         aid_list,
         ibs.get_annot_gids(aid_list),
         [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list) ],
@@ -1396,7 +1421,7 @@ def view_annotations(**kwargs):
         ibs.get_annot_age_months_est(aid_list),
         ibs.get_annot_reviewed(aid_list),
         # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list)) ],
-    )
+    ))
     annotation_list.sort(key=lambda t: t[0])
     return appf.template('view', 'annotations',
                          filtered=filtered,
@@ -1476,10 +1501,10 @@ def view_names(**kwargs):
         ibs.get_annot_age_months_est(aid_list_),
         [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list_), appf.imageset_annot_quality_processed(ibs, aid_list_)) ],
     ) for aid_list_ in aids_list ]
-    name_list = zip(
+    name_list = list(zip(
         nid_list,
         annotations_list
-    )
+    ))
     name_list.sort(key=lambda t: t[0])
     return appf.template('view', 'names',
                          filtered=filtered,
@@ -2571,6 +2596,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
                          previous=previous,
+                         previous_version=1,
                          replace_review_rowid=replace_review_rowid,
                          view_orientation=view_orientation,
                          callback_url=callback_url,
@@ -2579,8 +2605,23 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                          EMBEDDED_JAVASCRIPT=None)
 
 
+@register_route('/turk/identification/graph/refer/', methods=['GET'])
+def turk_identification_graph_refer(imgsetid, **kwargs):
+    ibs = current_app.ibs
+    aid_list = ibs.get_imageset_aids(imgsetid)
+    annot_uuid_list = ibs.get_annot_uuids(aid_list)
+    return turk_identification_graph(annot_uuid_list=annot_uuid_list)
+
+
+@register_route('/turk/query/graph/v2/refer/', methods=['GET'])
+def delete_query_chips_graph_v2_refer(graph_uuid):
+    ibs = current_app.ibs
+    ibs.delete_query_chips_graph_v2(graph_uuid=graph_uuid)
+    return redirect(url_for('view_graphs'))
+
+
 @register_route('/turk/identification/graph/', methods=['GET'])
-def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
+def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None, annot_uuid_list=None, view_orientation='vertical',
                               **kwargs):
     """
     CommandLine:
@@ -2602,23 +2643,28 @@ def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
     """
     ibs = current_app.ibs
 
-    if graph_uuid is None:
-        aid_list = ibs.get_valid_aids()
-        annot_uuid_list = ibs.get_annot_uuids(aid_list)
-        graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list)
-        print('Calculating graph_uuid %r from all annotations' % (graph_uuid, ))
-        base = request.url
-        sep = '&' if '?' in base else '?'
-        url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid), )
-        url = url.replace(': ', ':')
-        return redirect(url)
-
+    refer_query_uuid = None
     try:
-        values = ibs.review_graph_match_config_v2(graph_uuid,
+        if graph_uuid is None:
+            if annot_uuid_list is None:
+                aid_list = ibs.get_valid_aids()
+                annot_uuid_list = ibs.get_annot_uuids(aid_list)
+            graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list)
+            print('Calculating graph_uuid %r from all annotations' % (graph_uuid, ))
+            base = url_for('turk_identification_graph')
+            sep = '&' if '?' in base else '?'
+            url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid), )
+            url = url.replace(': ', ':')
+            return redirect(url)
+
+        values = ibs.review_graph_match_config_v2(graph_uuid, aid1=aid1, aid2=aid2,
                                                   view_orientation=view_orientation)
         finished = False
     except controller_inject.WebReviewNotReadyException:
         finished = 'engine'
+    except controller_inject.WebUnavailableUUIDException as ex:
+        finished = 'unavailable'
+        refer_query_uuid = ex.query_uuid
     except controller_inject.WebUnknownUUIDException:
         return redirect(url_for('turk'))
 
@@ -2673,9 +2719,10 @@ def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
         alert = False
         timedelta_str = None
 
+    graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
+    graph_uuid_str = graph_uuid_str.replace(': ', ':')
     base = url_for('submit_identification_v2')
-    callback_url = '%s?graph_uuid=%s' % (base, ut.to_json(graph_uuid))
-    callback_url = callback_url.replace(': ', ':')
+    callback_url = '%s?%s' % (base, graph_uuid_str, )
 
     return appf.template('turk', 'identification',
                          match_score=match_score,
@@ -2687,10 +2734,13 @@ def turk_identification_graph(graph_uuid=None, view_orientation='vertical',
                          session=False,
                          progress=progress,
                          timedelta_str=timedelta_str,
+                         refer_query_uuid=refer_query_uuid,
                          finished=finished,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
                          previous=previous,
+                         graph_uuid_str=graph_uuid_str,
+                         previous_version=2,
                          replace_review_rowid=-1,
                          view_orientation=view_orientation,
                          callback_url=callback_url,
