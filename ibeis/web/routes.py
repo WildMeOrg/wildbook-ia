@@ -2644,6 +2644,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None, annot_uuid_
     ibs = current_app.ibs
 
     refer_query_uuid = None
+    refer_graph_uuid_str = None
     try:
         if graph_uuid is None:
             if annot_uuid_list is None:
@@ -2665,6 +2666,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None, annot_uuid_
     except controller_inject.WebUnavailableUUIDException as ex:
         finished = 'unavailable'
         refer_query_uuid = ex.query_uuid
+        refer_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(refer_query_uuid), )
+        refer_graph_uuid_str = refer_graph_uuid_str.replace(': ', ':')
     except controller_inject.WebUnknownUUIDException:
         return redirect(url_for('turk'))
 
@@ -2735,6 +2738,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None, annot_uuid_
                          progress=progress,
                          timedelta_str=timedelta_str,
                          refer_query_uuid=refer_query_uuid,
+                         refer_graph_uuid_str=refer_graph_uuid_str,
                          finished=finished,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),

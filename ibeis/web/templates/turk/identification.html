@@ -24,7 +24,7 @@
   {% elif finished == 'unavailable' %}
   <div class="alert alert-info text-center" role="alert">
     The identification matching review you are attempting to review cannot be completed.  The aids in this
-    review are currently being used by UUID {{ refer_query_uuid }}
+    review are currently being used by <a href="{{ url_for('turk_identification_graph') }}?{{ refer_graph_uuid_str }}">UUID {{ refer_query_uuid }}</a>
   </div>
   {% elif finished %}
   <div class="alert alert-info text-center" role="alert">
