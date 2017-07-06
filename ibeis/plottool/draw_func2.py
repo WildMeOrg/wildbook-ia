@@ -475,28 +475,25 @@ class RenderingContext(object):
         self.savekw = savekw
 
     def __enter__(self):
-        with ut.Timer('RenderingContext __enter__'):
-            import plottool as pt
-            tmp_fnum = -1
-            import matplotlib as mpl
-            self.fig = pt.figure(fnum=tmp_fnum)
-            self.was_interactive = mpl.is_interactive()
-            if self.was_interactive:
-                mpl.interactive(False)
-            return self
+        import plottool as pt
+        tmp_fnum = -1
+        import matplotlib as mpl
+        self.fig = pt.figure(fnum=tmp_fnum)
+        self.was_interactive = mpl.is_interactive()
+        if self.was_interactive:
+            mpl.interactive(False)
+        return self
 
     def __exit__(self, type_, value, trace):
-        with ut.Timer('RenderingContext __exit__'):
-            if trace is not None:
-                #print('[util_time] Error in context manager!: ' + str(value))
-                return False  # return a falsey value on error
-            # Ensure that this figure will not pop up
-            import plottool as pt
-            with ut.Timer('RenderingContext render_figure_to_image'):
-                self.image = pt.render_figure_to_image(self.fig, **self.savekw)
-            pt.plt.close(self.fig)
-            if self.was_interactive:
-                mpl.interactive(self.was_interactive)
+        if trace is not None:
+            #print('[util_time] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
+        # Ensure that this figure will not pop up
+        import plottool as pt
+        self.image = pt.render_figure_to_image(self.fig, **self.savekw)
+        pt.plt.close(self.fig)
+        if self.was_interactive:
+            mpl.interactive(self.was_interactive)
 
 
 def extract_axes_extents(fig, combine=False, pad=0.0):
