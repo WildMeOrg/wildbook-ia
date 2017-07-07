@@ -66,14 +66,20 @@ class InfrLoops(object):
         # unless the graph is already positive redundant.
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
             # Fix positive redundancy of anything within the loop
-            yield from infr.pos_redun_gen()
+            gen = infr.pos_redun_gen()
+            # yield from gen
+            for value in gen:
+                yield value
 
         for count in it.count(0):
 
             infr.print('Outer loop iter %d ' % (count,))
 
             # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-            yield from infr.lnbnn_priority_gen(use_refresh)
+            gen = infr.lnbnn_priority_gen(use_refresh)
+            # yield from gen
+            for value in gen:
+                yield value
 
             terminate = (infr.refresh.num_meaningful == 0)
             if terminate:
@@ -82,7 +88,10 @@ class InfrLoops(object):
             # Phase 2: Ensure positive redundancy.
             if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                 # Fix positive redundancy of anything within the loop
-                yield from infr.pos_redun_gen()
+                gen = infr.pos_redun_gen()
+                # yield from gen
+                for value in gen:
+                    yield value
 
             print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
             print('infr.refresh.num_meaningful = {!r}'.format(
@@ -100,7 +109,10 @@ class InfrLoops(object):
         # Phase 3: Try to automatically acheive negative redundancy without
         # asking the user to do anything but resolve inconsistency.
         if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
-            yield from infr.neg_redun_gen()
+            gen = infr.neg_redun_gen()
+            # yield from gen
+            for value in gen:
+                yield value
 
         infr.print('Terminate', 1, color='red')
 
@@ -129,7 +141,10 @@ class InfrLoops(object):
             infr.queue.clear()
             infr.add_candidate_edges(new_edges)
 
-            yield from infr.inner_priority_gen(use_refresh=False)
+            gen = infr.inner_priority_gen(use_refresh=False)
+            # yield from gen
+            for value in gen:
+                yield value
 
             new_edges = list(infr.find_pos_redun_candidate_edges())
             if len(new_edges) == 0:
@@ -151,8 +166,11 @@ class InfrLoops(object):
         for new_edges in ub.chunks(infr.find_neg_redun_candidate_edges(), 100):
             # Add chunks in a little at a time for faster response time
             infr.add_candidate_edges(new_edges)
-            yield from infr.inner_priority_gen(use_refresh=False,
-                                               only_auto=only_auto)
+            gen = infr.inner_priority_gen(use_refresh=False,
+                                          only_auto=only_auto)
+            # yield from gen
+            for value in gen:
+                yield value
 
     def inner_priority_gen(infr, use_refresh=True, only_auto=False):
         """
