@@ -454,6 +454,8 @@ class CandidateSearch(object):
         """
         # Refresh the name labels
 
+        # TODO: abstract into a Ranker class
+
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
         infr.exec_matching(name_method='edge', cfgdict={
@@ -465,7 +467,8 @@ class CandidateSearch(object):
             # 'sv_on': False,
         })
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
-        lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': 5}))
+        ranks_top = infr.params['ranking.ntop']
+        lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
         already_reviewed = set(infr.get_edges_where_ne(
             'decision', 'unreviewed', edges=lnbnn_results,
             default='unreviewed', on_missing='filter'))
@@ -603,11 +606,9 @@ class CandidateSearch(object):
     @profile
     def find_pos_redun_candidate_edges(infr, k=None, verbose=False):
         r"""
-        CommandLine:
-            python -m ibeis.algo.graph.mixin_matching find_pos_redun_candidate_edges
+        Searches for augmenting edges that would make PCCs k-positive redundant
 
-        Example:
-            >>> # DISABLE_DOCTEST
+        Doctest:
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
@@ -615,9 +616,9 @@ class CandidateSearch(object):
             >>> infr.add_feedback((1, 5), 'notcomp')
             >>> infr.params['redun.pos'] = 2
             >>> candidate_edges = list(infr.find_pos_redun_candidate_edges())
-            >>> result = ('candidate_edges = %s' % (ut.repr2(candidate_edges),))
+            >>> result = ('candidate_edges = ' + ut.repr2(candidate_edges))
             >>> print(result)
-            candidate_edges = {(1, 3), (7, 10)}
+            candidate_edges = [(1, 3), (7, 10)]
         """
         # Add random edges between exisiting non-redundant PCCs
         if k is None:
@@ -724,13 +725,16 @@ class CandidateSearch(object):
             metric = 'prob_match'
             priority = prob_match
         elif infr.cm_list is not None:
-            infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
+            infr.print(
+                'Prioritizing {} edges with one-vs-vsmany scores'.format(
+                    len(priority_edges), 1))
             # Not given any deploy classifier, this is the best we can do
             scores = infr._make_lnbnn_scores(priority_edges)
             metric = 'normscore'
             priority = scores
         else:
-            infr.print('No information to prioritize edges')
+            infr.print('No information to prioritize {} edge(s)'.format(
+                len(priority_edges)))
             metric = 'random'
             priority = np.zeros(len(priority_edges)) + 1e-6
 
@@ -756,7 +760,8 @@ class CandidateSearch(object):
 
         if len(priority_edges) > 0:
             metric, priority = infr.ensure_priority_scores(priority_edges)
-            infr.prioritize(metric, priority_edges, priority)
+            infr.prioritize(metric=metric, edges=priority_edges,
+                            scores=priority)
 
         if hasattr(infr, 'on_new_candidate_edges'):
             # hack callback for demo

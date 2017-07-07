@@ -22,7 +22,7 @@ from os.path import split, join, exists
 import numpy as np
 import vtool as vt
 import utool as ut
-from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
+from utool._internal.meta_util_six import get_funcname, set_funcname
 import itertools as it
 from ibeis import constants as const
 from ibeis.control import accessor_decors
@@ -1502,7 +1502,7 @@ def _make_unflat_getter_func(flat_getter):
     """
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
-        func = get_imfunc(flat_getter)
+        func = ut.get_method_func(flat_getter)
     else:
         func = flat_getter
     funcname = get_funcname(func)

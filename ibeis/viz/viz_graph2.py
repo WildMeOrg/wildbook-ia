@@ -69,18 +69,13 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>>         (559, 2111),]
         >>> edge = edges[0]
         >>> self = AnnotPairDialog(edge=edges, infr=infr, standalone=False)
-        >>> self.accepted.connect(infr.on_accept)
-        >>> #self.skipped.connect(infr.continue_review)
-        >>> self.request.connect(infr.emit_manual_review)
-        >>> infr.callbacks['request_review'] = self.on_request_review
         >>> self.seek(0)
         >>> self.show()
 
 
     """
-    accepted = QtCore.pyqtSignal(dict, bool)
-    skipped = QtCore.pyqtSignal()
-    request = QtCore.pyqtSignal(tuple)
+    # skipped = QtCore.pyqtSignal()
+    # request = QtCore.pyqtSignal(tuple)
 
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
                    cfgdict=None, standalone=True):
@@ -160,6 +155,8 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self._total = None
         self.was_confirmed = False
 
+        self.index_edit = None
+
         edges = None
         if edge is not None:
             if ut.isiterable(edge) and len(edge) > 0 and ut.isiterable(edge[0]):
@@ -178,7 +175,6 @@ class AnnotPairDialog(gt.GuitoolWidget):
                 str(self.count + 1), editingFinishedSlot=self.edit_jump)
             self.next_but = np_bar.addNewButton(
                 'Next', pressed=lambda: self.step_by(1))
-            # self.accepted.connect(standalone_write)
         elif not self.standalone:
             self.count = 0
             self.prev_but = np_bar.addNewButton(
@@ -189,8 +185,9 @@ class AnnotPairDialog(gt.GuitoolWidget):
                 'Next', pressed=lambda: self.step_by(1))
             self.next_but.setEnabled(False)
 
-        self.index_edit.setText('{} / {}'.format(self.count + 1,
-                                                 self.total))
+        if self.index_edit:
+            self.index_edit.setText('{} / {}'.format(self.count + 1,
+                                                     self.total))
 
         self.last_external = True
 
@@ -201,6 +198,9 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.set_edge(edge, info_text)
         elif self.total > 0 and not self.standalone:
             self.seek(0)
+        else:
+            self.infr.start_id_review()
+            self.continue_review()
 
     @property
     def total(self):
@@ -221,42 +221,48 @@ class AnnotPairDialog(gt.GuitoolWidget):
         feedback['annot2_state'] = self.annot_state2.current_annot_state()
         return feedback
 
-    def infr_write(self, feedback):
-        # TODO: eventually stage annotation attributes
-        # Stage edge attributes
-        # edge = self.annot_review.edge
-        print('feedback = %s' % (ut.repr4(feedback),))
-        annot1_state = feedback.pop('annot1_state')
-        annot2_state = feedback.pop('annot2_state')
-        infr = self.infr
-        if infr is not None:
-            infr.add_node_feedback(**annot1_state)
-            infr.add_node_feedback(**annot2_state)
-            infr.add_feedback(**feedback)
-            # Commit change to staging
-            # edge_delta_df = infr.match_state_delta(old='staging', new='internal')
-            self.infr.write_ibeis_staging_feedback()
-        else:
-            print('Edge feedback not recoreded')
-
     def skip(self):
-        self.skipped.emit()
+        edge = self.annot_review.edge
+        if self.infr:
+            self.infr.skip(edge)
+            self.continue_review()
 
     def accept(self):
+        print('[viz] accept')
         self.was_confirmed = True
         feedback = self.feedback_dict()
         if self.standalone:
-            self.infr_write(feedback)
+            print('feedback = %s' % (ut.repr4(feedback),))
+            if self.infr is not None:
+                self.infr.accept(feedback)
+            else:
+                print('Edge feedback not recoreded')
             self.goto_next()
         else:
             need_next = (self.count + 1) == self.total
+            print('self.total = {!r}'.format(self.total))
+            print('self.count = {!r}'.format(self.count))
+            print('need_next = {!r}'.format(need_next))
+            print('self.last_external = {!r}'.format(self.last_external))
             if self.last_external:
                 # always request next even if external
                 # alg sent you back to rereview.
                 need_next = True
-            self.accepted.emit(feedback, need_next)
+            if self.infr is not None:
+                self.infr.accept(feedback)
+                if need_next:
+                    self.continue_review()
             if not need_next:
                 self.goto_next()
+
+    def continue_review(self):
+        print('[viz] continue review')
+        user_request = self.infr.continue_review()
+        print('user_request = {!r}'.format(user_request))
+        if user_request is None:
+            self.on_finished()
+        else:
+            self.request_review(user_request, external=True)
 
     def goto_next(self):
         if self.count is not None:
@@ -309,20 +315,26 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.index_edit.setText('{} / {}'.format(self.count + 1,
                                                      self.total))
             edge = self.edges[self.count]
-            self.on_request_review([edge, None, {'standalone': True}])
+            self.request_review([edge, None, {'standalone': True}],
+                                external=False)
         else:
             edge = self.history[index]
             print('request edge = %r' % (edge,))
-            self.request.emit(edge)
+            user_request = self.infr.emit_manual_review(edge)
+            self.request_review(user_request, external=False)
 
-    def on_request_review(self, reviews):
-        edge, priority, edge_data = reviews[0]
+    def request_review(self, user_request, external=True):
+        edge, priority, edge_data = user_request[0]
         print('Got request for edge={}'.format(edge))
         info_text = 'edge=%r' % (edge,)
         info_text += '\npriority=%r' % (priority,)
         info_text += '\n' + ut.repr4(edge_data, si=True)
-        self.set_edge(edge, info_text, external=True)
+        self.set_edge(edge, info_text, external=external)
         self.show()
+
+    def on_finished(self):
+        if self.isVisible():
+            gt.user_info(self, 'Review Complete')
 
 
 class AnnotStateDialog(gt.GuitoolWidget):

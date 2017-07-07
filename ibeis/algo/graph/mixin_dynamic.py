@@ -510,8 +510,65 @@ class DynamicUpdate(object):
 class Recovery(object):
     """ recovery funcs """
 
-    def is_recovering(infr):
-        return len(infr.recover_graph) > 0
+    def is_recovering(infr, edge=None):
+        """
+        Checks to see if the graph is inconsinsistent.
+
+        Args:
+            edge (None): If None, then returns True if the graph contains any
+                inconsistency. Otherwise, returns True if the edge is related
+                to an inconsistent component via a positive or negative
+                connection.
+
+        Returns:
+            bool: flag
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_dynamic is_recovering
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=4, size=4, ignore_pair=True)
+            >>> infr.ensure_cliques(meta_decision=SAME)
+            >>> a, b, c, d = map(list, infr.positive_components())
+            >>> assert infr.is_recovering() is False
+            >>> infr.add_feedback((a[0], a[1]), NEGTV)
+            >>> assert infr.is_recovering() is True
+            >>> assert infr.is_recovering((a[2], a[3])) is True
+            >>> assert infr.is_recovering((a[3], b[0])) is True
+            >>> assert infr.is_recovering((b[0], b[1])) is False
+            >>> infr.add_feedback((a[3], b[2]), NEGTV)
+            >>> assert infr.is_recovering((b[0], b[1])) is True
+            >>> assert infr.is_recovering((c[0], d[0])) is False
+            >>> infr.add_feedback((b[2], c[0]), NEGTV)
+            >>> assert infr.is_recovering((c[0], d[0])) is False
+            >>> result = ut.repr4({
+            >>>     'pccs': list(infr.positive_components()),
+            >>>     'iccs': list(infr.inconsistent_components()),
+            >>> }, nobr=True, si=True, itemsep='')
+            >>> print(result)
+            iccs: [{1,2,3,4}],
+            pccs: [{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}],
+        """
+        if len(infr.recover_graph) == 0:
+            # We can short-circuit if there is no inconsistency
+            return False
+        if edge is None:
+            # By the short circuit we know the graph is inconsistent
+            return True
+        for nid in set(infr.node_labels(*edge)):
+            # Is this edge part of a CC that has an error?
+            if nid in infr.nid_to_errors:
+                return True
+            # Is this edge connected to a CC that has an error?
+            cc = infr.pos_graph.component(nid)
+            for nid2 in infr.find_external_neg_nids(cc):
+                if nid2 in infr.nid_to_errors:
+                    return True
+        # If none of these conditions are true we are far enough away from the
+        # inconsistency to ignore it.
+        return False
 
     @profile
     def _purge_error_edges(infr, nid):
@@ -860,9 +917,7 @@ class Priority(object):
         else:
             priorities = np.asarray(scores)
             if np.any(np.isnan(priorities)):
-                infr.print('Error prioritizing edges={}'.format(edges))
-                infr.print('Error prioritizing priorities={}'.format(priorities))
-                raise AssertionError('nan priorities')
+                priorities[np.isnan(priorities)] = low
 
         if infr.params['inference.enabled']:
             # Increase priority of any flagged maybe_error edges

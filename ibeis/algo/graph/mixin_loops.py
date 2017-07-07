@@ -11,107 +11,159 @@ from ibeis.algo.graph.refresh import RefreshCriteria
 print, rrr, profile = ut.inject2(__name__)
 
 
-class UserOracle(object):
-    def __init__(oracle, accuracy, rng):
-        if isinstance(rng, six.string_types):
-            rng = sum(map(ord, rng))
-        rng = ut.ensure_rng(rng, impl='python')
-
-        if isinstance(accuracy, tuple):
-            oracle.normal_accuracy = accuracy[0]
-            oracle.recover_accuracy = accuracy[1]
-        else:
-            oracle.normal_accuracy = accuracy
-            oracle.recover_accuracy = accuracy
-        # .5
-
-        oracle.rng = rng
-        oracle.states = {POSTV, NEGTV, INCMP}
-
-    def review(oracle, edge, truth, infr, accuracy=None):
-        feedback = {
-            'user_id': 'user:oracle',
-            'confidence': 'absolutely_sure',
-            'evidence_decision': None,
-            'meta_decision': NULL,
-            'timestamp_s1': ut.get_timestamp('int', isutc=True),
-            'timestamp_c1': ut.get_timestamp('int', isutc=True),
-            'timestamp_c2': ut.get_timestamp('int', isutc=True),
-            'tags': [],
-        }
-        is_recovering = infr.is_recovering()
-
-        if accuracy is None:
-            if is_recovering:
-                accuracy = oracle.recover_accuracy
-            else:
-                accuracy = oracle.normal_accuracy
-
-        # The oracle can get anything where the hardness is less than its
-        # accuracy
-
-        hardness = oracle.rng.random()
-        error = accuracy < hardness
-
-        if error:
-            error_options = list(oracle.states - {truth} - {INCMP})
-            observed = oracle.rng.choice(list(error_options))
-        else:
-            observed = truth
-        if accuracy < 1.0:
-            feedback['confidence'] = 'pretty_sure'
-        if accuracy < .5:
-            feedback['confidence'] = 'guessing'
-        feedback['evidence_decision'] = observed
-        if error:
-            infr.print(
-                'ORACLE ERROR real={} pred={} acc={:.2f} hard={:.2f}'.format(truth, observed, accuracy, hardness), 2, color='red')
-
-            # infr.print(
-            #     'ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}'.format(edge, truth, observed, is_recovering, hardness),
-            #     2, color='red')
-        return feedback
-
-
 class InfrLoops(object):
     """
     Algorithm control flow loops
     """
 
-    def _print_previous_loop_statistics(infr, count):
-        # Print stats about what happend in the this loop
-        history = infr.metrics_list[-count:]
-        recover_blocks = ut.group_items([
-            (k, sum(1 for i in g))
-            for k, g in it.groupby(ut.take_column(history, 'recovering'))
-        ]).get(True, [])
-        infr.print((
-            'Recovery mode entered {} times, '
-            'made {} recovery decisions.').format(
-                len(recover_blocks), sum(recover_blocks)), color='green')
-        testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
-        infr.print(
-            'Test Action Histogram: {}'.format(
-                ut.repr4(testaction_hist, si=True)), color='yellow')
-        if infr.params['inference.enabled']:
-            action_hist = ut.dict_hist(
-                ut.emap(frozenset, ut.take_column(history, 'action')))
-            infr.print(
-                'Inference Action Histogram: {}'.format(
-                    ut.repr2(action_hist, si=True)), color='yellow')
-        infr.print(
-            'Decision Histogram: {}'.format(ut.repr2(ut.dict_hist(
-                ut.take_column(history, 'pred_decision')
-            ), si=True)), color='yellow')
-        infr.print(
-            'User Histogram: {}'.format(ut.repr2(ut.dict_hist(
-                ut.take_column(history, 'user_id')
-            ), si=True)), color='yellow')
+    def main_gen(infr, max_loops=None, use_refresh=True):
+        """
+        The main outer loop
 
-    @profile
-    def inner_priority_gen(infr, use_refresh=True):
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_loops import *
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 50)),
+            >>>                             autoinit='staging', verbose=4)
+            >>> infr.params['ranking.ntop'] = 1
+            >>> infr.oracle = UserOracle(.99, rng=0)
+            >>> infr.simulation_mode = False
+            >>> infr.reset()
+            >>> infr.load_published()
+            >>> gen = infr.main_gen()
+            >>> while True:
+            >>>     try:
+            >>>         reviews = next(gen)
+            >>>         edge, priority, data = reviews[0]
+            >>>         feedback = infr.request_oracle_review(edge)
+            >>>         infr.add_feedback(edge, **feedback)
+            >>>     except StopIteration:
+            >>>         break
+        """
+        infr.print('Starting main loop', 1)
+        if max_loops is None:
+            max_loops = infr.params['algo.max_outer_loops']
+            if max_loops is None:
+                max_loops = np.inf
+
+        if infr.test_mode:
+            print('------------------ {} -------------------'.format(infr.name))
+
+        # Initialize a refresh criteria
+        infr.init_refresh()
+
+        # Phase 0.1: Ensure the user sees something immediately
+        if infr.params['algo.quickstart']:
+            # quick startup. Yield a bunch of random edges
+            num = infr.params['manual.n_peek']
+            user_request = []
+            for edge in ut.random_combinations(infr.aids, 2, num=num):
+                user_request += [infr._make_review_tuple(edge, None)]
+                yield user_request
+
+        # Phase 0.2: Ensure positive redundancy (this is generally quick)
+        # so the user starts seeing real work after one random review is made
+        # unless the graph is already positive redundant.
+        if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
+            # Fix positive redundancy of anything within the loop
+            yield from infr.pos_redun_gen()
+
+        for count in it.count(0):
+
+            infr.print('Outer loop iter %d ' % (count,))
+
+            # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+            yield from infr.lnbnn_priority_gen(use_refresh)
+
+            terminate = (infr.refresh.num_meaningful == 0)
+            if terminate:
+                infr.print('Triggered break criteria', 1, color='red')
+
+            # Phase 2: Ensure positive redundancy.
+            if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
+                # Fix positive redundancy of anything within the loop
+                yield from infr.pos_redun_gen()
+
+            print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
+            print('infr.refresh.num_meaningful = {!r}'.format(
+                infr.refresh.num_meaningful))
+
+            if (count + 1) >= max_loops:
+                infr.print('early stop', 1, color='red')
+                break
+
+            if terminate:
+                infr.print('break triggered')
+                break
+
+        infr.print('Entering phase 3', 1, color='red')
+        # Phase 3: Try to automatically acheive negative redundancy without
+        # asking the user to do anything but resolve inconsistency.
+        if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
+            yield from infr.neg_redun_gen()
+
+        infr.print('Terminate', 1, color='red')
+
+        if infr.params['inference.enabled']:
+            infr.assert_consistency_invariant()
+        infr.print('Exiting main loop')
+
+    def lnbnn_priority_gen(infr, use_refresh=True):
+        infr.print('============================', color='white')
+        infr.print('--- LNBNN PRIORITY LOOP ---', color='white')
+        n_prioritized = infr.refresh_candidate_edges()
+        if n_prioritized == 0:
+            infr.print('LNBNN FOUND NO NEW EDGES')
+            return
+        if use_refresh:
+            infr.refresh.clear()
+        for _ in infr.inner_priority_gen(use_refresh):
+            yield _
+
+    def pos_redun_gen(infr):
+        infr.print('===========================', color='white')
+        infr.print('--- POSITIVE REDUN LOOP ---', color='white')
+        new_edges = list(infr.find_pos_redun_candidate_edges())
+        for count in it.count(0):
+            infr.print('check pos-redun iter {}'.format(count))
+            infr.queue.clear()
+            infr.add_candidate_edges(new_edges)
+
+            yield from infr.inner_priority_gen(use_refresh=False)
+
+            new_edges = list(infr.find_pos_redun_candidate_edges())
+            if len(new_edges) == 0:
+                infr.print(
+                    'pos-redundancy achieved in {} iterations'.format(
+                        count + 1))
+                break
+            infr.print('not pos-reduntant yet.', color='white')
+
+    def neg_redun_gen(infr):
+        infr.print('===========================', color='white')
+        infr.print('--- NEGATIVE REDUN LOOP ---', color='white')
+        import ubelt as ub
+
+        infr.queue.clear()
+
+        only_auto = infr.params['redun.neg.only_auto']
+
+        for new_edges in ub.chunks(infr.find_neg_redun_candidate_edges(), 100):
+            # Add chunks in a little at a time for faster response time
+            infr.add_candidate_edges(new_edges)
+            yield from infr.inner_priority_gen(use_refresh=False,
+                                               only_auto=only_auto)
+
+    def inner_priority_gen(infr, use_refresh=True, only_auto=False):
         """
         Executes reviews until the queue is empty or needs refresh
+
+        Args:
+            user_refresh (bool): if True enables the refresh criteria.
+                (set to True in Phase 1)
+            only_auto (bool) if True, then the user wont be prompted with
+                reviews unless the graph is inconsistent.
+                (set to True in Phase 3)
         """
         if infr.refresh:
             infr.refresh.enabled = use_refresh
@@ -127,140 +179,61 @@ class InfrLoops(object):
                     infr.print('Triggered refresh criteria after %d iterations' %
                                (count,), 1, color='yellow')
                     break
-            try:
-                proceed, user_request = infr.next_review()
-                if not proceed:
-                    yield user_request
-            except StopIteration:
-                assert len(infr.queue) == 0
+
+            # If the queue is empty break
+            if len(infr.queue) == 0:
                 infr.print('No more edges after %d iterations, need refresh' %
                            (count,), 1, color='yellow')
                 break
+
+            # Try to automatically do the next review.
+            edge, priority = infr.peek()
+            infr.print('next_review. edge={}'.format(edge), 100)
+
+            inconsistent = infr.is_recovering(edge)
+
+            feedback = None
+            if infr.params['autoreview.enabled'] and not inconsistent:
+                # Try to autoreview if we aren't in an inconsistent state
+                feedback = infr.try_auto_review(edge)
+
+            if feedback is not None:
+                # Add feedback from the automated method
+                infr.add_feedback(edge, priority=priority, **feedback)
+            else:
+                # We can't automatically review, ask for help
+                if only_auto and not inconsistent:
+                    # We are in auto only mode, skip manual review
+                    # unless there is an inconsistency
+                    infr.skip(edge)
+                else:
+                    if infr.simulation_mode:
+                        # Use oracle feedback
+                        feedback = infr.request_oracle_review(edge)
+                        infr.add_feedback(edge, priority=priority, **feedback)
+                    else:
+                        # Yield to the user if we need to pause
+                        user_request = infr.emit_manual_review(edge, priority)
+                        yield user_request
+
         if infr.metrics_list:
             infr._print_previous_loop_statistics(count)
-
-    def pos_redun_gen(infr):
-        infr.print('===========================', color='white')
-        infr.print('--- POSITIVE REDUN LOOP ---', color='white')
-        new_edges = list(infr.find_pos_redun_candidate_edges())
-        for count in it.count(0):
-            infr.print('check pos-redun iter {}'.format(count))
-            # print('pos_redun_candidates = %r' % (len(new_edges),))
-            infr.queue.clear()
-            infr.add_candidate_edges(new_edges)
-            for _ in infr.inner_priority_gen(use_refresh=False):
-                yield _
-            new_edges = list(infr.find_pos_redun_candidate_edges())
-            # if len(new_edges) < 10:
-            #     print('new_edges = %r' % (new_edges,))
-            # else:
-            #     print('new_edges = #%r' % (len(new_edges),))
-            if len(new_edges) == 0:
-                infr.print(
-                    'pos-redundancy achieved in {} iterations'.format(
-                        count + 1))
-                break
-            infr.print('not pos-reduntant yet.', color='white')
-
-    def lnbnn_priority_gen(infr, use_refresh=True):
-        infr.print('============================', color='white')
-        infr.print('--- LNBNN PRIORITY LOOP ---', color='white')
-        n_prioritized = infr.refresh_candidate_edges()
-        if n_prioritized == 0:
-            infr.print('LNBNN FOUND NO NEW EDGES')
-            return
-        if use_refresh:
-            infr.refresh.clear()
-        for _ in infr.inner_priority_gen(use_refresh):
-            yield _
 
     def init_refresh(infr):
         refresh_params = infr.subparams('refresh')
         infr.refresh = RefreshCriteria(**refresh_params)
 
-    @profile
-    def main_loop(infr, max_loops=None, use_refresh=True):
+    def start_id_review(infr, max_loops=None, use_refresh=None):
+        assert infr._gen is None, 'algo already running'
         # Just exhaust the main generator
-        gen = infr.main_gen(max_loops, use_refresh)
-        try:
-            while True:
-                next(gen)
-        except StopIteration:
-            pass
+        infr._gen = infr.main_gen(max_loops=max_loops, use_refresh=use_refresh)
+        return infr._gen
 
-    @profile
-    def main_gen(infr, max_loops=None, use_refresh=True):
-        """
-        The main outer loop
-
-        Doctest:
-            >>> from ibeis.algo.graph.mixin_loops import *
-            >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)), autoinit='staging', verbose=4)
-            >>> infr.oracle = UserOracle(.8, rng=0)
-            >>> infr.simulation_mode = False
-            >>> # TODO: fixme if we dont load published
-            >>> infr.load_published()
-            >>> gen = infr.main_gen()
-            >>> while True:
-            >>>     try:
-            >>>         reviews = next(gen)
-            >>>     except StopIteration:
-            >>>         break
-            >>>     edge, priority, data = reviews[0]
-            >>>     feedback = infr.request_oracle_review(edge)
-            >>>     infr.add_feedback(edge, **feedback)
-        """
-        infr.print('Starting main loop', 1)
-        if max_loops is None:
-            max_loops = infr.params['algo.max_outer_loops']
-            if max_loops is None:
-                max_loops = np.inf
-
-        if infr.test_mode:
-            print('------------------ {} -------------------'.format(infr.name))
-
-        infr.init_refresh()
-
-        # Initialize a refresh criteria
-        for count in it.count(0):
-
-            if count >= max_loops:
-                infr.print('early stop', 1, color='red')
-                break
-            infr.print('Outer loop iter %d ' % (count,))
-
-            # Do priority loop over lnbnn candidates
-            for _ in infr.lnbnn_priority_gen(use_refresh):
-                yield _
-
-            print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-
-            terminate = (infr.refresh.num_meaningful == 0)
-            print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
-            if terminate:
-                infr.print('Triggered termination criteria', 1, color='red')
-
-            if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
-                # Fix positive redundancy of anything within the loop
-                for _ in infr.pos_redun_gen():
-                    yield _
-
-            print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-            print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
-
-            if terminate:
-                break
-
-        infr.print('Terminate.', 1, color='red')
-
-        if infr.params['inference.enabled']:
-            infr.assert_consistency_invariant()
-        infr.print('Exiting main loop')
-
-
-class ReviewCanceled(Exception):
-    pass
+    def main_loop(infr, max_loops=None, use_refresh=True):
+        gen = infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
+        # To automatically run through the loop just exhaust the generator
+        result = next(gen)
+        assert result is None, 'need user interaction. cannot auto loop'
 
 
 class InfrReviewers(object):
@@ -279,19 +252,23 @@ class InfrReviewers(object):
         if infr.is_recovering():
             # Do not autoreview if we are in an inconsistent state
             infr.print('Must manually review inconsistent edge', 3)
-            return False, review
+            return None
         # Determine if anything passes the match threshold
         primary_task = 'match_state'
 
         try:
             decision_probs = infr.task_probs[primary_task][edge]
         except KeyError:
+            if infr.verifiers is None:
+                return None
+            if infr.verifiers.get(primary_task, None) is None:
+                return None
             # Compute probs if they haven't been done yet
             infr.ensure_priority_scores([edge])
             try:
                 decision_probs = infr.task_probs[primary_task][edge]
             except KeyError:
-                return False, review
+                return None
 
         primary_thresh = infr.task_thresh[primary_task]
         decision_flags = {k: decision_probs[k] > thresh
@@ -318,33 +295,86 @@ class InfrReviewers(object):
         if auto_flag and infr.verbose > 1:
             infr.print('Automatic review success')
 
-        return auto_flag, review
-
-    @profile
-    def emit_or_review(infr, edge, priority=None):
-        """
-        Returns:
-            tuple proceed, data
-        """
-        if infr.params['autoreview.enabled']:
-            flag, feedback = infr.try_auto_review(edge)
-            if flag:
-                proceed = True
-                return proceed, feedback
-        if infr.simulation_mode:
-            feedback = infr.request_oracle_review(edge)
-            proceed = True
-            return proceed, feedback
+        if auto_flag:
+            review
         else:
-            user_request = infr.emit_manual_review(edge, priority)
-            proceed = False
-            return proceed, user_request
+            return None
 
-    @profile
     def request_oracle_review(infr, edge, **kw):
         truth = infr.match_state_gt(edge)
         feedback = infr.oracle.review(edge, truth, infr, **kw)
         return feedback
+
+    def _make_review_tuple(infr, edge, priority=None):
+        """ Makes tuple to be sent back to the user """
+        edge_data = infr.get_nonvisual_edge_data(
+            edge, on_missing='default')
+        # Extra information
+        edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+        edge_data['n_ccs'] = (
+            len(infr.pos_graph.connected_to(edge[0])),
+            len(infr.pos_graph.connected_to(edge[1]))
+        )
+        return (edge, priority, edge_data)
+
+    def emit_manual_review(infr, edge, priority=None):
+        """
+        Emits a signal containing edges that need review. The callback should
+        present them to a user, get feedback, and then call on_accpet.
+        """
+        infr.print('emit_manual_review', 100)
+        # Emit a list of reviews that can be considered.
+        # The first is the most important
+        user_request = []
+        user_request += [infr._make_review_tuple(edge, priority)]
+        try:
+            for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
+                if edge == edge:
+                    continue
+                user_request += [infr._make_review_tuple(edge, priority)]
+        except TypeError:
+            pass
+
+        # If registered, send the request via a callback.
+        request_review = infr.callbacks.get('request_review', None)
+        if request_review is not None:
+            # Send these reviews to a user
+            request_review(user_request)
+        # Otherwise the current process must handle the request by return value
+        return user_request
+
+    def skip(infr, edge):
+        infr.print('skipping edge={}'.format(edge), 100)
+        try:
+            del infr.queue[edge]
+        except Exception:
+            pass
+
+    def accept(infr, feedback):
+        """
+        Called when user has completed feedback from qt or web
+        """
+        annot1_state = feedback.pop('annot1_state', None)
+        annot2_state = feedback.pop('annot2_state', None)
+        if annot1_state:
+            infr.add_node_feedback(**annot1_state)
+        if annot2_state:
+            infr.add_node_feedback(**annot2_state)
+        infr.add_feedback(**feedback)
+
+        if infr.params['manual.autosave']:
+            infr.write_ibeis_staging_feedback()
+
+    def continue_review(infr):
+        try:
+            user_request = next(infr._gen)
+        except StopIteration:
+            review_finished = infr.callbacks.get('review_finished', None)
+            if review_finished is not None:
+                review_finished()
+            infr._gen = None
+            user_request = None
+        return user_request
 
     def qt_edge_reviewer(infr, edge=None):
         import guitool as gt
@@ -353,10 +383,6 @@ class InfrReviewers(object):
         infr.manual_wgt = viz_graph2.AnnotPairDialog(
             edge=edge, infr=infr, standalone=False,
             cfgdict=infr.verifier_params)
-        infr.manual_wgt.accepted.connect(infr.on_accept)
-        infr.manual_wgt.skipped.connect(infr.continue_review)
-        infr.manual_wgt.request.connect(infr.emit_manual_review)
-        infr.callbacks['request_review'] = infr.manual_wgt.on_request_review
         if edge is not None:
             # infr.emit_manual_review(edge, priority=None)
             infr.manual_wgt.seek(0)
@@ -379,7 +405,6 @@ class InfrReviewers(object):
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.ensure_mst()
-            >>> infr.verifier_params = {'ratio_thresh': .8, 'sv_on': False}
             >>> # Add dummy priorities to each edge
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
@@ -389,126 +414,8 @@ class InfrReviewers(object):
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
         infr.qt_edge_reviewer()
-        infr.continue_review()
+        # infr.continue_review()
         return infr.manual_wgt
-
-    def _make_review_tuple(infr, edge, priority=None):
-        """ Makes tuple to be sent back to the user """
-        edge_data = infr.get_nonvisual_edge_data(
-            edge, on_missing='default')
-        # Extra information
-        edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
-        edge_data['n_ccs'] = (
-            len(infr.pos_graph.connected_to(edge[0])),
-            len(infr.pos_graph.connected_to(edge[1]))
-        )
-        return (edge, priority, edge_data)
-
-    def emit_manual_review(infr, edge, priority=None):
-        """
-        Emits a signal containing edges that need review. The callback should
-        present them to a user, get feedback, and then call on_accpet.
-        """
-        # Emit a list of reviews that can be considered.
-        # The first is the most important
-        user_request = []
-        user_request += [infr._make_review_tuple(edge, priority)]
-        try:
-            for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
-                user_request += [infr._make_review_tuple(edge, priority)]
-        except TypeError:
-            pass
-
-        # If registered, send the request via a callback.
-        on_request_review = infr.callbacks.get('request_review', None)
-        if on_request_review is not None:
-            # Send these reviews to a user
-            on_request_review(user_request)
-        # Otherwise the current process must handle the request by return value
-        return user_request
-
-    def on_accept(infr, feedback, need_next=True):
-        """
-        Called when user has completed feedback from qt or web
-        """
-        annot1_state = feedback.pop('annot1_state', None)
-        annot2_state = feedback.pop('annot2_state', None)
-        if annot1_state:
-            infr.add_node_feedback(**annot1_state)
-        if annot2_state:
-            infr.add_node_feedback(**annot2_state)
-        infr.add_feedback(**feedback)
-
-        if infr.params['manual.autosave']:
-            infr.write_ibeis_staging_feedback()
-
-        if need_next and infr.queue is not None:
-            infr.continue_review()
-
-    @profile
-    def next_review(infr):
-        """
-        does one review step
-        """
-        if len(infr.queue) == 0:
-            raise StopIteration('empty queue')
-        edge, priority = infr.peek()
-        infr.print('next_review. edge={}'.format(edge), 100)
-        proceed, feedback = infr.emit_or_review(edge, priority)
-        if proceed:
-            # Add feedback from the automated method
-            infr.add_feedback(edge, priority=priority, **feedback)
-            return proceed, None
-        else:
-            infr.print('need_user_feedback', 100)
-            # We need to wait for user feedback
-            return proceed, feedback
-
-    def continue_review(infr):
-        try:
-            while True:
-                # TODO: make this the inner loop?
-                # if infr.is_recovering():
-                #     infr.print('Still recovering after %d iterations' % (count,),
-                #                3, color='turquoise')
-                # else:
-                #     # Do not check for refresh if we are recovering
-                #     if use_refresh and infr.refresh.check():
-                #         break
-                proceed, user_request = infr.next_review()
-                if not proceed:
-                    return user_request
-        except StopIteration:
-            # TODO: refresh criteria
-            if infr.manual_wgt is not None:
-                if infr.manual_wgt.isVisible():
-                    import guitool as gt
-                    gt.user_info(infr.manual_wgt, 'Review Complete')
-            print('queue is empty')
-            return 'queue is empty'
-
-    # def request_user_review(infr, edge):
-    #     if infr.simulation_mode:
-    #         feedback = infr.request_oracle_review(edge)
-    #     else:
-    #         feedback = infr.manual_review(edge)
-    #     return feedback
-
-    # def manual_review(infr, edge):
-    #     # OLD
-    #     from ibeis.viz import viz_graph2
-    #     dlg = viz_graph2.AnnotPairDialog.as_dialog(
-    #         infr=infr, edge=edge, standalone=False)
-    #     # dlg.resize(700, 500)
-    #     dlg.exec_()
-    #     if dlg.widget.was_confirmed:
-    #         feedback = dlg.widget.feedback_dict()
-    #         feedback.pop('edge', None)
-    #     else:
-    #         raise ReviewCanceled('user canceled')
-    #     dlg.close()
-    #     # raise NotImplementedError('no user review')
-    #     pass
 
 
 class SimulationHelpers(object):
@@ -700,6 +607,99 @@ class SimulationHelpers(object):
         }
 
         return metrics
+
+    def _print_previous_loop_statistics(infr, count):
+        # Print stats about what happend in the this loop
+        history = infr.metrics_list[-count:]
+        recover_blocks = ut.group_items([
+            (k, sum(1 for i in g))
+            for k, g in it.groupby(ut.take_column(history, 'recovering'))
+        ]).get(True, [])
+        infr.print((
+            'Recovery mode entered {} times, '
+            'made {} recovery decisions.').format(
+                len(recover_blocks), sum(recover_blocks)), color='green')
+        testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
+        infr.print(
+            'Test Action Histogram: {}'.format(
+                ut.repr4(testaction_hist, si=True)), color='yellow')
+        if infr.params['inference.enabled']:
+            action_hist = ut.dict_hist(
+                ut.emap(frozenset, ut.take_column(history, 'action')))
+            infr.print(
+                'Inference Action Histogram: {}'.format(
+                    ut.repr2(action_hist, si=True)), color='yellow')
+        infr.print(
+            'Decision Histogram: {}'.format(ut.repr2(ut.dict_hist(
+                ut.take_column(history, 'pred_decision')
+            ), si=True)), color='yellow')
+        infr.print(
+            'User Histogram: {}'.format(ut.repr2(ut.dict_hist(
+                ut.take_column(history, 'user_id')
+            ), si=True)), color='yellow')
+
+
+class UserOracle(object):
+    def __init__(oracle, accuracy, rng):
+        if isinstance(rng, six.string_types):
+            rng = sum(map(ord, rng))
+        rng = ut.ensure_rng(rng, impl='python')
+
+        if isinstance(accuracy, tuple):
+            oracle.normal_accuracy = accuracy[0]
+            oracle.recover_accuracy = accuracy[1]
+        else:
+            oracle.normal_accuracy = accuracy
+            oracle.recover_accuracy = accuracy
+        # .5
+
+        oracle.rng = rng
+        oracle.states = {POSTV, NEGTV, INCMP}
+
+    def review(oracle, edge, truth, infr, accuracy=None):
+        feedback = {
+            'user_id': 'user:oracle',
+            'confidence': 'absolutely_sure',
+            'evidence_decision': None,
+            'meta_decision': NULL,
+            'timestamp_s1': ut.get_timestamp('int', isutc=True),
+            'timestamp_c1': ut.get_timestamp('int', isutc=True),
+            'timestamp_c2': ut.get_timestamp('int', isutc=True),
+            'tags': [],
+        }
+        is_recovering = infr.is_recovering()
+
+        if accuracy is None:
+            if is_recovering:
+                accuracy = oracle.recover_accuracy
+            else:
+                accuracy = oracle.normal_accuracy
+
+        # The oracle can get anything where the hardness is less than its
+        # accuracy
+
+        hardness = oracle.rng.random()
+        error = accuracy < hardness
+
+        if error:
+            error_options = list(oracle.states - {truth} - {INCMP})
+            observed = oracle.rng.choice(list(error_options))
+        else:
+            observed = truth
+        if accuracy < 1.0:
+            feedback['confidence'] = 'pretty_sure'
+        if accuracy < .5:
+            feedback['confidence'] = 'guessing'
+        feedback['evidence_decision'] = observed
+        if error:
+            infr.print(
+                'ORACLE ERROR real={} pred={} acc={:.2f} hard={:.2f}'.format(
+                    truth, observed, accuracy, hardness), 2, color='red')
+
+            # infr.print(
+            #     'ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}'.format(edge, truth, observed, is_recovering, hardness),
+            #     2, color='red')
+        return feedback
 
 
 if __name__ == '__main__':

@@ -143,7 +143,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return user_request
 
     def add_feedback(actor, **feedback):
-        return actor.infr.on_accept(feedback, need_next=False)
+        return actor.infr.accept(feedback)
 
     def get_feat_extractor(actor):
         match_state_verifier = actor.infr.verifiers.get('match_state', None)
