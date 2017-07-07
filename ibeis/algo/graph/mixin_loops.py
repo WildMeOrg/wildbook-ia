@@ -339,10 +339,10 @@ class InfrReviewers(object):
         user_request = []
         user_request += [infr._make_review_tuple(edge, priority)]
         try:
-            for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
-                if edge == edge:
+            for edge_, priority in infr.peek_many(infr.params['manual.n_peek']):
+                if edge == edge_:
                     continue
-                user_request += [infr._make_review_tuple(edge, priority)]
+                user_request += [infr._make_review_tuple(edge_, priority)]
         except TypeError:
             pass
 
