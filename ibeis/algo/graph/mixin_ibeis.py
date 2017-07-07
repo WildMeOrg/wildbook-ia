@@ -303,7 +303,7 @@ class IBEISIO(object):
 
         This write function is done using the implicit delta maintained by
         infr.internal_feedback. Therefore, it take no args. This is generally
-        called automatically by `infr.on_accept`.
+        called automatically by `infr.accept`.
         """
         if len(infr.internal_feedback) == 0:
             infr.print('write_ibeis_staging_feedback 0', 1)

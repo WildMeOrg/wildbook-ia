@@ -229,7 +229,7 @@ class Feedback(object):
             infr.dirty = True
             infr._add_review_edge(edge, decision)
 
-        if infr.refresh and infr.params['inference.enabled']:
+        if infr.params['inference.enabled'] and infr.refresh:
             # only add to criteria if this wasn't requested as a fix edge
             if priority is not None and priority <= 1.0:
                 meaningful = bool({'merge', 'split'} & set(action))
@@ -385,7 +385,7 @@ class Feedback(object):
 
     def clear_edges(infr):
         """
-        Removes all edges from the graph and the feedback dictionaries.
+        Removes all edges from the graph
         """
         for graph in infr.review_graphs.values():
             graph.remove_edges_from(list(graph.edges()))
@@ -1058,7 +1058,7 @@ class AnnotInference(ut.NiceRepr,
         }
 
         # Criterion
-        infr.queue = None
+        infr.queue = ut.PriorityQueue()
         infr.refresh = None
 
         infr.review_counter = it.count(0)
@@ -1113,7 +1113,10 @@ class AnnotInference(ut.NiceRepr,
             'manual.n_peek': 1,
             'manual.autosave': True,
 
+            'ranking.ntop': 5,
+
             'algo.max_outer_loops': None,
+            'algo.quickstart': True,
 
             # Dynamic Inference
             'inference.enabled': True,
@@ -1123,15 +1126,21 @@ class AnnotInference(ut.NiceRepr,
             'refresh.window': 20,
             'refresh.patience': 72,
             'refresh.thresh': .1,
+            'refresh.method': 'binomial',
 
             # Redundancy
             # if redun.enabled is True, then redundant edges will be ignored by
             # # the priority queue and extra edges needed to achieve minimum
             # redundancy will be searched for if the queue is empty.
             'redun.enabled': True,
-            'redun.pos': 2,  # positive-k
-            'redun.neg': 2,  # negative-k
-            'redun.enforce_pos': True,  # does positive augmentation
+            # positive/negative k
+            'redun.pos': 2,
+            'redun.neg': 2,
+            # does positive/negative augmentation
+            'redun.enforce_pos': True,
+            'redun.enforce_neg': True,
+            # prevents user interaction in final phase
+            'redun.neg.only_auto': True,
 
             # Autoreviewer params
             'autoreview.enabled': True,
@@ -1142,6 +1151,9 @@ class AnnotInference(ut.NiceRepr,
             'in_image': False,
             'thumbsize': 221,
         }
+
+        # A generator that maintains the state of the algorithm
+        infr._gen = None
 
         infr.verifier_params = {}  # TODO
         infr.ranker_params = {}

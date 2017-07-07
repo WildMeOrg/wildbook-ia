@@ -71,3 +71,31 @@
                     infr.push(edge, priority)
                 continue
             infr.add_feedback(edge=edge, **feedback)
+
+
+class ReviewCanceled(Exception):
+    pass
+
+
+    # def request_user_review(infr, edge):
+    #     if infr.simulation_mode:
+    #         feedback = infr.request_oracle_review(edge)
+    #     else:
+    #         feedback = infr.manual_review(edge)
+    #     return feedback
+
+    # def manual_review(infr, edge):
+    #     # OLD
+    #     from ibeis.viz import viz_graph2
+    #     dlg = viz_graph2.AnnotPairDialog.as_dialog(
+    #         infr=infr, edge=edge, standalone=False)
+    #     # dlg.resize(700, 500)
+    #     dlg.exec_()
+    #     if dlg.widget.was_confirmed:
+    #         feedback = dlg.widget.feedback_dict()
+    #         feedback.pop('edge', None)
+    #     else:
+    #         raise ReviewCanceled('user canceled')
+    #     dlg.close()
+    #     # raise NotImplementedError('no user review')
+    #     pass

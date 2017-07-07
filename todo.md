@@ -77,3 +77,8 @@ modules are used. The same goes for dtool databases and database backups.
 
 * Change autogen to manual for controller function files
 * Change all database _uuid to _init_uuid and add image_semantic_uuid and other semantic_uuids as needed to easily communicate database state updates
+
+
+
+* yaws should be removed from visual uuids
+* sementic uuids should be depricated
