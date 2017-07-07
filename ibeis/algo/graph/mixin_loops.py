@@ -23,13 +23,14 @@ class InfrLoops(object):
         Doctest:
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 50)),
+            >>> infr = ibeis.AnnotInference('testdb1', aids='all',
             >>>                             autoinit='staging', verbose=4)
+            >>> infr.params['manual.n_peek'] = 10
             >>> infr.params['ranking.ntop'] = 1
             >>> infr.oracle = UserOracle(.99, rng=0)
             >>> infr.simulation_mode = False
             >>> infr.reset()
-            >>> infr.load_published()
+            >>> #infr.load_published()
             >>> gen = infr.main_gen()
             >>> while True:
             >>>     try:
