@@ -4608,7 +4608,7 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
                                                    target=target)
     else:
         gid_list = []
-        for species in species_dict:
+        for species in species_set:
             gid_list += species_dict.get(species, [])
         gid_list = list(set(gid_list))
         ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
