@@ -1739,7 +1739,6 @@ def _find_good_match_states(infr):
             # infr._debug_edge_gt(edge)
 
 
-
 def prepare_cdfs(cdfs, labels):
     cdfs = vt.pad_vstack(cdfs, fill_value=1)
     # Sort so the best is on top
