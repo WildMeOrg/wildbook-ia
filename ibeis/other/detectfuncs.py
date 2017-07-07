@@ -4601,7 +4601,7 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
 
         print('%r: %d' % (species, len(gid_list), ))
 
-    redo = raw_input('Redo? [enter to continue]')
+    redo = raw_input('Redo? [enter to continue] ')
     redo = redo.strip()
     if len(redo) == 0:
         ibs.set_reviewed_from_target_species_count(species_set=species_set,
@@ -4610,6 +4610,7 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
         gid_list = []
         for species in species_dict:
             gid_list += species_dict.get(species, [])
+        gid_list = list(set(gid_list))
         ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
         ibs.update_reviewed_unreviewed_image_special_imageset()
 
