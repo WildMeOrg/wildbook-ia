@@ -156,6 +156,7 @@ class GraphClient(object):
         python -m ibeis.web.graph_server GraphClient
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.web.graph_server import *
         >>> import ibeis
         >>> client = GraphClient(autoinit=True)
@@ -310,9 +311,8 @@ class GraphClient(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.job_engine
-        python -m ibeis.web.job_engine --allexamples
-        python -m ibeis.web.job_engine --allexamples --noface --nosrc
+        python -m ibeis.web.graph_server
+        python -m ibeis.web.graph_server --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
