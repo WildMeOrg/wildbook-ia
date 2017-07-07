@@ -4525,6 +4525,95 @@ def fix_horizontal_bounding_boxes_to_orient(ibs, gid, bbox_list):
     return bbox_list_
 
 
+@register_ibs_method
+def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
+    import random
+
+    if species_set is None:
+        species_set = set([
+            'giraffe_masai',
+            'giraffe_reticulated',
+            'turtle_green',
+            'turtle_hawksbill',
+            'whale_fluke',
+            'zebra_grevys',
+            'zebra_plains'
+        ])
+
+    gid_list = ibs.get_valid_gids()
+    ibs.set_image_reviewed(gid_list, [0] * len(gid_list))
+
+    aids_list = ibs.get_image_aids(gid_list)
+    species_list = map(ibs.get_annot_species_texts, aids_list)
+    species_list = map(set, species_list)
+
+    species_dict = {}
+    for species_list_, gid in zip(species_list, gid_list):
+        for species in species_list_:
+            if species not in species_dict:
+                species_dict[species] = []
+            species_dict[species].append(gid)
+
+    recover_dict = {}
+    while True:
+        candidate_list = []
+        for species in species_set:
+            gid_list = species_dict.get(species, [])
+            if len(gid_list) > target:
+                candidate_list += gid_list
+
+        if len(candidate_list) == 0:
+            break
+
+        candidate = random.choice(candidate_list)
+        # print('Purging %d' % (candidate, ))
+
+        aid_list_ = ibs.get_image_aids(candidate)
+        species_list_ = ibs.get_annot_species_texts(aid_list_)
+        species_set_ = list(set(species_list_) & species_set)
+        if len(species_set_) == 1:
+            species_ = species_set_[0]
+            if species_ not in recover_dict:
+                recover_dict[species_] = []
+            recover_dict[species_].append(candidate)
+
+        flag = True
+        for species in species_dict:
+            if candidate in species_dict[species]:
+                species_dict[species].remove(candidate)
+            if species in species_set and len(species_dict[species]) > target:
+                flag = False
+
+        if flag:
+            break
+
+    for species in recover_dict:
+        random.shuffle(recover_dict[species])
+
+    for species in species_set:
+        gid_list = species_dict.get(species, [])
+
+        if species in recover_dict:
+            while len(gid_list) < target and len(recover_dict[species]) > 0:
+                recover = recover_dict[species].pop(0)
+                # print('Recovering %d' % (recover, ))
+                gid_list.append(recover)
+
+        print('%r: %d' % (species, len(gid_list), ))
+
+    redo = raw_input('Redo? [enter to continue]')
+    redo = redo.strip()
+    if len(redo) == 0:
+        ibs.set_reviewed_from_target_species_count(species_set=species_set,
+                                                   target=target)
+    else:
+        gid_list = []
+        for species in species_dict:
+            gid_list += species_dict.get(species, [])
+        ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
+        ibs.update_reviewed_unreviewed_image_special_imageset()
+
+
 if __name__ == '__main__':
     """
     CommandLine:
