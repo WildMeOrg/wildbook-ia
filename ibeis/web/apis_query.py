@@ -930,7 +930,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         graph_client.extr = future.result()
 
         # Start main loop
-        future = graph_client.post({'action' : 'refresh'})
+        future = graph_client.post({'action' : 'continue_review'})
         future.graph_client = graph_client
         future.add_done_callback(query_graph_v2_on_request_review)
 
@@ -1079,7 +1079,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     graph_client.cleanup()
 
     # Continue review
-    future = graph_client.post({'action' : 'refresh_pos_redun'})
+    future = graph_client.post({'action' : 'continue_review'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
     return (annot_uuid_1, annot_uuid_2, )
@@ -1091,6 +1091,8 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
     # Ensure internal state is up to date
+
+    # FIXME: these methods belong to `infr` not graph_client.
     graph_client.relabel_using_reviews(rectify=True)
     edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
     name_delta_df = graph_client.get_ibeis_name_delta()
@@ -1173,16 +1175,9 @@ def query_graph_v2_on_request_review(future):
         graph_client = future.graph_client
         data_list = future.result()
         if data_list is None or len(data_list) == 0:
-            if graph_client.state.get('pos_redun', False):
-                future = graph_client.post({'action' : 'refresh_pos_redun'})
-                future.graph_client = graph_client
-                future.add_done_callback(query_graph_v2_on_request_review)
-                graph_client.state['pos_redun'] = False
-            else:
-                future = graph_client.post({'action' : 'continue_review'})
-                future.graph_client = graph_client
-                future.add_done_callback(query_graph_v2_on_request_review)
-                graph_client.state['pos_redun'] = True
+            future = graph_client.post({'action' : 'continue_review'})
+            future.graph_client = graph_client
+            future.add_done_callback(query_graph_v2_on_request_review)
         graph_client.update(data_list)
         query_graph_v2_callback(graph_client, 'review')
 

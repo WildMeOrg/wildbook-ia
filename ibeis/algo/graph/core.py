@@ -1116,7 +1116,7 @@ class AnnotInference(ut.NiceRepr,
             'ranking.ntop': 5,
 
             'algo.max_outer_loops': None,
-            'algo.quickstart': True,
+            'algo.quickstart': False,
 
             # Dynamic Inference
             'inference.enabled': True,

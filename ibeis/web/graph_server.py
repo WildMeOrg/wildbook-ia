@@ -21,6 +21,10 @@ def testdata_start_payload(aids='all'):
         'action'       : 'start',
         'dbdir'        : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
         'aids'         : aids,
+        'config'       : {
+            'manual.autosave': False
+        }
+
     }
     return payload
 
@@ -61,11 +65,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>> payload = testdata_start_payload()
         >>> locals().update(payload)
         >>> # Start the process
-        >>> user_request = actor.handle(payload)
+        >>> start_resp = actor.handle(payload)
+        >>> print('start_resp = {!r}'.format(start_resp))
         >>> # Respond with a user decision
-        >>> f1 = actor.handle({'action': 'refresh'})
-        >>> f1.add_done_callback(test_foo)
-        >>> user_request = f1.result()
+        >>> user_request = actor.handle({'action': 'continue_review'})
         >>> # Wait for a response and  the GraphActor in another proc
         >>> edge, priority, edge_data = user_request[0]
         >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
@@ -114,6 +117,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # actor.infr.params['autoreview.enabled'] = False
         actor.infr.params['redun.pos'] = 2
         actor.infr.params['redun.neg'] = 2
+        actor.infr.params['manual.autosave'] = config.get(
+            'manual.autosave', True)
         # Initialize
         # TODO: Initialize state from staging reviews after annotmatch
         # timestamps (in case of crash)
@@ -124,18 +129,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         actor.infr.load_published()
 
         actor.infr.apply_nondynamic_update()
-        return 'started'
 
-    def refresh(actor):
         # Start actor.infr Main Loop
-        actor.infr.refresh_candidate_edges()
-        return actor.continue_review()
-
-    def refresh_pos_redun(actor):
-        new_edges = list(actor.infr.find_pos_redun_candidate_edges())
-        actor.infr.queue.clear()
-        actor.infr.add_candidate_edges(new_edges)
-        return actor.continue_review()
+        actor.infr.start_id_review()
+        return 'initialized'
 
     def continue_review(actor):
         # This will signal on_request_review with the same data
@@ -164,7 +161,7 @@ class GraphClient(object):
         >>> # Start the GraphActor in another proc
         >>> payload = testdata_start_payload()
         >>> client.post(payload).result()
-        >>> f1 = client.post({'action': 'refresh'})
+        >>> f1 = client.post({'action': 'continue_review'})
         >>> f1.add_done_callback(test_foo)
         >>> user_request = f1.result()
         >>> # Wait for a response and  the GraphActor in another proc
@@ -185,7 +182,7 @@ class GraphClient(object):
         >>> # Start the GraphActor in another proc
         >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
         >>> #
-        >>> f1 = client.post({'action': 'refresh'})
+        >>> f1 = client.post({'action': 'continue_review'})
         >>> user_request = f1.result()
         >>> # The infr algorithm needs a review
         >>> edge, priority, edge_data = user_request[0]
@@ -233,8 +230,6 @@ class GraphClient(object):
         client.config = None
         client.extr = None
 
-        client.state = {}
-
         if autoinit:
             client.initialize()
 
@@ -242,7 +237,7 @@ class GraphClient(object):
         client.executor = GraphActor.executor()
 
     def __del__(client):
-        client.shutdown()
+        client.shutdown(wait=False)
 
     def shutdown(client):
         if client.executor is not None:
@@ -268,6 +263,9 @@ class GraphClient(object):
                 else:
                     new_futures.append((action, future))
         client.futures = new_futures
+
+    def add_annots(client):
+        raise NotImplementedError('not done yet')
 
     def update(client, data_list):
         print('UPDATING GRAPH CLIENT WITH:')
