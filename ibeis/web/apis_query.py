@@ -1129,7 +1129,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
 
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['PUT'])
-def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name_list=None):
+def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -1137,18 +1137,32 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list, annot_name
     for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
         graph_client_ = current_app.GRAPH_CLIENT_DICT[graph_uuid_]
         aid_list_ = graph_client_.aids
+        assert aid_list_ is not None
         overlap_aid_set = set(aid_list_) & set(aid_list)
         if len(overlap_aid_set) > 0:
             overlap_aid_list = list(overlap_aid_set)
             overlap_annot_uuid_list = ibs.get_annot_uuids(overlap_aid_list)
-            raise controller_inject.WebUnavailableUUIDException(overlap_annot_uuid_list, graph_uuid_)
+            raise controller_inject.WebUnavailableUUIDException(
+                overlap_annot_uuid_list, graph_uuid_)
 
-    if annot_name_list is not None:
-        assert len(annot_name_list) == len(annot_uuid_list)
-        nid_list = ibs.add_names(annot_name_list)
-        ibs.set_annot_name_rowids(aid_list, nid_list)
+    aid_list_ = graph_client.aids + aid_list
+    graph_uuid_ = ut.hashable_to_uuid(sorted(aid_list_))
+    assert graph_uuid_ not in current_app.GRAPH_CLIENT_DICT
+    graph_client.graph_uuid = graph_uuid_
 
-    graph_uuid_ = graph_client.add_annots(aid_list)
+    payload = {
+        'action' : 'add_annots',
+        'dbdir'  : ibs.dbdir,
+        'aids'   : aid_list,
+    }
+    future = graph_client.post(payload)
+    future.result()  # Guarantee that this has happened before calling refresh
+
+    # Start main loop
+    future = graph_client.post({'action' : 'continue_review'})
+    future.graph_client = graph_client
+    future.add_done_callback(query_graph_v2_on_request_review)
+
     current_app.GRAPH_CLIENT_DICT[graph_uuid_] = graph_client
     current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_uuid_
     return graph_uuid_
