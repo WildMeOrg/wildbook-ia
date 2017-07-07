@@ -1017,6 +1017,12 @@ class AnnotInference(ut.NiceRepr,
 
     """
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # Dont pickle generators
+        state['_gen'] = None
+        return state
+
     def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
         """
         Ignore:

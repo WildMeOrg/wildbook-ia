@@ -117,6 +117,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # actor.infr.params['autoreview.enabled'] = False
         actor.infr.params['redun.pos'] = 2
         actor.infr.params['redun.neg'] = 2
+        actor.infr.params['algo.quickstart'] = False
         actor.infr.params['manual.autosave'] = config.get(
             'manual.autosave', True)
         # Initialize
@@ -175,47 +176,47 @@ class GraphClient(object):
         >>> actor.infr.dump_logs()
         >>> #print(client.post({'action': 'logs'}).result())
 
-    Ignore:
-        >>> from ibeis.web.graph_server import *
-        >>> import ibeis
-        >>> client = GraphClient(autoinit=True)
-        >>> # Start the GraphActor in another proc
-        >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
-        >>> #
-        >>> f1 = client.post({'action': 'continue_review'})
-        >>> user_request = f1.result()
-        >>> # The infr algorithm needs a review
-        >>> edge, priority, edge_data = user_request[0]
-        >>> #
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'wait', 'num': float(30)})
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
-        >>> client.post(testdata_feedback_payload(edge, 'match'))
-        >>> client.post({'action': 'continue_review'})
+    # Ignore:
+    #     >>> from ibeis.web.graph_server import *
+    #     >>> import ibeis
+    #     >>> client = GraphClient(autoinit=True)
+    #     >>> # Start the GraphActor in another proc
+    #     >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
+    #     >>> #
+    #     >>> f1 = client.post({'action': 'continue_review'})
+    #     >>> user_request = f1.result()
+    #     >>> # The infr algorithm needs a review
+    #     >>> edge, priority, edge_data = user_request[0]
+    #     >>> #
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'wait', 'num': float(30)})
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
+    #     >>> client.post(testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'continue_review'})
 
     """
     def __init__(client, graph_uuid=None, callbacks={}, autoinit=False):
@@ -237,7 +238,7 @@ class GraphClient(object):
         client.executor = GraphActor.executor()
 
     def __del__(client):
-        client.shutdown(wait=False)
+        client.shutdown()
 
     def shutdown(client):
         if client.executor is not None:
