@@ -24,7 +24,6 @@ def testdata_start_payload(aids='all'):
         'config'       : {
             'manual.autosave': False
         }
-
     }
     return payload
 
@@ -125,11 +124,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # timestamps (in case of crash)
         actor.infr.reset_feedback('annotmatch', apply=True)
         actor.infr.ensure_mst()
+        actor.infr.apply_nondynamic_update()
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.load_published()
-
-        actor.infr.apply_nondynamic_update()
 
         # Start actor.infr Main Loop
         actor.infr.start_id_review()

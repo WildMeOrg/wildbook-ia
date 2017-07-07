@@ -1174,7 +1174,11 @@ def query_graph_v2_on_request_review(future):
     if not future.cancelled():
         graph_client = future.graph_client
         data_list = future.result()
-        if data_list is None or len(data_list) == 0:
+        if data_list is None:
+            # TODO: tell wildbook we are finished
+            pass
+        if len(data_list) == 0:
+            assert False, 'case is not hit'
             future = graph_client.post({'action' : 'continue_review'})
             future.graph_client = graph_client
             future.add_done_callback(query_graph_v2_on_request_review)
