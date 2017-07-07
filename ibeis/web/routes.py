@@ -2668,6 +2668,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None, annot_uuid_
         refer_query_uuid = ex.query_uuid
         refer_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(refer_query_uuid), )
         refer_graph_uuid_str = refer_graph_uuid_str.replace(': ', ':')
+    except controller_inject.WebReviewFinishedException as ex:
+        finished = True
     except controller_inject.WebUnknownUUIDException:
         return redirect(url_for('turk'))
 

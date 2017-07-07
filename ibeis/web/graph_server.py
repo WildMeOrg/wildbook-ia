@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from ibeis.control import controller_inject
 import utool as ut
 import random
 import time
@@ -123,7 +124,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # Initialize
         # TODO: Initialize state from staging reviews after annotmatch
         # timestamps (in case of crash)
-        actor.infr.reset_feedback('annotmatch', apply=True)
+        actor.infr.reset_feedback('staging', apply=True)
         actor.infr.ensure_mst()
 
         # Load random forests (TODO: should this be config specifiable?)
@@ -294,7 +295,7 @@ class GraphClient(object):
 
     def sample(client):
         if client.review_dict is None:
-            raise NotImplementedError('Needs to throw random samples')
+            raise controller_inject.WebReviewFinishedException(client.graph_uuid)
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None

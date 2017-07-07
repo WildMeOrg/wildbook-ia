@@ -813,7 +813,7 @@ def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
 
 def query_graph_v2_callback(graph_client, callback_type):
     from ibeis.web.graph_server import ut_to_json_encode
-    assert callback_type in ['review', 'ready', 'finished']
+    assert callback_type in ['review', 'finished']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
     if callback_tuple is not None:
         callback_url, callback_method = callback_tuple
@@ -840,8 +840,6 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          query_config_dict={},
                          review_callback_url=None,
                          review_callback_method='POST',
-                         ready_callback_url=None,
-                         ready_callback_method='POST',
                          finished_callback_url=None,
                          finished_callback_method='POST'):
     """
@@ -902,7 +900,6 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
         callback_dict = {
             'review'   : (review_callback_url,   review_callback_method),
-            'ready'    : (ready_callback_url,    ready_callback_method),
             'finished' : (finished_callback_url, finished_callback_method),
         }
         graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
@@ -1174,22 +1171,9 @@ def query_graph_v2_on_request_review(future):
     if not future.cancelled():
         graph_client = future.graph_client
         data_list = future.result()
-        if data_list is None or len(data_list) == 0:
-            future = graph_client.post({'action' : 'continue_review'})
-            future.graph_client = graph_client
-            future.add_done_callback(query_graph_v2_on_request_review)
         graph_client.update(data_list)
-        query_graph_v2_callback(graph_client, 'review')
-
-
-def query_graph_v2_on_request_ready(future):
-    graph_client = future.graph_client
-    query_graph_v2_callback(graph_client, 'ready')
-
-
-def query_graph_v2_on_request_finished(future):
-    graph_client = future.graph_client
-    query_graph_v2_callback(graph_client, 'finished')
+        callback_type = 'finished' if data_list is None else 'review'
+        query_graph_v2_callback(graph_client, callback_type)
 
 
 if __name__ == '__main__':

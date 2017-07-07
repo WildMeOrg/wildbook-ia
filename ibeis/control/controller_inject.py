@@ -235,6 +235,17 @@ class WebUnavailableUUIDException(WebException):
         super(WebUnavailableUUIDException, self).__init__(message, rawreturn, code)
 
 
+class WebReviewFinishedException(WebException):
+    def __init__(self, query_uuid):
+        args = (query_uuid, )
+        message = 'The query_uuid %r has nothing more to review' % args
+        rawreturn = {
+            'query_uuid' : query_uuid,
+        }
+        code = 605
+        super(WebReviewFinishedException, self).__init__(message, rawreturn, code)
+
+
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
                               jQuery_callback=None, cache=None):
     if code is None:
