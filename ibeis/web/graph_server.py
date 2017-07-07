@@ -142,6 +142,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     def add_feedback(actor, **feedback):
         return actor.infr.accept(feedback)
 
+    def add_annots(actor, aids):
+        actor.infr.add_annots(aids)
+        return 'added'
+
     def get_feat_extractor(actor):
         match_state_verifier = actor.infr.verifiers.get('match_state', None)
         if match_state_verifier is not None:
