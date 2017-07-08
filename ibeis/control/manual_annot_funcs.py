@@ -288,8 +288,10 @@ def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
 @register_api('/api/annot/', methods=['POST'])
 def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
+                vert_list=None, annot_uuid_list=None,
+                yaw_list=None, viewpoint_list=None, quality_list=None,
+                multiple_list=None, interest_list=None,
                 detect_confidence_list=None, notes_list=None,
-                vert_list=None, annot_uuid_list=None, yaw_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
                 species_rowid_list=None, quiet_delete_thumbs=False,
                 prevent_visual_duplicates=True, skip_cleaning=False, **kwargs):
@@ -479,6 +481,14 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
     if yaw_list is None:
         yaw_list = [-1.0] * len(gid_list)
+    if viewpoint_list is None:
+        viewpoint_list = [None] * len(gid_list)
+    if quality_list is None:
+        quality_list = [None] * len(gid_list)
+    if multiple_list is None:
+        multiple_list = [False] * len(gid_list)
+    if interest_list is None:
+        interest_list = [False] * len(gid_list)
     nVert_list = [len(verts) for verts in vert_list]
     vertstr_list = [six.text_type(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
@@ -507,7 +517,9 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # Define arguments to insert
     colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
                 'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                'annot_verts', ANNOT_YAW, 'annot_detect_confidence',
+                'annot_verts', ANNOT_YAW, 'annot_viewpoint', 'annot_quality',
+                'annot_toggle_multiple', 'annot_toggle_interest',
+                'annot_detect_confidence',
                 'annot_note', 'name_rowid', 'species_rowid',
                 'annot_visual_uuid', 'annot_semantic_uuid')
 
@@ -518,13 +530,15 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
     params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
                             width_list, height_list, theta_list, nVert_list,
-                            vertstr_list, yaw_list, detect_confidence_list,
+                            vertstr_list, yaw_list, viewpoint_list, quality_list,
+                            multiple_list, interest_list,
+                            detect_confidence_list,
                             notes_list, nid_list, species_rowid_list,
                            annot_visual_uuid_list, annot_semantic_uuid_list))
 
     # Execute add ANNOTATIONs SQL
     if prevent_visual_duplicates:
-        superkey_paramx = (14,)
+        superkey_paramx = (len(colnames) - 2,)
         get_rowid_from_superkey = ibs.get_annot_aids_from_visual_uuid
     else:
         superkey_paramx = (0,)

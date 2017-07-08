@@ -384,7 +384,7 @@ class IBEISIO(object):
         """
         if name_delta_df is None:
             name_delta_df = infr.get_ibeis_name_delta()
-        infr.print('write_ibeis_name_assignment id' % len(name_delta_df))
+        infr.print('write_ibeis_name_assignment id %d' % len(name_delta_df))
         aid_list = name_delta_df.index.values
         new_name_list = name_delta_df['new_name'].values
         infr.ibs.set_annot_names(aid_list, new_name_list)

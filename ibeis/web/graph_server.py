@@ -23,7 +23,11 @@ def testdata_start_payload(aids='all'):
         'dbdir'        : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
         'aids'         : aids,
         'config'       : {
-            'manual.autosave': False
+            'manual.n_peek'   : 50,
+            'manual.autosave' : False,
+            'redun.pos'       : 2,
+            'redun.neg'       : 2,
+            'algo.quickstart' : False
         }
     }
     return payload
@@ -113,13 +117,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # Create the AnnotInference
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         # Configure query_annot_infr
-        actor.infr.params['manual.n_peek'] = 50
-        # actor.infr.params['autoreview.enabled'] = False
-        actor.infr.params['redun.pos'] = 2
-        actor.infr.params['redun.neg'] = 2
-        actor.infr.params['algo.quickstart'] = False
-        actor.infr.params['manual.autosave'] = config.get(
-            'manual.autosave', True)
+        for key in config:
+            actor.infr.params[key] = config[key]
         # Initialize
         # TODO: Initialize state from staging reviews after annotmatch
         # timestamps (in case of crash)

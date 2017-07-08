@@ -1786,7 +1786,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     species_rowids = [ combined[1] for combined in combined_list ]
 
     species_text_list = ibs.get_species_texts(species_rowids)
-    species_list = zip(species_nice_list, species_text_list)
+    species_list = list(zip(species_nice_list, species_text_list))
     species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
 
     # Collect mapping of species to parts

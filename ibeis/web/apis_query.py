@@ -759,41 +759,6 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
     return graph_client, graph_uuid_chain
 
 
-@register_ibs_method
-def query_chips_graph_v2_matching_state_sync(ibs, matching_state_list):
-    if len(matching_state_list) > 0:
-        match_annot_uuid1_list = ut.take_column(matching_state_list, 0)
-        match_annot_uuid2_list = ut.take_column(matching_state_list, 1)
-        match_decision_list    = ut.take_column(matching_state_list, 2)
-        match_tags_list        = ut.take_column(matching_state_list, 3)
-        match_user_list        = ut.take_column(matching_state_list, 4)
-        match_confidence_list  = ut.take_column(matching_state_list, 5)
-        match_count_list       = ut.take_column(matching_state_list, 6)
-
-        ibs.web_check_uuids([], match_annot_uuid1_list, [])
-        ibs.web_check_uuids([], match_annot_uuid2_list, [])
-
-        match_aid1_list = ibs.get_annot_aids_from_uuid(match_annot_uuid1_list)
-        match_aid2_list = ibs.get_annot_aids_from_uuid(match_annot_uuid2_list)
-        match_reviewed_list = [True] * len(match_aid1_list)
-
-        # Add cleanly
-        match_rowid_list = ibs.add_annotmatch(match_aid1_list, match_aid2_list,
-                                              annotmatch_truth_list=match_decision_list,
-                                              annotmatch_confidence_list=match_confidence_list,
-                                              annotmatch_tag_text_list=match_tags_list,
-                                              annotmatch_reviewed_list=match_reviewed_list,
-                                              annotmatch_reviewer_list=match_user_list,
-                                              annotmatch_count_list=match_count_list)
-        # Set any values that already existed
-        ibs.set_annotmatch_truth(match_rowid_list, match_decision_list)
-        ibs.set_annotmatch_tag_text(match_rowid_list, match_tags_list)
-        ibs.set_annotmatch_reviewer(match_rowid_list, match_user_list)
-        ibs.set_annotmatch_reviewed(match_rowid_list, match_reviewed_list)
-        ibs.set_annotmatch_confidence(match_rowid_list, match_confidence_list)
-        ibs.set_annotmatch_count(match_rowid_list, match_count_list)
-
-
 def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
                            view_orientation='vertical', overlay=True):
     import plottool as pt
@@ -905,7 +870,15 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
                                    autoinit=True)
         graph_client.aids = aid_list
-        graph_client.config = query_config_dict
+        config = {
+            'manual.n_peek'   : 50,
+            'manual.autosave' : True,
+            'redun.pos'       : 2,
+            'redun.neg'       : 2,
+            'algo.quickstart' : False
+        }
+        config.update(query_config_dict)
+        graph_client.config = config
 
         # Ensure no race-conditions
         current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
@@ -915,6 +888,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
             'action' : 'start',
             'dbdir'  : ibs.dbdir,
             'aids'   : graph_client.aids,
+            'config' : graph_client.config,
         }
         future = graph_client.post(payload)
         future.result()  # Guarantee that this has happened before calling refresh
@@ -1085,45 +1059,68 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['GET'])
 def sync_query_chips_graph_v2(ibs, graph_uuid):
+    import ibeis
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
-    # Ensure internal state is up to date
+    # Create the AnnotInference
+    infr = ibeis.AnnotInference(ibs=ibs, aids=graph_client.aids, autoinit=True)
+    for key in graph_client.config:
+        infr.params[key] = graph_client.config[key]
+    infr.reset_feedback('staging', apply=True)
 
-    # FIXME: these methods belong to `infr` not graph_client.
-    graph_client.relabel_using_reviews(rectify=True)
-    edge_delta_df = graph_client.match_state_delta(old='annotmatch', new='all')
-    name_delta_df = graph_client.get_ibeis_name_delta()
-    graph_client.write_ibeis_staging_feedback()
-    graph_client.write_ibeis_annotmatch_feedback(edge_delta_df)
-    graph_client.write_ibeis_name_assignment(name_delta_df)
+    infr.relabel_using_reviews(rectify=True)
+    edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
+    name_delta_df = infr.get_ibeis_name_delta()
 
-    edge_delta_df_ = edge_delta_df.reset_index()
+    ############################################################################
 
-    review_state_list = []
+    col_list = list(edge_delta_df.columns)
+    match_aid_edge_list = list(edge_delta_df.index)
+    match_aid1_list = ut.take_column(match_aid_edge_list, 0)
+    match_aid2_list = ut.take_column(match_aid_edge_list, 1)
+    match_annot_uuid1_list = ibs.get_annot_uuids(match_aid1_list)
+    match_annot_uuid2_list = ibs.get_annot_uuids(match_aid2_list)
+    match_annot_uuid_edge_list = zip(match_annot_uuid1_list, match_annot_uuid2_list)
 
-    # Set residual matching data
-    aid1_list = edge_delta_df_['aid1']
-    aid2_list = edge_delta_df_['aid2']
-    annot_uuid1_list = ibs.get_annot_uuids(aid1_list)
-    annot_uuid2_list = ibs.get_annot_uuids(aid2_list)
-    decision_list = ut.take(ibs.const.EVIDENCE_DECISION.CODE_TO_INT, edge_delta_df_['new_decision'])
-    tags_list = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
-    reviewer_list = edge_delta_df_['new_user_id']
-    conf_list = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT, edge_delta_df_['new_confidence'], None)
+    zipped = zip(*( list(edge_delta_df[col]) for col in col_list ))
 
-    matching_state_list = zip(
-        annot_uuid1_list,
-        annot_uuid2_list,
-        decision_list,
-        tags_list,
-        reviewer_list,
-        conf_list,
-    )
-    ret_dict = {
-        'review_state_list'   : review_state_list,
-        'matching_state_list' : matching_state_list,
-        'name_list'           : name_delta_df,
+    match_list = []
+    for match_annot_uuid_edge, zipped_ in zip(match_annot_uuid_edge_list, zipped):
+        match_dict = {
+            'edge': match_annot_uuid_edge,
+        }
+        for index, col in enumerate(col_list):
+            match_dict[col] = zipped_[index]
+        match_list.append(match_dict)
+
+    ############################################################################
+
+    col_list = list(name_delta_df.columns)
+    name_aid_list = list(name_delta_df.index)
+    name_annot_uuid_list = ibs.get_annot_uuids(name_aid_list)
+    old_name_list = list(name_delta_df['old_name'])
+    new_name_list = list(name_delta_df['new_name'])
+    zipped = zip(name_annot_uuid_list, old_name_list, new_name_list)
+    name_dict = {
+        name_annot_uuid: {
+            'old': old_name,
+            'new': new_name,
+        }
+        for name_annot_uuid, old_name, new_name in zipped
     }
+
+    ############################################################################
+
+    ret_dict = {
+        'match_list'  : match_list,
+        'name_dict'   : name_dict,
+    }
+
+    infr.write_ibeis_staging_feedback()
+    infr.write_ibeis_annotmatch_feedback(edge_delta_df)
+    infr.write_ibeis_name_assignment(name_delta_df)
+    edge_delta_df.reset_index()
+
     return ret_dict
 
 
