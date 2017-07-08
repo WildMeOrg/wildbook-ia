@@ -24,6 +24,83 @@ class MatchingError(Exception):
     pass
 
 
+def RhombicuboctahedronDistanceDemo():
+    def rhombicuboctahedro_faces():
+        """ yields names of all 26 rhombicuboctahedron faces"""
+        face_axes = [['up', 'down'], ['front', 'back'], ['left', 'right']]
+        ordering = {f: p for p, fs in enumerate(face_axes) for f in fs}
+        for i in range(1, len(face_axes) + 1):
+            for axes in list(ut.combinations(face_axes, i)):
+                for combo in ut.product(*axes):
+                    sortx = ut.argsort(ut.take(ordering, combo))
+                    face = tuple(ut.take(combo, sortx))
+                    yield face
+
+    # Each face is a node.
+    import networkx as nx
+    G = nx.Graph()
+    faces = list(rhombicuboctahedro_faces())
+    G.add_nodes_from(faces)
+
+    # A fase is connected if they share an edge or a vertex
+    # TODO: is there a more general definition?
+    face_axes = [['up', 'down'], ['front', 'back'], ['left', 'right']]
+    ordering = {f: p for p, fs in enumerate(face_axes) for f in fs}
+
+    # In this case faces might share an edge or vertex if their names intersect
+    edges = []
+    for face1, face2 in ut.combinations(faces, 2):
+        set1 = set(face1)
+        set2 = set(face2)
+        if len(set1.intersection(set2)) > 0:
+            diff1 = set1.difference(set2)
+            diff2 = set2.difference(set1)
+            sortx1 = ut.argsort(ut.take(ordering, diff1))
+            sortx2 = ut.argsort(ut.take(ordering, diff2))
+            # If they share a name that is on opposite poles, then they cannot
+            # share an edge or vertex.
+            if not list(set(sortx1).intersection(set(sortx2))):
+                edges.append((face1, face2))
+                # print('-----')
+                # print('Edge: {} {}'.format(face1, face2))
+                # print('diff1 = {!r}'.format(diff1))
+                # print('diff2 = {!r}'.format(diff2))
+    G.add_edges_from(edges)
+
+    # Build distance lookup table
+    distance_lookup = {}
+    for face1, face2 in ut.combinations(faces, 2):
+        key = tuple(sorted([''.join(face1), ''.join(face2)]))
+        dist = nx.shortest_path_length(G, face1, face2)
+        distance_lookup[key] = dist
+
+    for k, v in distance_lookup.items():
+        if 'up' not in k[0] and 'down' not in k[0]:
+            if 'up' not in k[1] and 'down' not in k[1]:
+                print(k, v)
+
+    def visualize_connection_graph():
+        # node_to_group = {f: str(len(f)) for f in faces}
+        node_to_group = {}
+        for f in faces:
+            if 'up' in f:
+                node_to_group[f] = '0.' + str(len(f))
+            elif 'down' in f:
+                node_to_group[f] = '1.' + str(len(f))
+            else:
+                node_to_group[f] = '2.' + str(len(f))
+        nx.set_node_attributes(G, 'groupid', node_to_group)
+
+        node_to_label = {f: ''.join(ut.take_column(f, 0)).upper() for f in faces}
+        nx.set_node_attributes(G, 'label', node_to_label)
+
+        import plottool as pt
+        pt.qt4ensure()
+        pt.show_nx(G, prog='neato', groupby='groupid')
+
+    visualize_connection_graph()
+
+
 VSONE_FEAT_CONFIG = [
     ut.ParamInfo(key, val)
     for key, val in pyhesaff.get_hesaff_default_params().items()
