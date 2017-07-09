@@ -23,13 +23,14 @@ class InfrLoops(object):
         Doctest:
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 50)),
+            >>> infr = ibeis.AnnotInference('testdb1', aids='all',
             >>>                             autoinit='staging', verbose=4)
+            >>> infr.params['manual.n_peek'] = 10
             >>> infr.params['ranking.ntop'] = 1
             >>> infr.oracle = UserOracle(.99, rng=0)
             >>> infr.simulation_mode = False
             >>> infr.reset()
-            >>> infr.load_published()
+            >>> #infr.load_published()
             >>> gen = infr.main_gen()
             >>> while True:
             >>>     try:
@@ -66,20 +67,16 @@ class InfrLoops(object):
         # unless the graph is already positive redundant.
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
             # Fix positive redundancy of anything within the loop
-            gen = infr.pos_redun_gen()
-            # yield from gen
-            for value in gen:
-                yield value
+            for _ in infr.pos_redun_gen():
+                yield _
 
         for count in it.count(0):
 
             infr.print('Outer loop iter %d ' % (count,))
 
             # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-            gen = infr.lnbnn_priority_gen(use_refresh)
-            # yield from gen
-            for value in gen:
-                yield value
+            for _ in infr.lnbnn_priority_gen(use_refresh):
+                yield _
 
             terminate = (infr.refresh.num_meaningful == 0)
             if terminate:
@@ -88,10 +85,8 @@ class InfrLoops(object):
             # Phase 2: Ensure positive redundancy.
             if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                 # Fix positive redundancy of anything within the loop
-                gen = infr.pos_redun_gen()
-                # yield from gen
-                for value in gen:
-                    yield value
+                for _ in infr.pos_redun_gen():
+                    yield _
 
             print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
             print('infr.refresh.num_meaningful = {!r}'.format(
@@ -109,10 +104,8 @@ class InfrLoops(object):
         # Phase 3: Try to automatically acheive negative redundancy without
         # asking the user to do anything but resolve inconsistency.
         if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
-            gen = infr.neg_redun_gen()
-            # yield from gen
-            for value in gen:
-                yield value
+            for _ in infr.neg_redun_gen():
+                yield _
 
         infr.print('Terminate', 1, color='red')
 
@@ -172,7 +165,7 @@ class InfrLoops(object):
             for value in gen:
                 yield value
 
-    def inner_priority_gen(infr, use_refresh=True, only_auto=False):
+    def inner_priority_gen(infr, use_refresh=False, only_auto=False):
         """
         Executes reviews until the queue is empty or needs refresh
 
@@ -248,6 +241,7 @@ class InfrLoops(object):
         return infr._gen
 
     def main_loop(infr, max_loops=None, use_refresh=True):
+        """ DEPRICATED """
         gen = infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
         # To automatically run through the loop just exhaust the generator
         result = next(gen)
@@ -346,10 +340,10 @@ class InfrReviewers(object):
         user_request = []
         user_request += [infr._make_review_tuple(edge, priority)]
         try:
-            for edge, priority in infr.peek_many(infr.params['manual.n_peek']):
-                if edge == edge:
+            for edge_, priority in infr.peek_many(infr.params['manual.n_peek']):
+                if edge == edge_:
                     continue
-                user_request += [infr._make_review_tuple(edge, priority)]
+                user_request += [infr._make_review_tuple(edge_, priority)]
         except TypeError:
             pass
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from ibeis.control import controller_inject
 import utool as ut
 import random
 import time
@@ -22,9 +23,12 @@ def testdata_start_payload(aids='all'):
         'dbdir'        : ibeis.sysres.db_to_dbdir('PZ_MTEST'),
         'aids'         : aids,
         'config'       : {
-            'manual.autosave': False
+            'manual.n_peek'   : 50,
+            'manual.autosave' : False,
+            'redun.pos'       : 2,
+            'redun.neg'       : 2,
+            'algo.quickstart' : False
         }
-
     }
     return payload
 
@@ -113,23 +117,17 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # Create the AnnotInference
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         # Configure query_annot_infr
-        actor.infr.params['manual.n_peek'] = 50
-        # actor.infr.params['autoreview.enabled'] = False
-        actor.infr.params['redun.pos'] = 2
-        actor.infr.params['redun.neg'] = 2
-        actor.infr.params['algo.quickstart'] = False
-        actor.infr.params['manual.autosave'] = config.get(
-            'manual.autosave', True)
+        for key in config:
+            actor.infr.params[key] = config[key]
         # Initialize
         # TODO: Initialize state from staging reviews after annotmatch
         # timestamps (in case of crash)
-        actor.infr.reset_feedback('annotmatch', apply=True)
+        actor.infr.reset_feedback('staging', apply=True)
         actor.infr.ensure_mst()
+        actor.infr.apply_nondynamic_update()
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.load_published()
-
-        actor.infr.apply_nondynamic_update()
 
         # Start actor.infr Main Loop
         actor.infr.start_id_review()
@@ -142,6 +140,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
     def add_feedback(actor, **feedback):
         return actor.infr.accept(feedback)
+
+    def add_annots(actor, aids):
+        actor.infr.add_annots(aids)
+        return 'added'
 
     def get_feat_extractor(actor):
         match_state_verifier = actor.infr.verifiers.get('match_state', None)
@@ -294,7 +296,7 @@ class GraphClient(object):
 
     def sample(client):
         if client.review_dict is None:
-            raise NotImplementedError('Needs to throw random samples')
+            raise controller_inject.WebReviewFinishedException(client.graph_uuid)
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None

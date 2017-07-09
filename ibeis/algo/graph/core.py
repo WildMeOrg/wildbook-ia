@@ -157,6 +157,12 @@ class Feedback(object):
 
         if evidence_decision is None:
             evidence_decision = UNREV
+        if meta_decision is None:
+            meta_decision = const.META_DECISION.CODE.NULL
+        if confidence is None:
+            confidence = const.CONFIDENCE.CODE.UNKNOWN
+        if timestamp is None:
+            timestamp = ut.get_timestamp('int', isutc=True)
 
         msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
@@ -170,6 +176,11 @@ class Feedback(object):
             if val is not None
         ])
         infr.print(msg, 2, color='white')
+
+        if meta_decision == NULL:
+            # TODO: check previous meta_decision and use that if its consistent
+            # with the evidence decision.
+            pass
 
         decision = _rectify_decision(evidence_decision, meta_decision)
 
@@ -187,13 +198,6 @@ class Feedback(object):
 
         # Keep track of sequential reviews and set properties on global graph
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
-
-        if timestamp is None:
-            timestamp = ut.get_timestamp('int', isutc=True)
-        if meta_decision is None:
-            meta_decision = const.META_DECISION.CODE.NULL
-        if confidence is None:
-            confidence = const.CONFIDENCE.CODE.UNKNOWN
 
         review_id = next(infr.review_counter)
         feedback_item = {
