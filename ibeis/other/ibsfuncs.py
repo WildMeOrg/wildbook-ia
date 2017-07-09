@@ -4746,6 +4746,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
              bigstr(str(aids)))]
 
     if kwargs.pop('hashid', True or forceall):
+        # TODO: depricate semantic hashid
         keyval_list += [
             (prefix + 'hashid',
              ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]

@@ -535,8 +535,6 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             ('qparams', qreq_.qparams),
             ('qvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.qaids, prefix='Q')),
             ('dvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.daids, prefix='D')),
-            ('qsuuid_hash', qreq_.ibs.get_annot_hashid_semantic_uuid(self.qaids, prefix='Q')),
-            ('dsuuid_hash', qreq_.ibs.get_annot_hashid_semantic_uuid(self.daids, prefix='D')),
             ('bc_info', bc_info),
         ])
 
