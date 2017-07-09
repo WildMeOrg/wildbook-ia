@@ -25,9 +25,6 @@ def testdata_start_payload(aids='all'):
         'config'       : {
             'manual.n_peek'   : 50,
             'manual.autosave' : False,
-            'redun.pos'       : 2,
-            'redun.neg'       : 2,
-            'algo.quickstart' : False
         }
     }
     return payload
@@ -67,7 +64,6 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>> from ibeis.web.graph_server import *
         >>> actor = GraphActor()
         >>> payload = testdata_start_payload()
-        >>> locals().update(payload)
         >>> # Start the process
         >>> start_resp = actor.handle(payload)
         >>> print('start_resp = {!r}'.format(start_resp))
@@ -79,6 +75,36 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>> content = actor.handle(user_resp_payload)
         >>> actor.infr.dump_logs()
 
+
+    Doctest:
+        >>> from ibeis.web.graph_server import *
+        >>> import ibeis
+        >>> actor = GraphActor()
+        >>> config = {
+        >>>     'manual.n_peek'   : 1,
+        >>>     'manual.autosave' : False,
+        >>>     'ranking.enabled' : False,
+        >>>     'autoreview.enabled' : False,
+        >>>     'redun.enabled'   : False,
+        >>>     'redun.enabled'   : False,
+        >>>     'queue.conf.thresh' : 'absolutely_sure',
+        >>>     'algo.hardcase' : True,
+        >>> }
+        >>> # Start the process
+        >>> dbdir = ibeis.sysres.db_to_dbdir('PZ_MTEST')
+        >>> payload = {'action': 'start', 'dbdir': dbdir, 'aids': 'all',
+        >>>            'config': config, 'init': 'annotmatch'}
+        >>> start_resp = actor.handle(payload)
+        >>> print('start_resp = {!r}'.format(start_resp))
+        >>> # Respond with a user decision
+        >>> user_request = actor.handle({'action': 'continue_review'})
+        >>> print('user_request = {!r}'.format(user_request))
+        >>> # Wait for a response and  the GraphActor in another proc
+        >>> edge, priority, edge_data = user_request[0]
+        >>> user_resp_payload = testdata_feedback_payload(edge, 'match')
+        >>> content = actor.handle(user_resp_payload)
+        >>> actor.infr.dump_logs()
+        >>> actor.infr.status()
     """
     def __init__(actor):
         actor.infr = None
@@ -122,7 +148,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # Initialize
         # TODO: Initialize state from staging reviews after annotmatch
         # timestamps (in case of crash)
-        actor.infr.reset_feedback('staging', apply=True)
+        table = kwargs.get('init', 'staging')
+        actor.infr.reset_feedback(table, apply=True)
         actor.infr.ensure_mst()
         actor.infr.apply_nondynamic_update()
 

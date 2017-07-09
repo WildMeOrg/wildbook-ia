@@ -611,7 +611,8 @@ class VerifierExpt(DBInputs):
             rerank_pairs.extend(pairs)
         rerank_pairs = list(set(rerank_pairs))
 
-        probs = pblm.predict_proba_evaluation(infr, rerank_pairs)['match_state']
+        verifiers = infr.learn_evaluation_verifiers()
+        probs = verifiers['match_state'].predict_proba_df(rerank_pairs)
         pos_probs = probs[POSTV]
 
         clf_name_ranks = []

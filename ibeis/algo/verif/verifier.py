@@ -13,9 +13,34 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 @ut.reloadable_class
-class Verifier(ut.NiceRepr):
-    """
+class BaseVerifier(ut.NiceRepr):
 
+    def __nice__(verif):
+        return '.'.join([verif.metadata['task_key'],
+                         verif.metadata['clf_key']])
+
+    def predict_proba_df(verif, edges):
+        raise NotImplementedError('abstract')
+
+    def fit(verif, edges):
+        raise NotImplementedError('Need to use OneVsOneProblem to do this')
+
+    def easiness(verif, edges, real):
+        """
+        Gets the probability of the class each edge is labeled as.  Indicates
+        how easy it is to classify this example.
+        """
+        probs = verif.predict_proba_df(edges)
+        target_names = probs.columns.tolist()
+        real_enc = np.array([target_names.index(r) for r in real])
+        easiness = np.array(ut.ziptake(probs.values, real_enc))
+        # easiness = pd.Series(easiness, index=probs.index)
+        return easiness
+
+
+@ut.reloadable_class
+class Verifier(BaseVerifier):
+    """
     Notes:
         deploy_info should be a dict with the following keys:
             clf: sklearn classifier
@@ -57,10 +82,6 @@ class Verifier(ut.NiceRepr):
             verif.extr = pairfeat.PairwiseFeatureExtractor(
                 ibs, feat_dims=feat_dims, **feat_extract_config)
 
-    def __nice__(verif):
-        return '.'.join([verif.metadata['task_key'],
-                         verif.metadata['clf_key']])
-
     def predict_proba_df(verif, edges):
         # TODO: if multiple verifiers have the same feature extractor we should
         # be able to cache it before we run the verification algo.
@@ -83,11 +104,9 @@ class Verifier(ut.NiceRepr):
         #     probs_df = sklearn_utils.predict_proba_df(clf, X_df, class_names)
         # task_probs[task_key] = probs_df
 
-    def fit(verif, edges):
-        raise NotImplementedError('Need to use OneVsOneProblem to do this')
 
-
-class IntraVerifier(object):
+@ut.reloadable_class
+class IntraVerifier(BaseVerifier):
     """
     Predicts cross-validated intra-training sample probs.
 
@@ -111,10 +130,6 @@ class IntraVerifier(object):
         deployer = deploy.Deployer(pblm=verif.pblm)
         verif.ensemble = deployer._make_ensemble_verifier(
             verif.task_key, verif.clf_key, verif.data_key)
-
-    def __nice__(verif):
-        return '.'.join([verif.metadata['task_key'],
-                         verif.metadata['clf_key']])
 
     def predict_proba_df(verif, want_edges):
         """

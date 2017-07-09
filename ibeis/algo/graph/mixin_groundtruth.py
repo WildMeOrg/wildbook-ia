@@ -94,7 +94,3 @@ class Groundtruth(object):
         edge_df.name = key
         edge_df.index = index
         return edge_df
-
-    def infr_pred_df(infr, edges=None):
-        """ technically not groundtruth but current infererence predictions """
-        return infr.edge_attr_df('inferred_state', edges, default=np.nan)

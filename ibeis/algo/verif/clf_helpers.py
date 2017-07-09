@@ -716,12 +716,12 @@ class ClfResult(ut.NiceRepr):
         if infr is not None:
             ibs = infr.ibs
             edges = list(meta.index.tolist())
-            CONFIDENCE = ibs.const.CONFIDENCE
-            conf_dict = infr.get_edge_attrs('confidence', edges,
-                                            on_missing='filter',
-                                            default=CONFIDENCE.INT_TO_CODE[None])
+            conf_dict = infr.get_edge_attrs(
+                'confidence', edges,
+                on_missing='filter',
+                default=ibs.const.CONFIDENCE.CODE.UNKNOWN)
             conf_df = pd.DataFrame.from_dict(conf_dict, orient='index')
-            conf_df = conf_df[0].map(CONFIDENCE.CODE_TO_INT)
+            conf_df = conf_df[0].map(ibs.const.CONFIDENCE.CODE_TO_INT)
             meta = meta.assign(real_conf=conf_df)
             meta['real_conf'] = np.nan_to_num(meta['real_conf']).astype(np.int)
 

@@ -70,48 +70,92 @@ class InfrLoops(object):
             for _ in infr.pos_redun_gen():
                 yield _
 
-        for count in it.count(0):
-
-            infr.print('Outer loop iter %d ' % (count,))
-
-            # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-            for _ in infr.lnbnn_priority_gen(use_refresh):
+        if infr.params['algo.hardcase']:
+            # Check previously labeled edges that where the groundtruth and the
+            # verifier disagree.
+            for _ in infr.hardcase_review_gen():
                 yield _
 
-            terminate = (infr.refresh.num_meaningful == 0)
-            if terminate:
-                infr.print('Triggered break criteria', 1, color='red')
+        if infr.params['ranking.enabled']:
+            for count in it.count(0):
 
-            # Phase 2: Ensure positive redundancy.
-            if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
-                # Fix positive redundancy of anything within the loop
-                for _ in infr.pos_redun_gen():
+                infr.print('Outer loop iter %d ' % (count,))
+
+                # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                for _ in infr.lnbnn_priority_gen(use_refresh):
                     yield _
 
-            print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-            print('infr.refresh.num_meaningful = {!r}'.format(
-                infr.refresh.num_meaningful))
+                terminate = (infr.refresh.num_meaningful == 0)
+                if terminate:
+                    infr.print('Triggered break criteria', 1, color='red')
 
-            if (count + 1) >= max_loops:
-                infr.print('early stop', 1, color='red')
-                break
+                # Phase 2: Ensure positive redundancy.
+                if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
+                    # Fix positive redundancy of anything within the loop
+                    for _ in infr.pos_redun_gen():
+                        yield _
 
-            if terminate:
-                infr.print('break triggered')
-                break
+                print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
+                print('infr.refresh.num_meaningful = {!r}'.format(
+                    infr.refresh.num_meaningful))
 
-        infr.print('Entering phase 3', 1, color='red')
-        # Phase 3: Try to automatically acheive negative redundancy without
-        # asking the user to do anything but resolve inconsistency.
+                if (count + 1) >= max_loops:
+                    infr.print('early stop', 1, color='red')
+                    break
+
+                if terminate:
+                    infr.print('break triggered')
+                    break
+
         if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
+            # Phase 3: Try to automatically acheive negative redundancy without
+            # asking the user to do anything but resolve inconsistency.
+            infr.print('Entering phase 3', 1, color='red')
             for _ in infr.neg_redun_gen():
                 yield _
 
         infr.print('Terminate', 1, color='red')
+        infr.print('Exiting main loop')
 
         if infr.params['inference.enabled']:
             infr.assert_consistency_invariant()
-        infr.print('Exiting main loop')
+
+    def hardcase_review_gen(infr):
+        """
+        Re-review non-confident edges that vsone did not classify correctly
+        """
+        infr.print('==============================', color='white')
+        infr.print('--- HARDCASE PRIORITY LOOP ---', color='white')
+        verifiers = infr.learn_evaluation_verifiers()
+        verif = verifiers['match_state']
+        edges = list(infr.edges())
+        real = list(infr.edge_decision_from(edges))
+        hardness = 1 - verif.easiness(edges, real)
+
+        # Don't re-review anything that was confidently reviewed
+        # CONFIDENCE = infr.ibs.const.CONFIDENCE
+        # CODE_TO_INT = CONFIDENCE.CODE_TO_INT.copy()
+        # CODE_TO_INT[CONFIDENCE.CODE.UNKNOWN] = 0
+        # conf = ut.take(CODE_TO_INT, infr.gen_edge_values(
+        #     'confidence', edges, on_missing='default',
+        #     default=CONFIDENCE.CODE.UNKNOWN))
+
+        # This should only be run with certain params
+        assert not infr.params['autoreview.enabled']
+        assert not infr.params['redun.enabled']
+        assert not infr.params['ranking.enabled']
+        assert infr.params['inference.enabled']
+        # infr.ibs.const.CONFIDENCE.CODE.PRETTY_SURE
+        if infr.params['queue.conf.thresh'] is None:
+            # != 'pretty_sure':
+            print('WARNING: should queue.conf.thresh = "pretty_sure"?')
+
+        # work around add_candidate_edges
+        infr.prioritize(metric='hardness', edges=edges,
+                        scores=hardness)
+        infr.set_edge_attrs('hardness', ut.dzip(edges, hardness))
+        for _ in infr.inner_priority_gen(use_refresh=False):
+            yield _
 
     def lnbnn_priority_gen(infr, use_refresh=True):
         infr.print('============================', color='white')

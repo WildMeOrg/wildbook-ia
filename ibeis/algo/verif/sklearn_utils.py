@@ -521,7 +521,21 @@ def classification_report2(y_true, y_pred, target_names=None,
 
 
 def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
-    if method == 'argmax':
+    """
+    Predictions are returned as indices into columns or target_names
+
+    Doctest:
+        >>> from ibeis.algo.verif.sklearn_utils import *
+        >>> rng = np.random.RandomState(0)
+        >>> probs = pd.DataFrame(rng.rand(10, 3), columns=['a', 'b', 'c'])
+        >>> pred1 = predict_from_probs(probs, 'argmax')
+        >>> pred2 = predict_from_probs(probs, 'argmax', target_names=probs.columns)
+        >>> threshes = probs.loc[0]
+        >>> pred3 = predict_from_probs(probs, threshes.values, force=True,
+        >>>                            target_names=probs.columns)
+    """
+    import six
+    if isinstance(method, six.string_types) and method == 'argmax':
         if isinstance(probs, pd.DataFrame):
             pred_enc = pd.Series(probs.values.argmax(axis=1), index=probs.index)
         else:
@@ -542,20 +556,22 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
     if more than one thing passes the thresold we take the highest one if
     multi=True, and return nan otherwise.
 
-    >>> from ibeis.algo.verif.sklearn_utils import *
-    >>> probs = np.array([
-    >>>     [0.5, 0.5, 0.0],
-    >>>     [0.4, 0.5, 0.1],
-    >>>     [1.0, 0.0, 0.0],
-    >>>     [0.3, 0.3, 0.4],
-    >>>     [0.1, 0.3, 0.6],
-    >>>     [0.1, 0.6, 0.3],
-    >>>     [0.6, 0.1, 0.3],])
-    >>> threshes = [.5, .5, .5]
-    >>> pred_enc = predict_with_thresh(probs, threshes)
-    >>> predict_with_thresh(probs, [.5, .5, .5])
-    >>> predict_with_thresh(probs, [.5, .5, .5], force=True)
-
+    Doctest:
+        >>> from ibeis.algo.verif.sklearn_utils import *
+        >>> probs = np.array([
+        >>>     [0.5, 0.5, 0.0],
+        >>>     [0.4, 0.5, 0.1],
+        >>>     [1.0, 0.0, 0.0],
+        >>>     [0.3, 0.3, 0.4],
+        >>>     [0.1, 0.3, 0.6],
+        >>>     [0.1, 0.6, 0.3],
+        >>>     [0.6, 0.1, 0.3],])
+        >>> threshes = [.5, .5, .5]
+        >>> pred_enc = predict_with_thresh(probs, threshes)
+        >>> a = predict_with_thresh(probs, [.5, .5, .5])
+        >>> b = predict_with_thresh(probs, [.5, .5, .5], force=True)
+        >>> assert np.isnan(a).sum() == 3
+        >>> assert np.isnan(b).sum() == 0
     """
     df_index = None
     if isinstance(probs, pd.DataFrame):

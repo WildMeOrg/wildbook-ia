@@ -975,6 +975,21 @@ class Priority(object):
                         # Compute local connectivity
                         if pos_conn >= k_pos:
                             return infr.pop()
+            if infr.params['queue.conf.thresh'] is not None:
+                # Ignore reviews that would re-enforce a relationship that
+                # already has high confidence.
+                thresh_code = infr.params['queue.conf.thresh']
+                thresh = const.CONFIDENCE.CODE_TO_INT[thresh_code]
+                if priority < 10:
+                    u, v = edge
+                    nid1, nid2 = infr.node_labels(u, v)
+                    if nid1 == nid2:
+                        if infr.confidently_connected(u, v, thresh):
+                            infr.pop()
+                    else:
+                        if infr.confidently_separated(u, v, thresh):
+                            infr.pop()
+
             if getattr(infr, 'fix_mode_split', False):
                 # only checking edges within a name
                 nid1, nid2 = infr.pos_graph.node_labels(*edge)
@@ -986,15 +1001,16 @@ class Priority(object):
                 if nid1 == nid2:
                     return infr.pop()
             if getattr(infr, 'fix_mode_predict', False):
-                nid1, nid2 = infr.node_labels(*edge)
+                # No longer needed.
                 pred = infr.get_edge_data(edge).get('pred', None)
                 # only report cases where the prediction differs
                 if priority < 10:
+                    nid1, nid2 = infr.node_labels(*edge)
                     if nid1 == nid2:
                         u, v = edge
                         # Don't re-review confident CCs
                         thresh = const.CONFIDENCE.CODE_TO_INT['pretty_sure']
-                        if infr.conditionally_connected(u, v, thresh):
+                        if infr.confidently_connected(u, v, thresh):
                             return infr.pop()
                     if pred == POSTV and nid1 == nid2:
                         # print('skip pos')
@@ -1035,14 +1051,15 @@ class Priority(object):
             infr.push(edge, priority)
         return items
 
-    def conditionally_connected(infr, u, v, thresh=2):
+    def confidently_connected(infr, u, v, thresh=2):
         """
         Checks if u and v are conneted by edges above a confidence threshold
         """
         def satisfied(G, child, edge):
-            data = G.get_edge_data(*edge)
-            if data.get('decision') != POSTV:
+            decision = infr.edge_decision(edge)
+            if decision != POSTV:
                 return False
+            data = G.get_edge_data(*edge)
             conf = data.get('confidence', 'unspecified')
             conf_int = const.CONFIDENCE.CODE_TO_INT[conf]
             conf_int = 0 if conf_int is None else conf_int
@@ -1050,6 +1067,93 @@ class Priority(object):
         for node in ut.bfs_conditional(infr.graph, u,
                                        yield_if=satisfied,
                                        continue_if=satisfied):
+            if node == v:
+                return True
+        return False
+
+    def confidently_separated(infr, u, v, thresh=2):
+        """
+        Checks if u and v are conneted by edges above a confidence threshold
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.make_demo_infr(ccs=[(1, 2), (3, 4), (5, 6), (7, 8)])
+            >>> infr.add_feedback((1, 5), NEGTV)
+            >>> infr.add_feedback((5, 8), NEGTV)
+            >>> infr.add_feedback((6, 3), NEGTV)
+            >>> u, v = (1, 4)
+            >>> thresh = 0
+            >>> assert not infr.confidently_separated(u, v, thresh)
+            >>> infr.add_feedback((2, 3), NEGTV)
+            >>> assert not infr.confidently_separated(u, v, thresh)
+        """
+
+        def can_cross(G, edge, n_negs):
+            """
+            DFS state condition
+
+            Args:
+                edge (tuple): the edge we are trying to cross
+                n_negs (int): the number of negative edges crossed so far
+
+            Returns:
+                flag, new_state -
+                   flag (bool): True if the edge can be crossed
+                   new_state: new state for future decisions in this path.
+            """
+            decision = infr.edge_decision(edge)
+            # only cross positive or negative edges
+            if decision in {POSTV, NEGTV}:
+                # only cross a negative edge once
+                willcross = (decision == NEGTV)
+                if willcross and n_negs == 0:
+                    data = G.get_edge_data(*edge)
+                    # only cross edges above a threshold
+                    conf = data.get('confidence', 'unspecified')
+                    conf_int = const.CONFIDENCE.CODE_TO_INT[conf]
+                    conf_int = 0 if conf_int is None else conf_int
+                    flag = conf_int >= thresh
+                    num = n_negs + willcross
+                    return flag, num
+            return False, n_negs
+
+        # need to do DFS check for this. Make DFS only allowed to
+        # cross a negative edge once.
+        # def dfs_cond_rec(G, parent, state, visited=None):
+        #     if visited is None:
+        #         visited = set()
+        #     visited.add(parent)
+        #     for child in G.neighbors(parent):
+        #         if child not in visited:
+        #             edge = (parent, child)
+        #             flag, new_state = can_cross(G, edge, state)
+        #             if flag:
+        #                 yield child
+        #                 for _ in dfs_cond_rec(G, child, new_state, visited):
+        #                     yield _
+
+        # need to do DFS check for this. Make DFS only allowed to
+        # cross a negative edge once.
+        def dfs_cond_stack(G, source, state):
+            # stack based version
+            visited = {source}
+            stack = [(source, iter(G[source]), state)]
+            while stack:
+                parent, children, state = stack[-1]
+                try:
+                    child = next(children)
+                    if child not in visited:
+                        edge = (parent, child)
+                        flag, new_state = can_cross(G, edge, state)
+                        if flag:
+                            yield child
+                            visited.add(child)
+                            stack.append((child, iter(G[child]), new_state))
+                except StopIteration:
+                    stack.pop()
+
+        for node in dfs_cond_stack(infr.graph, u, 0):
             if node == v:
                 return True
         return False

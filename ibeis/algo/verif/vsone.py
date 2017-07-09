@@ -794,53 +794,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
-    @profile
-    def predict_proba_evaluation(pblm, infr, want_edges, task_keys=None,
-                                 clf_key=None, data_key=None):
-        """
-        Note: Ideally we should use a completely independant dataset to test.
-        However, due to lack of labeled photobombs and notcomparable cases we
-        can cheat a little. A subset of want_edges were previously used in
-        training, but there is one classifier that never saw it. We use this
-        classifier to predict on that case. For completely unseen data we use
-        the average probability of all classifiers.
-
-        NOTE: Using the cross-validated training data to select thresholds
-        breaks these test independence assumptions. You really should use a
-        completely disjoint test set.
-        """
-        if clf_key is None:
-            clf_key = pblm.default_clf_key
-        if data_key is None:
-            data_key = pblm.default_data_key
-        if task_keys is None:
-            task_keys = [pblm.primary_task_key]
-        # Construct the matches
-        # TODO: move probability predictions into the depcache
-        prob_cfgstr = '_'.join([
-            infr.ibs.dbname,
-            ut.hash_data(np.array(want_edges)),
-            data_key,
-            clf_key,
-            repr(task_keys),
-            pblm.hyper_params.vsone_match.get_cfgstr(),
-            pblm.hyper_params.vsone_kpts.get_cfgstr(),
-        ])
-        cacher2 = ub.Cacher('full_eval_probs2' + pblm.infr.ibs.dbname,
-                            prob_cfgstr, appname=pblm.appname, verbose=20)
-        data2 = cacher2.tryload()
-        if not data2:
-            verifiers = pblm._make_evaluation_verifiers(task_keys, clf_key,
-                                                        data_key)
-            task_probs = {
-                task_key: verifiers[task_key].predict_proba_df(want_edges)
-                for task_key in task_keys
-            }
-            data2 = task_probs
-            cacher2.save(data2)
-        task_probs = data2
-        return task_probs
-
     def _make_evaluation_verifiers(pblm, task_keys=None, clf_key=None,
                                    data_key=None):
         if clf_key is None:

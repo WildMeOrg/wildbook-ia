@@ -405,7 +405,11 @@ class InfrLearning(object):
             >>> infr = ibeis.AnnotInference(
             >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',
             >>>     verbose=4)
-            >>> infr.learn_evaluation_verifiers()
+            >>> verifiers = infr.learn_evaluation_verifiers()
+            >>> edges = list(infr.edges())
+            >>> verif = verifiers['match_state']
+            >>> probs = verif.predict_proba_df(edges)
+            >>> print(probs)
         """
         infr.print('learn_evaluataion_verifiers')
         from ibeis.algo.verif import vsone
@@ -416,7 +420,8 @@ class InfrLearning(object):
         pblm.setup_evaluation()
         if True:
             pblm.report_evaluation()
-        infr.verifiers = pblm._make_evaluation_verifiers(pblm.eval_task_keys)
+        verifiers = pblm._make_evaluation_verifiers(pblm.eval_task_keys)
+        return verifiers
 
     def load_published(infr):
         """

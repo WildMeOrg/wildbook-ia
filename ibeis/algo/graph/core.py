@@ -31,6 +31,10 @@ DEBUG_CC = False
 
 
 def _rectify_decision(evidence_decision, meta_decision):
+    """
+    If evidence decision is not explicitly set, then meta decision is used to
+    make a guess. Raises a ValueError if decisions are in incompatible states.
+    """
     # Default to the decision based on the media evidence
     decision = evidence_decision
     # Overwrite the graph decision with the meta decision if necessary
@@ -113,6 +117,18 @@ class Feedback(object):
                                            on_missing='default', default=NULL)
         decision = _rectify_decision(evidence_decision, meta_decision)
         return decision
+
+    def edge_decision_from(infr, edges):
+        r"""
+        Gets a decision for multiple edges
+        """
+        edges = list(edges)
+        evidence_decisions = infr.gen_edge_values(
+            'evidence_decision', edges, on_missing='default', default=UNREV)
+        meta_decisions = infr.gen_edge_values(
+            'meta_decision', edges, on_missing='default', default=NULL)
+        for ed, md in zip(evidence_decisions, meta_decisions):
+            yield _rectify_decision(ed, md)
 
     def add_node_feedback(infr, aid, **attrs):
         infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
@@ -1126,10 +1142,12 @@ class AnnotInference(ut.NiceRepr,
             'manual.n_peek': 1,
             'manual.autosave': True,
 
+            'ranking.enabled': True,
             'ranking.ntop': 5,
 
             'algo.max_outer_loops': None,
             'algo.quickstart': False,
+            'algo.hardcase': False,
 
             # Dynamic Inference
             'inference.enabled': True,
@@ -1154,6 +1172,10 @@ class AnnotInference(ut.NiceRepr,
             'redun.enforce_neg': True,
             # prevents user interaction in final phase
             'redun.neg.only_auto': True,
+
+            # Only review CCs connected by confidence less than this value
+            # a good values is 'pretty_sure'
+            'queue.conf.thresh': None,
 
             # Autoreviewer params
             'autoreview.enabled': True,
