@@ -103,7 +103,6 @@ def make_table_declarations(ibs):
             'annotnotes',  # ## <put back in
             'tag_text',  # < Hack should have actual tag structure
             #'annot_visual_uuid',
-            #'annot_semantic_uuid',
             #'nFeats',
             #'bbox',
             #'theta',
@@ -248,7 +247,6 @@ def make_table_declarations(ibs):
 
     # Define the valid columns a table could have
     COL_DEF = dict([
-        # ('annot_semantic_uuid',             (str,      'Annot Semantic UUID')),
         ('annot_visual_uuid',               (str,      'Annot Visual UUID')),
         ('image_uuid',                      (str,      'Image UUID')),
         ('gid',                             (int,      'Image ID')),

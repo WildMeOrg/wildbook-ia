@@ -96,6 +96,10 @@ class PairwiseFeatureExtractor(object):
         extr.use_cache = use_cache
 
     def transform(extr, edges):
+        """
+        Converts an annotation edge into their corresponding feature.
+        By default this is a caching operation.
+        """
         if extr.use_cache:
             feats = extr._cached_pairwise_features(edges)
         else:
@@ -121,17 +125,20 @@ class PairwiseFeatureExtractor(object):
             >>> assert match1.annot2 is match2.annot1
             >>> assert match1.annot1 is not match2.annot2
         """
+        if extr.verbose:
+            print('[extr] executing pairwise one-vs-one matching')
         ibs = extr.ibs
         match_config = extr.match_config
         edges = ut.lmap(tuple, ut.aslist(edges))
         qaids = ut.take_column(edges, 0)
         daids = ut.take_column(edges, 1)
-        # TODO: ensure feat/chip configs are resepected
+
+        # The depcache does the pairwise matching procedure
         match_list = ibs.depc.get('pairwise_match', (qaids, daids), 'match',
                                   config=match_config)
 
-        # Hack: Postprocess matches to re-add annotation info in lazy-dict
-        # format
+        # Hack: Postprocess matches to re-add ibeis annotation info
+        # in lazy-dict format
         from ibeis import core_annots
         config = ut.hashdict(match_config)
         qannot_cfg = dannot_cfg = config
@@ -241,9 +248,10 @@ class PairwiseFeatureExtractor(object):
             # global_keys = ['yaw', 'qual', 'gps', 'time']
             # global_keys = ['view', 'qual', 'gps', 'time']
         matches = extr._exec_pairwise_match(edges, prog_hook=prog_hook)
-        print('enriching matches')
         if extr.need_lnbnn:
             extr._enrich_matches_lnbnn(matches, inplace=True)
+        if extr.verbose:
+            print('[extr] enriching match attributes')
         # Ensure matches know about relavent metadata
         for match in matches:
             vt.matching.ensure_metadata_normxy(match.annot1)
@@ -303,7 +311,7 @@ class PairwiseFeatureExtractor(object):
         matches = extr._enriched_pairwise_matches(edges)
         # ---------------
         # Try different feature constructions
-        print('building pairwise features')
+        print('[extr] building pairwise features')
         pairfeat_cfg = extr.pairfeat_cfg
         pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
         X = pd.DataFrame([
@@ -321,13 +329,14 @@ class PairwiseFeatureExtractor(object):
         X = X.reindex_axis(sorted(X.columns), axis=1)
 
         # hack to fix feature validity
-        if 'global(speed)' in X.columns and np.any(np.isinf(X['global(speed)'])):
-            flags = np.isinf(X['global(speed)'])
-            numer = X.loc[flags, 'global(gps_delta)']
-            denom = X.loc[flags, 'global(time_delta)']
-            newvals = np.full(len(numer), np.nan)
-            newvals[(numer == 0) & (denom == 0)] = 0
-            X.loc[flags, 'global(speed)'] = newvals
+        if 'global(speed)' in X.columns:
+            if np.any(np.isinf(X['global(speed)'])):
+                flags = np.isinf(X['global(speed)'])
+                numer = X.loc[flags, 'global(gps_delta)']
+                denom = X.loc[flags, 'global(time_delta)']
+                newvals = np.full(len(numer), np.nan)
+                newvals[(numer == 0) & (denom == 0)] = 0
+                X.loc[flags, 'global(speed)'] = newvals
 
         aid_pairs_ = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
         assert aid_pairs_ == edges, 'edge ordering changed'
@@ -387,8 +396,10 @@ class PairwiseFeatureExtractor(object):
 
         edges = [(1, 2)]
         """
-        print('Requesting %d cached pairwise features' % len(edges))
         edges = list(edges)
+        if extr.verbose:
+            print('[pairfeat] Requesting {} cached pairwise features'.format(
+                len(edges)))
 
         # TODO: use object properties
         if len(edges) == 0:
@@ -396,28 +407,31 @@ class PairwiseFeatureExtractor(object):
             index = nxu.ensure_multi_index([], ('aid1', 'aid2'))
             feats = pd.DataFrame(columns=extr.feat_dims, index=index)
             return feats
+        else:
+            use_cache = not extr.need_lnbnn and len(edges) > 2
+            cache_dir = join(extr.ibs.get_cachedir(), 'infr_bulk_cache')
+            feat_cfgstr = extr._make_cfgstr(edges)
+            cacher = ub.Cacher(
+                'bulk_pairfeats_v3', feat_cfgstr, enabled=use_cache,
+                dpath=cache_dir, verbose=extr.verbose - 3)
 
-        use_cache = not extr.need_lnbnn and len(edges) > 2
+            # if cacher.exists() and extr.verbose > 3:
+            #     fpath = cacher.get_fpath()
+            #     print('Load match cache size: {}'.format(
+            #         ut.get_file_nBytes_str(fpath)))
 
-        cache_dir = join(extr.ibs.get_cachedir(), 'infr_bulk_cache')
-        feat_cfgstr = extr._make_cfgstr(edges)
-        feat_cacher = ub.Cacher('bulk_pairfeats_v3',
-                                feat_cfgstr, enabled=use_cache,
-                                dpath=cache_dir, verbose=extr.verbose > 3)
-        if feat_cacher.enabled:
-            ut.ensuredir(cache_dir)
-        if feat_cacher.exists() and extr.verbose > 3:
-            fpath = feat_cacher.get_fpath()
-            print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        data = feat_cacher.tryload()
-        if data is None:
-            data = extr._make_pairwise_features(edges)
-            feat_cacher.save(data)
-            if feat_cacher.enabled and extr.verbose > 3:
-                fpath = feat_cacher.get_fpath()
-                print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        matches, feats = data
-        feats = extr._postprocess_feats(feats)
+            data = cacher.tryload()
+            if data is None:
+                data = extr._make_pairwise_features(edges)
+                cacher.save(data)
+
+                # if cacher.enabled and extr.verbose > 3:
+                #     fpath = cacher.get_fpath()
+                #     print('Save match cache size: {}'.format(
+                #         ut.get_file_nBytes_str(fpath)))
+
+            matches, feats = data
+            feats = extr._postprocess_feats(feats)
         return feats
 
 

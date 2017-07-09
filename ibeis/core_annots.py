@@ -276,8 +276,7 @@ def compute_chip(depc, aid_list, config=None):
         ibeis --tf compute_chip --show --db humpbacks
         ibeis --tf compute_chip:1 --show
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'testdb1'
@@ -294,8 +293,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> interact_obj.start()
         >>> pt.show_if_requested()
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'testdb1'
@@ -721,8 +719,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         config = full_config
         rowid_kw = dict(config=config)
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import plottool as pt
         >>> ibs, depc, aid_list = testdata_core()
@@ -817,8 +814,7 @@ def make_hog_block_image(hog, config=None):
 )
 def compute_hog(depc, cid_list, config=None):
     """
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
@@ -924,8 +920,7 @@ def compute_feats(depc, cid_list, config=None):
         python -m ibeis.core_annots --test-compute_feats:0 --show
         python -m ibeis.core_annots --test-compute_feats:1
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
@@ -1032,8 +1027,7 @@ def gen_feat_worker(tup):
         python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
         python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid = aid_list[0]
@@ -1099,8 +1093,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         fid_list (list):
         config (None): (default = None)
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> full_config = {}
@@ -1151,8 +1144,7 @@ def gen_featweight_worker(tup):
         python -m ibeis.core_annots --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
         python -m ibeis.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> #test_featweight_worker()
         >>> ibs, depc, aid_list = testdata_core()
@@ -1203,37 +1195,6 @@ def gen_featweight_worker(tup):
     return weights
 
 
-class VsOneRequest(dtool.base.VsOneSimilarityRequest):
-    _tablename = 'vsone'
-
-    def postprocess_execute(request, parent_rowids, result_list):
-        import ibeis
-        depc = request.depc
-        ibs = depc.controller
-        qaid_list, daid_list = list(zip(*parent_rowids))
-        unique_qaids, groupxs = ut.group_indices(qaid_list)
-        grouped_daids = ut.apply_grouping(daid_list, groupxs)
-
-        unique_qnids = ibs.get_annot_nids(unique_qaids)
-        single_cm_list = ut.take_column(result_list, 1)
-        grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
-
-        _iter = zip(unique_qaids, unique_qnids, grouped_daids, grouped_cms)
-        cm_list = []
-        for qaid, qnid, daids, cms in _iter:
-            # Hacked in version of creating an annot match object
-            chip_match = ibeis.ChipMatch.combine_cms(cms)
-            chip_match.score_name_maxcsum(request)
-            cm_list.append(chip_match)
-
-        #import utool
-        # utool.embed()
-        #cm = cm_list[0]
-        # cm.print_inspect_str(request)
-        #cm.assert_self(request, assert_feats=False)
-        return cm_list
-
-
 class VsOneConfig(dtool.Config):
     """
     Example:
@@ -1261,12 +1222,67 @@ class VsOneConfig(dtool.Config):
     ]
 
 
+@derived_attribute(
+    tablename='pairwise_match', parents=['annotations', 'annotations'],
+    colnames=['match'], coltypes=[vt.PairwiseMatch],
+    configclass=VsOneConfig,
+    chunksize=512,
+    fname='vsone2',
+)
+def compute_pairwise_vsone(depc, qaids, daids, config):
+    """
+    Executes one-vs-one matching between pairs of annotations using
+    the vt.PairwiseMatch object.
+
+    Doctest:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> match_config = ut.hashdict({})
+        >>> qaids = [1, 4, 2]
+        >>> daids = [2, 5, 3]
+        >>> match_list = ibs.depc.get('pairwise_match', (qaids, daids),
+        >>>                           'match', config=match_config)
+        >>> m1, m2, m3 = match_list
+        >>> assert (m1.annot1['aid'], m1.annot2['aid']) == (1, 2)
+        >>> assert (m2.annot1['aid'], m2.annot2['aid']) == (4, 5)
+        >>> assert m1.fs.sum() > m2.fs.sum()
+    """
+    ibs = depc.controller
+    qannot_cfg = config
+    dannot_cfg = config
+
+    configured_lazy_annots = make_configured_annots(
+        ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=True)
+
+    unique_lazy_annots = ut.flatten(
+        [x.values() for x in configured_lazy_annots.values()])
+
+    flann_params = {'algorithm': 'kdtree', 'trees': 4}
+    for annot in unique_lazy_annots:
+        vt.matching.ensure_metadata_flann(annot, flann_params)
+
+    for annot in unique_lazy_annots:
+        vt.matching.ensure_metadata_normxy(annot)
+        # annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
+        #                      np.array(annot['chip_size'])[:, None])
+
+    for qaid, daid in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
+                                  lbl='compute vsone', bs=True, freq=1):
+        annot1 = configured_lazy_annots[qannot_cfg][qaid]
+        annot2 = configured_lazy_annots[dannot_cfg][daid]
+        match = vt.PairwiseMatch(annot1, annot2)
+        match.apply_all(config)
+        yield (match,)
+
+
 def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
                            preload=False, return_view_cache=False):
     """
-    Hack just to get annots into a good format for vsone matching
+    Configures annotations so they can be sent to the vsone vt.matching
+    procedure.
 
-    Example:
+    Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -1338,48 +1354,6 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
         return configured_lazy_annots, configured_annot_views
     else:
         return configured_lazy_annots
-
-
-@derived_attribute(
-    tablename='pairwise_match', parents=['annotations', 'annotations'],
-    colnames=['match'], coltypes=[vt.PairwiseMatch],
-    configclass=VsOneConfig,
-    chunksize=512,
-    fname='vsone2',
-)
-def compute_pairwise_vsone(depc, qaids, daids, config):
-    """
-    Hack that mirrors vsone, but returns vt.PairwiseMatch objects
-    TODO: USE THIS!, and DEPRICATE vsone
-    """
-    ibs = depc.controller
-    qannot_cfg = config
-    dannot_cfg = config
-
-    configured_lazy_annots = make_configured_annots(
-        ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=True)
-
-    unique_lazy_annots = ut.flatten(
-        [x.values() for x in configured_lazy_annots.values()])
-
-    flann_params = {'algorithm': 'kdtree', 'trees': 4}
-    import vtool.matching  # NOQA
-    import vtool as vt
-    for annot in unique_lazy_annots:
-        vt.matching.ensure_metadata_flann(annot, flann_params)
-
-    for annot in unique_lazy_annots:
-        vt.matching.ensure_metadata_normxy(annot)
-        # annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
-        #                      np.array(annot['chip_size'])[:, None])
-
-    for qaid, daid in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
-                                  lbl='compute vsone', bs=True, freq=1):
-        annot1 = configured_lazy_annots[qannot_cfg][qaid]
-        annot2 = configured_lazy_annots[dannot_cfg][daid]
-        match = vt.PairwiseMatch(annot1, annot2)
-        match.apply_all(config)
-        yield (match,)
 
 
 class IndexerConfig(dtool.Config):

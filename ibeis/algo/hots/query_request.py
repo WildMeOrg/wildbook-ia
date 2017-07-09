@@ -376,8 +376,8 @@ class QueryRequest(ut.NiceRepr):
     @profile
     def _make_namegroup_data_hashes(qreq_):
         """
-        Replaces semantic uuids with dynamically created uuid groups
-        only for database annotations (hacks for iccv).
+        Makes dynamically created uuid groups only for database annotations
+        (hacks for iccv).
         """
         annots = qreq_._unique_dannots
         nids = np.array(qreq_.get_qreq_annot_nids(annots._rowids))
@@ -387,7 +387,7 @@ class QueryRequest(ut.NiceRepr):
     @profile
     def _make_namegroup_hashes(qreq_):
         """
-        Replaces semantic uuids with dynamically created uuid groups
+        dynamically creates uuid groups
         """
         # annots = qreq_.ibs.annots(qreq_.unique_aids)
         annots = qreq_._unique_annots
@@ -432,7 +432,6 @@ class QueryRequest(ut.NiceRepr):
     @profile
     def get_qreq_pcc_uuids(qreq_, aids):
         """
-        replaces get_annot_semantic_uuid.
         TODO. dont use uuids anymore. they are slow
         """
         import uuid
@@ -442,8 +441,6 @@ class QueryRequest(ut.NiceRepr):
     @profile
     def get_qreq_pcc_hashes(qreq_, aids):
         """
-        replaces get_annot_semantic_uuid
-
         aids = [1, 2, 3]
         """
         nids = qreq_.get_qreq_annot_nids(aids)
@@ -506,13 +503,14 @@ class QueryRequest(ut.NiceRepr):
             >>> assert qreq1.get_data_hashid() != qreq2.get_data_hashid()
 
         """
-        # dannot_semantic_uuids = qreq_.get_qreq_pcc_uuids(sorted(aids))
+        # TODO: pcc based hashing should only be used if name dependant
+        # attributes are used in the pipeline.
         label = ''.join(('_', prefix, 'PCC_UUIDS'))
-        semantic_hashes = qreq_.get_qreq_pcc_hashes(sorted(aids))
-        semantic_hash = ut.combine_hashes(semantic_hashes,
+        pcc_hashes = qreq_.get_qreq_pcc_hashes(sorted(aids))
+        pcc_hash = ut.combine_hashes(pcc_hashes,
                                           hasher=hashlib.sha1())
-        semantic_hashstr = ut.convert_bytes_to_bigbase(semantic_hash)
-        semantic_hashstr = semantic_hashstr[0:16]
+        pcc_hashstr = ut.convert_bytes_to_bigbase(pcc_hash)
+        pcc_hashstr = pcc_hashstr[0:16]
 
         sep = '-'
 
@@ -521,11 +519,11 @@ class QueryRequest(ut.NiceRepr):
         if with_nids:
             unique_nids = set(qreq_.get_qreq_annot_nids(aids))
             n_nids = 'n' + str(len(unique_nids))
-            semantic_hashid = sep.join(
-                [label, n_aids, n_nids, semantic_hashstr])
+            pcc_hashid = sep.join(
+                [label, n_aids, n_nids, pcc_hashstr])
         else:
-            semantic_hashid = sep.join([label, n_aids, semantic_hashstr])
-        return semantic_hashid
+            pcc_hashid = sep.join([label, n_aids, pcc_hashstr])
+        return pcc_hashid
 
     def __getstate__(qreq_):
         """
@@ -618,9 +616,7 @@ class QueryRequest(ut.NiceRepr):
     @profile
     def get_bigcache_info(qreq_):
         bc_dpath = qreq_.ibs.get_big_cachedir()
-        # TODO: SYSTEM : semantic should only be used if name scoring is on
         bc_fname = 'BIG_MC4_' + qreq_.get_shortinfo_cfgstr()
-        #bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
         bc_cfgstr = qreq_.get_full_cfgstr()
         bc_info = bc_dpath, bc_fname, bc_cfgstr
         return bc_info
@@ -958,7 +954,6 @@ class QueryRequest(ut.NiceRepr):
             >>> result = ('data_hashid = %s' % (ut.repr2(data_hashid),))
             >>> print(result)
         """
-        # TODO: SYSTEM : semantic should only be used if name scoring is on
         data_hashid = qreq_.get_qreq_pcc_hashid(qreq_.daids, prefix='D', with_nids=True)
         return data_hashid
 
@@ -976,7 +971,6 @@ class QueryRequest(ut.NiceRepr):
             >>> result = ('query_hashid = %s' % (ut.repr2(query_hashid),))
             >>> print(result)
         """
-        # TODO: SYSTEM : semantic should only be used if name scoring is on
         query_hashid = qreq_.get_qreq_pcc_hashid(qreq_.qaids, prefix='Q')
         return query_hashid
 

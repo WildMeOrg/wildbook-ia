@@ -1092,6 +1092,9 @@ class AnnotInference(ut.NiceRepr,
         infr.edge_truth = {}
         infr.task_probs = ut.ddict(dict)
 
+        # A generator that maintains the state of the algorithm
+        infr._gen = None
+
         # Computer vision algorithms
         infr.ranker = None
         infr.verifiers = None
@@ -1158,9 +1161,6 @@ class AnnotInference(ut.NiceRepr,
             'thumbsize': 221,
         }
 
-        # A generator that maintains the state of the algorithm
-        infr._gen = None
-
         infr.verifier_params = {}  # TODO
         infr.ranker_params = {}
 
@@ -1214,8 +1214,10 @@ class AnnotInference(ut.NiceRepr,
             infr.ibs, copy.deepcopy(infr.aids),
             copy.deepcopy(infr.orig_name_labels), autoinit=False,
             verbose=infr.verbose)
-        # shallow copy classifiers
-        infr2.classifiers = infr.verifiers
+
+        # shallow algorithm classes
+        infr2.verifiers = infr.verifiers
+        infr2.ranker = infr.ranker
 
         infr2.graph = infr.graph.copy()
         infr2.external_feedback = copy.deepcopy(infr.external_feedback)
@@ -1263,7 +1265,8 @@ class AnnotInference(ut.NiceRepr,
         # deep copy the graph structure
         infr2.graph = infr.graph.subgraph(aids).copy()
         infr2.readonly = True
-        infr2.classifiers = infr.verifiers
+        infr2.verifiers = infr.verifiers
+        infr2.ranker = infr.ranker
 
         infr.params = copy.deepcopy(infr.params)
         infr2._viz_image_config = infr._viz_image_config.copy()

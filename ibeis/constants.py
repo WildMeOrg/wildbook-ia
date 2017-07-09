@@ -28,7 +28,7 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
     ('backright'  , 0.875 * TAU,),
 ])
 
-# Mapping of semantic viewpoints to yaw angles
+# Mapping of viewpoints codes to yaw angles
 VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
     ('right'      , 0.000 * TAU,),
     ('frontright' , 0.125 * TAU,),

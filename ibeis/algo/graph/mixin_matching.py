@@ -361,20 +361,22 @@ class AnnotInfrMatching(object):
 
 class InfrLearning(object):
 
-    def learn_deploy_classifiers(infr, publish=False):
+    def learn_deploy_verifiers(infr, publish=False):
         """
+        Uses current knowledge to train verifiers for new unseen pairs.
+
         Example:
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> publish = False
-            >>> infr.learn_deploy_classifiers()
+            >>> infr.learn_deploy_verifiers()
 
         Ignore:
             publish = True
         """
-        infr.print('learn_deploy_classifiers')
+        infr.print('learn_deploy_verifiers')
         from ibeis.algo.verif import vsone
         pblm = vsone.OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
@@ -390,38 +392,45 @@ class InfrLearning(object):
         if task_key in pblm.eval_task_keys:
             pblm.deploy(dpath, task_key=task_key)
 
-    # def publish_deploy_classifiers():
-    #     pass
+    def learn_evaluation_verifiers(infr):
+        """
+        Creates a cross-validated ensemble of classifiers to evaluate
+        verifier error cases and groundtruth errors.
 
-    def learn_evaluataion_clasifiers(infr):
-        infr.print('learn_evaluataion_clasifiers')
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_matching learn_evaluation_verifiers
+
+        Doctest:
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference(
+            >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',
+            >>>     verbose=4)
+            >>> infr.learn_evaluation_verifiers()
+        """
+        infr.print('learn_evaluataion_verifiers')
         from ibeis.algo.verif import vsone
         pblm = vsone.OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
-        pblm.default_clf_key = 'RF'
-        pblm.default_data_key = 'learn(sum,glob)'
-        pblm.load_features()
-        pblm.load_samples()
-        pblm.build_feature_subsets()
-
-        # pblm.evaluate_simple_scores(task_keys)
-        feat_cfgstr = ut.hashstr_arr27(
-            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
-        cfg_prefix = (pblm.samples.make_sample_hashid() +
-                      pblm.qreq_.get_cfgstr() + feat_cfgstr)
-        pblm.learn_evaluation_classifiers(cfg_prefix=cfg_prefix)
-        infr.pblm = pblm
-        # infr.verifiers = pblm
+        pblm.eval_clf_keys = ['RF']
+        pblm.eval_data_keys = ['learn(sum,glob)']
+        pblm.setup_evaluation()
+        if True:
+            pblm.report_evaluation()
+        infr.verifiers = pblm._make_evaluation_verifiers(pblm.eval_task_keys)
 
     def load_published(infr):
-        from ibeis.algo.verif import vsone
+        """
+        Downloads, caches, and loads pre-trained verifiers.
+        This is the default action.
+        """
+        from ibeis.algo.verif import deploy
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
-        infr.verifiers = vsone.Deployer().load_published(ibs, species)
+        infr.verifiers = deploy.Deployer().load_published(ibs, species)
 
     def load_latest_classifiers(infr, dpath):
-        from ibeis.algo.verif import vsone
-        task_clf_fpaths = vsone.Deployer(dpath).find_latest_local()
+        from ibeis.algo.verif import deploy
+        task_clf_fpaths = deploy.Deployer(dpath).find_latest_local()
         classifiers = {}
         for task_key, fpath in task_clf_fpaths.items():
             clf_info = ut.load_data(fpath)
@@ -820,3 +829,15 @@ class CandidateSearch(object):
         # take the inf-norm
         normscores = edge_scores / vt.safe_max(edge_scores, nans=False)
         return normscores
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.graph.mixin_matching
+        python -m ibeis.algo.graph.mixin_matching --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

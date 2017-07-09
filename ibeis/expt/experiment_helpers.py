@@ -317,7 +317,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
         if len(duplicate_configs) > 0:
             print('The following configs produced duplicate annnotation configs')
             for key, val in duplicate_configs.items():
-                # Print the semantic difference between the duplicate configs
+                # Print the difference between the duplicate configs
                 _tup = annotation_configs.compress_acfg_list_for_printing(val)
                 nonvaried_compressed_dict, varied_compressed_dict_list = _tup
                 print('+--')
