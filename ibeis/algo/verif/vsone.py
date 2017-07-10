@@ -304,6 +304,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pair_sample, ['top_gt', 'mid_gt', 'bot_gt', 'rand_gt']))
         n_neg = sum(ut.take(
             pair_sample, ['top_gf', 'mid_gf', 'bot_gf', 'rand_gf']))
+        print('n_neg = {!r}'.format(n_neg))
+        print('n_pos = {!r}'.format(n_pos))
 
         # LNBNN makes 48729 given a set of 6474, so about 8 examples per annot
 
@@ -326,8 +328,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # User previous explicit reviews
         pccs = list(map(frozenset, infr.positive_components()))
-        print('pccs = {!r}'.format(pccs))
-        for cc in pccs:
+        for cc in ut.ProgIter(pccs):
             pos_pairs = edgeset(ut.random_combinations(cc, 2, per_cc, rng=rng))
             aid_pairs.update(pos_pairs)
 
@@ -335,7 +336,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         rng = ut.ensure_rng(282695095)
         per_pair = 1
-        for cc1, cc2 in ut.random_combinations(pccs, 2, rng=rng):
+        for cc1, cc2 in ut.ProgIter(ut.random_combinations(pccs, 2, rng=rng)):
             neg_pairs = edgeset(ut.random_product((cc1, cc2), num=per_pair,
                                                   rng=rng))
             aid_pairs.update(neg_pairs)
@@ -349,7 +350,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def make_training_pairs(pblm):
         """
         CommandLine:
-            python -m ibeis.algo.verif.vsone make_training_pairs
+            python -m ibeis.algo.verif.vsone make_training_pairs --db PZ_Master1
 
         Example:
             >>> from ibeis.algo.verif.vsone import *  # NOQA
