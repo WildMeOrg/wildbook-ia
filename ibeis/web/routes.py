@@ -2630,7 +2630,14 @@ def turk_identification_hardcase(*args, **kwargs):
         >>> resp = web_ibs.get('/turk/identification/hardcase/')
         >>> web_ibs.terminate2()
     """
+    import ibeis
+    ibs = current_app.ibs
+
+    # HACKS
+    aids = ibeis.testdata_aids(ibs=ibs, a=':species=primary')
     kwargs['hardcase'] = True
+    kwargs['annot_uuid_list'] = ibs.annots(aids).uuids
+
     return turk_identification_graph(*args, **kwargs)
 
 
