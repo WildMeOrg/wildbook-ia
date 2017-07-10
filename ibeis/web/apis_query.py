@@ -905,6 +905,10 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         future.graph_client = graph_client
         future.add_done_callback(query_graph_v2_on_request_review)
 
+        f2 = graph_client.post({'action' : 'latest_logs'})
+        f2.graph_client = graph_client
+        f2.add_done_callback(query_graph_v2_latest_logs)
+
     return graph_uuid
 
 
