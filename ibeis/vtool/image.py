@@ -624,8 +624,7 @@ def open_image_size(image_fpath):
     CommandLine:
         python -m vtool.image --test-open_image_size
 
-    Example:
-        >>> # DISABLE_DOCTEST
+    Doctest:
         >>> from vtool.image import *  # NOQA
         >>> image_fpath = ut.grab_test_imgpath('patsy.jpg')
         >>> size = open_image_size(image_fpath)
