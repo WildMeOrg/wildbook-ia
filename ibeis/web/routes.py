@@ -2691,6 +2691,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             print('Starting graph turk of {} annotations'.format(
                 len(annot_uuid_list)))
 
+            print('hardcase = {!r}'.format(hardcase))
             if hardcase:
                 print('Doing hardcase turk')
                 query_config_dict = {
@@ -2702,10 +2703,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 }
             else:
                 query_config_dict = {}
+            print('query_config_dict = {!r}'.format(query_config_dict))
 
             query_config_dict = kwargs.get('query_config_dict', {})
-            graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list,
-                                                  query_config_dict)
+            graph_uuid = ibs.query_chips_graph_v2(
+                annot_uuid_list=annot_uuid_list,
+                query_config_dict=query_config_dict)
             print('Calculated graph_uuid {} from all {} annotations'.format(
                 graph_uuid, len(annot_uuid_list)))
             # HACK probably should be a config flag instead

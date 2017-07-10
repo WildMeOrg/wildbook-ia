@@ -878,6 +878,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
             'algo.quickstart' : False
         }
         config.update(query_config_dict)
+        print('query_config_dict = {!r}'.format(query_config_dict))
+        print('config = {!r}'.format(config))
         graph_client.config = config
 
         # Ensure no race-conditions
