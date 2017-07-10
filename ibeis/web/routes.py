@@ -2622,22 +2622,13 @@ def delete_query_chips_graph_v2_refer(graph_uuid):
 
 @register_route('/turk/identification/hardcase/', methods=['GET'])
 def turk_identification_hardcase(*args, **kwargs):
-    params = {
-        'ranking.enabled' : False,
-        'autoreview.enabled' : False,
-        'redun.enabled'   : False,
-        'redun.enabled'   : False,
-        'queue.conf.thresh' : 'absolutely_sure',
-        'algo.hardcase' : True,
-    }
-    print('Doing hardcase turk')
-    kwargs['query_config_dict'] = params
+    kwargs['hardcase'] = True
     return turk_identification_graph(*args, **kwargs)
 
 
 @register_route('/turk/identification/graph/', methods=['GET'])
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
-                              annot_uuid_list=None,
+                              annot_uuid_list=None, hardcase=None,
                               view_orientation='vertical', **kwargs):
     """
     CommandLine:
@@ -2666,13 +2657,33 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             if annot_uuid_list is None:
                 aid_list = ibs.get_valid_aids()
                 annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+            if hardcase:
+                print('Doing hardcase turk')
+                query_config_dict = {
+                    'ranking.enabled' : False,
+                    'autoreview.enabled' : False,
+                    'redun.enabled'   : False,
+                    'redun.enabled'   : False,
+                    'queue.conf.thresh' : 'absolutely_sure',
+                    'algo.hardcase' : True,
+                }
+            else:
+                query_config_dict = {}
+
             query_config_dict = kwargs.get('query_config_dict', {})
             graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list,
                                                   query_config_dict)
             print('Calculating graph_uuid %r from all annotations' % (graph_uuid, ))
-            base = url_for('turk_identification_graph')
+            # HACK probably should be a config flag instead
+            if query_config_dict:
+                base = url_for('turk_identification_hardcase')
+            else:
+                base = url_for('turk_identification_graph')
             sep = '&' if '?' in base else '?'
             url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid), )
+            if hardcase:
+                url += '&hardcase=True'
             url = url.replace(': ', ':')
             return redirect(url)
 
