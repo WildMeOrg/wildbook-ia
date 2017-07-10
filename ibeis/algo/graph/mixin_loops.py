@@ -142,7 +142,7 @@ class InfrLoops(object):
             df = pd.DataFrame({'edges': edges, 'real': real})
             df['hardness'] = hardness
 
-            pred = verif.predict(edges, real)
+            pred = verif.predict(edges)
             df['pred'] = pred.values
 
             df.sort_values('hardness', ascending=False)
