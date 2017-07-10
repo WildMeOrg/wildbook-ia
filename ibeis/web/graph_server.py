@@ -298,6 +298,9 @@ class GraphClient(object):
         client.review_vip = None
         client.futures = []
 
+        # Hack around the double review problem
+        client.prev_vip = None
+
         client.aids = None
         client.config = None
         client.extr = None
@@ -353,7 +356,9 @@ class GraphClient(object):
                     aid1, aid2 = aid2, aid1
                 edge = (aid1, aid2, )
                 if client.review_vip is None:
-                    client.review_vip = edge
+                    # Hack around the double review problem
+                    if edge != client.prev_vip:
+                        client.review_vip = edge
                 client.review_dict[edge] = (priority, edge_data_dict, )
 
     def check(client, edge):
@@ -372,6 +377,7 @@ class GraphClient(object):
         if client.review_vip is not None and client.review_vip in edge_list:
             print('SHOWING VIP TO USER!!!')
             edge = client.review_vip
+            client.prev_vip = edge
             client.review_vip = None
         else:
             print('VIP ALREADY SHOWN')
