@@ -2629,14 +2629,24 @@ def turk_identification_hardcase(*args, **kwargs):
         >>> web_ibs = ibeis.opendb_bg_web('PZ_Master1')
         >>> resp = web_ibs.get('/turk/identification/hardcase/')
         >>> web_ibs.terminate2()
+
+    Ignore:
+        import ibeis
+        ibs, aids = ibeis.testdata_aids('PZ_Master1', a=':species=zebra_plains')
+        print(len(aids))
+        infr = ibeis.AnnotInference(ibs, aids=aids, autoinit='staging')
+        print(ut.repr4(infr.status()))
+
+        verifiers = infr.learn_evaluation_verifiers()
     """
     import ibeis
     ibs = current_app.ibs
 
     # HACKS
-    aids = ibeis.testdata_aids(ibs=ibs, a=':species=primary')
     kwargs['hardcase'] = True
-    kwargs['annot_uuid_list'] = ibs.annots(aids).uuids
+    if 'annot_uuid_list' not in kwargs:
+        aids = ibeis.testdata_aids(ibs=ibs, a=':species=primary')
+        kwargs['annot_uuid_list'] = ibs.annots(aids).uuids
 
     return turk_identification_graph(*args, **kwargs)
 
@@ -2670,8 +2680,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     try:
         if graph_uuid is None:
             if annot_uuid_list is None:
-                aid_list = ibs.get_valid_aids()
-                annot_uuid_list = ibs.get_annot_uuids(aid_list)
+                annot_uuid_list = ibs.annots().uuids
+
+            print('Starting graph turk of {} annotations'.format(
+                len(annot_uuid_list)))
 
             if hardcase:
                 print('Doing hardcase turk')
@@ -2685,9 +2697,6 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 }
             else:
                 query_config_dict = {}
-
-            print('Starting graph turk of {} annotations'.format(
-                len(annot_uuid_list)))
 
             query_config_dict = kwargs.get('query_config_dict', {})
             graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list,
