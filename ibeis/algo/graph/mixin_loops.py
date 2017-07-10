@@ -128,9 +128,27 @@ class InfrLoops(object):
         infr.print('--- HARDCASE PRIORITY LOOP ---', color='white')
         verifiers = infr.learn_evaluation_verifiers()
         verif = verifiers['match_state']
-        edges = list(infr.edges())
-        real = list(infr.edge_decision_from(edges))
+
+        edges_ = list(infr.edges())
+        real_ = list(infr.edge_decision_from(edges_))
+        flags_ = [r in {POSTV, NEGTV, INCMP} for r in real_]
+        real = ut.compress(real_, flags_)
+        edges = ut.compress(edges_, flags_)
+
         hardness = 1 - verif.easiness(edges, real)
+
+        if True:
+            df = pd.DataFrame({'edges': edges, 'real': real})
+            df['hardness'] = hardness
+
+            pred = verif.predict(edges, real)
+            df['pred'] = pred.values
+
+            df.sort_values('hardness', ascending=False)
+            print('hardness analysis')
+            print(df)
+
+            print('infr status: ' + ut.repr4(infr.status()))
 
         # Don't re-review anything that was confidently reviewed
         # CONFIDENCE = infr.ibs.const.CONFIDENCE

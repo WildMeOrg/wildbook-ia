@@ -24,6 +24,15 @@ class BaseVerifier(ut.NiceRepr):
     def fit(verif, edges):
         raise NotImplementedError('Need to use OneVsOneProblem to do this')
 
+    def predict(verif, edges, method='argmax', encoded=False):
+        probs = verif.predict_proba_df(edges)
+        pred_enc = sklearn_utils.predict_from_probs(probs, method=method)
+        if encoded:
+            pred = pred_enc
+        else:
+            pred = pred_enc.apply(verif.class_names.__getitem__)
+        return pred
+
     def easiness(verif, edges, real):
         """
         Gets the probability of the class each edge is labeled as.  Indicates
@@ -130,6 +139,8 @@ class IntraVerifier(BaseVerifier):
         deployer = deploy.Deployer(pblm=verif.pblm)
         verif.ensemble = deployer._make_ensemble_verifier(
             verif.task_key, verif.clf_key, verif.data_key)
+
+        verif.class_names = verif.ensemble.class_names
 
     def predict_proba_df(verif, want_edges):
         """

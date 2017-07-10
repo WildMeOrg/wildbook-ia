@@ -112,12 +112,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params['vsone_match']['thresh_bins'] = bins
         hyper_params['vsone_match']['sv_on'] = True
 
-        # if False:
-        #     # For giraffes
-        #     hyper_params['vsone_match']['checks'] = 80
-        #     hyper_params['vsone_match']['sver_xy_thresh'] = .02
-        #     hyper_params['vsone_match']['sver_ori_thresh'] = 3
-
         species = infr.ibs.get_primary_database_species()
 
         if species == 'zebra_plains' or True:
@@ -470,9 +464,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 # classifier.
                 # TODO: separate this into different cache
                 # Add vsmany_lnbnn to simple scoren
-
-                # aids = ibs.filter_annots_general(
-                #     infr.aids, min_pername=3, species='primary')
 
                 # Only query the aids in the sampled set
                 aids = sorted(set(ut.flatten(aid_pairs)))

@@ -2638,6 +2638,12 @@ def turk_identification_hardcase(*args, **kwargs):
         print(ut.repr4(infr.status()))
 
         verifiers = infr.learn_evaluation_verifiers()
+
+        verif = verifiers['match_state']
+        edges = list(infr.edges())
+        real = list(infr.edge_decision_from(edges))
+        hardness = 1 - verif.easiness(edges, real)
+
     """
     import ibeis
     ibs = current_app.ibs
