@@ -2707,7 +2707,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             query_config_dict = kwargs.get('query_config_dict', {})
             graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list,
                                                   query_config_dict)
-            print('Calculated graph_uuid {} from all {} annotations' % (
+            print('Calculated graph_uuid {} from all {} annotations'.format(
                 graph_uuid, len(annot_uuid_list)))
             # HACK probably should be a config flag instead
             if query_config_dict:
