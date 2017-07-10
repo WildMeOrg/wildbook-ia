@@ -5,7 +5,6 @@ import pandas as pd
 import utool as ut
 from ibeis.algo.verif import pairfeat
 from ibeis.algo.verif import sklearn_utils
-from ibeis.algo.verif import deploy
 import vtool as vt
 # import itertools as it
 # from os.path import join
@@ -127,6 +126,7 @@ class IntraVerifier(BaseVerifier):
         }
 
         # Make an ensemble of the evaluation classifiers
+        from ibeis.algo.verif import deploy
         deployer = deploy.Deployer(pblm=verif.pblm)
         verif.ensemble = deployer._make_ensemble_verifier(
             verif.task_key, verif.clf_key, verif.data_key)
