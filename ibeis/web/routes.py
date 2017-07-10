@@ -2622,6 +2622,14 @@ def delete_query_chips_graph_v2_refer(graph_uuid):
 
 @register_route('/turk/identification/hardcase/', methods=['GET'])
 def turk_identification_hardcase(*args, **kwargs):
+    """
+        >>> # SCRIPT
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('PZ_Master1')
+        >>> resp = web_ibs.get('/turk/identification/hardcase/')
+        >>> web_ibs.terminate2()
+    """
     kwargs['hardcase'] = True
     return turk_identification_graph(*args, **kwargs)
 
@@ -2670,6 +2678,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 }
             else:
                 query_config_dict = {}
+
+            print('Starting graph turk of annotations' % (len(annot_uuid_list)))
 
             query_config_dict = kwargs.get('query_config_dict', {})
             graph_uuid = ibs.query_chips_graph_v2(annot_uuid_list,
