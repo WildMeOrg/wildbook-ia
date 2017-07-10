@@ -586,14 +586,14 @@ def compute_probchip(depc, aid_list, config=None):
         pad = 0
 
     probchip_dir = ibs.get_probchip_dir() + '2'
-    cfghashid = config.get_hashid()
+    # cfghashid = config.get_hashid()
 
     # FIXME: The depcache should make it so this doesn't matter anymore
     ut.ensuredir(probchip_dir)
-    _fmt = 'probchip_avuuid_{avuuid}_' + cfghashid + '.png'
-    annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    probchip_fpath_list = [ut.unixjoin(probchip_dir, _fmt.format(avuuid=avuuid))
-                           for avuuid in annot_visual_uuid_list]
+    # _fmt = 'probchip_avuuid_{avuuid}_' + cfghashid + '.png'
+    # annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+    # probchip_fpath_list = [ut.unixjoin(probchip_dir, _fmt.format(avuuid=avuuid))
+    #                        for avuuid in annot_visual_uuid_list]
 
     chip_config = ChipConfig(pad=pad, dim_size=dim_size)
     mchip_path_list = depc.get('chips', aid_list, 'img', config=chip_config,
@@ -608,7 +608,7 @@ def compute_probchip(depc, aid_list, config=None):
     grouped_aids = vt.apply_grouping(aid_list, groupxs)
     grouped_species = vt.apply_grouping(species_list, groupxs)
     grouped_mpaths = ut.apply_grouping(mchip_path_list, groupxs)
-    grouped_ppaths = ut.apply_grouping(probchip_fpath_list, groupxs)
+    # grouped_ppaths = ut.apply_grouping(probchip_fpath_list, groupxs)
     unique_species = ut.get_list_column(grouped_species, 0)
 
     if ut.VERBOSE:
@@ -621,25 +621,30 @@ def compute_probchip(depc, aid_list, config=None):
 
     #grouped_probchip_fpath_list = []
     grouped_probchips = []
-    _iter = zip(grouped_aids, unique_species, grouped_ppaths, grouped_mpaths)
+    _iter = zip(grouped_aids, unique_species, grouped_mpaths)
     _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
-                        lbl='probchip for species', enabled=ut.VERBOSE, bs=True)
+                        lbl='probchip for {} species'.format(len(unique_species)),
+                        enabled=ut.VERBOSE, bs=True)
 
     if fw_detector == 'rf':
-        for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
+        for aids, species, inputchip_fpaths in _iter:
             if len(aids) == 0:
                 continue
-            gen = rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
-                               smooth_thresh, smooth_ksize)
-            # grouped_probchip_fpath_list.append(probchip_fpaths)
+            if species == '____':
+                gen = empty_probchips(inputchip_fpaths)
+            else:
+                gen = rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
+                                   smooth_thresh, smooth_ksize)
             grouped_probchips.append(list(gen))
     elif fw_detector == 'cnn':
-        for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
+        for aids, species, inputchip_fpaths in _iter:
             if len(aids) == 0:
                 continue
-            gen = cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths,
-                                smooth_thresh, smooth_ksize)
-            # grouped_probchip_fpath_list.append(probchip_fpaths)
+            if species == '____':
+                gen = empty_probchips(inputchip_fpaths)
+            else:
+                gen = cnn_probchips(ibs, species, inputchip_fpaths,
+                                    smooth_thresh, smooth_ksize)
             grouped_probchips.append(list(gen))
     else:
         raise NotImplementedError('unknown fw_detector=%r' % (fw_detector,))
@@ -648,54 +653,62 @@ def compute_probchip(depc, aid_list, config=None):
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
 
-    # probchip_fpath_list = vt.invert_apply_grouping2(
-    #    grouped_probchip_fpath_list, groupxs, dtype=object)
-    # for fpath in probchip_fpath_list:
-    #    yield (fpath,)
     probchip_result_list = vt.invert_apply_grouping2(
         grouped_probchips, groupxs, dtype=object)
     for probchip in probchip_result_list:
         yield (probchip,)
 
 
-def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths,
-                  smooth_thresh, smooth_ksize):
+def empty_probchips(inputchip_fpaths):
+    # HACK for unknown species
+    for fpath in inputchip_fpaths:
+        size = vt.open_image_size(fpath)
+        probchip = np.ones(size[::-1])
+        yield probchip
+
+
+def cnn_probchips(ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize):
     # dont use extrmargin here (for now)
     mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
-    _iter = zip(probchip_fpath_list, mask_gen)
-    for chunk in ut.ichunks(_iter, 256):
+    for chunk in ut.ichunks(mask_gen, 256):
         _progiter = ut.ProgIter(
-            chunk, lbl='compute probchip chunk', adjust=True, time_thresh=30.0, bs=True)
-        for probchip_fpath, probchip in _progiter:
+            chunk, lbl='compute {} probchip chunk'.format(species),
+            adjust=True, time_thresh=30.0, bs=True)
+        for mask in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
-                probchip = postprocess_mask(
-                    probchip, smooth_thresh, smooth_ksize)
+                probchip = postprocess_mask(mask, smooth_thresh, smooth_ksize)
             yield probchip
-            #vt.imwrite(probchip_fpath, probchip)
 
 
-def rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
+def rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
                  smooth_thresh, smooth_ksize):
+    import ubelt as ub
+    from os.path import join
     from ibeis.algo.detect import randomforest
-    extramargin_probchip_fpaths = [ut.augpath(path, '_margin')
-                                   for path in probchip_fpaths]
+    cachedir = ub.ensure_app_cache_dir('ibeis', ibs.dbname, 'rfchips')
+    # Hack disk based output for RF detector.
+    temp_output_fpaths = [
+        # Give a reasonably distinctive name for parallel safety
+        join(cachedir, 'rf_{}_{}_margin.png'.format(species, aid))
+        for aid in aids
+    ]
     rfconfig = {'scale_list': [1.0], 'mode': 1,
-                'output_gpath_list': extramargin_probchip_fpaths}
+                'output_gpath_list': temp_output_fpaths}
     probchip_generator = randomforest.detect_gpath_list_with_species(
         ibs, inputchip_fpaths, species, **rfconfig)
     # Evalutate genrator until completion
     ut.evaluate_generator(probchip_generator)
-    extramargin_mask_gen = (vt.imread(fpath, grayscale=True)
-                            for fpath in extramargin_probchip_fpaths)
-    # Crop the extra margin off of the new probchips
-    _iter = zip(probchip_fpaths, extramargin_mask_gen)
-    for (probchip_fpath, extramargin_probchip) in _iter:
+    # Read output of RF detector and crop the extra margin off of the new
+    # probchips
+    for fpath in temp_output_fpaths:
+        extramargin_probchip = vt.imread(fpath, grayscale=True)
         half_w, half_h = (pad, pad)
         probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
         if smooth_thresh is not None and smooth_ksize is not None:
             probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
         yield probchip
-        #vt.imwrite(probchip_fpath, probchip)
+        # Delete the temporary file
+        ut.delete(fpath, verbose=False)
 
 
 def postprocess_mask(mask, thresh=20, kernel_size=20):

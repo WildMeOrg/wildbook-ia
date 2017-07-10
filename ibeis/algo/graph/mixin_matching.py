@@ -413,7 +413,7 @@ class InfrLearning(object):
         """
         infr.print('learn_evaluataion_verifiers')
         from ibeis.algo.verif import vsone
-        pblm = vsone.OneVsOneProblem(infr, verbose=True)
+        pblm = vsone.OneVsOneProblem(infr, verbose=5)
         pblm.primary_task_key = 'match_state'
         pblm.eval_clf_keys = ['RF']
         pblm.eval_data_keys = ['learn(sum,glob)']

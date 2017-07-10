@@ -9,6 +9,47 @@ import futures_actors
 print, rrr, profile = ut.inject2(__name__)
 
 
+def double_review_test():
+    # from ibeis.web.graph_server import *
+    import ibeis
+    actor = GraphActor()
+    config = {
+        'manual.n_peek'   : 1,
+        'manual.autosave' : False,
+        'ranking.enabled' : False,
+        'autoreview.enabled' : False,
+        'redun.enabled'   : False,
+        'redun.enabled'   : False,
+        'queue.conf.thresh' : 'absolutely_sure',
+        'algo.hardcase' : True,
+    }
+    # Start the process
+    dbdir = ibeis.sysres.db_to_dbdir('PZ_MTEST')
+    payload = {'action': 'start', 'dbdir': dbdir, 'aids': 'all',
+               'config': config, 'init': 'annotmatch'}
+    start_resp = actor.handle(payload)
+    print('start_resp = {!r}'.format(start_resp))
+    infr = actor.infr
+
+    infr.verbose = 100
+
+    user_resp = infr.continue_review()
+    edge, p, d = user_resp[0]
+    print('edge = {!r}'.format(edge))
+
+    last = None
+
+    while True:
+        infr.add_feedback(edge, infr.edge_decision(edge))
+        user_resp = infr.continue_review()
+        edge, p, d = user_resp[0]
+        print('edge = {!r}'.format(edge))
+        assert last != edge
+        last = edge
+
+    # Respond with a user decision
+
+
 def ut_to_json_encode(dict_):
     # Encode correctly for UUIDs and other information
     for key in dict_:
@@ -299,8 +340,8 @@ class GraphClient(object):
         raise NotImplementedError('not done yet')
 
     def update(client, data_list):
-        print('UPDATING GRAPH CLIENT WITH:')
-        print(ut.repr4(data_list))
+        print('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(len(data_list)))
+        print('First few are: ' + ut.repr4(data_list[0:3], si=2, precision=4))
         client.review_dict = {}
         client.review_vip = None
         if data_list is None:
@@ -324,6 +365,7 @@ class GraphClient(object):
     def sample(client):
         if client.review_dict is None:
             raise controller_inject.WebReviewFinishedException(client.graph_uuid)
+        print('SAMPLING')
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
@@ -332,8 +374,10 @@ class GraphClient(object):
             edge = client.review_vip
             client.review_vip = None
         else:
+            print('VIP ALREADY SHOWN')
             edge = random.choice(edge_list)
         priority, data_dict = client.review_dict[edge]
+        print('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict
 
 

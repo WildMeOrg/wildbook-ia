@@ -4418,7 +4418,7 @@ def background_train(ibs):
     return model_path
 
 
-def _resize(image, t_width=None, t_height=None, verbose=True):
+def _resize(image, t_width=None, t_height=None, verbose=False):
     if verbose:
         print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
     height, width = image.shape[:2]

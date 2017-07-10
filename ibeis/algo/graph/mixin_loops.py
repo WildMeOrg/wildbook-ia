@@ -422,6 +422,8 @@ class InfrReviewers(object):
             infr.write_ibeis_staging_feedback()
 
     def continue_review(infr):
+        if infr._gen is None:
+            return None
         try:
             user_request = next(infr._gen)
         except StopIteration:

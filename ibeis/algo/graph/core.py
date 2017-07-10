@@ -1223,11 +1223,12 @@ class AnnotInference(ut.NiceRepr,
         The returned dict does not contain the prefix
 
         Doctest:
+            >>> from ibeis.algo.graph.core import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference(None)
             >>> result = ut.repr2(infr.subparams('refresh'))
             >>> print(result)
-            {'patience': 72, 'thresh': 0.1, 'window': 20}
+            {'method': 'binomial', 'patience': 72, 'thresh': 0.1, 'window': 20}
         """
         prefix_ = prefix + '.'
         subparams = {k[len(prefix_):]: v for k, v in infr.params.items()

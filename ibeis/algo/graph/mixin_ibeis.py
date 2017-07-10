@@ -420,18 +420,18 @@ class IBEISIO(object):
             >>>                             autoinit='annotmatch', verbose=4)
             >>> pccs1 = list(infr.positive_components())
             >>> print('pccs1 = %r' % (pccs1,))
-            >>> print(list(infr.gen_node_values('name_label', infr.aids)))
+            >>> print('names = {}'.format(list(infr.gen_node_values('name_label', infr.aids))))
             >>> assert pccs1 == [{1, 2, 3, 4}, {5, 6, 7, 8}, {9}]
             >>> # Split a PCC and then merge two other PCCs
-            >>> infr.add_feedback((1, 2), NEGTV)
+            >>> infr.add_feedback_from([(1, 2), (1, 3), (1, 4)], evidence_decision=NEGTV)
             >>> infr.add_feedback((6, 7), NEGTV)
             >>> infr.add_feedback((5, 8), NEGTV)
             >>> infr.add_feedback((4, 5), POSTV)
             >>> infr.add_feedback((7, 8), POSTV)
             >>> pccs2 = list(infr.positive_components())
             >>> print('pccs2 = %r' % (pccs2,))
-            >>> print(list(infr.gen_node_values('name_label', infr.aids)))
             >>> assert pccs2 == [{1}, {2, 3, 4, 5, 6}, {7, 8}, {9}]
+            >>> print(list(infr.gen_node_values('name_label', infr.aids)))
             >>> name_delta_df = infr.get_ibeis_name_delta()
             >>> result = str(name_delta_df)
             >>> print(result)
@@ -446,7 +446,7 @@ class IBEISIO(object):
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
-            >>> infr.add_feedback((1, 2), NEGTV)
+            >>> infr.add_feedback_from([(1, 2), (1, 3), (1, 4)], evidence_decision=NEGTV)
             >>> infr.add_feedback((4, 5), POSTV)
             >>> name_delta_df = infr.get_ibeis_name_delta()
             >>> result = str(name_delta_df)
@@ -786,14 +786,15 @@ class IBEISIO(object):
             >>> edge_delta_df = infr.match_state_delta()
             >>> subset = edge_delta_df[['old_evidence_decision', 'new_evidence_decision']]
             >>> result = str(subset)
+            >>> # if this doctest fails maybe PZ_MTEST has a non-determenistic reset?
             >>> print(result)
                       old_evidence_decision new_evidence_decision
             aid1 aid2
             1    2                    match               nomatch
-            5    8                    match               nomatch
-            6    7                    match               nomatch
+            5    8               unreviewed               nomatch
+            6    7               unreviewed               nomatch
+            7    8                    match                 match
             4    5                      NaN                 match
-            7    8                      NaN                 match
         """
         old_feedback = infr._feedback_df(old)
         new_feedback = infr._feedback_df(new)

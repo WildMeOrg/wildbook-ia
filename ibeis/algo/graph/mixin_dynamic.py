@@ -858,8 +858,7 @@ class Priority(object):
         """
         Adds edges to the priority queue
 
-        Example:
-            >>> # ENABLE_DOCTEST
+        Doctest:
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=7, size=5)
@@ -870,11 +869,11 @@ class Priority(object):
             >>> edge2 = tuple(list(ccs[1])[0:2])
             >>> infr.add_feedback(edge1, NEGTV)
             >>> infr.add_feedback(edge2, NEGTV)
-            >>> num_new = infr.prioritize()
+            >>> num_new = infr.prioritize(reset=True)
             >>> order = infr._peek_many(np.inf)
             >>> scores = ut.take_column(order, 1)
             >>> assert scores[0] > 10
-            >>> assert len(scores) == num_new
+            >>> assert len(scores) == num_new, 'should prioritize two hypotheis edges'
             >>> unrev_edges = set(infr.unreviewed_graph.edges())
             >>> err_edges = set(ut.flatten(infr.nid_to_errors.values()))
             >>> edges = set(list(unrev_edges - err_edges)[0:2])

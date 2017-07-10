@@ -58,6 +58,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_Master1 --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db GZ_Master1 --show
 
+        python -m ibeis.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
+
     Example:
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
@@ -70,6 +72,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         super(OneVsOneProblem, pblm).__init__()
         if verbose is None:
             verbose = 2
+
+        verbose = 1000
 
         pblm.raw_X_dict = None
         pblm.raw_simple_scores = None
@@ -115,13 +119,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     hyper_params['vsone_match']['sver_ori_thresh'] = 3
 
         species = infr.ibs.get_primary_database_species()
+
         if species == 'zebra_plains' or True:
             # Plains zebras work better with QRH keypoints
             hyper_params['vsone_match']['Knorm'] = 3
             hyper_params['vsone_match']['symmetric'] = True
             hyper_params['vsone_kpts']['augment_orientation'] = True
 
-        if infr.ibs.has_species_detector(species):
+        multi_species = infr.ibs.get_database_species(infr.aids)
+        # if infr.ibs.has_species_detector(species):
+        if all(infr.ibs.has_species_detector(s) for s in multi_species):
+            print("HACKING FGWEIGHTS OFF")
             hyper_params.vsone_match['weight'] = 'fgweights'
             hyper_params.pairwise_feats['sorters'] = ut.unique(
                 hyper_params.pairwise_feats['sorters'] +

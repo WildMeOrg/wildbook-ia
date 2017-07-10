@@ -29,7 +29,8 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
         >>> config2_ = None
         >>> ensure = True
         >>> fgws_list = get_annot_fgweights(ibs, aid_list, config2_, ensure)
-        >>> assert ut.depth_profile(fgws_list) == [1246, 1482]
+        >>> depth = ut.depth_profile(fgws_list)
+        >>> assert np.all(np.array(depth) > [1200, 1400])
         >>> percent_ = (fgws_list[0] > .5).sum() / len(fgws_list[0])
         >>> assert percent_ > .4 and percent_ < .6, 'should be around .54'
     """
