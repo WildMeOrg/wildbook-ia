@@ -843,6 +843,17 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         >>> query_chips_graph_v2.__globals__['current_app'] = old
     """
     from ibeis.web.graph_server import GraphClient
+    print('!!! query_config_dict = {!r}'.format(query_config_dict))
+
+    # BIG HACKS:
+    if True:
+        query_config_dict = {
+            'ranking.enabled' : False,
+            'autoreview.enabled' : False,
+            'redun.enabled'   : False,
+            'queue.conf.thresh' : 'absolutely_sure',
+            'algo.hardcase' : True,
+        }
 
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
