@@ -165,6 +165,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
             return actor
         elif action == 'error':
             raise Exception('FOOBAR')
+        elif action == 'latest_logs':
+            return actor.infr.latest_logs(colored=True)
         elif action == 'logs':
             return actor.infr.logs
         else:
@@ -334,6 +336,8 @@ class GraphClient(object):
                 if future.running():
                     new_futures.append((action, future))
                 elif action == 'continue_review':
+                    future.cancel()
+                elif action == 'latest_logs':
                     future.cancel()
                 else:
                     new_futures.append((action, future))

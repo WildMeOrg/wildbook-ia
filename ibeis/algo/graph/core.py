@@ -791,10 +791,13 @@ class MiscHelpers(object):
 
     print = log_message
 
-    def latest_logs(infr):
+    def latest_logs(infr, colored=False):
         index = infr.log_index
         infr.log_index = len(infr.logs)
-        return [infr.logs[x][0] for x in range(index, len(infr.logs))]
+        if colored:
+            return [infr.logs[x] for x in range(index, len(infr.logs))]
+        else:
+            return [infr.logs[x][0] for x in range(index, len(infr.logs))]
 
     def dump_logs(infr):
         print('--- <LOG DUMP> ---')

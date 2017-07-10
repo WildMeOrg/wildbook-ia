@@ -145,10 +145,10 @@ class InfrLoops(object):
             df['pred'] = pred.values
 
             df.sort_values('hardness', ascending=False)
-            print('hardness analysis')
-            print(df)
+            infr.print('hardness analysis')
+            infr.print(str(df))
 
-            print('infr status: ' + ut.repr4(infr.status()))
+            infr.print('infr status: ' + ut.repr4(infr.status()))
 
         # Don't re-review anything that was confidently reviewed
         # CONFIDENCE = infr.ibs.const.CONFIDENCE
@@ -166,7 +166,7 @@ class InfrLoops(object):
         # infr.ibs.const.CONFIDENCE.CODE.PRETTY_SURE
         if infr.params['queue.conf.thresh'] is None:
             # != 'pretty_sure':
-            print('WARNING: should queue.conf.thresh = "pretty_sure"?')
+            infr.print('WARNING: should queue.conf.thresh = "pretty_sure"?')
 
         # work around add_candidate_edges
         infr.prioritize(metric='hardness', edges=edges,

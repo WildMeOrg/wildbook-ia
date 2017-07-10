@@ -1053,6 +1053,10 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     future = graph_client.post({'action' : 'continue_review'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
+
+    f2 = graph_client.post({'action' : 'latest_logs'})
+    f2.graph_client = graph_client
+    f2.add_done_callback(query_graph_v2_latest_logs)
     return (annot_uuid_1, annot_uuid_2, )
 
 
@@ -1176,6 +1180,15 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
             current_app.GRAPH_CLIENT_DICT[graph_uuid_] = None
             current_app.GRAPH_CLIENT_DICT.pop(graph_uuid_)
     return True
+
+
+def query_graph_v2_latest_logs(future):
+    if not future.cancelled():
+        logs = future.result()
+        print('--- <LOG DUMP> ---')
+        for msg, color in logs:
+            ut.cprint('[web.infr] ' + msg, color)
+        print('--- <\LOG DUMP> ---')
 
 
 def query_graph_v2_on_request_review(future):
