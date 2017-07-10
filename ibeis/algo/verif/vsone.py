@@ -323,6 +323,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         per_cc = int(n_need / infr.pos_graph.number_of_components() / 2)
         per_cc = max(2, per_cc)
+        print('per_cc = {!r}'.format(per_cc))
 
         rng = ut.ensure_rng(2039141610)
 
