@@ -326,6 +326,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # User previous explicit reviews
         pccs = list(map(frozenset, infr.positive_components()))
+        print('pccs = {!r}'.format(pccs))
         for cc in pccs:
             pos_pairs = edgeset(ut.random_combinations(cc, 2, per_cc, rng=rng))
             aid_pairs.update(pos_pairs)
@@ -347,6 +348,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     @profile
     def make_training_pairs(pblm):
         """
+        CommandLine:
+            python -m ibeis.algo.verif.vsone make_training_pairs
+
+        Example:
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
             >>> pblm.make_training_pairs()
