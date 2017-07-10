@@ -184,6 +184,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                            force_serial=True)
         # Create the AnnotInference
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        actor.infr.print('start via actor')
+        actor.infr.print('config = {}'.format(ut.repr3(config)))
         # Configure query_annot_infr
         for key in config:
             actor.infr.params[key] = config[key]
