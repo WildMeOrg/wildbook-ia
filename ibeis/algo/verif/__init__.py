@@ -4,6 +4,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.verif import clf_helpers
 from ibeis.algo.verif import sklearn_utils
+from ibeis.algo.verif import deploy
+from ibeis.algo.verif import pairfeat
+from ibeis.algo.verif import verifier
 from ibeis.algo.verif import vsone
 import utool
 print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.verif]')
@@ -71,6 +74,9 @@ IMPORT_TUPLES = [
     ('clf_helpers', None),
     ('sklearn_utils', None),
     ('vsone', None),
+    ('deploy', None),
+    ('verifier', None),
+    ('pairfeat', None),
 ]
 """
 Regen Command:
