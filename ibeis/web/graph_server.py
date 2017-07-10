@@ -19,7 +19,6 @@ def double_review_test():
         'ranking.enabled' : False,
         'autoreview.enabled' : False,
         'redun.enabled'   : False,
-        'redun.enabled'   : False,
         'queue.conf.thresh' : 'absolutely_sure',
         'algo.hardcase' : True,
     }

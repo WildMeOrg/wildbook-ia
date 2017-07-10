@@ -2697,7 +2697,6 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     'ranking.enabled' : False,
                     'autoreview.enabled' : False,
                     'redun.enabled'   : False,
-                    'redun.enabled'   : False,
                     'queue.conf.thresh' : 'absolutely_sure',
                     'algo.hardcase' : True,
                 }

@@ -42,6 +42,7 @@ class InfrLoops(object):
             >>>         break
         """
         infr.print('Starting main loop', 1)
+        infr.print('infr.params = {}'.format(ut.repr3(infr.params)))
         if max_loops is None:
             max_loops = infr.params['algo.max_outer_loops']
             if max_loops is None:
@@ -62,18 +63,18 @@ class InfrLoops(object):
                 user_request += [infr._make_review_tuple(edge, None)]
                 yield user_request
 
+        if infr.params['algo.hardcase']:
+            # Check previously labeled edges that where the groundtruth and the
+            # verifier disagree.
+            for _ in infr.hardcase_review_gen():
+                yield _
+
         # Phase 0.2: Ensure positive redundancy (this is generally quick)
         # so the user starts seeing real work after one random review is made
         # unless the graph is already positive redundant.
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
             # Fix positive redundancy of anything within the loop
             for _ in infr.pos_redun_gen():
-                yield _
-
-        if infr.params['algo.hardcase']:
-            # Check previously labeled edges that where the groundtruth and the
-            # verifier disagree.
-            for _ in infr.hardcase_review_gen():
                 yield _
 
         if infr.params['ranking.enabled']:
