@@ -550,7 +550,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> import ibeis
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
-        >>> config = ProbchipConfig.from_argv_dict(fw_detector='rf', smooth_thresh=None)
+        >>> config = ProbchipConfig.from_argv_dict(fw_detector='cnn', smooth_thresh=None)
         >>> #probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
         >>> probchip_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
         >>> #result = ut.repr2(probchip_fpath_list_)
@@ -663,7 +663,7 @@ def empty_probchips(inputchip_fpaths):
     # HACK for unknown species
     for fpath in inputchip_fpaths:
         size = vt.open_image_size(fpath)
-        probchip = np.ones(size[::-1])
+        probchip = np.ones(size[::-1], dtype=np.float)
         yield probchip
 
 
@@ -677,6 +677,8 @@ def cnn_probchips(ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize):
         for mask in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
                 probchip = postprocess_mask(mask, smooth_thresh, smooth_ksize)
+            else:
+                probchip = mask
             yield probchip
 
 

@@ -3603,6 +3603,20 @@ def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False):
     ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
 
 
+@register_ibs_method
+@register_api('/api/annot/encounter/static/', methods=['PUT'])
+def set_annot_static_encounter(ibs, aids, vals):
+    id_iter = zip(aids)
+    val_iter = zip(vals)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_static_encounter',), val_iter, id_iter)
+
+
+@register_ibs_method
+@register_api('/api/annot/encounter/static/', methods=['GET'])
+def get_annot_static_encounter(ibs, aids):
+    return ibs.db.get(const.ANNOTATION_TABLE, ('annot_static_encounter',), aids)
+
+
 #==========
 # Testdata
 #==========

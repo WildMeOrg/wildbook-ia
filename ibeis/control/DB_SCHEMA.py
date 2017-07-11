@@ -1557,6 +1557,15 @@ def update_1_6_8(db, ibs=None):
     ))
 
 
+def update_1_6_9(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        # Add column to mirror wildbook encounters
+        # FIXME: make this an int that points to a different "static_encounter"
+        # table rowid
+        (None, 'annot_static_encounter', 'TEXT', None),
+    ))
+
+
 if False:
     # TODO: YAW TO VIEWPOINT CODE DATABASE CHANGE
     def update_1_x_y(db, ibs=None):
@@ -1653,6 +1662,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.6',    (None,                 update_1_6_6,       None                )),
     ('1.6.7',    (None,                 update_1_6_7,       None                )),
     ('1.6.8',    (None,                 update_1_6_8,       None                )),
+    ('1.6.9',    (None,                 update_1_6_9,       None                )),
 ])
 """
 SeeAlso:

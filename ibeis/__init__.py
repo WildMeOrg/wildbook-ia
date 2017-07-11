@@ -73,6 +73,8 @@ try:
     from ibeis.control.controller_inject import register_preprocs
     from ibeis import core_annots
     from ibeis import core_images
+
+    from ibeis.scripts import postdoc
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise

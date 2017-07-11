@@ -32,7 +32,7 @@ def sync_wildbook():
         # images_url = 'http://www.whaleshark.org/listImages.jsp'
         # keyword_url = 'http://www.whaleshark.org/getKeywordImages.jsp'
         download_dir = join('/media/raid/raw/Wildbook/', 'sharkimages')
-    else:
+    if False:
         # Read ALL data from whaleshark.org
         images_url = 'http://www.mantamatcher.org/listImages.jsp'
         keyword_url = None
@@ -40,6 +40,14 @@ def sync_wildbook():
         species = 'manta_ray'
         parsed = parse_wildbook(images_url, keyword_url)
         download_dir = join('/media/raid/raw/Wildbook/', 'mantas')
+    if False:
+        # Read ALL data from whaleshark.org
+        images_url = 'http://www.mantamatcher.org/listMatcherImages.jsp'
+        keyword_url = None
+        db = 'MantaMatcher'
+        species = 'manta_ray'
+        parsed = parse_wildbook(images_url, keyword_url)
+        download_dir = join('/media/raid/raw/Wildbook/', 'MantaMatcher')
 
     DRY = False
     DRY = True
@@ -91,7 +99,8 @@ def sync_wildbook():
 
     # Add new info
     if not DRY:
-        add_new_images(ibs, miss_info, species)
+        if len(miss_info):
+            add_new_images(ibs, miss_info, species)
 
     # REFIND Existing
     print('Redoing exist check')
@@ -108,7 +117,7 @@ def sync_wildbook():
 
     # Sync existing info
     if True:
-        sync_existing_images(ibs, info, species, DRY)
+        sync_existing_images(ibs, hit_info, species, DRY)
 
 
 def sync_existing_images(ibs, hit_info, species, DRY):
@@ -223,10 +232,24 @@ def sync_existing_images(ibs, hit_info, species, DRY):
 
 
 def sync_annot_info(ibs, single_annots, single_info, species, DRY):
+    """
+    sync `info` from wildbook into `annots` from IA.
+    """
     import numpy as np
-    single_info._meta['ignore'] = ['img_url', 'new_fpath', 'uuid', 'encounter']
+    # single_info._meta['ignore'] = ['img_url', 'new_fpath', 'uuid', 'encounter']
+    single_info._meta['ignore'] = ['img_url', 'new_fpath', 'uuid']
 
+    # Associate single annots and info using aids (lists should correspond)
     single_info['aid'] = single_annots.aids
+
+    if False:
+        # try and set encounter information
+        key1 = 'encounter'
+        prop2 = 'static_encounter'
+        repl2 = ('____', None)
+        is_set = False
+        check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
+                             is_set, DRY=DRY)
 
     # Fix sharks marked as healthy and injured
     isbadmark = ut.filterflags_general_tags(single_annots.case_tags,
@@ -987,6 +1010,7 @@ def parse_wildbook_images(url):
 
     cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
     cache_fpath = join(cache_dpath, ut.hash_data(url) + '.xml')
+    print('cache_fpath = {!r}'.format(cache_fpath))
 
     # redownload every 30 days or so
     if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
@@ -1283,21 +1307,37 @@ def download_missing_images(parsed, num=None):
         missing = parsed.compress(missing_flags)
         print('Downloading missing subset')
         _iter = list(zip(missing['img_url'], missing['new_fpath']))
-        _prog = ut.ProgPartial(bs=True, freq=1)
         if num:
             print('Only downloading {}'.format(num))
-        count = 0
-        for img_url, new_fpath in _prog(_iter, lbl='downloading wildbook images'):
-            #url = img_url
-            #filename = new_fpath
-            #break
-            try:
-                ut.download_url(img_url, new_fpath, verbose=False, new=True)
-                count += 1
-                if num is not None and count > num:
-                    break
-            except (ZeroDivisionError, IOError):
-                pass
+
+        from concurrent import futures
+        ex = futures.ProcessPoolExecutor(7)
+        fs = [ex.submit(ut.download_url, *args, new=True, verbose=False) for args in _iter]
+
+        for f in ut.ProgIter(futures.as_completed(fs), nTotal=len(_iter), label='downloading wildbook images'):
+            pass
+
+        # import multiprocessing
+        # pool = multiprocessing.Pool(7)
+        # res = pool.map(ut.partial(ut.download_url, new=True, verbose=False), _iter)
+
+        # gen = ut.util_parallel.generate(ut.download_url, _iter, new=True, verbose=False)
+        # for _ in gen:
+        #     pass
+
+        # _prog = ut.ProgPartial(bs=True, freq=1)
+        # count = 0
+        # for img_url, new_fpath in _prog(_iter, lbl='downloading wildbook images'):
+        #     #url = img_url
+        #     #filename = new_fpath
+        #     #break
+        #     try:
+        #         ut.download_url(img_url, new_fpath, verbose=False, new=True)
+        #         count += 1
+        #         if num is not None and count > num:
+        #             break
+        #     except (ZeroDivisionError, IOError):
+        #         pass
 
 
 def postprocess_corrupted(parsed_dl):

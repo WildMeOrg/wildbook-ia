@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import plottool as pt
@@ -6,7 +5,7 @@ import utool as ut
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
 from ibeis.scripts.thesis import Sampler
-from ibeis.scripts._thesis_helpers import Tabular, upper_one
+from ibeis.scripts._thesis_helpers import Tabular, upper_one, ave_str
 from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 import numpy as np  # NOQA
@@ -22,7 +21,6 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
 def turk_pz():
     import ibeis
-
     ibs = ibeis.opendb('GZ_Master1')
     infr = ibeis.AnnotInference(ibs, aids='all')
     infr.reset_feedback('staging', apply=True)
@@ -38,214 +36,7 @@ def turk_pz():
     infr.relabel_using_reviews(rectify=True)
     infr.write_ibeis_annotmatch_feedback()
     infr.write_ibeis_name_assignment()
-
     pass
-
-
-def entropy_potential(infr, u, v, decision):
-    """
-    Returns the number of edges this edge would invalidate
-
-    from ibeis.algo.graph import demo
-    infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
-    infr.refresh_candidate_edges()
-    infr.params['redun.neg'] = 1
-    infr.params['redun.pos'] = 1
-    infr.apply_nondynamic_update()
-
-    ut.qtensure()
-    infr.show(show_cand=True, groupby='name_label')
-
-    u, v = 1, 7
-    decision = 'positive'
-    """
-    nid1, nid2 = infr.pos_graph.node_labels(u, v)
-
-    # Cases for K=1
-    if decision == 'positive' and nid1 == nid2:
-        # The actual reduction is the number previously needed to make the cc
-        # k-edge-connected vs how many its needs now.
-
-        # In the same CC does nothing
-        # (unless k > 1, in which case check edge connectivity)
-        return 0
-    elif decision == 'positive' and nid1 != nid2:
-        # Between two PCCs reduces the number of PCCs by one
-        n_ccs = infr.pos_graph.number_of_components()
-
-        # Find needed negative redundency when appart
-        if infr.neg_redun_nids.has_node(nid1):
-            neg_redun_set1 = set(infr.neg_redun_nids.neighbors(nid1))
-        else:
-            neg_redun_set1 = set()
-
-        if infr.neg_redun_nids.has_node(nid2):
-            neg_redun_set2 = set(infr.neg_redun_nids.neighbors(nid2))
-        else:
-            neg_redun_set2 = set()
-
-        # The number of negative edges needed before we place this edge
-        # is the number of PCCs that each PCC doesnt have a negative edge to
-        # yet
-
-        n_neg_need1 = (n_ccs - len(neg_redun_set1) - 1)
-        n_neg_need2 = (n_ccs - len(neg_redun_set2) - 1)
-        n_neg_need_before = n_neg_need1 + n_neg_need2
-
-        # After we join them we take the union of their negative redundancy
-        # (really we should check if it changes after)
-        # and this is now the new number of negative edges that would be needed
-        neg_redun_after = neg_redun_set1.union(neg_redun_set2) - {nid1, nid2}
-        n_neg_need_after = (n_ccs - 2) - len(neg_redun_after)
-
-        neg_entropy = n_neg_need_before - n_neg_need_after  # NOQA
-
-
-@ut.reloadable_class
-class GraphExpt(DBInputs):
-    """
-    python -m ibeis GraphExpt.measure all PZ_MTEST
-
-    Ignore:
-        >>> from ibeis.scripts.postdoc import *
-        >>> self = GraphExpt('PZ_MTEST')
-    """
-    base_dpath = ut.truepath('~/Desktop/graph_expt')
-
-    def _precollect(self):
-        if self.ibs is None:
-            _GraphExpt = ut.fix_super_reload(GraphExpt, self)
-            super(_GraphExpt, self)._precollect()
-
-        # Split data into a training and testing test
-        ibs = self.ibs
-        annots = ibs.annots(self.aids_pool)
-        names = list(annots.group_items(annots.nids).values())
-        ut.shuffle(names, rng=321)
-        train_names, test_names = names[0::2], names[1::2]
-        train_aids, test_aids = map(ut.flatten, (train_names, test_names))
-
-        self.test_train = train_aids, test_aids
-
-        params = {}
-        self.pblm = vsone.OneVsOneProblem.from_aids(
-            ibs, train_aids, **params)
-
-        # ut.get_nonconflicting_path(dpath, suffix='_old')
-        self.const_dials = {
-            # 'oracle_accuracy' : (0.98, 1.0),
-            # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.99, .99),
-            'k_redun'         : 2,
-            'max_outer_loops' : np.inf,
-            # 'max_outer_loops' : 1,
-        }
-
-        config = ut.dict_union(self.const_dials)
-        cfg_prefix = '{}_{}'.format(len(test_aids), len(train_aids))
-        self._setup_links(cfg_prefix, config)
-
-    def _setup(self):
-        """
-        python -m ibeis Chap5._setup
-
-        Example:
-            >>> from ibeis.scripts.postdoc import *
-            >>> #self = Chap5('GZ_Master1')
-            >>> self = Chap5('PZ_Master1')
-            >>> #self = Chap5('PZ_MTEST')
-            >>> self._setup()
-        """
-        self._precollect()
-        train_aids, test_aids = self.test_train
-
-        task_key = 'match_state'
-        pblm = self.pblm
-        data_key = pblm.default_data_key
-        clf_key = pblm.default_clf_key
-
-        pblm.eval_data_keys = [data_key]
-        pblm.setup(with_simple=False)
-        pblm.learn_evaluation_classifiers()
-
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
-        # pblm.report_evaluation()
-
-        # TODO: need more principled way of selecting thresholds
-        graph_thresh = res.get_pos_threshes('fpr', 0.01)
-        # rankclf_thresh = res.get_pos_threshes(fpr=0.01)
-
-        # Load or create the deploy classifiers
-        clf_dpath = ut.ensuredir((self.dpath, 'clf'))
-        classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
-
-        sim_params = {
-            'test_aids': test_aids,
-            'train_aids': train_aids,
-            'classifiers': classifiers,
-            'graph_thresh': graph_thresh,
-            # 'rankclf_thresh': rankclf_thresh,
-            'const_dials': self.const_dials,
-        }
-        self.pblm = pblm
-        self.sim_params = sim_params
-        return sim_params
-
-    @profile
-    def measure_graphsim(self):
-        """
-        CommandLine:
-            python -m ibeis Chap5.measure graphsim GZ_Master1
-            python -m ibeis Chap5.measure graphsim PZ_Master1
-
-        Ignore:
-            >>> from ibeis.scripts.postdoc import *
-            >>> self = Chap5('GZ_Master1')
-        """
-        import ibeis
-        self.ensure_setup()
-
-        ibs = self.ibs
-        sim_params = self.sim_params
-        classifiers = sim_params['classifiers']
-        test_aids = sim_params['test_aids']
-
-        graph_thresh = sim_params['graph_thresh']
-
-        const_dials = sim_params['const_dials']
-
-        sim_results = {}
-        verbose = 1
-
-        # ----------
-        # Graph test
-        dials1 = ut.dict_union(const_dials, {
-            'name'               : 'graph',
-            'enable_inference'   : True,
-            'match_state_thresh' : graph_thresh,
-        })
-        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                     verbose=verbose)
-        infr1.enable_auto_prioritize_nonpos = True
-        infr1._refresh_params['window'] = 20
-        infr1._refresh_params['thresh'] = 0.052
-        infr1._refresh_params['patience'] = 72
-
-        infr1.init_simulation(classifiers=classifiers, **dials1)
-        infr1.init_test_mode()
-
-        infr1.reset(state='empty')
-        infr1.main_loop()
-
-        sim_results['graph'] = self._collect_sim_results(infr1, dials1)
-
-        # ------------
-        # Dump experiment output to disk
-        expt_name = 'graphsim'
-        self.expt_results[expt_name] = sim_results
-        ut.ensuredir(self.dpath)
-        ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
-        pass
 
 
 @ut.reloadable_class
@@ -370,6 +161,180 @@ class VerifierExpt(DBInputs):
                 newpath = ut.non_existing_path(dpath, suffix='_old')
                 ut.move(link, newpath)
                 self.link = ut.symlink(dpath, link)
+
+    @profile
+    def measure_dbstats(self):
+        """
+        python -m ibeis VerifierExpt.draw dbstats GZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.postdoc import *
+            >>> #self = VerifierExpt('GZ_Master1')
+            >>> self = VerifierExpt('MantaMatcher')
+        """
+        if self.ibs is None:
+            self._precollect()
+        ibs = self.ibs
+
+        # self.ibs.print_annot_stats(self.aids_pool)
+        # encattr = 'static_encounter'
+        encattr = 'encounter_text'
+        # encattr = 'aids'
+
+        annots = ibs.annots(self.aids_pool)
+
+        encounters = annots.group2(getattr(annots, encattr))
+
+        nids = ut.take_column(encounters.nids, 0)
+        nid_to_enc = ut.group_items(encounters, nids)
+
+        single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
+        multi_encs = {nid: self.ibs._annot_groups(e)
+                      for nid, e in nid_to_enc.items() if len(e) > 1}
+
+        multi_annots = ibs.annots(ut.flatten(ut.flatten(multi_encs.values())))
+        single_annots = ibs.annots(ut.flatten(ut.flatten(single_encs.values())))
+
+        def annot_stats(annots, encattr):
+            encounters = annots.group2(getattr(annots, encattr))
+            nid_to_enc = ut.group_items(
+                encounters, ut.take_column(encounters.nids, 0))
+            nid_to_nenc = ut.map_vals(len, nid_to_enc)
+            n_enc_per_name = list(nid_to_nenc.values())
+            n_annot_per_enc = ut.lmap(len, encounters)
+
+            enc_deltas = []
+            for encs_ in nid_to_enc.values():
+                times = [np.mean(a.image_unixtimes_asfloat) for a in encs_]
+                for tup in ut.combinations(times, 2):
+                    delta = max(tup) - min(tup)
+                    enc_deltas.append(delta)
+                #     pass
+                # delta = times.max() - times.min()
+                # enc_deltas.append(delta)
+
+            annot_info = ut.odict()
+            annot_info['n_names'] = len(nid_to_enc)
+            annot_info['n_annots'] = len(annots)
+            annot_info['n_encs'] = len(encounters)
+            annot_info['enc_time_deltas'] = ut.get_stats(enc_deltas)
+            annot_info['n_enc_per_name'] = ut.get_stats(n_enc_per_name)
+            annot_info['n_annot_per_enc'] = ut.get_stats(n_annot_per_enc)
+            # print(ut.repr4(annot_info, si=True, nl=1, precision=2))
+            return annot_info
+
+        enc_info = ut.odict()
+        enc_info['all'] = annot_stats(annots, encattr)
+        del enc_info['all']['enc_time_deltas']
+        enc_info['multi'] = annot_stats(multi_annots, encattr)
+        enc_info['single'] = annot_stats(single_annots, encattr)
+        del enc_info['single']['n_encs']
+        del enc_info['single']['n_enc_per_name']
+        del enc_info['single']['enc_time_deltas']
+
+        qual_info = ut.dict_hist(annots.quality_texts)
+        qual_info['None'] = qual_info.pop('UNKNOWN', 0)
+        qual_info['None'] += qual_info.pop(None, 0)
+
+        view_info = ut.dict_hist(annots.yaw_texts)
+        view_info['None'] = view_info.pop('UNKNOWN', 0)
+        view_info['None'] += view_info.pop(None, 0)
+
+        info = ut.odict([])
+        info['species_nice'] = self.species_nice
+        info['enc'] = enc_info
+        info['qual'] = qual_info
+        info['view'] = view_info
+
+        print('Annotation Pool DBStats')
+        print(ut.repr4(info, si=True, nl=3, precision=2))
+
+        outinfo = ut.odict([
+            ('Database', info['species_nice']),
+            ('Names (singleton)', enc_info['single']['n_names']),
+            ('Names (resighted)', enc_info['multi']['n_names']),
+            ('Enc per name (resighted)',
+             ave_str(*ut.take(enc_info['multi']['n_enc_per_name'], ['mean', 'std']))),
+            ('Annots per encounter',
+             ave_str(*ut.take(enc_info['all']['n_annot_per_enc'], ['mean', 'std']))),
+            ('Annots', enc_info['all']['n_annots']),
+        ])
+
+        df = pd.DataFrame([outinfo])
+        df = df.set_index('Database')
+        df.index.name = None
+        df.index = ut.emap(upper_one, df.index)
+
+        tabular = Tabular(df, colfmt='numeric')
+        tabular.theadify = 16
+        enc_text = tabular.as_tabular()
+        print(enc_text)
+
+        _ = ut.render_latex(enc_text, dpath=self.base_dpath, fname='dbstats',
+                                preamb_extra=['\\usepackage{makecell}'])
+        ut.startfile(_)
+
+        # expt_name = ut.get_stack_frame().f_code.co_name.replace('measure_', '')
+        expt_name = 'dbstats'
+        self.expt_results[expt_name] = info
+        ut.ensuredir(self.dpath)
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), info)
+        return info
+
+    @profile
+    def measure_split_stats(self):
+        """
+        python -m ibeis VerifierExpt.draw dbstats GZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.postdoc import *
+            >>> self = VerifierExpt('GZ_Master1')
+        """
+        self.ensure_setup()
+        classifiers = self.sim_params['classifiers']
+        clf_meta = classifiers['match_state']['metadata'].copy()
+        clf_meta.pop('data_info')
+
+        def ibs_stats(aids):
+            pccs = self.ibs.group_annots_by_name(aids)[0]
+            nper_annot = ut.emap(len, pccs)
+            return {
+                'n_annots': len(aids),
+                'n_names': len(pccs),
+                'annot_size_mean': np.mean(nper_annot),
+                'annot_size_std': np.std(nper_annot),
+            }
+
+        train_aids = self.sim_params['train_aids']
+        test_aids = self.sim_params['test_aids']
+        dbstats = {
+            'testing': ibs_stats(test_aids),
+            'training': ibs_stats(train_aids),
+        }
+        traininfo = dbstats['training']
+        traininfo['class_hist'] = clf_meta['class_hist']
+        traininfo['n_training_pairs'] = sum(clf_meta['class_hist'].values())
+
+        infr = self.pblm.infr
+        pblm_pccs = list(self.pblm.infr.positive_components())
+        pblm_nper_annot = ut.emap(len, pblm_pccs)
+        traininfo['pblm_info'] = {
+            'n_annots': infr.graph.number_of_nodes(),
+            'n_names': len(pblm_pccs),
+            'annot_size_mean': np.mean(pblm_nper_annot),
+            'annot_size_std': np.std(pblm_nper_annot),
+            'notes': ut.textblock(
+                '''
+                if this (the real training data) is different from the parents
+                (ibeis) info, that means the staging database is ahead of
+                annotmatch. Report the ibeis one for clarity. Num annots should
+                always be the same though.
+                ''')
+        }
+
+        expt_name = 'dbstats'
+        self.expt_results[expt_name] = dbstats
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), dbstats)
 
     def measure_all(self):
         r"""
@@ -1664,6 +1629,153 @@ class VerifierExpt(DBInputs):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
 
+@ut.reloadable_class
+class GraphExpt(DBInputs):
+    """
+    python -m ibeis GraphExpt.measure all PZ_MTEST
+
+    Ignore:
+        >>> from ibeis.scripts.postdoc import *
+        >>> self = GraphExpt('PZ_MTEST')
+    """
+    base_dpath = ut.truepath('~/Desktop/graph_expt')
+
+    def _precollect(self):
+        if self.ibs is None:
+            _GraphExpt = ut.fix_super_reload(GraphExpt, self)
+            super(_GraphExpt, self)._precollect()
+
+        # Split data into a training and testing test
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        names = list(annots.group_items(annots.nids).values())
+        ut.shuffle(names, rng=321)
+        train_names, test_names = names[0::2], names[1::2]
+        train_aids, test_aids = map(ut.flatten, (train_names, test_names))
+
+        self.test_train = train_aids, test_aids
+
+        params = {}
+        self.pblm = vsone.OneVsOneProblem.from_aids(
+            ibs, train_aids, **params)
+
+        # ut.get_nonconflicting_path(dpath, suffix='_old')
+        self.const_dials = {
+            # 'oracle_accuracy' : (0.98, 1.0),
+            # 'oracle_accuracy' : (0.98, .98),
+            'oracle_accuracy' : (0.99, .99),
+            'k_redun'         : 2,
+            'max_outer_loops' : np.inf,
+            # 'max_outer_loops' : 1,
+        }
+
+        config = ut.dict_union(self.const_dials)
+        cfg_prefix = '{}_{}'.format(len(test_aids), len(train_aids))
+        self._setup_links(cfg_prefix, config)
+
+    def _setup(self):
+        """
+        python -m ibeis Chap5._setup
+
+        Example:
+            >>> from ibeis.scripts.postdoc import *
+            >>> #self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_Master1')
+            >>> #self = Chap5('PZ_MTEST')
+            >>> self._setup()
+        """
+        self._precollect()
+        train_aids, test_aids = self.test_train
+
+        task_key = 'match_state'
+        pblm = self.pblm
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+
+        pblm.eval_data_keys = [data_key]
+        pblm.setup(with_simple=False)
+        pblm.learn_evaluation_classifiers()
+
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        # pblm.report_evaluation()
+
+        # TODO: need more principled way of selecting thresholds
+        graph_thresh = res.get_pos_threshes('fpr', 0.01)
+        # rankclf_thresh = res.get_pos_threshes(fpr=0.01)
+
+        # Load or create the deploy classifiers
+        clf_dpath = ut.ensuredir((self.dpath, 'clf'))
+        classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
+
+        sim_params = {
+            'test_aids': test_aids,
+            'train_aids': train_aids,
+            'classifiers': classifiers,
+            'graph_thresh': graph_thresh,
+            # 'rankclf_thresh': rankclf_thresh,
+            'const_dials': self.const_dials,
+        }
+        self.pblm = pblm
+        self.sim_params = sim_params
+        return sim_params
+
+    @profile
+    def measure_graphsim(self):
+        """
+        CommandLine:
+            python -m ibeis Chap5.measure graphsim GZ_Master1
+            python -m ibeis Chap5.measure graphsim PZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.postdoc import *
+            >>> self = Chap5('GZ_Master1')
+        """
+        import ibeis
+        self.ensure_setup()
+
+        ibs = self.ibs
+        sim_params = self.sim_params
+        classifiers = sim_params['classifiers']
+        test_aids = sim_params['test_aids']
+
+        graph_thresh = sim_params['graph_thresh']
+
+        const_dials = sim_params['const_dials']
+
+        sim_results = {}
+        verbose = 1
+
+        # ----------
+        # Graph test
+        dials1 = ut.dict_union(const_dials, {
+            'name'               : 'graph',
+            'enable_inference'   : True,
+            'match_state_thresh' : graph_thresh,
+        })
+        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                     verbose=verbose)
+        infr1.enable_auto_prioritize_nonpos = True
+        infr1._refresh_params['window'] = 20
+        infr1._refresh_params['thresh'] = 0.052
+        infr1._refresh_params['patience'] = 72
+
+        infr1.init_simulation(classifiers=classifiers, **dials1)
+        infr1.init_test_mode()
+
+        infr1.reset(state='empty')
+        infr1.main_loop()
+
+        sim_results['graph'] = self._collect_sim_results(infr1, dials1)
+
+        # ------------
+        # Dump experiment output to disk
+        expt_name = 'graphsim'
+        self.expt_results[expt_name] = sim_results
+        ut.ensuredir(self.dpath)
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
+        pass
+
+
 def draw_match_states():
     import ibeis
     infr = ibeis.AnnotInference('PZ_Master1', 'all')
@@ -1694,7 +1806,66 @@ def draw_match_states():
         vt.imwrite('matchstate_' + key + '.jpg', ctx.image)
 
 
-def _find_good_match_states(infr):
+def entropy_potential(infr, u, v, decision):
+    """
+    Returns the number of edges this edge would invalidate
+
+    from ibeis.algo.graph import demo
+    infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
+    infr.refresh_candidate_edges()
+    infr.params['redun.neg'] = 1
+    infr.params['redun.pos'] = 1
+    infr.apply_nondynamic_update()
+
+    ut.qtensure()
+    infr.show(show_cand=True, groupby='name_label')
+
+    u, v = 1, 7
+    decision = 'positive'
+    """
+    nid1, nid2 = infr.pos_graph.node_labels(u, v)
+
+    # Cases for K=1
+    if decision == 'positive' and nid1 == nid2:
+        # The actual reduction is the number previously needed to make the cc
+        # k-edge-connected vs how many its needs now.
+
+        # In the same CC does nothing
+        # (unless k > 1, in which case check edge connectivity)
+        return 0
+    elif decision == 'positive' and nid1 != nid2:
+        # Between two PCCs reduces the number of PCCs by one
+        n_ccs = infr.pos_graph.number_of_components()
+
+        # Find needed negative redundency when appart
+        if infr.neg_redun_nids.has_node(nid1):
+            neg_redun_set1 = set(infr.neg_redun_nids.neighbors(nid1))
+        else:
+            neg_redun_set1 = set()
+
+        if infr.neg_redun_nids.has_node(nid2):
+            neg_redun_set2 = set(infr.neg_redun_nids.neighbors(nid2))
+        else:
+            neg_redun_set2 = set()
+
+        # The number of negative edges needed before we place this edge
+        # is the number of PCCs that each PCC doesnt have a negative edge to
+        # yet
+
+        n_neg_need1 = (n_ccs - len(neg_redun_set1) - 1)
+        n_neg_need2 = (n_ccs - len(neg_redun_set2) - 1)
+        n_neg_need_before = n_neg_need1 + n_neg_need2
+
+        # After we join them we take the union of their negative redundancy
+        # (really we should check if it changes after)
+        # and this is now the new number of negative edges that would be needed
+        neg_redun_after = neg_redun_set1.union(neg_redun_set2) - {nid1, nid2}
+        n_neg_need_after = (n_ccs - 2) - len(neg_redun_after)
+
+        neg_entropy = n_neg_need_before - n_neg_need_after  # NOQA
+
+
+def _find_good_match_states(infr, ibs, edges):
     pos_edges = list(infr.pos_graph.edges())
     timedelta = ibs.get_annot_pair_timedelta(*zip(*edges))
     edges = ut.take(pos_edges, ut.argsort(timedelta))[::-1]
@@ -1771,3 +1942,15 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
         rcParams=TMP_RC,
     )
     return pt.gcf()
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.postdoc
+        python -m ibeis.scripts.postdoc --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

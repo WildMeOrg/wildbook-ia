@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
-from ibeis.scripts._thesis_helpers import Tabular, upper_one
+from ibeis.scripts._thesis_helpers import Tabular, upper_one, ave_str
 from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 import ibeis.constants as const
 from ibeis.algo.graph import nx_utils as nxu
@@ -3999,14 +3999,6 @@ def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
     fig.set_size_inches([W, H])
     return fig
-
-
-def ave_str(mean, std, precision=2):
-    ffmt = ''.join(['{:.', str(precision), 'f}'])
-    # fmtstr = ''.join(['$', ffmt, '±', ffmt, '$'])
-    fmtstr = ''.join([ffmt, '±', ffmt])
-    str_ = fmtstr.format(mean, std)
-    return str_
 
 
 if __name__ == '__main__':

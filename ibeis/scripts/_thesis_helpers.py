@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from os.path import basename, join, splitext, exists
+import pandas as pd
 import six
 import numpy as np
 import utool as ut
@@ -53,6 +54,8 @@ class DBInputs(object):
             self.species_nice = "plains zebras"
         if 'GIRM' in dbname:
             self.species_nice = "Masai giraffes"
+        if 'MantaMatcher' in dbname:
+            self.species_nice = "mantas"
         if 'humpback' in dbname:
             self.species_nice = "humpbacks"
             # self.species_nice = "humpback whales"
@@ -632,6 +635,14 @@ def join_tabular(parts, hline=False, align=True):
         text = ut.align(text, '&', pos=None)
         # text = ut.align(text, r'\\', pos=None)
     return text
+
+
+def ave_str(mean, std, precision=2):
+    ffmt = ''.join(['{:.', str(precision), 'f}'])
+    # fmtstr = ''.join(['$', ffmt, '±', ffmt, '$'])
+    fmtstr = ''.join([ffmt, '±', ffmt])
+    str_ = fmtstr.format(mean, std)
+    return str_
 
 
 if __name__ == '__main__':

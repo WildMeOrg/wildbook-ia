@@ -84,6 +84,7 @@ ANNOT_BASE_ATTRS = [
     # Image Set
     'imgset_uuids', 'imgsetids', 'image_set_texts',
     # Occurrence / Encounter
+    'static_encounter',
     'encounter_text', 'occurrence_text', 'primary_imageset',
     # Tags
     'all_tags',
@@ -100,6 +101,7 @@ ANNOT_SETTABLE_ATTRS = [
     'qualities', 'quality_texts', 'yaw_texts', 'yaws',
     'sex', 'sex_texts', 'species',
     'exemplar_flags',
+    'static_encounter',
     'multiple',
     'case_tags',
     'detect_confidence', 'reviewed',
@@ -272,6 +274,15 @@ class Annots(BASE):
             aids = ut.flatten(ibs.get_name_aids(other_nids))
         return aids
 
+    def group2(self, by):
+        """
+        self = annots
+        by = annots.static_encounter
+        encounters = annots.group2(annots.static_encounter)
+        """
+        annots_list = self.group(by)[1]
+        return AnnotGroups(annots_list, self._ibs)
+
     def get_aidpairs(self):
         aids = self.aids
         aid_pairs = list(it.combinations(aids, 2))
@@ -387,6 +398,9 @@ class AnnotGroups(ut.NiceRepr):
         self.annots_list = annots_list
         self._rowids_list = [a._rowids for a in self.annots_list]
 
+    def __len__(self):
+        return len(self.annots_list)
+
     def __nice__(self):
         import numpy as np
         len_list = ut.lmap(len, self.annots_list)
@@ -401,6 +415,9 @@ class AnnotGroups(ut.NiceRepr):
 
     def __iter__(self):
         return iter(self.annots_list)
+
+    def __getitem__(self, index):
+        return self.annots_list[index]
 
     @property
     def aids(self):
