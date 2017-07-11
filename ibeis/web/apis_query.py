@@ -169,6 +169,10 @@ def process_graph_match_html(ibs, **kwargs):
         if checkbox_name in request.form:
             tag_list.append(checbox_tag)
     tag_list = sorted(set(tag_list))
+    try:
+        confidence = float(request.form.get('ia-confidence-value', '1.0'))
+    except ValueError:
+        confidence = 1.0
     if len(tag_list) == 0:
         tag_str = ''
     else:
@@ -178,7 +182,7 @@ def process_graph_match_html(ibs, **kwargs):
         'client_time_start' : request.form.get('client_time_start', None),
         'client_time_end'   : request.form.get('client_time_end',   None),
     }
-    return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-api', 1.0, user_times)
+    return (annot_uuid_1, annot_uuid_2, state, tag_str, 'web-api', confidence, user_times)
 
 
 def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
@@ -1052,7 +1056,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         # it to null.
         'meta_decision'     : 'null',
         'tags'              : [] if len(tags) == 0 else tags.split(';'),
-        'user_id'           : 'user:web',
+        'user_id'           : appf.get_userid('user:web'),
         'confidence'        : 'pretty_sure',
         'timestamp_s1'      : user_times['server_time_start'],
         'timestamp_c1'      : user_times['client_time_start'],

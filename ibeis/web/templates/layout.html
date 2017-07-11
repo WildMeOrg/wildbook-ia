@@ -26,6 +26,14 @@
     <!-- <script type="text/javascript" src="{{ url_for('static', filename='include/Chart.js/Chart.bundle.min.js') }}"></script> -->
     <script type="text/javascript" src="{{ url_for('static', filename='javascript/script.js') }}"></script>
 
+    <script type="text/javascript" ia-dependency="javascript">
+      {% if not __have_userid__ %}
+        $(document).ready(function() {
+          $('#set-userid').modal('show');
+        });
+      {% endif %}
+    </script>
+
     {% block content_custom_css %}{% endblock %}
   </head>
 
@@ -39,8 +47,18 @@
                 <a href="{{ url_for(link) }}">{{ nice }}</a>
               </li>
             {% endfor %}
+              <li>
+                <a class="pull-left" data-toggle="modal" data-target="#set-userid">ID</a>
+              </li>
           </ul>
           <h3 class="text-muted">IBEIS Web Interface</h3>
+          {% if __have_userid__ %}
+            <br/>
+            <div class="pull-right" style="color: #aaa; margin-top: -15px;">
+              User: {{ __userid__ }}
+            </div>
+          {% endif %}
+
         </div>
       {% endif %}
 
@@ -54,6 +72,24 @@
         </div>
       {% endif %}
     </div> <!-- /container -->
+
+      <div class="modal fade" id="set-userid" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+              <h4 class="modal-title" id="myModalLabel">Specify your user ID</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" name="set-userid" class="form-control" placeholder="Enter your user ID">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="set_userid();">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     {% block content_custom_javascript %}{% endblock %}
   </body>
 </html>

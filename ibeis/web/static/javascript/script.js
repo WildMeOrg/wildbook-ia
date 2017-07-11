@@ -91,3 +91,22 @@ function reorder(obj){
         temp[keys[index]] = reorder(obj[keys[index]]);
     return temp;
 }
+
+
+function add_part() {
+    value = $('input[name="part-add"]').val()
+
+    $('#ia-detection-part-class')
+        .append($("<option></option>")
+            .attr("value", value)
+            .text(value));
+    $('#ia-detection-part-class option[value="' + value + '"]').prop("selected", true);
+    $('.ia-detection-form-part-value').trigger('change');
+}
+
+function set_userid() {
+    userid = $('input[name="set-userid"]').val()
+    submit_cookie('ibeis-ia-userid', userid);
+    reload()
+}
+
