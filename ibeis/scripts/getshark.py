@@ -242,7 +242,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     # Associate single annots and info using aids (lists should correspond)
     single_info['aid'] = single_annots.aids
 
-    if False:
+    if True:
         # try and set encounter information
         key1 = 'encounter'
         prop2 = 'static_encounter'

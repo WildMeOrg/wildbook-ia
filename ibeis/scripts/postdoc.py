@@ -162,10 +162,51 @@ class VerifierExpt(DBInputs):
                 ut.move(link, newpath)
                 self.link = ut.symlink(dpath, link)
 
+    @classmethod
+    def agg_dbstats(VerifierExpt):
+        """
+        CommandLine:
+            python -m ibeis VerifierExpt.agg_dbstats
+            python -m ibeis VerifierExpt.measure_dbstats
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.postdoc import *  # NOQA
+            >>> result = VerifierExpt.agg_dbstats()
+            >>> print(result)
+        """
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
+                       'MantaMatcher', 'RotanTurtles', 'humpbacks_fb', 'LF_ALL']
+        dfs = []
+        for dbname in agg_dbnames:
+            self = VerifierExpt(dbname)
+            info = self.ensure_results('dbstats')
+            info = self.measure_dbstats()
+            dfs.append(info['outinfo'])
+            # labels.append(self.species_nice.capitalize())
+
+        df = pd.DataFrame(dfs)
+        df = df.set_index('Database')
+        df.index.name = None
+
+        tabular = Tabular(df, colfmt='numeric')
+        tabular.theadify = 16
+        enc_text = tabular.as_tabular()
+        print(enc_text)
+
+        _ = ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
+                                preamb_extra=['\\usepackage{makecell}'])
+        ut.startfile(_)
+
+        ut.write_to(join(VerifierExpt.base_dpath, 'agg-enc.tex'), enc_text)
+
     @profile
     def measure_dbstats(self):
         """
-        python -m ibeis VerifierExpt.draw dbstats GZ_Master1
+        python -m ibeis VerifierExpt.measure dbstats GZ_Master1
+        python -m ibeis VerifierExpt.measure dbstats PZ_Master1
+        python -m ibeis VerifierExpt.measure dbstats MantaMatcher
+        python -m ibeis VerifierExpt.measure dbstats RotanTurtles
 
         Ignore:
             >>> from ibeis.scripts.postdoc import *
@@ -249,16 +290,21 @@ class VerifierExpt(DBInputs):
         print('Annotation Pool DBStats')
         print(ut.repr4(info, si=True, nl=3, precision=2))
 
+        def _ave_str2(d):
+            try:
+                return ave_str(*ut.take(d, ['mean', 'std']))
+            except Exception:
+                return 0
+
         outinfo = ut.odict([
             ('Database', info['species_nice']),
+            ('Annots', enc_info['all']['n_annots']),
             ('Names (singleton)', enc_info['single']['n_names']),
             ('Names (resighted)', enc_info['multi']['n_names']),
-            ('Enc per name (resighted)',
-             ave_str(*ut.take(enc_info['multi']['n_enc_per_name'], ['mean', 'std']))),
-            ('Annots per encounter',
-             ave_str(*ut.take(enc_info['all']['n_annot_per_enc'], ['mean', 'std']))),
-            ('Annots', enc_info['all']['n_annots']),
+            ('Enc per name (resighted)', _ave_str2(enc_info['multi']['n_enc_per_name'])),
+            ('Annots per encounter', _ave_str2(enc_info['all']['n_annot_per_enc'])),
         ])
+        info['outinfo'] = outinfo
 
         df = pd.DataFrame([outinfo])
         df = df.set_index('Database')
@@ -270,9 +316,9 @@ class VerifierExpt(DBInputs):
         enc_text = tabular.as_tabular()
         print(enc_text)
 
-        _ = ut.render_latex(enc_text, dpath=self.base_dpath, fname='dbstats',
+        ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
                                 preamb_extra=['\\usepackage{makecell}'])
-        ut.startfile(_)
+        # ut.startfile(_)
 
         # expt_name = ut.get_stack_frame().f_code.co_name.replace('measure_', '')
         expt_name = 'dbstats'

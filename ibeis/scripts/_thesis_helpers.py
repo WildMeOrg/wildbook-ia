@@ -58,6 +58,10 @@ class DBInputs(object):
             self.species_nice = "mantas"
         if 'humpback' in dbname:
             self.species_nice = "humpbacks"
+        if 'LF_ALL' in dbname:
+            self.species_nice = "lionfish"
+        if 'RotanTurtles' == dbname:
+            self.species_nice = "sea turtles"
             # self.species_nice = "humpback whales"
         if dbname is not None:
             # self.dpath = join(self.base_dpath, self.dbname)
@@ -126,7 +130,7 @@ class DBInputs(object):
                 if not exists(fpath):
                     ut.cprint('Results still missing need to re-measure', 'red')
                     # assert False
-                    self._setup()
+                    # self._setup()
                     getattr(self, 'measure_' + expt_name)()
                 else:
                     ut.cprint('Re-setup fixed it', 'gren')
@@ -158,10 +162,10 @@ class DBInputs(object):
         dbnames = ut.smart_cast(dbnames, list)
         for dbname in dbnames:
             self = ChapX(dbname)
-            if self.ibs is None:
-                self._setup()
-                # self._precollect()
             if expt_name == 'all':
+                if self.ibs is None:
+                    self._setup()
+                    # self._precollect()
                 self.measure_all(*args)
             else:
                 getattr(self, 'measure_' + expt_name)(*args)

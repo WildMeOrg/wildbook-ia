@@ -481,7 +481,9 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         cacher.save(data)
     occurrence_ids = data
     if occurrence_ids is None:
-        return
+        # return
+        # each annot is its own occurrence
+        occurrence_ids = list(range(len(annots)))
 
     ndec = int(np.ceil(np.log10(max(occurrence_ids))))
     suffmt = '-monkey-occur%0' + str(ndec) + 'd'
