@@ -169,10 +169,7 @@ def process_graph_match_html(ibs, **kwargs):
         if checkbox_name in request.form:
             tag_list.append(checbox_tag)
     tag_list = sorted(set(tag_list))
-    try:
-        confidence = float(request.form.get('ia-confidence-value', '1.0'))
-    except ValueError:
-        confidence = 1.0
+    confidence = request.form.get('ia-confidence-value', 'pretty_sure')
     if len(tag_list) == 0:
         tag_str = ''
     else:
@@ -1057,7 +1054,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         'meta_decision'     : 'null',
         'tags'              : [] if len(tags) == 0 else tags.split(';'),
         'user_id'           : appf.get_userid('user:web'),
-        'confidence'        : 'pretty_sure',
+        'confidence'        : confidence,
         'timestamp_s1'      : user_times['server_time_start'],
         'timestamp_c1'      : user_times['client_time_start'],
         'timestamp_c2'      : user_times['client_time_end'],
