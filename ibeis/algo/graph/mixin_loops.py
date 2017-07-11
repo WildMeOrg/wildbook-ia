@@ -191,6 +191,8 @@ class InfrLoops(object):
     def pos_redun_gen(infr):
         infr.print('===========================', color='white')
         infr.print('--- POSITIVE REDUN LOOP ---', color='white')
+        # FIXME: should prioritize inconsistentices first
+
         new_edges = list(infr.find_pos_redun_candidate_edges())
         for count in it.count(0):
             infr.print('check pos-redun iter {}'.format(count))

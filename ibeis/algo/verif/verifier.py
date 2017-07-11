@@ -26,7 +26,9 @@ class BaseVerifier(ut.NiceRepr):
 
     def predict(verif, edges, method='argmax', encoded=False):
         probs = verif.predict_proba_df(edges)
-        pred_enc = sklearn_utils.predict_from_probs(probs, method=method)
+        target_names = verif.class_names
+        pred_enc = sklearn_utils.predict_from_probs(
+            probs, method=method, target_names=target_names)
         if encoded:
             pred = pred_enc
         else:
