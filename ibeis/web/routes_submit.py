@@ -45,6 +45,11 @@ def submit_detection(**kwargs):
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('ia-turk_id', -1)
 
+    if method.lower() == 'poor boxes':
+        imgsetid_ = ibs.get_imageset_imgsetids_from_text('POOR BOXES')
+        ibs.set_image_imgsetids([gid], [imgsetid_])
+        method = 'accept'
+
     if method.lower() == 'delete':
         # ibs.delete_images(gid)
         # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
