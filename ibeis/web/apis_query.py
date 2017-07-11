@@ -857,6 +857,15 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
             'algo.hardcase' : True,
         }
 
+    if True:
+        query_config_dict = {
+            'ranking.enabled' : True,
+            'autoreview.enabled' : False,
+            'redun.enabled'   : True,
+            # 'queue.conf.thresh' : 'absolutely_sure',
+            # 'algo.hardcase' : True,
+        }
+
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
 
