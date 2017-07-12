@@ -654,6 +654,7 @@ class CandidateSearch(object):
         (Currently only the primary task is actually ensured)
 
         Doctest:
+            >>> from ibeis.algo.graph.mixin_matching import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
             >>>                             autoinit='staging')
@@ -666,6 +667,7 @@ class CandidateSearch(object):
             >>> assert len(infr.task_probs['match_state']) == 3
 
         Doctest:
+            >>> from ibeis.algo.graph.mixin_matching import *
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=6, p_incon=.5, size_std=2)
             >>> edges = list(infr.edges())

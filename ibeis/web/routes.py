@@ -2785,8 +2785,14 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     timedelta_str = '%0.2f years' % (timedelta, )
 
         progress = False
-        match_score = priority
-        alert = match_score is not None and match_score > 10.0
+        alert = priority is not None and priority > 10.0
+        data_dict.get('prob_match')
+        if 'prob_match' in data_dict:
+            match_score = data_dict['prob_match']
+        elif 'normscore' in data_dict:
+            match_score = data_dict['normscore']
+        else:
+            match_score = None
         previous = request.args.get('previous', None)
         if previous is not None and ';' in previous:
             previous = tuple(map(int, previous.split(';')))
