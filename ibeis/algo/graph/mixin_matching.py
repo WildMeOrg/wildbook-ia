@@ -817,9 +817,9 @@ class CandidateSearch(object):
             infr.prioritize(metric=metric, edges=priority_edges,
                             scores=priority)
 
-        if hasattr(infr, 'on_new_candidate_edges'):
-            # hack callback for demo
-            infr.on_new_candidate_edges(infr, new_edges)
+            if hasattr(infr, 'on_new_candidate_edges'):
+                # hack callback for demo
+                infr.on_new_candidate_edges(infr, new_edges)
         return len(priority_edges)
 
     @profile

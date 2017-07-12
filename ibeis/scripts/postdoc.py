@@ -139,6 +139,8 @@ class VerifierExpt(DBInputs):
             species = 'Plains Zebras'
         if species_code == 'zebra_grevys':
             species = 'Grévy\'s Zebras'
+        else:
+            species = species_code
         dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
         self.pblm = pblm

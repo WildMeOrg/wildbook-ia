@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import numpy as np
 import utool as ut
+import ubelt as ub
 import pandas as pd
 import itertools as it
 from ibeis.algo.graph import nx_utils as nxu
@@ -192,30 +193,44 @@ class InfrLoops(object):
         infr.print('===========================', color='white')
         infr.print('--- POSITIVE REDUN LOOP ---', color='white')
         # FIXME: should prioritize inconsistentices first
+        count = -1
 
-        new_edges = list(infr.find_pos_redun_candidate_edges())
+        def thread_gen():
+            new_edges = infr.find_pos_redun_candidate_edges()
+            for new_edges in buffered_add_candidate_edges(infr, 50, new_edges):
+                yield new_edges
+
+        def serial_gen():
+            # use this if threading does bad things
+            new_edges = list(infr.find_pos_redun_candidate_edges())
+            infr.add_candidate_edges(new_edges)
+            yield new_edges
+
         for count in it.count(0):
             infr.print('check pos-redun iter {}'.format(count))
             infr.queue.clear()
-            infr.add_candidate_edges(new_edges)
 
-            gen = infr.inner_priority_gen(use_refresh=False)
-            # yield from gen
-            for value in gen:
-                yield value
+            # Buffer one-vs-one scores in the background and present an edge to
+            # the user ASAP.
+            if infr.test_mode:
+                candgen = serial_gen()
+            else:
+                candgen = thread_gen()
 
-            new_edges = list(infr.find_pos_redun_candidate_edges())
-            if len(new_edges) == 0:
-                infr.print(
-                    'pos-redundancy achieved in {} iterations'.format(
-                        count + 1))
-                break
+            for new_edges in candgen:
+                gen = infr.inner_priority_gen(use_refresh=False)
+                # yield from gen
+                for value in gen:
+                    yield value
+
             infr.print('not pos-reduntant yet.', color='white')
+        infr.print(
+            'pos-redundancy achieved in {} iterations'.format(
+                count + 1))
 
     def neg_redun_gen(infr):
         infr.print('===========================', color='white')
         infr.print('--- NEGATIVE REDUN LOOP ---', color='white')
-        import ubelt as ub
 
         infr.queue.clear()
 
@@ -443,6 +458,7 @@ class InfrReviewers(object):
             infr.write_ibeis_staging_feedback()
 
     def continue_review(infr):
+        infr.print('continue_review', 10)
         if infr._gen is None:
             return None
         try:
@@ -779,6 +795,92 @@ class UserOracle(object):
             #     'ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}'.format(edge, truth, observed, is_recovering, hardness),
             #     2, color='red')
         return feedback
+
+
+if True:
+    from threading import Thread
+
+    _sentinel = object()
+
+    class _background_consumer(Thread):
+        """
+        Will fill the queue with content of the source in a separate thread.
+
+        Example:
+            >>> from ibeis.algo.graph.mixin_loops import *
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
+            >>>                             autoinit='staging', verbose=4)
+            >>> infr.load_published()
+            >>> gen = infr.find_pos_redun_candidate_edges()
+            >>> parbuf = buffered_add_candidate_edges(infr, 3, gen)
+            >>> next(parbuf)
+
+        """
+        def __init__(self, infr, queue, source):
+            Thread.__init__(self)
+
+            self.infr = infr
+
+            self._queue = queue
+            self._source = source
+
+        def run(self):
+            # for edges in ub.chunks(self._source, 5):
+            #     print('edges = {!r}'.format(edges))
+            #     # print('put item = {!r}'.format(item))
+            #     # probably not thread safe
+            #     infr = self.infr
+            #     infr.add_candidate_edges(edges)
+            #     for item in edges:
+            #         self._queue.put(item)
+            for _, item in enumerate(self._source):
+                # import threading
+                # import multiprocessing
+                # print('multiproc = ' + str(multiprocessing.current_process()))
+                # print('thread = ' + str(threading.current_thread()))
+                # print('_ = {!r}'.format(_))
+                # print('item = {!r}'.format(item))
+                # print('put item = {!r}'.format(item))
+                # probably not thread safe
+                infr = self.infr
+                infr.add_candidate_edges([item])
+                self._queue.put(item, block=True)
+
+            # Signal the consumer we are done.
+            self._queue.put(_sentinel)
+
+    class buffered_add_candidate_edges(object):
+        """Buffers content of an iterator polling the contents of the given
+        iterator in a separate thread.
+        When the consumer is faster than many producers, this kind of
+        concurrency and buffering makes sense.
+
+        The size parameter is the number of elements to buffer.
+
+        The source must be threadsafe.
+        """
+        def __init__(self, infr, size, source):
+            if six.PY2:
+                from Queue import Queue
+            else:
+                from queue import Queue
+            self._queue = Queue(size)
+
+            self._poller = _background_consumer(infr, self._queue, source)
+            self._poller.daemon = True
+            self._poller.start()
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            item = self._queue.get(True)
+            if item is _sentinel:
+                raise StopIteration()
+            return item
+
+        next = __next__
 
 
 if __name__ == '__main__':
