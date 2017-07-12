@@ -44,6 +44,15 @@ class VerifierExpt(DBInputs):
     """
     Collect data from experiments to visualize
 
+    python -m ibeis VerifierExpt.measure all PZ_Master1.GZ_Master1,GIRM_Master1,MantaMatcher,RotanTurtles,humpbacks_fb,LF_ALL
+    python -m ibeis VerifierExpt.measure all GIRM_Master1,PZ_Master1,LF_ALL
+    python -m ibeis VerifierExpt.measure all LF_ALL
+
+
+    agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
+                   'MantaMatcher', 'RotanTurtles', 'humpbacks_fb', 'LF_ALL']
+
+
     Ignore:
         >>> from ibeis.scripts.postdoc import *
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]

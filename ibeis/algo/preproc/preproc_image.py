@@ -1,28 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
-from os.path import splitext, basename
-import warnings  # NOQA
+from os.path import splitext, basename, isabs
+import warnings
 import vtool.exif as vtexif
 import utool as ut
-#import numpy as np  # NOQA
-#import hashlib
-#import uuid
-(print, rrr, profile) = ut.inject2(__name__, '[preproc_img]', DEBUG=False)
+import six
+(print, rrr, profile) = ut.inject2(__name__)
 
 
-#@profile
 def parse_exif(pil_img):
-    """ Image EXIF helper
-
-    Cyth::
-        cdef:
-            Image pil_img
-            dict exif_dict
-            long lat
-            long lon
-            long exiftime
-    """
+    """ Image EXIF helper """
     exif_dict = vtexif.get_exif_dict(pil_img)
     # TODO: More tags
     # (mainly the orientation tag)
@@ -33,14 +21,7 @@ def parse_exif(pil_img):
 
 
 def get_standard_ext(gpath):
-    """ Returns standardized image extension
-
-    Cyth::
-        cdef:
-            str gpath
-            str ext
-
-    """
+    """ Returns standardized image extension """
     ext = splitext(gpath)[1].lower()
     return '.jpg' if ext == '.jpeg' else ext
 
@@ -50,9 +31,7 @@ def parse_imageinfo(gpath):
     """ Worker function: gpath must be in UNIX-PATH format!
 
     Args:
-        tup (tuple): a tuple or one argument
-            (so the function can be parallelized easily)
-            (here it is just gpath, no tuple, sorry for confusion)
+        gpath (str): image path
 
     Returns:
         tuple: param_tup -
@@ -62,20 +41,17 @@ def parse_imageinfo(gpath):
     CommandLine:
         python -m ibeis.algo.preproc.preproc_image --exec-parse_imageinfo
 
-    Example:
-        >>> # DISABLE_DOCTEST
+    Doctest:
         >>> from ibeis.algo.preproc.preproc_image import *  # NOQA
-        >>> gpath = ('/media/raid/work/lynx/_ibsdb/images/f6c84c6d-55ca-fd02-d0b4-1c7c9c27c894.jpg')
-        >>> param_tup = parse_imageinfo(tup)
+        >>> gpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> param_tup = parse_imageinfo(gpath)
         >>> result = ('param_tup = %s' % (str(param_tup),))
         >>> print(result)
+        >>> uuid = param_tup[0]
+        >>> assert str(uuid) == '16008058-788c-2d48-cd50-f6029f726cbf'
     """
-    # Parse arguments from tuple
-    #print('[ginfo] gpath=%r' % gpath)
     # Try to open the image
-    from PIL import Image  # NOQA
-    from os.path import isabs
-    import six
+    from PIL import Image
     import tempfile
     if six.PY2:
         import urlparse
@@ -120,7 +96,7 @@ def parse_imageinfo(gpath):
                 gpath_ = gpath
 
             # Open image with Exif support
-            pil_img = Image.open(gpath_, 'r')  # NOQA
+            pil_img = Image.open(gpath_, 'r')
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except IOError as ex:
@@ -168,39 +144,36 @@ def parse_imageinfo(gpath):
     return param_tup
 
 
-@profile
-def add_images_params_gen(gpath_list, **kwargs):
-    """
-    generates values for add_images sqlcommands asychronously
+# def add_images_params_gen(gpath_list):
+#     """
+#     generates values for add_images sqlcommands asychronously
 
-    Args:
-        gpath_list (list):
+#     Args:
+#         gpath_list (list):
 
-    Kwargs:
-        ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,
-        adjust
+#     Kwargs:
+#         ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,
+#         adjust
 
-    Returns:
-        generator: params_gen
+#     Returns:
+#         generator: params_gen
 
-    CommandLine:
-        python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
+#     CommandLine:
+#         python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
 
-    Example0:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_image import *   # NOQA
-        >>> from vtool.tests import grabdata
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
-        >>> params_list = list(add_images_params_gen(gpath_list))
-        >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
-        >>> assert str(params_list[0][3]) == 'easy1.JPG', 'orig name is different'
-        >>> assert params_list[3] is None
-    """
-    #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
-    #print('[about to parse]: gpath_list=%r' % (gpath_list,))
-    params_gen = ut.generate(parse_imageinfo, gpath_list, adjust=True,
-                             force_serial=True, **kwargs)
-    return params_gen
+#     Example0:
+#         >>> # ENABLE_DOCTEST
+#         >>> from ibeis.algo.preproc.preproc_image import *   # NOQA
+#         >>> from vtool.tests import grabdata
+#         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
+#         >>> params_list = list(add_images_params_gen(gpath_list))
+#         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
+#         >>> assert str(params_list[0][3]) == 'easy1.JPG', 'orig name is different'
+#         >>> assert params_list[3] is None
+#     """
+#     params_gen = ut.generate2(parse_imageinfo, zip(gpath_list), adjust=True,
+#                               force_serial=True)
+#     return params_gen
 
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):

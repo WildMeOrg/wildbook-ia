@@ -31,12 +31,10 @@ CONFIG_URL_DICT = {
 }
 
 
-def classify_helper(tup, verbose=VERBOSE_SVM):
-    if len(tup) == 2:
-        weight_filepath, vector_list = tup
+def classify_helper(weight_filepath, vector_list, index_list=None,
+                    verbose=VERBOSE_SVM):
+    if index_list is None:
         index_list = list(range(len(vector_list)))
-    elif len(tup) == 3:
-        index_list, weight_filepath, vector_list = tup
     # Init score and class holders
     score_dict = { index: [] for index in index_list }
     class_dict = { index: [] for index in index_list }
@@ -121,15 +119,15 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
             vector_list_ = vector_list[start_index: stop_index]
             assert len(index_list_) == len(vector_list_)
             for weight_filepath in weight_filepath_list:
-                args = (index_list_, weight_filepath, vector_list_, )
+                args = (weight_filepath, vector_list_, index_list_)
                 args_list.append(args)
 
         nTasks = len(args_list)
         print('Processing vectors in parallel using vector_batch = %r' % (vector_batch, ))
 
     # Perform inference
-    classify_iter = ut.generate(classify_helper, args_list, nTasks=nTasks,
-                                chunksize=1, ordered=True, force_serial=False)
+    classify_iter = ut.generate2(classify_helper, args_list, nTasks=nTasks,
+                                 ordered=True, force_serial=False)
 
     # Classify with SVM for each image vector
     score_dict = { index: [] for index in index_list }

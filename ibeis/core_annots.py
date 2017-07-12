@@ -1028,13 +1028,10 @@ def compute_feats(depc, cid_list, config=None):
         # eager evaluation.
         # TODO: Check if there is any benefit to just passing in the iterator.
         arg_list = list(arg_iter)
-        # TODO: futures_generate
-        # featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput,
-        #                       freq=10, ordered=True,
-        #                       force_serial=ibs.force_serial)
-        featgen = ut.futures_generate(gen_feat_worker, arg_list, nTasks=nInput,
-                                      freq=10, ordered=True,
-                                      force_serial=ibs.force_serial)
+        featgen = ut.generate2(
+            gen_feat_worker, arg_list, nTasks=nInput, ordered=True,
+            force_serial=ibs.force_serial, progkw={'freq': 1}
+        )
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
         assert maskmethod is None, 'not implemented'
@@ -1048,13 +1045,15 @@ def compute_feats(depc, cid_list, config=None):
         yield (nFeat, kpts, vecs,)
 
 
-def gen_feat_worker(tup):
+def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
     r"""
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
     Args:
-        tup (tuple):
+        chip_fpath:
+        probchip_fpath:
+        hesaff_params:
 
     Returns:
         tuple: (None, kpts, vecs)
@@ -1075,7 +1074,6 @@ def gen_feat_worker(tup):
         >>> probchip_fpath = ibs.depc_annot.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['maskmethod'] == 'cnn' else None
         >>> hesaff_params = feat_config.asdict()
         >>> # Exec function source
-        >>> tup = (chip_fpath, probchip_fpath, hesaff_params)
         >>> masked_chip, num_kpts, kpts, vecs = ut.exec_func_src(
         >>>     gen_feat_worker, key_list=['masked_chip', 'num_kpts', 'kpts', 'vecs'],
         >>>     sentinal='num_kpts = kpts.shape[0]')
@@ -1091,9 +1089,6 @@ def gen_feat_worker(tup):
         >>> ut.show_if_requested()
     """
     import pyhesaff
-    #import numpy as np
-    #import vtool as vt
-    chip_fpath, probchip_fpath, hesaff_params = tup
     chip = vt.imread(chip_fpath)
     if probchip_fpath is not None:
         probchip = vt.imread(probchip_fpath, grayscale=True)
@@ -1130,6 +1125,9 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         fid_list (list):
         config (None): (default = None)
 
+    CommandLine:
+        python -m ibeis.core_annots compute_fgweights
+
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
@@ -1153,28 +1151,26 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     kpts_list = depc.get_native('feat', fid_list, 'kpts')
     # Force grayscale reading of chips
     arg_iter = zip(kpts_list, probchip_list, chipsize_list)
-    # ibs = depc.controller
-    # featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
-    #                               nTasks=nTasks, ordered=True, freq=10,
-    #                               force_serial=ibs.force_serial)
-    featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
-                                 nTasks=nTasks, ordered=True, freq=10,
-                                 force_serial=ibs.force_serial
-                                 )
+    featweight_gen = ut.generate2(
+        gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True,
+        force_serial=ibs.force_serial,
+        progkw={'freq': 1}
+    )
     featweight_list = list(featweight_gen)
     print('[compute_fgweights] Done computing %d fgweights' % (nTasks,))
     for fw in featweight_list:
         yield (fw,)
 
 
-def gen_featweight_worker(tup):
+def gen_featweight_worker(kpts, probchip, chipsize):
     """
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
     Args:
-        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and
-            probability chip file path aid, kpts, probchip_fpath
+        kpts:
+        probchip:
+        chipsize:
 
     CommandLine:
         python -m ibeis.core_annots --test-gen_featweight_worker --show
@@ -1190,8 +1186,7 @@ def gen_featweight_worker(tup):
         >>> probchip = depc.get('probchip', aid_list, 'img', config=config)[0]
         >>> chipsize = depc.get('chips', aid_list, ('width', 'height'), config=config)[0]
         >>> kpts = depc.get('feat', aid_list, 'kpts', config=config)[0]
-        >>> tup = (kpts, probchip, chipsize)
-        >>> weights = gen_featweight_worker(tup)
+        >>> weights = gen_featweight_worker(kpts, probchip, chipsize)
         >>> assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
         >>> chip = depc.get('chips', aid_list, 'img', config=config)[0]
         >>> ut.quit_if_noshow()
@@ -1207,7 +1202,6 @@ def gen_featweight_worker(tup):
         >>> cb.set_label('featweights')
         >>> pt.show_if_requested()
     """
-    (kpts, probchip, chipsize) = tup
     if probchip is None:
         # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
         assert False, 'should not be in this state'

@@ -21,6 +21,9 @@ class InfrLoops(object):
         """
         The main outer loop
 
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_loops main_gen
+
         Doctest:
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
@@ -196,6 +199,7 @@ class InfrLoops(object):
         count = -1
 
         def thread_gen():
+            # This is probably not safe
             new_edges = infr.find_pos_redun_candidate_edges()
             for new_edges in buffered_add_candidate_edges(infr, 50, new_edges):
                 yield new_edges
@@ -217,11 +221,17 @@ class InfrLoops(object):
             # else:
             #     candgen = thread_gen()
 
+            found_any = False
+
             for new_edges in candgen:
+                found_any = True
                 gen = infr.inner_priority_gen(use_refresh=False)
                 # yield from gen
                 for value in gen:
                     yield value
+
+            if not found_any:
+                break
 
             infr.print('not pos-reduntant yet.', color='white')
         infr.print(
