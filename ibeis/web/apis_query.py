@@ -859,13 +859,23 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     print('!!! query_config_dict = {!r}'.format(query_config_dict))
 
     # BIG HACKS:
-    if True:
+    # if True:
+    if False:
         query_config_dict = {
             'ranking.enabled' : False,
             'autoreview.enabled' : False,
             'redun.enabled'   : False,
             'queue.conf.thresh' : 'absolutely_sure',
             'algo.hardcase' : True,
+        }
+
+    if True:
+        query_config_dict = {
+            'ranking.enabled' : True,
+            'autoreview.enabled' : False,
+            'redun.enabled'   : True,
+            # 'queue.conf.thresh' : 'absolutely_sure',
+            # 'algo.hardcase' : True,
         }
 
     if annot_uuid_list is None:
