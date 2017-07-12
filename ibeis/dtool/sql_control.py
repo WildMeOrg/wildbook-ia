@@ -12,6 +12,7 @@ import re
 import parse
 import utool as ut
 import collections
+import threading
 from functools import partial
 from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
@@ -115,6 +116,8 @@ class SQLExecutionContext(object):
         context.verbose = verbose
         context.is_insert = context.operation_type.startswith('INSERT')
         context.keepwrap = keepwrap
+        context.cur = None
+        context.connection = None
 
     def __enter__(context):
         """ Checks to see if the operating will change the database """
@@ -125,7 +128,15 @@ class SQLExecutionContext(object):
         else:
             context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
-        context.cur = context.db.connection.cursor()  # HACK in a new cursor
+
+        context.connection = context.db.connection
+        try:
+            context.cur = context.connection.cursor()  # HACK in a new cursor
+        except lite.ProgrammingError:
+            # Get connection for new thread
+            context.connection = context.db.thread_connection()
+            context.cur = context.connection.cursor()
+
         #context.cur = context.db.cur  # OR USE DB CURSOR??
         if context.start_transaction:
             #context.cur.execute('BEGIN', ())
@@ -206,7 +217,7 @@ class SQLExecutionContext(object):
         else:
             # Commit the transaction
             if context.auto_commit:
-                context.db.connection.commit()
+                context.connection.commit()
             else:
                 print('no commit %r' % context.operation_lbl)
 
@@ -379,12 +390,13 @@ class SQLDatabaseController(object):
 
         is_new = not exists(db.fpath)
 
+        db.thread_connections = {}
+
         # Create connection
         connection, uri = db._create_connection()
         db.connection = connection
         db.uri = uri
 
-        db.connection.text_factory = db.text_factory
         # Get a cursor which will preform sql commands / queries / executions
         db.cur = db.connection.cursor()
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
@@ -449,6 +461,12 @@ class SQLDatabaseController(object):
                 else:
                     uri = db.fpath
                     connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES)
+
+        # Keep track of what thead this was started in
+        threadid = threading.current_thread()
+        db.thread_connections[threadid] = connection
+        connection.text_factory = db.text_factory
+
         return connection, uri
 
     def get_fpath(db):
@@ -457,6 +475,22 @@ class SQLDatabaseController(object):
     def close(db):
         db.cur = None
         db.connection.close()
+        db.thread_connections = {}
+
+    # def reconnect(db):
+    #     # Call this if we move into a new thread
+    #     assert db.fname != ':memory:', 'cant reconnect to mem'
+    #     connection, uri = db._create_connection()
+    #     db.connection = connection
+    #     db.cur = db.connection.cursor()
+
+    def thread_connection(db):
+        threadid = threading.current_thread()
+        if threadid in db.thread_connections:
+            connection = db.thread_connections[threadid]
+        else:
+            connection, uri = db._create_connection()
+        return connection
 
     @profile
     def _ensure_metadata_table(db):
@@ -1225,7 +1259,7 @@ class SQLDatabaseController(object):
                     continue
             to_write = '%s\n' % line
             # Ensure python2 writes in bytes
-            if six.PY2 and isinstance(to_write, unicode):
+            if six.PY2 and isinstance(to_write, unicode):  # NOQA
                 to_write = to_write.encode('utf8')
             try:
                 file_.write(to_write)
