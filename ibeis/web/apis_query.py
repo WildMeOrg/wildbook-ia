@@ -824,6 +824,11 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     CommandLine:
         python -m ibeis.web.apis_query --test-query_chips_graph_v2:0
 
+        python -m ibeis reset_mtest_graph
+
+        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
+        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/
+
     Example:
         >>> # WEB_DOCTEST
         >>> from ibeis.web.apis_query import *
@@ -856,27 +861,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         >>> query_chips_graph_v2.__globals__['current_app'] = old
     """
     from ibeis.web.graph_server import GraphClient
-    print('!!! query_config_dict = {!r}'.format(query_config_dict))
-
-    # BIG HACKS:
-    # if True:
-    if False:
-        query_config_dict = {
-            'ranking.enabled' : False,
-            'autoreview.enabled' : False,
-            'redun.enabled'   : False,
-            'queue.conf.thresh' : 'absolutely_sure',
-            'algo.hardcase' : True,
-        }
-
-    if True:
-        query_config_dict = {
-            'ranking.enabled' : True,
-            'autoreview.enabled' : False,
-            'redun.enabled'   : True,
-            # 'queue.conf.thresh' : 'absolutely_sure',
-            # 'algo.hardcase' : True,
-        }
+    print('[apis_query] Creating GraphClient')
 
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
@@ -912,8 +897,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
             'algo.quickstart' : False
         }
         config.update(query_config_dict)
-        print('query_config_dict = {!r}'.format(query_config_dict))
-        print('config = {!r}'.format(config))
+        print('[apis_query] graph_client.config = {}'.format(ut.repr3(config)))
         graph_client.config = config
 
         # Ensure no race-conditions
@@ -928,6 +912,10 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         }
         future = graph_client.post(payload)
         future.result()  # Guarantee that this has happened before calling refresh
+
+        f2 = graph_client.post({'action' : 'latest_logs'})
+        f2.graph_client = graph_client
+        f2.add_done_callback(query_graph_v2_latest_logs)
 
         # Start (create the Graph Inference object)
         payload = {
@@ -1085,7 +1073,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         # it to null.
         'meta_decision'     : 'null',
         'tags'              : [] if len(tags) == 0 else tags.split(';'),
-        'user_id'           : 'web:%s' % (userid, ),
+        'user_id'           : 'user:web:%s' % (userid, ),
         'confidence'        : confidence,
         'timestamp_s1'      : user_times['server_time_start'],
         'timestamp_c1'      : user_times['client_time_start'],

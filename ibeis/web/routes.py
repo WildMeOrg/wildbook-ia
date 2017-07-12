@@ -2633,6 +2633,10 @@ def delete_query_chips_graph_v2_refer(graph_uuid):
 @register_route('/turk/identification/hardcase/', methods=['GET'])
 def turk_identification_hardcase(*args, **kwargs):
     """
+    CommandLine:
+        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
+        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/
+
         >>> # SCRIPT
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
@@ -2698,12 +2702,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             if annot_uuid_list is None:
                 annot_uuid_list = ibs.annots().uuids
 
-            print('Starting graph turk of {} annotations'.format(
+            print('[routes] Starting graph turk of {} annotations'.format(
                 len(annot_uuid_list)))
-
-            print('hardcase = {!r}'.format(hardcase))
             if hardcase:
-                print('Doing hardcase turk')
+                print('[routes] Graph is in hardcase-mode')
                 query_config_dict = {
                     'ranking.enabled' : False,
                     'autoreview.enabled' : False,
@@ -2712,10 +2714,14 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     'algo.hardcase' : True,
                 }
             else:
+                print('[routes] Graph is in hardcase-mode')
                 query_config_dict = {}
-            print('query_config_dict = {!r}'.format(query_config_dict))
 
-            query_config_dict = kwargs.get('query_config_dict', {})
+            query_config_dict.update(kwargs.get('query_config_dict', {}))
+
+            print('[routes] query_config_dict = {}'.format(
+                ut.repr3(query_config_dict)))
+
             graph_uuid = ibs.query_chips_graph_v2(
                 annot_uuid_list=annot_uuid_list,
                 query_config_dict=query_config_dict)

@@ -858,7 +858,8 @@ def check_exif_data(ibs, gid_list):
         for key in exif_dict2.keys():
             key2_freq[key] += 1
 
-    ut.print_stats(num_tags_list, 'num tags per image')
+    print('Stats for num tags per image')
+    print(ut.repr4(ut.get_stats(num_tags_list)))
 
     print('tag frequency')
     print(ut.repr2(key2_freq))
@@ -1942,12 +1943,6 @@ def _get_exemplar_gids(ibs):
         WHERE annot_exemplar_flag=1
         '''.format(**const.__dict__))
     return gid_list
-
-
-#@register_ibs_method
-#def print_stats(ibs):
-    #from ibeis.other import dbinfo
-    #dbinfo.dbstats(ibs)
 
 
 @register_ibs_method

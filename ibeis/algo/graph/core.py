@@ -414,28 +414,6 @@ class Feedback(object):
         infr.neg_redun_nids.clear()
         infr.nid_to_errors.clear()
 
-    def _is_staging_above_annotmatch(infr):
-        """
-        conversion step: make sure the staging db is ahead of match
-
-        SeeAlso:
-            _update_staging_to_annotmatch
-        """
-        ibs = infr.ibs
-        n_stage = ibs.staging.get_row_count(ibs.const.REVIEW_TABLE)
-        n_annotmatch = ibs.db.get_row_count(ibs.const.ANNOTMATCH_TABLE)
-        return n_stage >= n_annotmatch
-        # stage_fb = infr.read_ibeis_staging_feedback()
-        # match_fb = infr.read_ibeis_annotmatch_feedback()
-        # set(match_fb.keys()) - set(stage_fb.keys())
-        # set(stage_fb.keys()) == set(match_fb.keys())
-
-    def needs_conversion(infr):
-        # not sure what the criteria is exactly. probably depricate
-        num_names = len(set(infr.get_node_attrs('name_label').values()))
-        num_pccs = infr.pos_graph.number_of_components()
-        return num_pccs == 0 and num_names > 0
-
     def reset_feedback(infr, mode='annotmatch', apply=True):
         """ Resets feedback edges to state of the SQL annotmatch table """
         infr.print('reset_feedback mode=%r' % (mode,), 1)

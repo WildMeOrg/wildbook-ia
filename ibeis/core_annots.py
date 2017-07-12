@@ -236,10 +236,18 @@ class ChipConfig(dtool.Config):
             hideif=lambda cfg: cfg['dim_size'] is None),
         ut.ParamInfo('dim_tol', 0, 'tol', hideif=0),
         ut.ParamInfo('preserve_aspect', True, hideif=True),
+        # ---
         ut.ParamInfo('histeq', False, hideif=False),
+        # ---
         ut.ParamInfo('adapteq', False, hideif=False),
-        ut.ParamInfo('medianfilter', False, hideif=False),
-        ut.ParamInfo('histeq_thresh', False, hideif=False),
+        ut.ParamInfo('adapteq_ksize', 8, hideif=lambda cfg: not cfg['adapteq']),
+        ut.ParamInfo('adapteq_limit', 2.0, hideif=lambda cfg: not cfg['adapteq']),
+        # ---
+        ut.ParamInfo('medianblur', False, hideif=False),
+        ut.ParamInfo('medianblur_thresh', 50, hideif=lambda cfg: not cfg['medianblur']),
+        ut.ParamInfo('medianblur_ksize1', 3, hideif=lambda cfg: not cfg['medianblur']),
+        ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
+        # ---
         ut.ParamInfo('pad', 0, hideif=0),
         ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
@@ -374,15 +382,29 @@ def compute_chip(depc, aid_list, config=None):
     arg_iter = zip(gid_list, newsize_list, M_list)
     arg_list = list(arg_iter)
 
-    filterfn_list = []
     from vtool import image_filters
-    # TODO: params
+    filter_list = []
+    # new way
     if config['histeq']:
-        filterfn_list.append(image_filters.histeq_fn)
-    if config['medianfilter']:
-        filterfn_list.append(image_filters.medianfilter_fn)
+        filter_list.append(
+            ('histeq', {})
+        )
+    if config['medianblur']:
+        filter_list.append(
+            ('medianblur', {
+                'noise_thresh': config['medianblur_thresh'],
+                'ksize1': config['medianblur_ksize1'],
+                'ksize2': config['medianblur_ksize2'],
+            }))
     if config['adapteq']:
-        filterfn_list.append(image_filters.adapteq_fn)
+        ksize = config['adapteq_ksize']
+        filter_list.append(
+            ('adapteq', {
+                'tileGridSize': (ksize, ksize),
+                'clipLimit': config['adapteq_limit'],
+            })
+        )
+    ipreproc = image_filters.IntensityPreproc()
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
@@ -391,16 +413,16 @@ def compute_chip(depc, aid_list, config=None):
         # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
         #cfpath, gid, new_size, M = tup
         gid, new_size, M = tup
-        # Read parent image # TODO: buffer this
-        # We assume the gids are nicely ordered, no need to load the image more
-        # than once, if so
+        # Read parent image # TODO: buffer this?
+        # If the gids are sorted, no need to load the image more than once, if so
         if gid != last_gid:
             imgBGR = ibs.get_image_imgdata(gid)
             last_gid = gid
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
-        for filtfn in filterfn_list:
-            chipBGR = filtfn(chipBGR)
+        # Do intensity normalizations
+        if filter_list:
+            chipBGR = ipreproc.preprocess(chipBGR, filter_list)
         width, height = vt.get_size(chipBGR)
         yield (chipBGR, width, height, M)
 

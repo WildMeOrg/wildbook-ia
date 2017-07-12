@@ -49,7 +49,8 @@ class VerifierExpt(DBInputs):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
-    base_dpath = ut.truepath('~/Desktop/pair_expts')
+    # base_dpath = ut.truepath('~/Desktop/pair_expts')
+    base_dpath = ut.truepath('~/latex/crall-iccvw-2017/figures')
 
     task_nice_lookup = {
         'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
@@ -123,7 +124,7 @@ class VerifierExpt(DBInputs):
             pblm.evaluate_classifiers()
             pblm.eval_data_keys = [data_key]
         else:
-            pblm.setup_evaluation()
+            pblm.setup_evaluation(with_simple=True)
 
         if False:
             pblm.infr
@@ -180,7 +181,7 @@ class VerifierExpt(DBInputs):
         dfs = []
         for dbname in agg_dbnames:
             self = VerifierExpt(dbname)
-            info = self.ensure_results('dbstats')
+            # info = self.ensure_results('dbstats')
             info = self.measure_dbstats()
             dfs.append(info['outinfo'])
             # labels.append(self.species_nice.capitalize())
@@ -316,8 +317,8 @@ class VerifierExpt(DBInputs):
         enc_text = tabular.as_tabular()
         print(enc_text)
 
-        ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
-                                preamb_extra=['\\usepackage{makecell}'])
+        # ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
+        #                         preamb_extra=['\\usepackage{makecell}'])
         # ut.startfile(_)
 
         # expt_name = ut.get_stack_frame().f_code.co_name.replace('measure_', '')
@@ -385,7 +386,10 @@ class VerifierExpt(DBInputs):
     def measure_all(self):
         r"""
         CommandLine:
+            python -m ibeis VerifierExpt.measure all GZ_Master1,MantaMatcher,RotanTurtles,LF_ALL
+
             python -m ibeis VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
+            python -m ibeis VerifierExpt.measure_all --db GZ_Master1
             python -m ibeis VerifierExpt.measure_all --db PZ_MTEST
             python -m ibeis VerifierExpt.measure_all
 
@@ -445,7 +449,7 @@ class VerifierExpt(DBInputs):
             self.measure_hard_cases(task_key)
 
         self.measure_rerank()
-        self.measure_prune()
+        # self.measure_prune()
 
         if ut.get_argflag('--draw'):
             self.draw_all()
@@ -756,7 +760,7 @@ class VerifierExpt(DBInputs):
         data_key = self.data_key
         config = pblm.feat_extract_info[data_key][0]['match_config']
         edges = [case['edge'] for case in cases]
-        matches = infr._exec_pairwise_match(edges, config)
+        matches = infr._make_matches_from(edges, config)
 
         def _prep_annot(annot):
             # Load data needed for plot into annot dictionary

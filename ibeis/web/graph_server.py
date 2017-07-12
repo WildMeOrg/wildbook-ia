@@ -193,11 +193,13 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         # TODO: Initialize state from staging reviews after annotmatch
         # timestamps (in case of crash)
 
-        actor.infr.print('doing table init')
+        actor.infr.print('Initializing infr tables')
         table = kwargs.get('init', 'staging')
         actor.infr.reset_feedback(table, apply=True)
         actor.infr.ensure_mst()
         actor.infr.apply_nondynamic_update()
+
+        actor.infr.print('infr.status() = {}'.format(ut.repr4(actor.infr.status())))
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.print('loading published models')
