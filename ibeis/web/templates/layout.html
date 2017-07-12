@@ -52,13 +52,10 @@
               </li>
           </ul>
           <h3 class="text-muted">IBEIS Web Interface</h3>
-          {% if __have_userid__ %}
             <br/>
             <div class="pull-right" style="color: #aaa; margin-top: -15px;">
-              User: {{ __userid__ }}
+              User: <span id="userid-container">{% if __have_userid__ %}{{ __userid__ }}{% else %}NULL{% endif %}</span>
             </div>
-          {% endif %}
-
         </div>
       {% endif %}
 
@@ -78,10 +75,12 @@
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-              <h4 class="modal-title" id="myModalLabel">Specify your user ID</h4>
+              <h4 class="modal-title" id="myModalLabel">User ID</h4>
             </div>
             <div class="modal-body">
                 <input type="text" name="set-userid" class="form-control" placeholder="Enter your user ID">
+                <br/>
+                <i>A user ID is a self-specified value to identify yourself for any experiments.  If you are unsure of what to put, you can simply use your first name or contact the owner of the database</i>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="set_userid();">Save</button>

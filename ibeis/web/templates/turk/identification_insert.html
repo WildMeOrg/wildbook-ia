@@ -71,13 +71,17 @@
                 </label>
               </div>
             </div>
-            <div class="col-lg-3">
-                <select id="ia-turk-confidence" class="form-control" name="ia-confidence-value" style="width: 200px;" autofocus="autofocus">
-                    <option value="{{ unspecified }}" selected>Unspecified</option>
-                    <option value="{{ guessing }}" selected>Guessing</option>
-                    <option value="{{ pretty_sure }}" selected>Pretty Sure</option>
-                    <option value="{{ absolutely_sure }}" selected>Absolutely Sure</option>
+            <div class="col-lg-3"></div>
+
+            <div class="row">
+              <div class="col-lg-12" style="text-align: center;">
+                Confidence:
+                <select id="ia-turk-confidence" class="form-control" name="ia-turk-confidence" style="width: 200px; margin-left: auto; margin-right: auto;" autofocus="autofocus">
+                  {% for confidence_nice, confidence_text, confidence_selected in confidence_list %}
+                    <option value="{{ confidence_text }}" {% if confidence_selected %}selected{% endif %}>{{ confidence_nice }}</option>
+                  {% endfor %}
                 </select>
+              </div>
             </div>
 
             <div class="col-lg-12">

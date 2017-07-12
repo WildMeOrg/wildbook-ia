@@ -2555,6 +2555,15 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
     session_counter = current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER
     session_limit = global_feedback_limit
 
+    confidence_dict = const.CONFIDENCE.NICE_TO_CODE
+    confidence_nice_list = confidence_dict.keys()
+    confidence_text_list = confidence_dict.values()
+    confidence_selected_list = [
+        confidence_text == 'unspecified'
+        for confidence_text in confidence_text_list
+    ]
+    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+
     timedelta_str = 'Unknown'
     if aid1 is not None and aid2 is not None:
         unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids([aid1, aid2]))
@@ -2591,6 +2600,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                          session=True,
                          session_counter=session_counter,
                          session_limit=session_limit,
+                         confidence_list=confidence_list,
                          timedelta_str=timedelta_str,
                          finished=finished,
                          annot_uuid_1=str(annot_uuid_1),
@@ -2794,6 +2804,15 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     base = url_for('submit_identification_v2')
     callback_url = '%s?%s' % (base, graph_uuid_str, )
 
+    confidence_dict = const.CONFIDENCE.NICE_TO_CODE
+    confidence_nice_list = confidence_dict.keys()
+    confidence_text_list = confidence_dict.values()
+    confidence_selected_list = [
+        confidence_text == 'unspecified'
+        for confidence_text in confidence_text_list
+    ]
+    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+
     return appf.template('turk', 'identification',
                          match_score=match_score,
                          image_clean_src=image_clean_src,
@@ -2809,6 +2828,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          finished=finished,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
+                         confidence_list=confidence_list,
                          previous=previous,
                          graph_uuid_str=graph_uuid_str,
                          previous_version=2,

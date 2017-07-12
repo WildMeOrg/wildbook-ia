@@ -107,6 +107,6 @@ function add_part() {
 function set_userid() {
     userid = $('input[name="set-userid"]').val()
     submit_cookie('ibeis-ia-userid', userid);
-    reload()
+    $('#userid-container').html(userid)
 }
 

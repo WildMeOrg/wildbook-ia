@@ -169,7 +169,10 @@ def process_graph_match_html(ibs, **kwargs):
         if checkbox_name in request.form:
             tag_list.append(checbox_tag)
     tag_list = sorted(set(tag_list))
-    confidence = request.form.get('ia-confidence-value', 'pretty_sure')
+    confidence_default = const.CONFIDENCE.INT_TO_CODE[const.CONFIDENCE.UNKNOWN]
+    confidence = request.form.get('ia-turk-confidence', confidence_default)
+    if confidence not in const.CONFIDENCE.CODE_TO_INT.keys():
+        confidence = confidence_default
     if len(tag_list) == 0:
         tag_str = ''
     else:
@@ -430,6 +433,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
     image_matches_src = appf.embed_image_html(image_matches)
     image_clean_src = appf.embed_image_html(image_clean)
+
+    confidence_dict = const.CONFIDENCE.NICE_TO_CODE
+    confidence_nice_list = confidence_dict.keys()
+    confidence_text_list = confidence_dict.values()
+    confidence_selected_list = [
+        confidence_text == 'unspecified'
+        for confidence_text in confidence_text_list
+    ]
+    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
 
     if False:
         from ibeis.web import apis_query
@@ -995,6 +1007,15 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
         image_clean_src, image_matches_src, image_heatmask_src,
         server_time_start) = values
 
+    confidence_dict = const.CONFIDENCE.NICE_TO_CODE
+    confidence_nice_list = confidence_dict.keys()
+    confidence_text_list = confidence_dict.values()
+    confidence_selected_list = [
+        confidence_text == 'unspecified'
+        for confidence_text in confidence_text_list
+    ]
+    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+
     if False:
         from ibeis.web import apis_query
         root_path = dirname(abspath(apis_query.__file__))
@@ -1042,6 +1063,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
     edge = (aid1, aid2, )
+    userid = appf.get_userid('web')
     now = datetime.utcnow()
     payload = {
         'action'            : 'add_feedback',
@@ -1053,7 +1075,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         # it to null.
         'meta_decision'     : 'null',
         'tags'              : [] if len(tags) == 0 else tags.split(';'),
-        'user_id'           : appf.get_userid('user:web'),
+        'user_id'           : 'web:%s' % (userid, ),
         'confidence'        : confidence,
         'timestamp_s1'      : user_times['server_time_start'],
         'timestamp_c1'      : user_times['client_time_start'],
