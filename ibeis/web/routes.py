@@ -2794,17 +2794,17 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         match_data = ut.odict([])
         if 'evidence_decision' in data_dict:
             match_data['State'] = const.EVIDENCE_DECISION.CODE_TO_NICE[data_dict['evidence_decision']]
+
         if 'match_state' in data_dict:
             probs = data_dict['match_state']
             probs_nice = ut.map_keys(const.EVIDENCE_DECISION.CODE_TO_NICE, probs)
             ut.order_dict_by(probs_nice, const.EVIDENCE_DECISION.CODE_TO_NICE.values())
             match_data['Probs'] = probs_nice
         elif 'prob_match' in data_dict:
-            match_data['score'] = data_dict['prob_match']
+            match_data['Prob'] = data_dict['prob_match']
         elif 'normscore' in data_dict:
-            match_data['nscore'] = data_dict['normscore']
-        else:
-            match_data = None
+            match_data['Score'] = data_dict['normscore']
+
         match_data['priority'] = priority
         match_data['qsize'] = queue_len
         match_data = ut.repr2(match_data, si=True, precision=3, kvsep='=',
