@@ -351,7 +351,7 @@ def get_unixtime(exif_dict, default=-1):
     Ignore:
         gpaths = ut.list_images('/home/joncrall/work/humpbacks_fb/_ibsdb/images', full=1)
         gpaths = ut.list_images('/home/joncrall/work/humpbacks/_ibsdb/images', full=1)
-        exifs = list(ut.generate(vt.read_exif, gpaths))
+        exifs = list(ut.generate2(vt.read_exif, zip(gpaths)))
         times = ut.dict_take_column(exifs, 'DateTimeOriginal', '!!!!!!!!!!!!!!!!!!!')
         idxs = ut.where([y[-2] == ' ' for y in times])
 
