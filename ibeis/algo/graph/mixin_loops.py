@@ -202,9 +202,9 @@ class InfrLoops(object):
 
         def serial_gen():
             # use this if threading does bad things
-            new_edges = list(infr.find_pos_redun_candidate_edges())
-            infr.add_candidate_edges(new_edges)
-            yield new_edges
+            for new_edges in ub.chunks(infr.find_pos_redun_candidate_edges(), 100):
+                infr.add_candidate_edges(new_edges)
+                yield new_edges
 
         for count in it.count(0):
             infr.print('check pos-redun iter {}'.format(count))
@@ -212,10 +212,10 @@ class InfrLoops(object):
 
             # Buffer one-vs-one scores in the background and present an edge to
             # the user ASAP.
-            if infr.test_mode:
-                candgen = serial_gen()
-            else:
-                candgen = thread_gen()
+            # if infr.test_mode:
+            candgen = serial_gen()
+            # else:
+            #     candgen = thread_gen()
 
             for new_edges in candgen:
                 gen = infr.inner_priority_gen(use_refresh=False)
