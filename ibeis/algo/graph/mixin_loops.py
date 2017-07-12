@@ -413,6 +413,10 @@ class InfrReviewers(object):
             edge, on_missing='default')
         # Extra information
         edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+        if infr.queue is None:
+            edge_data['queue_len'] = 0
+        else:
+            edge_data['queue_len'] = len(infr.queue)
         edge_data['n_ccs'] = (
             len(infr.pos_graph.connected_to(edge[0])),
             len(infr.pos_graph.connected_to(edge[1]))

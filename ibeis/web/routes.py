@@ -2508,7 +2508,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                                     ibs, aid2, cm, qreq_,
                                     view_orientation=view_orientation,
                                     draw_matches=False)
-                            except KeyError:
+                            except KeyError as ex:
                                 image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
                                 ut.printex(ex, 'Failed to make fallback review image', tb=True,
                                            keys=['cm.qaid', 'aid1', 'aid2'])
@@ -2591,7 +2591,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
 
     callback_url = url_for('submit_identification')
     return appf.template('turk', 'identification',
-                         match_score=match_score,
+                         match_data='Score: ' + str(match_score),
                          image_clean_src=image_clean_src,
                          image_matches_src=image_matches_src,
                          aid1=aid1,
@@ -2680,6 +2680,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         python -m ibeis.web.routes turk_identification_graph --db PZ_Master1
         python -m ibeis.web.routes turk_identification_graph --db PZ_MTEST
         python -m ibeis.web.routes turk_identification_graph --db testdb1 --show
+
+        python -m ibeis --db PZ_MTEST --web --browser --url=/turk/identification/graph/ --noengine
 
     Example:
         >>> # SCRIPT
@@ -2787,12 +2789,26 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         progress = False
         alert = priority is not None and priority > 10.0
         data_dict.get('prob_match')
-        if 'prob_match' in data_dict:
-            match_score = data_dict['prob_match']
+        queue_len = data_dict.get('queue_len', 0)
+
+        match_data = ut.odict([])
+        if 'evidence_decision' in data_dict:
+            match_data['State'] = const.EVIDENCE_DECISION.CODE_TO_NICE[data_dict['evidence_decision']]
+        if 'match_state' in data_dict:
+            probs = data_dict['match_state']
+            probs_nice = ut.map_keys(const.EVIDENCE_DECISION.CODE_TO_NICE, probs)
+            ut.order_dict_by(probs_nice, const.EVIDENCE_DECISION.CODE_TO_NICE.values())
+            match_data['Probs'] = probs_nice
+        elif 'prob_match' in data_dict:
+            match_data['score'] = data_dict['prob_match']
         elif 'normscore' in data_dict:
-            match_score = data_dict['normscore']
+            match_data['nscore'] = data_dict['normscore']
         else:
-            match_score = None
+            match_data = None
+        match_data['priority'] = priority
+        match_data['qsize'] = queue_len
+        match_data = ut.repr2(match_data, si=True, precision=3, kvsep='=',
+                               nobr=1)
         previous = request.args.get('previous', None)
         if previous is not None and ';' in previous:
             previous = tuple(map(int, previous.split(';')))
@@ -2807,7 +2823,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         image_matches_src = None
         previous = None
         view_orientation = None
-        match_score = None
+        match_data = None
         alert = False
         timedelta_str = None
 
@@ -2826,7 +2842,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
 
     return appf.template('turk', 'identification',
-                         match_score=match_score,
+                         match_data=match_data,
                          image_clean_src=image_clean_src,
                          image_matches_src=image_matches_src,
                          aid1=aid1,

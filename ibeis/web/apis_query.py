@@ -962,6 +962,7 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     edge, priority, data_dict = data
     args = (edge, priority, )
     print('Sampled edge %r with priority %0.02f' % args)
+    print('Data: ' + ut.repr4(data_dict))
 
     aid_1, aid_2 = edge
     annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))

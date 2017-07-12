@@ -653,6 +653,9 @@ class CandidateSearch(object):
         This gaurentees that infr.task_probs contains data for edges.
         (Currently only the primary task is actually ensured)
 
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_matching ensure_task_probs
+
         Doctest:
             >>> from ibeis.algo.graph.mixin_matching import *
             >>> import ibeis
@@ -694,10 +697,14 @@ class CandidateSearch(object):
             # Store task probs in internal data structure
             # FIXME: this is slow
             for task, probs in task_probs.items():
+                probs_dict = probs.to_dict(orient='index')
                 if task not in infr.task_probs:
-                    infr.task_probs[task] = probs.to_dict(orient='index')
+                    infr.task_probs[task] = probs_dict
                 else:
-                    infr.task_probs[task].update(probs.to_dict(orient='index'))
+                    infr.task_probs[task].update(probs_dict)
+
+                # Set edge task attribute as well
+                infr.set_edge_attrs(task, probs_dict)
 
     @profile
     def ensure_priority_scores(infr, priority_edges):

@@ -232,6 +232,7 @@ class Feedback(object):
         }
         infr.internal_feedback[edge].append(feedback_item)
         infr.set_edge_attr(edge, feedback_item)
+        infr.set_edge_attr(edge, {'decision': decision})
 
         if infr.test_mode:
             infr._dynamic_test_callback(edge, decision, user_id)
