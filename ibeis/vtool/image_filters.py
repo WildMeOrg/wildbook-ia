@@ -13,6 +13,93 @@ except ImportError as ex:
 (print, rrr, profile) = ut.inject2(__name__)
 
 
+class IntensityPreproc(object):
+    """
+    Prefered over old methods
+
+    CommandLine:
+        python -m vtool.image_filters IntensityPreproc --show
+
+    Doctest:
+        >>> from vtool.image_filters import *
+        >>> import vtool as vt
+        >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
+        >>> filter_list = [
+        >>>     ('medianblur', {}),
+        >>>     ('adapteq', {}),
+        >>> ]
+        >>> self = IntensityPreproc()
+        >>> chipBGR2 = self.preprocess(chipBGR, filter_list)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(chipBGR, pnum=(1, 2, 1), fnum=1)
+        >>> pt.imshow(chipBGR2, pnum=(1, 2, 2), fnum=1)
+        >>> ut.show_if_requested()
+    """
+
+    def preprocess(self, chipBGR, filter_list):
+        """
+        filter_list is a list of (name, config) tuples for preforming filter ops
+        """
+
+        # Convert into LAB space for grayscale extraction
+        chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
+        intensity = chipLAB[:, :, 0]
+
+        # Modify intensity
+        for filtname, config in filter_list:
+            intensity = getattr(self, filtname)(intensity, **config)
+
+        # Add color back in
+        chipLAB[:, :, 0] = intensity
+        chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
+        return chipBGR
+
+    def adapteq(self, intensity, tileGridSize=(8, 8), clipLimit=2.0):
+        clahe_obj = cv2.createCLAHE(clipLimit, tileGridSize)
+        intensity = clahe_obj.apply(intensity, dst=intensity)
+        return intensity
+
+    def medianblur(self, intensity, noise_thresh=50, ksize1=3, ksize2=5):
+        istd = intensity.std()
+        ksize = ksize1 if istd < noise_thresh else ksize2
+        intensity = cv2.medianBlur(intensity, ksize)
+        return intensity
+
+    def histeq(self, intensity):
+        """ Histogram equalization of a grayscale image. """
+        return cv2.equalizeHist(intensity)
+
+
+def manta_matcher_filters(chipBGR):
+    """
+    References:
+        http://onlinelibrary.wiley.com/doi/10.1002/ece3.587/full
+
+    Ignore:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('Mantas')
+        >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
+    """
+    chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
+
+    intensity = chipLAB[:, :, 0]
+    # Median filter
+    noise_thresh = 100
+    ksize = 5 if intensity.std() > noise_thresh else 3
+    intensity = cv2.medianBlur(intensity, ksize)
+
+    tileGridSize = (8, 8)
+    clipLimit = 2.0
+    clahe_obj = cv2.createCLAHE(clipLimit, tileGridSize)
+    intensity = clahe_obj.apply(intensity, dst=intensity)
+
+    chipLAB[:, :, 0] = intensity
+    chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
+    return chipBGR
+
+
 def adapteq_fn(chipBGR):
     """
     adaptive histogram equalization with CLAHE
@@ -59,35 +146,6 @@ def medianfilter_fn(chipBGR):
     noise_thresh = 100
     ksize = 5 if intensity.std() > noise_thresh else 3
     intensity = cv2.medianBlur(intensity, ksize)
-    chipLAB[:, :, 0] = intensity
-    chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
-    return chipBGR
-
-
-def manta_matcher_filters(chipBGR):
-    """
-    References:
-        http://onlinelibrary.wiley.com/doi/10.1002/ece3.587/full
-
-    Ignore:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('Mantas')
-        >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
-    """
-    chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
-
-    intensity = chipLAB[:, :, 0]
-    # Median filter
-    noise_thresh = 100
-    ksize = 5 if intensity.std() > noise_thresh else 3
-    intensity = cv2.medianBlur(intensity, ksize)
-
-    tileGridSize = (8, 8)
-    clipLimit = 2.0
-    clahe_obj = cv2.createCLAHE(clipLimit, tileGridSize)
-    intensity = clahe_obj.apply(intensity, dst=intensity)
-
     chipLAB[:, :, 0] = intensity
     chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
     return chipBGR
@@ -191,3 +249,15 @@ def grabcut_fn(chipBGR):
         #retchip = Image.fromarray(skimage.utool.img_as_ubyte(chip_)).convert('L')
     #return retchip
 """
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m vtool.image_filters
+        python -m vtool.image_filters --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

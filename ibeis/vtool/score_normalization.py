@@ -1271,8 +1271,10 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     import plottool as pt  # NOQA
 
     # Print raw score statistics
-    ut.print_stats(tp_support, lbl='tp_support')
-    ut.print_stats(tn_support, lbl='tn_support')
+    print('tp_support')
+    print(ut.repr4(ut.get_stats(tp_support)))
+    print('tn_support')
+    print(ut.repr4(ut.get_stats(tn_support)))
 
     # Test (potentially multiple) normalizing configurations
     if normkw_varydict is None:

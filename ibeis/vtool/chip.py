@@ -323,6 +323,8 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
                  interpolation=cv2.INTER_LANCZOS4):
     r""" Extracts a chip and applies filters
 
+    DEPRICATE
+
     Args:
         gfpath (str):  image file path string
         bbox (tuple):  bounding box in the format (x, y, w, h)
@@ -345,7 +347,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
         >>> TAU = 2 * np.pi
         >>> theta = TAU / 8
         >>> new_size = (32, 32)
-        >>> filter_list = []  # gfilt_tool.adapteq_fn]
+        >>> filter_list = []
         >>> # execute function
         >>> chipBGR = compute_chip(gfpath, bbox, theta, new_size, filter_list)
         >>> # verify results
@@ -363,7 +365,11 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
 
 
 def apply_filter_funcs(chipBGR, filter_funcs):
-    """ applies a list of preprocessing filters to a chip """
+    """ applies a list of preprocessing filters to a chip
+
+    DEPRICATE
+
+    """
     chipBGR_ = chipBGR
     for func in filter_funcs:
         chipBGR_ = func(chipBGR)
