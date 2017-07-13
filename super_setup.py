@@ -1180,6 +1180,9 @@ def main():
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')
+    except ValueError:
+        print('Probably need libgpu array')
+        print('python super_setup.py --libgpuarray')
 
     try:
         try:
