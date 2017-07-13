@@ -570,7 +570,7 @@ def get_image_uuids_with_annot_uuids(ibs, gid_list=None):
     if gid_list is None:
         gid_list = sorted(ibs.get_valid_gids())
     aids_list = ibs.get_image_aids(gid_list)
-    zipped = zip(gid_list, aids_list)
+    zipped = list(zip(gid_list, aids_list))
     combined_dict = {
         str(ibs.get_image_uiids(gid)) : ibs.get_annot_uuids(aid_list)
         for gid, aid_list in zipped
@@ -1148,7 +1148,7 @@ def get_name_nids_with_gids_json(ibs, nid_list=None):
     name_list = ibs.get_name_texts(nid_list)
     gids_list = ibs.get_name_gids(nid_list)
 
-    zipped = zip(nid_list, name_list, gids_list)
+    zipped = list(zip(nid_list, name_list, gids_list))
     combined_dict = {
         name : (ibs.get_name_uuids(nid), ibs.get_image_uuids(gid_list))
         for nid, name, gid_list in zipped

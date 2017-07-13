@@ -79,7 +79,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> dict_list = ibs.query_chips_simple_dict(qaids, daids)
         >>> qgids = ibs.get_annot_image_rowids(qaids)
         >>> qnids = ibs.get_annot_name_rowids(qaids)
-        >>> for dict_, qgid, qnid in zip(dict_list, qgids, qnids):
+        >>> for dict_, qgid, qnid in list(zip(dict_list, qgids, qnids)):
         >>>     dict_['qgid'] = qgid
         >>>     dict_['qnid'] = qnid
         >>>     dict_['dgid_list'] = ibs.get_annot_image_rowids(dict_['daid_list'])
@@ -441,7 +441,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         confidence_text == 'unspecified'
         for confidence_text in confidence_text_list
     ]
-    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     if False:
         from ibeis.web import apis_query
@@ -1013,7 +1013,7 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
         confidence_text == 'unspecified'
         for confidence_text in confidence_text_list
     ]
-    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     if False:
         from ibeis.web import apis_query
@@ -1123,12 +1123,12 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     match_aid2_list = ut.take_column(match_aid_edge_list, 1)
     match_annot_uuid1_list = ibs.get_annot_uuids(match_aid1_list)
     match_annot_uuid2_list = ibs.get_annot_uuids(match_aid2_list)
-    match_annot_uuid_edge_list = zip(match_annot_uuid1_list, match_annot_uuid2_list)
+    match_annot_uuid_edge_list = list(zip(match_annot_uuid1_list, match_annot_uuid2_list))
 
-    zipped = zip(*( list(edge_delta_df[col]) for col in col_list ))
+    zipped = list(zip(*( list(edge_delta_df[col]) for col in col_list )))
 
     match_list = []
-    for match_annot_uuid_edge, zipped_ in zip(match_annot_uuid_edge_list, zipped):
+    for match_annot_uuid_edge, zipped_ in list(zip(match_annot_uuid_edge_list, zipped)):
         match_dict = {
             'edge': match_annot_uuid_edge,
         }
@@ -1143,7 +1143,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     name_annot_uuid_list = ibs.get_annot_uuids(name_aid_list)
     old_name_list = list(name_delta_df['old_name'])
     new_name_list = list(name_delta_df['new_name'])
-    zipped = zip(name_annot_uuid_list, old_name_list, new_name_list)
+    zipped = list(zip(name_annot_uuid_list, old_name_list, new_name_list))
     name_dict = {
         name_annot_uuid: {
             'old': old_name,

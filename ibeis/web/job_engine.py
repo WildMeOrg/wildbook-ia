@@ -386,7 +386,7 @@ class JobBackend(object):
         assert len(key_list) == len(port_list)
         self.port_dict = {
             key : '%s:%d' % (URL, port)
-            for key, port in zip(key_list, port_list)
+            for key, port in list(zip(key_list, port_list))
         }
 
     def initialize_background_processes(self, dbdir=None, wait=0):

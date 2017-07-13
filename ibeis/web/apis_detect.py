@@ -250,7 +250,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     species_rowids = [ combined[1] for combined in combined_list ]
 
     species_text_list = ibs.get_species_texts(species_rowids)
-    species_list = zip(species_nice_list, species_text_list)
+    species_list = list(zip(species_nice_list, species_text_list))
     species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
 
     # Collect mapping of species to parts
@@ -260,7 +260,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     part_rowids_list = ibs.get_annot_part_rowids(aid_list)
     part_types_list = map(ibs.get_part_types, part_rowids_list)
 
-    zipped = zip(part_species_text_list, part_types_list)
+    zipped = list(zip(part_species_text_list, part_types_list))
     species_part_dict = {
         const.UNKNOWN: set([])
     }
@@ -344,7 +344,7 @@ def process_detection_html(ibs, **kwargs):
         int(annot['metadata'].get('viewpoint3', -1))
         for annot in annotation_list
     ]
-    zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
+    zipped = list(zip(viewpoint1_list, viewpoint2_list, viewpoint3_list))
     viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
 
     result_list = [
@@ -366,7 +366,7 @@ def process_detection_html(ibs, **kwargs):
             'interest'   : annot['highlighted'],
 
         }
-        for annot, viewpoint in zip(annotation_list, viewpoint_list)
+        for annot, viewpoint in list(zip(annotation_list, viewpoint_list))
     ]
     result_dict = {
         'image_uuid_list' : [image_uuid],
@@ -591,7 +591,7 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
 @register_ibs_method
 def commit_localization_results(ibs, gid_list, results_list, note=None,
                                 update_json_log=True):
-    zipped_list = zip(gid_list, results_list)
+    zipped_list = list(zip(gid_list, results_list))
     aids_list = []
     for gid, (score, bbox_list, theta_list, conf_list, class_list) in zipped_list:
         num = len(bbox_list)
@@ -617,7 +617,7 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
 @register_ibs_method
 def commit_detection_results(ibs, gid_list, results_list, note=None,
                              update_json_log=True):
-    zipped_list = zip(gid_list, results_list)
+    zipped_list = list(zip(gid_list, results_list))
     aids_list = []
     for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
         num = len(bbox_list)
@@ -647,11 +647,11 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
                                       update_json_log=True):
     depc = ibs.depc_image
     results_list = depc.get_property('detections', gid_list, None)
-    zipped_list = zip(gid_list, results_list)
+    zipped_list = list(zip(gid_list, results_list))
     aids_list = []
     for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
         aid_list = []
-        result_list = zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list)
+        result_list = list(zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list))
         for bbox, theta, species, viewpoint, conf in result_list:
             if not (filter_species_list is None or species in filter_species_list):
                 continue
@@ -706,7 +706,7 @@ def log_detections(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
     bbox_list = ibs.get_annot_bboxes(aid_list)
     theta_list = ibs.get_annot_thetas(aid_list)
-    zipped = zip(aid_list, gid_list, bbox_list, theta_list)
+    zipped = list(zip(aid_list, gid_list, bbox_list, theta_list))
     for aid, gid, bbox, theta in zipped:
         json_dict['updates'].append({
             'time_unixtime': time.time(),
@@ -764,7 +764,7 @@ def get_working_species(ibs):
 
     species_nice_list = ibs.get_all_species_nice()
     species_text_list = ibs.get_all_species_texts()
-    species_tup_list = zip(species_nice_list, species_text_list)
+    species_tup_list = list(zip(species_nice_list, species_text_list))
     if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
         working_species_tups = [
             species_tup
