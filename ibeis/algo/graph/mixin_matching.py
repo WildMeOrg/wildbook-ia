@@ -796,7 +796,7 @@ class CandidateSearch(object):
             priority = scores
         else:
             infr.print(
-                'WARNING: No information to prioritize {} edge(s)'.format(
+                'WARNING: No verifiers to prioritize {} edge(s)'.format(
                     len(priority_edges)))
             metric = 'random'
             priority = np.zeros(len(priority_edges)) + 1e-6

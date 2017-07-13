@@ -858,7 +858,8 @@ class Priority(object):
             infr._reinstate_edge_priority(edges)
 
     @profile
-    def prioritize(infr, metric=None, edges=None, scores=None, reset=False):
+    def prioritize(infr, metric=None, edges=None, scores=None,
+                   force_inconsistent=True, reset=False):
         """
         Adds edges to the priority queue
 
@@ -906,7 +907,9 @@ class Priority(object):
                 raise ValueError('must provide edges with scores')
             unrev_edges = infr.unreviewed_graph.edges()
             edges = set(infr.filter_nonredun_edges(unrev_edges))
-            if infr.params['inference.enabled']:
+
+        if infr.params['inference.enabled']:
+            if force_inconsistent:
                 edges.update(maybe_error_edges)
 
         # Ensure edges are in some arbitrary order
