@@ -5,7 +5,7 @@ from six.moves import map, range  # NOQA
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__._internal import GUITOOL_PYQT_VERSION
+from guitool.__PYQT__._internal import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
 from guitool import guitool_dialogs
 import weakref
@@ -1116,10 +1116,9 @@ def _inject_new_widget_methods(self):
                     'columnSpan': kwargs.pop('columnSpan', 1),
                 })
             new_widget = newfunc(self, *args, **kwargs)
-            print('GUITOOL_PYQT_VERSION = {!r}'.format(GUITOOL_PYQT_VERSION))
-            if GUITOOL_PYQT_VERSION == 5:
+            try:
                 self.addWidget(new_widget, **layout_kw)
-            else:
+            except TypeError:
                 self.addWidget(new_widget)
             if name is not None:
                 new_widget.setObjectName(name)
