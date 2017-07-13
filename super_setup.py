@@ -876,6 +876,7 @@ def execute_commands(tpl_rman, ibeis_rman):
             (ibeis_rman, 'flann', 'build'),
             (ibeis_rman, 'flann', 'install'),
             (ibeis_rman, 'hesaff', 'build'),
+            (ibeis_rman, 'libgpuarray', 'build'),
             (tpl_rman, 'PyQt', 'system_to_venv'),
         ]
         if GET_ARGFLAG('--libgpuarray'):
