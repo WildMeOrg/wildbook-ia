@@ -876,13 +876,9 @@ def execute_commands(tpl_rman, ibeis_rman):
             (ibeis_rman, 'flann', 'build'),
             (ibeis_rman, 'flann', 'install'),
             (ibeis_rman, 'hesaff', 'build'),
-            (ibeis_rman, 'libgpuarray', 'build'),
             (tpl_rman, 'PyQt', 'system_to_venv'),
+            (tpl_rman, 'libgpuarray', 'build'),
         ]
-        if GET_ARGFLAG('--libgpuarray'):
-            dumps += [
-                (tpl_rman, 'libgpuarray', 'build'),
-            ]
 
         for rman, mod, sname in dumps:
             from os.path import join
