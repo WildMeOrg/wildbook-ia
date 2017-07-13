@@ -1120,6 +1120,7 @@ def _inject_new_widget_methods(self):
                 self.addWidget(new_widget, **layout_kw)
             except TypeError:
                 self.addWidget(new_widget)
+
             if name is not None:
                 new_widget.setObjectName(name)
             return new_widget
