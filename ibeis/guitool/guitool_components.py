@@ -1116,6 +1116,7 @@ def _inject_new_widget_methods(self):
                     'columnSpan': kwargs.pop('columnSpan', 1),
                 })
             new_widget = newfunc(self, *args, **kwargs)
+            print('GUITOOL_PYQT_VERSION = {!r}'.format(GUITOOL_PYQT_VERSION))
             if GUITOOL_PYQT_VERSION == 5:
                 self.addWidget(new_widget, **layout_kw)
             else:
