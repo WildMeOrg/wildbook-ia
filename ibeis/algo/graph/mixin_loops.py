@@ -334,7 +334,7 @@ class InfrLoops(object):
         assert infr._gen is None, 'algo already running'
         # Just exhaust the main generator
         infr._gen = infr.main_gen(max_loops=max_loops, use_refresh=use_refresh)
-        return infr._gen
+        # return infr._gen
 
     def main_loop(infr, max_loops=None, use_refresh=True):
         """ DEPRICATED """

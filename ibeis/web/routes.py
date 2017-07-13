@@ -2805,7 +2805,9 @@ def turk_identification_hardcase(*args, **kwargs):
         ibs, aids = ibeis.testdata_aids('PZ_Master1', a=':species=zebra_plains')
         print(len(aids))
         infr = ibeis.AnnotInference(ibs, aids=aids, autoinit='staging')
+        infr.load_published()
         print(ut.repr4(infr.status()))
+        infr.qt_review_loop()
 
         verifiers = infr.learn_evaluation_verifiers()
 
@@ -2964,6 +2966,13 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             match_data['Score'] = data_dict['normscore']
 
         match_data['priority'] = priority
+
+        if 'nid_edge' in data_dict:
+            match_data['Names'] = data_dict['nid_edge']
+
+        if 'n_ccs' in data_dict:
+            match_data['CCSize'] = data_dict['n_ccs']
+
         match_data['qsize'] = queue_len
         match_data = ut.repr2(match_data, si=True, precision=3, kvsep='=',
                                nobr=1)
