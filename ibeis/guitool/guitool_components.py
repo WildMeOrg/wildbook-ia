@@ -1175,7 +1175,8 @@ def _inject_new_widget_methods(self):
                                          **kwargs)
                     else:
                         print('**1kwargs = {!r}'.format(kwargs))
-                        layout.addWidget(widget, **kwargs)
+                        layout.addWidget(widget)
+                        # , **kwargs)
                 else:
                     print('**2kwargs = {!r}'.format(kwargs))
                     layout.addWidget(widget, **kwargs)
