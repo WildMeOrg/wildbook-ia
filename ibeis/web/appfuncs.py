@@ -147,7 +147,8 @@ def get_userid(default=None):
     return request.cookies.get('ibeis-ia-userid', default)
 
 
-def template(template_directory=None, template_filename=None, **kwargs):
+def template(template_directory=None, template_filename=None, __check_userid__=True,
+             **kwargs):
     global_args = {
         'NAVBAR': NavbarClass(),
         'YEAR':   date.today().year,
@@ -157,7 +158,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
         '__wrapper_header__' : True,
         '__wrapper_footer__' : True,
         '__userid__': get_userid(),
-        '__have_userid__': get_userid() is not None,
+        '__have_userid__': not __check_userid__ or get_userid() is not None,
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():

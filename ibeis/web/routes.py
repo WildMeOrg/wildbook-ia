@@ -22,6 +22,15 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+THROW_TEST_AOI_TURKING = True
+THROW_TEST_AOI_TURKING_PERCENTAGE = 0.10
+THROW_TEST_AOI_TURKING_ERROR_MODES = {
+    'addition'   : [1, 2, 3],
+    'deletion'   : [1, 2, 3],
+    'alteration' : [1, 2, 3],
+}
+
+
 GLOBAL_FEEDBACK_LIMIT = 50
 GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
@@ -1778,6 +1787,107 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         annotation_list = []
         part_list = []
 
+    THROW_TEST_AOI_TURKING_AVAILABLE = False
+    if THROW_TEST_AOI_TURKING:
+        if True or random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
+            THROW_TEST_AOI_TURKING_AVAILABLE = True
+            annotation_list = list(annotation_list)
+            part_list = list(part_list)
+
+            key_list = list(THROW_TEST_AOI_TURKING_ERROR_MODES.keys())
+            throw_test_aoi_turking_mode = random.choice(key_list)
+            throw_test_aoi_turking_severity = random.choice(
+                THROW_TEST_AOI_TURKING_ERROR_MODES[throw_test_aoi_turking_mode]
+            )
+            throw_test_aoi_turking_severity = min(
+                throw_test_aoi_turking_severity,
+                len(annotation_list)
+            )
+            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            print('throw_test_aoi_turking: %r mode with %r severity' % args)
+
+            index_list = list(range(len(annotation_list)))
+            random.shuffle(index_list)
+            index_list = index_list[:throw_test_aoi_turking_severity]
+            index_list = sorted(index_list, reverse=True)
+
+            ut.embed()
+
+            THROW_TEST_AOI_TURKING_MANIFEST = []
+            if throw_test_aoi_turking_mode == 'addition':
+                print('addition')
+
+                for index in index_list:
+                    width = random.uniform(0.0, 100.0)
+                    height = random.uniform(0.0, 100.0)
+                    left = random.uniform(0.0, 100.0 - width)
+                    top = random.uniform(0.0, 100.0 - height)
+                    species = random.choice(ibs.get_all_species_texts())
+                    annotation = {
+                        'id': None,
+                        'top': top,
+                        'left': left,
+                        'width': width,
+                        'height': height,
+                        'theta': 0.0,
+                        'species': species,
+                        'quality': 0,
+                        'interest': 'false',
+                        'multiple': 'false',
+                        'viewpoint1': -1,
+                        'viewpoint2': -1,
+                        'viewpoint3': -1,
+                    }
+                    annotation_list.append(annotation)
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'addition',
+                        'values': annotation,
+                    })
+            elif throw_test_aoi_turking_mode == 'deletion':
+                if len(part_list) == 0:
+                    print('deletion')
+
+                    for index in index_list:
+                        annotation = annotation_list.pop(index)
+                        THROW_TEST_AOI_TURKING_MANIFEST.append({
+                            'action': 'deletion',
+                            'values': annotation,
+                        })
+                else:
+                    THROW_TEST_AOI_TURKING_AVAILABLE = False
+            elif throw_test_aoi_turking_mode == 'alteration':
+                print('alteration')
+
+                for index in index_list:
+                    width = random.uniform(0.0, 100.0)
+                    height = random.uniform(0.0, 100.0)
+                    left = random.uniform(0.0, 100.0 - width)
+                    top = random.uniform(0.0, 100.0 - height)
+                    species = random.choice(ibs.get_all_species_texts())
+                    annotation = {
+                        'id': None,
+                        'top': top,
+                        'left': left,
+                        'width': width,
+                        'height': height,
+                        'theta': 0.0,
+                        'species': species,
+                        'quality': 0,
+                        'interest': 'false',
+                        'multiple': 'false',
+                        'viewpoint1': -1,
+                        'viewpoint2': -1,
+                        'viewpoint3': -1,
+                    }
+                    annotation_list.append(annotation)
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'addition',
+                        'values': annotation,
+                    })
+
+            else:
+                raise ValueError('Invalid throw_test_aoi_turking_mode')
+
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)
 
@@ -1834,6 +1944,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
+                         __check_userid__=False,
                          imgsetid=imgsetid,
                          gid=gid,
                          config_str=config_str,
