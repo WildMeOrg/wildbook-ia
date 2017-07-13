@@ -2702,7 +2702,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     try:
         if graph_uuid is None:
             if annot_uuid_list is None:
-                annot_uuid_list = ibs.annots().uuids
+                import ibeis
+                aids = ibeis.testdata_aids(ibs=ibs, a=':species=primary')
+                annot_uuid_list = ibs.annots(aids).uuids
 
             print('[routes] Starting graph turk of {} annotations'.format(
                 len(annot_uuid_list)))

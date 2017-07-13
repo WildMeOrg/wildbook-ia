@@ -452,6 +452,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     python -c "import pydot; print(pydot.__file__)"
     python -c "import pydot; print(pydot.__version__)"
     python -c "import pydot; print(pydot.find_graphviz())"
+    DEVICE="cuda" python -c "import pygpu;pygpu.test()"
     python -c "import theano; print(theano.__file__)"
     python -c "import pylearn2; print(pylearn2.__file__)"
     python -c "import lasagne; print(lasagne.__file__)"
@@ -724,8 +725,13 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             git clone https://github.com/Theano/libgpuarray.git {repo_dpath}
         fi
 
+
         {python_bash_setup}
         cd {repo_dpath}
+
+        # need a specific version of libgpuarray
+        git checkout tags/v0.6.2 -b v0.6.2
+
         mkdir -p {repo_dpath}/{build_dname}
         cd {repo_dpath}/{build_dname}
 
