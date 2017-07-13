@@ -413,10 +413,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/lisa-lab/pylearn2.git',
             'https://github.com/Lasagne/Lasagne.git',
         ])
-        if GET_ARGFLAG('--libgpuarray'):
-            tpl_rman.add_repos([
-                'https://github.com/Theano/libgpuarray.git',
-            ])
+        # if GET_ARGFLAG('--libgpuarray'):
+        tpl_rman.add_repos([
+            'https://github.com/Theano/libgpuarray.git',
+        ])
 
     if WITH_PYRF:
         ibeis_rman.add_repos([
@@ -710,37 +710,37 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # ENDBLOCK
         """).format(**script_fmtdict))
 
-    if GET_ARGFLAG('--libgpuarray'):
-        tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
-            r"""
-            # STARTBLOCK bash
-            {python_bash_setup}
-            cd {repo_dpath}
-            mkdir -p {repo_dpath}/{build_dname}
-            cd {repo_dpath}/{build_dname}
+    # if GET_ARGFLAG('--libgpuarray'):
+    tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
+        r"""
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd {repo_dpath}
+        mkdir -p {repo_dpath}/{build_dname}
+        cd {repo_dpath}/{build_dname}
 
-            # First build the C library
-            cmake {repo_dpath} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX
-            export NCPUS=$(grep -c ^processor /proc/cpuinfo)
-            make -j$NCPUS
-            $_SUDO make install
+        # First build the C library
+        cmake {repo_dpath} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS
+        $_SUDO make install
 
-            # Now build the python libarary
-            cd {repo_dpath}
-            python setup.py build_ext -L $LOCAL_PREFIX/lib -I $LOCAL_PREFIX/include
-            python setup.py build
-            # python setup.py install
-            $_SUDO pip install -e {repo_dpath}
+        # Now build the python libarary
+        cd {repo_dpath}
+        python setup.py build_ext -L $LOCAL_PREFIX/lib -I $LOCAL_PREFIX/include
+        python setup.py build
+        # python setup.py install
+        $_SUDO pip install -e {repo_dpath}
 
-            # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
-            # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
-            cd ~
-            DEVICE="cuda" python -c "import pygpu;pygpu.test()"
+        # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
+        # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
+        cd ~
+        DEVICE="cuda" python -c "import pygpu;pygpu.test()"
 
-            # pip uninstall pygpu
-            # ENDBLOCK
-            """).format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
-                        **script_fmtdict))
+        # pip uninstall pygpu
+        # ENDBLOCK
+        """).format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
+                    **script_fmtdict))
 
     #===================
     # PYQT SETUP SCRIPTS
