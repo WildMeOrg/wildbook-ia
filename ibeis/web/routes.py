@@ -28,6 +28,7 @@ THROW_TEST_AOI_TURKING_ERROR_MODES = {
     'addition'   : [1, 2, 3],
     'deletion'   : [1, 2, 3],
     'alteration' : [1, 2, 3],
+    'translation' : [1, 2, 3],
 }
 
 
@@ -1787,6 +1788,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         annotation_list = []
         part_list = []
 
+    THROW_TEST_AOI_TURKING_MANIFEST = []
     THROW_TEST_AOI_TURKING_AVAILABLE = False
     if THROW_TEST_AOI_TURKING:
         if True or random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
@@ -1811,9 +1813,10 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             index_list = index_list[:throw_test_aoi_turking_severity]
             index_list = sorted(index_list, reverse=True)
 
-            ut.embed()
+            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            print(index_list)
+            print(ut.repr3(annotation_list))
 
-            THROW_TEST_AOI_TURKING_MANIFEST = []
             if throw_test_aoi_turking_mode == 'addition':
                 print('addition')
 
@@ -1859,34 +1862,75 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                 print('alteration')
 
                 for index in index_list:
-                    width = random.uniform(0.0, 100.0)
-                    height = random.uniform(0.0, 100.0)
-                    left = random.uniform(0.0, 100.0 - width)
-                    top = random.uniform(0.0, 100.0 - height)
-                    species = random.choice(ibs.get_all_species_texts())
-                    annotation = {
-                        'id': None,
-                        'top': top,
-                        'left': left,
-                        'width': width,
-                        'height': height,
-                        'theta': 0.0,
-                        'species': species,
-                        'quality': 0,
-                        'interest': 'false',
-                        'multiple': 'false',
-                        'viewpoint1': -1,
-                        'viewpoint2': -1,
-                        'viewpoint3': -1,
-                    }
-                    annotation_list.append(annotation)
-                    THROW_TEST_AOI_TURKING_MANIFEST.append({
-                        'action': 'addition',
-                        'values': annotation,
-                    })
+                    direction_list = ['left', 'right', 'up', 'down']
+                    direction = random.choice(direction_list)
+                    height = annotation_list[index]['height']
+                    width = annotation_list[index]['width']
+                    left = annotation_list[index]['left']
+                    top = annotation_list[index]['top']
 
+                    if direction == 'left':
+                        delta = width * 0.25
+                        left -= delta
+                        width += delta
+                    elif direction == 'right':
+                        delta = width * 0.25
+                        width += delta
+                    elif direction == 'up':
+                        delta = width * 0.25
+                        top -= delta
+                        height += delta
+                    elif direction == 'down':
+                        delta = width * 0.25
+                        height += delta
+
+                    annotation_list[index]['height'] = height
+                    annotation_list[index]['width'] = width
+                    annotation_list[index]['left'] = left
+                    annotation_list[index]['top'] = top
+
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'alteration-%s' % (direction, ),
+                        'values': annotation_list[index],
+                    })
+            elif throw_test_aoi_turking_mode == 'translation':
+                print('translation')
+
+                for index in index_list:
+                    direction_list = ['left', 'right', 'up', 'down']
+                    direction = random.choice(direction_list)
+                    height = annotation_list[index]['height']
+                    width = annotation_list[index]['width']
+                    left = annotation_list[index]['left']
+                    top = annotation_list[index]['top']
+
+                    if direction == 'left':
+                        delta = width * 0.25
+                        left -= delta
+                    elif direction == 'right':
+                        delta = width * 0.25
+                        left += delta
+                    elif direction == 'up':
+                        delta = width * 0.25
+                        top -= delta
+                    elif direction == 'down':
+                        delta = width * 0.25
+                        top += delta
+
+                    annotation_list[index]['height'] = height
+                    annotation_list[index]['width'] = width
+                    annotation_list[index]['left'] = left
+                    annotation_list[index]['top'] = top
+
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'translation-%s' % (direction, ),
+                        'values': annotation_list[index],
+                    })
             else:
                 raise ValueError('Invalid throw_test_aoi_turking_mode')
+
+            print(ut.repr3(annotation_list))
+            print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
 
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)
@@ -1965,6 +2009,8 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          display_new_features=display_new_features,
                          display_species_examples=display_species_examples,
                          settings=settings,
+                         THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
+                         THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
                          callback_url=callback_url,
                          callback_method='POST',
                          EMBEDDED=True,
