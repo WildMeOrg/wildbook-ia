@@ -405,19 +405,19 @@ def get_dbinfo(ibs, verbose=True,
         )
         return qualtext2_nAnnots
 
-    def get_annot_yaw_stats(ibs, aid_list):
+    def get_annot_viewpoint_stats(ibs, aid_list):
         annots = ibs.annots(aid_list)
-        yawtext2_nAnnots = ut.order_dict_by(
-            ut.map_vals(len, annots.group_items(annots.yaw_texts)),
-            list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        viewcode2_nAnnots = ut.order_dict_by(
+            ut.map_vals(len, annots.group_items(annots.viewpoint_code)),
+            list(const.const.VIEW.CODE_TO_INT.keys()) + [None]
         )
-        return yawtext2_nAnnots
+        return viewcode2_nAnnots
 
     if verbose:
         print('Checking Other Annot Stats')
 
     qualtext2_nAnnots = get_annot_qual_stats(ibs, valid_aids)
-    yawtext2_nAnnots = get_annot_yaw_stats(ibs, valid_aids)
+    viewcode2_nAnnots = get_annot_viewpoint_stats(ibs, valid_aids)
     agetext2_nAnnots = get_annot_age_stats(valid_aids)
     sextext2_nAnnots = get_annot_sex_stats(valid_aids)
 
@@ -559,7 +559,7 @@ def get_dbinfo(ibs, verbose=True,
     ] if not short else []
 
     annot_per_qualview_block_lines = [
-        None if short else '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
+        None if short else '# Annots per Viewpoint = %s' % align_dict2(viewcode2_nAnnots),
         None if short else '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
     ]
 
@@ -894,12 +894,12 @@ def latex_dbstats(ibs_list, **kwargs):
         extra_keys = [
             #'species2_nAids',
             'qualtext2_nAnnots',
-            'yawtext2_nAnnots',
+            'viewcode2_nAnnots',
         ]
         extra_titles = {
             'species2_nAids': 'Annotations per species.',
             'qualtext2_nAnnots': 'Annotations per quality.',
-            'yawtext2_nAnnots': 'Annotations per viewpoint.',
+            'viewcode2_nAnnots': 'Annotations per viewpoint.',
         }
         extra_collbls = ut.ddict(list)
         extra_rowvalues = ut.ddict(list)
@@ -910,8 +910,8 @@ def latex_dbstats(ibs_list, **kwargs):
                 extra_collbls[key] = ut.unique_ordered(extra_collbls[key] + list(dbinfo_locals[key].keys()))
 
         extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
-        #extra_collbls['yawtext2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
-        extra_collbls['yawtext2_nAnnots'] = ['BL', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', None]
+        #extra_collbls['viewcode2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
+        extra_collbls['viewcode2_nAnnots'] = ['BL', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', None]
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:
@@ -919,7 +919,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
         qualalias = {'UNKNOWN': None}
 
-        extra_collbls['yawtext2_nAnnots'] = [ibs.const.YAWALIAS.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
+        extra_collbls['viewcode2_nAnnots'] = [ibs.const.YAWALIAS.get(val, val) for val in extra_collbls['viewcode2_nAnnots']]
         extra_collbls['qualtext2_nAnnots'] = [qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']]
 
         for key in extra_keys:

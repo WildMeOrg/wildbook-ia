@@ -300,6 +300,23 @@ def get_annotedge_timedelta(ibs, edges):
 
 
 @register_ibs_method
+def get_annotedge_viewdist(ibs, edges):
+    edges = np.array(edges)
+    unique_annots = ibs.annots(np.unique(edges)).view()
+    annots1 = unique_annots.view(edges.T[0])
+    annots2 = unique_annots.view(edges.T[1])
+    view_ints1 = annots1.viewpoint_int
+    view_ints2 = annots2.viewpoint_int
+
+    DIST = ibs.const.VIEW.DIST
+    view_dists = [
+        DIST[tup] if tup in DIST else DIST[tup[::-1]]
+        for tup in zip(view_ints1, view_ints2)]
+    view_dists = np.array(ut.replace_nones(view_dists, np.nan))
+    return view_dists
+
+
+@register_ibs_method
 def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     num_reviewed_list = ibs.get_annot_num_reviewed_matching_aids(aid_list)
     has_reviewed_list = [num_reviewed > 0 for num_reviewed in num_reviewed_list]

@@ -1336,6 +1336,9 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
     Configures annotations so they can be sent to the vsone vt.matching
     procedure.
 
+    CommandLine:
+        python -m ibeis.core_annots make_configured_annots
+
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis

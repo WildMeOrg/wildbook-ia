@@ -73,6 +73,11 @@ class InfrLoops(object):
             for _ in infr.hardcase_review_gen():
                 yield _
 
+        if infr.params['inference.enabled']:
+            # First, fix any inconsistencies
+            for _ in infr.incon_recovery_gen():
+                yield _
+
         # Phase 0.2: Ensure positive redundancy (this is generally quick)
         # so the user starts seeing real work after one random review is made
         # unless the graph is already positive redundant.
@@ -190,6 +195,17 @@ class InfrLoops(object):
         if use_refresh:
             infr.refresh.clear()
         for _ in infr.inner_priority_gen(use_refresh):
+            yield _
+
+    def incon_recovery_gen(infr):
+        maybe_error_edges = list(infr.maybe_error_edges())
+        if len(maybe_error_edges) == 0:
+            raise StopIteration()
+        infr.print('============================', color='white')
+        infr.print('--- INCON RECOVER LOOP ---', color='white')
+        infr.queue.clear()
+        infr.add_candidate_edges(maybe_error_edges)
+        for _ in infr.inner_priority_gen(use_refresh=False):
             yield _
 
     def pos_redun_gen(infr):

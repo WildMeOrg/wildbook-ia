@@ -599,6 +599,9 @@ class Recovery(object):
                                 ut.dzip(new_error_edges, [True]))
         infr._increase_priority(new_error_edges, 10)
 
+    def maybe_error_edges(infr):
+        return ut.iflatten(infr.nid_to_errors.values())
+
     def _new_inconsistency(infr, nid):
         cc = infr.pos_graph.component(nid)
         pos_edges = infr.pos_graph.edges(cc)
@@ -922,7 +925,7 @@ class Priority(object):
 
         if infr.params['inference.enabled'] and force_inconsistent:
             # Ensure that maybe_error edges are always prioritized
-            maybe_error_edges = set(ut.iflatten(infr.nid_to_errors.values()))
+            maybe_error_edges = set(infr.maybe_error_edges())
             extra_edges = set(maybe_error_edges).difference(set(edges))
             extra_edges = list(extra_edges)
             infr.print('ensuring {} inconsistent edge(s) get priority'.format(

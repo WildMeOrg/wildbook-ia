@@ -253,6 +253,7 @@ class DBInputs(object):
             >>> self = Chap3('PZ_MTEST')
             >>> self = Chap3('PZ_PB_RF_TRAIN')
             >>> self = Chap3('PZ_Master1')
+            >>> self = Chap3('RotanTurtles')
             >>> self._precollect()
 
             >>> from ibeis.scripts.thesis import *
@@ -280,7 +281,7 @@ class DBInputs(object):
             minority_aids = set(ut.flatten(minority_ccs))
 
             # We need to do our best to select a small sample here
-            flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
+            flags = ['left' in text for text in ibs.annots(aids).viewpoint_code]
             left_aids = ut.compress(aids, flags)
 
             majority_aids = set(ibs.filter_annots_general(

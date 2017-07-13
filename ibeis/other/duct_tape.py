@@ -159,4 +159,4 @@ def fix_nulled_yaws(ibs):
     valid_list = [yaw == 0.0 for yaw in yaw_list]
     dirty_aid_list = ut.filter_items(aid_list, valid_list)
     print("[duct_tape] Nulling %d annotation yaws" % len(dirty_aid_list))
-    ibs.set_annot_yaws(dirty_aid_list, [None] * len(dirty_aid_list))
+    ibs.set_annot_viewpoints(dirty_aid_list, [None] * len(dirty_aid_list))

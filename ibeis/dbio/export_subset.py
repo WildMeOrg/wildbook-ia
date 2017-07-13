@@ -283,11 +283,11 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=[''])
         >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
         >>> aid_list = expanded_aids_list[0][0]
-        >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
+        >>> ibs.print_annot_stats(aid_list, viewcode_isect=True, per_image=True)
         >>> # Expand to get all annots in each chosen image
         >>> gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
+        >>> ibs.print_annot_stats(aid_list, viewcode_isect=True, per_image=True)
         >>> new_dbpath = ut.get_argval('--new-dbpath', default='PZ_ViewPoints')
         >>> new_dbpath = export_annots(ibs, aid_list, new_dbpath)
         >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
@@ -1132,8 +1132,8 @@ def check_database_overlap(ibs1, ibs2):
             print('There are %d significant viewpoint changes' %
                   (len(significant_aids2),))
             #vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])
-            #zip(ibs1.get_annot_yaw_texts(significant_aids1),
-            #ibs2.get_annot_yaw_texts(significant_aids2))
+            #zip(ibs1.get_annot_viewpoint_code(significant_aids1),
+            #ibs2.get_annot_viewpoint_code(significant_aids2))
             # print('yawdiff = %r' % )
             # if False:
             # Hack: Apply fixes
@@ -1151,9 +1151,9 @@ def check_database_overlap(ibs1, ibs2):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
                     for aid1, aid2 in pairs:
                         ibeis.viz.show_chip(
-                            ibs1, aid1, pnum=pnum_(), fnum=fnum, show_yawtext=True, nokpts=True)
+                            ibs1, aid1, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
                         ibeis.viz.show_chip(
-                            ibs2, aid2, pnum=pnum_(), fnum=fnum, show_yawtext=True, nokpts=True)
+                            ibs2, aid2, pnum=pnum_(), fnum=fnum, show_viewcode=True, nokpts=True)
 
     #
     nAnnots_per_image1 = np.array(ibs1.get_image_num_annotations(gids1))

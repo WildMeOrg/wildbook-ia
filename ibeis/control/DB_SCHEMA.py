@@ -1566,47 +1566,59 @@ def update_1_6_9(db, ibs=None):
     ))
 
 
+# TODO: YAW TO VIEWPOINT CODE DATABASE CHANGE
+def update_1_7_0(db, ibs=None):
+    """
+    Ignore:
+        import ibeis
+        ibs = ibeis.opendb('testdb1')
+        ibs.annots().yaws
+        ibs.annots().viewpoint_int
+        codes = ibs.annots().viewpoint_code
+        texts = ['unknown' if y is None else y for y in ibs.annots().yaw_texts]
+        assert codes == texts
+    """
+    db.modify_table(const.ANNOTATION_TABLE, (
+        # Add code to represent an arbitrary viewpoint
+        # We are just depricating yaw for now.
+        (None, 'annot_viewpoint_int', 'INTEGER', None),
+    ))
+
+
+def post_1_7_0(db, ibs=None):
+    from ibeis.other import ibsfuncs
+    aids = db.get_all_rowids(const.ANNOTATION_TABLE)
+
+    # Get old yaw values
+    yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
+    yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
+    # Convert them into yaw/view codes
+    view_codes = ibsfuncs.get_yaw_viewtexts(yaws)
+
+    # Convert the codes into integers
+    VIEW = ibs.const.VIEW
+    UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
+    view_codes = [UNKNOWN_CODE if y is None else y for y in view_codes]
+    view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
+
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',),
+               view_ints, id_iter=aids)
+
 if False:
-    # TODO: YAW TO VIEWPOINT CODE DATABASE CHANGE
-    def update_1_x_y(db, ibs=None):
-        db.modify_table(const.ANNOTATION_TABLE, (
-            # Add code to represent an arbitrary viewpoint
-            # We are just depricating yaw for now.
-            (None, 'annot_viewpoint_int', 'INTEGER', None),
-        ))
+    # Once this change is in, add these to manual_annot_funcs
+    # (might need to change ibeis/annots.py as well to get access to these)
+    def get_annot_viewpoint_int(ibs, aids):
+        return ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), aids)
 
-    def post_1_x_y(db, ibs=None):
-        from ibeis.other import ibsfuncs
-        aids = db.get_all_rowids(const.ANNOTATION_TABLE)
-
-        # Get old yaw values
-        yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
-        # Convert them into yaw/view codes
-        view_codes = ibsfuncs.get_yaw_viewtexts(yaws)
-
-        # Convert the codes into integers
-        VIEW = ibs.const.VIEW
-        UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
-        view_codes = [UNKNOWN_CODE if y is None else y for y in view_codes]
-        view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
-
+    def set_annot_viewpoint_int(ibs, aids, view_ints):
         ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints, id_iter=aids)
 
-    if False:
-        # Once this change is in, add these to manual_annot_funcs
-        # (might need to change ibeis/annots.py as well to get access to these)
-        def get_annot_viewpoint_int(ibs, aids):
-            return ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), aids)
+    def get_annot_viewpoint_code(ibs, aids):
+        return ut.dict_take(ibs.const.VIEW.INT_TO_CODE, ibs.get_annot_viewpoint_int())
 
-        def set_annot_viewpoint_int(ibs, aids, view_ints):
-            ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints, id_iter=aids)
-
-        def get_annot_viewpoint_code(ibs, aids):
-            return ut.dict_take(ibs.const.VIEW.INT_TO_CODE, ibs.get_annot_viewpoint_int())
-
-        def set_annot_viewpoint_code(ibs, aids, view_codes):
-            view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
-            ibs.set_annot_viewpoint_int(ibs, aids, view_ints)
+    def set_annot_viewpoint_code(ibs, aids, view_codes):
+        view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
+        ibs.set_annot_viewpoint_int(ibs, aids, view_ints)
 
 
 # ========================
@@ -1663,6 +1675,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.7',    (None,                 update_1_6_7,       None                )),
     ('1.6.8',    (None,                 update_1_6_8,       None                )),
     ('1.6.9',    (None,                 update_1_6_9,       None                )),
+    ('1.7.0',    (None,                 update_1_7_0,       post_1_7_0          )),
 ])
 """
 SeeAlso:

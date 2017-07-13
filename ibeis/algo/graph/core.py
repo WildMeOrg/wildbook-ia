@@ -135,7 +135,7 @@ class Feedback(object):
         infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
         ibs = infr.ibs
         ibs.set_annot_quality_texts([aid], [attrs['quality_texts']])
-        ibs.set_annot_yaw_texts([aid], [attrs['yaw_texts']])
+        ibs.set_annot_viewpoint_code([aid], [attrs['viewpoint_code']])
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
 

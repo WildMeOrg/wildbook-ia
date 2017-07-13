@@ -1617,7 +1617,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         vals_list += [ibs.get_annot_bboxes(aid_list)]
         key_list += [key]
 
-    key = 'yawtext'
+    key = 'viewpoint_code'
     if kwargs.get(key, default):
         vals_list += [ibs.get_annot_yaw_texts(aid_list)]
         key_list += [key]
@@ -2566,6 +2566,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
         extended_yaws_list = [['frontleft'], ['frontright'], ['backleft'], ['frontleft']]
     """
     import vtool as vt
+    # DEPRICATE?
     ori1 = const.VIEWTEXT_TO_YAW_RADIANS[base_yaw_text]
     ori2 = const.VIEWTEXT_TO_YAW_RADIANS[towards]
     # Find which direction to go to get closer to `towards`
@@ -2580,7 +2581,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
         num2 = num1
     assert num1 >= 0, 'must specify positive num'
     assert num2 >= 0, 'must specify positive num'
-    yawtext_list = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
+    yawtext_list = list(const.VIEW.CODE_TO_INT.keys())
     index = yawtext_list.index(base_yaw_text)
     other_index_list1 = [int((index + (np.sign(yawdist) * count)) %
                              len(yawtext_list))
@@ -3467,6 +3468,8 @@ def check_chip_existence(ibs, aid_list=None):
 @register_ibs_method
 def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     r"""
+    DEPRICATE
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid_list (int):  list of annotation ids
@@ -4056,6 +4059,8 @@ def search_annot_notes(ibs, pattern, aid_list=None):
 @register_ibs_method
 def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=True):
     """
+    DEPRICATE
+
         >>> import ibeis
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
@@ -4492,7 +4497,7 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
         >>> aids = available_aids
     """
     getter_func = ibs.get_annot_yaw_texts
-    prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
+    prop_basis = list(const.VIEW.CODE_TO_INT.keys())
 
     group_annots_by_view_and_name = functools.partial(
         ibs.group_annots_by_prop_and_name, getter_func=getter_func)
@@ -4507,8 +4512,6 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     edge2_grouped_aids = ut.map_dict_vals(lambda dict_: list(dict_.values()), edge2_nid2_aids)
     edge2_aids = ut.map_dict_vals(ut.flatten, edge2_grouped_aids)
     # Num annots of each type of viewpoint
-    #yawtext_edge_aidyawtext_hist = ut.map_dict_vals(ut.dict_hist,
-    #ut.map_dict_vals(getter_func, yawtext_edge_aid))
 
     # Regroup by view and name
     edge2_vp2_pername_stats = {}
@@ -4518,9 +4521,6 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
             functools.partial(ibs.get_annots_per_name_stats, use_sum=True), vp2_aids)
         edge2_vp2_pername_stats[edge] = vp2_pernam_stats
 
-    #yawtext_edge_numaids_hist = ut.map_dict_vals(len, yawtext_edge_aid)
-    #yawtext_edge_aid_viewpoint_stats_hist =
-    #ut.map_dict_vals(ibs.get_annot_yaw_stats, yawtext_edge_aid)
     return edge2_vp2_pername_stats
 
 
@@ -4553,7 +4553,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         dict: multiprop2_aids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
+        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=viewpoint_code,name_rowids --keys1 frontleft
         python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop
 
     Example:
@@ -4563,7 +4563,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids(is_known=True)
         >>> #getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_yaw_texts]
-        >>> props = ut.get_argval('--props', type_=list, default=['yaw_texts', 'name_rowids'])
+        >>> props = ut.get_argval('--props', type_=list, default=['viewpoint_code', 'name_rowids'])
         >>> getter_list = [getattr(ibs, 'get_annot_' + prop) for prop in props]
         >>> print('getter_list = %r' % (getter_list,))
         >>> #getter_list = [ibs.get_annot_yaw_texts, ibs.get_annot_name_rowids]
@@ -4788,8 +4788,8 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
     #if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True or forceall):
         yawtext2_nAnnots = ut.order_dict_by(
-            ut.map_vals(len, annots.group_items(annots.yaw_texts)),
-            list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+            ut.map_vals(len, annots.group_items(annots.viewpoint_code)),
+            list(const.VIEW.CODE_TO_INT.keys())
         )
         keyval_list += [(prefix + 'per_vp',
                          statwrap(yawtext2_nAnnots))]
@@ -4948,6 +4948,7 @@ def compare_nested_props(ibs, aids1_list,
 
 def viewpoint_diff(ori1, ori2):
     """ convert distance in radians to distance in viewpoint category """
+    # TODO: lookup distance
     TAU = np.pi * 2
     ori_diff = vt.ori_distance(ori1, ori2)
     viewpoint_diff = len(const.VIEWTEXT_TO_YAW_RADIANS) * ori_diff / TAU

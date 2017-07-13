@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 
 CommandLine:
@@ -57,6 +58,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_MTEST --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_Master1 --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db GZ_Master1 --show
+        python -m ibeis.algo.verif.vsone evaluate_classifiers --db RotanTurtles --show
 
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
 

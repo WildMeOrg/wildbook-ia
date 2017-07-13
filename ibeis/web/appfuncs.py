@@ -425,12 +425,12 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         viewpoint_text = viewpoint_text.replace('_3_', 'back')
         viewpoint_text = viewpoint_text.replace('_4_', 'left')
         viewpoint_text = viewpoint_text.replace('_5_', 'right')
-        assert viewpoint_text in const.YAWALIAS
+        assert viewpoint_text in const.VIEW.CODE_TO_INT
         return viewpoint_text
 
 
 def convert_viewpoint_to_tuple(viewpoint_text):
-    if viewpoint_text is None or viewpoint_text not in const.YAWALIAS:
+    if viewpoint_text is None or viewpoint_text not in const.VIEW.CODE_TO_INT:
         return (-1, -1, -1)
     else:
         viewpoint_text = viewpoint_text.replace('up',    '_0_')

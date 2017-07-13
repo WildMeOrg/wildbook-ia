@@ -363,7 +363,7 @@ class AnnotStateDialog(gt.GuitoolWidget):
 
         const = ibs.const
         valid_quals = list(const.QUALITY_TEXT_TO_INT.keys())
-        valid_views = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + ['UNKNOWN']
+        valid_views = list(const.VIEW.CODE_TO_NICE.keys())
 
         valid_quals = ut.partial_order(valid_quals, ['good', 'poor', 'ok'])
         valid_views = ut.partial_order(valid_views, ['left', 'right', 'front'])
@@ -443,7 +443,7 @@ class AnnotStateDialog(gt.GuitoolWidget):
         self.orig_state = annot_state
         self.aid_label.setText(repr(annot_state['aid']))
         self.qual_combo.setCurrentValue(annot_state['quality_texts'])
-        self.view_combo.setCurrentValue(annot_state['yaw_texts'])
+        self.view_combo.setCurrentValue(annot_state['viewpoint_code'])
         self.ismulti_cb.setChecked(bool(annot_state['multiple']))
         self.tag_edit.setTags(annot_state['case_tags'])
 
@@ -452,32 +452,20 @@ class AnnotStateDialog(gt.GuitoolWidget):
         annot = ibs.annots([aid])[0]
         annot_dict = annot._make_lazy_dict()
         annot_state = ut.dict_subset(annot_dict, [
-            'aid', 'quality_texts', 'yaw_texts', 'case_tags', 'multiple',
+            'aid', 'quality_texts', 'viewpoint_code', 'case_tags', 'multiple',
             'image_unixtimes_asfloat'
         ])
         if annot_state['quality_texts']  is None:
             annot_state['quality_texts'] = self.ibs.const.QUAL_UNKNOWN
-        if annot_state['yaw_texts'] is None:
-            annot_state['yaw_texts'] = 'UNKNOWN'
+        if annot_state['viewpoint_code'] is None:
+            annot_state['viewpoint_code'] = const.VIEW.CODE.UNKNOWN
         return annot_state
-
-    # def ibeis_write(self):
-    #     ibs = self.ibs
-    #     annot_state = self.current_annot_state()
-    #     print('Writing state')
-    #     print(ut.repr3(annot_state))
-    #     aid = annot_state['aid']
-    #     # TODO: use infr.add_node_feedback
-    #     ibs.set_annot_quality_texts([aid], [annot_state['quality_texts']])
-    #     ibs.set_annot_yaw_texts([aid], [annot_state['yaw_texts']])
-    #     ibs.overwrite_annot_case_tags([aid], [annot_state['case_tags']])
-    #     ibs.set_annot_multiple([aid], [annot_state['multiple']])
 
     def current_annot_state(self):
         return {
             'aid': int(self.aid_label.text()),
             'quality_texts': self.qual_combo.currentValue(),
-            'yaw_texts': self.view_combo.currentValue(),
+            'viewpoint_code': self.view_combo.currentValue(),
             'case_tags': self.tag_edit.tags(),
             'multiple': self.ismulti_cb.isChecked(),
         }

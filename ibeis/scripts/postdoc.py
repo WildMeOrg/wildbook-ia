@@ -10,7 +10,7 @@ from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 import numpy as np  # NOQA
 import pandas as pd
-import ubelt as ub
+import ubelt as ub  # NOQA
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
 import ibeis.constants as const
@@ -47,6 +47,9 @@ class VerifierExpt(DBInputs):
     python -m ibeis VerifierExpt.measure all PZ_Master1.GZ_Master1,GIRM_Master1,MantaMatcher,RotanTurtles,humpbacks_fb,LF_ALL
     python -m ibeis VerifierExpt.measure all GIRM_Master1,PZ_Master1,LF_ALL
     python -m ibeis VerifierExpt.measure all LF_ALL
+    python -m ibeis VerifierExpt.measure all RotanTurtles
+
+    python -m ibeis VerifierExpt.draw all MantaMatcher
 
 
     agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
@@ -289,8 +292,8 @@ class VerifierExpt(DBInputs):
         qual_info['None'] = qual_info.pop('UNKNOWN', 0)
         qual_info['None'] += qual_info.pop(None, 0)
 
-        view_info = ut.dict_hist(annots.yaw_texts)
-        view_info['None'] = view_info.pop('UNKNOWN', 0)
+        view_info = ut.dict_hist(annots.viewpoint_code)
+        view_info['None'] = view_info.pop('unknown', 0)
         view_info['None'] += view_info.pop(None, 0)
 
         info = ut.odict([])
@@ -492,6 +495,8 @@ class VerifierExpt(DBInputs):
         self.draw_roc(task_key)
         self.draw_mcc_thresh(task_key)
 
+        self.draw_rerank(task_key)
+
         self.write_metrics(task_key)
 
         if not ut.get_argflag('--nodraw'):
@@ -510,6 +515,34 @@ class VerifierExpt(DBInputs):
             >>> task_key = 'match_state'
             >>> result = VerifierExpt.agg_roc(task_key)
             >>> print(result)
+
+        Ignore:
+
+            # Parse viewpoint for the RotanTurtles database
+            import ibeis
+            ibs = ibeis.opendb('RotanTurtles')
+
+            images = ibs.images()
+            view_codes = []
+            for gname in images.gnames:
+                name = splitext(gname)[0]
+                parts = name.split('-')
+                code = (parts[-1].split('(')[0]).strip()
+                code = code.split(' ')[-1]
+                code = re.sub('[0-9]', '', code)
+                code = code.replace('S', '')
+                view_codes.append(code)
+            ut.dict_hist(view_codes)
+
+            for gid in images:
+                img = ibs.images(gid)[0]
+                img.gnames
+                if len(img.aids) > 1:
+                    print('gid = {!r}'.format(gid))
+                    print('img.aids = {!r}'.format(img.aids))
+
+                    break
+                pass
 
         """
         dbs = ['GZ_Master1', 'LF_ALL', 'MantaMatcher', 'RotanTurtles',
@@ -939,24 +972,6 @@ class VerifierExpt(DBInputs):
 
         mpl.rcParams.update(TMP_RC)
 
-        pz_gt_errors = {  # NOQA
-            # The true state of these pairs are:
-            NEGTV: [
-                (239, 3745),
-                (484, 519),
-                (802, 803),
-            ],
-            INCMP: [
-                (4652, 5245),
-                (4405, 5245),
-                (4109, 5245),
-                (16192, 16292),
-            ],
-            POSTV: [
-                (6919, 7192),
-            ]
-        }
-
         prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key),
                            bs=False)
         for case in prog:
@@ -1005,7 +1020,7 @@ class VerifierExpt(DBInputs):
 
         res = task_combo_res[task_key][clf_key][data_key]
 
-        from ibeis.scripts import sklearn_utils
+        from ibeis.algo.verif import sklearn_utils
         threshes = res.get_thresholds('mcc', 'max')
         y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes,
                                                   force=True)
@@ -1105,7 +1120,7 @@ class VerifierExpt(DBInputs):
         sample_weight = res.sample_weight
         target_names = res.class_names
 
-        from ibeis.scripts import sklearn_utils
+        from ibeis.algo.verif import sklearn_utils
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names, sample_weight, verbose=False)
         metric_df = report['metrics']
@@ -1757,7 +1772,7 @@ def _find_good_match_states(infr, ibs, edges):
             #                     ((q2 > 3) | np.isnan(q2)))
 
             # a = ibs.annots(asarray=True)
-            # flags = [t is not None and 'right' == t for t in a.yaw_texts]
+            # flags = [t is not None and 'right' == t for t in a.viewpoint_code]
             # r = a.compress(flags)
             # flags = [q is not None and q > 4 for q in r.qual]
 

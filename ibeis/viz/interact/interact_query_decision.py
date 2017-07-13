@@ -181,7 +181,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             'enable_chip_title_prefix': enable_chip_title_prefix,
             'show_name': True,
             'show_aidstr': True,
-            'show_yawtext': True,
+            'show_viewcode': True,
             'show_quality_text': True,
         }
 
