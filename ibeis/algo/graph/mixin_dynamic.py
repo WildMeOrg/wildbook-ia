@@ -888,17 +888,26 @@ class Priority(object):
             >>> scores2 = np.array(ut.take_column(order2, 1))
             >>> assert np.all(scores2[0:2] > 10)
             >>> assert np.all(scores2[2:] < 10)
+
+        Example:
+            import ibeis
+            infr = ibeis.AnnotInference('PZ_MTEST', aids='all', autoinit='staging')
+            infr.verbose = 1000
+            infr.load_published()
+            incon_edges = set(ut.iflatten(infr.nid_to_errors.values()))
+            assert len(incon_edges) > 0
+            edges = list(infr.find_pos_redun_candidate_edges())
+            assert len(set(incon_edges).intersection(set(edges))) == 0
+            infr.add_candidate_edges(edges)
+
+            infr.prioritize()
+            print(ut.repr4(infr.status()))
         """
         if reset or infr.queue is None:
             infr.queue = ut.PriorityQueue()
         low = 1e-9
         if metric is None:
             metric = 'prob_match'
-
-        if infr.params['inference.enabled']:
-            maybe_error_edges = set(ut.iflatten(infr.nid_to_errors.values()))
-        else:
-            maybe_error_edges = None
 
         # If edges are not explicilty specified get unreviewed and error edges
         # that are not redundant
@@ -908,9 +917,24 @@ class Priority(object):
             unrev_edges = infr.unreviewed_graph.edges()
             edges = set(infr.filter_nonredun_edges(unrev_edges))
 
-        if infr.params['inference.enabled']:
-            if force_inconsistent:
-                edges.update(maybe_error_edges)
+        infr.print('ensuring {} edge(s) get priority'.format(
+            len(edges)), 5)
+
+        if infr.params['inference.enabled'] and force_inconsistent:
+            # Ensure that maybe_error edges are always prioritized
+            maybe_error_edges = set(ut.iflatten(infr.nid_to_errors.values()))
+            extra_edges = set(maybe_error_edges).difference(set(edges))
+            extra_edges = list(extra_edges)
+            infr.print('ensuring {} inconsistent edge(s) get priority'.format(
+                len(extra_edges)), 5)
+
+            if scores is not None:
+                pgen = list(infr.gen_edge_values(metric, extra_edges, default=low))
+                extra_scores = np.array(pgen)
+                extra_scores[np.isnan(extra_scores)] = low
+
+                scores = ut.aslist(scores) + ut.aslist(extra_scores)
+            edges = ut.aslist(edges) + extra_edges
 
         # Ensure edges are in some arbitrary order
         edges = list(edges)
