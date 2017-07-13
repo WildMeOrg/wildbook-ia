@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 
 CommandLine:
@@ -57,6 +58,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_MTEST --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_Master1 --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db GZ_Master1 --show
+        python -m ibeis.algo.verif.vsone evaluate_classifiers --db RotanTurtles --show
 
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
 
@@ -121,10 +123,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params['chip']['resize_dim'] = 'maxwh'
             hyper_params['chip']['dim_size'] = 800
             hyper_params['chip']['medianblur'] = True
-            # hyper_params['chip']['medianblur_thresh'] = ??? What is it
+            hyper_params['chip']['medianblur_thresh'] = 0
             hyper_params['chip']['adapteq'] = True
-            # hyper_params['chip']['adapteq_ksize'] = ??? What is it
-            # hyper_params['chip']['adapteq_limit'] = ??? What is it
+            hyper_params['chip']['adapteq_ksize'] = 32
+            hyper_params['chip']['adapteq_limit'] = 6
+
+            hyper_params['vsone_kpts']['affine_invariance'] = False
 
         if species == 'zebra_plains':
             hyper_params['vsone_kpts']['affine_invariance'] = False

@@ -66,10 +66,11 @@ ANNOT_BASE_ATTRS = [
     'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
     'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
     'bboxes', 'bbox_area',
-    'species_uuids', 'species', 'species_rowids', 'species_texts', 'yaw_texts',
-    'viewpoint_int',
-    'yaws', 'qualities', 'quality_texts', 'exemplar_flags',
-    'yaws_asfloat',
+    'species_uuids', 'species', 'species_rowids', 'species_texts',
+    'viewpoint_int', 'viewpoint_code',
+    'qualities', 'quality_texts', 'exemplar_flags',
+    # DEPRICATE YAW
+    'yaw_texts', 'yaws', 'yaws_asfloat',
     # Images
     # 'image_rowids',
     'gids', 'image_uuids',
@@ -98,7 +99,10 @@ ANNOT_BASE_ATTRS = [
 ANNOT_SETTABLE_ATTRS = [
     'age_months_est_max', 'age_months_est_min',
     'bboxes', 'thetas', 'verts',
-    'qualities', 'quality_texts', 'yaw_texts', 'yaws',
+    'qualities', 'quality_texts',
+    'viewpoint_int', 'viewpoint_code',
+    # DEPRICATE YAW
+    'yaw_texts', 'yaws',
     'sex', 'sex_texts', 'species',
     'exemplar_flags',
     'static_encounter',

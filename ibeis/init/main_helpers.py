@@ -267,7 +267,7 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         >>> print('Printing annotconfig stats')
         >>> ibs.print_annotconfig_stats(qaid_list, daid_list)
         >>> print('Combined annotconfig stats')
-        >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
+        >>> ibs.print_annot_stats(qaid_list + daid_list, viewcode_isect=True)
         >>> print('qaid_list = %r' % (qaid_list,))
     """
     if verbose is None:

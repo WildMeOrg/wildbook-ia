@@ -998,6 +998,7 @@ def get_annot_quality_texts_json(ibs, annot_uuid_list):
 
 @register_api('/api/annot/yaw/text/json/', methods=['GET'])
 def get_annot_yaw_texts_json(ibs, annot_uuid_list):
+    # DEPRICATE
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_yaw_texts(aid_list)
 

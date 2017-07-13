@@ -1545,7 +1545,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         # This filter removes entire names.  The avaiable aids must be from
         # names with certain viewpoint frequency properties
         prop2_nid2_aids = ibs.group_annots_by_prop_and_name(
-            avail_aids, ibs.get_annot_yaw_texts)
+            avail_aids, ibs.get_annot_viewpoint_code)
 
         countstr = aidcfg['view_pername']
         primary_viewpoint = ibsfuncs.get_primary_species_viewpoint(species)

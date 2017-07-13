@@ -116,7 +116,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     Kwargs:
         enable_chip_title_prefix, nokpts, kpts_subset, kpts, text_color,
         notitle, draw_lbls, show_aidstr, show_gname, show_name, show_nid,
-        show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,
+        show_exemplar, show_num_gt, show_quality_text, show_viewcode, fnum,
         title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,
         darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,
         projection, pts, ell

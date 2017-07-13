@@ -144,12 +144,12 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         new_flag = not is_exemplar
         print('set_annot_exemplar(%r, %r)' % (aid, new_flag))
         ibs.set_annot_exemplar_flags(aid, new_flag)
-    def set_yaw_func(yawtext):
+    def set_viewpoint_func(view_code):
         #@refresh_wrp()
-        def _wrap_yaw():
-            ibs.set_annot_yaw_texts([aid], [yawtext])
-            print('set_annot_yaw(%r, %r)' % (aid, yawtext))
-        return _wrap_yaw
+        def _wrap_view():
+            ibs.set_annot_viewpoint_codes([aid], [view_code])
+            print('set_annot_yaw(%r, %r)' % (aid, view_code))
+        return _wrap_view
     def set_quality_func(qualtext):
         #@refresh_wrp()
         def _wrp_qual():
@@ -217,17 +217,17 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         )
 
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
-    current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
+    current_viewcode = ibs.get_annot_viewpoint_code([aid])[0]
     current_multiple = ibs.get_annot_multiple([aid])[0]
     # Nested viewpoints
     callback_list += [
-        #('Set Viewpoint: ' + key, set_yaw_func(key))
-        ('Set &Viewpoint (%s): ' % (current_yawtext,),  [
+        #('Set Viewpoint: ' + key, set_viewpoint_func(key))
+        ('Set &Viewpoint (%s): ' % (current_viewcode,),  [
             ('&' + str(count) + ' ' +
-             ('*' if current_yawtext == key else '') + key,
-             set_yaw_func(key))
+             ('*' if current_viewcode == key else '') + key,
+             set_viewpoint_func(key))
             for count, key in
-            enumerate(ibs.const.VIEWTEXT_TO_YAW_RADIANS.keys(), start=1)
+            enumerate(ibs.const.VIEW.CODE_TO_NICE.keys(), start=1)
         ]),
     ]
     # Nested qualities

@@ -360,15 +360,15 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
         ('view-right', 'right'),
         ('view-back', 'back'),
     ]
-    single_info['yaw'] = [None] * len(single_info)
+    single_info['viewpoint_code'] = [None] * len(single_info)
     for tag, yaw_text in mapping:
         tag_flags = ut.filterflags_general_tags(single_info['tags'], has_any=[tag])
         # setup yaw info
         for idx in ut.where(tag_flags):
-            single_info['yaw'][idx] = yaw_text
+            single_info['viewpoint_code'][idx] = yaw_text
     # Fix Viewpoint
-    key1 = 'yaw'
-    prop2 = 'yaw_texts'
+    key1 = 'viewpoint_code'
+    prop2 = 'viewpoint_code'
     repl2 = ('____', None)
     is_set = False
     check_annot_disagree(single_info, single_annots, key1, prop2, repl2,

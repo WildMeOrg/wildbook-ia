@@ -254,11 +254,11 @@ def get_annot_texts(ibs, aid_list, **kwargs):
     if kwargs.get('show_quality_text', False):
         qualtext_list = ibs.get_annot_quality_texts(aid_list)
         texts_list.append(list(map(lambda text: 'quality=%s' % text, qualtext_list)))
-    if kwargs.get('show_yawtext', False):
+    if kwargs.get('show_viewcode', False):
         # FIXME: This should be num_groundtruth with respect to the currently
         # allowed annotations
-        yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-        texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
+        viewcode_list = ibs.get_annot_viewpoint_code(aid_list)
+        texts_list.append(list(map(lambda text: 'view=%s' % text, viewcode_list)))
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
         annotation_text_list = [', '.join(tup) for tup in zip(*texts_list)]

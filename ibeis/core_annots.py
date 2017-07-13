@@ -48,6 +48,7 @@ Setup:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
+from vtool import image_filters
 import dtool
 import utool as ut
 import vtool as vt
@@ -311,7 +312,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> #dlg = config.make_qt_dialog()
         >>> #config = dlg.widget.config
         >>> aid_list = ibs.get_valid_aids()[0:8]
-        >>> chips = depc.get_property('chips', aid_list, 'img', config=config)
+        >>> chips = depc.get_property('chips', aid_list, 'img', config=config, recompute=True)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(vt.stack_image_recurse(chips))
@@ -378,11 +379,6 @@ def compute_chip(depc, aid_list, config=None):
     M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
               bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)]
 
-    #arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
-    arg_iter = zip(gid_list, newsize_list, M_list)
-    arg_list = list(arg_iter)
-
-    from vtool import image_filters
     filter_list = []
     # new way
     if config['histeq']:
@@ -408,23 +404,50 @@ def compute_chip(depc, aid_list, config=None):
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
-    last_gid = None
-    for tup in ut.ProgIter(arg_list, lbl='computing chips', bs=True):
-        # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
-        #cfpath, gid, new_size, M = tup
-        gid, new_size, M = tup
-        # Read parent image # TODO: buffer this?
-        # If the gids are sorted, no need to load the image more than once, if so
-        if gid != last_gid:
-            imgBGR = ibs.get_image_imgdata(gid)
-            last_gid = gid
-        # Warp chip
-        chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
-        # Do intensity normalizations
-        if filter_list:
-            chipBGR = ipreproc.preprocess(chipBGR, filter_list)
-        width, height = vt.get_size(chipBGR)
-        yield (chipBGR, width, height, M)
+    if 1:
+        #arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
+        arg_iter = zip(gid_list, M_list, newsize_list)
+        arg_list = list(arg_iter)
+
+        last_gid = None
+        for tup in ut.ProgIter(arg_list, lbl='computing chips', bs=True):
+            # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
+            #cfpath, gid, new_size, M = tup
+            gid, M, new_size = tup
+            # Read parent image # TODO: buffer this?
+            # If the gids are sorted, no need to load the image more than once, if so
+            if gid != last_gid:
+                imgBGR = ibs.get_image_imgdata(gid)
+                last_gid = gid
+            # Warp chip
+            chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
+            # Do intensity normalizations
+            if filter_list:
+                chipBGR = ipreproc.preprocess(chipBGR, filter_list)
+            width, height = vt.get_size(chipBGR)
+            yield (chipBGR, width, height, M)
+    else:
+        gpath_list = ibs.get_image_paths(gid_list)
+        args_gen = zip(gpath_list, M_list, newsize_list)
+
+        gen_kw = {'filter_list': filter_list, 'warpkw': warpkw}
+        gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(aid_list),
+                           force_serial=ibs.force_serial)
+        for chipBGR, width, height, M in gen:
+            yield chipBGR, width, height, M
+    print('Done Preprocessing Chips')
+
+
+def gen_chip_worker(gpath, M, new_size, filter_list, warpkw):
+    imgBGR = vt.imread(gpath)
+    # Warp chip
+    chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
+    # Do intensity normalizations
+    if filter_list:
+        ipreproc = image_filters.IntensityPreproc()
+        chipBGR = ipreproc.preprocess(chipBGR, filter_list)
+    width, height = vt.get_size(chipBGR)
+    return (chipBGR, width, height, M)
 
 
 @register_subprop('chips', 'dlen_sqrd')
@@ -1312,6 +1335,9 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
     """
     Configures annotations so they can be sent to the vsone vt.matching
     procedure.
+
+    CommandLine:
+        python -m ibeis.core_annots make_configured_annots
 
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA

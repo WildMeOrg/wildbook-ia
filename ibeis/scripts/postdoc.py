@@ -10,7 +10,7 @@ from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 import numpy as np  # NOQA
 import pandas as pd
-import ubelt as ub
+import ubelt as ub  # NOQA
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
 import ibeis.constants as const
@@ -47,6 +47,9 @@ class VerifierExpt(DBInputs):
     python -m ibeis VerifierExpt.measure all PZ_Master1.GZ_Master1,GIRM_Master1,MantaMatcher,RotanTurtles,humpbacks_fb,LF_ALL
     python -m ibeis VerifierExpt.measure all GIRM_Master1,PZ_Master1,LF_ALL
     python -m ibeis VerifierExpt.measure all LF_ALL
+    python -m ibeis VerifierExpt.measure all RotanTurtles
+
+    python -m ibeis VerifierExpt.draw all MantaMatcher
 
 
     agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
@@ -289,8 +292,8 @@ class VerifierExpt(DBInputs):
         qual_info['None'] = qual_info.pop('UNKNOWN', 0)
         qual_info['None'] += qual_info.pop(None, 0)
 
-        view_info = ut.dict_hist(annots.yaw_texts)
-        view_info['None'] = view_info.pop('UNKNOWN', 0)
+        view_info = ut.dict_hist(annots.viewpoint_code)
+        view_info['None'] = view_info.pop('unknown', 0)
         view_info['None'] += view_info.pop(None, 0)
 
         info = ut.odict([])
@@ -460,7 +463,6 @@ class VerifierExpt(DBInputs):
             self.measure_hard_cases(task_key)
 
         self.measure_rerank()
-        # self.measure_prune()
 
         if ut.get_argflag('--draw'):
             self.draw_all()
@@ -484,112 +486,200 @@ class VerifierExpt(DBInputs):
         """
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
+        print('eval_task_keys = {!r}'.format(eval_task_keys))
 
         self.write_sample_info()
 
-        task_key = 'photobomb_state'
-        if task_key in eval_task_keys:
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
-            self.write_metrics2(task_key)
-            self.draw_roc(task_key)
-            self.draw_mcc_thresh(task_key)
-
         task_key = 'match_state'
-        if task_key in eval_task_keys:
-            self.draw_class_score_hist()
-            self.draw_roc(task_key)
-            self.draw_mcc_thresh(task_key)
+        self.draw_class_score_hist()
+        self.draw_roc(task_key)
+        self.draw_mcc_thresh(task_key)
 
-            self.draw_wordcloud(task_key)
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
+        self.draw_rerank(task_key)
 
-            self.draw_rerank()
-
-            if not ut.get_argflag('--noprune'):
-                self.draw_prune()
+        self.write_metrics(task_key)
 
         if not ut.get_argflag('--nodraw'):
-            task_key = 'match_state'
-            if task_key in eval_task_keys:
-                self.draw_hard_cases(task_key)
+            self.draw_hard_cases(task_key)
 
-            task_key = 'photobomb_state'
-            if task_key in eval_task_keys:
-                self.draw_hard_cases(task_key)
-
-    def measure_prune(self):
+    @classmethod
+    def draw_agg(VerifierExpt, task_key):
         """
-        >>> from ibeis.scripts.postdoc import *
-        >>> self = VerifierExpt('GZ_Master1')
-        >>> self = VerifierExpt('PZ_Master1')
-        >>> self = VerifierExpt('PZ_MTEST')
+
+        python -m ibeis VerifierExpt.draw_agg_roc
+        GZ_Master1,LF_ALL,MantaMatcher,RotanTurtles,humpbacks_fb,GIRM_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.postdoc import *  # NOQA
+            >>> task_key = 'match_state'
+            >>> result = VerifierExpt.agg_roc(task_key)
+            >>> print(result)
+
+        Ignore:
+
+            # Parse viewpoint for the RotanTurtles database
+            import ibeis
+            ibs = ibeis.opendb('RotanTurtles')
+
+            images = ibs.images()
+            view_codes = []
+            for gname in images.gnames:
+                name = splitext(gname)[0]
+                parts = name.split('-')
+                code = (parts[-1].split('(')[0]).strip()
+                code = code.split(' ')[-1]
+                code = re.sub('[0-9]', '', code)
+                code = code.replace('S', '')
+                view_codes.append(code)
+            ut.dict_hist(view_codes)
+
+            for gid in images:
+                img = ibs.images(gid)[0]
+                img.gnames
+                if len(img.aids) > 1:
+                    print('gid = {!r}'.format(gid))
+                    print('img.aids = {!r}'.format(img.aids))
+
+                    break
+                pass
+
         """
-        # from sklearn.feature_selection import SelectFromModel
-        from ibeis.scripts import clf_helpers
-        if getattr(self, 'pblm', None) is None:
-            self._setup()
+        dbs = ['GZ_Master1', 'LF_ALL', 'MantaMatcher', 'RotanTurtles',
+               'humpbacks_fb', 'GIRM_Master1']
 
-        pblm = self.pblm
-        task_key = pblm.primary_task_key
-        data_key = pblm.default_data_key
-        clf_key = pblm.default_clf_key
+        all_results = ut.odict([])
+        for dbname in dbs:
+            self = VerifierExpt(dbname)
+            info = self.ensure_results('all')
+            all_results[dbname] = info
 
-        featinfo = vt.AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
-        print(featinfo.get_infostr())
+        rerank_results = ut.odict([])
+        for dbname in dbs:
+            self = VerifierExpt(dbname)
+            info = self.ensure_results('rerank')
+            rerank_results[dbname] = info
 
-        labels = pblm.samples.subtasks[task_key]
-        # X = pblm.samples.X_dict[data_key]
+        auc_table  = pd.DataFrame(columns=['LNBNN', 'clf'])
+        rank1_table = pd.DataFrame(columns=['LNBNN', 'clf'])
+        rank5_table = pd.DataFrame(columns=['LNBNN', 'clf'])
 
-        feat_dims = pblm.samples.X_dict[data_key].columns.tolist()
-        n_orig = len(feat_dims)
-        n_dims = []
-        reports = []
-        sub_reports = []
-        mdis_list = []
+        for dbname, results in all_results.items():
+            data_key = results['data_key']
+            clf_key = results['clf_key']
 
-        prune_rate = 1
-        min_feats = 1
+            target_class = POSTV
 
-        n_steps_needed = int(np.ceil((n_orig - min_feats) / prune_rate))
-        prog = ub.ProgIter(range(n_steps_needed), label='prune')
-        for _ in prog:
-            prog.ensure_newline()
-            clf_list, res_list = pblm._train_evaluation_clf(task_key, data_key,
-                                                            clf_key, feat_dims)
-            combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
-            rs = [res.extended_clf_report(verbose=0) for res in res_list]
-            report = combo_res.extended_clf_report(verbose=0)
+            # LNBNN classification confusions
+            lnbnn_xy = results['lnbnn_xy']
+            y = lnbnn_xy[target_class].values
+            scores = lnbnn_xy['score_lnbnn_1vM'].values
+            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
 
-            # Measure mean decrease in impurity
-            clf_mdi = np.array(
-                [clf_.feature_importances_ for clf_ in clf_list])
-            mean_mdi = ut.dzip(feat_dims, np.mean(clf_mdi, axis=0))
+            # CLF classification confusions
+            task_combo_res = results['task_combo_res']
+            res = task_combo_res[task_key][clf_key][data_key]
+            c3 = res.confusions(target_class)
 
-            # Record state
-            n_dims.append(len(feat_dims))
-            reports.append(report)
-            sub_reports.append(rs)
-            mdis_list.append(mean_mdi)
+            auc_table.loc[dbname, 'LNBNN'] = c2.auc
+            auc_table.loc[dbname, 'clf'] = c3.auc
 
-            # remove the worst features
-            sorted_featdims = ub.argsort(mean_mdi)
-            n_have = len(sorted_featdims)
-            n_remove = (n_have - max(n_have - prune_rate, min_feats))
-            worst_features = sorted_featdims[0:n_remove]
-            for f in worst_features:
-                feat_dims.remove(f)
+            # ranking results
+            results = rerank_results[dbname]
+            cdfs, infos = list(zip(*results))
+            lnbnn_cdf, clf_cdf = cdfs
 
-        results = {
-            'n_dims': n_dims,
-            'reports': reports,
-            'sub_reports': sub_reports,
-            'mdis_list': mdis_list,
-        }
-        expt_name = 'prune'
-        self.expt_results[expt_name] = results
-        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+            rank1_table.loc[dbname, 'LNBNN'] = lnbnn_cdf[0]
+            rank1_table.loc[dbname, 'clf'] = clf_cdf[0]
+
+            rank5_table.loc[dbname, 'LNBNN'] = lnbnn_cdf[4]
+            rank5_table.loc[dbname, 'clf'] = clf_cdf[4]
+
+        print('\nauc_table =\n{!r}'.format(auc_table))
+        print('\nrank1_table =\n{!r}'.format(rank1_table))
+        print('\nrank5_table =\n{!r}'.format(rank5_table))
+
+    def draw_roc(self, task_key):
+        """
+        python -m ibeis VerifierExpt.draw roc GZ_Master1 photobomb_state
+        python -m ibeis VerifierExpt.draw roc GZ_Master1 match_state
+        """
+        mpl.rcParams.update(TMP_RC)
+
+        results = self.ensure_results('all')
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        task_combo_res = results['task_combo_res']
+        lnbnn_xy = results['lnbnn_xy']
+
+        if task_key == 'match_state':
+            scores = lnbnn_xy['score_lnbnn_1vM'].values
+            y = lnbnn_xy[POSTV].values
+            # task_key = 'match_state'
+            target_class = POSTV
+            res = task_combo_res[task_key][clf_key][data_key]
+            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+            c3 = res.confusions(target_class)
+            roc_curves = [
+                {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
+                {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
+            ]
+
+            at_metric = 'tpr'
+            for at_value in [.25, .5, .75]:
+                info = ut.odict()
+                for want_metric in ['fpr', 'n_false_pos', 'n_true_pos']:
+                    key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
+                    info[key] = c3.get_metric_at_metric(want_metric, at_metric, at_value)
+                print(ut.repr4(info, align=True, precision=8))
+        else:
+            target_class = 'pb'
+            res = task_combo_res[task_key][clf_key][data_key]
+            c1 = res.confusions(target_class)
+            roc_curves = [
+                {'label': 'learned', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
+            ]
+
+        fig = pt.figure(fnum=1)  # NOQA
+        ax = pt.gca()
+        for data in roc_curves:
+            ax.plot(data['fpr'], data['tpr'],
+                    label='%s AUC=%.2f' % (data['label'], data['auc']))
+        ax.set_xlabel('false positive rate')
+        ax.set_ylabel('true positive rate')
+        # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+        ax.legend()
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        fig.set_size_inches([W, H])
+
+        fname = 'roc_{}.png'.format(task_key)
+        fig_fpath = join(str(self.dpath), fname)
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+    def draw_rerank(self):
+        mpl.rcParams.update(TMP_RC)
+
+        expt_name = 'rerank'
+        results = self.ensure_results(expt_name)
+
+        cdfs, infos = list(zip(*results))
+        lnbnn_cdf = cdfs[0]
+        clf_cdf = cdfs[1]
+        fig = pt.figure(fnum=1)
+        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1)
+        fig.set_size_inches([W, H * .6])
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+
+        fpath = join(str(self.dpath), expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+        return fpath
 
     def measure_rerank(self):
         """
@@ -882,24 +972,6 @@ class VerifierExpt(DBInputs):
 
         mpl.rcParams.update(TMP_RC)
 
-        pz_gt_errors = {  # NOQA
-            # The true state of these pairs are:
-            NEGTV: [
-                (239, 3745),
-                (484, 519),
-                (802, 803),
-            ],
-            INCMP: [
-                (4652, 5245),
-                (4405, 5245),
-                (4109, 5245),
-                (16192, 16292),
-            ],
-            POSTV: [
-                (6919, 7192),
-            ]
-        }
-
         prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key),
                            bs=False)
         for case in prog:
@@ -948,7 +1020,7 @@ class VerifierExpt(DBInputs):
 
         res = task_combo_res[task_key][clf_key][data_key]
 
-        from ibeis.scripts import sklearn_utils
+        from ibeis.algo.verif import sklearn_utils
         threshes = res.get_thresholds('mcc', 'max')
         y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes,
                                                   force=True)
@@ -1022,6 +1094,8 @@ class VerifierExpt(DBInputs):
 
     def write_metrics(self, task_key='match_state'):
         """
+        Writes confusion matricies
+
         CommandLine:
             python -m ibeis VerifierExpt.draw metrics PZ_PB_RF_TRAIN match_state
             python -m ibeis VerifierExpt.draw metrics GZ_Master1 photobomb_state
@@ -1046,7 +1120,7 @@ class VerifierExpt(DBInputs):
         sample_weight = res.sample_weight
         target_names = res.class_names
 
-        from ibeis.scripts import sklearn_utils
+        from ibeis.algo.verif import sklearn_utils
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names, sample_weight, verbose=False)
         metric_df = report['metrics']
@@ -1142,161 +1216,6 @@ class VerifierExpt(DBInputs):
         fname = 'sample_info.txt'
         ut.write_to(join(str(self.dpath), fname), info_str)
 
-    def write_importance(self, task_key):
-        """
-        python -m ibeis VerifierExpt.draw importance GZ_Master1,PZ_Master1 match_state
-
-        python -m ibeis VerifierExpt.draw importance GZ_Master1 match_state
-        python -m ibeis VerifierExpt.draw importance PZ_Master1 match_state
-
-        python -m ibeis VerifierExpt.draw importance GZ_Master1 photobomb_state
-        python -m ibeis VerifierExpt.draw importance PZ_Master1 photobomb_state
-        """
-        # Print info for latex table
-        results = self.ensure_results('all')
-        importances = results['importance'][task_key]
-        vals = importances.values()
-        items = importances.items()
-        top_dims = ut.sortedby(items, vals)[::-1]
-        lines = []
-        num_top = 10
-        for k, v in top_dims[:num_top]:
-            k = k.replace('_', '\\_')
-            lines.append('\\tt{{{}}} & ${:.4f}$ \\\\'.format(k, v))
-        latex_str = '\n'.join(ut.align_lines(lines, '&'))
-
-        fname = 'feat_importance_{}'.format(task_key)
-
-        print('TOP {} importances for {}'.format(num_top, task_key))
-        print('# of dimensions: %d' % (len(importances)))
-        print(latex_str)
-        print()
-        extra_ = ut.codeblock(
-            r'''
-            \begin{{table}}[h]
-                \centering
-                \caption{{Top {}/{} dimensions for {}}}
-                \begin{{tabular}}{{lr}}
-                    \toprule
-                    Dimension & Importance \\
-                    \midrule
-                    {}
-                    \bottomrule
-                \end{{tabular}}
-            \end{{table}}
-            '''
-        ).format(num_top, len(importances), task_key.replace('_', '-'), latex_str)
-
-        fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
-        ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
-        return fpath
-
-    def draw_prune(self):
-        """
-        CommandLine:
-            python -m ibeis VerifierExpt.draw importance GZ_Master1
-
-            python -m ibeis VerifierExpt.draw importance PZ_Master1 photobomb_state
-            python -m ibeis VerifierExpt.draw importance PZ_Master1 match_state
-
-            python -m ibeis VerifierExpt.draw prune GZ_Master1,PZ_Master1
-            python -m ibeis VerifierExpt.draw prune PZ_Master1
-
-        >>> from ibeis.scripts.postdoc import *
-        >>> self = VerifierExpt('PZ_Master1')
-        >>> self = VerifierExpt('GZ_Master1')
-        >>> self = VerifierExpt('PZ_MTEST')
-        """
-
-        task_key = 'match_state'
-        expt_name = 'prune'
-        results = self.ensure_results(expt_name)
-
-        n_dims = results['n_dims']
-        mdis_list = results['mdis_list']
-        sub_reports = results['sub_reports']
-
-        # mccs = [r['mcc'] for r in reports]
-        # mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
-        # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs]
-        # for rs in sub_reports])
-        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
-                             for rs in sub_reports])
-
-        import plottool as pt
-
-        mpl.rcParams.update(TMP_RC)
-        fig = pt.figure(fnum=1, doclf=True)
-        pt.multi_plot(n_dims, {'mean': ave_mccs.mean(axis=1)},
-                      rcParams=TMP_RC,
-                      marker='',
-                      force_xticks=[min(n_dims)],
-                      # num_xticks=5,
-                      ylabel='MCC',
-                      xlabel='# feature dimensions',
-                      ymin=.5,
-                      ymax=1, xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
-        ax = pt.gca()
-        ax.invert_xaxis()
-        fig.set_size_inches([W / 2, H])
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        # Find the point at which accuracy starts to fall
-        u = ave_mccs.mean(axis=1)
-        # middle = ut.take_around_percentile(u, .5, len(n_dims) // 2.2)
-        # thresh = middle.mean() - (middle.std() * 6)
-        # print('thresh = %r' % (thresh,))
-        # idx = np.where(u < thresh)[0][0]
-        idx = u.argmax()
-
-        fig = pt.figure(fnum=2)
-        n_to_mid = ut.dzip(n_dims, mdis_list)
-        pruned_importance = n_to_mid[n_dims[idx]]
-        pt.wordcloud(pruned_importance, ax=fig.axes[0])
-        fname = 'wc_{}_pruned.png'.format(task_key)
-        fig_fpath = join(str(self.dpath), fname)
-        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        vals = pruned_importance.values()
-        items = pruned_importance.items()
-        top_dims = ut.sortedby(items, vals)[::-1]
-        lines = []
-        num_top = 10
-        for k, v in top_dims[:num_top]:
-            k = k.replace('_', '\\_')
-            lines.append('\\tt{{{}}} & ${:.4f}$ \\\\'.format(k, v))
-        latex_str = '\n'.join(ut.align_lines(lines, '&'))
-
-        increase = u[idx] - u[0]
-
-        print(latex_str)
-        print()
-        extra_ = ut.codeblock(
-            r'''
-            \begin{{table}}[h]
-                \centering
-                \caption{{Pruned top {}/{} dimensions for {} increases MCC by {:.4f}}}
-                \begin{{tabular}}{{lr}}
-                    \toprule
-                    Dimension & Importance \\
-                    \midrule
-                    {}
-                    \bottomrule
-                \end{{tabular}}
-            \end{{table}}
-            '''
-        ).format(num_top, len(pruned_importance), task_key.replace('_', '-'),
-                 increase, latex_str)
-        # topinfo = vt.AnnotPairFeatInfo(list(pruned_importance.keys()))
-
-        fname = 'pruned_feat_importance_{}'.format(task_key)
-        fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
-        ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
-
-        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
-        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
-
     def measure_thresh(self, pblm):
         task_key = 'match_state'
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
@@ -1343,30 +1262,6 @@ class VerifierExpt(DBInputs):
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([W, H])
         return fig
-
-    def draw_rerank(self):
-        mpl.rcParams.update(TMP_RC)
-
-        expt_name = 'rerank'
-        results = self.ensure_results(expt_name)
-
-        cdfs, infos = list(zip(*results))
-        lnbnn_cdf = cdfs[0]
-        clf_cdf = cdfs[1]
-        fig = pt.figure(fnum=1)
-        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1)
-        fig.set_size_inches([W, H * .6])
-        qsizes = ut.take_column(infos, 'qsize')
-        dsizes = ut.take_column(infos, 'dsize')
-        assert ut.allsame(qsizes) and ut.allsame(dsizes)
-        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
-        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
-
-        fpath = join(str(self.dpath), expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
-        return fpath
 
     def draw_class_score_hist(self):
         """ Plots distribution of positive and negative scores """
@@ -1472,76 +1367,6 @@ class VerifierExpt(DBInputs):
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
             ut.startfile(fig_fpath)
-
-    def draw_roc(self, task_key):
-        """
-        python -m ibeis VerifierExpt.draw roc GZ_Master1 photobomb_state
-        python -m ibeis VerifierExpt.draw roc GZ_Master1 match_state
-        """
-        mpl.rcParams.update(TMP_RC)
-
-        results = self.ensure_results('all')
-        data_key = results['data_key']
-        clf_key = results['clf_key']
-
-        task_combo_res = results['task_combo_res']
-        lnbnn_xy = results['lnbnn_xy']
-
-        if task_key == 'match_state':
-            scores = lnbnn_xy['score_lnbnn_1vM'].values
-            y = lnbnn_xy[POSTV].values
-            # task_key = 'match_state'
-            target_class = POSTV
-            res = task_combo_res[task_key][clf_key][data_key]
-            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-            c3 = res.confusions(target_class)
-            roc_curves = [
-                {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-                {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
-            ]
-
-            at_metric = 'tpr'
-            for at_value in [.25, .5, .75]:
-                info = ut.odict()
-                for want_metric in ['fpr', 'n_false_pos', 'n_true_pos']:
-                    key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
-                    info[key] = c3.get_metric_at_metric(want_metric, at_metric, at_value)
-                print(ut.repr4(info, align=True, precision=8))
-        else:
-            target_class = 'pb'
-            res = task_combo_res[task_key][clf_key][data_key]
-            c1 = res.confusions(target_class)
-            roc_curves = [
-                {'label': 'learned', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
-            ]
-
-        fig = pt.figure(fnum=1)  # NOQA
-        ax = pt.gca()
-        for data in roc_curves:
-            ax.plot(data['fpr'], data['tpr'],
-                    label='%s AUC=%.2f' % (data['label'], data['auc']))
-        ax.set_xlabel('false positive rate')
-        ax.set_ylabel('true positive rate')
-        # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-        ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        fig.set_size_inches([W, H])
-
-        fname = 'roc_{}.png'.format(task_key)
-        fig_fpath = join(str(self.dpath), fname)
-        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-    def draw_wordcloud(self, task_key):
-        import plottool as pt
-        results = self.ensure_results('all')
-        importances = results['importance'][task_key]
-
-        fig = pt.figure(fnum=1)
-        pt.wordcloud(importances, ax=fig.axes[0])
-
-        fname = 'wc_{}.png'.format(task_key)
-        fig_fpath = join(str(self.dpath), fname)
-        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     @classmethod
     def draw_tagged_pair(VerifierExpt):
@@ -1947,7 +1772,7 @@ def _find_good_match_states(infr, ibs, edges):
             #                     ((q2 > 3) | np.isnan(q2)))
 
             # a = ibs.annots(asarray=True)
-            # flags = [t is not None and 'right' == t for t in a.yaw_texts]
+            # flags = [t is not None and 'right' == t for t in a.viewpoint_code]
             # r = a.compress(flags)
             # flags = [q is not None and q > 4 for q in r.qual]
 

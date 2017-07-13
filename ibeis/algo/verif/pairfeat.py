@@ -270,8 +270,10 @@ class PairwiseFeatureExtractor(object):
         """
         Construct matches and their pairwise features
 
-        Example:
-            >>> # ENABLE_DOCTEST
+        CommandLine:
+            python -m ibeis.algo.verif.pairfeat _make_pairwise_features
+
+        Doctest:
             >>> from ibeis.algo.verif.pairfeat import *
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()

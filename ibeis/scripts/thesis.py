@@ -3013,7 +3013,7 @@ class Chap3Measures(object):
         qual_info['None'] += qual_info.pop(None, 0)
         qual_info['species_nice'] = self.species_nice
 
-        view_info = ut.dict_hist(annots.yaw_texts)
+        view_info = ut.dict_hist(annots.viewpoint_code)
         view_info['None'] = view_info.pop('UNKNOWN', 0)
         view_info['None'] += view_info.pop(None, 0)
         view_info['species_nice'] = self.species_nice
@@ -3956,7 +3956,6 @@ def feat_alias(k):
     # k = k.replace('weighted_', 'wgt_')
     # k = k.replace('norm_x', 'x')
     # k = k.replace('norm_y', 'y')
-    # k = k.replace('yaw', 'view')
     return k
 
 

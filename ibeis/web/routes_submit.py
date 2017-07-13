@@ -185,6 +185,7 @@ def submit_detection(**kwargs):
         # Set annotation metadata
         ibs.set_annot_thetas(aid_list, theta_list)
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+        # TODO ibs.set_annot_viewpoint_code(aid_list, viewpoint_list)
         ibs.set_annot_qualities(aid_list, quality_list)
         ibs.set_annot_multiple(aid_list, multiple_list)
         ibs.set_annot_interest(aid_list, interest_list)
@@ -373,6 +374,7 @@ def submit_viewpoint(**kwargs):
         viewpoint_text = appf.VIEWPOINT_MAPPING.get(viewpoint, None)
         species_text = request.form['viewpoint-species']
         ibs.set_annot_viewpoints([aid], [viewpoint_text])
+        # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
         print('[web] turk_id: %s, aid: %d, viewpoint_text: %s' % (turk_id, aid, viewpoint_text))
     # Return HTML
@@ -471,6 +473,7 @@ def submit_annotation(**kwargs):
         else:
             raise ValueError('quality must be -1, 0 or 1')
         ibs.set_annot_viewpoints([aid], [viewpoint_text])
+        # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_qualities([aid], [quality])
         multiple = 1 if 'ia-multiple-value' in request.form else 0

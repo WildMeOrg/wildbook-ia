@@ -1563,7 +1563,8 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         >>> print(result)
         [3.141592653589793, 3.141592653589793, None, 3.141592653589793, None]
     """
-    yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list, assume_unique=assume_unique)
+    yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list,
+                          assume_unique=assume_unique)
     #if False:
     #    yaw_list2 = [ibs.db.cur.execute('SELECT annot_yaw from annotations WHERE rowid=?', (aid,)).fetchone()[0] for aid in aid_list]
     #    # misses cases when aid_list is not unique?
@@ -1587,7 +1588,8 @@ def get_annot_viewpoints(ibs, aid_list, assume_unique=False):
         Method: GET
         URL:    /api/annot/viewpoint/
     """
-    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list, assume_unique=assume_unique)
+    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,),
+                                aid_list, assume_unique=assume_unique)
     return viewpoint_list
 
 
@@ -1620,13 +1622,43 @@ def get_annot_yaw_texts(ibs, aid_list, assume_unique=False):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_viewpoint_int(ibs, aid_list, assume_unique=False):
-    yaw_texts = ibs.get_annot_yaw_texts(aid_list, assume_unique=assume_unique)
-    VIEW = ibs.const.VIEW
-    UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
-    yaw_texts2 = (UNKNOWN_CODE if y is None else y for y in yaw_texts)
-    view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, yaw_texts2)
-    return view_ints
+def get_annot_viewpoint_int(ibs, aids, assume_unique=False):
+    # Pre 1.7.0
+    # yaw_texts = ibs.get_annot_yaw_texts(aid_list, assume_unique=assume_unique)
+    # VIEW = ibs.const.VIEW
+    # UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
+    # yaw_texts2 = (UNKNOWN_CODE if y is None else y for y in yaw_texts)
+    # view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, yaw_texts2)
+    # return view_ints
+    # ---------
+    # Post 1.7.0
+    return ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), aids,
+                      assume_unique=assume_unique)
+
+
+@register_ibs_method
+def set_annot_viewpoint_int(ibs, aids, view_ints, _code_update=True):
+    view_ints = list(view_ints)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints,
+               id_iter=aids)
+    if _code_update:
+        # oops didn't realize there was an old structure
+        view_codes = ut.take(ibs.const.VIEW.INT_TO_CODE, view_ints)
+        ibs.set_annot_viewpoints(aids, view_codes, _code_update=False)
+
+
+@register_ibs_method
+def get_annot_viewpoint_code(ibs, aids):
+    return ut.dict_take(ibs.const.VIEW.INT_TO_CODE,
+                        ibs.get_annot_viewpoint_int(aids))
+
+
+@register_ibs_method
+def set_annot_viewpoint_code(ibs, aids, view_codes, _code_update=True):
+    view_codes = [
+        const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
+    view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
+    ibs.set_annot_viewpoint_int(aids, view_ints, _code_update=_code_update)
 
 
 @register_ibs_method
@@ -1675,7 +1707,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
 @accessor_decors.setter
 @register_api('/api/annot/viewpoint/', methods=['PUT'])
 def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
-                         _yaw_update=False):
+                         _yaw_update=False, _code_update=True):
     r"""
     Sets the viewpoint of the annotation
 
@@ -1683,19 +1715,24 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
         Method: PUT
         URL:    /api/annot/viewpoint/
     """
-    id_iter = ((aid,) for aid in aid_list)
+    viewpoint_list = list(viewpoint_list)
     if only_allow_known:
-        current_viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-        zipped = zip(viewpoint_list, current_viewpoint_list)
-        viewpoint_list = [
-            viewpoint if viewpoint in const.YAWALIAS or viewpoint is None else current_viewpoint
-            for viewpoint, current_viewpoint in zipped
-        ]
-    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
+        isvalid = [v is None or v in const.VIEW.CODE_TO_INT
+                   for v in viewpoint_list]
+        aid_list = ut.compress(aid_list, isvalid)
+        viewpoint_list = ut.compress(viewpoint_list, isvalid)
+
+    val_iter = zip(viewpoint_list)
+    id_iter = zip(aid_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
-    # Set yaws, if in the correct plane, else None
-    yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, viewpoint_list, None)
+
+    # oops didn't realize there was a structure already here for this
+    if _code_update:
+        ibs.set_annot_viewpoint_code(aid_list, viewpoint_list, _code_update=False)
+
     if _yaw_update:
+        # Set yaws, if in the correct plane, else None
+        yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, viewpoint_list, None)
         ibs.set_annot_yaws(aid_list, yaw_list)
 
 

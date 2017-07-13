@@ -633,6 +633,7 @@ def commit_detection_results(ibs, gid_list, results_list, note=None,
             skip_cleaning=True
         )
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+        # TODO ibs.set_annot_viewpoint_code(aid_list, viewpoint_list)
         aids_list.append(aid_list)
     ibs._clean_species()
     if update_json_log:
@@ -670,6 +671,7 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
             )
             aid = temp_list[0]
             ibs.set_annot_viewpoints([aid], [viewpoint])
+            # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint])
             aid_list.append(aid)
         aids_list.append(aid_list)
     ibs._clean_species()
