@@ -504,21 +504,25 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # STARTBLOCK bash
 
         if [[ "$VIRTUAL_ENV" == ""  ]]; then
+            # The case where we are installying system-wide
+            # It is recommended that a virtual enviornment is used instead
             export PYTHON_EXECUTABLE=$(which {pyversion})
-            # If there is no virtual environment install to system
-            # TODO: add support for mac conventions
             if [[ '$OSTYPE' == 'darwin'* ]]; then
+                # Mac system info
                 export LOCAL_PREFIX=/opt/local
                 export {pypkg_var}=$($PYTHON_EXECUTABLE -c "import site; print(site.getsitepackages()[0])")
                 export PYTHON_PACKAGES_PATH=${pypkg_var}
                 export _SUDO="sudo"
             else
+                # Linux system info
                 export LOCAL_PREFIX=/usr/local
                 export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/dist-packages
                 export PYTHON_PACKAGES_PATH=${pypkg_var}
                 export _SUDO="sudo"
             fi
+            # No windows support here
         else
+            # The prefered case where we are in a virtual environment
             export PYTHON_EXECUTABLE=$(which python)
             # export LOCAL_PREFIX=$VIRTUAL_ENV/local
             export LOCAL_PREFIX=$VIRTUAL_ENV
@@ -714,6 +718,12 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
         r"""
         # STARTBLOCK bash
+
+        # Ensure the repo was checked out
+        if [ ! -d {repo_dpath} ]; then
+            git clone https://github.com/Theano/libgpuarray.git {repo_dpath}
+        fi
+
         {python_bash_setup}
         cd {repo_dpath}
         mkdir -p {repo_dpath}/{build_dname}
@@ -735,6 +745,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
         # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
         cd ~
+        $_SUDO pip install nose
         DEVICE="cuda" python -c "import pygpu;pygpu.test()"
 
         # pip uninstall pygpu
@@ -1177,7 +1188,8 @@ def main():
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')
-    except ValueError:
+    except ValueError as ex:
+        ut.printex(ex, tb=True)
         print('Probably need libgpu array')
         print('python super_setup.py --libgpuarray')
 
