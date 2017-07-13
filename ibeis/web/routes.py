@@ -22,6 +22,16 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+THROW_TEST_AOI_TURKING = False
+THROW_TEST_AOI_TURKING_PERCENTAGE = 0.10
+THROW_TEST_AOI_TURKING_ERROR_MODES = {
+    'addition'   : [1, 2, 3],
+    'deletion'   : [1, 2, 3],
+    'alteration' : [1, 2, 3],
+    'translation' : [1, 2, 3],
+}
+
+
 GLOBAL_FEEDBACK_LIMIT = 50
 GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
@@ -83,11 +93,11 @@ def view_viewpoints(**kwargs):
     species_set = set(species_tag_list)
     species_nice_dict = {
         species_tag : ibs.get_species_nice(species_rowid)
-        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
+        for species_tag, species_rowid in list(zip(species_tag_list, species_rowid_list))
     }
 
     viewpoint_dict = {}
-    for species, viewpoint in zip(species_list, viewpoint_list):
+    for species, viewpoint in list(zip(species_list, viewpoint_list)):
         if species in species_set:
             if species not in viewpoint_dict:
                 viewpoint_dict[species] = {}
@@ -158,7 +168,7 @@ def view_advanced0(**kwargs):
         imgsetids_list = ibs.get_annot_imgsetids(aid_list)
         aid_list = [
             aid
-            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
+            for aid, imgsetid_list_ in list(zip(aid_list, imgsetids_list))
             if imgsetid in imgsetid_list_
         ]
         return aid_list
@@ -175,7 +185,7 @@ def view_advanced0(**kwargs):
         imgsetids_list = ibs.get_image_imgsetids(gid_list)
         gid_list = [
             gid
-            for gid, imgsetid_list_ in zip(gid_list, imgsetids_list)
+            for gid, imgsetid_list_ in list(zip(gid_list, imgsetids_list))
             if imgsetid in imgsetid_list_
         ]
         return gid_list
@@ -196,7 +206,7 @@ def view_advanced0(**kwargs):
         ]
         nid_list = [
             nid
-            for nid, imgsetid_list_ in zip(nid_list, imgsetids_list)
+            for nid, imgsetid_list_ in list(zip(nid_list, imgsetids_list))
             if imgsetid in imgsetid_list_
         ]
         return nid_list
@@ -256,7 +266,7 @@ def view_advanced0(**kwargs):
     gid_list_unique = list(set(gid_list))
     date_list_unique = _date_list(gid_list_unique)
     date_taken_dict = {}
-    for gid, date in zip(gid_list_unique, date_list_unique):
+    for gid, date in list(zip(gid_list_unique, date_list_unique)):
         if flagged_date_list is not None and date not in flagged_date_list:
             continue
         if date not in date_taken_dict:
@@ -266,7 +276,7 @@ def view_advanced0(**kwargs):
     gid_list_all = ibs.get_valid_gids()
     gid_list_all = filter_images_imageset(gid_list_all)
     date_list_all = _date_list(gid_list_all)
-    for gid, date in zip(gid_list_all, date_list_all):
+    for gid, date in list(zip(gid_list_all, date_list_all)):
         if flagged_date_list is not None and date not in flagged_date_list:
             continue
         if date in date_taken_dict:
@@ -349,7 +359,7 @@ def view_advanced0(**kwargs):
     # regressed_opts = [ curve_fit(func, x, y)[0] for func in optimization_funcs ]
     # prediction_list = [
     #     process(func, opts, domain, zero_index, zero_value)
-    #     for func, opts in zip(optimization_funcs, regressed_opts)
+    #     for func, opts in list(zip(optimization_funcs, regressed_opts))
     # ]
     # index_list = list(domain)
     prediction_list = []
@@ -418,7 +428,7 @@ def view_advanced0(**kwargs):
     if not REMOVE_DUP_CODE:
         # Get the tracks
         nid_track_dict = ut.ddict(list)
-        for nid, gps in zip(nid_list_count_dup, gps_list_markers):
+        for nid, gps in list(zip(nid_list_count_dup, gps_list_markers)):
             if gps[0] == -1.0 and gps[1] == -1.0:
                 continue
             nid_track_dict[nid].append(gps)
@@ -428,7 +438,7 @@ def view_advanced0(**kwargs):
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
     gps_list_markers = [ gps for gps in gps_list_markers ]
-    gps_list_markers_tuple_all = [ (gps, gid) for gps, gid in zip(gps_list_markers_all, gid_list)  ]
+    gps_list_markers_tuple_all = [ (gps, gid) for gps, gid in list(zip(gps_list_markers_all, gid_list))  ]
     gps_list_markers_all = [_[0] for _ in gps_list_markers_tuple_all]
     gid_list_markers_all = [_[1] for _ in gps_list_markers_tuple_all]
     gps_list_tracks = [
@@ -449,7 +459,7 @@ def view_advanced0(**kwargs):
     else:
         dataset_color_label_list = ['Day 1 Only', 'Resightings', 'Day 2 Only', 'Unused']
 
-    for gid, gps in zip(gid_list_markers_all, gps_list_markers_all):
+    for gid, gps in list(zip(gid_list_markers_all, gps_list_markers_all)):
         image_note = ibs.get_image_notes(gid)
         current_date = _date_list([gid])[0]
         color = color_none
@@ -537,7 +547,7 @@ def view_advanced0(**kwargs):
                 gps[0] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT),
                 gps[1] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT),
             ]
-            for gps, color_ in zip(gps_list_markers_all, color_list_markers_all)
+            for gps, color_ in list(zip(gps_list_markers_all, color_list_markers_all))
         ]
 
     valid_aids = ibs.get_valid_aids()
@@ -556,7 +566,7 @@ def view_advanced0(**kwargs):
     # annot_age_months_est_min = ibs.get_annot_age_months_est_min(valid_aids_)
     # annot_age_months_est_max = ibs.get_annot_age_months_est_max(valid_aids_)
     # age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    # for sex, min_age, max_age in zip(annot_sex_list, annot_age_months_est_min, annot_age_months_est_max):
+    # for sex, min_age, max_age in list(zip(annot_sex_list, annot_age_months_est_min, annot_age_months_est_max)):
     #     if sex not in [0, 1]:
     #         sex = 2
     #         # continue
@@ -574,7 +584,7 @@ def view_advanced0(**kwargs):
     age_list = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     age_unreviewed = 0
     age_ambiguous = 0
-    for nid, sex, min_ages, max_ages in zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
+    for nid, sex, min_ages, max_ages in list(zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list)):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
             # print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
             age_ambiguous += 1
@@ -691,7 +701,7 @@ def view_advanced1(**kwargs):
     species_set = set(species_tag_list)
     species_nice_dict = {
         species_tag : ibs.get_species_nice(species_rowid)
-        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
+        for species_tag, species_rowid in list(zip(species_tag_list, species_rowid_list))
     }
 
     aid_list = ibs.get_valid_aids()
@@ -699,7 +709,7 @@ def view_advanced1(**kwargs):
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     viewpoint_dict = {}
 
-    for species, viewpoint in zip(species_list, viewpoint_list):
+    for species, viewpoint in list(zip(species_list, viewpoint_list)):
         if species in species_set:
             if species not in viewpoint_dict:
                 viewpoint_dict[species] = {}
@@ -750,7 +760,7 @@ def view_advanced1(**kwargs):
         'GGR': ['right', 'frontright', 'backright'],
         'GZGC': ['left', 'frontleft', 'backleft'],
     }
-    for note, viewpoint_list in zip(note_list, viewpoints_list):
+    for note, viewpoint_list in list(zip(note_list, viewpoints_list)):
         dataset_tag = 'GGR' if 'GGR' in note else 'GZGC'
         allowed_viewpoint_list = allowed_viewpoint_dict[dataset_tag]
 
@@ -778,7 +788,7 @@ def view_advanced1(**kwargs):
 
     num_bins = 15
     histogram_dict = {}
-    for nid, aids, species in zip(nid_list, aids_list, species_list):
+    for nid, aids, species in list(zip(nid_list, aids_list, species_list)):
         if species not in histogram_dict:
             histogram_dict[species] = {}
         count = len(aids)
@@ -835,7 +845,7 @@ def view_advanced2(**kwargs):
         imgsetids_list = ibs.get_annot_imgsetids(aid_list)
         aid_list = [
             aid
-            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
+            for aid, imgsetid_list_ in list(zip(aid_list, imgsetids_list))
             if imgsetid in imgsetid_list_
         ]
         return aid_list
@@ -947,7 +957,7 @@ def view_advanced3(**kwargs):
 
     contrib_dict = {}
     skipped = 0
-    for gid, note in zip(gid_list, note_list):
+    for gid, note in list(zip(gid_list, note_list)):
         note = note.strip()
         if len(note) == 0:
             skipped += 1
@@ -1044,7 +1054,7 @@ def view_advanced4(**kwargs):
         speciess_list = ut.unflat_map(ibs.get_annot_species_texts, aids_list)
         speciess_set = map(set, speciess_list)
         gid_list_filtered = []
-        for gid, species_set in zip(gid_list, speciess_set):
+        for gid, species_set in list(zip(gid_list, speciess_set)):
             intersect_list = list(wanted_set & species_set)
             if len(intersect_list) > 0:
                 gid_list_filtered.append(gid)
@@ -1056,7 +1066,7 @@ def view_advanced4(**kwargs):
         viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
         viewpoints_list = map(set, viewpoints_list)
         gid_list_filtered = []
-        for gid, viewpoint_set in zip(gid_list, viewpoints_list):
+        for gid, viewpoint_set in list(zip(gid_list, viewpoints_list)):
             intersect_list = list(wanted_set & viewpoint_set)
             if len(intersect_list) > 0:
                 gid_list_filtered.append(gid)
@@ -1067,7 +1077,7 @@ def view_advanced4(**kwargs):
         date_list = _date_list(gid_list)
         gps_list = ibs.get_image_gps(gid_list)
         gid_list_filtered = []
-        for gid, date, gps in zip(gid_list, date_list, gps_list):
+        for gid, date, gps in list(zip(gid_list, date_list, gps_list)):
             if date in wanted_set and gps != (-1.0, -1.0):
                 gid_list_filtered.append(gid)
         return gid_list_filtered
@@ -1078,7 +1088,7 @@ def view_advanced4(**kwargs):
         qualities_list = ut.unflat_map(ibs.get_annot_quality_texts, aids_list)
         qualities_list = map(set, qualities_list)
         gid_list_filtered = []
-        for gid, quality_list in zip(gid_list, qualities_list):
+        for gid, quality_list in list(zip(gid_list, qualities_list)):
             intersect_list = list(wanted_set & quality_list)
             if len(intersect_list) > 0:
                 gid_list_filtered.append(gid)
@@ -1088,13 +1098,13 @@ def view_advanced4(**kwargs):
     #     aids_list = ibs.get_image_aids(gid_list)
     #     nids_list = ut.unflat_map(ibs.get_annot_nids, aids_list)
     #     gid_list_filtered = []
-    #     for gid, nid_list in zip(gid_list, nids_list):
+    #     for gid, nid_list in list(zip(gid_list, nids_list)):
     #         print(gid)
     #         print(nid_list)
     #         aids_list_ = ibs.get_name_aids(nid_list)
     #         print(aids_list_)
     #         single = True
-    #         for nid, aid_list in zip(nid_list, aids_list_):
+    #         for nid, aid_list in list(zip(nid_list, aids_list_)):
     #             if nid == const.UNKNOWN_NAME_ROWID or nid < 0:
     #                 continue
     #             if len(aid_list) > 1:
@@ -1112,7 +1122,7 @@ def view_advanced4(**kwargs):
 
     dataset_dict = {}
     skipped = 0
-    for gid, note in zip(gid_list, note_list):
+    for gid, note in list(zip(gid_list, note_list)):
         note = note.strip()
 
         dataset_tag = 'GGR' if 'GGR' in note else 'GZGC'
@@ -1210,7 +1220,7 @@ def view_advanced4(**kwargs):
         for i in range(len(stage_list_ggr) - 1)
     ]
 
-    bar_value_list = map(list, zip(diff_list_gzgc, diff_list_ggr))
+    bar_value_list = map(list, list(zip(diff_list_gzgc, diff_list_ggr)))
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
@@ -1246,7 +1256,7 @@ def view_imagesets(**kwargs):
     image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
     annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
     annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
-    reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
+    reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in list(zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list)) ]
     is_normal_list = ut.not_list(ibs.is_special_imageset(imgsetid_list))
     imageset_list = list(zip(
         is_normal_list,
@@ -1420,7 +1430,7 @@ def view_annotations(**kwargs):
         ibs.get_annot_sex_texts(aid_list),
         ibs.get_annot_age_months_est(aid_list),
         ibs.get_annot_reviewed(aid_list),
-        # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list)) ],
+        # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list))) ],
     ))
     annotation_list.sort(key=lambda t: t[0])
     return appf.template('view', 'annotations',
@@ -1499,7 +1509,7 @@ def view_names(**kwargs):
         ibs.get_annot_quality_texts(aid_list_),
         ibs.get_annot_sex_texts(aid_list_),
         ibs.get_annot_age_months_est(aid_list_),
-        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list_), appf.imageset_annot_quality_processed(ibs, aid_list_)) ],
+        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list_), appf.imageset_annot_quality_processed(ibs, aid_list_))) ],
     ) for aid_list_ in aids_list ]
     name_list = list(zip(
         nid_list,
@@ -1543,7 +1553,7 @@ def action(**kwargs):
         ibs.get_job_status(job_id)['jobstatus']
         for job_id in job_id_list
     ]
-    action_list = zip(job_id_list, job_action_list, job_status_list)
+    action_list = list(zip(job_id_list, job_action_list, job_status_list))
 
     return appf.template('action', None,
                          imgsetid=imgsetid,
@@ -1701,7 +1711,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         # Get annotation bounding boxes
         mapping_dict = {}
         annotation_list = []
-        zipped = zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list)
+        zipped = list(zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list))
         for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
             if quality in [-1, None]:
                 quality = 0
@@ -1741,7 +1751,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         # Get annotation bounding boxes
 
         part_list = []
-        zipped = zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list)
+        zipped = list(zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list))
         for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
             if part_quality in [-1, None]:
                 part_quality = 0
@@ -1778,6 +1788,150 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         annotation_list = []
         part_list = []
 
+    THROW_TEST_AOI_TURKING_MANIFEST = []
+    THROW_TEST_AOI_TURKING_AVAILABLE = False
+    if THROW_TEST_AOI_TURKING:
+        if True or random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
+            THROW_TEST_AOI_TURKING_AVAILABLE = True
+            annotation_list = list(annotation_list)
+            part_list = list(part_list)
+
+            key_list = list(THROW_TEST_AOI_TURKING_ERROR_MODES.keys())
+            throw_test_aoi_turking_mode = random.choice(key_list)
+            throw_test_aoi_turking_severity = random.choice(
+                THROW_TEST_AOI_TURKING_ERROR_MODES[throw_test_aoi_turking_mode]
+            )
+            throw_test_aoi_turking_severity = min(
+                throw_test_aoi_turking_severity,
+                len(annotation_list)
+            )
+            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            print('throw_test_aoi_turking: %r mode with %r severity' % args)
+
+            index_list = list(range(len(annotation_list)))
+            random.shuffle(index_list)
+            index_list = index_list[:throw_test_aoi_turking_severity]
+            index_list = sorted(index_list, reverse=True)
+
+            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            print(index_list)
+            print(ut.repr3(annotation_list))
+
+            if throw_test_aoi_turking_mode == 'addition':
+                print('addition')
+
+                for index in index_list:
+                    width = random.uniform(0.0, 100.0)
+                    height = random.uniform(0.0, 100.0)
+                    left = random.uniform(0.0, 100.0 - width)
+                    top = random.uniform(0.0, 100.0 - height)
+                    species = random.choice(ibs.get_all_species_texts())
+                    annotation = {
+                        'id': None,
+                        'top': top,
+                        'left': left,
+                        'width': width,
+                        'height': height,
+                        'theta': 0.0,
+                        'species': species,
+                        'quality': 0,
+                        'interest': 'false',
+                        'multiple': 'false',
+                        'viewpoint1': -1,
+                        'viewpoint2': -1,
+                        'viewpoint3': -1,
+                    }
+                    annotation_list.append(annotation)
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'addition',
+                        'values': annotation,
+                    })
+            elif throw_test_aoi_turking_mode == 'deletion':
+                if len(part_list) == 0:
+                    print('deletion')
+
+                    for index in index_list:
+                        annotation = annotation_list.pop(index)
+                        THROW_TEST_AOI_TURKING_MANIFEST.append({
+                            'action': 'deletion',
+                            'values': annotation,
+                        })
+                else:
+                    THROW_TEST_AOI_TURKING_AVAILABLE = False
+            elif throw_test_aoi_turking_mode == 'alteration':
+                print('alteration')
+
+                for index in index_list:
+                    direction_list = ['left', 'right', 'up', 'down']
+                    direction = random.choice(direction_list)
+                    height = annotation_list[index]['height']
+                    width = annotation_list[index]['width']
+                    left = annotation_list[index]['left']
+                    top = annotation_list[index]['top']
+
+                    if direction == 'left':
+                        delta = width * 0.25
+                        left -= delta
+                        width += delta
+                    elif direction == 'right':
+                        delta = width * 0.25
+                        width += delta
+                    elif direction == 'up':
+                        delta = width * 0.25
+                        top -= delta
+                        height += delta
+                    elif direction == 'down':
+                        delta = width * 0.25
+                        height += delta
+
+                    annotation_list[index]['height'] = height
+                    annotation_list[index]['width'] = width
+                    annotation_list[index]['left'] = left
+                    annotation_list[index]['top'] = top
+
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'alteration-%s' % (direction, ),
+                        'values': annotation_list[index],
+                    })
+            elif throw_test_aoi_turking_mode == 'translation':
+                print('translation')
+
+                for index in index_list:
+                    direction_list = ['left', 'right', 'up', 'down']
+                    direction = random.choice(direction_list)
+                    height = annotation_list[index]['height']
+                    width = annotation_list[index]['width']
+                    left = annotation_list[index]['left']
+                    top = annotation_list[index]['top']
+
+                    if direction == 'left':
+                        delta = width * 0.25
+                        left -= delta
+                    elif direction == 'right':
+                        delta = width * 0.25
+                        left += delta
+                    elif direction == 'up':
+                        delta = width * 0.25
+                        top -= delta
+                    elif direction == 'down':
+                        delta = width * 0.25
+                        top += delta
+
+                    annotation_list[index]['height'] = height
+                    annotation_list[index]['width'] = width
+                    annotation_list[index]['left'] = left
+                    annotation_list[index]['top'] = top
+
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'translation-%s' % (direction, ),
+                        'values': annotation_list[index],
+                    })
+            else:
+                raise ValueError('Invalid throw_test_aoi_turking_mode')
+
+            print(ut.repr3(annotation_list))
+            print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
+
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)
 
@@ -1796,7 +1950,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     part_rowids_list = ibs.get_annot_part_rowids(aid_list)
     part_types_list = map(ibs.get_part_types, part_rowids_list)
 
-    zipped = zip(part_species_text_list, part_types_list)
+    zipped = list(zip(part_species_text_list, part_types_list))
     species_part_dict = {
         const.UNKNOWN: set([])
     }
@@ -1834,6 +1988,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
+                         __check_userid__=False,
                          imgsetid=imgsetid,
                          gid=gid,
                          config_str=config_str,
@@ -1854,6 +2009,8 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          display_new_features=display_new_features,
                          display_species_examples=display_species_examples,
                          settings=settings,
+                         THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
+                         THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
                          callback_url=callback_url,
                          callback_method='POST',
                          EMBEDDED=True,
@@ -1879,7 +2036,7 @@ def turk_detection_dynamic(**kwargs):
     species_list = ibs.get_annot_species_texts(aid_list)
     # Get annotation bounding boxes
     annotation_list = []
-    for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
+    for aid, annot_bbox, annot_theta, species in list(zip(aid_list, annot_bbox_list, annot_thetas_list, species_list)):
         temp = {}
         temp['left']   = 100.0 * (annot_bbox[0] / width)
         temp['top']    = 100.0 * (annot_bbox[1] / height)
@@ -1975,7 +2132,7 @@ def turk_annotation(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [ species == species_ for species_ in species_text_list ]
-    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
     callback_url = url_for('submit_annotation')
@@ -2032,7 +2189,7 @@ def turk_annotation_dynamic(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [ species == species_ for species_ in species_text_list ]
-    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
     callback_url = url_for('submit_annotation')
@@ -2091,7 +2248,7 @@ def turk_species(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [ species == species_ for species_ in species_text_list ]
-    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
     callback_url = url_for('submit_species')
@@ -2163,7 +2320,7 @@ def turk_viewpoint(**kwargs):
 
     species_text_list = ibs.get_species_texts(species_rowids)
     species_selected_list = [ species == species_ for species_ in species_text_list ]
-    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
     return appf.template('turk', 'viewpoint',
@@ -2211,7 +2368,7 @@ def precompute_current_review_match_images(ibs, query_object,
     assert len(review_aid1_list) == len(review_aid2_list), 'not aligned'
 
     # Precompute
-    zipped = zip(review_aid1_list, review_aid2_list)
+    zipped = list(zip(review_aid1_list, review_aid2_list))
     prog = ut.ProgIter(enumerate(zipped), length=len(review_aid2_list),
                        label='Rending images')
     for index, (aid1, aid2) in prog:
@@ -2428,7 +2585,6 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
             with ut.Timer('[web.routes.turk_identification] Get matches'):
                 # Get raw list of reviews
                 review_cfg = GLOBAL_FEEDBACK_CONFIG_DICT.copy()
-                ut.embed()
                 raw_review_list = []
 
                 # Get actual
@@ -2562,7 +2718,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
         confidence_text == 'unspecified'
         for confidence_text in confidence_text_list
     ]
-    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     timedelta_str = 'Unknown'
     if aid1 is not None and aid2 is not None:
@@ -2841,7 +2997,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         confidence_text == 'unspecified'
         for confidence_text in confidence_text_list
     ]
-    confidence_list = zip(confidence_nice_list, confidence_text_list, confidence_selected_list)
+    confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     return appf.template('turk', 'identification',
                          match_data=match_data,
@@ -3155,7 +3311,7 @@ def wb_counts(**kwargs):
         aids_list = ibs.get_imageset_aids(imgset_id_list)
         imgset_id_list = [
             imgset_id
-            for imgset_id, aid_list_ in zip(imgset_id_list, aids_list)
+            for imgset_id, aid_list_ in list(zip(imgset_id_list, aids_list))
             if len(aid_list_) > 0
         ]
 

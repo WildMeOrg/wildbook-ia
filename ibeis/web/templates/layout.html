@@ -26,14 +26,6 @@
     <!-- <script type="text/javascript" src="{{ url_for('static', filename='include/Chart.js/Chart.bundle.min.js') }}"></script> -->
     <script type="text/javascript" src="{{ url_for('static', filename='javascript/script.js') }}"></script>
 
-    <script type="text/javascript" ia-dependency="javascript">
-      {% if not __have_userid__ %}
-        $(document).ready(function() {
-          $('#set-userid').modal('show');
-        });
-      {% endif %}
-    </script>
-
     {% block content_custom_css %}{% endblock %}
   </head>
 
@@ -90,5 +82,29 @@
       </div>
 
     {% block content_custom_javascript %}{% endblock %}
+
+    <script type="text/javascript" ia-dependency="javascript">
+      $('#set-userid').on('shown.bs.modal', function() {
+        $('input[name="set-userid"]').val('')
+        hotkeys_global_disabled = true;
+
+        if(bba !== undefined) {
+          bba.options.hotkeys.enabled = false
+        }
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+        hotkeys_global_disabled = false;
+        if(bba !== undefined) {
+          bba.options.hotkeys.enabled = true
+        }
+      });
+
+      {% if not __have_userid__ %}
+        $(document).ready(function() {
+          $('#set-userid').modal('show');
+        });
+      {% endif %}
+    </script>
   </body>
 </html>

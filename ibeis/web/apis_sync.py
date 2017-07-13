@@ -284,7 +284,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
 
     missing_gid_list = [
         gid
-        for gid, image_uuid in zip(gid_list, image_uuid_list)
+        for gid, image_uuid in list(zip(gid_list, image_uuid_list))
         if image_uuid not in image_uuid_list_
     ]
 
@@ -314,7 +314,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
 
     missing_aid_list = [
         aid
-        for aid, annot_uuid in zip(aid_list, annot_uuid_list)
+        for aid, annot_uuid in list(zip(aid_list, annot_uuid_list))
         if annot_uuid not in annot_uuid_list_
     ]
 
@@ -341,7 +341,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
 
     missing_part_rowid_list = [
         part_rowid
-        for part_rowid, part_uuid in zip(part_rowid_list, part_uuid_list)
+        for part_rowid, part_uuid in list(zip(part_rowid_list, part_uuid_list))
         if part_uuid not in part_uuid_list_
     ]
 
