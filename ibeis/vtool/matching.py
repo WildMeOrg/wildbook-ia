@@ -204,6 +204,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     def __setstate__(match, state):
         match.__dict__.update(state)
+        match.verbose = False
 
     def show(match, ax=None, show_homog=False, show_ori=False, show_ell=True,
              show_pts=False, show_lines=True, show_rect=False, show_eig=False,
@@ -633,17 +634,20 @@ class PairwiseMatch(ut.NiceRepr):
             else:
                 feat['global({}_1)'.format(k)] = v1
                 feat['global({}_2)'.format(k)] = v2
-                if k == 'yaw':
-                    # delta = vt.ori_distance(v1, v2)
-                    delta = vt.cyclic_distance(v1, v2, modulo=vt.TAU)
-                elif k == 'view':
-                    delta = vt.cyclic_distance(v1, v2, modulo=8)
+                # if k == 'yaw':
+                #     # delta = vt.ori_distance(v1, v2)
+                #     delta = vt.cyclic_distance(v1, v2, modulo=vt.TAU)
+                if k == 'view':
+                    delta = lookup_view_delta(v1, v2)
+                    # delta = vt.cyclic_distance(v1, v2, modulo=8)
                 else:
                     delta = np.abs(v1 - v2)
             feat['global(delta_{})'.format(k)] = delta
 
         # Impose ordering on these keys to add symmetry
-        keys_to_order = ['qual', 'yaw', 'view']
+        assert k != 'yaw', 'depricated'
+
+        keys_to_order = ['qual', 'view']
         for key in keys_to_order:
             k1 = 'global({}_1)'.format(key)
             k2 = 'global({}_2)'.format(key)
@@ -1901,82 +1905,15 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
     fx2_to_flags = np.any(flags, axis=2)
     return fx2_to_flags
 
+if True:
+    from vtool import _rhomb_dist
 
-def RhombicuboctahedronDistanceDemo():
-    def rhombicuboctahedro_faces():
-        """ yields names of all 26 rhombicuboctahedron faces"""
-        face_axes = [['up', 'down'], ['front', 'back'], ['left', 'right']]
-        ordering = {f: p for p, fs in enumerate(face_axes) for f in fs}
-        for i in range(1, len(face_axes) + 1):
-            for axes in list(ut.combinations(face_axes, i)):
-                for combo in ut.product(*axes):
-                    sortx = ut.argsort(ut.take(ordering, combo))
-                    face = tuple(ut.take(combo, sortx))
-                    yield face
-
-    # Each face is a node.
-    import networkx as nx
-    G = nx.Graph()
-    faces = list(rhombicuboctahedro_faces())
-    G.add_nodes_from(faces)
-
-    # A fase is connected if they share an edge or a vertex
-    # TODO: is there a more general definition?
-    face_axes = [['up', 'down'], ['front', 'back'], ['left', 'right']]
-    ordering = {f: p for p, fs in enumerate(face_axes) for f in fs}
-
-    # In this case faces might share an edge or vertex if their names intersect
-    edges = []
-    for face1, face2 in ut.combinations(faces, 2):
-        set1 = set(face1)
-        set2 = set(face2)
-        if len(set1.intersection(set2)) > 0:
-            diff1 = set1.difference(set2)
-            diff2 = set2.difference(set1)
-            sortx1 = ut.argsort(ut.take(ordering, diff1))
-            sortx2 = ut.argsort(ut.take(ordering, diff2))
-            # If they share a name that is on opposite poles, then they cannot
-            # share an edge or vertex.
-            if not list(set(sortx1).intersection(set(sortx2))):
-                edges.append((face1, face2))
-                # print('-----')
-                # print('Edge: {} {}'.format(face1, face2))
-                # print('diff1 = {!r}'.format(diff1))
-                # print('diff2 = {!r}'.format(diff2))
-    G.add_edges_from(edges)
-
-    # Build distance lookup table
-    distance_lookup = {}
-    for face1, face2 in ut.combinations(faces, 2):
-        key = tuple(sorted([''.join(face1), ''.join(face2)]))
-        dist = nx.shortest_path_length(G, face1, face2)
-        distance_lookup[key] = dist
-
-    for k, v in distance_lookup.items():
-        if 'up' not in k[0] and 'down' not in k[0]:
-            if 'up' not in k[1] and 'down' not in k[1]:
-                print(k, v)
-
-    def visualize_connection_graph():
-        # node_to_group = {f: str(len(f)) for f in faces}
-        node_to_group = {}
-        for f in faces:
-            if 'up' in f:
-                node_to_group[f] = '0.' + str(len(f))
-            elif 'down' in f:
-                node_to_group[f] = '1.' + str(len(f))
-            else:
-                node_to_group[f] = '2.' + str(len(f))
-        nx.set_node_attributes(G, 'groupid', node_to_group)
-
-        node_to_label = {f: ''.join(ut.take_column(f, 0)).upper() for f in faces}
-        nx.set_node_attributes(G, 'label', node_to_label)
-
-        import plottool as pt
-        pt.qt4ensure()
-        pt.show_nx(G, prog='neato', groupby='groupid')
-
-    visualize_connection_graph()
+    def lookup_view_delta(v1, v2):
+        try:
+            dist = _rhomb_dist.DIST[(v1, v2)]
+        except KeyError:
+            dist = _rhomb_dist.DIST[(v2, v1)]
+        return dist
 
 
 if __name__ == '__main__':
