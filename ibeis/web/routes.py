@@ -23,7 +23,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 THROW_TEST_AOI_TURKING = True
-THROW_TEST_AOI_TURKING_PERCENTAGE = 0.10
+THROW_TEST_AOI_TURKING_PERCENTAGE = 0.05
 THROW_TEST_AOI_TURKING_ERROR_MODES = {
     'addition'   : [1, 2, 3],
     'deletion'   : [1, 2, 3],
@@ -1791,7 +1791,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     THROW_TEST_AOI_TURKING_MANIFEST = []
     THROW_TEST_AOI_TURKING_AVAILABLE = False
     if THROW_TEST_AOI_TURKING:
-        if True or random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
+        if random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
             THROW_TEST_AOI_TURKING_AVAILABLE = True
             annotation_list = list(annotation_list)
             part_list = list(part_list)
