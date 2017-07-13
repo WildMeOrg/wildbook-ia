@@ -1164,22 +1164,23 @@ def _inject_new_widget_methods(self):
                     col = kwargs.pop('fromColumn', kwargs.pop('column', None))
                     rowSpan = kwargs.pop('rowSpan', 1)
                     columnSpan = kwargs.pop('columnSpan', 1)
-                    print('columnSpan = {!r}'.format(columnSpan))
-                    print('rowSpan = {!r}'.format(rowSpan))
-                    print('row = {!r}'.format(row))
-                    print('col = {!r}'.format(col))
                     if (row is None) != (col is None):
                         raise ValueError('only both or neither can be None')
                     if row is not None:
                         layout.addWidget(widget, row, col, rowSpan, columnSpan,
                                          **kwargs)
                     else:
-                        print('**1kwargs = {!r}'.format(kwargs))
-                        layout.addWidget(widget)
-                        # , **kwargs)
+                        if len(kwargs) == 0:
+                            # qt weirdness
+                            layout.addWidget(widget)
+                        else:
+                            layout.addWidget(widget, **kwargs)
                 else:
-                    print('**2kwargs = {!r}'.format(kwargs))
-                    layout.addWidget(widget, **kwargs)
+                    if len(kwargs) == 0:
+                        # qt weirdness
+                        layout.addWidget(widget)
+                    else:
+                        layout.addWidget(widget, **kwargs)
                 return widget
 
             def addItem(self, layout_item, **kwargs):
