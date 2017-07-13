@@ -1170,10 +1170,10 @@ def _inject_new_widget_methods(self):
                         layout.addWidget(widget, row, col, rowSpan, columnSpan,
                                          **kwargs)
                     else:
-                        print('**kwargs = {!r}'.format(**kwargs))
+                        print('**kwargs = {!r}'.format(kwargs))
                         layout.addWidget(widget, **kwargs)
                 else:
-                    print('**kwargs = {!r}'.format(**kwargs))
+                    print('**kwargs = {!r}'.format(kwargs))
                     layout.addWidget(widget, **kwargs)
                 return widget
 
