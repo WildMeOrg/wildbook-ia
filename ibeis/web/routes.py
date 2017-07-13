@@ -22,7 +22,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-THROW_TEST_AOI_TURKING = False
+THROW_TEST_AOI_TURKING = True
 THROW_TEST_AOI_TURKING_PERCENTAGE = 0.10
 THROW_TEST_AOI_TURKING_ERROR_MODES = {
     'addition'   : [1, 2, 3],
@@ -1814,11 +1814,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             index_list = sorted(index_list, reverse=True)
 
             args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
-            print(index_list)
-            print(ut.repr3(annotation_list))
-
             if throw_test_aoi_turking_mode == 'addition':
-                print('addition')
 
                 for index in index_list:
                     width = random.uniform(0.0, 100.0)
@@ -1848,7 +1844,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                     })
             elif throw_test_aoi_turking_mode == 'deletion':
                 if len(part_list) == 0:
-                    print('deletion')
 
                     for index in index_list:
                         annotation = annotation_list.pop(index)
@@ -1859,8 +1854,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                 else:
                     THROW_TEST_AOI_TURKING_AVAILABLE = False
             elif throw_test_aoi_turking_mode == 'alteration':
-                print('alteration')
-
                 for index in index_list:
                     direction_list = ['left', 'right', 'up', 'down']
                     direction = random.choice(direction_list)
@@ -1877,25 +1870,23 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                         delta = width * 0.25
                         width += delta
                     elif direction == 'up':
-                        delta = width * 0.25
+                        delta = height * 0.25
                         top -= delta
                         height += delta
                     elif direction == 'down':
-                        delta = width * 0.25
+                        delta = height * 0.25
                         height += delta
 
-                    annotation_list[index]['height'] = height
-                    annotation_list[index]['width'] = width
-                    annotation_list[index]['left'] = left
-                    annotation_list[index]['top'] = top
+                    annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
+                    annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
+                    annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
+                    annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
 
                     THROW_TEST_AOI_TURKING_MANIFEST.append({
                         'action': 'alteration-%s' % (direction, ),
                         'values': annotation_list[index],
                     })
             elif throw_test_aoi_turking_mode == 'translation':
-                print('translation')
-
                 for index in index_list:
                     direction_list = ['left', 'right', 'up', 'down']
                     direction = random.choice(direction_list)
@@ -1911,16 +1902,16 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                         delta = width * 0.25
                         left += delta
                     elif direction == 'up':
-                        delta = width * 0.25
+                        delta = height * 0.25
                         top -= delta
                     elif direction == 'down':
-                        delta = width * 0.25
+                        delta = height * 0.25
                         top += delta
 
-                    annotation_list[index]['height'] = height
-                    annotation_list[index]['width'] = width
-                    annotation_list[index]['left'] = left
-                    annotation_list[index]['top'] = top
+                    annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
+                    annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
+                    annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
+                    annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
 
                     THROW_TEST_AOI_TURKING_MANIFEST.append({
                         'action': 'translation-%s' % (direction, ),
@@ -1928,9 +1919,9 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                     })
             else:
                 raise ValueError('Invalid throw_test_aoi_turking_mode')
-
-            print(ut.repr3(annotation_list))
             print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
+
+    THROW_TEST_AOI_TURKING_MANIFEST = ut.to_json(THROW_TEST_AOI_TURKING_MANIFEST)
 
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)

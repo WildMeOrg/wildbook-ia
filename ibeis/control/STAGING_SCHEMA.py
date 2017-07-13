@@ -25,6 +25,7 @@ profile = ut.profile
 
 
 REVIEW_ROWID        = 'review_rowid'
+TEST_ROWID          = 'test_rowid'
 
 
 # =======================
@@ -92,6 +93,23 @@ def update_1_0_3(db, ibs=None):
         (None,              'review_meta_decision', 'INTEGER', None),
     ))
 
+
+@profile
+def update_1_1_0(db, ibs=None):
+    db.add_table(const.TEST_TABLE, (
+        ('test_rowid',                   'INTEGER PRIMARY KEY'),
+        ('test_uuid',                    'UUID'),
+        ('test_user_identity',           'TEXT'),
+        ('test_challenge_json',          'TEXT'),
+        ('test_response_json',           'TEXT'),
+        ('test_result',                  'INTEGER'),
+        ('test_time_posix',            '''INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))'''),  # this should probably be UCT
+    ),
+        superkeys=[('test_uuid',)],
+        docstr='''
+        Used to store tests given to the user, their responses, and their results
+        ''')
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -107,6 +125,7 @@ VALID_VERSIONS = ut.odict([
     ('1.0.1',    (None,                 update_1_0_1,       None                )),
     ('1.0.2',    (None,                 update_1_0_2,       post_1_0_2          )),
     ('1.0.3',    (None,                 update_1_0_3,       None                )),
+    ('1.1.0',    (None,                 update_1_1_0,       None                )),
 ])
 """
 SeeAlso:

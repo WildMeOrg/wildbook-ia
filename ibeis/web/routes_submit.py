@@ -45,7 +45,8 @@ def submit_detection(**kwargs):
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('ia-turk_id', -1)
 
-    if method.lower() == 'poor boxes':
+    poor_boxes = method.lower() == 'poor boxes'
+    if poor_boxes:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('POOR BOXES')
         ibs.set_image_imgsetids([gid], [imgsetid_])
         method = 'accept'
@@ -74,6 +75,20 @@ def submit_detection(**kwargs):
 
         # Separate out annotations vs parts
         data_list = json.loads(request.form['ia-detection-data'])
+        manifest_list = json.loads(request.form['ia-detection-manifest'])
+        test_truth = len(manifest_list) > 0
+        test_challenge_list = [{
+            'gid'           : gid,
+            'manifest_list' : manifest_list,
+        }]
+        test_response_list = [{
+            'poor_boxes'    : poor_boxes,
+        }]
+        test_result_list = [test_truth == poor_boxes]
+        test_user_id_list = [appf.get_userid()]
+        ibs.add_test(test_challenge_list, test_response_list,
+                     test_result_list=test_result_list,
+                     test_user_identity_list=test_user_id_list)
         annotation_list = []
         part_list = []
         mapping_dict = {}
@@ -90,7 +105,7 @@ def submit_detection(**kwargs):
         ##################################################################################
         # Process annotations
         survived_aid_list = [
-            None if annot['label'] is None else int(annot['label'])
+            None if annot['label'] in [None, 'None'] else int(annot['label'])
             for annot in annotation_list
         ]
 

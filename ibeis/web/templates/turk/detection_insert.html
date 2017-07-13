@@ -270,6 +270,11 @@
     {% endif %}
 
     <textarea id="ia-detection-data" name="ia-detection-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form"></textarea>
+    <textarea id="ia-detection-manifest" name="ia-detection-manifest" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form">
+      {% if THROW_TEST_AOI_TURKING_AVAILABLE %}
+        {{ THROW_TEST_AOI_TURKING_MANIFEST|safe }}
+      {% endif %}
+    </textarea>
   </form>
 
   {% if EMBEDDED_JAVASCRIPT %}

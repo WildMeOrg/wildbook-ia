@@ -77,6 +77,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_part_funcs',
     'ibeis.control.manual_name_funcs',
     'ibeis.control.manual_review_funcs',
+    'ibeis.control.manual_test_funcs',
     'ibeis.control.manual_species_funcs',
     'ibeis.control.manual_annotgroup_funcs',
     #'ibeis.control.manual_dependant_funcs',
@@ -643,14 +644,14 @@ class IBEISController(BASE_CLASS):
                 raise
         # IBEIS SQL State Database
         if request_stagingversion is None:
-            ibs.staging_version_expected = '1.0.3'
+            ibs.staging_version_expected = '1.1.0'
         else:
             ibs.staging_version_expected = request_stagingversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
             new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
-                ibs.sqlstaging_fname, ibs.staging_version_expected, version_next='1.0.3')
+                ibs.sqlstaging_fname, ibs.staging_version_expected, version_next='1.1.0')
             ibs.staging_version_expected = new_version
             ibs.sqlstaging_fname = new_fname
         if sqlstaging_fpath is None:
