@@ -116,18 +116,25 @@ class PairwiseFeatureExtractor(object):
         Performs one-vs-one matching between pairs of annotations.
         This establishes the feature correspondences.
 
+        CommandLine:
+            python -m ibeis.algo.verif.pairfeat _exec_pairwise_match --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.verif.pairfeat import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> extr = PairwiseFeatureExtractor(ibs)
+            >>> match_config = dict(histeq=True)
+            >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
             >>> edges = [(1, 2), (2, 3)]
             >>> prog_hook = None
             >>> match_list = extr._exec_pairwise_match(edges)
             >>> match1, match2 = match_list
             >>> assert match1.annot2 is match2.annot1
             >>> assert match1.annot1 is not match2.annot2
+            >>> ut.quit_if_noshow()
+            >>> match2.show()
+            >>> ut.show_if_requested()
         """
         if extr.verbose:
             print('[extr] executing pairwise one-vs-one matching')
