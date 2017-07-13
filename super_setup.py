@@ -867,7 +867,7 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     ibeis_rman.ensure()
 
-    if GET_ARGFLAG('--dump-scripts'):
+    if GET_ARGFLAG('--dump') or GET_ARGFLAG('--dump-scripts'):
         dpath = '_super_scripts/' + 'scripts' + get_plat_specifier()
         ut.ensuredir(dpath)
         dumps = [
