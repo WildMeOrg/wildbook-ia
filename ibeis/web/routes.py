@@ -1921,8 +1921,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                 raise ValueError('Invalid throw_test_aoi_turking_mode')
             print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
 
-    if len(THROW_TEST_AOI_TURKING_MANIFEST) == 0:
-        THROW_TEST_AOI_TURKING_MANIFEST = None
     THROW_TEST_AOI_TURKING_MANIFEST = ut.to_json(THROW_TEST_AOI_TURKING_MANIFEST)
 
     species_rowids = ibs._get_all_species_rowids()

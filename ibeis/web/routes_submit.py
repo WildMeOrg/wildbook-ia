@@ -76,7 +76,10 @@ def submit_detection(**kwargs):
         data_list = ut.from_json(request.form['ia-detection-data'])
         print(request.form['ia-detection-manifest'])
         raw_manifest = request.form['ia-detection-manifest'].strip()
-        manifest_list = ut.from_json(raw_manifest)
+        try:
+            manifest_list = ut.from_json(raw_manifest)
+        except ValueError:
+            manifest_list = []
         test_truth = len(manifest_list) > 0
         test_challenge_list = [{
             'gid'           : gid,
