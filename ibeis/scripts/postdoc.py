@@ -47,6 +47,7 @@ class VerifierExpt(DBInputs):
     python -m ibeis VerifierExpt.measure all PZ_Master1.GZ_Master1,GIRM_Master1,MantaMatcher,RotanTurtles,humpbacks_fb,LF_ALL
     python -m ibeis VerifierExpt.measure all GIRM_Master1,PZ_Master1,LF_ALL
     python -m ibeis VerifierExpt.measure all LF_ALL
+    python -m ibeis VerifierExpt.measure all PZ_Master1
     python -m ibeis VerifierExpt.measure all RotanTurtles
 
     python -m ibeis VerifierExpt.draw all MantaMatcher
@@ -491,13 +492,13 @@ class VerifierExpt(DBInputs):
         self.write_sample_info()
 
         task_key = 'match_state'
-        self.draw_class_score_hist()
         self.draw_roc(task_key)
-        self.draw_mcc_thresh(task_key)
-
-        self.draw_rerank(task_key)
+        self.draw_rerank()
 
         self.write_metrics(task_key)
+
+        self.draw_class_score_hist()
+        self.draw_mcc_thresh(task_key)
 
         if not ut.get_argflag('--nodraw'):
             self.draw_hard_cases(task_key)
@@ -700,15 +701,11 @@ class VerifierExpt(DBInputs):
         # NOTE: this is not the aids_pool for PZ_Master1
         aids = pblm.infr.aids
 
+        # These are not gaurenteed to be comparable
         qaids, daids_list, info_list = Sampler._varied_inputs(ibs, aids)
 
-        if pblm.hyper_params['vsone_kpts']['augment_orientation']:
-            # HACK
-            cfgdict = {
-                'query_rotation_heuristic': True,
-            }
-        else:
-            cfgdict = {}
+        cfgdict = pblm._make_lnbnn_pcfg()
+
         daids = daids_list[0]
         info = info_list[0]
 
@@ -727,8 +724,9 @@ class VerifierExpt(DBInputs):
             rerank_pairs.extend(pairs)
         rerank_pairs = list(set(rerank_pairs))
 
-        verifiers = infr.learn_evaluation_verifiers()
-        probs = verifiers['match_state'].predict_proba_df(rerank_pairs)
+        # verif = infr.learn_evaluation_verifiers()['match_state']
+        verif = pblm._make_evaluation_verifiers()['match_state']
+        probs = verif.predict_proba_df(rerank_pairs)
         pos_probs = probs[POSTV]
 
         clf_name_ranks = []

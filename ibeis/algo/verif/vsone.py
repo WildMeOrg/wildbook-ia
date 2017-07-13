@@ -204,6 +204,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm = OneVsOneProblem.from_aids(ibs, aids, **params)
         return pblm
 
+    def _make_lnbnn_pcfg(pblm):
+        """
+        make an lnbnn config comparable to the one-vs-one config
+        """
+        cfgdict = {}
+        cfgdict.update(pblm.hyper_params['vsone_kpts'])
+        cfgdict.update(pblm.hyper_params['chip'])
+        if cfgdict['augment_orientation']:
+            # Do query-side only if augment ori is on for 1vs1
+            cfgdict['augment_orientation'] = False
+            cfgdict['query_rotation_heuristic'] = True
+        return cfgdict
+
     def _make_lnbnn_qreq(pblm, aids=None):
         # This is the qreq used to do LNBNN sampling and to compute simple
         # LNBNN scores.
@@ -214,14 +227,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             aids = ibs.filter_annots_general(
                 infr.aids, min_pername=3, species='primary')
 
-        cfgdict = pblm.hyper_params['sample_search'].copy()
-        # Use the same keypoints for vsone and vsmany for comparability
-        cfgdict.update(pblm.hyper_params['vsone_kpts'])
-        cfgdict.update(pblm.hyper_params['chip'])
-        if cfgdict['augment_orientation']:
-            # Do query-side only if augment ori is on for 1vs1
-            cfgdict['augment_orientation'] = False
-            cfgdict['query_rotation_heuristic'] = True
+        # cfgdict = pblm.hyper_params['sample_search'].copy()
+        cfgdict = pblm._make_lnbnn_pcfg()
 
         infr.relabel_using_reviews(rectify=False)
         custom_nid_lookup = infr.get_node_attrs('name_label', aids)
