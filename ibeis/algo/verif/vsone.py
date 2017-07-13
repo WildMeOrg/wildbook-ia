@@ -121,10 +121,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params['chip']['resize_dim'] = 'maxwh'
             hyper_params['chip']['dim_size'] = 800
             hyper_params['chip']['medianblur'] = True
-            # hyper_params['chip']['medianblur_thresh'] = ??? What is it
+            hyper_params['chip']['medianblur_thresh'] = 0
             hyper_params['chip']['adapteq'] = True
-            # hyper_params['chip']['adapteq_ksize'] = ??? What is it
-            # hyper_params['chip']['adapteq_limit'] = ??? What is it
+            hyper_params['chip']['adapteq_ksize'] = 32
+            hyper_params['chip']['adapteq_limit'] = 6
+
+            hyper_params['vsone_kpts']['affine_invariance'] = False
 
         if species == 'zebra_plains':
             hyper_params['vsone_kpts']['affine_invariance'] = False
