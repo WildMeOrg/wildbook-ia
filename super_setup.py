@@ -1189,7 +1189,7 @@ def main():
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')
     except ValueError as ex:
-        ut.printex(ex, tb=True)
+        print(repr(ex))
         print('Probably need libgpu array')
         print('python super_setup.py --libgpuarray')
 
