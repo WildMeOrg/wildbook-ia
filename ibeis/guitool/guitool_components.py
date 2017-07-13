@@ -1116,10 +1116,12 @@ def _inject_new_widget_methods(self):
                     'columnSpan': kwargs.pop('columnSpan', 1),
                 })
             new_widget = newfunc(self, *args, **kwargs)
-            try:
-                self.addWidget(new_widget, **layout_kw)
-            except TypeError:
-                self.addWidget(new_widget)
+
+            # try:
+            self.addWidget(new_widget)
+            # self.addWidget(new_widget, **layout_kw)
+            # except TypeError:
+            #     self.addWidget(new_widget)
 
             if name is not None:
                 new_widget.setObjectName(name)
