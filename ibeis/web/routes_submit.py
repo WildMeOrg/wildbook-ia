@@ -74,7 +74,9 @@ def submit_detection(**kwargs):
 
         # Separate out annotations vs parts
         data_list = ut.from_json(request.form['ia-detection-data'])
-        manifest_list = ut.from_json(request.form['ia-detection-manifest'])
+        print(request.form['ia-detection-manifest'])
+        raw_manifest = request.form['ia-detection-manifest'].strip()
+        manifest_list = ut.from_json(raw_manifest)
         test_truth = len(manifest_list) > 0
         test_challenge_list = [{
             'gid'           : gid,
