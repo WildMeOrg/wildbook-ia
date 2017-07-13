@@ -179,6 +179,8 @@ class MatchInspector(INSPECT_BASE):
         # default_dict = pyhesaff.get_hesaff_default_params()
         # default_dict = vt.get_extract_features_default_params()
         TmpFeatConfig = dtool.from_param_info_list(matching.VSONE_FEAT_CONFIG)
+
+        TmpNChipConfig = dtool.from_param_info_list(matching.NORM_CHIP_CONFIG)
         # [
         #     ut.ParamInfo(key, val) for key, val in default_dict.items()
         #     # ut.ParamInfo('affine_invariance', True),
@@ -186,6 +188,7 @@ class MatchInspector(INSPECT_BASE):
         # ])
 
         self.featconfig = TmpFeatConfig()
+        self.chipconfig = TmpNChipConfig()
 
         TmpVsOneConfig = dtool.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
@@ -196,9 +199,12 @@ class MatchInspector(INSPECT_BASE):
             print('[inspect_match] default cfgdict = %r' % (cfgdict,))
             self.config.update(**cfgdict)
             self.featconfig.update(**cfgdict)
+            self.chipconfig.update(**cfgdict)
             self.disp_config.update(**cfgdict)
 
         # Make config widgets after setting defaults
+        self.chipconfig_widget = self._new_config_widget(
+            self.chipconfig, changed=self.on_chip_cfg_changed)
         self.featconfig_widget = self._new_config_widget(
             self.featconfig, changed=self.on_feat_cfg_changed)
         self.config_widget = self._new_config_widget(
@@ -215,6 +221,8 @@ class MatchInspector(INSPECT_BASE):
         splitter1 = self.addNewSplitter(orientation='horiz')
         config_vframe = splitter1.newWidget()
         splitter2     = splitter1.addNewSplitter(orientation='vert')
+        config_vframe.addWidget(QtWidgets.QLabel('Chip Config'))
+        config_vframe.addWidget(self.chipconfig_widget)
         config_vframe.addWidget(QtWidgets.QLabel('Feat Config'))
         config_vframe.addWidget(self.featconfig_widget)
         config_vframe.addWidget(QtWidgets.QLabel('Query Config'))
@@ -234,16 +242,20 @@ class MatchInspector(INSPECT_BASE):
     def execute_vsone(self):
         from vtool import matching
         print('[inspect_match] Execute vsone')
-        cfgdict = self.config.asdict()
 
-        feat_cfgdict = self.featconfig.asdict()
+        cfgdict = {}
+        cfgdict.update(self.featconfig.asdict())
+        cfgdict.update(self.chipconfig.asdict())
+        # print('cfgdict = ' + ut.repr4(cfgdict))
 
         match = self.match
+        match.verbose = True
         match._inplace_default = True
         matching.ensure_metadata_vsone(match.annot1, match.annot2,
-                                       cfgdict=feat_cfgdict)
+                                       cfgdict=cfgdict)
 
-        match.apply_all(cfgdict)
+        match_config = self.config.asdict()
+        match.apply_all(match_config)
 
     def draw_pair(self):
         if self.match is None:
@@ -281,6 +293,19 @@ class MatchInspector(INSPECT_BASE):
         self.update()
         self.cfg_needs_update = True
 
+    def on_chip_cfg_changed(self, *args):
+        print('Update feats')
+        feat_keys = ['nchip', 'vecs', 'kpts', '_feats', 'flann']
+        self.match.annot1._mutable = True
+        self.match.annot2._mutable = True
+        for key in feat_keys:
+            if key in self.match.annot1:
+                del self.match.annot1[key]
+            if key in self.match.annot2:
+                del self.match.annot2[key]
+        self.update()
+        self.cfg_needs_update = True
+
     def on_feat_cfg_changed(self, *args):
         print('Update feats')
         feat_keys = ['vecs', 'kpts', '_feats', 'flann']
@@ -306,8 +331,8 @@ def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     #fm, fs = matches['RAT'][0:2]
     annot1 = metadata['annot1']
     annot2 = metadata['annot2']
-    rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
-    rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
+    rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['nchip', 'kpts', 'vecs'])
+    rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['nchip', 'kpts', 'vecs'])
     #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     fsv = fs[:, None]
     interact = plottool.interact_matches.MatchInteraction2(

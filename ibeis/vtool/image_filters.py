@@ -57,7 +57,7 @@ class IntensityPreproc(object):
 
     def adapteq(self, intensity, tileGridSize=(8, 8), clipLimit=2.0):
         clahe_obj = cv2.createCLAHE(clipLimit, tileGridSize)
-        intensity = clahe_obj.apply(intensity, dst=intensity)
+        intensity = clahe_obj.apply(intensity)
         return intensity
 
     def medianblur(self, intensity, noise_thresh=50, ksize1=3, ksize2=5):

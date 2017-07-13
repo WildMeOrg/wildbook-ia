@@ -57,6 +57,23 @@ VSONE_SVER_CONFIG = [
 
 ]
 
+
+NORM_CHIP_CONFIG = [
+    # ---
+    ut.ParamInfo('histeq', False, hideif=False),
+    # ---
+    ut.ParamInfo('adapteq', False, hideif=False),
+    ut.ParamInfo('adapteq_ksize', 8, hideif=lambda cfg: not cfg['adapteq']),
+    ut.ParamInfo('adapteq_limit', 2.0, hideif=lambda cfg: not cfg['adapteq']),
+    # ---
+    ut.ParamInfo('medianblur', False, hideif=False),
+    ut.ParamInfo('medianblur_thresh', 50, hideif=lambda cfg: not cfg['medianblur']),
+    ut.ParamInfo('medianblur_ksize1', 3, hideif=lambda cfg: not cfg['medianblur']),
+    ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
+    # ---
+]
+
+
 VSONE_DEFAULT_CONFIG = (
     VSONE_ASSIGN_CONFIG + VSONE_RATIO_CONFIG + VSONE_SVER_CONFIG
 )
@@ -116,6 +133,8 @@ class PairwiseMatch(ut.NiceRepr):
         match.fs = None
         match.H_21 = None
         match.H_12 = None
+
+        match.verbose = False
 
         match.local_measures = ut.odict([])
         match.global_measures = ut.odict([])
@@ -191,11 +210,20 @@ class PairwiseMatch(ut.NiceRepr):
              show_all_kpts=False, mask_blend=0, ell_alpha=.6, line_alpha=.35,
              modifysize=False, vert=None, overlay=True, heatmask=False,
              line_lw=1.4):
+
+        if match.verbose:
+            print('[match] show')
+
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
-        rchip1 = annot1['rchip']
-        rchip2 = annot2['rchip']
+        try:
+            rchip1 = annot1['nchip']
+            rchip2 = annot2['nchip']
+        except KeyError:
+            print('Warning: nchip not set. fallback to rchip')
+            rchip1 = annot1['rchip']
+            rchip2 = annot2['rchip']
 
         if overlay:
             kpts1 = annot1['kpts']
@@ -309,6 +337,8 @@ class PairwiseMatch(ut.NiceRepr):
         return match_
 
     def compress(match, flags, inplace=None):
+        if match.verbose:
+            print('[match] compressing {}/{}'.format(sum(flags), len(flags)))
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.compress(flags, axis=0)
         match_.fs = match.fs.compress(flags, axis=0)
@@ -346,14 +376,16 @@ class PairwiseMatch(ut.NiceRepr):
         """
         params = match._take_params(cfgdict, ['K', 'Knorm', 'symmetric',
                                               'checks', 'weight'])
+        params = list(params)
         K, Knorm, symmetric, checks, weight_key = params
         annot1 = match.annot1
         annot2 = match.annot2
 
-        ensure_metadata_vsone(annot1, annot2, cfgdict)
+        if match.verbose:
+            print('[match] assign')
+            print('[match] params = ' + ut.repr2(params))
 
-        if verbose is None:
-            verbose = True
+        ensure_metadata_vsone(annot1, annot2, cfgdict)
 
         allow_shrink = True  # TODO: parameterize?
 
@@ -405,6 +437,9 @@ class PairwiseMatch(ut.NiceRepr):
 
     def ratio_test_flags(match, cfgdict={}):
         ratio_thresh, = match._take_params(cfgdict, ['ratio_thresh'])
+        if match.verbose:
+            print('[match] apply_ratio_test')
+            print('[match] ratio_thresh = {!r}'.format(ratio_thresh))
         ratio = match.local_measures['ratio']
         flags = ratio < ratio_thresh
         return flags
@@ -531,6 +566,8 @@ class PairwiseMatch(ut.NiceRepr):
                 return flags
 
     def apply_all(match, cfgdict):
+        if match.verbose:
+            print('[match] apply_all')
         match.H_21 = None
         match.H_12 = None
         match.local_measures = ut.odict([])
@@ -557,6 +594,8 @@ class PairwiseMatch(ut.NiceRepr):
             >>> match.apply_ratio_test(cfgdict, inplace=True)
             >>> flags1 = match.apply_sver(cfgdict)
         """
+        if match.verbose:
+            print('[match] apply_sver')
         flags, errors, H_12 = match.sver_flags(cfgdict,
                                                return_extra=True)
         match_ = match.compress(flags, inplace=inplace)
@@ -1314,7 +1353,7 @@ def ensure_metadata_normxy(annot, cfgdict={}):
         annot.set_lazy_func('norm_xys', eval_normxy)
 
 
-def ensure_metadata_feats(annot, suffix='', cfgdict={}):
+def ensure_metadata_feats(annot, cfgdict={}):
     r"""
     Adds feature evaluation keys to a lazy dictionary
 
@@ -1331,9 +1370,8 @@ def ensure_metadata_feats(annot, suffix='', cfgdict={}):
         >>> from vtool.matching import *  # NOQA
         >>> rchip_fpath = ut.grab_test_imgpath('easy1.png')
         >>> annot = ut.LazyDict({'rchip_fpath': rchip_fpath})
-        >>> suffix = ''
         >>> cfgdict = {}
-        >>> ensure_metadata_feats(annot, suffix, cfgdict)
+        >>> ensure_metadata_feats(annot, cfgdict)
         >>> assert len(annot._stored_results) == 1
         >>> annot['kpts']
         >>> assert len(annot._stored_results) == 4
@@ -1341,21 +1379,63 @@ def ensure_metadata_feats(annot, suffix='', cfgdict={}):
         >>> assert len(annot._stored_results) == 5
     """
     import vtool as vt
-    rchip_key = 'rchip' + suffix
-    _feats_key = '_feats' + suffix
-    kpts_key = 'kpts' + suffix
-    vecs_key = 'vecs' + suffix
-    rchip_fpath_key = 'rchip_fpath' + suffix
+    rchip_key = 'rchip'
+    nchip_key = 'nchip'
+    _feats_key = '_feats'
+    kpts_key = 'kpts'
+    vecs_key = 'vecs'
+    rchip_fpath_key = 'rchip_fpath'
 
     if rchip_key not in annot:
-        def eval_rchip1():
-            rchip_fpath1 = annot[rchip_fpath_key]
-            return vt.imread(rchip_fpath1)
-        annot.set_lazy_func(rchip_key, eval_rchip1)
+        def eval_rchip():
+            rchip_fpath = annot[rchip_fpath_key]
+            return vt.imread(rchip_fpath)
+        annot.set_lazy_func(rchip_key, eval_rchip)
+
+    if nchip_key not in annot:
+        def eval_normchip():
+            print('EVAL NORMCHIP')
+            # Hack in normalization (hack because rchip might already
+            # be normalized)
+            filter_list = []
+            config = {
+                pi.varname: (cfgdict[pi.varname] if pi.varname in cfgdict else
+                             pi.default)
+                for pi in NORM_CHIP_CONFIG
+            }
+            # new way
+            if config['histeq']:
+                filter_list.append(
+                    ('histeq', {})
+                )
+            if config['medianblur']:
+                filter_list.append(
+                    ('medianblur', {
+                        'noise_thresh': config['medianblur_thresh'],
+                        'ksize1': config['medianblur_ksize1'],
+                        'ksize2': config['medianblur_ksize2'],
+                    }))
+            if config['adapteq']:
+                ksize = config['adapteq_ksize']
+                filter_list.append(
+                    ('adapteq', {
+                        'tileGridSize': (ksize, ksize),
+                        'clipLimit': config['adapteq_limit'],
+                    })
+                )
+            rchip = annot[rchip_key]
+            if filter_list:
+                from vtool import image_filters
+                ipreproc = image_filters.IntensityPreproc()
+                nchip = ipreproc.preprocess(rchip, filter_list)
+            else:
+                nchip = rchip
+            return nchip
+        annot.set_lazy_func(nchip_key, eval_normchip)
 
     if kpts_key not in annot or vecs_key not in annot:
         def eval_feats():
-            rchip = annot[rchip_key]
+            rchip = annot[nchip_key]
             feat_cfgkeys = [pi.varname for pi in VSONE_FEAT_CONFIG]
             feat_cfgdict = {key: cfgdict[key] for key in feat_cfgkeys if
                             key in cfgdict}
