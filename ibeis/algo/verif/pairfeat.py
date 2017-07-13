@@ -8,6 +8,7 @@ import pandas as pd
 import dtool as dt
 from os.path import join
 from ibeis.algo.graph import nx_utils as nxu
+from ibeis.core_annots import ChipConfig
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -50,8 +51,11 @@ class VsOneFeatConfig(dt.Config):
 
 
 class MatchConfig(dt.Config):
-    _param_info_list = (vt.matching.VSONE_DEFAULT_CONFIG +
-                        vt.matching.VSONE_FEAT_CONFIG)
+    _param_info_list = (
+        vt.matching.VSONE_DEFAULT_CONFIG +
+        vt.matching.VSONE_FEAT_CONFIG +
+        ChipConfig._param_info_list
+    )
 
 
 class PairwiseFeatureExtractor(object):

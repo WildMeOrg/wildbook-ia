@@ -93,9 +93,9 @@ class RefreshCriteria(object):
             >>> from ibeis.algo.graph.refresh import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=50, size=4, size_std=2)
-            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
+            >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
             >>> #edges = ut.shuffle(sorted(edges), rng=321)
-            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> scores = np.array(infr.dummy_verif.predict_edges(edges))
             >>> sortx = scores.argsort()[::-1]
             >>> edges = ut.take(edges, sortx)
             >>> scores = scores[sortx]
@@ -159,8 +159,8 @@ class RefreshCriteria(object):
             >>> from ibeis.algo.graph.refresh import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)
-            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
-            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
+            >>> scores = np.array(infr.dummy_verif.predict_edges(edges))
             >>> #sortx = ut.shuffle(np.arange(len(edges)), rng=321)
             >>> sortx = scores.argsort()[::-1]
             >>> edges = ut.take(edges, sortx)
@@ -221,8 +221,8 @@ def demo_refresh():
     refreshkw = ut.argparse_funckw(RefreshCriteria)
     # make an inference object
     infr = demo.demodata_infr(size_std=0, **demokw)
-    edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
-    scores = np.array(infr.dummy_matcher.predict_edges(edges))
+    edges = list(infr.dummy_verif.find_candidate_edges(K=100))
+    scores = np.array(infr.dummy_verif.predict_edges(edges))
     sortx = scores.argsort()[::-1]
     edges = ut.take(edges, sortx)
     scores = scores[sortx]

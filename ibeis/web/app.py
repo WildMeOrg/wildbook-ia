@@ -38,7 +38,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     if browser is None:
         browser = ut.get_argflag('--browser')
     if url_suffix is None:
-        url_suffix = ''
+        url_suffix = ut.get_argval('--url', default='')
     def _start_tornado(ibs_, port_):
         # Get Flask app
         app = controller_inject.get_flask_app()
@@ -91,7 +91,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
 
 
 def start_from_ibeis(ibs, port=None, browser=None, precache=None,
-                     url_suffix=None, start_job_queue=True,
+                     url_suffix=None, start_job_queue=None,
                      start_web_loop=True):
     """
     Parse command line options and start the server.
@@ -101,6 +101,13 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
         python -m ibeis --db PZ_MTEST --web --browser
     """
     print('[web] start_from_ibeis()')
+
+    if start_job_queue is None:
+        if ut.get_argflag('--noengine'):
+            start_job_queue = False
+        else:
+            start_job_queue = True
+
     if precache is None:
         precache = ut.get_argflag('--precache')
 

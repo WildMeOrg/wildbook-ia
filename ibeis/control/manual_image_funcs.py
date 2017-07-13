@@ -251,8 +251,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     CommandLine:
         python -m ibeis.control.manual_image_funcs --test-add_images
 
-    Example0:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> # Test returns None on fail to add
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
@@ -263,8 +262,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         >>> assert len(gid_list) == len(gpath_list)
         >>> assert gid_list[0] is None
 
-    Example1:
-        >>> # ENABLE_DOCTSET
+    Doctest:
         >>> # test double add
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
@@ -298,7 +296,10 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
     if params_list is None:
         # Create param_iter
-        params_list = list(preproc_image.add_images_params_gen(gpath_list))
+        # params_list = list(preproc_image.add_images_params_gen(gpath_list))
+        params_list = list(ut.generate2(
+            preproc_image.parse_imageinfo, zip(gpath_list),
+            nTasks=len(gpath_list), force_serial=ibs.force_serial))
     # Error reporting
     print('\n'.join(
         [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)

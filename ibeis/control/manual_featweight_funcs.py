@@ -24,6 +24,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_featweight_funcs import *  # NOQA
         >>> import ibeis
+        >>> import numpy as np
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = [1, 2]
         >>> config2_ = None

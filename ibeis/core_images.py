@@ -87,7 +87,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:10]
-        >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221})
+        >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221}, recompute=True)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(thumbs, nPerPage=4)
@@ -120,17 +120,17 @@ def compute_thumbnails(depc, gid_list, config=None):
     genkw = {
         'ordered': False,
         'chunksize': 256,
-        'freq': 50,
+        'progkw': {'freq': 50},
         #'adjust': True,
         'force_serial': ibs.force_serial or config['force_serial'],
     }
-    gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
+    gen = ut.generate2(draw_thumb_helper, args_list, nTasks=len(args_list),
+                       **genkw)
     for val in gen:
         yield val
 
 
-def draw_thumb_helper(tup):
-    thumbsize, gpath, orient, bbox_list, theta_list, interest_list = tup
+def draw_thumb_helper(thumbsize, gpath, orient, bbox_list, theta_list, interest_list):
     # time consuming
     # img = vt.imread(gpath, orient=orient)
     img = vt.imread(gpath)

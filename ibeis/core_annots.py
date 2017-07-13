@@ -236,10 +236,18 @@ class ChipConfig(dtool.Config):
             hideif=lambda cfg: cfg['dim_size'] is None),
         ut.ParamInfo('dim_tol', 0, 'tol', hideif=0),
         ut.ParamInfo('preserve_aspect', True, hideif=True),
+        # ---
         ut.ParamInfo('histeq', False, hideif=False),
+        # ---
         ut.ParamInfo('adapteq', False, hideif=False),
-        ut.ParamInfo('medianfilter', False, hideif=False),
-        ut.ParamInfo('histeq_thresh', False, hideif=False),
+        ut.ParamInfo('adapteq_ksize', 8, hideif=lambda cfg: not cfg['adapteq']),
+        ut.ParamInfo('adapteq_limit', 2.0, hideif=lambda cfg: not cfg['adapteq']),
+        # ---
+        ut.ParamInfo('medianblur', False, hideif=False),
+        ut.ParamInfo('medianblur_thresh', 50, hideif=lambda cfg: not cfg['medianblur']),
+        ut.ParamInfo('medianblur_ksize1', 3, hideif=lambda cfg: not cfg['medianblur']),
+        ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
+        # ---
         ut.ParamInfo('pad', 0, hideif=0),
         ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
@@ -374,15 +382,29 @@ def compute_chip(depc, aid_list, config=None):
     arg_iter = zip(gid_list, newsize_list, M_list)
     arg_list = list(arg_iter)
 
-    filterfn_list = []
     from vtool import image_filters
-    # TODO: params
+    filter_list = []
+    # new way
     if config['histeq']:
-        filterfn_list.append(image_filters.histeq_fn)
-    if config['medianfilter']:
-        filterfn_list.append(image_filters.medianfilter_fn)
+        filter_list.append(
+            ('histeq', {})
+        )
+    if config['medianblur']:
+        filter_list.append(
+            ('medianblur', {
+                'noise_thresh': config['medianblur_thresh'],
+                'ksize1': config['medianblur_ksize1'],
+                'ksize2': config['medianblur_ksize2'],
+            }))
     if config['adapteq']:
-        filterfn_list.append(image_filters.adapteq_fn)
+        ksize = config['adapteq_ksize']
+        filter_list.append(
+            ('adapteq', {
+                'tileGridSize': (ksize, ksize),
+                'clipLimit': config['adapteq_limit'],
+            })
+        )
+    ipreproc = image_filters.IntensityPreproc()
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
@@ -391,16 +413,16 @@ def compute_chip(depc, aid_list, config=None):
         # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
         #cfpath, gid, new_size, M = tup
         gid, new_size, M = tup
-        # Read parent image # TODO: buffer this
-        # We assume the gids are nicely ordered, no need to load the image more
-        # than once, if so
+        # Read parent image # TODO: buffer this?
+        # If the gids are sorted, no need to load the image more than once, if so
         if gid != last_gid:
             imgBGR = ibs.get_image_imgdata(gid)
             last_gid = gid
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
-        for filtfn in filterfn_list:
-            chipBGR = filtfn(chipBGR)
+        # Do intensity normalizations
+        if filter_list:
+            chipBGR = ipreproc.preprocess(chipBGR, filter_list)
         width, height = vt.get_size(chipBGR)
         yield (chipBGR, width, height, M)
 
@@ -1006,13 +1028,10 @@ def compute_feats(depc, cid_list, config=None):
         # eager evaluation.
         # TODO: Check if there is any benefit to just passing in the iterator.
         arg_list = list(arg_iter)
-        # TODO: futures_generate
-        # featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput,
-        #                       freq=10, ordered=True,
-        #                       force_serial=ibs.force_serial)
-        featgen = ut.futures_generate(gen_feat_worker, arg_list, nTasks=nInput,
-                                      freq=10, ordered=True,
-                                      force_serial=ibs.force_serial)
+        featgen = ut.generate2(
+            gen_feat_worker, arg_list, nTasks=nInput, ordered=True,
+            force_serial=ibs.force_serial, progkw={'freq': 1}
+        )
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
         assert maskmethod is None, 'not implemented'
@@ -1026,13 +1045,15 @@ def compute_feats(depc, cid_list, config=None):
         yield (nFeat, kpts, vecs,)
 
 
-def gen_feat_worker(tup):
+def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
     r"""
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
     Args:
-        tup (tuple):
+        chip_fpath:
+        probchip_fpath:
+        hesaff_params:
 
     Returns:
         tuple: (None, kpts, vecs)
@@ -1053,7 +1074,6 @@ def gen_feat_worker(tup):
         >>> probchip_fpath = ibs.depc_annot.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['maskmethod'] == 'cnn' else None
         >>> hesaff_params = feat_config.asdict()
         >>> # Exec function source
-        >>> tup = (chip_fpath, probchip_fpath, hesaff_params)
         >>> masked_chip, num_kpts, kpts, vecs = ut.exec_func_src(
         >>>     gen_feat_worker, key_list=['masked_chip', 'num_kpts', 'kpts', 'vecs'],
         >>>     sentinal='num_kpts = kpts.shape[0]')
@@ -1069,9 +1089,6 @@ def gen_feat_worker(tup):
         >>> ut.show_if_requested()
     """
     import pyhesaff
-    #import numpy as np
-    #import vtool as vt
-    chip_fpath, probchip_fpath, hesaff_params = tup
     chip = vt.imread(chip_fpath)
     if probchip_fpath is not None:
         probchip = vt.imread(probchip_fpath, grayscale=True)
@@ -1108,6 +1125,9 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         fid_list (list):
         config (None): (default = None)
 
+    CommandLine:
+        python -m ibeis.core_annots compute_fgweights
+
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
@@ -1131,28 +1151,26 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     kpts_list = depc.get_native('feat', fid_list, 'kpts')
     # Force grayscale reading of chips
     arg_iter = zip(kpts_list, probchip_list, chipsize_list)
-    # ibs = depc.controller
-    # featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
-    #                               nTasks=nTasks, ordered=True, freq=10,
-    #                               force_serial=ibs.force_serial)
-    featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
-                                 nTasks=nTasks, ordered=True, freq=10,
-                                 force_serial=ibs.force_serial
-                                 )
+    featweight_gen = ut.generate2(
+        gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True,
+        force_serial=ibs.force_serial,
+        progkw={'freq': 1}
+    )
     featweight_list = list(featweight_gen)
     print('[compute_fgweights] Done computing %d fgweights' % (nTasks,))
     for fw in featweight_list:
         yield (fw,)
 
 
-def gen_featweight_worker(tup):
+def gen_featweight_worker(kpts, probchip, chipsize):
     """
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
     Args:
-        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and
-            probability chip file path aid, kpts, probchip_fpath
+        kpts:
+        probchip:
+        chipsize:
 
     CommandLine:
         python -m ibeis.core_annots --test-gen_featweight_worker --show
@@ -1168,8 +1186,7 @@ def gen_featweight_worker(tup):
         >>> probchip = depc.get('probchip', aid_list, 'img', config=config)[0]
         >>> chipsize = depc.get('chips', aid_list, ('width', 'height'), config=config)[0]
         >>> kpts = depc.get('feat', aid_list, 'kpts', config=config)[0]
-        >>> tup = (kpts, probchip, chipsize)
-        >>> weights = gen_featweight_worker(tup)
+        >>> weights = gen_featweight_worker(kpts, probchip, chipsize)
         >>> assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
         >>> chip = depc.get('chips', aid_list, 'img', config=config)[0]
         >>> ut.quit_if_noshow()
@@ -1185,7 +1202,6 @@ def gen_featweight_worker(tup):
         >>> cb.set_label('featweights')
         >>> pt.show_if_requested()
     """
-    (kpts, probchip, chipsize) = tup
     if probchip is None:
         # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
         assert False, 'should not be in this state'

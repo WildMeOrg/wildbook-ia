@@ -193,51 +193,33 @@ class IBEISIO(object):
         nids = infr.ibs.get_annot_nids(infr.aids)
         infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
-    def _update_staging_to_annotmatch(infr):
+    def _prepare_write_ibeis_staging_feedback(infr, feedback):
+        r"""
+        builds data that will be sent to ibs.add_review
+
+        Returns:
+            tuple: (aid_1_list, aid_2_list, add_review_kw)
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_ibeis _prepare_write_ibeis_staging_feedback
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>>                             autoinit='annotmatch', verbose=4)
+            >>> infr.add_feedback((6, 7), NEGTV, user_id='user:foobar')
+            >>> infr.add_feedback((5, 8), NEGTV, tags=['photobomb'])
+            >>> infr.add_feedback((4, 5), POSTV, confidence='absolutely_sure')
+            >>> feedback = infr.internal_feedback
+            >>> tup = infr._prepare_write_ibeis_staging_feedback(feedback)
+            >>> (aid_1_list, aid_2_list, add_review_kw) = tup
+            >>> expected = set(ut.get_func_argspec(infr.ibs.add_review).args)
+            >>> got = set(add_review_kw.keys())
+            >>> overlap = ut.set_overlap_items(expected, got)
+            >>> assert got.issubset(expected), ut.repr4(overlap, nl=2)
         """
-        BE VERY CAREFUL WITH THIS FUNCTION
-
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_Master1')
-        >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
-
-        infr.reset_feedback('annotmatch', apply=True)
-        infr.status()
-        """
-        print('Finding entries in annotmatch that are missing in staging')
-        reverse_df = infr.match_state_delta('annotmatch', 'staging')
-        if len(reverse_df) > 0:
-            raise AssertionError(
-                'Cannot update staging because '
-                'some staging items have not been commited.'
-            )
-        df = infr.match_state_delta('staging', 'annotmatch')
-        print('There are {}/{} annotmatch items that do not exist in staging'.format(
-            sum(df['is_new']), len(df)))
-        print(ut.repr4(infr.ibeis_edge_delta_info(df)))
-
-        # Find places that exist in annotmatch but not in staging
-        flags = pd.isnull(df['old_evidence_decision'])
-        missing_df = df[flags]
-        alias = {'new_' + k: k for k in infr.feedback_data_keys}
-        tmp = missing_df[list(alias.keys())].rename(columns=alias)
-        missing_feedback = {k: [v] for k, v in tmp.to_dict('index').items()}
-        feedback = missing_feedback
-
-        infr._write_ibeis_staging_feedback(feedback)
-
-        # am_fb = infr.read_ibeis_annotmatch_feedback()
-        # staging_fb = infr.read_ibeis_staging_feedback()
-        # set(am_fb.keys()) - set(staging_fb.keys())
-        # set(staging_fb.keys()) == set(am_fb.keys())
-
-    def _write_ibeis_staging_feedback(infr, feedback):
-        """
-        feedback = infr.internal_feedback
-        ibs.staging.get_table_as_pandas('reviews')
-        """
-        infr.print('write_ibeis_staging_feedback %d' % (len(feedback),), 1)
-
+        import uuid
         # Map what add_review expects to the keys used by feedback items
         add_review_alias = {
             'evidence_decision_list'         : 'evidence_decision',
@@ -267,7 +249,6 @@ class IBEISIO(object):
             for (aid1, aid2), feedbacks in feedback.items()
             for feedback_item in feedbacks
         )
-        import uuid
         for aid1, aid2, feedback_item in _iter:
             aid_1_list.append(aid1)
             aid_2_list.append(aid2)
@@ -285,7 +266,18 @@ class IBEISIO(object):
                 elif fbkey == 'meta_decision':
                     value = ibs.const.META_DECISION.CODE_TO_INT[value]
                 add_review_kw[review_key].append(value)
+        return aid_1_list, aid_2_list, add_review_kw
 
+    def _write_ibeis_staging_feedback(infr, feedback):
+        """
+        feedback = infr.internal_feedback
+        ibs.staging.get_table_as_pandas('reviews')
+        """
+        infr.print('write_ibeis_staging_feedback {}'.format(len(feedback)), 1)
+        tup = infr._prepare_write_ibeis_staging_feedback(feedback)
+        aid_1_list, aid_2_list, add_review_kw = tup
+
+        ibs = infr.ibs
         review_id_list = ibs.add_review(aid_1_list, aid_2_list, **add_review_kw)
         duplicates = ut.find_duplicate_items(review_id_list)
         if len(duplicates) != 0:
@@ -1050,6 +1042,48 @@ class IBEISGroundtruth(object):
         return is_same
 
 
+# VVVVV Non-complete non-general functions  VVVV
+
+
+def _update_staging_to_annotmatch(infr):
+    """
+    BE VERY CAREFUL WITH THIS FUNCTION
+
+    >>> import ibeis
+    >>> ibs = ibeis.opendb('PZ_Master1')
+    >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
+
+    infr.reset_feedback('annotmatch', apply=True)
+    infr.status()
+    """
+    print('Finding entries in annotmatch that are missing in staging')
+    reverse_df = infr.match_state_delta('annotmatch', 'staging')
+    if len(reverse_df) > 0:
+        raise AssertionError(
+            'Cannot update staging because '
+            'some staging items have not been commited.'
+        )
+    df = infr.match_state_delta('staging', 'annotmatch')
+    print('There are {}/{} annotmatch items that do not exist in staging'.format(
+        sum(df['is_new']), len(df)))
+    print(ut.repr4(infr.ibeis_edge_delta_info(df)))
+
+    # Find places that exist in annotmatch but not in staging
+    flags = pd.isnull(df['old_evidence_decision'])
+    missing_df = df[flags]
+    alias = {'new_' + k: k for k in infr.feedback_data_keys}
+    tmp = missing_df[list(alias.keys())].rename(columns=alias)
+    missing_feedback = {k: [v] for k, v in tmp.to_dict('index').items()}
+    feedback = missing_feedback
+
+    infr._write_ibeis_staging_feedback(feedback)
+
+    # am_fb = infr.read_ibeis_annotmatch_feedback()
+    # staging_fb = infr.read_ibeis_staging_feedback()
+    # set(am_fb.keys()) - set(staging_fb.keys())
+    # set(staging_fb.keys()) == set(am_fb.keys())
+
+
 def fix_annotmatch_to_undirected_upper(ibs):
     """
     Enforce that all items in annotmatch are undirected upper
@@ -1154,6 +1188,30 @@ def fix_annotmatch_to_undirected_upper(ibs):
     # We want everything in upper triangular form
     is_lower = df['annot_rowid1'] > df['annot_rowid2']
     assert is_lower.sum() == 0
+
+
+def _is_staging_above_annotmatch(infr):
+    """
+    conversion step: make sure the staging db is ahead of match
+
+    SeeAlso:
+        _update_staging_to_annotmatch
+    """
+    ibs = infr.ibs
+    n_stage = ibs.staging.get_row_count(ibs.const.REVIEW_TABLE)
+    n_annotmatch = ibs.db.get_row_count(ibs.const.ANNOTMATCH_TABLE)
+    return n_stage >= n_annotmatch
+    # stage_fb = infr.read_ibeis_staging_feedback()
+    # match_fb = infr.read_ibeis_annotmatch_feedback()
+    # set(match_fb.keys()) - set(stage_fb.keys())
+    # set(stage_fb.keys()) == set(match_fb.keys())
+
+
+def needs_conversion(infr):
+    # not sure what the criteria is exactly. probably depricate
+    num_names = len(set(infr.get_node_attrs('name_label').values()))
+    num_pccs = infr.pos_graph.number_of_components()
+    return num_pccs == 0 and num_names > 0
 
 
 if __name__ == '__main__':

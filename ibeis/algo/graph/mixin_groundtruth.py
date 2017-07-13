@@ -63,8 +63,8 @@ class Groundtruth(object):
     def match_state_gt(infr, edge):
         if edge in infr.edge_truth:
             truth = infr.edge_truth[edge]
-        elif hasattr(infr, 'dummy_matcher'):
-            truth = infr.dummy_matcher._get_truth(edge)
+        elif hasattr(infr, 'dummy_verif'):
+            truth = infr.dummy_verif._get_truth(edge)
         else:
             aid_pairs = np.asarray([edge])
             is_same = infr.is_same(aid_pairs)[0]

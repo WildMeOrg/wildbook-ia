@@ -651,8 +651,10 @@ def demodata_infr(**kwargs):
     # Set synthetic ground-truth attributes for testing
     # infr.apply_edge_truth()
     infr.edge_truth = infr.get_edge_attrs('truth')
-    # Make synthetic matcher
-    infr.dummy_matcher = DummyMatcher(infr)
+    # Make synthetic verif
+    infr.dummy_verif = DummyVerif(infr)
+    infr.verifiers = {}
+    infr.verifiers['match_state'] = infr.dummy_verif
     infr.demokw = kwargs
     return infr
 
@@ -664,12 +666,12 @@ def randn(mean=0, std=1, shape=[], a_max=None, a_min=None, rng=None):
     return a
 
 
-class DummyMatcher(object):
+class DummyVerif(object):
     """
     generates dummy scores between edges (not necesarilly in the graph)
 
     CommandLine:
-        python -m ibeis.algo.graph.demo DummyMatcher:1
+        python -m ibeis.algo.graph.demo DummyVerif:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -678,65 +680,65 @@ class DummyMatcher(object):
         >>> import networkx as nx
         >>> kwargs = dict(num_pccs=6, p_incon=.5, size_std=2)
         >>> infr = demo.demodata_infr(**kwargs)
-        >>> infr.dummy_matcher.predict_edges([(1, 2)])
-        >>> infr.dummy_matcher.predict_edges([(1, 21)])
-        >>> assert len(infr.dummy_matcher.infr.task_probs['match_state']) == 2
+        >>> infr.dummy_verif.predict_edges([(1, 2)])
+        >>> infr.dummy_verif.predict_edges([(1, 21)])
+        >>> assert len(infr.dummy_verif.infr.task_probs['match_state']) == 2
     """
-    def __init__(matcher, infr):
-        matcher.rng = np.random.RandomState(4033913)
-        matcher.dummy_params = {
+    def __init__(verif, infr):
+        verif.rng = np.random.RandomState(4033913)
+        verif.dummy_params = {
             NEGTV: {'mean': .2, 'std': .25},
             POSTV: {'mean': .85, 'std': .2},
             INCMP: {'mean': .15, 'std': .1},
         }
-        matcher.score_dist = randn
+        verif.score_dist = randn
 
-        matcher.infr = infr
-        matcher.orig_nodes = set(infr.aids)
-        matcher.orig_labels = infr.get_node_attrs('orig_name_label')
-        matcher.orig_groups = ut.invert_dict(matcher.orig_labels, False)
-        matcher.orig_groups = ut.map_vals(set, matcher.orig_groups)
+        verif.infr = infr
+        verif.orig_nodes = set(infr.aids)
+        verif.orig_labels = infr.get_node_attrs('orig_name_label')
+        verif.orig_groups = ut.invert_dict(verif.orig_labels, False)
+        verif.orig_groups = ut.map_vals(set, verif.orig_groups)
 
-    def show_score_probs(matcher):
+    def show_score_probs(verif):
         """
         CommandLine:
-            python -m ibeis.algo.graph.demo DummyMatcher.show_score_probs --show
+            python -m ibeis.algo.graph.demo DummyVerif.show_score_probs --show
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.demo import *  # NOQA
             >>> import ibeis
             >>> infr = ibeis.AnnotInference(None)
-            >>> matcher = DummyMatcher(infr)
-            >>> matcher.show_score_probs()
+            >>> verif = DummyVerif(infr)
+            >>> verif.show_score_probs()
             >>> ut.show_if_requested()
         """
         import plottool as pt
-        dist = matcher.score_dist
+        dist = verif.score_dist
         n = 100000
-        for key in matcher.dummy_params.keys():
-            probs = dist(shape=[n], rng=matcher.rng, a_max=1, a_min=0,
-                          **matcher.dummy_params[key])
-            color = matcher.infr._get_truth_colors()[key]
+        for key in verif.dummy_params.keys():
+            probs = dist(shape=[n], rng=verif.rng, a_max=1, a_min=0,
+                          **verif.dummy_params[key])
+            color = verif.infr._get_truth_colors()[key]
             pt.plt.hist(probs, bins=100, label=key, alpha=.8, color=color)
         pt.legend()
 
-    def dummy_ranker(matcher, u, K=10):
+    def dummy_ranker(verif, u, K=10):
         """
         simulates the ranking algorithm. Order is defined using the dummy vsone
         scores, but tests are only applied to randomly selected gt and gf
         pairs. So, you usually will get a gt result, but you might not if all
         the scores are bad.
         """
-        infr = matcher.infr
+        infr = verif.infr
 
-        nid = matcher.orig_labels[u]
-        others = matcher.orig_groups[nid]
+        nid = verif.orig_labels[u]
+        others = verif.orig_groups[nid]
         others_gt = sorted(others - {u})
-        others_gf = sorted(matcher.orig_nodes - others)
+        others_gf = sorted(verif.orig_nodes - others)
 
         # rng = np.random.RandomState(u + 4110499444 + len(others))
-        rng = matcher.rng
+        rng = verif.rng
 
         vs_list = []
         k_gt = min(len(others_gt), max(1, K // 2))
@@ -749,7 +751,7 @@ class DummyMatcher(object):
             vs_list.append(gf)
 
         u_edges = [infr.e_(u, v) for v in it.chain.from_iterable(vs_list)]
-        u_probs = np.array(infr.dummy_matcher.predict_edges(u_edges))
+        u_probs = np.array(infr.dummy_verif.predict_edges(u_edges))
         # infr.set_edge_attrs('prob_match', ut.dzip(u_edges, u_probs))
 
         # Need to determenistically sort here
@@ -760,7 +762,7 @@ class DummyMatcher(object):
         # assert len(ranked_edges) == K
         return ranked_edges
 
-    def find_candidate_edges(matcher, K=10):
+    def find_candidate_edges(verif, K=10):
         """
         Example:
             >>> # ENABLE_DOCTEST
@@ -769,29 +771,29 @@ class DummyMatcher(object):
             >>> import networkx as nx
             >>> kwargs = dict(num_pccs=40, size=2)
             >>> infr = demo.demodata_infr(**kwargs)
-            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
-            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> edges = list(infr.dummy_verif.find_candidate_edges(K=100))
+            >>> scores = np.array(infr.dummy_verif.predict_edges(edges))
         """
         new_edges = []
-        nodes = list(matcher.infr.graph.nodes())
+        nodes = list(verif.infr.graph.nodes())
         for u in nodes:
-            new_edges.extend(matcher.dummy_ranker(u, K=K))
+            new_edges.extend(verif.dummy_ranker(u, K=K))
         # print('new_edges = %r' % (ut.hash_data(new_edges),))
         new_edges = set(new_edges)
         return new_edges
 
-    def _get_truth(matcher, edge):
-        infr = matcher.infr
+    def _get_truth(verif, edge):
+        infr = verif.infr
         if edge in infr.edge_truth:
             return infr.edge_truth[edge]
         nid1 = infr.graph.node[edge[0]]['orig_name_label']
         nid2 = infr.graph.node[edge[1]]['orig_name_label']
         return POSTV if nid1 == nid2 else NEGTV
 
-    def predict_edges(matcher, edges):
+    def predict_proba_df(verif, edges):
         """
         CommandLine:
-            python -m ibeis.algo.graph.demo DummyMatcher.predict_edges
+            python -m ibeis.algo.graph.demo DummyVerif.predict_edges
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -800,35 +802,46 @@ class DummyMatcher(object):
             >>> import networkx as nx
             >>> kwargs = dict(num_pccs=40, size=2)
             >>> infr = demo.demodata_infr(**kwargs)
+            >>> verif = infr.dummy_verif
             >>> edges = list(infr.graph.edges())
-            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> probs = verif.predict_proba_df(edges)
             >>> #print('scores = %r' % (scores,))
             >>> #hashid = ut.hash_data(scores)
             >>> #print('hashid = %r' % (hashid,))
             >>> #assert hashid == 'cdlkytilfeqgmtsihvhqwffmhczqmpil'
         """
-        infr = matcher.infr
-        edges = list(it.starmap(matcher.infr.e_, edges))
+        infr = verif.infr
+        edges = list(it.starmap(verif.infr.e_, edges))
         prob_cache = infr.task_probs['match_state']
         is_miss = np.array([e not in prob_cache for e in edges])
         # is_hit = ~is_miss
         if np.any(is_miss):
             miss_edges = ut.compress(edges, is_miss)
-            miss_truths = [matcher._get_truth(edge) for edge in miss_edges]
+            miss_truths = [verif._get_truth(edge) for edge in miss_edges]
             grouped_edges = ut.group_items(miss_edges, miss_truths,
                                            sorted_=False)
             # Need to make this determenistic too
             states = [POSTV, NEGTV, INCMP]
             for key in sorted(grouped_edges.keys()):
                 group = grouped_edges[key]
-                probs0 = randn(shape=[len(group)], rng=matcher.rng, a_max=1, a_min=0,
-                               **matcher.dummy_params[key])
+                probs0 = randn(shape=[len(group)], rng=verif.rng, a_max=1, a_min=0,
+                               **verif.dummy_params[key])
                 # Just randomly assign other probs
-                probs1 = matcher.rng.rand(len(group)) * (1 - probs0)
+                probs1 = verif.rng.rand(len(group)) * (1 - probs0)
                 probs2 = 1 - (probs0 + probs1)
                 for edge, probs in zip(group, zip(probs0, probs1, probs2)):
                     prob_cache[edge] = ut.dzip(states, probs)
-        pos_scores = ut.take_column(ut.take(prob_cache, edges), POSTV)
+
+        from ibeis.algo.graph import nx_utils as nxu
+        import pandas as pd
+        probs = pd.DataFrame(
+            ut.take(prob_cache, edges),
+            index=nxu.ensure_multi_index(edges, ('aid1', 'aid2'))
+        )
+        return probs
+
+    def predict_edges(verif, edges):
+        pos_scores = verif.predict_proba_df(edges)[POSTV]
         return pos_scores
 
 if __name__ == '__main__':

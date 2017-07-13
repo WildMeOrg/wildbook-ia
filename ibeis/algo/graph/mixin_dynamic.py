@@ -65,7 +65,11 @@ class DynamicUpdate(object):
         edges = list(edges)
         # Only add edges that don't exist
         new_edges = [e for e in edges if not infr.has_edge(e)]
-        infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
+        infr.graph.add_edges_from(new_edges,
+                                  evidence_decision=UNREV,
+                                  meta_decision=UNREV,
+                                  decision=UNREV,
+                                  num_reviews=0)
         # No inference is needed by expliclty creating unreviewed edges that
         # already implicitly existsed.
         infr._add_review_edges_from(new_edges, decision=UNREV)

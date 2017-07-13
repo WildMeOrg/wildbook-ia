@@ -477,11 +477,24 @@ def ensure_pz_mtest():
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
 
-    # TODO: add in annotmatch and staging information
     # make part of the database complete and the other part semi-complete
     # make staging ahead of annotmatch.
+    reset_mtest_graph()
 
-    if False:
+
+def reset_mtest_graph():
+    """
+    Resets the annotmatch and stating table
+
+    CommandLine:
+        python -m ibeis reset_mtest_graph
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> reset_mtest_graph()
+    """
+    if True:
         # Delete the graph databases to and set them up for tests
         import ibeis
         ibs = ibeis.opendb('PZ_MTEST')
@@ -542,6 +555,8 @@ def ensure_pz_mtest():
 
     infr.reset_feedback('annotmatch', apply=True)
     assert infr.status()['nInconsistentCCs'] == 0
+
+    # print(ibs.staging['reviews'].as_pandas())
 
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):

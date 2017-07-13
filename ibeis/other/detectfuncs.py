@@ -836,9 +836,9 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     pred_dict_list = [ pred_dict for _ in conf_list ]
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
-    pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_iter,
-                            nTasks=len(conf_list), ordered=True,
-                            chunksize=CHUNK_SIZE, force_serial=force_serial)
+    pr_re_gen = ut.generate2(localizer_precision_recall_algo_worker, arg_iter,
+                             nTasks=len(conf_list), ordered=True,
+                             chunksize=CHUNK_SIZE, force_serial=force_serial)
 
     # conf_list_ = [-1.0]
     # pr_list = [1.0]
@@ -858,8 +858,8 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     return conf_list_, pr_list, re_list
 
 
-def localizer_precision_recall_algo_worker(tup):
-    conf, uuid_list, gt_dict, pred_dict, kwargs = tup
+def localizer_precision_recall_algo_worker(conf, uuid_list, gt_dict, pred_dict,
+                                           kwargs):
     # print('Started %s' % (conf, ))
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
@@ -2738,9 +2738,9 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
     pred_dict_list = [ pred_dict for _ in conf_list ]
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
-    pr_re_gen = ut.generate(detector_precision_recall_algo_worker, arg_iter,
-                            nTasks=len(conf_list), ordered=True,
-                            chunksize=CHUNK_SIZE, force_serial=force_serial)
+    pr_re_gen = ut.generate2(detector_precision_recall_algo_worker, arg_iter,
+                             nTasks=len(conf_list), ordered=True,
+                             chunksize=CHUNK_SIZE, force_serial=force_serial)
 
     # conf_list_ = [-1.0]
     # pr_list = [1.0]
@@ -2757,8 +2757,8 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
     return conf_list_, pr_list, re_list
 
 
-def detector_precision_recall_algo_worker(tup):
-    conf, uuid_list, gt_dict, pred_dict, kwargs = tup
+def detector_precision_recall_algo_worker(conf, uuid_list, gt_dict, pred_dict,
+                                          kwargs):
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
