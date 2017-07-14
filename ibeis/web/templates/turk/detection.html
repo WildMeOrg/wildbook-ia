@@ -30,7 +30,7 @@
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4"></div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center;">
-            Image ID (GID): {{ gid }}
+            Image ID{% if THROW_TEST_AOI_TURKING_AVAILABLE %}*{% endif %} (GID): {{ gid }}
           </div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">

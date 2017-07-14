@@ -291,8 +291,13 @@ def _process_input(multidict=None):
             converted = ut.from_json(value)
         except Exception:
             # try making string and try again...
-            value = '"%s"' % (value, )
-            converted = ut.from_json(value)
+            try:
+                value_ = '"%s"' % (value, )
+                converted = ut.from_json(value_)
+            except Exception as ex:
+                print('FAILED TO JSON CONVERT: %s' % (ex, ))
+                print(ut.repr3(value))
+                converted = value
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
             if isinstance(converted, str) and ',' in converted:
                 converted = converted.strip().split(',')

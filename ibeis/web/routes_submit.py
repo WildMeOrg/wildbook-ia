@@ -3,7 +3,6 @@
 Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
-import simplejson as json
 from flask import request, redirect, url_for, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
@@ -74,8 +73,13 @@ def submit_detection(**kwargs):
         width, height = ibs.get_image_sizes(gid)
 
         # Separate out annotations vs parts
-        data_list = json.loads(request.form['ia-detection-data'])
-        manifest_list = json.loads(request.form['ia-detection-manifest'])
+        data_list = ut.from_json(request.form['ia-detection-data'])
+        print(request.form['ia-detection-manifest'])
+        raw_manifest = request.form['ia-detection-manifest'].strip()
+        try:
+            manifest_list = ut.from_json(raw_manifest)
+        except ValueError:
+            manifest_list = []
         test_truth = len(manifest_list) > 0
         test_challenge_list = [{
             'gid'           : gid,
