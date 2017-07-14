@@ -27,7 +27,7 @@ import sklearn.ensemble
 from ibeis.algo.verif import clf_helpers
 from ibeis.algo.verif import deploy
 from ibeis.algo.verif import pairfeat, verifier
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from os.path import basename
 from six.moves import zip
 print, rrr, profile = ut.inject2(__name__)
@@ -110,33 +110,43 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             tablename='HyperParams'
         )
 
+        # Use multiple ratio bins
+        hyper_params['pairwise_feats']['bins'] = (.625, .8)
+
         bins = hyper_params['pairwise_feats']['bins']
         hyper_params['vsone_match']['ratio_thresh'] = max(bins)
         hyper_params['vsone_match']['thresh_bins'] = bins
         hyper_params['vsone_match']['sv_on'] = True
 
+        # Make QRH keypoints the default
+        hyper_params['vsone_match']['Knorm'] = 3
+        hyper_params['vsone_match']['symmetric'] = True
+        hyper_params['vsone_kpts']['augment_orientation'] = True
+
         species = infr.ibs.get_primary_database_species()
+        print('species = {!r}'.format(species))
 
         # Setup per-species parameters
-        if species == 'manta_ray':
+        if species in {'manta_ray'}:
             # Parameters from manta matcher
             hyper_params['chip']['resize_dim'] = 'maxwh'
             hyper_params['chip']['dim_size'] = 800
+
+        # TURTLE = 'sea_turtle'  # TODO: turtle_hawkbill
+
+        if species in {'manta_ray', 'humpback', 'sea_turtle'}:
+            # Parameters from manta matcher
             hyper_params['chip']['medianblur'] = True
             hyper_params['chip']['medianblur_thresh'] = 0
             hyper_params['chip']['adapteq'] = True
             hyper_params['chip']['adapteq_ksize'] = 32
             hyper_params['chip']['adapteq_limit'] = 6
 
+        if species in {'manta_ray', 'sea_turtle', 'zebra_plains'}:
             hyper_params['vsone_kpts']['affine_invariance'] = False
 
-        if species == 'zebra_plains':
-            hyper_params['vsone_kpts']['affine_invariance'] = False
-
-        # Make QRH keypoints the default
-        hyper_params['vsone_match']['Knorm'] = 3
-        hyper_params['vsone_match']['symmetric'] = True
-        hyper_params['vsone_kpts']['augment_orientation'] = True
+        if species == {'zebra_grevys'}:
+            hyper_params['vsone_kpts']['affine_invariance'] = True
 
         multi_species = infr.ibs.get_database_species(infr.aids)
         # if infr.ibs.has_species_detector(species):
@@ -172,6 +182,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         pblm.hyper_params = hyper_params
         updated = pblm.hyper_params.update2(params)
+
+        print('hyper_params: ' + ut.repr4(pblm.hyper_params.asdict(), nl=4))
         if updated:
             print('Externally updated params = %r' % (updated,))
 
@@ -460,7 +472,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         edges = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
         feat_extract_config = pblm.feat_extract_config
         extr = pairfeat.PairwiseFeatureExtractor(
-            ibs, verbose=10, **feat_extract_config)
+            ibs, verbose=10, config=feat_extract_config)
         X_all = extr.transform(edges)
 
         pblm.raw_X_dict = {'learn(all)': X_all}
@@ -1225,6 +1237,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> win = pblm.qt_review_hardcases()
 
         Ignore:
+            >>> from ibeis.scripts.postdoc import *
+            >>> self = VerifierExpt('RotanTurtles')
+            >>> import ibeis
+            >>> self._precollect()
+            >>> ibs = self.ibs
+            >>> aids = self.aids_pool
+            >>> pblm = vsone.OneVsOneProblem.from_aids(ibs, aids)
+            >>> infr = pblm.infr
+            >>> infr.params['algo.hardcase'] = True
+            >>> infr.params['autoreview.enabled'] = False
+            >>> infr.params['redun.enabled'] = False
+            >>> infr.params['ranking.enabled'] = False
+            >>> win = infr.qt_review_loop()
+
+
+        Ignore:
             >>> # TEST to ensure we can priorizite reviewed edges without inference
             >>> import networkx as nx
             >>> from ibeis.algo.graph import demo
@@ -1243,6 +1271,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>>     order.append(infr.pop())
             >>> print(len(order))
         """
+        # infr = pblm.infr
+        # infr.params['algo.hardcase'] = True
+        # infr.params['autoreview.enabled'] = False
+        # infr.params['redun.enabled'] = False
+        # infr.params['ranking.enabled'] = False
+        # win = infr.qt_review_loop()
+        # return win
+
         task_key = pblm.primary_task_key
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
@@ -1268,16 +1304,26 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                  for a in unsure_cases['aid2']])
             unsure_cases = unsure_cases[(n_other2 > 10) & (n_other1 > 10)]
 
+        if True:
+            # only review certain cases
+            # probably comparable
+            flags1 = ((unsure_cases['pred'] == 1) & (unsure_cases['real'] == 2))
+            # probably positive
+            flags2 = ((unsure_cases['pred'] == 1) & (unsure_cases['real'] == 0))
+            flags = flags1 | flags2
+
+            unsure_cases = unsure_cases[flags]
+
         infr.params['redun.enabled'] = False
-        infr.fix_mode_split = False
-        infr.fix_mode_merge = False
-        infr.fix_mode_predict = True
+        # infr.fix_mode_split = False
+        # infr.fix_mode_merge = False
+        # infr.fix_mode_predict = True
         infr.verifiers = None
 
         # TODO: force it to re-review non-confident edges with the hardness
         # as priority ignoring the connectivity criteria
         edges = unsure_cases.index.tolist()
-        infr.ensure_edges(edges)
+        infr.ensure_edges_from(edges)
 
         # Assign probs to edges for propper weighting
         pred_edges = [e for e in infr.edges() if e in res.probs_df.index]
@@ -1303,7 +1349,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgdict.update(pblm.hyper_params['vsone_kpts'].asdict())
         cfgdict.update(pblm.hyper_params['chip'].asdict())
 
-        win = infr.qt_review_loop(cfgdict=cfgdict)
+        infr._gen = infr.inner_priority_gen(use_refresh=False)
+        win = infr.qt_review_loop()
         # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
         return win
 
@@ -1474,7 +1521,13 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
             if infr.incomp_graph.has_edge(u, v):
                 return False
             elif infr.pos_graph.has_edge(u, v):
-                return True
+                # Only override if the evidence says its positive
+                # otherwise guess
+                ed = infr.get_edge_data((u, v)).get('evidence_decision', UNREV)
+                if ed == POSTV:
+                    return True
+                else:
+                    return np.nan
             elif infr.neg_graph.has_edge(u, v):
                 return True
             return np.nan

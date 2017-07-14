@@ -977,32 +977,13 @@ class IBEISGroundtruth(object):
         Takes a guess as to which annots are not comparable based on scores and
         viewpoints. If either viewpoints is null assume they are comparable.
         """
-        # simple_scores = labels.simple_scores
-        # key = 'sum(weighted_ratio)'
-        # if key not in simple_scores:
-        #     key = 'sum(ratio)'
-        # scores = simple_scores[key].values
-        # yaws1 = labels.annots1.yaws_asfloat
-        # yaws2 = labels.annots2.yaws_asfloat
         aid_pairs = np.asarray(aid_pairs)
         ibs = infr.ibs
 
         dists = ibs.get_annotedge_viewdist(aid_pairs)
 
-        # unique_annots = ibs.annots(np.unique(aid_pairs)).view()
-        # annots1 = unique_annots.view(aid_pairs.T[0])
-        # annots2 = unique_annots.view(aid_pairs.T[1])
-        # view_ints1 = annots1.viewpoint_int
-        # view_ints2 = annots2.viewpoint_int
+        comp_by_viewpoint = (dists < 2) | np.isnan(dists)
 
-        # yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
-        # yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
-        # scores = np.full(len(aid_pairs), np.nan)
-        # comp_by_viewpoint = (dists < tau / 8.1) | np.isnan(dists)
-        comp_by_viewpoint = (dists <= 2) | np.isnan(dists)
-
-        # comp_by_score = (scores > .1)
-        # is_comp = comp_by_score | comp_by_viewpoint
         is_comp_guess = comp_by_viewpoint
         return is_comp_guess
 

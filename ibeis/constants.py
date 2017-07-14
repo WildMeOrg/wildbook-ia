@@ -765,6 +765,9 @@ class VIEW(object):
         (UNKNOWN, UFR): None, (UNKNOWN, UL): None, (UNKNOWN, UR): None,
         (UR, UNKNOWN): None, (UNKNOWN, UNKNOWN): None,
     }
+    # make distance symmetric
+    for (f1, f2), d in list(DIST.items()):
+        DIST[(f2, f1)] = d
 
 
 if __name__ == '__main__':

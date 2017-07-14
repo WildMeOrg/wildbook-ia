@@ -483,20 +483,72 @@ class DummyEdges(object):
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
-            >>> name_label = 'orig_name_label'
-            >>> name_label = 'name_label'
+            >>> label = 'orig_name_label'
+            >>> label = 'name_label'
             >>> infr.find_mst_edges()
             >>> infr.ensure_mst()
+
+        Ignore:
+            old_mst_edges = [
+                e for e, d in infr.edges(data=True)
+                if d.get('user_id', None) == 'algo:mst'
+            ]
+            infr.graph.remove_edges_from(old_mst_edges)
+            infr.pos_graph.remove_edges_from(old_mst_edges)
+            infr.neg_graph.remove_edges_from(old_mst_edges)
+            infr.incomp_graph.remove_edges_from(old_mst_edges)
+
         """
         # Find clusters by labels
         node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
 
-        special_weighting = False
-        if special_weighting:
+        weight_heuristic = infr.ibs is not None
+        if weight_heuristic:
             annots = infr.ibs.annots(infr.aids)
             node_to_time = ut.dzip(annots, annots.time)
+            node_to_view = ut.dzip(annots, annots.viewpoint_code)
+            enabled_heuristics = {
+                'view_weight',
+                'time_weight',
+            }
+
+        def _heuristic_weighting(nodes, avail_uv):
+            avail_uv = np.array(avail_uv)
+            weights = np.ones(len(avail_uv))
+
+            if 'view_weight' in enabled_heuristics:
+                from vtool import _rhomb_dist
+                view_edge = [(node_to_view[u], node_to_view[v])
+                             for (u, v) in avail_uv]
+                view_weight = np.array([
+                    _rhomb_dist.VIEW_CODE_DIST[(v1, v2)]
+                    for (v1, v2) in view_edge
+                ])
+                # Assume comparable by default and prefer undefined
+                # more than probably not, but less than definately so.
+                view_weight[np.isnan(view_weight)] = 1.5
+                # Prefer viewpoint 10x more than time
+                weights += 10 * view_weight
+
+            if 'time_weight' in enabled_heuristics:
+                # Prefer linking annotations closer in time
+                times = ut.take(node_to_time, nodes)
+                maxtime = vt.safe_max(times, fill=1, nans=False)
+                mintime = vt.safe_min(times, fill=0, nans=False)
+                time_denom = maxtime - mintime
+                # Try linking by time for lynx data
+                time_delta = np.array([
+                    abs(node_to_time[u] - node_to_time[v])
+                    for u, v in avail_uv
+                ])
+                time_weight = time_delta / time_denom
+                weights += time_weight
+
+            avail = [(u, v, {'weight': w})
+                     for (u, v), w in zip(avail_uv, weights)]
+            return avail
 
         new_edges = []
         prog = ut.ProgIter(list(label_to_nodes.keys()),
@@ -513,36 +565,22 @@ class DummyEdges(object):
                 nxu.edges_inside(infr.incomp_graph, nodes),
                 # nxu.edges_inside(infr.unknown_graph, nodes),
             )))
-            if impossible or special_weighting:
+            if len(impossible) == 0 and not weight_heuristic:
+                # Simple mst augmentation
+                aug_edges = list(nxu.edge_connected_augmentation(
+                    pos_sub, k=1))
+            else:
                 complement = it.starmap(e_, nxu.complement_edges(pos_sub))
                 avail_uv = [
                     (u, v) for u, v in complement if (u, v) not in impossible
                 ]
-                # TODO: can do special weighting to improve the MST
-                if special_weighting:
-                    avail_uv = np.array(avail_uv)
-                    times = ut.take(node_to_time, nodes)
-                    maxtime = vt.safe_max(times, fill=1, nans=False)
-                    mintime = vt.safe_min(times, fill=0, nans=False)
-                    time_denom = maxtime - mintime
-
-                    # Try linking by time for lynx data
-                    comp_weight = 1 - infr.is_comparable(avail_uv)
-                    time_delta = np.array([
-                        abs(node_to_time[u] - node_to_time[v])
-                        for u, v in avail_uv
-                    ])
-                    time_weight = time_delta / time_denom
-                    weights = (10 * comp_weight) + time_weight
-                    avail = [(u, v, {'weight': w})
-                             for (u, v), w in zip(avail_uv, weights)]
+                if weight_heuristic:
+                    # Can do heuristic weighting to improve the MST
+                    avail = _heuristic_weighting(nodes, avail_uv)
                 else:
                     avail = avail_uv
                 aug_edges = list(nxu.edge_connected_augmentation(
                     pos_sub, k=1, avail=avail))
-            else:
-                aug_edges = list(nxu.edge_connected_augmentation(
-                    pos_sub, k=1))
             new_edges.extend(aug_edges)
         prog.ensure_newline()
 

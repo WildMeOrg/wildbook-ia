@@ -86,18 +86,42 @@ class PairwiseFeatureExtractor(object):
         >>> print(featinfo.get_infostr())
     """
 
-    def __init__(extr, ibs=None, match_config={}, pairfeat_cfg={},
-                 global_keys=[], need_lnbnn=False, feat_dims=None,
-                 use_cache=True, verbose=1):
+    def __init__(extr, ibs=None, config={}, use_cache=True, verbose=1,
+                 # Nested config props
+                 match_config=None, pairfeat_cfg=None, global_keys=None,
+                 need_lnbnn=None, feat_dims=None):
 
-        extr.ibs = ibs
-        extr.match_config = MatchConfig(**match_config)
-        extr.pairfeat_cfg = PairFeatureConfig(**pairfeat_cfg)
-        extr.global_keys = global_keys
-        extr.need_lnbnn = need_lnbnn
-        extr.feat_dims = feat_dims
         extr.verbose = verbose
         extr.use_cache = use_cache
+        extr.ibs = ibs
+
+        # Configs for this are a bit foobar. Allow config to be a catch-all It
+        # can either store params in nested or flat form
+        config = config.copy()
+        vars_ = vars()
+        def _popconfig(key, default):
+            """ ensures param is either specified in func args xor config """
+            if key in config:
+                if vars_.get(key, None) is not None:
+                    raise ValueError('{} specified twice'.format(key))
+                return config.pop(key)
+            else:
+                return default
+
+        # These also sort-of belong to pair-feat config
+        extr.global_keys = _popconfig('global_keys', [])
+        extr.need_lnbnn = _popconfig('need_lnbnn', False)
+        extr.feat_dims = _popconfig('feat_dims', None)
+
+        extr.match_config = MatchConfig(**_popconfig('match_config', {}))
+        extr.pairfeat_cfg = PairFeatureConfig(**_popconfig('pairfeat_cfg', {}))
+
+        # Allow config to store flat versions of these params
+        extr.match_config.pop_update(config)
+        extr.pairfeat_cfg.pop_update(config)
+
+        if len(config) > 0:
+            raise ValueError('Unused config items: ' + ut.repr4(config))
 
     def transform(extr, edges):
         """

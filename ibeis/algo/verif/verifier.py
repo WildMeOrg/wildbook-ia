@@ -86,11 +86,11 @@ class Verifier(BaseVerifier):
             data_info = verif.metadata['data_info']
             feat_extract_config, feat_dims = data_info
 
-            feat_extract_config = feat_extract_config
-            feat_dims = feat_dims
+            feat_extract_config = feat_extract_config.copy()
+            feat_extract_config['feat_dims'] = feat_dims
 
             verif.extr = pairfeat.PairwiseFeatureExtractor(
-                ibs, feat_dims=feat_dims, **feat_extract_config)
+                ibs, config=feat_extract_config)
 
     def predict_proba_df(verif, edges):
         # TODO: if multiple verifiers have the same feature extractor we should

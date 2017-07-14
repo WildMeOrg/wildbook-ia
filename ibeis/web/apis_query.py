@@ -939,7 +939,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 @register_ibs_method
 def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
                                  view_orientation='vertical'):
-    from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
+    from ibeis.algo.verif import pairfeat
 
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
@@ -968,8 +968,11 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
     annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
 
-    match_config = {} if graph_client.extr is None else graph_client.extr.match_config
-    extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
+    feat_extract_config = {
+        'match_config': ({} if graph_client.extr is None else
+                         graph_client.extr.match_config)
+    }
+    extr = pairfeat.PairwiseFeatureExtractor(ibs, config=feat_extract_config)
 
     match = extr._exec_pairwise_match([edge])[0]
 

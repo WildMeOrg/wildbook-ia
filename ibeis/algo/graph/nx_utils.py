@@ -536,6 +536,7 @@ def one_connected_augmentation(G, avail=None, weight='weight'):
 
     if avail is not None:
         avail_uv = [tup[0:2] for tup in avail]
+        # Each edge gets a weight that can be specified, or it defaults to 1
         avail_w = [1 if len(tup) == 2 else tup[-1][weight] for tup in avail]
         meta_avail_uv = [(mapping[u], mapping[v]) for u, v in avail_uv]
 

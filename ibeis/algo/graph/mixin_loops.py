@@ -136,6 +136,7 @@ class InfrLoops(object):
         """
         infr.print('==============================', color='white')
         infr.print('--- HARDCASE PRIORITY LOOP ---', color='white')
+
         verifiers = infr.learn_evaluation_verifiers()
         verif = verifiers['match_state']
 

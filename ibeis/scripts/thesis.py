@@ -3702,7 +3702,8 @@ class Sampler(object):
         return qaids, dname_encs, confusor_pool
 
     @staticmethod
-    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
+    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc,
+                    viewpoint_aware=False):
         """ This cannot be used for cross validation """
         # Group annotations by encounter
         # from ibeis.other import ibsfuncs
@@ -3728,20 +3729,62 @@ class Sampler(object):
                 subenc = enc
             return subenc
 
+        def _only_comparable(qsubenc, avail_dencs):
+            from vtool import _rhomb_dist
+            qviews = set(ut.flatten(qsubenc.viewpoint_code))
+            comparable_encs = []
+            for denc in avail_dencs:
+                comparable = []
+                for daid, dview in zip(denc.aids, denc.viewpoint_code):
+                    for qview in qviews:
+                        dist = _rhomb_dist.VIEW_CODE_DIST[(qview, dview)]
+                        if np.isnan(dist) or dist < 2:
+                            comparable.append(daid)
+                if comparable:
+                    comparable_encs.append(ibs.annots(comparable))
+            return comparable_encs
+
         for nid, encs in nid_to_encs.items():
             if len(encs) < n_need:
                 confusor_encs[nid] = encs
             else:
-                # For each name choose a query / database encounter.
-                chosen_encs = pyrng.sample(encs, n_need)
-                ibs._annot_groups(chosen_encs).aids
-                # Choose high quality annotations from each encounter
-                best_subencs = [choose_best(enc, annots_per_enc) for
-                                enc in chosen_encs]
-                # ibs._annot_groups(best_subencs).aids
-                qsubenc = [a.aids for a in best_subencs[0:qenc_per_name]]
-                dsubenc = [a.aids for a in best_subencs[qenc_per_name:]]
-                sample_splits[nid] = (qsubenc, dsubenc)
+                if viewpoint_aware:
+                    # Randomly choose queries
+                    avail_qxs = list(range(len(encs)))
+                    qencxs = pyrng.sample(avail_qxs, qenc_per_name)
+                    qencs = ut.take(encs, qencxs)
+                    qsubenc = ibs._annot_groups(
+                        [choose_best(enc, annots_per_enc) for enc in qencs])
+
+                    # Ensure the db annots are comparable to at least one query
+                    avail_dencs = ut.take(encs, ut.setdiff(avail_qxs, qencxs))
+                    comparable_encs = _only_comparable(qsubenc, avail_dencs)
+
+                    if len(comparable_encs) >= denc_per_name_:
+                        # If we still have enough, sample daids
+                        dencs = pyrng.sample(comparable_encs, denc_per_name_)
+                        dsubenc = ibs._annot_groups(
+                            [choose_best(enc, annots_per_enc) for enc in dencs])
+                        sample_splits[nid] = (qsubenc.aids, dsubenc.aids)
+                    else:
+                        # If we don't add to confusors
+                        confusor_encs[nid] = encs
+                else:
+                    # For each name choose a query / database encounter.
+                    chosen_encs = pyrng.sample(encs, n_need)
+                    # Choose high quality annotations from each encounter
+                    best_subencs = [choose_best(enc, annots_per_enc) for
+                                    enc in chosen_encs]
+                    # ibs._annot_groups(best_subencs).aids
+                    qsubenc = ibs._annot_groups(best_subencs[0:qenc_per_name])
+                    dsubenc = ibs._annot_groups(best_subencs[qenc_per_name:])
+                    sample_splits[nid] = (qsubenc.aids, dsubenc.aids)
+
+        # if viewpoint_aware:
+        #     for qenc, denc in sample_splits.values():
+        #         q = ibs.annots(ut.flatten(qenc))
+        #         d = ibs.annots(ut.flatten(denc))
+        #         print(q.viewpoint_code, d.viewpoint_code)
 
         # make confusor encounters subject to the same constraints
         confusor_pool = []
@@ -3764,7 +3807,7 @@ class Sampler(object):
 
     @staticmethod
     def _varied_inputs(ibs, aids, denc_per_name=[1], extra_dbsize_fracs=None,
-                        method='alt'):
+                        method='alt', viewpoint_aware=None):
         """
         Vary num per name and total number of annots
 
@@ -3808,14 +3851,19 @@ class Sampler(object):
         denc_per_name_ = max(denc_per_name)
 
         if method == 'alt':
+            if viewpoint_aware is None:
+                viewpoint_aware = False
             qaids, dname_encs, confname_encs, confusor_pool = Sampler._alt_splits(
-                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
+                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc,
+                viewpoint_aware=viewpoint_aware)
         elif method == 'same_occur':
+            assert viewpoint_aware is None, 'cannot specify viewpoint_aware here'
             assert denc_per_name_ == 1
             assert annots_per_enc == 1
             assert qenc_per_name == 1
             qaids, dname_encs, confusor_pool = Sampler._same_occur_split(ibs, aids)
         elif method == 'same_enc':
+            assert viewpoint_aware is None, 'cannot specify viewpoint_aware here'
             qaids, dname_encs, confusor_pool = Sampler._same_enc_split(ibs, aids)
         else:
             raise KeyError(method)

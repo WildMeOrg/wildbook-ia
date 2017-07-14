@@ -40,6 +40,26 @@ TMP_RC = {
 W, H = 7.4375, 3.0
 
 
+def dbname_to_species_nice(dbname):
+    species_nice = dbname
+    if 'GZ' in dbname:
+        species_nice = "Grévy's zebras"
+    if 'PZ' in dbname:
+        species_nice = "plains zebras"
+    if 'GIRM' in dbname:
+        species_nice = "Masai giraffes"
+    if 'MantaMatcher' in dbname:
+        species_nice = "mantas"
+    if 'humpback' in dbname:
+        species_nice = "humpbacks"
+        # species_nice = "humpback whales"
+    if 'LF_ALL' in dbname:
+        species_nice = "lionfish"
+    if 'RotanTurtles' == dbname:
+        species_nice = "sea turtles"
+    return species_nice
+
+
 @ut.reloadable_class
 class DBInputs(object):
     def __init__(self, dbname=None):
@@ -48,21 +68,7 @@ class DBInputs(object):
         self.dbname = dbname
         self.dname = None
         self.dpath = None
-        if 'GZ' in dbname:
-            self.species_nice = "Grévy's zebras"
-        if 'PZ' in dbname:
-            self.species_nice = "plains zebras"
-        if 'GIRM' in dbname:
-            self.species_nice = "Masai giraffes"
-        if 'MantaMatcher' in dbname:
-            self.species_nice = "mantas"
-        if 'humpback' in dbname:
-            self.species_nice = "humpbacks"
-        if 'LF_ALL' in dbname:
-            self.species_nice = "lionfish"
-        if 'RotanTurtles' == dbname:
-            self.species_nice = "sea turtles"
-            # self.species_nice = "humpback whales"
+        self.species_nice = dbname_to_species_nice(dbname)
         if dbname is not None:
             # self.dpath = join(self.base_dpath, self.dbname)
             computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
@@ -296,6 +302,17 @@ class DBInputs(object):
                                              is_known=True,
                                              species='primary',
                                              minqual='poor')
+
+        if ibs.dbname.startswith('MantaMatcher'):
+            # Remove some of the singletons for this db
+            annots = ibs.annots(aids)
+            names = annots.group2(annots.nids)
+            multis = [aids for aids in names if len(aids) > 1]
+            singles = [aids for aids in names if len(aids) == 1]
+            rng = np.random.RandomState(3988708794)
+            aids = ut.flatten(multis)
+            aids += ut.shuffle(ut.flatten(singles), rng=rng)[0:358]
+
         # ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         print('post monkey patch')
@@ -502,6 +519,8 @@ class Tabular(object):
         self.caption = caption
         self.groupxs = None
 
+        self.precision = 2
+
         self.n_index_levels = 1
         # pandas options
         self.index = index
@@ -519,8 +538,18 @@ class Tabular(object):
         import re
         text = text.replace('±', '\pm')
         # Put all numbers in math mode
-        pat = ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
+        pat = (
+            # ut.negative_lookbehind('[A-Za-z]') +
+            ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*') +
+            # ut.negative_lookahead('[A-Za-z]') +
+            ''
+        )
         text2 = re.sub(pat, '$' + ut.bref_field('num') + '$', text)
+
+        # if True:
+        #     # def _boldface_best():
+        #     #     pass
+        #     # text2 = re.sub(pat, '$' + ut.bref_field('num') + '$', text2)
 
         # latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         return text2
@@ -532,7 +561,9 @@ class Tabular(object):
             df = self._data
             text = df.to_latex(
                 index=self.index, escape=self.escape,
-                float_format=lambda x: 'nan' if np.isnan(x) else '%.2f' % (x))
+                float_format=lambda x: 'nan' if np.isnan(x) else ut.repr2(x, precision=self.precision)
+                # ('%.' + str(self.precision) + 'f') % (x))
+            )
             if self.index:
                 self.n_index_levels = len(df.index.names)
             self.n_rows = df.shape[0]

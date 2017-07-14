@@ -199,7 +199,8 @@ class AnnotPairDialog(gt.GuitoolWidget):
         elif self.total > 0 and not self.standalone:
             self.seek(0)
         else:
-            self.infr.start_id_review()
+            if self.infr._gen is None:
+                self.infr.start_id_review()
             self.continue_review()
 
     @property

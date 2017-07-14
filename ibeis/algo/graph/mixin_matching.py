@@ -75,11 +75,11 @@ class AnnotInfrMatching(object):
                                       custom_nid_lookup=custom_nid_lookup,
                                       verbose=infr.verbose >= 2)
 
-        cacher = qreq_.get_big_cacher()
-        if not cacher.exists():
-            pass
-            # import sys
-            # sys.exit(1)
+        # cacher = qreq_.get_big_cacher()
+        # if not cacher.exists():
+        #     pass
+        #     # import sys
+        #     # sys.exit(1)
 
         cm_list = qreq_.execute(prog_hook=prog_hook)
         infr._set_vsmany_info(qreq_, cm_list)
@@ -89,11 +89,11 @@ class AnnotInfrMatching(object):
         return edges
         # return cm_list
 
-    def _make_matches_from(infr, edges, prog_hook=None, config=None):
+    def _make_matches_from(infr, edges, config=None, prog_hook=None):
         from ibeis.algo.verif import pairfeat
         if config is None:
             config = infr.verifier_params
-        extr = pairfeat.PairwiseFeatureExtractor(infr.ibs, **config)
+        extr = pairfeat.PairwiseFeatureExtractor(infr.ibs, config=config)
         match_list = extr._exec_pairwise_match(edges, prog_hook=prog_hook)
         return match_list
 
