@@ -144,6 +144,30 @@ class Config(ut.NiceRepr, ut.DictLike):
                     cfg.setitem(k, val)
                     break
 
+    def pop_update(cfg, other):
+        """
+        Updates based on other, while popping off used arguments.
+        (useful for testing if a parameter was unused or misspelled)
+
+        Doctest:
+            >>> from dtool.base import *  # NOQA
+            >>> import dtool as dt
+            >>> cfg = dt.Config.from_dict({'a': 1, 'b': 2, 'c': 3})
+            >>> other = {'a': 5, 'e': 2}
+            >>> cfg.pop_update(other)
+            >>> assert cfg['a'] == 5
+            >>> assert len(other) == 1 and 'a' not in other
+        """
+        _aliases = cfg._make_key_alias_checker()
+        self_keys = set(cfg.keys())
+        for key in list(other.keys()):
+            # update only existing keys or namespace prefixed keys
+            for k in _aliases(key):
+                if k in self_keys:
+                    val = other.pop(key)
+                    cfg.setitem(k, val)
+                    break
+
     def _make_key_alias_checker(cfg):
         prefixes = (cfg.get_config_name(), cfg.__class__.__name__)
         def _aliases(key):
