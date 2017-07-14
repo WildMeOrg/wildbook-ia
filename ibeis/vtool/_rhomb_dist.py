@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
+import collections
 
 UNKNOWN = np.nan
 R  = 1
@@ -30,10 +33,42 @@ DFR = 24
 DBL = 25
 DBR = 26
 
+INT_TO_CODE = collections.OrderedDict([
+    (UNKNOWN, 'unknown'),
+    (R,  'right'),
+    (FR, 'frontright'),
+    (F,  'front'),
+    (FL, 'frontleft'),
+    (L,  'left'),
+    (BL, 'backleft'),
+    (B,  'back'),
+    (BR, 'backright'),
+
+    (U,    'up'),
+    (UF,   'upfront'),
+    (UB,   'upback'),
+    (UL,   'upleft'),
+    (UR,   'upright'),
+    (UFL,  'upfrontleft'),
+    (UFR,  'upfrontright'),
+    (UBL,  'upbackleft'),
+    (UBR,  'upbackright'),
+
+    (D,    'down'),
+    (DF,   'downfront'),
+    (DB,   'downback'),
+    (DL,   'downleft'),
+    (DR,   'downright'),
+    (DFL,  'downfrontleft'),
+    (DFR,  'downfrontright'),
+    (DBL,  'downbackleft'),
+    (DBR,  'downbackright'),
+])
+
 
 # HACK: mirrors ibeis viewpoint int distance encoding
 
-DIST = {
+VIEW_INT_DIST = {
     # DIST 0 PAIRS
     (B, B): 0, (BL, BL): 0, (BR, BR): 0, (D, D): 0, (DB, DB): 0,
     (DBL, DBL): 0, (DBR, DBR): 0, (DF, DF): 0, (DFL, DFL): 0,
@@ -135,6 +170,18 @@ DIST = {
     (UNKNOWN, UBR): np.nan, (UNKNOWN, UF): np.nan, (UNKNOWN, UFL): np.nan,
     (UNKNOWN, UFR): np.nan, (UNKNOWN, UL): np.nan, (UNKNOWN, UR): np.nan,
     (UR, UNKNOWN): np.nan, (UNKNOWN, UNKNOWN): np.nan,
+}
+
+
+# make distance symmetric
+for (f1, f2), d in list(VIEW_INT_DIST.items()):
+    VIEW_INT_DIST[(f2, f1)] = d
+
+
+# Make string based version
+VIEW_CODE_DIST = {
+    (INT_TO_CODE[f1], INT_TO_CODE[f2]): d
+    for (f1, f2), d in VIEW_INT_DIST.items()
 }
 
 

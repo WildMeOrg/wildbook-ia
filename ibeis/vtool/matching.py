@@ -5,6 +5,7 @@
 
 """
 from __future__ import absolute_import, division, print_function
+from vtool import _rhomb_dist
 import six
 import warnings
 import utool as ut
@@ -638,7 +639,7 @@ class PairwiseMatch(ut.NiceRepr):
                 #     # delta = vt.ori_distance(v1, v2)
                 #     delta = vt.cyclic_distance(v1, v2, modulo=vt.TAU)
                 if k == 'view':
-                    delta = lookup_view_delta(v1, v2)
+                    delta = _rhomb_dist.VIEW_INT_DIST[(v1, v2)]
                     # delta = vt.cyclic_distance(v1, v2, modulo=8)
                 else:
                     delta = np.abs(v1 - v2)
@@ -1904,16 +1905,6 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
     flags = (matched == fx2_list[:, None, None])
     fx2_to_flags = np.any(flags, axis=2)
     return fx2_to_flags
-
-if True:
-    from vtool import _rhomb_dist
-
-    def lookup_view_delta(v1, v2):
-        try:
-            dist = _rhomb_dist.DIST[(v1, v2)]
-        except KeyError:
-            dist = _rhomb_dist.DIST[(v2, v1)]
-        return dist
 
 
 if __name__ == '__main__':
