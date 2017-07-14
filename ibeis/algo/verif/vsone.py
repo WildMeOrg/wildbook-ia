@@ -208,7 +208,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         make an lnbnn config comparable to the one-vs-one config
         """
-        cfgdict = {}
+        cfgdict = {
+            'prescore_method': 'csum',
+            'score_method': 'csum',
+        }
         cfgdict.update(pblm.hyper_params['vsone_kpts'])
         cfgdict.update(pblm.hyper_params['chip'])
         if cfgdict['augment_orientation']:
