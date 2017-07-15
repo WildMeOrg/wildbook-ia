@@ -1689,6 +1689,8 @@ class Chap4(DBInputs):
             python -m ibeis Chap4.measure hard_cases PZ_MTEST match_state
             python -m ibeis Chap4.draw hard_cases PZ_MTEST photobomb_state
 
+            python -m ibeis Chap4.measure hard_cases MantaMatcher match_state
+
         Ignore:
             >>> task_key = 'match_state'
             >>> task_key = 'photobomb_state'

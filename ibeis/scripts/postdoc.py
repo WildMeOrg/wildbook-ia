@@ -200,17 +200,32 @@ class VerifierExpt(DBInputs):
             >>> result = VerifierExpt.agg_dbstats()
             >>> print(result)
         """
-        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
-                       'MantaMatcher', 'RotanTurtles', 'humpbacks_fb', 'LF_ALL']
+        agg_dbnames = [
+            # 'PZ_Master1',
+            'GZ_Master1', 'GIRM_Master1',
+            'MantaMatcher', 'RotanTurtles', 'humpbacks_fb'
+        ]
         dfs = []
         for dbname in agg_dbnames:
             self = VerifierExpt(dbname)
-            # info = self.ensure_results('dbstats')
-            info = self.measure_dbstats()
-            dfs.append(info['outinfo'])
+            info = self.ensure_results('dbstats')
+            sample_info = self.ensure_results('sample_info')
+
+            # info = self.measure_dbstats()
+            outinfo = info['outinfo']
+
+            task = sample_info['subtasks']['match_state']
+            y_ind = task.indicator_df
+            outinfo['Positive'] = (y_ind[POSTV]).sum()
+            outinfo['Negative'] = (y_ind[NEGTV]).sum()
+            outinfo['Incomparable'] = (y_ind[INCMP]).sum()
+            if outinfo['Database'] == 'mantas':
+                outinfo['Database'] = 'manta rays'
+            dfs.append(outinfo)
             # labels.append(self.species_nice.capitalize())
 
         df = pd.DataFrame(dfs)
+        print('df =\n{!r}'.format(df))
         df = df.set_index('Database')
         df.index.name = None
 
@@ -219,11 +234,11 @@ class VerifierExpt(DBInputs):
         enc_text = tabular.as_tabular()
         print(enc_text)
 
+        ut.write_to(join(VerifierExpt.base_dpath, 'agg-enc.tex'), enc_text)
+
         _ = ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
                                 preamb_extra=['\\usepackage{makecell}'])
         ut.startfile(_)
-
-        ut.write_to(join(VerifierExpt.base_dpath, 'agg-enc.tex'), enc_text)
 
     @profile
     def measure_dbstats(self):
@@ -516,14 +531,15 @@ class VerifierExpt(DBInputs):
     def agg_draw(VerifierExpt, task_key):
         """
 
-        python -m ibeis VerifierExpt.draw_agg_roc
+        python -m ibeis VerifierExpt.agg_draw
+
         GZ_Master1,LF_ALL,MantaMatcher,RotanTurtles,humpbacks_fb,GIRM_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.postdoc import *  # NOQA
             >>> task_key = 'match_state'
-            >>> result = VerifierExpt.agg_roc(task_key)
+            >>> result = VerifierExpt.agg_draw(task_key)
             >>> print(result)
         """
         dbs = ['GZ_Master1',
@@ -535,6 +551,7 @@ class VerifierExpt(DBInputs):
         for dbname in dbs:
             self = VerifierExpt(dbname)
             info = self.ensure_results('all')
+
             all_results[dbname] = info
 
         rerank_results = ut.odict([])
@@ -593,27 +610,46 @@ class VerifierExpt(DBInputs):
 
         if True:
             # Tables
-            all_stats = pd.concat([auc_table, rank1_table, rank5_table], axis=1)
-            tabular = Tabular(all_stats, colfmt='numeric')
-            tabular.precision = 3
-            tex_text = tabular.as_tabular()
-            print(tex_text)
-
-            tex_text = ut.codeblock(
-                r'''
-                \begin{tabular}{l|rr|rr|rr}
-                \hline
-                               & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} & \multicolumn{2}{c}{Rank 5} \\
-                ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
-
-            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath, fname='agg_results',
-                                preamb_extra=['\\usepackage{makecell}'])
-            ut.startfile(_)
-
             from utool.experimental.pandas_highlight import to_string_monkey
             print('\nauc_table =\n{}'.format(to_string_monkey(auc_table, 'all')))
             print('\nrank1_table =\n{}'.format(to_string_monkey(rank1_table, 'all')))
             print('\nrank5_table =\n{}'.format(to_string_monkey(rank5_table, 'all')))
+
+            def _bf_best(df):
+                df = df.copy()
+                for rx in range(len(df)):
+                    col = df.iloc[rx]
+                    for cx in ut.argmax(col.values, multi=True):
+                        val = df.iloc[rx, cx]
+                        df.iloc[rx, cx] = '\\mathbf{{{:.3f}}}'.format(val)
+                return df
+
+            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table, rank5_table]), axis=1)
+            all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table]), axis=1)
+            tabular = Tabular(all_stats, colfmt='numeric', escape=False)
+            tabular.precision = 3
+            tex_text = tabular.as_tabular()
+            # HACKS
+            tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
+            tex_text = tex_text.replace('$}', '}$')
+            # tex_text = ut.codeblock(
+            #     r'''
+            #     \begin{tabular}{l|rr|rr|rr}
+            #     \hline
+            #                    & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} & \multicolumn{2}{c}{Rank 5} \\
+            #     ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
+            tex_text = ut.codeblock(
+                r'''
+                \begin{tabular}{l|rr|rr}
+                \hline
+                               & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} \\
+                ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
+            print(tex_text)
+            ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
+
+            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath, fname='agg_results',
+                                preamb_extra=['\\usepackage{makecell}'])
+            ut.startfile(_)
 
         method = 1
         if method == 1:
@@ -629,7 +665,7 @@ class VerifierExpt(DBInputs):
             pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
             fig.set_size_inches([W, H])
             fname = 'agg_roc_clf_{}.png'.format(task_key)
-            fig_fpath = join(str(self.dpath), fname)
+            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             fig = pt.figure(fnum=2)  # NOQA
@@ -644,7 +680,7 @@ class VerifierExpt(DBInputs):
             pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
             fig.set_size_inches([W, H])
             fname = 'agg_roc_lnbnn_{}.png'.format(task_key)
-            fig_fpath = join(str(self.dpath), fname)
+            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if method == 2:
@@ -765,9 +801,6 @@ class VerifierExpt(DBInputs):
         if getattr(self, 'pblm', None) is None:
             self._setup()
 
-        import utool
-        utool.embed()
-
         pblm = self.pblm
         infr = pblm.infr
         ibs = pblm.infr.ibs
@@ -866,7 +899,8 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.measure hard_cases PZ_MTEST match_state
             python -m ibeis VerifierExpt.draw hard_cases PZ_MTEST photobomb_state
 
-            python -m ibeis VerifierExpt.measure hard_cases RotanTurtles match_state
+            python -m ibeis VerifierExpt.draw hard_cases RotanTurtles match_state
+            python -m ibeis VerifierExpt.draw hard_cases MantaMatcher match_state
 
         Ignore:
             >>> task_key = 'match_state'
@@ -1040,7 +1074,7 @@ class VerifierExpt(DBInputs):
         python -m ibeis VerifierExpt.draw hard_cases PZ_Master1 photobomb_state
         python -m ibeis VerifierExpt.draw hard_cases GZ_Master1 photobomb_state
 
-
+        python -m ibeis VerifierExpt.draw hard_cases RotanTurtles match_state
 
             >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('PZ_MTEST')
@@ -1076,12 +1110,20 @@ class VerifierExpt(DBInputs):
                                                     probstr)
             fig = pt.figure(fnum=1000, clf=True)
             ax = pt.gca()
+            if 1:
+                # HACK
+                if self.ibs is None:
+                    self._precollect()
+                ibs = self.ibs
+                match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
+                match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
+
             # Draw with feature overlay
             match.show(ax, vert=False, heatmask=True,
                        show_lines=False,
                        # show_lines=True, line_lw=1, line_alpha=.1,
                        # ell_alpha=.3,
-                       show_ell=True, show_ori=False, show_eig=False,
+                       show_ell=False, show_ori=False, show_eig=False,
                        modifysize=True)
             ax.set_xlabel(xlabel)
             # ax.get_xaxis().get_label().set_fontsize(24)
@@ -1258,6 +1300,9 @@ class VerifierExpt(DBInputs):
         dpath = str(self.dpath)
         confusion_fname = 'confusion_{}'.format(task_key)
         metrics_fname = 'eval_metrics_{}'.format(task_key)
+
+        confusion_tex = confusion_tex.replace('Incomparable', 'Incomp.')
+        confusion_tex = confusion_tex.replace('predicted', 'pred')
 
         ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
         ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
@@ -1509,7 +1554,7 @@ class VerifierExpt(DBInputs):
                    heatmask=True,
                    show_lines=False,
                    # show_ell=False,
-                   show_ell=True,
+                   show_ell=False,
                    show_ori=False,
                    show_eig=False,
                    # ell_alpha=.3,

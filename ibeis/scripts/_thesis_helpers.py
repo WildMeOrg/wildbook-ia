@@ -49,7 +49,7 @@ def dbname_to_species_nice(dbname):
     if 'GIRM' in dbname:
         species_nice = "Masai giraffes"
     if 'MantaMatcher' in dbname:
-        species_nice = "mantas"
+        species_nice = "manta rays"
     if 'humpback' in dbname:
         species_nice = "humpbacks"
         # species_nice = "humpback whales"

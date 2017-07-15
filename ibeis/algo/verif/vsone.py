@@ -134,13 +134,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # TURTLE = 'sea_turtle'  # TODO: turtle_hawkbill
 
-        if species in {'manta_ray', 'humpback', 'sea_turtle'}:
+        # if species in {'manta_ray', 'humpback', 'sea_turtle'}:
+        if species in {'manta_ray', 'humpback'}:
             # Parameters from manta matcher
             hyper_params['chip']['medianblur'] = True
             hyper_params['chip']['medianblur_thresh'] = 0
             hyper_params['chip']['adapteq'] = True
             hyper_params['chip']['adapteq_ksize'] = 32
             hyper_params['chip']['adapteq_limit'] = 6
+
+        if species in {'sea_turtle'}:
+            # Parameters from manta matcher
+            hyper_params['chip']['medianblur'] = True
+            hyper_params['chip']['medianblur_thresh'] = 0
+            hyper_params['chip']['adapteq'] = True
+            hyper_params['chip']['adapteq_ksize'] = 8
+            hyper_params['chip']['adapteq_limit'] = 2
 
         if species in {'manta_ray', 'sea_turtle', 'zebra_plains'}:
             hyper_params['vsone_kpts']['affine_invariance'] = False
