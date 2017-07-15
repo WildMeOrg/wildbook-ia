@@ -114,6 +114,9 @@ class VerifierExpt(DBInputs):
             self.ibs.print_annot_stats(aids, prefix='P')
         """
         self._precollect()
+
+        print('VerifierExpt _setup()')
+
         ibs = self.ibs
 
         aids = self.aids_pool
@@ -127,22 +130,10 @@ class VerifierExpt(DBInputs):
         pblm.eval_data_keys = [data_key]
         pblm.eval_clf_keys = [clf_key]
 
-        if ut.get_argflag('--eval'):
-            # pblm.eval_task_keys = ['photobomb_state', 'match_state']
-            pblm.eval_task_keys = ['match_state']
-            pblm.eval_data_keys = None
-            pblm.evaluate_classifiers()
-            pblm.eval_data_keys = [data_key]
-        else:
-            pblm.setup_evaluation(with_simple=True)
+        pblm.setup_evaluation(with_simple=True)
 
-        if False:
-            pblm.infr
-            pblm.load_samples()
-
-        # pblm.evaluate_classifiers()
         ibs = pblm.infr.ibs
-        pblm.samples.print_info()
+        # pblm.samples.print_info()
 
         species_code = ibs.get_database_species(pblm.infr.aids)[0]
         if species_code == 'zebra_plains':
@@ -161,6 +152,7 @@ class VerifierExpt(DBInputs):
         cfg_prefix = '{}'.format(len(pblm.samples))
         config = pblm.hyper_params
         self._setup_links(cfg_prefix, config)
+        print('Finished setup')
 
     @classmethod
     def agg_dbstats(VerifierExpt):
@@ -1350,9 +1342,9 @@ class VerifierExpt(DBInputs):
         score_hist_pos = {
             'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
 
-        lnbnn_xy = results['lnbnn_xy']
-        scores = lnbnn_xy['score_lnbnn_1vM'].values
-        y = lnbnn_xy[POSTV].values
+        lnbnn_data = results['lnbnn_data']
+        scores = lnbnn_data['score_lnbnn_1vM'].values
+        y = lnbnn_data[POSTV].values
 
         # Get 95% of the data at least
         maxbin = scores[scores.argsort()][-max(1, int(len(scores) * .05))]
