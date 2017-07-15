@@ -53,6 +53,8 @@ class VerifierExpt(DBInputs):
     python -m ibeis VerifierExpt.measure all MantaMatcher
     python -m ibeis VerifierExpt.draw all MantaMatcher
 
+    python -m ibeis VerifierExpt.draw rerank PZ_Master1
+
     python -m ibeis VerifierExpt.measure all RotanTurtles
     python -m ibeis VerifierExpt.draw all RotanTurtles
 
@@ -1110,13 +1112,13 @@ class VerifierExpt(DBInputs):
                                                     probstr)
             fig = pt.figure(fnum=1000, clf=True)
             ax = pt.gca()
-            if 1:
-                # HACK
-                if self.ibs is None:
-                    self._precollect()
-                ibs = self.ibs
-                match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
-                match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
+            # if 0:
+            #     # HACK
+            #     if self.ibs is None:
+            #         self._precollect()
+            #     ibs = self.ibs
+            #     match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
+            #     match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
 
             # Draw with feature overlay
             match.show(ax, vert=False, heatmask=True,
