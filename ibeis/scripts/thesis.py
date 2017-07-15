@@ -1377,6 +1377,9 @@ class Chap4(DBInputs):
         self.data_key = data_key
         self.clf_key = clf_key
 
+        # config = pblm.hyper_params
+        # self._setup_links(cfg_prefix, config)
+
         # RESET DPATH BASED ON SAMPLE?
         # MAYBE SYMLINK TO NEW DPATH?
         from os.path import expanduser

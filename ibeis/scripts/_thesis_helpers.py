@@ -69,44 +69,71 @@ class DBInputs(object):
         self.dname = None
         self.dpath = None
         self.species_nice = dbname_to_species_nice(dbname)
+
         if dbname is not None:
-            # self.dpath = join(self.base_dpath, self.dbname)
-            computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
-            self.dname = self.dbname + '_' + computer_id
-            self.orig_dpath = join(self.base_dpath, 'configured', self.dname)
-            print('self.orig_dpath = %r' % (self.orig_dpath,))
-            self.dpath = self.orig_dpath
-            # ut.ensuredir(self.dpath)
+            self.dname = self.dbname
+            self.dpath = join(self.base_dpath, 'link', self.dname)
 
     def _setup_links(self, cfg_prefix, config=None):
+        """
+        Called only when setting up an experiment to make a measurement.
+
+        Creates symlinks such that all data is written to a directory that
+        depends on a computer name, cfg_prefix and an arbitrary configuration
+        dict.
+
+        Then force the link in the basic directory to point to abs_dpath.
+        """
         # Setup directory
         from os.path import expanduser
         assert self.dname is not None
 
-        cfgstr = ut.repr3(config)
+        computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
+
+        conf_dpath = ut.ensuredir((expanduser(self.base_dpath), 'configured'))
+        comp_dpath = ut.ensuredir((join(conf_dpath, computer_id)))
+
+        link_dpath = ut.ensuredir((self.base_dpath, 'link'))
+
+        # if True:
+        #     # move to new system
+        #     old_dpath = join(conf_dpath, self.dbname + '_' + computer_id)
+        #     if exists(old_dpath):
+        #         ut.move(old_dpath, join(comp_dpath, self.dbname))
+
+        try:
+            cfgstr = ut.repr3(config.getstate_todict_recursive())
+        except AttributeError:
+            cfgstr = ut.repr3(config)
+
         hashid = ut.hash_data(cfgstr)[0:6]
-        dbcode = '{}_{}_{}'.format(self.dname, cfg_prefix, hashid)
+        suffix = '_'.join([cfg_prefix, hashid])
+        dbcode = self.dbname + '_' + suffix
 
-        dpath = expanduser(join(self.base_dpath, 'configured', dbcode))
-        link1 = expanduser(join(self.base_dpath, 'configured', self.dname))
+        abs_dpath = ut.ensuredir(join(comp_dpath, dbcode))
 
-        link2 = expanduser(join(self.base_dpath, self.dbname))
+        self.dname = dbcode
+        self.dpath = abs_dpath
+        self.abs_dpath = abs_dpath
 
-        ut.ensuredir(dpath)
-        self.real_dpath = dpath
-        print('self.real_dpath = %r' % (self.real_dpath,))
-        self.dpath = self.real_dpath
+        # Place a basic link in the base link directory
+        links = []
+        links.append(expanduser(join(link_dpath, self.dbname)))
+        # # Make a configured but computer agnostic link
+        # links.append(expanduser(join(conf_dpath, self.dbname)))
 
-        for link in [link1, link2]:
+        for link in links:
             try:
-                self.link = ut.symlink(dpath, link, overwrite=True)
+                # Overwrite any existing link so the most recently used is
+                # the default
+                self.link = ut.symlink(abs_dpath, link, overwrite=True)
             except Exception:
-                if exists(dpath):
-                    newpath = ut.non_existing_path(dpath, suffix='_old')
+                if exists(abs_dpath):
+                    newpath = ut.non_existing_path(abs_dpath, suffix='_old')
                     ut.move(link, newpath)
-                    self.link = ut.symlink(dpath, link)
+                    self.link = ut.symlink(abs_dpath, link)
 
-        ut.writeto(join(self.dpath, 'info.txt'), cfgstr)
+        ut.writeto(join(abs_dpath, 'info.txt'), cfgstr)
 
     def ensure_setup(self):
         if self.ibs is None:
@@ -316,28 +343,29 @@ class DBInputs(object):
         # ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         print('post monkey patch')
-        if False:
-            ibs.print_annot_stats(aids, prefix='P')
+        # if False:
+        #     ibs.print_annot_stats(aids, prefix='P')
         self.ibs = ibs
         self.aids_pool = aids
-        if False:
-            # check encounter stats
-            annots = ibs.annots(aids)
-            encounters = annots.group(annots.encounter_text)[1]
-            nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
-            nid_to_enc = ut.group_items(encounters, nids)
-            nenc_list = ut.lmap(len, nid_to_enc.values())
-            hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
-            print('enc per name hist:')
-            print(ut.repr2(hist))
 
-            # singletons = [a for a in encounters if len(a) == 1]
-            multitons = [a for a in encounters if len(a) > 1]
-            deltas = []
-            for a in multitons:
-                times = a.image_unixtimes_asfloat
-                deltas.append(max(times) - min(times))
-            ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
+        # if False:
+        #     # check encounter stats
+        #     annots = ibs.annots(aids)
+        #     encounters = annots.group(annots.encounter_text)[1]
+        #     nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
+        #     nid_to_enc = ut.group_items(encounters, nids)
+        #     nenc_list = ut.lmap(len, nid_to_enc.values())
+        #     hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
+        #     print('enc per name hist:')
+        #     print(ut.repr2(hist))
+
+        #     # singletons = [a for a in encounters if len(a) == 1]
+        #     multitons = [a for a in encounters if len(a) > 1]
+        #     deltas = []
+        #     for a in multitons:
+        #         times = a.image_unixtimes_asfloat
+        #         deltas.append(max(times) - min(times))
+        #     ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
 
 
 def find_minority_class_ccs(infr):

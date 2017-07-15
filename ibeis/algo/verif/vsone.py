@@ -536,11 +536,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 edge_to_data = infr._get_cm_edge_data(aid_pairs, cm_list=cm_list)
                 edge_data = ut.take(edge_to_data, aid_pairs)
                 lnbnn_score_list = [d.get('score', 0) for d in edge_data]
+                lnbnn_rank_list = [d.get('rank', np.inf) for d in edge_data]
                 lnbnn_score_list = [0 if s is None else s
                                     for s in lnbnn_score_list]
 
                 simple_scores = simple_scores.assign(
-                    score_lnbnn_1vM=lnbnn_score_list)
+                    score_lnbnn_1vM=lnbnn_score_list,
+                    rank_lnbnn_1vM=lnbnn_rank_list,
+                )
 
             simple_scores[pd.isnull(simple_scores)] = 0
             data = simple_scores

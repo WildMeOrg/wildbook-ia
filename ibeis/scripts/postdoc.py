@@ -113,24 +113,10 @@ class VerifierExpt(DBInputs):
 
             self.ibs.print_annot_stats(aids, prefix='P')
         """
-        import ibeis
         self._precollect()
         ibs = self.ibs
 
-        if ibs.dbname == 'PZ_Master1':
-            # FIND ALL PHOTOBOMB / INCOMPARABLE CASES
-            if False:
-                infr = ibeis.AnnotInference(ibs, aids='all')
-                infr.reset_feedback('staging', apply=True)
-                print(ut.repr4(infr.status()))
-
-                pblm = vsone.OneVsOneProblem.from_aids(ibs, self.aids_pool)
-                pblm.load_samples()
-                pblm.samples.print_info()
-
-            aids = self.aids_pool
-        else:
-            aids = self.aids_pool
+        aids = self.aids_pool
 
         pblm = vsone.OneVsOneProblem.from_aids(ibs, aids)
         data_key = pblm.default_data_key
@@ -165,29 +151,16 @@ class VerifierExpt(DBInputs):
             species = 'Grévy\'s Zebras'
         else:
             species = species_code
-        dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
         self.pblm = pblm
-        self.dbcode = dbcode
         self.eval_task_keys = pblm.eval_task_keys
         self.species = species
         self.data_key = data_key
         self.clf_key = clf_key
 
-        # RESET DPATH BASED ON SAMPLE?
-        # MAYBE SYMLINK TO NEW DPATH?
-        from os.path import expanduser
-        dpath = expanduser(self.base_dpath + '/' + self.dbcode)
-        link = expanduser(self.base_dpath + '/' + self.dbname)
-        ut.ensuredir(dpath)
-        self.real_dpath = dpath
-        try:
-            self.link = ut.symlink(dpath, link, overwrite=True)
-        except Exception:
-            if exists(dpath):
-                newpath = ut.non_existing_path(dpath, suffix='_old')
-                ut.move(link, newpath)
-                self.link = ut.symlink(dpath, link)
+        cfg_prefix = '{}'.format(len(pblm.samples))
+        config = pblm.hyper_params
+        self._setup_links(cfg_prefix, config)
 
     @classmethod
     def agg_dbstats(VerifierExpt):
@@ -430,21 +403,10 @@ class VerifierExpt(DBInputs):
         CommandLine:
             python -m ibeis VerifierExpt.measure all GZ_Master1,MantaMatcher,RotanTurtles,LF_ALL
 
-            python -m ibeis VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
-            python -m ibeis VerifierExpt.measure_all --db GZ_Master1
-            python -m ibeis VerifierExpt.measure_all --db PZ_MTEST
-            python -m ibeis VerifierExpt.measure_all
-
-            python -m ibeis VerifierExpt.measure_all --db GZ_Master1
-
-        Example:
-            >>> from ibeis.scripts.postdoc import *
-            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
-            >>> for dbname in dbnames:
-            >>>     print('dbname = %r' % (dbname,))
-            >>>     self = VerifierExpt(dbname)
-            >>>     self.measure_all()
+        Ignore:
+            from ibeis.scripts.postdoc import *
+            self = VerifierExpt('PZ_MTEST')
+            self.measure_all()
         """
         self._setup()
         pblm = self.pblm
@@ -461,20 +423,21 @@ class VerifierExpt(DBInputs):
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
-        importance = {
-            task_key: pblm.feature_importance(task_key=task_key)
-            for task_key in pblm.eval_task_keys
-        }
+        # importance = {
+        #     task_key: pblm.feature_importance(task_key=task_key)
+        #     for task_key in pblm.eval_task_keys
+        # }
 
         task = pblm.samples['match_state']
         scores = pblm.samples.simple_scores['score_lnbnn_1vM']
+        lnbnn_ranks = pblm.samples.simple_scores['rank_lnbnn_1vM']
         y = task.indicator_df[task.default_class_name]
-        lnbnn_xy = pd.concat([scores, y], axis=1)
+        lnbnn_data = pd.concat([scores, lnbnn_ranks, y], axis=1)
 
         results = {
-            'lnbnn_xy': lnbnn_xy,
+            'lnbnn_data': lnbnn_data,
             'task_combo_res': self.pblm.task_combo_res,
-            'importance': importance,
+            # 'importance': importance,
             'data_key': self.data_key,
             'clf_key': self.clf_key,
         }
@@ -483,12 +446,7 @@ class VerifierExpt(DBInputs):
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
         task_key = 'match_state'
-        if task_key in pblm.eval_task_keys:
-            self.measure_hard_cases(task_key)
-
-        task_key = 'photobomb_state'
-        if task_key in pblm.eval_task_keys:
-            self.measure_hard_cases(task_key)
+        self.measure_hard_cases(task_key)
 
         self.measure_rerank()
 
@@ -529,6 +487,122 @@ class VerifierExpt(DBInputs):
 
         if not ut.get_argflag('--nodraw'):
             self.draw_hard_cases(task_key)
+
+    def draw_roc(self, task_key='match_state'):
+        """
+        python -m ibeis VerifierExpt.draw roc GZ_Master1 photobomb_state
+        python -m ibeis VerifierExpt.draw roc GZ_Master1 match_state
+
+        python -m ibeis VerifierExpt.draw roc PZ_MTEST
+        """
+        mpl.rcParams.update(TMP_RC)
+
+        results = self.ensure_results('all')
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        task_combo_res = results['task_combo_res']
+        lnbnn_data = results['lnbnn_data']
+
+        task_key = 'match_state'
+
+        scores = lnbnn_data['score_lnbnn_1vM'].values
+        y = lnbnn_data[POSTV].values
+        # task_key = 'match_state'
+        target_class = POSTV
+        res = task_combo_res[task_key][clf_key][data_key]
+        c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+        c3 = res.confusions(target_class)
+        roc_curves = [
+            {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
+            {'label': 'clf', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
+        ]
+
+        roc_info_lines = []
+
+        # Check the ROC for only things in the top of the LNBNN ranked lists
+        if True:
+            rank_auc_df = pd.DataFrame()
+            rank_auc_df.index.name = '<=rank'
+            nums = [1, 2, 3, 4, 5, 10, 20, np.inf]
+            for num in nums:
+                ranks = lnbnn_data['rank_lnbnn_1vM'].values
+                sub_data = lnbnn_data[ranks <= num]
+
+                scores = sub_data['score_lnbnn_1vM'].values
+                y = sub_data[POSTV].values
+                probs = res.probs_df[POSTV].loc[sub_data.index].values
+
+                c4 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+                c5 = vt.ConfusionMetrics.from_scores_and_labels(probs, y)
+
+                if num == np.inf:
+                    num = 'inf'
+                rank_auc_df.loc[num, 'LNBNN'] = c4.auc
+                rank_auc_df.loc[num, 'clf'] = c5.auc
+
+            auc_text = 'AUC when restricting to the top `num` LNBNN ranks:'
+            auc_text += '\n' + str(rank_auc_df)
+            print(auc_text)
+            roc_info_lines += [auc_text]
+
+        if True:
+            tpr_info = []
+            at_metric = 'tpr'
+            for at_value in [.25, .5, .75]:
+                info = ut.odict()
+                for want_metric in ['fpr', 'n_false_pos', 'n_true_pos', 'thresh']:
+                    key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
+                    info[key] = c3.get_metric_at_metric(want_metric, at_metric,
+                                                        at_value,
+                                                        thresh_ambiguity='min')
+                    if key.startswith('n_'):
+                        info[key] = int(info[key])
+                tpr_info += [(ut.repr4(info, align=True, precision=8))]
+
+            tpr_text = 'Metric TPR relationships\n' + '\n'.join(tpr_info)
+            print(tpr_text)
+
+            roc_info_lines += [tpr_text]
+
+            fpr_info = []
+            at_metric = 'fpr'
+            for at_value in [0, .001, .01, .1]:
+                info = ut.odict()
+                for want_metric in ['tpr', 'n_false_pos', 'n_true_pos', 'thresh']:
+                    key = '{}_@_{}={:.3f}'.format(want_metric, at_metric, at_value)
+                    info[key] = c3.get_metric_at_metric(want_metric, at_metric,
+                                                        at_value,
+                                                        thresh_ambiguity='min')
+                    if key.startswith('n_'):
+                        info[key] = int(info[key])
+                fpr_info += [(ut.repr4(info, align=True, precision=8))]
+
+            fpr_text = 'Metric FPR relationships\n' + '\n'.join(fpr_info)
+            print(fpr_text)
+
+            roc_info_lines += [fpr_text]
+
+        roc_info_text = ('\n\n'.join(roc_info_lines))
+        ut.writeto(join(self.dpath, 'roc_info.txt'), roc_info_text)
+        # print(roc_info_text)
+
+        fig = pt.figure(fnum=1)  # NOQA
+        ax = pt.gca()
+        for data in roc_curves:
+            ax.plot(data['fpr'], data['tpr'],
+                    label='%s AUC=%.2f' % (data['label'], data['auc']))
+        ax.set_xlabel('false positive rate')
+        ax.set_ylabel('true positive rate')
+        # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+        ax.legend()
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        fig.set_size_inches([W, H])
+
+        fname = 'roc_{}.png'.format(task_key)
+        fig_fpath = join(str(self.dpath), fname)
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        print('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
 
     @classmethod
     def agg_draw(VerifierExpt, task_key):
@@ -580,9 +654,9 @@ class VerifierExpt(DBInputs):
             target_class = POSTV
 
             # LNBNN classification confusions
-            lnbnn_xy = results['lnbnn_xy']
-            y = lnbnn_xy[target_class].values
-            scores = lnbnn_xy['score_lnbnn_1vM'].values
+            lnbnn_data = results['lnbnn_data']
+            y = lnbnn_data[target_class].values
+            scores = lnbnn_data['score_lnbnn_1vM'].values
             c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
 
             # CLF classification confusions
@@ -711,64 +785,6 @@ class VerifierExpt(DBInputs):
                 fname = 'agg_roc_chunk_{}_{}.png'.format(fnum, task_key)
                 fig_fpath = join(str(VerifierExpt.base_dpath), fname)
                 vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-    def draw_roc(self, task_key):
-        """
-        python -m ibeis VerifierExpt.draw roc GZ_Master1 photobomb_state
-        python -m ibeis VerifierExpt.draw roc GZ_Master1 match_state
-        """
-        mpl.rcParams.update(TMP_RC)
-
-        results = self.ensure_results('all')
-        data_key = results['data_key']
-        clf_key = results['clf_key']
-
-        task_combo_res = results['task_combo_res']
-        lnbnn_xy = results['lnbnn_xy']
-
-        if task_key == 'match_state':
-            scores = lnbnn_xy['score_lnbnn_1vM'].values
-            y = lnbnn_xy[POSTV].values
-            # task_key = 'match_state'
-            target_class = POSTV
-            res = task_combo_res[task_key][clf_key][data_key]
-            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-            c3 = res.confusions(target_class)
-            roc_curves = [
-                {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-                {'label': 'clf', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
-            ]
-
-            at_metric = 'tpr'
-            for at_value in [.25, .5, .75]:
-                info = ut.odict()
-                for want_metric in ['fpr', 'n_false_pos', 'n_true_pos']:
-                    key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
-                    info[key] = c3.get_metric_at_metric(want_metric, at_metric, at_value)
-                print(ut.repr4(info, align=True, precision=8))
-        else:
-            target_class = 'pb'
-            res = task_combo_res[task_key][clf_key][data_key]
-            c1 = res.confusions(target_class)
-            roc_curves = [
-                {'label': 'clf', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
-            ]
-
-        fig = pt.figure(fnum=1)  # NOQA
-        ax = pt.gca()
-        for data in roc_curves:
-            ax.plot(data['fpr'], data['tpr'],
-                    label='%s AUC=%.2f' % (data['label'], data['auc']))
-        ax.set_xlabel('false positive rate')
-        ax.set_ylabel('true positive rate')
-        # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-        ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        fig.set_size_inches([W, H])
-
-        fname = 'roc_{}.png'.format(task_key)
-        fig_fpath = join(str(self.dpath), fname)
-        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_rerank(self):
         mpl.rcParams.update(TMP_RC)
@@ -1137,94 +1153,6 @@ class VerifierExpt(DBInputs):
 
             fpath = join(str(dpath), fname + '.jpg')
             vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-    def write_metrics2(self, task_key='match_state'):
-        """
-        CommandLine:
-            python -m ibeis VerifierExpt.draw metrics PZ_PB_RF_TRAIN match_state
-            python -m ibeis VerifierExpt.draw metrics2 PZ_Master1 photobomb_state
-            python -m ibeis VerifierExpt.draw metrics2 GZ_Master1 photobomb_state
-
-            python -m ibeis VerifierExpt.draw metrics2 GZ_Master1 photobomb_state
-        """
-        results = self.ensure_results('all')
-        task_combo_res = results['task_combo_res']
-        data_key = results['data_key']
-        clf_key = results['clf_key']
-
-        res = task_combo_res[task_key][clf_key][data_key]
-
-        from ibeis.algo.verif import sklearn_utils
-        threshes = res.get_thresholds('mcc', 'max')
-        y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes,
-                                                  force=True)
-        y_true = res.target_enc_df
-
-        # pred_enc = res.clf_probs.argmax(axis=1)
-        # y_pred = pred_enc
-        res.augment_if_needed()
-        sample_weight = res.sample_weight
-        target_names = res.class_names
-
-        report = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names, sample_weight, verbose=False)
-        metric_df = report['metrics']
-        confusion_df = report['confusion']
-
-        print(metric_df)
-        print(confusion_df)
-
-        # df = self.task_confusion[task_key]
-        df = confusion_df
-        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
-        df = df.rename_axis(self.task_nice_lookup[task_key], 1)
-        df.index.name = None
-        df.columns.name = None
-
-        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
-        tabular = Tabular(df, colfmt=colfmt, hline=True)
-        tabular.groupxs = [list(range(len(df) - 1)), [len(df) - 1]]
-        latex_str = tabular.as_tabular()
-
-        sum_pred = df.index[-1]
-        sum_real = df.columns[-1]
-        latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
-        latex_str = latex_str.replace(sum_real, r'$\sum$ real')
-        confusion_tex = ut.align(latex_str, '&', pos=None)
-        print(confusion_tex)
-
-        df = metric_df
-        # df = self.task_metrics[task_key]
-        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
-        df = df.rename_axis({'mcc': 'MCC'}, 1)
-        df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
-        df.index.name = None
-        df.columns.name = None
-        df['support'] = df['support'].astype(np.int)
-        df.columns = ut.emap(upper_one, df.columns)
-
-        import re
-        tabular = Tabular(df, colfmt='numeric')
-        top, header, mid, bot = tabular.as_parts()
-        lines = mid[0].split('\n')
-        newmid = [lines[0:-1], lines[-1:]]
-        tabular.parts = (top, header, newmid, bot)
-        latex_str = tabular.as_tabular()
-        latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
-        metrics_tex = latex_str
-        print(metrics_tex)
-
-        dpath = str(self.dpath)
-        confusion_fname = 'confusion2_{}'.format(task_key)
-        metrics_fname = 'eval_metrics2_{}'.format(task_key)
-
-        ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
-        ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
-
-        fpath1 = ut.render_latex(confusion_tex, dpath=dpath,
-                                 fname=confusion_fname)
-        fpath2 = ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
-        return fpath1, fpath2
 
     def write_metrics(self, task_key='match_state'):
         """
