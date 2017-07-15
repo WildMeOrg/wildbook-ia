@@ -1597,6 +1597,26 @@ def safe_extreme(arr, op, fill=np.nan, finite=False, nans=True):
     return extreme
 
 
+def safe_argmax(arr, fill=np.nan, finite=False, nans=True):
+    """
+    Doctest:
+        >>> from vtool.other import *
+        >>> assert safe_argmax([np.nan, np.nan], nans=False) == 0
+        >>> assert safe_argmax([-100, np.nan], nans=False) == 0
+        >>> assert safe_argmax([np.nan, -100], nans=False) == 1
+        >>> assert safe_argmax([-100, 0], nans=False) == 1
+        >>> assert np.isnan(safe_argmax([]))
+    """
+    if len(arr) == 0:
+        return fill
+    extreme = safe_max(arr, fill=fill, finite=finite, nans=nans)
+    if np.isnan(extreme):
+        arg_extreme = np.where(np.isnan(arr))[0][0]
+    else:
+        arg_extreme = np.where(arr == extreme)[0][0]
+    return arg_extreme
+
+
 def safe_max(arr, fill=np.nan, finite=False, nans=True):
     r"""
     Args:

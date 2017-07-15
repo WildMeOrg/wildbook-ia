@@ -544,7 +544,66 @@ class ConfusionMetrics(ut.NiceRepr):
                                         maximize=maximize)
         return thresh
 
-    def get_index_at_metric(self, at_metric, at_value, subindex=True):
+    def get_metric_at_metric(self, get_metric, at_metric, at_value,
+                             subindex=False, thresh_ambiguity='maximize'):
+        """
+        Finds the corresponding value of `get_metric` at a specific value of
+        `at_metric`.
+
+
+        get_metric = 'fpr'
+        at_metric = 'tpr'
+        at_value = .25
+        self.rrr()
+
+        self.get_metric_at_metric('fpr', 'tpr', .25)
+        self.get_metric_at_metric('n_false_pos', 'tpr', .25)
+        self.get_metric_at_metric('n_true_pos', 'tpr', .25)
+
+        get_metric = 'n_true_pos'
+        at_metric = 'n_false_pos'
+        at_value = 0
+        subindex = False
+        """
+        index = self.get_index_at_metric(at_metric, at_value,
+                                         subindex=subindex,
+                                         thresh_ambiguity=thresh_ambiguity)
+        get_value = self.get_metric_at_index(get_metric, index)
+        return get_value
+
+    def get_index_at_metric(self, at_metric, at_value, subindex=False,
+                            thresh_ambiguity='maximize'):
+        """
+        Finds the index that is closet to the metric at a given value
+
+        Args:
+            thresh_ambiguity (str): either 'minimize' or 'maximize'
+                if 'maximize', then a larger threshold is considered better
+                when resolving ambiguities. Otherwise a smaller thresh is
+                better.
+
+        Doctest:
+            >>> from vtool.confusion import *
+            >>> pat1 = [0, 0, 0, 0]
+            >>> pat2 = [0, 0, 1, 1]
+            >>> pat3 = [0, 1, 1, 1]
+            >>> pat4 = [1, 1, 1, 1]
+            >>> pats = [pat1, pat2, pat3, pat4]
+            >>> n = 4
+            >>> import itertools as it
+            >>> s = it.count(0)
+            >>> # Create places of ambiguitiy and unambiguity
+            >>> x = ut.flatten([[next(s)] * len(pat) for pat in pats for _ in range(n)])
+            >>> y = ut.flatten([pat for pat in pats for _ in range(n)])
+            >>> self = ConfusionMetrics().fit(x, y)
+            >>> at_metric = 'n_false_pos'
+            >>> at_value = 0
+            >>> subindex = False
+            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, thresh_ambiguity=True)
+            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, thresh_ambiguity=False)
+            >>> assert idx1 == 3
+            >>> assert idx2 == 0
+        """
         import vtool as vt
         at_arr = getattr(self, at_metric)
 
@@ -556,13 +615,24 @@ class ConfusionMetrics(ut.NiceRepr):
         # Find point closest to the value
         distance = np.abs(at_arr - at_value)
 
-        # TODO: need to be able to figure out how to correctly break ties
-
         if subindex:
+            # TODO: need to be able to figure out how to correctly break ties
             submin_x, submin_y = vt.argsubmin2(distance)
             return submin_x
         else:
-            idx = distance.argmin()
+            # idx = distance.argmin()
+            idxs = np.where(distance == distance.min())[0]
+            # If len(idxs) is bigger than 0 it is ambiguous
+            if thresh_ambiguity is None:
+                return idxs
+            elif thresh_ambiguity.startswith('max'):
+                # If we want to maximize the thresh then take leftmost
+                idx = idxs[0]
+            elif thresh_ambiguity.startswith('min'):
+                # If we want to minimize the thresh then take rightmost
+                idx = idxs[-1]
+            else:
+                raise KeyError('thresh_ambiguity = {!r}'.format(thresh_ambiguity))
             return idx
 
     def get_metric_at_index(self, metric, subindex):
@@ -573,22 +643,6 @@ class ConfusionMetrics(ut.NiceRepr):
         else:
             value = vt.linear_interpolation(arr, subindex)
         return value
-
-    def get_metric_at_metric(self, get_metric, at_metric, at_value,
-                             subindex=False):
-        """
-        get_metric = 'fpr'
-        at_metric = 'tpr'
-        at_value = .25
-        self.rrr()
-
-        self.get_metric_at_metric('fpr', 'tpr', .25)
-        self.get_metric_at_metric('n_false_pos', 'tpr', .25)
-        self.get_metric_at_metric('n_true_pos', 'tpr', .25)
-        """
-        index = self.get_index_at_metric(at_metric, at_value, subindex=subindex)
-        get_value = self.get_metric_at_index(get_metric, index)
-        return get_value
 
     def get_metric_at_thresh(self, metric, thresh):
         r"""
