@@ -4,7 +4,7 @@ import plottool as pt
 import utool as ut
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
-from ibeis.scripts.thesis import Sampler
+from ibeis.scripts.thesis import Sampler  # NOQA
 from ibeis.scripts._thesis_helpers import Tabular, upper_one, ave_str
 from ibeis.scripts._thesis_helpers import dbname_to_species_nice
 from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
@@ -204,8 +204,9 @@ class VerifierExpt(DBInputs):
         """
         agg_dbnames = [
             # 'PZ_Master1',
+            'PZ_Master1',
             'GZ_Master1', 'GIRM_Master1',
-            'MantaMatcher', 'RotanTurtles', 'humpbacks_fb'
+            'MantaMatcher', 'RotanTurtles', 'humpbacks_fb',
         ]
         dfs = []
         for dbname in agg_dbnames:
@@ -544,20 +545,23 @@ class VerifierExpt(DBInputs):
             >>> result = VerifierExpt.agg_draw(task_key)
             >>> print(result)
         """
-        dbs = ['GZ_Master1',
-               # 'LF_ALL',
-               'MantaMatcher', 'RotanTurtles',
-               'humpbacks_fb', 'GIRM_Master1']
+        agg_dbnames = [
+            'PZ_Master1',
+            'GZ_Master1',
+            # 'LF_ALL',
+            'MantaMatcher', 'RotanTurtles',
+            'humpbacks_fb', 'GIRM_Master1',
+        ]
 
         all_results = ut.odict([])
-        for dbname in dbs:
+        for dbname in agg_dbnames:
             self = VerifierExpt(dbname)
             info = self.ensure_results('all')
 
             all_results[dbname] = info
 
         rerank_results = ut.odict([])
-        for dbname in dbs:
+        for dbname in agg_dbnames:
             self = VerifierExpt(dbname)
             info = self.ensure_results('rerank')
             rerank_results[dbname] = info
