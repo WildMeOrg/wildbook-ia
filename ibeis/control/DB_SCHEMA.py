@@ -1527,7 +1527,7 @@ def post_1_6_4(db, ibs=None):
         # Get old yaw values
         yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
         yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
-        # Convert them into yaw/view codes
+        # Convert into viewpoint text
         viewpoint_list = ibsfuncs.get_yaw_viewtexts(yaws)
         db.set(const.ANNOTATION_TABLE, ('annot_viewpoint',), viewpoint_list,
                id_iter=aids)
