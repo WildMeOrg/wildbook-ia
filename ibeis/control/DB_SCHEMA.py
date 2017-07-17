@@ -1522,11 +1522,16 @@ def update_1_6_4(db, ibs=None):
 
 def post_1_6_4(db, ibs=None):
     if ibs is not None:
-        aid_list = ibs.get_valid_aids()
-        import utool
-        utool.embed()
-        viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
-        ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+        from ibeis.other import ibsfuncs
+        aids = ibs.get_valid_aids()
+        # Get old yaw values
+        yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
+        yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
+        # Convert them into yaw/view codes
+        viewpoint_list = ibsfuncs.get_yaw_viewtexts(yaws)
+        db.set(const.ANNOTATION_TABLE, ('annot_viewpoint',), viewpoint_list,
+               id_iter=aids)
+        # ibs.set_annot_viewpoints(aid_list, viewpoint_list)
 
 
 def update_1_6_5(db, ibs=None):
