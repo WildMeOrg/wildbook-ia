@@ -105,6 +105,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
     elif launch:
         command = ' '.join(['jupyter-notebook',
                             '--NotebookApp.iopub_data_rate_limit=10000000',
+                            '--NotebookApp.token=',
                             nb_fpath])
         ut.cmd2(command, detatch=True, verbose=True)
     else:
