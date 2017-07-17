@@ -1525,7 +1525,6 @@ def post_1_6_4(db, ibs=None):
         aid_list = ibs.get_valid_aids()
         import utool
         utool.embed()
-        db.get(
         viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
 
