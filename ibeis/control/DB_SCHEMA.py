@@ -1531,7 +1531,6 @@ def post_1_6_4(db, ibs=None):
         viewpoint_list = ibsfuncs.get_yaw_viewtexts(yaws)
         db.set(const.ANNOTATION_TABLE, ('annot_viewpoint',), viewpoint_list,
                id_iter=aids)
-        # ibs.set_annot_viewpoints(aid_list, viewpoint_list)
 
 
 def update_1_6_5(db, ibs=None):
