@@ -55,6 +55,8 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
         python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST
 
+        python -m ibeis autogen_ipynb --ipynb --db STS_SandTigers
+
         python -m ibeis autogen_ipynb --db PZ_MTEST
         # TODO: Add support for dbdir to be specified
         python -m ibeis autogen_ipynb --db ~/work/PZ_MTEST

@@ -1523,6 +1523,9 @@ def update_1_6_4(db, ibs=None):
 def post_1_6_4(db, ibs=None):
     if ibs is not None:
         aid_list = ibs.get_valid_aids()
+        import utool
+        utool.embed()
+        db.get(
         viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
 
@@ -1603,22 +1606,6 @@ def post_1_7_0(db, ibs=None):
 
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',),
                view_ints, id_iter=aids)
-
-if False:
-    # Once this change is in, add these to manual_annot_funcs
-    # (might need to change ibeis/annots.py as well to get access to these)
-    def get_annot_viewpoint_int(ibs, aids):
-        return ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), aids)
-
-    def set_annot_viewpoint_int(ibs, aids, view_ints):
-        ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints, id_iter=aids)
-
-    def get_annot_viewpoint_code(ibs, aids):
-        return ut.dict_take(ibs.const.VIEW.INT_TO_CODE, ibs.get_annot_viewpoint_int())
-
-    def set_annot_viewpoint_code(ibs, aids, view_codes):
-        view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
-        ibs.set_annot_viewpoint_int(ibs, aids, view_ints)
 
 
 # ========================
