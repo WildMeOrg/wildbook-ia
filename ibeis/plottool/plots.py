@@ -798,6 +798,93 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     #return (submaxima_x, submaxima_y)
 
 
+def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
+                    thresh_factor=None, normalize_x=True, flat=True):
+    r"""
+    Args:
+        ydata (ndarray):
+        xdata (None):
+
+    CommandLine:
+        python -m plottool.plots --test-draw_subextrema --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> import vtool as vt
+        >>> import plottool as pt
+        >>> ydata = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.01, 0.00, 6.73, 8.69])
+        >>> xdata = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
+        >>> bin_colors = pt.df2.plt.get_cmap('hsv')(xdata / vt.TAU)
+        >>> use_darkbackground = True
+        >>> thresh_factor = .01
+        >>> op = 'max'
+        >>> ut.exec_funckw(draw_subextrema, globals())
+        >>> result = draw_subextrema(ydata, xdata, bin_colors=bin_colors,
+        >>>                          thresh_factor=thresh_factor, op=op)
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
+    # Find maxima
+    import vtool as vt
+    # Hack into the source code
+    locals_ = ut.exec_func_src2(vt.argsubextrema2)
+
+    x123               = locals_.get('x123', None)
+    coeff_list         = locals_['coeff_list']
+    rel_subextrema_x   = locals_['rel_subextrema_x']
+    rel_subextrema_y   = locals_['rel_subextrema_y']
+    rel_argextrema     = locals_['rel_argextrema']
+    other_subextrema_y = locals_['other_subextrema_y']
+    other_subextrema_x = locals_['other_subextrema_x']
+    thresh_value       = locals_['thresh_value']
+
+    # Find the original max bins of the rel_extrema
+    if xdata is None:
+        xdata_ = np.arange(len(ydata))
+        rel_extrema_x = rel_argextrema
+    else:
+        xdata_ = xdata
+        rel_extrema_x = xdata_[rel_argextrema]
+    rel_extrema_y = ydata[rel_argextrema]
+
+    # Find submaxima
+    if x123 is None:
+        xpoints = []
+        ypoints = []
+    else:
+        # Extract parabola points
+        xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
+        ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
+
+    # Draw threshold lines
+    if thresh_factor is not None:
+        plt.plot(xdata_, [thresh_value] * len(xdata_), 'r--')
+    # Draw linear interpolation lines
+    if bin_colors is None:
+        bin_colors = 'r'
+        plt.plot(xdata_, ydata, 'k-')
+    else:
+        # TODO use bin_color correctly
+        # Create a colormap using exact specified colors
+        #bin_cmap = mpl.colors.ListedColormap(bin_colors)
+        bin_cmap = plt.get_cmap('hsv')  # HACK
+        #mpl.colors.ListedColormap(bin_colors)
+        colorline(xdata_, ydata, cmap=bin_cmap)
+    # Draw Submax Parabola
+    for x_pts, y_pts in zip(xpoints, ypoints):
+        plt.plot(x_pts, y_pts, 'y--')
+
+    # Draw flat extrema
+    plt.scatter(other_subextrema_x, other_subextrema_y, marker='*', color='r', s=100)
+    # Draw maxbin relative extrema
+    plt.scatter(rel_extrema_x,    rel_extrema_y,    marker='o', color='k',  s=50)
+    # Draw relative sub-extrema
+    plt.scatter(rel_subextrema_x, rel_subextrema_y, marker='*', color='r', s=100)
+    # Draw Bins
+    plt.scatter(xdata_, ydata, c=bin_colors, marker='o', s=25)
+
+
 def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
