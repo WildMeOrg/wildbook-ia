@@ -103,7 +103,7 @@ class ScoreNormVisualizeClass(object):
         # probs = encoder.normalize_scores(scores)
         probs = normalize_scores(encoder.score_domain, encoder.p_tp_given_score, scores)
 
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        confusions = vt.ConfusionMetrics().fit(probs, labels)
 
         score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
 
@@ -531,10 +531,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         probs = encoder.normalize_scores(X)
 
         if False:
-            confusions_score = vt.ConfusionMetrics.from_scores_and_labels(
+            confusions_score = vt.ConfusionMetrics().fit(
                 -X, y, verbose=verbose)
 
-            confusions_prob = vt.ConfusionMetrics.from_scores_and_labels(
+            confusions_prob = vt.ConfusionMetrics().fit(
                 probs, y, verbose=verbose)
 
             _score_thresh = confusions_score.get_thresh_at_metric(metric, value)
@@ -545,7 +545,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             _inv_prob - _prob_thresh
             _inv_score - (-_score_thresh)
 
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(
+        confusions = vt.ConfusionMetrics().fit(
             probs, y, verbose=verbose)
 
         prob_thresh = confusions.get_thresh_at_metric(metric, value)
@@ -1412,7 +1412,7 @@ def inspect_pdfs(tn_support, tp_support,
     # probs = encoder.normalize_scores(scores)
     probs = normalize_scores(score_domain, p_tp_given_score, scores)
 
-    confusions = vt.ConfusionMetrics.from_scores_and_labels(
+    confusions = vt.ConfusionMetrics().fit(
         probs, labels)
     # Hack change confusion prob thresholds to score thresholds
     if False:

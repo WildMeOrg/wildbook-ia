@@ -408,11 +408,6 @@ class ConfusionMetrics(ut.NiceRepr):
         return self
 
     @classmethod
-    def from_scores_and_labels(cls, scores, labels, verbose=False):
-        self = cls().fit(scores, labels, verbose=verbose)
-        return self
-
-    @classmethod
     def from_tp_and_tn_scores(cls, tp_scores, tn_scores, verbose=False):
         scores = np.hstack([tp_scores, tn_scores])
         labels = np.array([True] * len(tp_scores) + [False] * len(tn_scores))
@@ -545,7 +540,7 @@ class ConfusionMetrics(ut.NiceRepr):
         return thresh
 
     def get_metric_at_metric(self, get_metric, at_metric, at_value,
-                             subindex=False, thresh_ambiguity='maximize'):
+                             subindex=False, tiebreaker='maxthresh'):
         """
         Finds the corresponding value of `get_metric` at a specific value of
         `at_metric`.
@@ -567,17 +562,17 @@ class ConfusionMetrics(ut.NiceRepr):
         """
         index = self.get_index_at_metric(at_metric, at_value,
                                          subindex=subindex,
-                                         thresh_ambiguity=thresh_ambiguity)
+                                         tiebreaker=tiebreaker)
         get_value = self.get_metric_at_index(get_metric, index)
         return get_value
 
     def get_index_at_metric(self, at_metric, at_value, subindex=False,
-                            thresh_ambiguity='maximize'):
+                            tiebreaker='maxthresh'):
         """
         Finds the index that is closet to the metric at a given value
 
         Args:
-            thresh_ambiguity (str): either 'minimize' or 'maximize'
+            tiebreaker (str): either 'minimize' or 'maximize'
                 if 'maximize', then a larger threshold is considered better
                 when resolving ambiguities. Otherwise a smaller thresh is
                 better.
@@ -599,8 +594,8 @@ class ConfusionMetrics(ut.NiceRepr):
             >>> at_metric = 'n_false_pos'
             >>> at_value = 0
             >>> subindex = False
-            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, thresh_ambiguity=True)
-            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, thresh_ambiguity=False)
+            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=True)
+            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=False)
             >>> assert idx1 == 3
             >>> assert idx2 == 0
         """
@@ -617,22 +612,24 @@ class ConfusionMetrics(ut.NiceRepr):
 
         if subindex:
             # TODO: need to be able to figure out how to correctly break ties
+            raise NotImplementedError('fixme use argsubminima2 and then other stuff')
             submin_x, submin_y = vt.argsubmin2(distance)
             return submin_x
         else:
             # idx = distance.argmin()
             idxs = np.where(distance == distance.min())[0]
             # If len(idxs) is bigger than 0 it is ambiguous
-            if thresh_ambiguity is None:
+            if tiebreaker is None:
                 return idxs
-            elif thresh_ambiguity.startswith('max'):
-                # If we want to maximize the thresh then take leftmost
-                idx = idxs[0]
-            elif thresh_ambiguity.startswith('min'):
-                # If we want to minimize the thresh then take rightmost
-                idx = idxs[-1]
             else:
-                raise KeyError('thresh_ambiguity = {!r}'.format(thresh_ambiguity))
+                if tiebreaker == 'maxthresh':
+                    # If we want to maximize the thresh then take leftmost
+                    idx = idxs[0]
+                elif tiebreaker == 'minthresh':
+                    # If we want to minimize the thresh then take rightmost
+                    idx = idxs[-1]
+                else:
+                    raise KeyError('tiebreaker = {!r}'.format(tiebreaker))
             return idx
 
     def get_metric_at_index(self, metric, subindex):

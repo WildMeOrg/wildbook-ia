@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
+import warnings
 import scipy.signal
 import numpy as np
 import utool as ut
@@ -138,7 +139,7 @@ def argsubmax2(ydata, xdata=None):
         >>> from vtool.histogram import *  # NOQA
         >>> hist_ = np.array([0, 1, 2, 3, 4])
         >>> centers = None
-        >>> maxima_thresh=None
+        >>> thresh_factor = None
         >>> argsubmax(hist_)
         (4.0, 4.0)
     """
@@ -154,15 +155,28 @@ def argsubmax2(ydata, xdata=None):
     return submax_x, submax_y
 
 
-def argsubmaxima2(ydata, xdata=None, maxima_thresh=None, _debug=False,
-                  normalize_x=True):
+def argsubmaxima2(ydata, xdata=None, thresh_factor=None, normalize_x=True):
+    return argsubextrema2('max', ydata, xdata=xdata,
+                          thresh_factor=thresh_factor, normalize_x=normalize_x)
+
+
+def argsubminima2(ydata, xdata=None, thresh_factor=None, normalize_x=True):
+    """
+    """
+    return argsubextrema2('min', ydata, xdata=xdata,
+                          thresh_factor=thresh_factor, normalize_x=normalize_x)
+
+
+def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
+                   flat=True):
     r"""
     Determines approximate maxima values to subindex accuracy.
 
     Args:
         ydata (ndarray): ydata, histogram frequencies
         xdata (ndarray): xdata, histogram labels
-        maxima_thresh (float): cutoff point for labeing a value as a maxima
+        thresh_factor (float): cutoff point for labeing a value as a maxima
+        flat (bool): if True allows for flat extrema to be found.
 
     Returns:
         tuple: (submaxima_x, submaxima_y)
@@ -174,73 +188,82 @@ def argsubmaxima2(ydata, xdata=None, maxima_thresh=None, _debug=False,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
-        >>> maxima_thresh = .8
+        >>> thresh_factor = .8
         >>> ydata = np.array([6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> xdata = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
-        >>> (submaxima_x, submaxima_y) = argsubmaxima2(ydata, xdata, maxima_thresh)
-        >>> result = str((submaxima_x, submaxima_y))
-        >>> print(result)
+        >>> op = 'min'
+        >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, xdata, thresh_factor)
+        >>> result = str((subextrema_x, subextrema_y))
+        >>> prkeysint(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.draw_hist_subbin_maxima(ydata, xdata)
         >>> pt.show_if_requested()
         (array([ 3.03374251]), array([ 37.2719012]))
 
-    Ignore:
-
-        submax_idx = submaxima_idx[0]
-        submax_y = submaxima_y[0]
-        submax_x = submaxima_x[0]
-
-        # submaxima_idx / len(xdata)
-        norm_x = np.arange(len(xdata))
-
-        pad = 100
-        min_ = int(np.floor(max(0, submax_idx - pad)))
-        max_ = int(np.ceil(min(len(xdata), submax_idx + pad)))
-        r = slice(min_, max_)
-
-        pt.qtensure()
-
-        pt.figure(fnum=1, pnum=(1, 2, 1), doclf=True)
-        pt.plot(norm_x[r], ydata[r])
-        pt.plot(submax_idx, submax_y, 'o')
-        pt.gca().set_title('ydata')
-
-        pt.figure(fnum=1, pnum=(1, 2, 2))
-        pt.plot(norm_x[r], xdata[r])
-        pt.plot(submax_idx, submax_x, 'o')
-        pt.gca().set_title('xdata')
+    Doctest:
+        >>> from vtool.histogram import *  # NOQA
+        >>> thresh_factor = .8
+        >>> ydata = np.array([1, 1, 1, 2, 1, 2, 3, 2, 4, 1.1, 5, 1.2, 1.1, 1.1, 1.2, 1.1])
+        >>> op = 'max'
+        >>> thresh_factor = .8
+        >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, thresh_factor=thresh_factor)
+        >>> result = str((subextrema_x, subextrema_y))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qtensure()
+        >>> xdata = np.arange(len(ydata))
+        >>> pt.figure(fnum=1, doclf=True)
+        >>> pt.plot(xdata, ydata)
+        >>> pt.plot(subextrema_x, subextrema_y, 'o')
+        >>> ut.show_if_requested()
     """
-    argmaxima = scipy.signal.argrelextrema(ydata, np.greater)[0]
-    if len(argmaxima) == 0:
-        argmaxima = [ydata.argmax()]
-    if maxima_thresh is not None:
-        # threshold maxima to be within a factor of the maximum
-        maxima_y = ydata[argmaxima]
-        isvalid = maxima_y > maxima_y.max() * maxima_thresh
-        argmaxima = argmaxima[isvalid]
+    if op == 'max':
+        cmp = np.greater
+        cmp_eq = np.greater_equal
+        extreme = np.max
+        factor_op = np.multiply
+    elif op == 'min':
+        cmp = np.less
+        cmp_eq = np.less_equal
+        extreme = np.min
+        factor_op = np.divide
+    else:
+        raise KeyError(op)
 
-    maxima_y = ydata[argmaxima]
-    maxima_x = argmaxima if xdata is None else xdata[argmaxima]
+    # absolute extrema
+    abs_extreme_y = extreme(ydata)
 
-    argmaxima = np.asarray(argmaxima)
-    boundry_flags = (argmaxima == 0) | (argmaxima == len(ydata) - 1)
+    if thresh_factor is None:
+        thresh_factor = 1.0
+        # thresh_factor = None
 
-    if _debug:
-        print('Argmaxima: ')
-        print(' * maxima_x      = %r' % (maxima_x))
-        print(' * maxima_y      = %r' % (maxima_y))
-        print(' * argmaxima     = %r' % (argmaxima))
-        print(' * boundry_flags = %r' % (boundry_flags,))
-        print(' * len(ydata)    = %r' % (len(ydata)))
-    mid_flags = ~boundry_flags
+    if thresh_factor is None:
+        thresh_value = None
+        flags = np.ones(len(ydata), dtype=np.bool)
+    else:
+        # Find relative and flat extrema
+        thresh_value = factor_op(abs_extreme_y, thresh_factor)
+        flags = cmp_eq(ydata, thresh_value)
 
-    if np.any(mid_flags):
-        # We can do 2nd order interpolation in the middle zone
-        mid_argmaxima = argmaxima[mid_flags]
+    # Only consider non-boundary points
+    flags[[0, -1]] = False
+    mxs = np.where(flags)[0]
+    # ydata[np.vstack([mxs - 1, mxs, mxs + 1])]
+    lvals, mvals, rvals = ydata[mxs - 1], ydata[mxs], ydata[mxs + 1]
+    is_mid_extrema = cmp_eq(mvals, lvals) & cmp_eq(mvals, rvals)
+    is_rel_extrema = cmp(mvals, lvals) & cmp(mvals, rvals)
+    is_flat_extrema = is_mid_extrema & ~is_rel_extrema
 
-        neighbs = np.vstack((mid_argmaxima - 1, mid_argmaxima, mid_argmaxima + 1))
+    flat_argextrema = mxs[is_flat_extrema]
+    rel_argextrema = mxs[is_rel_extrema]
+
+    # Sublocalize relative extrema
+    if len(rel_argextrema) > 0:
+        # rel_subextrema_x, rel_subextrema_y = _sublocalize_extrema(
+        #     ydata, xdata, rel_argextrema, cmp, normalize_x)
+        neighbs = np.vstack((rel_argextrema - 1, rel_argextrema, rel_argextrema + 1))
         y123 = ydata[neighbs]
         if normalize_x or xdata is None:
             x123 = neighbs
@@ -255,55 +278,109 @@ def argsubmaxima2(ydata, xdata=None, maxima_thresh=None, _debug=False,
 
         A, B, C = np.vstack(coeff_list).T
 
-        # Maximum x point is where the derivative is 0
-        submaxima_x = -B / (2 * A)
-        submaxima_y = C - B * B / (4 * A)
+        # Extreme x point is where the derivative is 0
+        rel_subextrema_x = -B / (2 * A)
+        rel_subextrema_y = C - B * B / (4 * A)
 
-        if xdata is None:
-            submaxima_idx = submaxima_x
-        elif normalize_x and xdata is not None:
+        if xdata is not None and normalize_x:
             # Convert x back to data coordinates if we normalized durring polynimal
             # fitting. Do linear interpoloation.
-            submaxima_idx = submaxima_x
-            submaxima_x = linear_interpolation(xdata, submaxima_idx)
-        else:
-            submaxima_idx = None  # NOQA
+            rel_subextrema_x = linear_interpolation(xdata, rel_subextrema_x)
 
-        # Check to make sure submaxima is not less than original maxima
-        # (can be the case only if the maxima is incorrectly given)
-        # In this case just return what the user wanted as the maxima
-        invalid = submaxima_y < ydata[mid_argmaxima]
-        if np.any(invalid):
-            print('[vt] Warning argsubmaxima2 found submaxima less than originals')
-            print('[vt] Something may be wrong')
+        # Check to make sure rel_subextrema is not less extreme than the original
+        # extrema (can be the case only if the extrema is incorrectly given)
+        # In this case just return what the user wanted as the extrema
+        violates = cmp(ydata[rel_argextrema], rel_subextrema_y)
+        if np.any(violates):
+            warnings.warn(
+                'rel_subextrema was less extreme than the measured extrema',
+                RuntimeWarning)
             if xdata is not None:
-                submaxima_x[invalid] = xdata[argmaxima[invalid]]
+                rel_subextrema_x[violates] = xdata[rel_argextrema[violates]]
             else:
-                submaxima_x[invalid] = argmaxima[invalid]
-            submaxima_y[invalid] = ydata[argmaxima[invalid]]
+                rel_subextrema_x[violates] = rel_argextrema[violates]
+            rel_subextrema_y[violates] = ydata[rel_argextrema[violates]]
     else:
-        submaxima_x = []
-        submaxima_y = []
+        x123 = None  # for plottool
+        coeff_list = []  # for plottool
+        rel_subextrema_x, rel_subextrema_y = [], []
 
-    # submaxima_x_, submaxima_y_ = interpolate_submaxima(argmaxima, ydata, xdata)
-    if np.any(boundry_flags):
-        endpts = argmaxima[boundry_flags]
-        if xdata is None:
-            submaxima_x = np.hstack([submaxima_x, endpts])
+    # Check left boundary
+    boundary_argextrema = []
+    if len(ydata) > 1:
+        if thresh_value is None or cmp_eq(ydata[0], thresh_value):
+            if cmp_eq(ydata[0], ydata[1]):
+                boundary_argextrema.append(0)
+
+    # Check right boundary
+    if len(ydata) > 2:
+        if thresh_value is None or cmp_eq(ydata[0], thresh_value):
+            if cmp_eq(ydata[-1], ydata[-2]):
+                boundary_argextrema.append(len(ydata) - 1)
+
+    # Any non-flat mid extrema can be sublocalized
+    other_argextrema = np.hstack([boundary_argextrema, flat_argextrema])
+    other_argextrema = other_argextrema.astype(np.int)
+    other_subextrema_y = ydata[other_argextrema]
+    if xdata is None:
+        other_subextrema_x = other_argextrema
+    else:
+        other_subextrema_x = xdata[other_argextrema]
+
+    # Recombine and order all extremas
+    subextrema_y = np.hstack([rel_subextrema_y, other_subextrema_y])
+    subextrema_x = np.hstack([rel_subextrema_x, other_subextrema_x])
+    sortx = subextrema_x.argsort()
+    subextrema_x = subextrema_x[sortx]
+    subextrema_y = subextrema_y[sortx]
+    return subextrema_x, subextrema_y
+
+
+def _sublocalize_extrema(ydata, xdata, argextrema, cmp, normalize_x=True):
+    """
+    Assumes argextrema are all relative and not on the boundaries
+    """
+    # extrema_y = ydata[argextrema]
+    # extrema_x = argextrema if xdata is None else xdata[argextrema]
+
+    neighbs = np.vstack((argextrema - 1, argextrema, argextrema + 1))
+    y123 = ydata[neighbs]
+    if normalize_x or xdata is None:
+        x123 = neighbs
+    else:
+        x123 = xdata[neighbs]
+
+    # Fit parabola around points
+    coeff_list = []
+    for (x, y) in zip(x123.T, y123.T):
+        coeff = np.polyfit(x, y, deg=2)
+        coeff_list.append(coeff)
+
+    A, B, C = np.vstack(coeff_list).T
+
+    # Extreme x point is where the derivative is 0
+    subextrema_x = -B / (2 * A)
+    subextrema_y = C - B * B / (4 * A)
+
+    if xdata is not None and normalize_x:
+        # Convert x back to data coordinates if we normalized durring polynimal
+        # fitting. Do linear interpoloation.
+        subextrema_x = linear_interpolation(xdata, subextrema_x)
+
+    # Check to make sure subextrema is not less extreme than the original
+    # extrema (can be the case only if the extrema is incorrectly given)
+    # In this case just return what the user wanted as the extrema
+    violates = cmp(ydata[argextrema], subextrema_y)
+    if np.any(violates):
+        warnings.warn(
+            'subextrema was less extreme than the measured extrema',
+            RuntimeWarning)
+        if xdata is not None:
+            subextrema_x[violates] = xdata[argextrema[violates]]
         else:
-            submaxima_x = np.hstack([submaxima_x, xdata[endpts]])
-        submaxima_y = np.hstack([submaxima_y, ydata[endpts]])
-
-    # Nicely order the submaxima
-    sortx = submaxima_x.argsort()
-    submaxima_x = submaxima_x[sortx]
-    submaxima_y = submaxima_y[sortx]
-
-    if _debug:
-        print('Submaxima: ')
-        print(' * submaxima_x = %r' % (submaxima_x))
-        print(' * submaxima_y = %r' % (submaxima_y))
-    return submaxima_x, submaxima_y
+            subextrema_x[violates] = argextrema[violates]
+        subextrema_y[violates] = ydata[argextrema[violates]]
+    return subextrema_x, subextrema_y
 
 
 def linear_interpolation(arr, subindices):
