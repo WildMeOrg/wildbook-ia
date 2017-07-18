@@ -58,10 +58,6 @@ class VerifierExpt(DBInputs):
     python -m ibeis VerifierExpt.measure all RotanTurtles
     python -m ibeis VerifierExpt.draw all RotanTurtles
 
-    agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
-                   'MantaMatcher', 'RotanTurtles', 'humpbacks_fb', 'LF_ALL']
-
-
     Ignore:
         >>> from ibeis.scripts.postdoc import *
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
@@ -69,6 +65,14 @@ class VerifierExpt(DBInputs):
     """
     # base_dpath = ut.truepath('~/Desktop/pair_expts')
     base_dpath = ut.truepath('~/latex/crall-iccvw-2017/figures')
+
+    agg_dbnames = [
+        'PZ_Master1',
+        'GZ_Master1',
+        # 'LF_ALL',
+        'MantaMatcher', 'RotanTurtles',
+        'humpbacks_fb', 'GIRM_Master1',
+    ]
 
     task_nice_lookup = {
         'match_state': const.EVIDENCE_DECISION.CODE_TO_NICE,
@@ -88,6 +92,8 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt._setup --db PZ_PB_RF_TRAIN
 
             python -m ibeis VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
+
+            python -m ibeis VerifierExpt.measure all GZ_Master1
 
         Example:
             >>> from ibeis.scripts.postdoc import *
@@ -121,7 +127,8 @@ class VerifierExpt(DBInputs):
 
         aids = self.aids_pool
 
-        pblm = vsone.OneVsOneProblem.from_aids(ibs, aids)
+        # pblm = vsone.OneVsOneProblem.from_aids(ibs, aids, sample_method='random')
+        pblm = vsone.OneVsOneProblem.from_aids(ibs, aids, sample_method='lnbnn+random')
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
 
@@ -167,14 +174,8 @@ class VerifierExpt(DBInputs):
             >>> result = VerifierExpt.agg_dbstats()
             >>> print(result)
         """
-        agg_dbnames = [
-            # 'PZ_Master1',
-            'PZ_Master1',
-            'GZ_Master1', 'GIRM_Master1',
-            'MantaMatcher', 'RotanTurtles', 'humpbacks_fb',
-        ]
         dfs = []
-        for dbname in agg_dbnames:
+        for dbname in VerifierExpt.agg_dbnames:
             self = VerifierExpt(dbname)
             info = self.ensure_results('dbstats')
             sample_info = self.ensure_results('sample_info')
@@ -207,6 +208,398 @@ class VerifierExpt(DBInputs):
         _ = ut.render_latex(enc_text, dpath=self.dpath, fname='dbstats',
                                 preamb_extra=['\\usepackage{makecell}'])
         ut.startfile(_)
+
+    @classmethod
+    def agg_results(VerifierExpt, task_key):
+        """
+
+        python -m ibeis VerifierExpt.agg_results
+
+        GZ_Master1,LF_ALL,MantaMatcher,RotanTurtles,humpbacks_fb,GIRM_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.postdoc import *  # NOQA
+            >>> task_key = 'match_state'
+            >>> result = VerifierExpt.agg_results(task_key)
+            >>> print(result)
+        """
+        all_results = ut.odict([])
+        for dbname in VerifierExpt.agg_dbnames:
+            self = VerifierExpt(dbname)
+            info = self.ensure_results('all')
+
+            all_results[dbname] = info
+
+        rerank_results = ut.odict([])
+        for dbname in VerifierExpt.agg_dbnames:
+            self = VerifierExpt(dbname)
+            info = self.ensure_results('rerank')
+            rerank_results[dbname] = info
+
+        rank_auc_tables = ut.ddict(lambda: pd.DataFrame(columns=['LNBNN', 'clf']))
+        rank_tpr_tables = ut.ddict(lambda: pd.DataFrame(columns=['LNBNN', 'clf']))
+        rank_tpr_thresh_tables = ut.ddict(lambda: pd.DataFrame(columns=['LNBNN', 'clf']))
+        rank_clf_roc_curves   = ut.ddict(list)
+        rank_lnbnn_roc_curves = ut.ddict(list)
+
+        auc_table  = pd.DataFrame(columns=['LNBNN', 'clf'])
+        rank1_table = pd.DataFrame(columns=['LNBNN', 'clf'])
+        rank5_table = pd.DataFrame(columns=['LNBNN', 'clf'])
+
+        lnbnn_cmc_curves = []
+        clf_cmc_curves = []
+
+        clf_roc_curves = []
+        lnbnn_roc_curves = []
+
+        for dbname, results in all_results.items():
+            data_key = results['data_key']
+            clf_key = results['clf_key']
+
+            target_class = POSTV
+
+            # LNBNN classification confusions
+            lnbnn_data = results['lnbnn_data']
+            y = lnbnn_data[target_class].values
+            scores = lnbnn_data['score_lnbnn_1vM'].values
+            cfsm_vsm = vt.ConfusionMetrics().fit(scores, y)
+
+            # CLF classification confusions
+            task_combo_res = results['task_combo_res']
+            res = task_combo_res[task_key][clf_key][data_key]
+            cfsm_clf = res.confusions(target_class)
+
+            nice = dbname_to_species_nice(dbname)
+
+            lnbnn_roc_curves += [
+                {'label': nice, 'fpr': cfsm_vsm.fpr, 'tpr': cfsm_vsm.tpr,
+                 'auc': cfsm_vsm.auc},
+            ]
+
+            clf_roc_curves += [
+                {'label': nice, 'fpr': cfsm_clf.fpr, 'tpr': cfsm_clf.tpr,
+                 'auc': cfsm_clf.auc},
+            ]
+
+            auc_table.loc[nice, 'LNBNN'] = cfsm_vsm.auc
+            auc_table.loc[nice, 'clf'] = cfsm_clf.auc
+
+            # ranking results
+            results = rerank_results[dbname]
+            cdfs, infos = list(zip(*results))
+            lnbnn_cdf, clf_cdf = cdfs
+
+            lnbnn_cmc_curves += [{'label': nice, 'cmc': lnbnn_cdf}]
+            clf_cmc_curves += [{'label': nice, 'cmc': clf_cdf}]
+
+            rank1_table.loc[nice, 'LNBNN'] = lnbnn_cdf[0]
+            rank1_table.loc[nice, 'clf'] = clf_cdf[0]
+
+            rank5_table.loc[nice, 'LNBNN'] = lnbnn_cdf[4]
+            rank5_table.loc[nice, 'clf'] = clf_cdf[4]
+
+            # Check the ROC for only things in the top of the LNBNN ranked lists
+            # nums = [1, 2, 3, 4, 5, 10, 20, np.inf]
+            nums = [1, 5, np.inf]
+            for num in nums:
+                rank_auc_df = rank_auc_tables[num]
+                rank_auc_df.index.name = 'AUC@rank<={}'.format(num)
+
+                ranks = lnbnn_data['rank_lnbnn_1vM'].values
+                sub_data = lnbnn_data[ranks <= num]
+                scores = sub_data['score_lnbnn_1vM'].values
+                y = sub_data[POSTV].values
+                probs = res.probs_df[POSTV].loc[sub_data.index].values
+
+                cfsm_scores = vt.ConfusionMetrics().fit(scores, y)
+                cfsm_probs = vt.ConfusionMetrics().fit(probs, y)
+
+                curves = [
+                    rank_lnbnn_roc_curves[num],
+                    rank_clf_roc_curves[num]
+                ]
+                cfsm_list = [cfsm_scores, cfsm_probs]
+                for curve, cfsm in zip(curves, cfsm_list):
+                    curve += [{
+                        'label': nice, 'fpr': cfsm.fpr, 'tpr': cfsm.tpr,
+                        'auc': cfsm.auc,
+                        'tpr@fpr=0': cfsm.get_metric_at_metric(
+                            'tpr', 'fpr', 0, tiebreaker='minthresh'),
+                        'thresh@fpr=0': cfsm.get_metric_at_metric(
+                            'thresh', 'fpr', 0, tiebreaker='minthresh'),
+                    }]
+
+                rank_auc_df.loc[nice, 'LNBNN'] = cfsm_scores.auc
+                rank_auc_df.loc[nice, 'clf'] = cfsm_probs.auc
+
+                # ----
+                rank_tpr_df = rank_tpr_tables[num]
+                rank_tpr_df.index.name = 'tpr@fpr=0&rank<={}'.format(num)
+                rank_tpr_df.loc[nice, 'LNBNN'] = cfsm_scores.get_metric_at_metric(
+                    'tpr', 'fpr', 0, tiebreaker='minthresh')
+                rank_tpr_df.loc[nice, 'clf'] = cfsm_probs.get_metric_at_metric(
+                    'tpr', 'fpr', 0, tiebreaker='minthresh')
+
+                # --
+                df = rank_tpr_thresh_tables[num]
+                df.index.name = 'thresh@fpr=0&rank<={}'.format(num)
+                rank_tpr_df.loc[nice, 'LNBNN'] = cfsm_scores.get_metric_at_metric(
+                    'thresh', 'fpr', 0, tiebreaker='minthresh')
+                rank_tpr_df.loc[nice, 'clf'] = cfsm_probs.get_metric_at_metric(
+                    'thresh', 'fpr', 0, tiebreaker='minthresh')
+
+        from utool.experimental.pandas_highlight import to_string_monkey
+        for rank in sorted(rank_auc_tables.keys()):
+            print('-----')
+            print('AUC at rank = {!r}'.format(rank))
+            rank_auc_df = rank_auc_tables[rank]
+            print(to_string_monkey(rank_auc_df, 'all'))
+
+        print('===============')
+        for rank in sorted(rank_tpr_tables.keys()):
+            print('-----')
+            print('TPR at rank = {!r}'.format(rank))
+            rank_tpr_df = rank_tpr_tables[rank]
+            print(to_string_monkey(rank_tpr_df, 'all'))
+
+        if True:
+            # Tables
+            print('\nauc_table =\n{}'.format(to_string_monkey(auc_table, 'all')))
+            print('\nrank1_table =\n{}'.format(to_string_monkey(rank1_table, 'all')))
+            print('\nrank5_table =\n{}'.format(to_string_monkey(rank5_table, 'all')))
+
+            def _bf_best(df):
+                df = df.copy()
+                for rx in range(len(df)):
+                    col = df.iloc[rx]
+                    for cx in ut.argmax(col.values, multi=True):
+                        val = df.iloc[rx, cx]
+                        df.iloc[rx, cx] = '\\mathbf{{{:.3f}}}'.format(val)
+                return df
+
+            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table, rank5_table]), axis=1)
+            all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table]), axis=1)
+            tabular = Tabular(all_stats, colfmt='numeric', escape=False)
+            tabular.precision = 3
+            tex_text = tabular.as_tabular()
+            # HACKS
+            tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
+            tex_text = tex_text.replace('$}', '}$')
+            # tex_text = ut.codeblock(
+            #     r'''
+            #     \begin{tabular}{l|rr|rr|rr}
+            #     \hline
+            #                    & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} & \multicolumn{2}{c}{Rank 5} \\
+            #     ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
+            tex_text = ut.codeblock(
+                r'''
+                \begin{tabular}{l|rr|rr}
+                \hline
+                               & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} \\
+                ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
+            print(tex_text)
+            ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
+
+            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath, fname='agg_results',
+                                preamb_extra=['\\usepackage{makecell}'])
+            ut.startfile(_)
+
+        method = 1
+        if method == 1:
+
+            def method1_roc(roc_curves):
+                ax = pt.gca()
+                color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+                markers = pt.distinct_markers(len(roc_curves))
+                for data, marker, color in zip(roc_curves, markers, color_cycle):
+                    ax.plot(data['fpr'], data['tpr'], color=color)
+
+                for data, marker, color in zip(roc_curves, markers, color_cycle):
+                    # label = '{} AUC={:.3f}, TPR={:.3f}'.format(
+                    #     data['label'], data['auc'], data['tpr@fpr=0'])
+                    label = 'TPR={tpr:.3f}@FPR=0 {species}'.format(
+                        # data['auc'],
+                        tpr=data['tpr@fpr=0'], species=data['label'])
+                    ax.plot(0, data['tpr@fpr=0'], marker=marker, label=label,
+                            color=color)
+
+                ax.set_xlabel('false positive rate')
+                ax.set_ylabel('true positive rate')
+                ax.set_ylim(0, 1)
+                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+                ax.legend()
+                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+                fig.set_size_inches([W * .7, H])
+
+            for num in [1, np.inf]:
+                fig = pt.figure(fnum=1)  # NOQA
+                ax = pt.gca()
+                roc_curves = rank_clf_roc_curves[num]
+                method1_roc(roc_curves)
+                fname = 'agg_roc_rank_{}_clf_{}.png'.format(num, task_key)
+                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+                fig = pt.figure(fnum=2)  # NOQA
+                ax = pt.gca()
+                roc_curves = rank_lnbnn_roc_curves[num]
+                method1_roc(roc_curves)
+                fname = 'agg_roc_rank_{}_lnbnn_{}.png'.format(num, task_key)
+                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+            # -------------
+
+            def method1_cmc(cmc_curves):
+                ax = pt.gca()
+                color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+                markers = pt.distinct_markers(len(cmc_curves))
+                for data, marker, color in zip(cmc_curves, markers, color_cycle):
+                    label = 'rank1={:.3f} {species}'.format(
+                        data['cmc'][0], species=data['label'])
+                    ranks = np.arange(1, len(data['cmc']) + 1)
+                    ax.plot(ranks, data['cmc'], marker=marker, color=color, label=label)
+
+                ax.set_xlabel('rank')
+                ax.set_ylabel('match probability')
+                ax.set_ylim(0, 1)
+                ax.set_xlim(1, 20)
+                ax.set_xticks([1, 5, 10, 15, 20])
+
+                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+                ax.legend()
+                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+                fig.set_size_inches([W * .7, H])
+
+            fig = pt.figure(fnum=1)  # NOQA
+            ax = pt.gca()
+            cmc_curves = clf_cmc_curves
+            method1_cmc(cmc_curves)
+            fname = 'agg_cmc_clf_{}.png'.format(task_key)
+            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+            fig = pt.figure(fnum=2)  # NOQA
+            ax = pt.gca()
+            cmc_curves = lnbnn_cmc_curves
+            method1_cmc(cmc_curves)
+            fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
+            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        if method == 2:
+
+            color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+            for fnum, chunk in enumerate(ub.chunks(zip(color_cycle, clf_roc_curves, lnbnn_roc_curves), 3), start=1):
+                fig = pt.figure(fnum=fnum)  # NOQA
+                fig.clf()
+                ax = pt.gca()
+                for color, data1, data2 in chunk:
+                    ax.plot(data1['fpr'], data1['tpr'], '-',
+                            label='%s clf AUC=%.3f' % (data1['label'], data1['auc']), color=color)
+                    ax.plot(data2['fpr'], data2['tpr'], '--',
+                            label='%s LNBNN AUC=%.3f' % (data2['label'], data2['auc']), color=color)
+                ax.set_xlabel('false positive rate')
+                ax.set_ylabel('true positive rate')
+                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+                ax.legend()
+                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+                fig.set_size_inches([W, H])
+
+                fname = 'agg_roc_chunk_{}_{}.png'.format(fnum, task_key)
+                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        if True:
+            # Agg metrics
+
+            agg_y_pred = []
+            agg_y_true = []
+            agg_sample_weight = []
+            agg_class_names = None
+
+            for dbname, results in all_results.items():
+                task_combo_res = results['task_combo_res']
+                res = task_combo_res[task_key][clf_key][data_key]
+
+                res.augment_if_needed()
+                y_true = res.y_test_enc
+                if sum(y_true == 2) < 50:
+                    continue
+                y_pred = res.clf_probs.argmax(axis=1)
+                agg_y_true.extend(y_true.tolist())
+                agg_y_pred.extend(y_pred.tolist())
+                agg_sample_weight.extend(res.sample_weight.tolist())
+                assert (agg_class_names is None or
+                        agg_class_names == res.class_names), (
+                            'classes are inconsistent')
+                agg_class_names = res.class_names
+
+            from ibeis.algo.verif import sklearn_utils
+            agg_report = sklearn_utils.classification_report2(
+                agg_y_true, agg_y_pred, agg_class_names, agg_sample_weight,
+                verbose=False)
+            metric_df = agg_report['metrics']
+            confusion_df = agg_report['confusion']
+
+            print(metric_df)
+            print(confusion_df)
+
+            # df = self.task_confusion[task_key]
+            df = confusion_df
+            df = df.rename_axis(self.task_nice_lookup[task_key], 0)
+            df = df.rename_axis(self.task_nice_lookup[task_key], 1)
+            df.index.name = None
+            df.columns.name = None
+
+            colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
+            tabular = Tabular(df, colfmt=colfmt, hline=True)
+            tabular.groupxs = [list(range(len(df) - 1)), [len(df) - 1]]
+            latex_str = tabular.as_tabular()
+
+            sum_pred = df.index[-1]
+            sum_real = df.columns[-1]
+            latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
+            latex_str = latex_str.replace(sum_real, r'$\sum$ real')
+            confusion_tex = ut.align(latex_str, '&', pos=None)
+            print(confusion_tex)
+
+            df = metric_df
+            # df = self.task_metrics[task_key]
+            df = df.rename_axis(self.task_nice_lookup[task_key], 0)
+            df = df.rename_axis({'mcc': 'MCC'}, 1)
+            df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
+            df.index.name = None
+            df.columns.name = None
+            df['support'] = df['support'].astype(np.int)
+            df.columns = ut.emap(upper_one, df.columns)
+
+            import re
+            tabular = Tabular(df, colfmt='numeric')
+            top, header, mid, bot = tabular.as_parts()
+            lines = mid[0].split('\n')
+            newmid = [lines[0:-1], lines[-1:]]
+            tabular.parts = (top, header, newmid, bot)
+            latex_str = tabular.as_tabular()
+            latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
+            metrics_tex = latex_str
+            print(metrics_tex)
+
+            dpath = str(self.base_dpath)
+            confusion_fname = 'agg_confusion_{}'.format(task_key)
+            metrics_fname = 'agg_eval_metrics_{}'.format(task_key)
+
+            confusion_tex = confusion_tex.replace('Incomparable', 'Incomp.')
+            confusion_tex = confusion_tex.replace('predicted', 'pred')
+            metrics_tex = metrics_tex.replace('Incomparable', 'Incomp.')
+
+            ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
+            ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
+
+            ut.render_latex(confusion_tex, dpath=dpath, fname=confusion_fname)
+            ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
+
 
     @profile
     def measure_dbstats(self):
@@ -335,61 +728,6 @@ class VerifierExpt(DBInputs):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), info)
         return info
 
-    @profile
-    def measure_split_stats(self):
-        """
-        python -m ibeis VerifierExpt.draw dbstats GZ_Master1
-
-        Ignore:
-            >>> from ibeis.scripts.postdoc import *
-            >>> self = VerifierExpt('GZ_Master1')
-        """
-        self.ensure_setup()
-        classifiers = self.sim_params['classifiers']
-        clf_meta = classifiers['match_state']['metadata'].copy()
-        clf_meta.pop('data_info')
-
-        def ibs_stats(aids):
-            pccs = self.ibs.group_annots_by_name(aids)[0]
-            nper_annot = ut.emap(len, pccs)
-            return {
-                'n_annots': len(aids),
-                'n_names': len(pccs),
-                'annot_size_mean': np.mean(nper_annot),
-                'annot_size_std': np.std(nper_annot),
-            }
-
-        train_aids = self.sim_params['train_aids']
-        test_aids = self.sim_params['test_aids']
-        dbstats = {
-            'testing': ibs_stats(test_aids),
-            'training': ibs_stats(train_aids),
-        }
-        traininfo = dbstats['training']
-        traininfo['class_hist'] = clf_meta['class_hist']
-        traininfo['n_training_pairs'] = sum(clf_meta['class_hist'].values())
-
-        infr = self.pblm.infr
-        pblm_pccs = list(self.pblm.infr.positive_components())
-        pblm_nper_annot = ut.emap(len, pblm_pccs)
-        traininfo['pblm_info'] = {
-            'n_annots': infr.graph.number_of_nodes(),
-            'n_names': len(pblm_pccs),
-            'annot_size_mean': np.mean(pblm_nper_annot),
-            'annot_size_std': np.std(pblm_nper_annot),
-            'notes': ut.textblock(
-                '''
-                if this (the real training data) is different from the parents
-                (ibeis) info, that means the staging database is ahead of
-                annotmatch. Report the ibeis one for clarity. Num annots should
-                always be the same though.
-                ''')
-        }
-
-        expt_name = 'dbstats'
-        self.expt_results[expt_name] = dbstats
-        ut.save_data(join(self.dpath, expt_name + '.pkl'), dbstats)
-
     def measure_all(self):
         r"""
         CommandLine:
@@ -462,6 +800,7 @@ class VerifierExpt(DBInputs):
             >>>     self = VerifierExpt(dbname)
             >>>     self.draw_all()
         """
+
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
         print('eval_task_keys = {!r}'.format(eval_task_keys))
@@ -477,7 +816,7 @@ class VerifierExpt(DBInputs):
         self.draw_class_score_hist()
         self.draw_mcc_thresh(task_key)
 
-        if not ut.get_argflag('--nodraw'):
+        if ut.get_argflag('--cases'):
             self.draw_hard_cases(task_key)
 
     def draw_roc(self, task_key='match_state'):
@@ -503,12 +842,15 @@ class VerifierExpt(DBInputs):
         # task_key = 'match_state'
         target_class = POSTV
         res = task_combo_res[task_key][clf_key][data_key]
-        c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-        c3 = res.confusions(target_class)
+        cfsm_vsm = vt.ConfusionMetrics().fit(scores, y)
+        cfsm_clf = res.confusions(target_class)
         roc_curves = [
-            {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-            {'label': 'clf', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
+            {'label': 'LNBNN', 'fpr': cfsm_vsm.fpr, 'tpr': cfsm_vsm.tpr, 'auc': cfsm_vsm.auc},
+            {'label': 'clf', 'fpr': cfsm_clf.fpr, 'tpr': cfsm_clf.tpr, 'auc': cfsm_clf.auc},
         ]
+
+        rank_clf_roc_curve   = ut.ddict(list)
+        rank_lnbnn_roc_curve = ut.ddict(list)
 
         roc_info_lines = []
 
@@ -525,13 +867,35 @@ class VerifierExpt(DBInputs):
                 y = sub_data[POSTV].values
                 probs = res.probs_df[POSTV].loc[sub_data.index].values
 
-                c4 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-                c5 = vt.ConfusionMetrics.from_scores_and_labels(probs, y)
+                cfsm_scores_rank = vt.ConfusionMetrics().fit(scores, y)
+                cfsm_probs_rank = vt.ConfusionMetrics().fit(probs, y)
 
-                if num == np.inf:
-                    num = 'inf'
-                rank_auc_df.loc[num, 'LNBNN'] = c4.auc
-                rank_auc_df.loc[num, 'clf'] = c5.auc
+                # if num == np.inf:
+                #     num = 'inf'
+                rank_auc_df.loc[num, 'LNBNN'] = cfsm_scores_rank.auc
+                rank_auc_df.loc[num, 'clf'] = cfsm_probs_rank.auc
+
+                rank_lnbnn_roc_curve[num] = {
+                    'label': 'LNBNN',
+                    'fpr': cfsm_scores_rank.fpr,
+                    'tpr': cfsm_scores_rank.tpr,
+                    'auc': cfsm_scores_rank.auc,
+                    'tpr@fpr=0': cfsm_scores_rank.get_metric_at_metric(
+                        'tpr', 'fpr', 0, tiebreaker='minthresh'),
+                    'thresh@fpr=0': cfsm_scores_rank.get_metric_at_metric(
+                        'thresh', 'fpr', 0, tiebreaker='minthresh'),
+                }
+
+                rank_clf_roc_curve[num] = {
+                    'label': 'clf',
+                    'fpr': cfsm_probs_rank.fpr,
+                    'tpr': cfsm_probs_rank.tpr,
+                    'auc': cfsm_probs_rank.auc,
+                    'tpr@fpr=0': cfsm_probs_rank.get_metric_at_metric(
+                        'tpr', 'fpr', 0, tiebreaker='minthresh'),
+                    'thresh@fpr=0': cfsm_probs_rank.get_metric_at_metric(
+                        'thresh', 'fpr', 0, tiebreaker='minthresh'),
+                }
 
             auc_text = 'AUC when restricting to the top `num` LNBNN ranks:'
             auc_text += '\n' + str(rank_auc_df)
@@ -544,10 +908,10 @@ class VerifierExpt(DBInputs):
             for at_value in [.25, .5, .75]:
                 info = ut.odict()
                 for want_metric in ['fpr', 'n_false_pos', 'n_true_pos', 'thresh']:
-                    key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
-                    info[key] = c3.get_metric_at_metric(want_metric, at_metric,
-                                                        at_value,
-                                                        thresh_ambiguity='min')
+                    key = '{}_@_{}={:.3f}'.format(want_metric, at_metric, at_value)
+                    info[key] = cfsm_clf.get_metric_at_metric(
+                        want_metric, at_metric, at_value,
+                        tiebreaker='minthresh')
                     if key.startswith('n_'):
                         info[key] = int(info[key])
                 tpr_info += [(ut.repr4(info, align=True, precision=8))]
@@ -563,9 +927,9 @@ class VerifierExpt(DBInputs):
                 info = ut.odict()
                 for want_metric in ['tpr', 'n_false_pos', 'n_true_pos', 'thresh']:
                     key = '{}_@_{}={:.3f}'.format(want_metric, at_metric, at_value)
-                    info[key] = c3.get_metric_at_metric(want_metric, at_metric,
-                                                        at_value,
-                                                        thresh_ambiguity='min')
+                    info[key] = cfsm_clf.get_metric_at_metric(
+                        want_metric, at_metric, at_value,
+                        tiebreaker='minthresh')
                     if key.startswith('n_'):
                         info[key] = int(info[key])
                 fpr_info += [(ut.repr4(info, align=True, precision=8))]
@@ -583,7 +947,7 @@ class VerifierExpt(DBInputs):
         ax = pt.gca()
         for data in roc_curves:
             ax.plot(data['fpr'], data['tpr'],
-                    label='%s AUC=%.2f' % (data['label'], data['auc']))
+                    label='AUC={:.3f} {}'.format(data['auc'], data['label']))
         ax.set_xlabel('false positive rate')
         ax.set_ylabel('true positive rate')
         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
@@ -596,187 +960,25 @@ class VerifierExpt(DBInputs):
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
         print('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
 
-    @classmethod
-    def agg_draw(VerifierExpt, task_key):
-        """
-
-        python -m ibeis VerifierExpt.agg_draw
-
-        GZ_Master1,LF_ALL,MantaMatcher,RotanTurtles,humpbacks_fb,GIRM_Master1
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.postdoc import *  # NOQA
-            >>> task_key = 'match_state'
-            >>> result = VerifierExpt.agg_draw(task_key)
-            >>> print(result)
-        """
-        agg_dbnames = [
-            'PZ_Master1',
-            'GZ_Master1',
-            # 'LF_ALL',
-            'MantaMatcher', 'RotanTurtles',
-            'humpbacks_fb', 'GIRM_Master1',
-        ]
-
-        all_results = ut.odict([])
-        for dbname in agg_dbnames:
-            self = VerifierExpt(dbname)
-            info = self.ensure_results('all')
-
-            all_results[dbname] = info
-
-        rerank_results = ut.odict([])
-        for dbname in agg_dbnames:
-            self = VerifierExpt(dbname)
-            info = self.ensure_results('rerank')
-            rerank_results[dbname] = info
-
-        auc_table  = pd.DataFrame(columns=['LNBNN', 'clf'])
-        rank1_table = pd.DataFrame(columns=['LNBNN', 'clf'])
-        rank5_table = pd.DataFrame(columns=['LNBNN', 'clf'])
-
-        clf_roc_curves = []
-        lnbnn_roc_curves = []
-
-        for dbname, results in all_results.items():
-            data_key = results['data_key']
-            clf_key = results['clf_key']
-
-            target_class = POSTV
-
-            # LNBNN classification confusions
-            lnbnn_data = results['lnbnn_data']
-            y = lnbnn_data[target_class].values
-            scores = lnbnn_data['score_lnbnn_1vM'].values
-            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-
-            # CLF classification confusions
-            task_combo_res = results['task_combo_res']
-            res = task_combo_res[task_key][clf_key][data_key]
-            c3 = res.confusions(target_class)
-
-            nice = dbname_to_species_nice(dbname)
-
-            lnbnn_roc_curves += [
-                {'label': nice, 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-            ]
-
-            clf_roc_curves += [
-                {'label': nice, 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
-            ]
-
-            auc_table.loc[nice, 'LNBNN'] = c2.auc
-            auc_table.loc[nice, 'clf'] = c3.auc
-
-            # ranking results
-            results = rerank_results[dbname]
-            cdfs, infos = list(zip(*results))
-            lnbnn_cdf, clf_cdf = cdfs
-
-            rank1_table.loc[nice, 'LNBNN'] = lnbnn_cdf[0]
-            rank1_table.loc[nice, 'clf'] = clf_cdf[0]
-
-            rank5_table.loc[nice, 'LNBNN'] = lnbnn_cdf[4]
-            rank5_table.loc[nice, 'clf'] = clf_cdf[4]
-
-        if True:
-            # Tables
-            from utool.experimental.pandas_highlight import to_string_monkey
-            print('\nauc_table =\n{}'.format(to_string_monkey(auc_table, 'all')))
-            print('\nrank1_table =\n{}'.format(to_string_monkey(rank1_table, 'all')))
-            print('\nrank5_table =\n{}'.format(to_string_monkey(rank5_table, 'all')))
-
-            def _bf_best(df):
-                df = df.copy()
-                for rx in range(len(df)):
-                    col = df.iloc[rx]
-                    for cx in ut.argmax(col.values, multi=True):
-                        val = df.iloc[rx, cx]
-                        df.iloc[rx, cx] = '\\mathbf{{{:.3f}}}'.format(val)
-                return df
-
-            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table, rank5_table]), axis=1)
-            all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table]), axis=1)
-            tabular = Tabular(all_stats, colfmt='numeric', escape=False)
-            tabular.precision = 3
-            tex_text = tabular.as_tabular()
-            # HACKS
-            tex_text = tex_text.replace('\\mathbf{$', '$\\mathbf{')
-            tex_text = tex_text.replace('$}', '}$')
-            # tex_text = ut.codeblock(
-            #     r'''
-            #     \begin{tabular}{l|rr|rr|rr}
-            #     \hline
-            #                    & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} & \multicolumn{2}{c}{Rank 5} \\
-            #     ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
-            tex_text = ut.codeblock(
-                r'''
-                \begin{tabular}{l|rr|rr}
-                \hline
-                               & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} \\
-                ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
-            print(tex_text)
-            ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
-
-            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath, fname='agg_results',
-                                preamb_extra=['\\usepackage{makecell}'])
-            ut.startfile(_)
-
-        method = 1
-        if method == 1:
+        for num in [1, 2, 5, np.inf]:
+            roc_curves_ = [rank_clf_roc_curve[num], rank_lnbnn_roc_curve[num]]
             fig = pt.figure(fnum=1)  # NOQA
             ax = pt.gca()
-            for data in clf_roc_curves:
+            for data in roc_curves_:
                 ax.plot(data['fpr'], data['tpr'],
-                        label='%s AUC=%.2f' % (data['label'], data['auc']))
+                        label='AUC={:.3f} TPR={:.3f} {}'.format(
+                            data['auc'], data['tpr@fpr=0'], data['label']))
             ax.set_xlabel('false positive rate')
             ax.set_ylabel('true positive rate')
-            # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+            ax.set_title('ROC@rank<={num}'.format(num=num))
             ax.legend()
             pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
             fig.set_size_inches([W, H])
-            fname = 'agg_roc_clf_{}.png'.format(task_key)
-            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+
+            fname = 'rank_{}_roc_{}.png'.format(num, task_key)
+            fig_fpath = join(str(self.dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-            fig = pt.figure(fnum=2)  # NOQA
-            ax = pt.gca()
-            for data in lnbnn_roc_curves:
-                ax.plot(data['fpr'], data['tpr'],
-                        label='%s AUC=%.2f' % (data['label'], data['auc']))
-            ax.set_xlabel('false positive rate')
-            ax.set_ylabel('true positive rate')
-            # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-            ax.legend()
-            pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-            fig.set_size_inches([W, H])
-            fname = 'agg_roc_lnbnn_{}.png'.format(task_key)
-            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        if method == 2:
-
-            color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
-            for fnum, chunk in enumerate(ub.chunks(zip(color_cycle, clf_roc_curves, lnbnn_roc_curves), 3), start=1):
-                fig = pt.figure(fnum=fnum)  # NOQA
-                fig.clf()
-                ax = pt.gca()
-                for color, data1, data2 in chunk:
-                    ax.plot(data1['fpr'], data1['tpr'], '-',
-                            label='%s clf AUC=%.2f' % (data1['label'], data1['auc']), color=color)
-                    ax.plot(data2['fpr'], data2['tpr'], '--',
-                            label='%s LNBNN AUC=%.2f' % (data2['label'], data2['auc']), color=color)
-                ax.set_xlabel('false positive rate')
-                ax.set_ylabel('true positive rate')
-                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-                ax.legend()
-                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                fig.set_size_inches([W, H])
-
-                fname = 'agg_roc_chunk_{}_{}.png'.format(fnum, task_key)
-                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            print('wrote roc figure to fig_fpath= {!r}'.format(fig_fpath))
 
     def draw_rerank(self):
         mpl.rcParams.update(TMP_RC)
@@ -1313,7 +1515,7 @@ class VerifierExpt(DBInputs):
             kind='bar', width=width, alpha=.7, edgecolor='none',
             xlabel=xlabel, ylabel='frequency', fnum=fnum, pnum=(1, 1, 1),
             rcParams=TMP_RC, stacked=True,
-            ytickformat='%.2f', xlim=xlim,
+            ytickformat='%.3f', xlim=xlim,
             # title='LNBNN positive separation'
         )
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
@@ -1404,7 +1606,7 @@ class VerifierExpt(DBInputs):
             t = c1.thresholds[idx]
             mcc = c1.mcc[idx]
             roc_curves += [
-                {'label': class_nice + ', t={:.2f}, mcc={:.2f}'.format(t, mcc),
+                {'label': class_nice + ', t={:.3f}, mcc={:.3f}'.format(t, mcc),
                  'thresh': c1.thresholds, 'mcc': c1.mcc},
             ]
 
@@ -1870,7 +2072,7 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
     num_ranks = min(cdfs.shape[-1], 20)
     xdata = np.arange(1, num_ranks + 1)
     cdfs_trunc = cdfs[:, 0:num_ranks]
-    label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
+    label_list = ['%6.3f%% - %s' % (cdf[0] * 100, lbl)
                   for cdf, lbl in zip(cdfs_trunc, labels)]
 
     # ymin = .4

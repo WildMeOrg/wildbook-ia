@@ -7,7 +7,7 @@ from ibeis.other import ibsfuncs
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[viz_qres]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 DEFAULT_NTOP = 3
@@ -178,6 +178,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             if annot_mode == 0, then draw lines and ellipse
             elif annot_mode == 1, then dont draw lines or ellipse
             elif annot_mode == 2, then draw only lines
+            elif annot_mode == 3, draw heatmask only
         See: viz_matches.show_name_matches, viz_helpers.get_query_text
 
     Returns:

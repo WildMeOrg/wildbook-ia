@@ -288,6 +288,6 @@ def demo_single_pairwise_feature_vector():
     #     target_class_idx = task.lookup_class_idx(target_class)
     #     scores = pblm.samples.simple_scores[score_key]
     #     y = task.y_bin.T[target_class_idx]
-    #     conf = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+    #     conf = vt.ConfusionMetrics().fit(scores, y)
     #     conf.label = score_key
     #     return conf

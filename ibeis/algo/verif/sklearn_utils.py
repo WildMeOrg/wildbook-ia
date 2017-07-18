@@ -332,7 +332,7 @@ def classification_report2(y_true, y_pred, target_names=None,
          [C, D]] = cm
         (A * D - B * C) / np.sqrt((A + C) * (B + D) * (A + B) * (C + D))
 
-        # c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+        # c2 = vt.ConfusionMetrics().fit(scores, y)
 
     # bookmaker is analogous to recall, but unbiased by class frequency
     rprob_mat = np.tile(rprob, [k, 1]).T - (1 - np.eye(k))

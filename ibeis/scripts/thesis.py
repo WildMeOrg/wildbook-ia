@@ -2495,7 +2495,7 @@ class Chap4(DBInputs):
             # task_key = 'match_state'
             target_class = POSTV
             res = task_combo_res[task_key][clf_key][data_key]
-            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+            c2 = vt.ConfusionMetrics().fit(scores, y)
             c3 = res.confusions(target_class)
             roc_curves = [
                 {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},

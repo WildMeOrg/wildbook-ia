@@ -1338,7 +1338,9 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     #### INTERACTIVE SETUP ###
     def toggle_annot_mode():
         for ix in range(len(annot_modes)):
-            annot_modes[ix] = (annot_modes[ix] + 1 % 3)
+            # See viz_qres.py for more annot_mode info
+            # TODO: use viz_qres to get the number of possible annot modes.
+            annot_modes[ix] = (annot_modes[ix] + 1 % 4)
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
         print('show_kwargs[\'fastmode\'] = %r' % (show_kwargs['fastmode'],))

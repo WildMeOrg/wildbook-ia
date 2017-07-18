@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-from os.path import basename, join, splitext, exists
+from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
 import six
 import numpy as np
@@ -65,12 +65,17 @@ class DBInputs(object):
     def __init__(self, dbname=None):
         self.ibs = None
         self.expt_results = {}
+        if isdir(dbname) or islink(dbname):
+            dpath = abspath(dbname)
+        else:
+            dpath = None
+
         self.dbname = dbname
         self.dname = None
-        self.dpath = None
+        self.dpath = dpath
         self.species_nice = dbname_to_species_nice(dbname)
 
-        if dbname is not None:
+        if self.dpath is None and dbname is not None:
             self.dname = self.dbname
             self.dpath = join(self.base_dpath, 'link', self.dname)
 

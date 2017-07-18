@@ -425,6 +425,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             aid_pairs_ = pblm.make_lnbnn_training_pairs()
         elif sample_method == 'random':
             aid_pairs_ = pblm.make_randomized_training_pairs()
+        elif sample_method == 'lnbnn+random':
+            aid_pairs1 = pblm.make_lnbnn_training_pairs()
+            aid_pairs2 = pblm.make_randomized_training_pairs()
+            aid_pairs_ = list(set(aid_pairs1).union(aid_pairs2))
         else:
             raise KeyError('Unknown sample_method={}'.format(sample_method))
 
@@ -1251,6 +1255,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Ignore:
             >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('RotanTurtles')
+            >>> self = VerifierExpt('humpbacks_fb')
             >>> import ibeis
             >>> self._precollect()
             >>> ibs = self.ibs
@@ -1263,6 +1268,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> infr.params['ranking.enabled'] = False
             >>> win = infr.qt_review_loop()
 
+            >>> pblm.eval_data_keys = [pblm.default_data_key]
+            >>> pblm.eval_clf_keys = [pblm.default_clf_key]
+            >>> pblm.evaluate_classifiers()
 
         Ignore:
             >>> # TEST to ensure we can priorizite reviewed edges without inference

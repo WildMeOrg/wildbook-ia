@@ -89,7 +89,12 @@ nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
 
     fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)
 
-    draw_case_kw = dict(show_in_notebook=True, annot_modes=[1])
+    # NOTE: edit the draw_case_kw to change how results appear.
+    draw_case_kw = dict(show_in_notebook=True, annot_modes=[3])
+    # Use annot_modes [0,1] to see with and without matches
+    # See viz_qres for annotmode details
+    # draw_case_kw = dict(show_in_notebook=True, annot_modes=[0,1])
+
     notebook_helpers.make_cells_wider()
     # ENDBLOCK
     '''))

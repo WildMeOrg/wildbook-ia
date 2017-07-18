@@ -522,8 +522,7 @@ def iccv_roc(dbname):
     class_name = POSTV
     clf_labels = res.target_bin_df[class_name].values
     clf_probs = res.probs_df[class_name].values
-    clf_conf = vt.ConfusionMetrics.from_scores_and_labels(clf_probs,
-                                                          clf_labels)
+    clf_conf = vt.ConfusionMetrics().fit(clf_probs, clf_labels)
     clf_fpr = clf_conf.fpr
     clf_tpr = clf_conf.tpr
 
@@ -531,8 +530,7 @@ def iccv_roc(dbname):
     task = pblm.samples.subtasks['match_state']
     lnbnn_labels = task.indicator_df[class_name]
     lnbnn_scores = pblm.samples.simple_scores['score_lnbnn_1vM']
-    lnbnn_conf = vt.ConfusionMetrics.from_scores_and_labels(lnbnn_scores,
-                                                            lnbnn_labels)
+    lnbnn_conf = vt.ConfusionMetrics().fit(lnbnn_scores, lnbnn_labels)
     lnbnn_fpr = lnbnn_conf.fpr
     lnbnn_tpr = lnbnn_conf.tpr
 

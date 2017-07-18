@@ -890,7 +890,7 @@ class ClfResult(ut.NiceRepr):
             class_name = res.class_names[k]
             cfms = res.confusions(class_name)
             # probs, labels = clf_probs.T[k], y_test_bin.T[k]
-            # cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            # cfms = vt.ConfusionMetrics().fit(probs, labels)
 
             for k, mv in choice_mv.items():
                 metric, value = mv
@@ -1002,7 +1002,7 @@ class ClfResult(ut.NiceRepr):
         clf_probs = res.probs_df.values
         k = res.class_names.index(class_name)
         probs, labels = clf_probs.T[k], y_test_bin.T[k]
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        confusions = vt.ConfusionMetrics().fit(probs, labels)
         return confusions
 
     def ishow_roc(res):
@@ -1041,7 +1041,7 @@ class ClfResult(ut.NiceRepr):
         import vtool as vt
         labels = res.target_bin_df[class_name].values
         probs = res.probs_df[class_name].values
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        confusions = vt.ConfusionMetrics().fit(probs, labels)
         confusions.draw_roc_curve(**kwargs)
 
     def roc_scores_ovr_hat(res):
