@@ -1002,10 +1002,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'V3 Whale Shark', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
         # {'label': 'V3 Whale Fluke', 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'V3',                'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'label': 'V3 (GRID)',         'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
-        {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
+        {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'label': 'V3 (GRID)',          'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'background_whale_fluke', 'weight_filepath' : 'background_whale_fluke'},
+        {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'background_whale_fluke', 'weight_filepath' : 'background_whale_fluke'},
+
+        # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
+        # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
 
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
