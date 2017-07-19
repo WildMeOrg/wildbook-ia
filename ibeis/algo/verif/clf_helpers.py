@@ -1060,6 +1060,17 @@ class ClfResult(ut.NiceRepr):
             auc = sklearn.metrics.roc_auc_score(class_k_truth, class_k_probs)
             yield auc
 
+    def confusions_ovr(res):
+        # one_vs_rest confusions
+        import vtool as vt
+        res.augment_if_needed()
+        for k in range(res.y_test_bin.shape[1]):
+            class_k_truth = res.y_test_bin.T[k]
+            class_k_probs = res.clf_probs.T[k]
+            cfms = vt.ConfusionMetrics().fit(class_k_probs, class_k_truth)
+            # auc = sklearn.metrics.roc_auc_score(class_k_truth, class_k_probs)
+            yield res.class_names[k], cfms
+
     def roc_score(res):
         res.augment_if_needed()
         auc_learn = sklearn.metrics.roc_auc_score(res.y_test_bin, res.clf_probs)
