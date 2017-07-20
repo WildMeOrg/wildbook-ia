@@ -644,10 +644,9 @@ class PairwiseMatch(ut.NiceRepr):
                 else:
                     delta = np.abs(v1 - v2)
             feat['global(delta_{})'.format(k)] = delta
+            assert k != 'yaw', 'yaw is depricated'
 
         # Impose ordering on these keys to add symmetry
-        assert k != 'yaw', 'depricated'
-
         keys_to_order = ['qual', 'view']
         for key in keys_to_order:
             k1 = 'global({}_1)'.format(key)

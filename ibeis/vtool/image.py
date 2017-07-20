@@ -669,12 +669,6 @@ def open_image_size(image_fpath):
     return size
 
 
-def get_gpathlist_sizes(gpath_list):
-    """ reads the size of each image in gpath_list """
-    gsize_list = [open_image_size(gpath) for gpath in gpath_list]
-    return gsize_list
-
-
 def cvt_BGR2L(imgBGR):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]
@@ -1701,73 +1695,6 @@ def resize_thumb(img, max_dsize=(64, 64), interpolation=None):
         # return cvt_BGR2RGB(img)
     else:
         return cv2.resize(img, dsize, interpolation=interpolation)
-
-
-# Parallel code for resizing many images
-def resize_worker(tup):
-    """ worker function for parallel generator """
-    gfpath, new_gfpath, new_size = tup
-    #print('[preproc] writing thumbnail: %r' % new_gfpath)
-    #if not exists(new_gfpath):
-    #    return new_gfpath
-    img = imread(gfpath)
-    new_img = resize(img, new_size)
-    imwrite(new_gfpath, new_img)
-    return new_gfpath
-
-
-def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwargs):
-    """ Resizes images and yeilds results asynchronously  """
-    # Compute and write thumbnail in asychronous process
-    kwargs['force_serial'] = kwargs.get('force_serial', True)
-    kwargs['ordered']      = kwargs.get('ordered', True)
-    arg_iter = zip(gpath_list, new_gpath_list, newsize_list)
-    arg_list = list(arg_iter)
-    return ut.util_parallel.generate(resize_worker, arg_list, **kwargs)
-
-
-def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
-                                 sqrt_area=800, output_dir=None,
-                                 checkexists=True,
-                                 **kwargs):
-    """ Resizes images and yeilds results asynchronously  """
-    import vtool as vt
-    target_area = sqrt_area ** 2
-    # Read image sizes
-    gsize_list = get_gpathlist_sizes(gpath_list)
-    # Compute new sizes which preserve aspect ratio
-    newsize_list = [vt.ScaleStrat.area(target_area, wh) for wh in gsize_list]
-    if new_gpath_list is None:
-        # Compute names for the new images if not given
-        if output_dir is None:
-            # Create an output directory if not specified
-            output_dir      = 'resized_sqrtarea%r' % sqrt_area
-        ut.ensuredir(output_dir)
-        size_suffixs =  ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
-        from os.path import basename
-        old_gnames = [basename(p) for p in gpath_list]
-        new_gname_list = [ut.augpath(p, suffix=s)
-                          for p, s in zip(old_gnames, size_suffixs)]
-        new_gpath_list = [join(output_dir, gname) for gname in new_gname_list]
-        new_gpath_list = list(map(ut.unixpath, new_gpath_list))
-    assert len(new_gpath_list) == len(gpath_list), 'unequal len'
-    assert len(newsize_list) == len(gpath_list), 'unequal len'
-    # Evaluate generator
-    if checkexists:
-        exists_list = list(map(exists, new_gpath_list))
-        gpath_list_ = ut.filterfalse_items(gpath_list, exists_list)
-        new_gpath_list_ = ut.filterfalse_items(new_gpath_list, exists_list)
-        newsize_list_ = ut.filterfalse_items(newsize_list, exists_list)
-    else:
-        gpath_list_ = gpath_list
-        new_gpath_list_ = new_gpath_list
-        newsize_list_ = newsize_list
-    generator = resize_imagelist_generator(gpath_list_, new_gpath_list_,
-                                           newsize_list_, **kwargs)
-    for res in generator:
-        pass
-    #return [res for res in generator]
-    return new_gpath_list
 
 
 def find_pixel_value_index(img, pixel):
