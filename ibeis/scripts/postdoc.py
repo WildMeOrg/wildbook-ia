@@ -1288,6 +1288,7 @@ class VerifierExpt(DBInputs):
 
             >>> self = VerifierExpt('RotanTurtles')
         """
+        ut.set_num_procs(4)
         if getattr(self, 'pblm', None) is None:
             self._setup(quick=True)
         # ut.set_process_title(self.dbname + 'hyperparam_search')
@@ -1379,8 +1380,6 @@ class VerifierExpt(DBInputs):
 
         (26, 876),
         '''
-
-        ut.set_num_procs(4)
 
         sel_qaids = sorted(selected['qaid'].values)
         sel_daids = sorted(needed_daids + confuse_daids)

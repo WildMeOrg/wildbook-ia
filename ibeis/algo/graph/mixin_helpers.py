@@ -368,9 +368,13 @@ class DummyEdges(object):
             new_names = [fix_name(n) for n in annots.names]
             set(new_names)
 
+            annots.names = new_names
+
             infr.set_node_attrs('name_fix', ut.dzip(infr.aids, new_names))
             label = 'name_fix'
             infr.ensure_mst(label)
+
+            infr.set_node_attrs('name_label', ut.dzip(infr.aids, annots.nids))
 
         Ignore:
             label = 'name_label'
