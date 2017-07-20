@@ -65,6 +65,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     Example:
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
+        >>> pblm.hyper_params['xval_kw']['n_splits'] = 10
+        >>> assert pblm.xval_kw.n_splits == 10
+        >>> pblm.xval_kw.n_splits = 5
+        >>> assert pblm.hyper_params['xval_kw']['n_splits'] == 5
         >>> pblm.load_samples()
         >>> pblm.load_features()
     """
@@ -100,6 +104,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ('vsone_kpts', pairfeat.VsOneFeatConfig()),
             ('vsone_match', pairfeat.VsOneMatchConfig()),
             ('pairwise_feats', pairfeat.PairFeatureConfig()),
+            ('xval_kw', pblm.xval_kw),
             ('need_lnbnn', False),
             # ('sample_method', 'lnbnn'),
             ('sample_method', 'random'),
@@ -198,10 +203,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None, **params):
-        # TODO: If the graph structure is defined, this should load the most
-        # recent state, so the infr object has all the right edges.  If the
-        # graph structure is not defined, it should apply the conversion
-        # method.
         import ibeis
         infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         infr.reset_feedback('staging', apply=True)

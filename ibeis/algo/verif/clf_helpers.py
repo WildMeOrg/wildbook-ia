@@ -8,6 +8,7 @@ MAIN IDEA:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
+import ubelt as ub
 import numpy as np
 import dtool as dt
 import pandas as pd
@@ -159,7 +160,6 @@ class ClfProblem(ut.NiceRepr):
         # TODO: ABI class should not be caching
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
                          verbose=1)
-        import ubelt as ub
         cacher_clf = ub.Cacher(fname, cfgstr=cfgstr,
                                meta=[feat_dims], **cacher_kw)
 

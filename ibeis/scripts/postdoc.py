@@ -12,6 +12,7 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 import numpy as np  # NOQA
 import pandas as pd
 import ubelt as ub  # NOQA
+import itertools as it
 import matplotlib as mpl
 from os.path import basename, join, splitext, exists  # NOQA
 import ibeis.constants as const
@@ -82,7 +83,7 @@ class VerifierExpt(DBInputs):
         }
     }
 
-    def _setup(self):
+    def _setup(self, quick=False):
         r"""
         CommandLine:
             python -m ibeis VerifierExpt._setup --db GZ_Master1
@@ -128,7 +129,11 @@ class VerifierExpt(DBInputs):
         aids = self.aids_pool
 
         # pblm = vsone.OneVsOneProblem.from_aids(ibs, aids, sample_method='random')
-        pblm = vsone.OneVsOneProblem.from_aids(ibs, aids, sample_method='lnbnn+random')
+        pblm = vsone.OneVsOneProblem.from_aids(
+            ibs, aids, sample_method='lnbnn+random',
+            n_splits=10,
+        )
+
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
 
@@ -136,8 +141,6 @@ class VerifierExpt(DBInputs):
 
         pblm.eval_data_keys = [data_key]
         pblm.eval_clf_keys = [clf_key]
-
-        pblm.setup_evaluation(with_simple=True)
 
         ibs = pblm.infr.ibs
         # pblm.samples.print_info()
@@ -151,10 +154,15 @@ class VerifierExpt(DBInputs):
             species = species_code
 
         self.pblm = pblm
-        self.eval_task_keys = pblm.eval_task_keys
         self.species = species
         self.data_key = data_key
         self.clf_key = clf_key
+
+        if quick:
+            return
+
+        pblm.setup_evaluation(with_simple=True)
+        self.eval_task_keys = pblm.eval_task_keys
 
         cfg_prefix = '{}'.format(len(pblm.samples))
         config = pblm.hyper_params
@@ -334,7 +342,6 @@ class VerifierExpt(DBInputs):
                 clf_data = rank_roc_curves[num]['clf'][dbname]
                 # Highlight the bigger one for each metric
                 for metric in ['tpr@fpr=0', 'auc']:
-                    import itertools as it
                     for d1, d2 in it.permutations([vsm_data, clf_data], 2):
                         text = '{:.3f}'.format(d1[metric])
                         if d1[metric] >= d2[metric]:
@@ -1276,6 +1283,92 @@ class VerifierExpt(DBInputs):
         expt_name = 'rerank'
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+
+    def ranking_hyperparamm_search(self):
+        """
+            >>> from ibeis.scripts.postdoc import *
+            >>> self = VerifierExpt('humpbacks_fb')
+        """
+        if getattr(self, 'pblm', None) is None:
+            self._setup(quick=True)
+
+        pblm = self.pblm
+        infr = pblm.infr
+        ibs = pblm.infr.ibs
+        aids = pblm.infr.aids
+
+        # These are not gaurenteed to be comparable
+        viewpoint_aware = (ibs.dbname == 'RotanTurtles')
+
+        from ibeis.scripts import thesis
+        qaids, daids_list, info_list = thesis.Sampler._varied_inputs(
+            ibs, aids, viewpoint_aware=viewpoint_aware)
+        daids = daids_list[0]
+        info = info_list[0]
+
+        # ---------------------------
+        # Execute the ranking algorithm
+        qaids = sorted(qaids)
+        daids = sorted(daids)
+        cfgdict = pblm._make_lnbnn_pcfg()
+        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+
+        # ---------------------------
+        # Sample a small dataset of borderline pairs to do hyperparamter
+        # optimization on
+        target_n_qaids = 32
+        target_n_daids = 100
+
+        border = pd.DataFrame(object(), index=qaids, columns=['qaid', 'rank', 'daids'])
+        for cm in cm_list:
+            gt_aids = cm.get_top_gt_aids(ibs=ibs)
+            gt_ranks = np.array(cm.get_annot_ranks(gt_aids))
+            border.loc[cm.qaid, 'qaid'] = cm.qaid
+            border.loc[cm.qaid, 'rank'] = gt_ranks.min()
+            border.loc[cm.qaid, 'daids'] = gt_aids.tolist()
+
+        border = border.sort_values('rank')
+        border = border[border['rank'] > 0]
+        vals, bins = np.histogram(border['rank'],
+                                  bins=np.arange(border['rank'].max()))
+        rank_hist = pd.Series(vals, index=bins[:-1])
+        rank_cumhist = rank_hist.cumsum()
+        rank_thresh = np.where(rank_cumhist <= target_n_qaids)[0][-1]
+        selected = border[border['rank'] <= rank_thresh]
+        needed_daids = sorted(ut.flatten(selected['daids'].values))
+        avail_daids = set(daids) - set(needed_daids)
+        n_need = target_n_daids - len(needed_daids)
+        confuse_daids = ut.shuffle(list(avail_daids), rng=1393290)[:n_need]
+
+        # ---------------------------
+        # Rerun ranking on the smaller dataset
+
+        def measure_name_cmc(cm_list, nbins=None):
+            lnbnn_name_ranks = []
+            for cm in cm_list:
+                lnbnn_rank = cm.get_name_ranks([cm.qnid])[0]
+                lnbnn_name_ranks.append(lnbnn_rank)
+            if nbins is None:
+                nbins = max(lnbnn_name_ranks)
+            bins = np.arange(nbins)
+            hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
+            cdf = (np.cumsum(hist) / sum(hist))
+            return cdf
+
+        sel_qaids = sorted(selected['qaid'].values)
+        sel_daids = sorted(needed_daids + confuse_daids)
+
+        baseline_cfgdict = pblm._make_lnbnn_pcfg()
+
+        cfgdict = baseline_cfgdict.copy()
+        qreq_ = ibs.new_query_request(sel_qaids, sel_daids, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+
+        # Optimize this score
+        score = measure_name_cmc(cm_list)[0]
 
     def measure_hard_cases(self, task_key):
         """
