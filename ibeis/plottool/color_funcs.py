@@ -175,13 +175,32 @@ def brighten_rgb(rgb, amount):
 
 
 def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
+    """
+
+    colors = ['r', 'b', 'purple', 'orange', 'deeppink', 'g']
+
+    colors = list(mcolors.CSS4_COLORS.keys())
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> colors = ut.get_argval('--colors', type_=list, default=['k', 'r'])
+        >>> ut.quit_if_noshow()
+        >>> rgb_list = ut.emap(ensure_base01, colors)
+        >>> testshow_colors(rgb_list)
+        >>> ut.show_if_requested()
+    """
     import plottool as pt
     import vtool as vt
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
     #print(ut.repr2(block_list))
     #print(ut.repr2(rgb_list))
-    stacked_block = vt.stack_image_list(block_list, vert=False)
+    chunks = ut.ichunks(block_list, 10)
+    stacked_chunk = []
+    for chunk in chunks:
+        stacked_chunk.append(vt.stack_image_list(chunk, vert=False))
+    stacked_block = vt.stack_image_list(stacked_chunk, vert=True)
     # convert to bgr
     stacked_block = stacked_block[:, :, ::-1]
     uint8_img = (255 * stacked_block).astype(np.uint8)
@@ -189,7 +208,7 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
         import cv2
         uint8_img = cv2.cvtColor(uint8_img, cv2.COLOR_RGB2GRAY)
     pt.imshow(uint8_img)
-    pt.show_if_requested()
+    # pt.show_if_requested()
 
 
 def desaturate_rgb(rgb, amount):
@@ -381,6 +400,7 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         python -m plottool.color_funcs --test-distinct_colors --N 4 --show --hue-range=0.05,.95
         python -m plottool.color_funcs --test-distinct_colors --N 3 --show --no-randomize
         python -m plottool.color_funcs --test-distinct_colors --N 4 --show --no-randomize
+        python -m plottool.color_funcs --test-distinct_colors --N 6 --show --no-randomize
         python -m plottool.color_funcs --test-distinct_colors --N 20 --show
 
     References:
