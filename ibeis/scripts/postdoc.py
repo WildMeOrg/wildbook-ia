@@ -225,6 +225,9 @@ class VerifierExpt(DBInputs):
             >>> print(result)
         """
         all_results = ut.odict([])
+
+        dbnames = VerifierExpt.agg_dbnames
+
         for dbname in VerifierExpt.agg_dbnames:
             self = VerifierExpt(dbname)
             info = self.ensure_results('all')
@@ -240,64 +243,56 @@ class VerifierExpt(DBInputs):
         rank_auc_tables = ut.ddict(lambda: pd.DataFrame(columns=['LNBNN', 'clf']))
         rank_tpr_tables = ut.ddict(lambda: pd.DataFrame(columns=['LNBNN', 'clf']))
         rank_tpr_thresh_tables = ut.ddict(lambda: pd.DataFrame(columns=['LNBNN', 'clf']))
-        rank_clf_roc_curves   = ut.ddict(list)
-        rank_lnbnn_roc_curves = ut.ddict(list)
 
-        auc_table  = pd.DataFrame(columns=['LNBNN', 'clf'])
+        # rank_clf_roc_curves   = ut.ddict(list)
+        # rank_lnbnn_roc_curves = ut.ddict(list)
+        rank_roc_curves = ub.AutoOrderedDict()
+        # ut.ddict(ut.odict)
+
         rank1_cmc_table = pd.DataFrame(columns=['LNBNN', 'clf'])
-        rank5_table = pd.DataFrame(columns=['LNBNN', 'clf'])
+        rank5_cmc_table = pd.DataFrame(columns=['LNBNN', 'clf'])
 
         lnbnn_cmc_curves = []
         clf_cmc_curves = []
 
-        clf_roc_curves = []
-        lnbnn_roc_curves = []
+        n_dbs = len(all_results)
+        color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color'][:n_dbs]
 
-        for dbname, results in all_results.items():
+        color_cycle = ['r', 'b', 'purple', 'orange', 'deeppink', 'g']
+        markers = pt.distinct_markers(n_dbs)
+
+        dbprops = ub.AutoDict()
+        for n, dbname in enumerate(dbnames):
+            dbprops[dbname]['color'] = color_cycle[n]
+            dbprops[dbname]['marker'] = markers[n]
+
+        for dbname in dbnames:
+            results = all_results[dbname]
             data_key = results['data_key']
             clf_key = results['clf_key']
 
-            target_class = POSTV
-
-            # LNBNN classification confusions
             lnbnn_data = results['lnbnn_data']
-            y = lnbnn_data[target_class].values
-            scores = lnbnn_data['score_lnbnn_1vM'].values
-            cfsm_vsm = vt.ConfusionMetrics().fit(scores, y)
-
-            # CLF classification confusions
             task_combo_res = results['task_combo_res']
             res = task_combo_res[task_key][clf_key][data_key]
-            cfsm_clf = res.confusions(target_class)
-
             nice = dbname_to_species_nice(dbname)
-
-            lnbnn_roc_curves += [
-                {'label': nice, 'fpr': cfsm_vsm.fpr, 'tpr': cfsm_vsm.tpr,
-                 'auc': cfsm_vsm.auc},
-            ]
-
-            clf_roc_curves += [
-                {'label': nice, 'fpr': cfsm_clf.fpr, 'tpr': cfsm_clf.tpr,
-                 'auc': cfsm_clf.auc},
-            ]
-
-            auc_table.loc[nice, 'LNBNN'] = cfsm_vsm.auc
-            auc_table.loc[nice, 'clf'] = cfsm_clf.auc
 
             # ranking results
             results = rerank_results[dbname]
             cdfs, infos = list(zip(*results))
             lnbnn_cdf, clf_cdf = cdfs
+            cdfs = {
+                'clf': clf_cdf,
+                'lnbnn': lnbnn_cdf,
+            }
 
-            lnbnn_cmc_curves += [{'label': nice, 'cmc': lnbnn_cdf}]
-            clf_cmc_curves += [{'label': nice, 'cmc': clf_cdf}]
+            lnbnn_cmc_curves += [{'species': nice, 'cmc': lnbnn_cdf}]
+            clf_cmc_curves += [{'species': nice, 'cmc': clf_cdf}]
 
             rank1_cmc_table.loc[nice, 'LNBNN'] = lnbnn_cdf[0]
             rank1_cmc_table.loc[nice, 'clf'] = clf_cdf[0]
 
-            rank5_table.loc[nice, 'LNBNN'] = lnbnn_cdf[4]
-            rank5_table.loc[nice, 'clf'] = clf_cdf[4]
+            rank5_cmc_table.loc[nice, 'LNBNN'] = lnbnn_cdf[4]
+            rank5_cmc_table.loc[nice, 'clf'] = clf_cdf[4]
 
             # Check the ROC for only things in the top of the LNBNN ranked lists
             # nums = [1, 2, 3, 4, 5, 10, 20, np.inf]
@@ -312,41 +307,60 @@ class VerifierExpt(DBInputs):
                 y = sub_data[POSTV].values
                 probs = res.probs_df[POSTV].loc[sub_data.index].values
 
-                cfsm_scores = vt.ConfusionMetrics().fit(scores, y)
-                cfsm_probs = vt.ConfusionMetrics().fit(probs, y)
+                cfsm_vsm = vt.ConfusionMetrics().fit(scores, y)
+                cfsm_clf = vt.ConfusionMetrics().fit(probs, y)
+                algo_confusions = {
+                    'lnbnn': cfsm_vsm,
+                    'clf': cfsm_clf
+                }
 
-                curves = [
-                    rank_lnbnn_roc_curves[num],
-                    rank_clf_roc_curves[num]
-                ]
-                cfsm_list = [cfsm_scores, cfsm_probs]
-                for curve, cfsm in zip(curves, cfsm_list):
-                    curve += [{
-                        'label': nice, 'fpr': cfsm.fpr, 'tpr': cfsm.tpr,
-                        'auc': cfsm.auc,
-                        'tpr@fpr=0': cfsm.get_metric_at_metric(
+                for algo in {'lnbnn', 'clf'}:
+                    cfms = algo_confusions[algo]
+                    rank_roc_curves[num][algo][dbname] = {
+                        'dbname': dbname,
+                        'species': nice,
+                        'fpr': cfms.fpr,
+                        'tpr': cfms.tpr,
+                        'auc': cfms.auc,
+                        'color': dbprops[dbname]['color'],
+                        'marker': dbprops[dbname]['marker'],
+                        'tpr@fpr=0': cfms.get_metric_at_metric(
                             'tpr', 'fpr', 0, tiebreaker='minthresh'),
-                        'thresh@fpr=0': cfsm.get_metric_at_metric(
+                        'thresh@fpr=0': cfms.get_metric_at_metric(
                             'thresh', 'fpr', 0, tiebreaker='minthresh'),
-                    }]
+                    }
 
-                rank_auc_df.loc[nice, 'LNBNN'] = cfsm_scores.auc
-                rank_auc_df.loc[nice, 'clf'] = cfsm_probs.auc
+                vsm_data = rank_roc_curves[num]['lnbnn'][dbname]
+                clf_data = rank_roc_curves[num]['clf'][dbname]
+                # Highlight the bigger one for each metric
+                for metric in ['tpr@fpr=0', 'auc']:
+                    import itertools as it
+                    for d1, d2 in it.permutations([vsm_data, clf_data], 2):
+                        text = '{:.3f}'.format(d1[metric])
+                        if d1[metric] >= d2[metric]:
+                            d1[metric + '_tex'] = '\\mathbf{' + text + '}'
+                            d1[metric + '_text'] = text + '*'
+                        else:
+                            d1[metric + '_tex'] =  text
+                            d1[metric + '_text'] = text
+
+                rank_auc_df.loc[nice, 'LNBNN'] = cfsm_vsm.auc
+                rank_auc_df.loc[nice, 'clf'] = cfsm_clf.auc
 
                 # ----
                 rank_tpr_df = rank_tpr_tables[num]
                 rank_tpr_df.index.name = 'tpr@fpr=0&rank<={}'.format(num)
-                rank_tpr_df.loc[nice, 'LNBNN'] = cfsm_scores.get_metric_at_metric(
+                rank_tpr_df.loc[nice, 'LNBNN'] = cfsm_vsm.get_metric_at_metric(
                     'tpr', 'fpr', 0, tiebreaker='minthresh')
-                rank_tpr_df.loc[nice, 'clf'] = cfsm_probs.get_metric_at_metric(
+                rank_tpr_df.loc[nice, 'clf'] = cfsm_clf.get_metric_at_metric(
                     'tpr', 'fpr', 0, tiebreaker='minthresh')
 
                 # --
                 df = rank_tpr_thresh_tables[num]
                 df.index.name = 'thresh@fpr=0&rank<={}'.format(num)
-                df.loc[nice, 'LNBNN'] = cfsm_scores.get_metric_at_metric(
+                df.loc[nice, 'LNBNN'] = cfsm_vsm.get_metric_at_metric(
                     'thresh', 'fpr', 0, tiebreaker='minthresh')
-                df.loc[nice, 'clf'] = cfsm_probs.get_metric_at_metric(
+                df.loc[nice, 'clf'] = cfsm_clf.get_metric_at_metric(
                     'thresh', 'fpr', 0, tiebreaker='minthresh')
 
         from utool.experimental.pandas_highlight import to_string_monkey
@@ -365,9 +379,12 @@ class VerifierExpt(DBInputs):
 
         if True:
             # Tables
-            print('\nauc_table =\n{}'.format(to_string_monkey(auc_table, 'all')))
-            print('\nrank1_table =\n{}'.format(to_string_monkey(rank1_cmc_table, 'all')))
-            print('\nrank5_table =\n{}'.format(to_string_monkey(rank5_table, 'all')))
+            rank1_auc_table = rank_auc_tables[1]
+            rank5_auc_table = rank_auc_tables[1]
+            print('\nrank1_auc_table =\n{}'.format(to_string_monkey(rank1_auc_table, 'all')))
+            print('\nrank5_auc_table =\n{}'.format(to_string_monkey(rank5_auc_table, 'all')))
+            print('\nrank1_cmc_table =\n{}'.format(to_string_monkey(rank1_cmc_table, 'all')))
+            print('\nrank5_cmc_table =\n{}'.format(to_string_monkey(rank5_cmc_table, 'all')))
 
             def _bf_best(df):
                 df = df.copy()
@@ -378,8 +395,8 @@ class VerifierExpt(DBInputs):
                         df.iloc[rx, cx] = '\\mathbf{{{:.3f}}}'.format(val)
                 return df
 
-            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_cmc_table, rank5_table]), axis=1)
-            all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_cmc_table]), axis=1)
+            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_cmc_table, rank5_cmc_table]), axis=1)
+            all_stats = pd.concat(ut.emap(_bf_best, [rank1_auc_table, rank1_cmc_table]), axis=1)
             tabular = Tabular(all_stats, colfmt='numeric', escape=False)
             tabular.precision = 3
             tex_text = tabular.as_tabular()
@@ -396,7 +413,7 @@ class VerifierExpt(DBInputs):
                 r'''
                 \begin{tabular}{l|rr|rr}
                 \hline
-                               & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Rank 1} \\
+                               & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c|}{Positive Rate} \\
                 ''') + '\n' + '\n'.join(tex_text.split('\n')[2:])
             print(tex_text)
             ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
@@ -404,6 +421,116 @@ class VerifierExpt(DBInputs):
             _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath, fname='agg_results',
                                 preamb_extra=['\\usepackage{makecell}'])
             ut.startfile(_)
+
+        method = 2
+        if method == 2:
+            mpl.rcParams['text.usetex'] = True
+            mpl.rcParams['text.latex.unicode'] = True
+            # mpl.rcParams['axes.labelsize'] = 12
+            mpl.rcParams['legend.fontsize'] = 14
+
+            mpl.rcParams['xtick.color'] = 'k'
+            mpl.rcParams['ytick.color'] = 'k'
+            mpl.rcParams['axes.labelcolor'] = 'k'
+            # mpl.rcParams['text.color'] = 'k'
+
+            nums = [1, np.inf]
+            nums = [1]
+            for num in nums:
+                chunked_dbnames = list(ub.chunks(dbnames, 2))
+                for fnum, dbname_chunk in enumerate(chunked_dbnames, start=1):
+                    fig = pt.figure(fnum=fnum)  # NOQA
+                    fig.clf()
+                    ax = pt.gca()
+                    for dbname in dbname_chunk:
+                        data1 = rank_roc_curves[num]['clf'][dbname]
+                        data2 = rank_roc_curves[num]['lnbnn'][dbname]
+
+                        data1['label'] = 'TPR=${tpr}$ CLF {species}'.format(
+                            tpr=data1['tpr@fpr=0_tex'], species=data1['species'])
+                        data1['ls'] = '-'
+                        data1['chunk_marker'] = '^'
+                        data1['color'] = dbprops[dbname]['color']
+
+                        data2['label'] = 'TPR=${tpr}$ LNBNN {species}'.format(
+                            tpr=data2['tpr@fpr=0_tex'], species=data2['species'])
+                        data2['ls'] = '--'
+                        data2['chunk_marker'] = 'v'
+                        data2['color'] = dbprops[dbname]['color']
+
+                        for d in [data1, data2]:
+                            ax.plot(d['fpr'], d['tpr'], d['ls'],
+                                    color=d['color'])
+
+                        for d in [data1, data2]:
+                            ax.plot(0, d['tpr@fpr=0'], d['ls'],
+                                    marker=d['chunk_marker'],
+                                    markeredgecolor='k', markersize=8,
+                                    # fillstyle='none',
+                                    color=d['color'],
+                                    label=d['label'])
+
+                    ax.set_xlabel('false positive rate')
+                    ax.set_ylabel('true positive rate')
+                    ax.set_ylim(0, 1)
+                    ax.set_xlim(-.05, .5)
+                    # ax.set_title('ROC with ranks $<= {}$'.format(num))
+                    ax.legend(loc='lower right')
+                    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+                    fig.set_size_inches([W * .7, H])
+
+                    fname = 'agg_roc_rank_{}_chunk_{}_{}.png'.format(num, fnum,
+                                                                     task_key)
+                    fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                    vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+            chunked_dbnames = list(ub.chunks(dbnames, 2))
+            for fnum, dbname_chunk in enumerate(chunked_dbnames, start=1):
+                fig = pt.figure(fnum=fnum)  # NOQA
+                fig.clf()
+                ax = pt.gca()
+                for dbname in dbname_chunk:
+                    data1 = rank_roc_curves[num]['clf'][dbname]
+                    data2 = rank_roc_curves[num]['lnbnn'][dbname]
+
+                    data1['label'] = 'pos@rank1${cmc0}$ CLF {species}'.format(
+                        cmc0=data1['cmc0_tex'], species=data1['species'])
+                    data1['ls'] = '-'
+                    data1['chunk_marker'] = '^'
+                    data1['color'] = dbprops[dbname]['color']
+
+                    data2['label'] = 'pos@rank1${cmc0}$ CLF {species}'.format(
+                        cmc0=data2['cmc0_tex'], species=data2['species'])
+                    data2['ls'] = '--'
+                    data2['chunk_marker'] = 'v'
+                    data2['color'] = dbprops[dbname]['color']
+
+                    for d in [data1, data2]:
+                        ax.plot(d['fpr'], d['tpr'], d['ls'],
+                                color=d['color'])
+
+                    for d in [data1, data2]:
+                        ax.plot(d['cmc'], d['ls'],
+                                # marker=d['chunk_marker'],
+                                # markeredgecolor='k',
+                                # markersize=8,
+                                # fillstyle='none',
+                                color=d['color'],
+                                label=d['label'])
+
+                ax.set_xlabel('rank')
+                ax.set_ylabel('match probability')
+                ax.set_ylim(0, 1)
+                ax.set_xlim(1, 20)
+                ax.set_xticks([1, 5, 10, 15, 20])
+                # ax.set_title('ROC with ranks $<= {}$'.format(num))
+                ax.legend(loc='lower right')
+                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+                fig.set_size_inches([W * .7, H])
+
+                fname = 'agg_cmc_chunk_{}_{}.png'.format(fnum, task_key)
+                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         method = 1
         if method == 1:
@@ -417,25 +544,25 @@ class VerifierExpt(DBInputs):
             mpl.rcParams['text.usetex'] = True
             mpl.rcParams['text.latex.unicode'] = True
             # mpl.rcParams['axes.labelsize'] = 12
-            mpl.rcParams['legend.fontsize'] = 12.5
+            mpl.rcParams['legend.fontsize'] = 12
 
             mpl.rcParams['xtick.color'] = 'k'
             mpl.rcParams['ytick.color'] = 'k'
             mpl.rcParams['axes.labelcolor'] = 'k'
             # mpl.rcParams['text.color'] = 'k'
 
-            def method1_roc(roc_curves, other_curves, algo=''):
+            def method1_roc(roc_curves, algo, other):
                 ax = pt.gca()
-                color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
-                markers = pt.distinct_markers(len(roc_curves))
-                for data, marker, color in zip(roc_curves.values(), markers, color_cycle):
-                    ax.plot(data['fpr'], data['tpr'], color=color)
 
-                for data, marker, color in zip(roc_curves.values(), markers, color_cycle):
-                    other_tpr = other_curves[data['label']]['tpr@fpr=0']
+                for dbname in dbnames:
+                    data = roc_curves[algo][dbname]
+                    ax.plot(data['fpr'], data['tpr'], color=data['color'])
 
-                    species = data['label']
-
+                for dbname in dbnames:
+                    data = roc_curves[algo][dbname]
+                    other_data = roc_curves[other][dbname]
+                    other_tpr = other_data['tpr@fpr=0']
+                    species = data['species']
                     tpr = data['tpr@fpr=0']
                     tpr_text = '{:.3f}'.format(tpr)
                     if tpr >= other_tpr:
@@ -443,17 +570,10 @@ class VerifierExpt(DBInputs):
                             tpr_text = '\\mathbf{' + tpr_text + '}'
                         else:
                             tpr_text = tpr_text + '*'
-                    if mpl.rcParams['text.usetex']:
-                        label = 'TPR=${tpr}$,FPR=$0$ {species}'.format(
-                            tpr=tpr_text, species=species)
-                    else:
-                        label = 'TPR={tpr}@FPR=0 {species}'.format(
-                            tpr=tpr_text, species=species)
-                        # label = '{} AUC={:.3f}, TPR={:.3f}'.format(
-                        #     data['label'], data['auc'], data['tpr@fpr=0'])
-                        # data['auc'],
-                    ax.plot(0, data['tpr@fpr=0'], marker=marker, label=label,
-                            color=color)
+                    label = 'TPR=${tpr}$ {species}'.format(
+                        tpr=tpr_text, species=species)
+                    ax.plot(0, data['tpr@fpr=0'], marker=data['marker'],
+                            label=label, color=data['color'])
 
                 if algo:
                     algo = algo.rstrip() + ' '
@@ -462,6 +582,8 @@ class VerifierExpt(DBInputs):
                 ax.set_xlabel(algo + 'false positive rate')
                 ax.set_ylabel('true positive rate')
                 ax.set_ylim(0, 1)
+                ax.set_xlim(-.005, .5)
+
                 # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
                 ax.legend(loc='lower right')
                 pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
@@ -470,31 +592,20 @@ class VerifierExpt(DBInputs):
             nums = [1, np.inf]
             # nums = [1]
             for num in nums:
-                clf_curves = ut.odict([(d['label'], d) for d in rank_clf_roc_curves[num]])
-                lnbnn_curves = ut.odict([(d['label'], d) for d in rank_lnbnn_roc_curves[num]])
-
-                fig = pt.figure(fnum=1)  # NOQA
-                roc_curves = clf_curves
-                other_curves = lnbnn_curves
-                method1_roc(roc_curves, other_curves, 'clf')
-                fname = 'agg_roc_rank_{}_clf_{}.png'.format(num, task_key)
-                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-                fig = pt.figure(fnum=2)  # NOQA
-                roc_curves = lnbnn_curves
-                other_curves = clf_curves
-                method1_roc(roc_curves, other_curves, 'LNBNN')
-                fname = 'agg_roc_rank_{}_lnbnn_{}.png'.format(num, task_key)
-                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+                algos = {'clf', 'lnbnn'}
+                for fnum, algo in enumerate(algos, start=1):
+                    roc_curves = rank_roc_curves[num]
+                    other = next(iter(algos - {algo}))
+                    fig = pt.figure(fnum=fnum)  # NOQA
+                    method1_roc(roc_curves, algo, other)
+                    fname = 'agg_roc_rank_{}_{}_{}.png'.format(num, algo, task_key)
+                    fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+                    vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             # -------------
 
             mpl.rcParams['text.usetex'] = True
             mpl.rcParams['text.latex.unicode'] = True
-            # mpl.rcParams['axes.labelsize'] = 12
-            mpl.rcParams['legend.fontsize'] = 12.5
 
             mpl.rcParams['xtick.color'] = 'k'
             mpl.rcParams['ytick.color'] = 'k'
@@ -506,11 +617,11 @@ class VerifierExpt(DBInputs):
                 color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
                 markers = pt.distinct_markers(len(cmc_curves))
                 for data, marker, color in zip(cmc_curves.values(), markers, color_cycle):
-                    species = data['label']
+                    species = data['species']
                     cmc0 = data['cmc'][0]
                     cmc0_text = '{:.3f}'.format(cmc0)
 
-                    other0 = cmc_other[data['label']]['cmc'][0]
+                    other0 = cmc_other[data['species']]['cmc'][0]
                     if cmc0 >= other0:
                         if mpl.rcParams['text.usetex']:
                             cmc0_text = '\\mathbf{' + cmc0_text + '}'
@@ -539,8 +650,8 @@ class VerifierExpt(DBInputs):
                 pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
                 fig.set_size_inches([W * .7, H])
 
-            clf_cmc_curves_ = ut.odict([(d['label'], d) for d in clf_cmc_curves])
-            lnbnn_cmc_curves_ = ut.odict([(d['label'], d) for d in lnbnn_cmc_curves])
+            clf_cmc_curves_ = ut.odict([(d['species'], d) for d in clf_cmc_curves])
+            lnbnn_cmc_curves_ = ut.odict([(d['species'], d) for d in lnbnn_cmc_curves])
 
             fig = pt.figure(fnum=1)  # NOQA
             cmc_curves = clf_cmc_curves_
@@ -557,28 +668,6 @@ class VerifierExpt(DBInputs):
             fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
             fig_fpath = join(str(VerifierExpt.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        # if method == 2:
-        #     color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
-        #     for fnum, chunk in enumerate(ub.chunks(zip(color_cycle, clf_roc_curves, lnbnn_roc_curves), 3), start=1):
-        #         fig = pt.figure(fnum=fnum)  # NOQA
-        #         fig.clf()
-        #         ax = pt.gca()
-        #         for color, data1, data2 in chunk:
-        #             ax.plot(data1['fpr'], data1['tpr'], '-',
-        #                     label='%s clf AUC=%.3f' % (data1['label'], data1['auc']), color=color)
-        #             ax.plot(data2['fpr'], data2['tpr'], '--',
-        #                     label='%s LNBNN AUC=%.3f' % (data2['label'], data2['auc']), color=color)
-        #         ax.set_xlabel('false positive rate')
-        #         ax.set_ylabel('true positive rate')
-        #         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-        #         ax.legend()
-        #         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        #         fig.set_size_inches([W, H])
-
-        #         fname = 'agg_roc_chunk_{}_{}.png'.format(fnum, task_key)
-        #         fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-        #         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if True:
             # Agg metrics
@@ -691,7 +780,6 @@ class VerifierExpt(DBInputs):
 
             ut.render_latex(confusion_tex, dpath=dpath, fname=confusion_fname)
             ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
-
 
     @profile
     def measure_dbstats(self):
