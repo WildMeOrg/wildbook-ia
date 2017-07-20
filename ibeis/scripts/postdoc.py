@@ -244,7 +244,7 @@ class VerifierExpt(DBInputs):
         rank_lnbnn_roc_curves = ut.ddict(list)
 
         auc_table  = pd.DataFrame(columns=['LNBNN', 'clf'])
-        rank1_table = pd.DataFrame(columns=['LNBNN', 'clf'])
+        rank1_cmc_table = pd.DataFrame(columns=['LNBNN', 'clf'])
         rank5_table = pd.DataFrame(columns=['LNBNN', 'clf'])
 
         lnbnn_cmc_curves = []
@@ -293,8 +293,8 @@ class VerifierExpt(DBInputs):
             lnbnn_cmc_curves += [{'label': nice, 'cmc': lnbnn_cdf}]
             clf_cmc_curves += [{'label': nice, 'cmc': clf_cdf}]
 
-            rank1_table.loc[nice, 'LNBNN'] = lnbnn_cdf[0]
-            rank1_table.loc[nice, 'clf'] = clf_cdf[0]
+            rank1_cmc_table.loc[nice, 'LNBNN'] = lnbnn_cdf[0]
+            rank1_cmc_table.loc[nice, 'clf'] = clf_cdf[0]
 
             rank5_table.loc[nice, 'LNBNN'] = lnbnn_cdf[4]
             rank5_table.loc[nice, 'clf'] = clf_cdf[4]
@@ -344,9 +344,9 @@ class VerifierExpt(DBInputs):
                 # --
                 df = rank_tpr_thresh_tables[num]
                 df.index.name = 'thresh@fpr=0&rank<={}'.format(num)
-                rank_tpr_df.loc[nice, 'LNBNN'] = cfsm_scores.get_metric_at_metric(
+                df.loc[nice, 'LNBNN'] = cfsm_scores.get_metric_at_metric(
                     'thresh', 'fpr', 0, tiebreaker='minthresh')
-                rank_tpr_df.loc[nice, 'clf'] = cfsm_probs.get_metric_at_metric(
+                df.loc[nice, 'clf'] = cfsm_probs.get_metric_at_metric(
                     'thresh', 'fpr', 0, tiebreaker='minthresh')
 
         from utool.experimental.pandas_highlight import to_string_monkey
@@ -366,7 +366,7 @@ class VerifierExpt(DBInputs):
         if True:
             # Tables
             print('\nauc_table =\n{}'.format(to_string_monkey(auc_table, 'all')))
-            print('\nrank1_table =\n{}'.format(to_string_monkey(rank1_table, 'all')))
+            print('\nrank1_table =\n{}'.format(to_string_monkey(rank1_cmc_table, 'all')))
             print('\nrank5_table =\n{}'.format(to_string_monkey(rank5_table, 'all')))
 
             def _bf_best(df):
@@ -378,8 +378,8 @@ class VerifierExpt(DBInputs):
                         df.iloc[rx, cx] = '\\mathbf{{{:.3f}}}'.format(val)
                 return df
 
-            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table, rank5_table]), axis=1)
-            all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_table]), axis=1)
+            # all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_cmc_table, rank5_table]), axis=1)
+            all_stats = pd.concat(ut.emap(_bf_best, [auc_table, rank1_cmc_table]), axis=1)
             tabular = Tabular(all_stats, colfmt='numeric', escape=False)
             tabular.precision = 3
             tex_text = tabular.as_tabular()
@@ -408,58 +408,125 @@ class VerifierExpt(DBInputs):
         method = 1
         if method == 1:
 
-            def method1_roc(roc_curves):
+            pos = rank1_cmc_table.diff(axis=1)[rank1_cmc_table.diff(axis=1) > 0]
+            pos.mean()
+
+            # Does going from rank 1 to rank inf generally improve deltas?
+            # -rank_tpr_tables[np.inf].diff(axis=1) - -rank_tpr_tables[1].diff(axis=1)
+
+            mpl.rcParams['text.usetex'] = True
+            mpl.rcParams['text.latex.unicode'] = True
+            # mpl.rcParams['axes.labelsize'] = 12
+            mpl.rcParams['legend.fontsize'] = 12.5
+
+            mpl.rcParams['xtick.color'] = 'k'
+            mpl.rcParams['ytick.color'] = 'k'
+            mpl.rcParams['axes.labelcolor'] = 'k'
+            # mpl.rcParams['text.color'] = 'k'
+
+            def method1_roc(roc_curves, other_curves, algo=''):
                 ax = pt.gca()
                 color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
                 markers = pt.distinct_markers(len(roc_curves))
-                for data, marker, color in zip(roc_curves, markers, color_cycle):
+                for data, marker, color in zip(roc_curves.values(), markers, color_cycle):
                     ax.plot(data['fpr'], data['tpr'], color=color)
 
-                for data, marker, color in zip(roc_curves, markers, color_cycle):
-                    # label = '{} AUC={:.3f}, TPR={:.3f}'.format(
-                    #     data['label'], data['auc'], data['tpr@fpr=0'])
-                    label = 'TPR={tpr:.3f}@FPR=0 {species}'.format(
+                for data, marker, color in zip(roc_curves.values(), markers, color_cycle):
+                    other_tpr = other_curves[data['label']]['tpr@fpr=0']
+
+                    species = data['label']
+
+                    tpr = data['tpr@fpr=0']
+                    tpr_text = '{:.3f}'.format(tpr)
+                    if tpr >= other_tpr:
+                        if mpl.rcParams['text.usetex']:
+                            tpr_text = '\\mathbf{' + tpr_text + '}'
+                        else:
+                            tpr_text = tpr_text + '*'
+                    if mpl.rcParams['text.usetex']:
+                        label = 'TPR=${tpr}$,FPR=$0$ {species}'.format(
+                            tpr=tpr_text, species=species)
+                    else:
+                        label = 'TPR={tpr}@FPR=0 {species}'.format(
+                            tpr=tpr_text, species=species)
+                        # label = '{} AUC={:.3f}, TPR={:.3f}'.format(
+                        #     data['label'], data['auc'], data['tpr@fpr=0'])
                         # data['auc'],
-                        tpr=data['tpr@fpr=0'], species=data['label'])
                     ax.plot(0, data['tpr@fpr=0'], marker=marker, label=label,
                             color=color)
 
-                ax.set_xlabel('false positive rate')
+                if algo:
+                    algo = algo.rstrip() + ' '
+
+                algo = ''
+                ax.set_xlabel(algo + 'false positive rate')
                 ax.set_ylabel('true positive rate')
                 ax.set_ylim(0, 1)
                 # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-                ax.legend()
+                ax.legend(loc='lower right')
                 pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
                 fig.set_size_inches([W * .7, H])
 
-            for num in [1, np.inf]:
+            nums = [1, np.inf]
+            # nums = [1]
+            for num in nums:
+                clf_curves = ut.odict([(d['label'], d) for d in rank_clf_roc_curves[num]])
+                lnbnn_curves = ut.odict([(d['label'], d) for d in rank_lnbnn_roc_curves[num]])
+
                 fig = pt.figure(fnum=1)  # NOQA
-                ax = pt.gca()
-                roc_curves = rank_clf_roc_curves[num]
-                method1_roc(roc_curves)
+                roc_curves = clf_curves
+                other_curves = lnbnn_curves
+                method1_roc(roc_curves, other_curves, 'clf')
                 fname = 'agg_roc_rank_{}_clf_{}.png'.format(num, task_key)
                 fig_fpath = join(str(VerifierExpt.base_dpath), fname)
                 vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
                 fig = pt.figure(fnum=2)  # NOQA
-                ax = pt.gca()
-                roc_curves = rank_lnbnn_roc_curves[num]
-                method1_roc(roc_curves)
+                roc_curves = lnbnn_curves
+                other_curves = clf_curves
+                method1_roc(roc_curves, other_curves, 'LNBNN')
                 fname = 'agg_roc_rank_{}_lnbnn_{}.png'.format(num, task_key)
                 fig_fpath = join(str(VerifierExpt.base_dpath), fname)
                 vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             # -------------
 
-            def method1_cmc(cmc_curves):
+            mpl.rcParams['text.usetex'] = True
+            mpl.rcParams['text.latex.unicode'] = True
+            # mpl.rcParams['axes.labelsize'] = 12
+            mpl.rcParams['legend.fontsize'] = 12.5
+
+            mpl.rcParams['xtick.color'] = 'k'
+            mpl.rcParams['ytick.color'] = 'k'
+            mpl.rcParams['axes.labelcolor'] = 'k'
+            # mpl.rcParams['text.color'] = 'k'
+
+            def method1_cmc(cmc_curves, cmc_other):
                 ax = pt.gca()
                 color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
                 markers = pt.distinct_markers(len(cmc_curves))
-                for data, marker, color in zip(cmc_curves, markers, color_cycle):
-                    label = 'rank1={:.3f} {species}'.format(
-                        data['cmc'][0], species=data['label'])
+                for data, marker, color in zip(cmc_curves.values(), markers, color_cycle):
+                    species = data['label']
+                    cmc0 = data['cmc'][0]
+                    cmc0_text = '{:.3f}'.format(cmc0)
+
+                    other0 = cmc_other[data['label']]['cmc'][0]
+                    if cmc0 >= other0:
+                        if mpl.rcParams['text.usetex']:
+                            cmc0_text = '\\mathbf{' + cmc0_text + '}'
+                        else:
+                            cmc0_text = cmc0_text + '*'
+
+                    if mpl.rcParams['text.usetex']:
+                        label = 'pos@rank1=${}$ {species}'.format(
+                            cmc0_text, species=species)
+                    else:
+                        label = 'pos@rank1={} {species}'.format(
+                            cmc0_text, species=species)
+
                     ranks = np.arange(1, len(data['cmc']) + 1)
-                    ax.plot(ranks, data['cmc'], marker=marker, color=color, label=label)
+                    ax.plot(ranks, data['cmc'], marker=marker, color=color,
+                            label=label)
 
                 ax.set_xlabel('rank')
                 ax.set_ylabel('match probability')
@@ -468,48 +535,50 @@ class VerifierExpt(DBInputs):
                 ax.set_xticks([1, 5, 10, 15, 20])
 
                 # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-                ax.legend()
+                ax.legend(loc='lower right')
                 pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
                 fig.set_size_inches([W * .7, H])
 
+            clf_cmc_curves_ = ut.odict([(d['label'], d) for d in clf_cmc_curves])
+            lnbnn_cmc_curves_ = ut.odict([(d['label'], d) for d in lnbnn_cmc_curves])
+
             fig = pt.figure(fnum=1)  # NOQA
-            ax = pt.gca()
-            cmc_curves = clf_cmc_curves
-            method1_cmc(cmc_curves)
+            cmc_curves = clf_cmc_curves_
+            cmc_other = lnbnn_cmc_curves_
+            method1_cmc(cmc_curves, cmc_other)
             fname = 'agg_cmc_clf_{}.png'.format(task_key)
             fig_fpath = join(str(VerifierExpt.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             fig = pt.figure(fnum=2)  # NOQA
-            ax = pt.gca()
-            cmc_curves = lnbnn_cmc_curves
-            method1_cmc(cmc_curves)
+            cmc_curves = lnbnn_cmc_curves_
+            cmc_other = clf_cmc_curves_
+            method1_cmc(cmc_curves, cmc_other)
             fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
             fig_fpath = join(str(VerifierExpt.base_dpath), fname)
             vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-        if method == 2:
+        # if method == 2:
+        #     color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+        #     for fnum, chunk in enumerate(ub.chunks(zip(color_cycle, clf_roc_curves, lnbnn_roc_curves), 3), start=1):
+        #         fig = pt.figure(fnum=fnum)  # NOQA
+        #         fig.clf()
+        #         ax = pt.gca()
+        #         for color, data1, data2 in chunk:
+        #             ax.plot(data1['fpr'], data1['tpr'], '-',
+        #                     label='%s clf AUC=%.3f' % (data1['label'], data1['auc']), color=color)
+        #             ax.plot(data2['fpr'], data2['tpr'], '--',
+        #                     label='%s LNBNN AUC=%.3f' % (data2['label'], data2['auc']), color=color)
+        #         ax.set_xlabel('false positive rate')
+        #         ax.set_ylabel('true positive rate')
+        #         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+        #         ax.legend()
+        #         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        #         fig.set_size_inches([W, H])
 
-            color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
-            for fnum, chunk in enumerate(ub.chunks(zip(color_cycle, clf_roc_curves, lnbnn_roc_curves), 3), start=1):
-                fig = pt.figure(fnum=fnum)  # NOQA
-                fig.clf()
-                ax = pt.gca()
-                for color, data1, data2 in chunk:
-                    ax.plot(data1['fpr'], data1['tpr'], '-',
-                            label='%s clf AUC=%.3f' % (data1['label'], data1['auc']), color=color)
-                    ax.plot(data2['fpr'], data2['tpr'], '--',
-                            label='%s LNBNN AUC=%.3f' % (data2['label'], data2['auc']), color=color)
-                ax.set_xlabel('false positive rate')
-                ax.set_ylabel('true positive rate')
-                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-                ax.legend()
-                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                fig.set_size_inches([W, H])
-
-                fname = 'agg_roc_chunk_{}_{}.png'.format(fnum, task_key)
-                fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-                vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        #         fname = 'agg_roc_chunk_{}_{}.png'.format(fnum, task_key)
+        #         fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+        #         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if True:
             # Agg metrics
@@ -527,6 +596,29 @@ class VerifierExpt(DBInputs):
                 y_true = res.y_test_enc
                 if sum(y_true == 2) < 50:
                     continue
+
+                # Find auto thresholds
+                print('-----')
+                print('dbname = {!r}'.format(dbname))
+                for k in range(res.y_test_bin.shape[1]):
+                    class_k_truth = res.y_test_bin.T[k]
+                    class_k_probs = res.clf_probs.T[k]
+                    cfms_ovr = vt.ConfusionMetrics().fit(class_k_probs, class_k_truth)
+                    # auc = sklearn.metrics.roc_auc_score(class_k_truth, class_k_probs)
+                    state = res.class_names[k]
+                    # for state, cfms_ovr in res.confusions_ovr():
+                    if state == POSTV:
+                        continue
+                    tpr = cfms_ovr.get_metric_at_metric(
+                        'tpr', 'fpr', 0, tiebreaker='minthresh')
+                    # thresh = cfsm_scores_rank.get_metric_at_metric(
+                    #     'thresh', 'fpr', 0, tiebreaker='minthresh')
+                    print('state = {!r}'.format(state))
+                    print('tpr = {:.3f}'.format(tpr))
+                    print('+--')
+                print('-----')
+
+                # aggregate results
                 y_pred = res.clf_probs.argmax(axis=1)
                 agg_y_true.extend(y_true.tolist())
                 agg_y_pred.extend(y_pred.tolist())
@@ -1281,7 +1373,7 @@ class VerifierExpt(DBInputs):
         #     # visualize real photobomb cases
         return cases
 
-    def draw_hard_cases(self, task_key):
+    def draw_hard_cases(self, task_key='match_state'):
         """
         draw hard cases with and without overlay
 
@@ -1297,6 +1389,18 @@ class VerifierExpt(DBInputs):
             >>> task_key = 'match_state'
             >>> self.draw_hard_cases(task_key)
         """
+
+        REWORK = False
+        REWORK = True
+
+        import utool
+        utool.embed()
+
+        if REWORK:
+            # HACK
+            if self.ibs is None:
+                self._precollect()
+
         cases = self.ensure_results(task_key + '_hard_cases')
         print('Loaded {} {} hard cases'.format(len(cases), task_key))
 
@@ -1315,21 +1419,35 @@ class VerifierExpt(DBInputs):
             match = case['match']
             real_name, pred_name = case['real'], case['pred']
             real_nice, pred_nice = ut.take(code_to_nice, [real_name, pred_name])
+
+            if real_nice != 'Negative':
+                continue
+
             fname = 'fail_{}_{}_{}_{}'.format(real_name, pred_name, aid1, aid2)
             # Build x-label
             _probs = case['probs']
-            probs = ut.odict((v, _probs[k])
-                             for k, v in code_to_nice.items()
-                             if k in _probs)
+            probs = ut.odict()
+            for k, v in code_to_nice.items():
+                if k in _probs:
+                    probs[v] = _probs[k]
             probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
             xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
                                                     probstr)
             fig = pt.figure(fnum=1000, clf=True)
             ax = pt.gca()
-            # if 0:
-            #     # HACK
-            #     if self.ibs is None:
-            #         self._precollect()
+
+            if REWORK:
+                ibs = self.ibs
+                annots = ibs.annots([aid1, aid2])
+                imgs = ibs.images(annots.gids)
+                xlabel += '\nimg: ' + '-vs-'.join(map(repr, imgs.gnames))
+                xlabel += '\nname: ' + '-vs-'.join(map(repr, annots.name))
+                import datetime
+                delta = ut.get_timedelta_str(datetime.timedelta(seconds=np.diff(annots.image_unixtimes_asfloat)[0]))
+                xlabel += '\ntimeΔ: ' + delta
+                xlabel += '\nedge: ' + str(tuple(annots.aids))
+
+            # if REWORK:
             #     ibs = self.ibs
             #     match.annot1['rchip'] = ibs.annots(match.annot1['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
             #     match.annot2['rchip'] = ibs.annots(match.annot2['aid'], config={'medianblur': True, 'adapt_eq': True}).rchip[0]
