@@ -144,10 +144,13 @@ class DBInputs(object):
         if self.ibs is None:
             self._setup()
 
-    def ensure_results(self, expt_name=None):
+    def ensure_results(self, expt_name=None, nocompute=None):
         """
         Subclasses must obey the measure_<expt_name>, draw_<expt_name> contract
         """
+        if nocompute is None:
+            nocompute = ut.get_argflag('--nocompute')
+
         if expt_name is None and exists(self.dpath):
             # Load all
             fpaths = ut.glob(str(self.dpath), '*.pkl')
@@ -160,6 +163,9 @@ class DBInputs(object):
             if not exists(fpath):
                 ut.cprint('Experiment results {} do not exist'.format(expt_name), 'red')
                 ut.cprint('First re-setup to check if it is a path issue', 'red')
+                if nocompute:
+                    raise Exception(str(expt_name) + ' does not exist for ' + str(self.dbname))
+
                 if self.ibs is None:
                     self._precollect()
                 ut.cprint('Checking new fpath', 'yellow')

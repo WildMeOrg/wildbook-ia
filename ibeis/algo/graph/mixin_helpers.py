@@ -358,6 +358,21 @@ class DummyEdges(object):
                 user_id=algo:mst and with a confidence of guessing.
 
         Ignore:
+            annots = ibs.annots(infr.aids)
+            def fix_name(n):
+                import re
+                n = re.sub('  *', ' ', n)
+                return re.sub(' *-? *BBQ[0-9]*', '', n)
+
+            ut.fix_embed_globals()
+            new_names = [fix_name(n) for n in annots.names]
+            set(new_names)
+
+            infr.set_node_attrs('name_fix', ut.dzip(infr.aids, new_names))
+            label = 'name_fix'
+            infr.ensure_mst(label)
+
+        Ignore:
             label = 'name_label'
 
         Doctest:

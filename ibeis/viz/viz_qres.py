@@ -66,6 +66,19 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> ibs = qreq_.ibs
         >>> show_qres_analysis(ibs, cm, qreq_, **kwargs)
         >>> ut.show_if_requested()
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_qres import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm(
+        >>>     defaultdb='PZ_MTEST', default_qaids=[1],
+        >>>     default_daids=[2])
+        >>> kwargs = dict(show_query=False, viz_name_score=True,
+        >>>               show_timedelta=True, N=3, show_gf=True)
+        >>> ibs = qreq_.ibs
+        >>> show_qres_analysis(ibs, cm, qreq_, **kwargs)
+        >>> ut.show_if_requested()
     """
     if ut.NOT_QUIET:
         print('[show_qres] cm.show_analysis()')
@@ -138,15 +151,20 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
             isvalid[best_gf_idx] = True
             # Filter so there is only one groundfalse
             top_aids = top_aids.compress(isvalid)
-        else:
-            # seems like there were no results. Must be bad feature detections
-            # maybe too much spatial verification
-            top_aids = []
+        # else:
+        #     if len(top_aids) == 1:
+        #         top_aids = top_aids.tolist()
+        #         top_aids.append(None)
 
-        if len(showgt_aids) != 0:
-            # Hack to just include gtaids in normal list
-            top_aids = np.append(top_aids, showgt_aids)
-            showgt_aids = []
+        # else:
+        #     # seems like there were no results. Must be bad feature detections
+        #     # maybe too much spatial verification
+        #     top_aids = []
+
+        # if len(showgt_aids) != 0:
+        #     # Hack to just include gtaids in normal list
+        #     top_aids = np.append(top_aids, showgt_aids)
+        #     showgt_aids = []
 
     if viz_name_score:
         # Make sure that there is only one of each name in the list
@@ -242,6 +260,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     if failed_to_match:
         # HACK to visually indicate failure to match in analysis
+        show_query = True
         top_aids = [None] + top_aids
 
     nTop = len(top_aids)

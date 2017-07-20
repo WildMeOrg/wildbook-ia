@@ -218,7 +218,11 @@ class NeighborIndex(object):
             # Make flann determenistic for the same data
             flann_params['random_seed'] = 42
         nnindexer.flann_params = flann_params
-        nnindexer.cores  = flann_params.get('cores', 0)
+
+        nprocs = ut.util_parallel.__NUM_PROCS__
+        if nprocs is None:
+            nprocs = 0
+        nnindexer.cores  = flann_params.get('cores', nprocs)
         nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
         nnindexer.flann_fpath = None

@@ -140,27 +140,61 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # TURTLE = 'sea_turtle'  # TODO: turtle_hawkbill
 
         # if species in {'manta_ray', 'humpback', 'sea_turtle'}:
-        if species in {'manta_ray', 'humpback'}:
-            # Parameters from manta matcher
-            hyper_params['chip']['medianblur'] = True
-            hyper_params['chip']['medianblur_thresh'] = 0
-            hyper_params['chip']['adapteq'] = True
-            hyper_params['chip']['adapteq_ksize'] = 32
-            hyper_params['chip']['adapteq_limit'] = 6
-
-        if species in {'sea_turtle'}:
-            # Parameters from manta matcher
-            hyper_params['chip']['medianblur'] = True
-            hyper_params['chip']['medianblur_thresh'] = 0
-            hyper_params['chip']['adapteq'] = True
-            hyper_params['chip']['adapteq_ksize'] = 8
-            hyper_params['chip']['adapteq_limit'] = 2
-
-        if species in {'manta_ray', 'sea_turtle', 'zebra_plains'}:
+        # if True:
+        if species == 'zebra_plains':
             hyper_params['vsone_kpts']['affine_invariance'] = False
 
         if species == {'zebra_grevys'}:
             hyper_params['vsone_kpts']['affine_invariance'] = True
+
+        if species == 'humpback':
+            hyper_params['vsone_kpts']['affine_invariance'] = False
+            hyper_params['chip']['medianblur'] = True
+            hyper_params['chip']['medianblur_thresh'] = 0
+            hyper_params['chip']['adapteq'] = True
+            hyper_params['chip']['adapteq_ksize'] = 16
+            hyper_params['chip']['adapteq_limit'] = 2
+
+        if species == 'manta_ray':
+            hyper_params['vsone_kpts']['affine_invariance'] = False
+            # Parameters from manta matcher
+            hyper_params['chip']['medianblur'] = True
+            hyper_params['chip']['medianblur_thresh'] = 0
+            hyper_params['chip']['adapteq'] = True
+            hyper_params['chip']['adapteq_ksize'] = 16
+            hyper_params['chip']['adapteq_limit'] = 2
+
+        if species in {'sea_turtle'}:
+            hyper_params['vsone_kpts']['affine_invariance'] = False
+            # Parameters from manta matcher
+            # hyper_params['chip']['medianblur'] = True
+            # hyper_params['chip']['medianblur_thresh'] = 0
+            # hyper_params['chip']['adapteq'] = True
+            # hyper_params['chip']['adapteq_ksize'] = 8
+            # hyper_params['chip']['adapteq_limit'] = 1
+        # else:
+        #     if species in {'manta_ray', 'humpback'}:
+        #         # Parameters from manta matcher
+        #         hyper_params['chip']['medianblur'] = True
+        #         hyper_params['chip']['medianblur_thresh'] = 0
+        #         hyper_params['chip']['adapteq'] = True
+        #         hyper_params['chip']['adapteq_ksize'] = 32
+        #         hyper_params['chip']['adapteq_limit'] = 6
+
+        #     if species in {'manta_ray', 'sea_turtle', 'zebra_plains'}:
+        #         hyper_params['vsone_kpts']['affine_invariance'] = False
+
+        #     if species in {'sea_turtle'}:
+        #         hyper_params['vsone_kpts']['affine_invariance'] = False
+        #         # Parameters from manta matcher
+        #         hyper_params['chip']['medianblur'] = True
+        #         hyper_params['chip']['medianblur_thresh'] = 0
+        #         hyper_params['chip']['adapteq'] = True
+        #         hyper_params['chip']['adapteq_ksize'] = 8
+        #         hyper_params['chip']['adapteq_limit'] = 2
+
+        #     if species == {'zebra_grevys'}:
+        #         hyper_params['vsone_kpts']['affine_invariance'] = True
 
         multi_species = infr.ibs.get_database_species(infr.aids)
         # if infr.ibs.has_species_detector(species):

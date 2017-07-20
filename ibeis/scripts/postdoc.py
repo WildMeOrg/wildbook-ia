@@ -95,6 +95,7 @@ class VerifierExpt(DBInputs):
             python -m ibeis VerifierExpt.measure_all --db PZ_PB_RF_TRAIN
 
             python -m ibeis VerifierExpt.measure all GZ_Master1
+            python -m ibeis VerifierExpt.measure all RotanTurtles --show
 
         Example:
             >>> from ibeis.scripts.postdoc import *
@@ -130,7 +131,9 @@ class VerifierExpt(DBInputs):
 
         # pblm = vsone.OneVsOneProblem.from_aids(ibs, aids, sample_method='random')
         pblm = vsone.OneVsOneProblem.from_aids(
-            ibs, aids, sample_method='lnbnn+random',
+            ibs, aids,
+            sample_method='lnbnn+random',
+            # sample_method='random',
             n_splits=10,
         )
 
@@ -234,7 +237,7 @@ class VerifierExpt(DBInputs):
         """
         all_results = ut.odict([])
 
-        # VerifierExpt.agg_dbstats()
+        VerifierExpt.agg_dbstats()
 
         dbnames = VerifierExpt.agg_dbnames
 
@@ -256,14 +259,11 @@ class VerifierExpt(DBInputs):
 
         # rank_clf_roc_curves   = ut.ddict(list)
         # rank_lnbnn_roc_curves = ut.ddict(list)
-        rank_roc_curves = ub.AutoOrderedDict()
+        rank_curves = ub.AutoOrderedDict()
         # ut.ddict(ut.odict)
 
         rank1_cmc_table = pd.DataFrame(columns=['LNBNN', 'clf'])
         rank5_cmc_table = pd.DataFrame(columns=['LNBNN', 'clf'])
-
-        lnbnn_cmc_curves = []
-        clf_cmc_curves = []
 
         n_dbs = len(all_results)
         color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color'][:n_dbs]
@@ -295,9 +295,6 @@ class VerifierExpt(DBInputs):
                 'lnbnn': lnbnn_cdf,
             }
 
-            lnbnn_cmc_curves += [{'species': nice, 'cmc': lnbnn_cdf}]
-            clf_cmc_curves += [{'species': nice, 'cmc': clf_cdf}]
-
             rank1_cmc_table.loc[nice, 'LNBNN'] = lnbnn_cdf[0]
             rank1_cmc_table.loc[nice, 'clf'] = clf_cdf[0]
 
@@ -326,12 +323,14 @@ class VerifierExpt(DBInputs):
 
                 for algo in {'lnbnn', 'clf'}:
                     cfms = algo_confusions[algo]
-                    rank_roc_curves[num][algo][dbname] = {
+                    rank_curves[num][algo][dbname] = {
                         'dbname': dbname,
                         'species': nice,
                         'fpr': cfms.fpr,
                         'tpr': cfms.tpr,
                         'auc': cfms.auc,
+                        'cmc0': cdfs[algo][0],
+                        'cmc': cdfs[algo],
                         'color': dbprops[dbname]['color'],
                         'marker': dbprops[dbname]['marker'],
                         'tpr@fpr=0': cfms.get_metric_at_metric(
@@ -340,10 +339,10 @@ class VerifierExpt(DBInputs):
                             'thresh', 'fpr', 0, tiebreaker='minthresh'),
                     }
 
-                vsm_data = rank_roc_curves[num]['lnbnn'][dbname]
-                clf_data = rank_roc_curves[num]['clf'][dbname]
+                vsm_data = rank_curves[num]['lnbnn'][dbname]
+                clf_data = rank_curves[num]['clf'][dbname]
                 # Highlight the bigger one for each metric
-                for metric in ['tpr@fpr=0', 'auc']:
+                for metric in ['tpr@fpr=0', 'auc', 'cmc0']:
                     for d1, d2 in it.permutations([vsm_data, clf_data], 2):
                         text = '{:.3f}'.format(d1[metric])
                         if d1[metric] >= d2[metric]:
@@ -427,9 +426,10 @@ class VerifierExpt(DBInputs):
             print(tex_text)
             ut.write_to(join(VerifierExpt.base_dpath, 'agg-results.tex'), tex_text)
 
-            _ = ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath, fname='agg_results',
-                                preamb_extra=['\\usepackage{makecell}'])
-            ut.startfile(_)
+            ut.render_latex(tex_text, dpath=VerifierExpt.base_dpath,
+                            fname='agg_results',
+                            preamb_extra=['\\usepackage{makecell}'])
+            # ut.startfile(_)
 
         method = 2
         if method == 2:
@@ -452,8 +452,8 @@ class VerifierExpt(DBInputs):
                     fig.clf()
                     ax = pt.gca()
                     for dbname in dbname_chunk:
-                        data1 = rank_roc_curves[num]['clf'][dbname]
-                        data2 = rank_roc_curves[num]['lnbnn'][dbname]
+                        data1 = rank_curves[num]['clf'][dbname]
+                        data2 = rank_curves[num]['lnbnn'][dbname]
 
                         data1['label'] = 'TPR=${tpr}$ CLF {species}'.format(
                             tpr=data1['tpr@fpr=0_tex'], species=data1['species'])
@@ -499,16 +499,16 @@ class VerifierExpt(DBInputs):
                 fig.clf()
                 ax = pt.gca()
                 for dbname in dbname_chunk:
-                    data1 = rank_roc_curves[num]['clf'][dbname]
-                    data2 = rank_roc_curves[num]['lnbnn'][dbname]
+                    data1 = rank_curves[num]['clf'][dbname]
+                    data2 = rank_curves[num]['lnbnn'][dbname]
 
-                    data1['label'] = 'pos@rank1${cmc0}$ CLF {species}'.format(
+                    data1['label'] = 'pos@rank1=${cmc0}$ CLF {species}'.format(
                         cmc0=data1['cmc0_tex'], species=data1['species'])
                     data1['ls'] = '-'
                     data1['chunk_marker'] = '^'
                     data1['color'] = dbprops[dbname]['color']
 
-                    data2['label'] = 'pos@rank1${cmc0}$ CLF {species}'.format(
+                    data2['label'] = 'pos@rank1=${cmc0}$ CLF {species}'.format(
                         cmc0=data2['cmc0_tex'], species=data2['species'])
                     data2['ls'] = '--'
                     data2['chunk_marker'] = 'v'
@@ -603,7 +603,7 @@ class VerifierExpt(DBInputs):
             for num in nums:
                 algos = {'clf', 'lnbnn'}
                 for fnum, algo in enumerate(algos, start=1):
-                    roc_curves = rank_roc_curves[num]
+                    roc_curves = rank_curves[num]
                     other = next(iter(algos - {algo}))
                     fig = pt.figure(fnum=fnum)  # NOQA
                     method1_roc(roc_curves, algo, other)
@@ -619,64 +619,54 @@ class VerifierExpt(DBInputs):
             mpl.rcParams['xtick.color'] = 'k'
             mpl.rcParams['ytick.color'] = 'k'
             mpl.rcParams['axes.labelcolor'] = 'k'
-            # mpl.rcParams['text.color'] = 'k'
+            mpl.rcParams['text.color'] = 'k'
 
-            # def method1_cmc(cmc_curves, cmc_other):
-            #     ax = pt.gca()
-            #     color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
-            #     markers = pt.distinct_markers(len(cmc_curves))
-            #     for data, marker, color in zip(cmc_curves.values(), markers, color_cycle):
-            #         species = data['species']
-            #         cmc0 = data['cmc'][0]
-            #         cmc0_text = '{:.3f}'.format(cmc0)
+            def method1_cmc(cmc_curves):
+                ax = pt.gca()
+                color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+                markers = pt.distinct_markers(len(cmc_curves))
+                for data, marker, color in zip(cmc_curves.values(), markers, color_cycle):
+                    species = data['species']
 
-            #         other0 = cmc_other[data['species']]['cmc'][0]
-            #         if cmc0 >= other0:
-            #             if mpl.rcParams['text.usetex']:
-            #                 cmc0_text = '\\mathbf{' + cmc0_text + '}'
-            #             else:
-            #                 cmc0_text = cmc0_text + '*'
+                    if mpl.rcParams['text.usetex']:
+                        cmc0_text = data['cmc0_tex']
+                        label = 'pos@rank1=${}$ {species}'.format(
+                            cmc0_text, species=species)
+                    else:
+                        cmc0_text = data['cmc0_text']
+                        label = 'pos@rank1={} {species}'.format(
+                            cmc0_text, species=species)
 
-            #         if mpl.rcParams['text.usetex']:
-            #             label = 'pos@rank1=${}$ {species}'.format(
-            #                 cmc0_text, species=species)
-            #         else:
-            #             label = 'pos@rank1={} {species}'.format(
-            #                 cmc0_text, species=species)
+                    ranks = np.arange(1, len(data['cmc']) + 1)
+                    ax.plot(ranks, data['cmc'], marker=marker, color=color,
+                            label=label)
 
-            #         ranks = np.arange(1, len(data['cmc']) + 1)
-            #         ax.plot(ranks, data['cmc'], marker=marker, color=color,
-            #                 label=label)
+                ax.set_xlabel('rank')
+                ax.set_ylabel('match probability')
+                ax.set_ylim(0, 1)
+                ax.set_xlim(1, 20)
+                ax.set_xticks([1, 5, 10, 15, 20])
 
-            #     ax.set_xlabel('rank')
-            #     ax.set_ylabel('match probability')
-            #     ax.set_ylim(0, 1)
-            #     ax.set_xlim(1, 20)
-            #     ax.set_xticks([1, 5, 10, 15, 20])
+                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+                ax.legend(loc='lower right')
+                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+                fig.set_size_inches([W * .7, H])
 
-            #     # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-            #     ax.legend(loc='lower right')
-            #     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-            #     fig.set_size_inches([W * .7, H])
+            fig = pt.figure(fnum=1)  # NOQA
+            # num doesnt actually matter here
+            num = 1
+            cmc_curves = rank_curves[num]['clf']
+            method1_cmc(cmc_curves)
+            fname = 'agg_cmc_clf_{}.png'.format(task_key)
+            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-            # clf_cmc_curves_ = ut.odict([(d['species'], d) for d in clf_cmc_curves])
-            # lnbnn_cmc_curves_ = ut.odict([(d['species'], d) for d in lnbnn_cmc_curves])
-
-            # fig = pt.figure(fnum=1)  # NOQA
-            # cmc_curves = clf_cmc_curves_
-            # cmc_other = lnbnn_cmc_curves_
-            # method1_cmc(cmc_curves, cmc_other)
-            # fname = 'agg_cmc_clf_{}.png'.format(task_key)
-            # fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-            # vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-            # fig = pt.figure(fnum=2)  # NOQA
-            # cmc_curves = lnbnn_cmc_curves_
-            # cmc_other = clf_cmc_curves_
-            # method1_cmc(cmc_curves, cmc_other)
-            # fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
-            # fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-            # vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            fig = pt.figure(fnum=2)  # NOQA
+            cmc_curves = rank_curves[num]['lnbnn']
+            method1_cmc(cmc_curves)
+            fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
+            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if True:
             # Agg metrics
@@ -692,7 +682,8 @@ class VerifierExpt(DBInputs):
 
                 res.augment_if_needed()
                 y_true = res.y_test_enc
-                if sum(y_true == 2) < 300:
+                incmp_enc = ut.aslist(res.class_names).index(INCMP)
+                if sum(y_true == incmp_enc) < 500:
                     continue
 
                 # Find auto thresholds
@@ -1292,13 +1283,29 @@ class VerifierExpt(DBInputs):
         """
             >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('humpbacks_fb')
+
+            >>> self = VerifierExpt('MantaMatcher')
+
+            >>> self = VerifierExpt('RotanTurtles')
         """
         if getattr(self, 'pblm', None) is None:
             self._setup(quick=True)
-
+        # ut.set_process_title(self.dbname + 'hyperparam_search')
         pblm = self.pblm
         ibs = pblm.infr.ibs
         aids = pblm.infr.aids
+
+        def measure_name_cmc(cm_list, nbins=None):
+            lnbnn_name_ranks = []
+            for cm in cm_list:
+                lnbnn_rank = cm.get_name_ranks([cm.qnid])[0]
+                lnbnn_name_ranks.append(lnbnn_rank)
+            if nbins is None:
+                nbins = max(1, max(lnbnn_name_ranks)) + 1
+            bins = np.arange(nbins)
+            hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
+            cdf = (np.cumsum(hist) / sum(hist))
+            return cdf
 
         # These are not gaurenteed to be comparable
         viewpoint_aware = (ibs.dbname == 'RotanTurtles')
@@ -1317,29 +1324,45 @@ class VerifierExpt(DBInputs):
         cm_list = qreq_.execute()
         cm_list = [cm.extend_results(qreq_) for cm in cm_list]
 
+        measure_name_cmc(cm_list)[0]
+
         # ---------------------------
         # Sample a small dataset of borderline pairs to do hyperparamter
         # optimization on
-        target_n_qaids = 64
-        target_n_daids = 128
+        # target_n_qaids = 64
+        # target_n_daids = 128
         # target_n_daids = 64
+
+        target_n_qaids = 16
+        target_n_daids = 64
 
         border = pd.DataFrame(object(), index=qaids, columns=['qaid', 'rank', 'daids'])
         for cm in cm_list:
             gt_aids = cm.get_top_gt_aids(ibs=ibs)
             gt_ranks = np.array(cm.get_annot_ranks(gt_aids))
+            gt_scores = cm.get_annot_scores(gt_aids)
             border.loc[cm.qaid, 'qaid'] = cm.qaid
             border.loc[cm.qaid, 'rank'] = gt_ranks.min()
+            border.loc[cm.qaid, 'score'] = min(gt_scores)
             border.loc[cm.qaid, 'daids'] = gt_aids.tolist()
 
-        border = border.sort_values('rank')
+        # Remove very hard and very easy cases
         border = border[border['rank'] > 0]
-        vals, bins = np.histogram(border['rank'],
-                                  bins=np.arange(border['rank'].max()))
-        rank_hist = pd.Series(vals, index=bins[:-1])
-        rank_cumhist = rank_hist.cumsum()
-        rank_thresh = np.where(rank_cumhist <= target_n_qaids)[0][-1]
-        selected = border[border['rank'] <= rank_thresh]
+        border = border[border['score'] > -np.inf]
+
+        # Take things near the middle
+        border = border.sort_values('score')
+        p1 = int((len(border) / 2) - (target_n_qaids / 2))
+        p2 = p1 + target_n_qaids
+        selected = border.iloc[p1:p2]
+
+        # vals, bins = np.histogram(border['rank'],
+        #                           bins=np.arange(border['rank'].max()))
+        # rank_hist = pd.Series(vals, index=bins[:-1])
+        # rank_cumhist = rank_hist.cumsum()
+        # rank_thresh = np.where(rank_cumhist <= target_n_qaids)[0][-1]
+        # selected = border[border['rank'] <= rank_thresh]
+
         needed_daids = sorted(ut.flatten(selected['daids'].values))
         avail_daids = set(daids) - set(needed_daids)
         n_need = target_n_daids - len(needed_daids)
@@ -1347,18 +1370,6 @@ class VerifierExpt(DBInputs):
 
         # ---------------------------
         # Rerun ranking on the smaller dataset
-
-        def measure_name_cmc(cm_list, nbins=None):
-            lnbnn_name_ranks = []
-            for cm in cm_list:
-                lnbnn_rank = cm.get_name_ranks([cm.qnid])[0]
-                lnbnn_name_ranks.append(lnbnn_rank)
-            if nbins is None:
-                nbins = max(lnbnn_name_ranks)
-            bins = np.arange(nbins)
-            hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
-            cdf = (np.cumsum(hist) / sum(hist))
-            return cdf
 
         '''
         pip install git+git://github.com/pandas-dev/pandas.git@master
@@ -1368,6 +1379,8 @@ class VerifierExpt(DBInputs):
 
         sel_qaids = sorted(selected['qaid'].values)
         sel_daids = sorted(needed_daids + confuse_daids)
+
+        assert len(sel_qaids) > 0, 'no query chips'
 
         baseline_cfgdict = pblm._make_lnbnn_pcfg()
         baseline_cfgdict['sv_on'] = True
@@ -1389,20 +1402,27 @@ class VerifierExpt(DBInputs):
             # 'medianblur_thresh': [0, 10, 20, 30, 40, 50],
             # 'adapteq_ksize': [4, 6, 8, 16, 32],
             # 'adapteq_ksize': [4, 8, 32],
-            'adapteq_ksize': [6, 8, 16],
+            'adapteq_ksize': [8, 16],
             # 'adapteq_limit': [1, 2, 3, 6],
             # 'adapteq_limit': [1, 6],
-            'adapteq_limit': [2],
+            'adapteq_limit': [1, 2],
             # 'affine_invariance': [True, False]
         }
 
-        grid_output = {}
+        combos = list(ut.all_dict_combinations(dials))
+        combos += [
+            {'adapteq': False},
+            {'adapteq': False, 'medianblur': False},
+        ]
+        combos = ut.shuffle(combos, rng=32132)
 
-        grid_output['baseline'] = to_optimize({})
+        grid_output = {}
+        dial = {}
+        grid_output['baseline'] = to_optimize(dial)
         print('SO FAR: ')
         print(ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2))
 
-        for dial in ut.shuffle(list(ut.all_dict_combinations(dials)), rng=32132):
+        for dial in combos:
             score = to_optimize(dial)
             print('FINISHED: ')
             print('score = {!r}'.format(score))
