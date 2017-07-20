@@ -1592,23 +1592,24 @@ def update_1_7_0(db, ibs=None):
 
 
 def post_1_7_0(db, ibs=None):
-    from ibeis.other import ibsfuncs
-    aids = db.get_all_rowids(const.ANNOTATION_TABLE)
+    if ibs is not None:
+        from ibeis.other import ibsfuncs
+        aids = db.get_all_rowids(const.ANNOTATION_TABLE)
 
-    # Get old yaw values
-    yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
-    yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
-    # Convert them into yaw/view codes
-    view_codes = ibsfuncs.get_yaw_viewtexts(yaws)
+        # Get old yaw values
+        yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
+        yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
+        # Convert them into yaw/view codes
+        view_codes = ibsfuncs.get_yaw_viewtexts(yaws)
 
-    # Convert the codes into integers
-    VIEW = ibs.const.VIEW
-    UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
-    view_codes = [UNKNOWN_CODE if y is None else y for y in view_codes]
-    view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
+        # Convert the codes into integers
+        VIEW = ibs.const.VIEW
+        UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
+        view_codes = [UNKNOWN_CODE if y is None else y for y in view_codes]
+        view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
 
-    ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',),
-               view_ints, id_iter=aids)
+        ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',),
+                   view_ints, id_iter=aids)
 
 
 # ========================

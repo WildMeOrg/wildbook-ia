@@ -24,13 +24,14 @@ USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
     print('[ibeis.main_module] Caught ctrl+c in %s' % (proc_name,))
-    try:
-        _close_parallel()
-    except Exception as ex:
-        print('Something very bad happened' + repr(ex))
-    finally:
-        print('[ibeis.main_module] sys.exit(0)')
-        sys.exit(0)
+    sys.exit(0)
+    # try:
+    #     _close_parallel()
+    # except Exception as ex:
+    #     print('Something very bad happened' + repr(ex))
+    # finally:
+    #     print('[ibeis.main_module] sys.exit(0)')
+    #     sys.exit(0)
 
 #-----------------------
 # private init functions
@@ -107,7 +108,12 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     return ibs
 
 
-def __import_parallel_modules():
+def _init_parallel():
+    import utool as ut
+    if ut.VERBOSE:
+        print('_init_parallel')
+    from utool import util_parallel
+    from ibeis import params
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
     #from utool import util_sysreq
@@ -118,30 +124,21 @@ def __import_parallel_modules():
     #import pyrf  # NOQA
     from ibeis import core_annots  # NOQA
     #.algo.preproc import preproc_chip  # NOQA
-
-
-def _init_parallel():
-    import utool as ut
-    if ut.VERBOSE:
-        print('_init_parallel')
-    from utool import util_parallel
-    from ibeis import params
-    __import_parallel_modules()
     util_parallel.set_num_procs(params.args.num_procs)
     #if PREINIT_MULTIPROCESSING_POOLS:
     #    util_parallel.init_pool(params.args.num_procs)
 
 
-def _close_parallel():
-    #if ut.VERBOSE:
-    #    print('_close_parallel')
-    try:
-        from utool import util_parallel
-        util_parallel.close_pool(terminate=True)
-    except Exception as ex:
-        import utool as ut
-        ut.printex(ex, 'error closing parallel')
-        raise
+# def _close_parallel():
+#     #if ut.VERBOSE:
+#     #    print('_close_parallel')
+#     try:
+#         from utool import util_parallel
+#         util_parallel.close_pool(terminate=True)
+#     except Exception as ex:
+#         import utool as ut
+#         ut.printex(ex, 'error closing parallel')
+#         raise
 
 
 def _init_numpy():
@@ -630,7 +627,7 @@ def main_close(main_locals=None):
     #import utool as ut
     #if ut.VERBOSE:
     #    print('main_close')
-    _close_parallel()
+    # _close_parallel()
     _reset_signals()
 
 

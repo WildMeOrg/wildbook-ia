@@ -104,9 +104,13 @@ class PairwiseFeatureExtractor(object):
             if key in config:
                 if vars_.get(key, None) is not None:
                     raise ValueError('{} specified twice'.format(key))
-                return config.pop(key)
+                value = config.pop(key)
             else:
-                return default
+                # See if the local namespace has it
+                value = vars_.get(key, None)
+                if value is None:
+                    value = default
+            return value
 
         # These also sort-of belong to pair-feat config
         extr.global_keys = _popconfig('global_keys', [])
@@ -267,20 +271,23 @@ class PairwiseFeatureExtractor(object):
             >>>     'refine_method': 'homog', 'sv_on': True, 'sver_xy_thresh': 0.01,
             >>>     'symmetric': True, 'weight': 'fgweights'
             >>> }
-            >>> global_keys = ['gps', 'qual', 'time', 'yaw']
+            >>> global_keys = ['gps', 'qual', 'time']
             >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config,
             >>>                                 global_keys=global_keys)
+            >>> assert extr.global_keys == global_keys
             >>> edges = [(1, 2), (2, 3)]
             >>> prog_hook = None
             >>> match_list = extr._enriched_pairwise_matches(edges)
             >>> match1, match2 = match_list
             >>> assert match1.annot2 is match2.annot1
             >>> assert match1.annot1 is not match2.annot2
-            >>> assert len(match1.global_measures) == 4
+            >>> print('match1.global_measures = {!r}'.format(match1.global_measures))
+            >>> assert len(match1.global_measures) == 3, 'global measures'
         """
+        print('extr.global_keys = {!r}'.format(extr.global_keys))
         if extr.global_keys is None:
             raise ValueError('specify global keys')
-            # global_keys = ['yaw', 'qual', 'gps', 'time']
+            # global_keys = ['view_int', 'qual', 'gps', 'time']
             # global_keys = ['view', 'qual', 'gps', 'time']
         matches = extr._exec_pairwise_match(edges, prog_hook=prog_hook)
         if extr.need_lnbnn:

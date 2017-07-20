@@ -409,7 +409,7 @@ def get_dbinfo(ibs, verbose=True,
         annots = ibs.annots(aid_list)
         viewcode2_nAnnots = ut.order_dict_by(
             ut.map_vals(len, annots.group_items(annots.viewpoint_code)),
-            list(const.const.VIEW.CODE_TO_INT.keys()) + [None]
+            list(ibs.const.VIEW.CODE_TO_INT.keys()) + [None]
         )
         return viewcode2_nAnnots
 
@@ -434,7 +434,7 @@ def get_dbinfo(ibs, verbose=True,
     contributor_tag_to_aids = ut.group_items(valid_aids, annot_contributor_tags)
 
     contributor_tag_to_qualstats = {key: get_annot_qual_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
-    contributor_tag_to_viewstats = {key: get_annot_yaw_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_viewstats = {key: get_annot_viewpoint_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
 
     contributor_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)}
     contributor_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)}

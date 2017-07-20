@@ -234,6 +234,8 @@ class VerifierExpt(DBInputs):
         """
         all_results = ut.odict([])
 
+        # VerifierExpt.agg_dbstats()
+
         dbnames = VerifierExpt.agg_dbnames
 
         for dbname in VerifierExpt.agg_dbnames:
@@ -619,62 +621,62 @@ class VerifierExpt(DBInputs):
             mpl.rcParams['axes.labelcolor'] = 'k'
             # mpl.rcParams['text.color'] = 'k'
 
-            def method1_cmc(cmc_curves, cmc_other):
-                ax = pt.gca()
-                color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
-                markers = pt.distinct_markers(len(cmc_curves))
-                for data, marker, color in zip(cmc_curves.values(), markers, color_cycle):
-                    species = data['species']
-                    cmc0 = data['cmc'][0]
-                    cmc0_text = '{:.3f}'.format(cmc0)
+            # def method1_cmc(cmc_curves, cmc_other):
+            #     ax = pt.gca()
+            #     color_cycle = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+            #     markers = pt.distinct_markers(len(cmc_curves))
+            #     for data, marker, color in zip(cmc_curves.values(), markers, color_cycle):
+            #         species = data['species']
+            #         cmc0 = data['cmc'][0]
+            #         cmc0_text = '{:.3f}'.format(cmc0)
 
-                    other0 = cmc_other[data['species']]['cmc'][0]
-                    if cmc0 >= other0:
-                        if mpl.rcParams['text.usetex']:
-                            cmc0_text = '\\mathbf{' + cmc0_text + '}'
-                        else:
-                            cmc0_text = cmc0_text + '*'
+            #         other0 = cmc_other[data['species']]['cmc'][0]
+            #         if cmc0 >= other0:
+            #             if mpl.rcParams['text.usetex']:
+            #                 cmc0_text = '\\mathbf{' + cmc0_text + '}'
+            #             else:
+            #                 cmc0_text = cmc0_text + '*'
 
-                    if mpl.rcParams['text.usetex']:
-                        label = 'pos@rank1=${}$ {species}'.format(
-                            cmc0_text, species=species)
-                    else:
-                        label = 'pos@rank1={} {species}'.format(
-                            cmc0_text, species=species)
+            #         if mpl.rcParams['text.usetex']:
+            #             label = 'pos@rank1=${}$ {species}'.format(
+            #                 cmc0_text, species=species)
+            #         else:
+            #             label = 'pos@rank1={} {species}'.format(
+            #                 cmc0_text, species=species)
 
-                    ranks = np.arange(1, len(data['cmc']) + 1)
-                    ax.plot(ranks, data['cmc'], marker=marker, color=color,
-                            label=label)
+            #         ranks = np.arange(1, len(data['cmc']) + 1)
+            #         ax.plot(ranks, data['cmc'], marker=marker, color=color,
+            #                 label=label)
 
-                ax.set_xlabel('rank')
-                ax.set_ylabel('match probability')
-                ax.set_ylim(0, 1)
-                ax.set_xlim(1, 20)
-                ax.set_xticks([1, 5, 10, 15, 20])
+            #     ax.set_xlabel('rank')
+            #     ax.set_ylabel('match probability')
+            #     ax.set_ylim(0, 1)
+            #     ax.set_xlim(1, 20)
+            #     ax.set_xticks([1, 5, 10, 15, 20])
 
-                # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
-                ax.legend(loc='lower right')
-                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-                fig.set_size_inches([W * .7, H])
+            #     # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+            #     ax.legend(loc='lower right')
+            #     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+            #     fig.set_size_inches([W * .7, H])
 
-            clf_cmc_curves_ = ut.odict([(d['species'], d) for d in clf_cmc_curves])
-            lnbnn_cmc_curves_ = ut.odict([(d['species'], d) for d in lnbnn_cmc_curves])
+            # clf_cmc_curves_ = ut.odict([(d['species'], d) for d in clf_cmc_curves])
+            # lnbnn_cmc_curves_ = ut.odict([(d['species'], d) for d in lnbnn_cmc_curves])
 
-            fig = pt.figure(fnum=1)  # NOQA
-            cmc_curves = clf_cmc_curves_
-            cmc_other = lnbnn_cmc_curves_
-            method1_cmc(cmc_curves, cmc_other)
-            fname = 'agg_cmc_clf_{}.png'.format(task_key)
-            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            # fig = pt.figure(fnum=1)  # NOQA
+            # cmc_curves = clf_cmc_curves_
+            # cmc_other = lnbnn_cmc_curves_
+            # method1_cmc(cmc_curves, cmc_other)
+            # fname = 'agg_cmc_clf_{}.png'.format(task_key)
+            # fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            # vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-            fig = pt.figure(fnum=2)  # NOQA
-            cmc_curves = lnbnn_cmc_curves_
-            cmc_other = clf_cmc_curves_
-            method1_cmc(cmc_curves, cmc_other)
-            fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
-            fig_fpath = join(str(VerifierExpt.base_dpath), fname)
-            vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            # fig = pt.figure(fnum=2)  # NOQA
+            # cmc_curves = lnbnn_cmc_curves_
+            # cmc_other = clf_cmc_curves_
+            # method1_cmc(cmc_curves, cmc_other)
+            # fname = 'agg_cmc_lnbnn_{}.png'.format(task_key)
+            # fig_fpath = join(str(VerifierExpt.base_dpath), fname)
+            # vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
         if True:
             # Agg metrics
@@ -690,7 +692,7 @@ class VerifierExpt(DBInputs):
 
                 res.augment_if_needed()
                 y_true = res.y_test_enc
-                if sum(y_true == 2) < 50:
+                if sum(y_true == 2) < 300:
                     continue
 
                 # Find auto thresholds
@@ -964,6 +966,8 @@ class VerifierExpt(DBInputs):
 
         task_key = 'match_state'
         self.measure_hard_cases(task_key)
+
+        self.measure_dbstats()
 
         self.measure_rerank()
 
@@ -1293,7 +1297,6 @@ class VerifierExpt(DBInputs):
             self._setup(quick=True)
 
         pblm = self.pblm
-        infr = pblm.infr
         ibs = pblm.infr.ibs
         aids = pblm.infr.aids
 
@@ -1304,7 +1307,6 @@ class VerifierExpt(DBInputs):
         qaids, daids_list, info_list = thesis.Sampler._varied_inputs(
             ibs, aids, viewpoint_aware=viewpoint_aware)
         daids = daids_list[0]
-        info = info_list[0]
 
         # ---------------------------
         # Execute the ranking algorithm
@@ -1318,8 +1320,9 @@ class VerifierExpt(DBInputs):
         # ---------------------------
         # Sample a small dataset of borderline pairs to do hyperparamter
         # optimization on
-        target_n_qaids = 32
-        target_n_daids = 100
+        target_n_qaids = 64
+        target_n_daids = 128
+        # target_n_daids = 64
 
         border = pd.DataFrame(object(), index=qaids, columns=['qaid', 'rank', 'daids'])
         for cm in cm_list:
@@ -1357,18 +1360,58 @@ class VerifierExpt(DBInputs):
             cdf = (np.cumsum(hist) / sum(hist))
             return cdf
 
+        '''
+        pip install git+git://github.com/pandas-dev/pandas.git@master
+        '''
+
+        ut.set_num_procs(4)
+
         sel_qaids = sorted(selected['qaid'].values)
         sel_daids = sorted(needed_daids + confuse_daids)
 
         baseline_cfgdict = pblm._make_lnbnn_pcfg()
+        baseline_cfgdict['sv_on'] = True
+        baseline_cfgdict['affine_invariance'] = False
 
-        cfgdict = baseline_cfgdict.copy()
-        qreq_ = ibs.new_query_request(sel_qaids, sel_daids, cfgdict=cfgdict)
-        cm_list = qreq_.execute()
-        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+        ibs._parallel_chips = False
 
-        # Optimize this score
-        score = measure_name_cmc(cm_list)[0]
+        def to_optimize(dial):
+            cfgdict = baseline_cfgdict.copy()
+            cfgdict.update(dial)
+            qreq_ = ibs.new_query_request(sel_qaids, sel_daids, cfgdict=cfgdict)
+            cm_list = qreq_.execute()
+            cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+            # Optimize this score
+            score = measure_name_cmc(cm_list)[0]
+            return score
+
+        dials = {
+            # 'medianblur_thresh': [0, 10, 20, 30, 40, 50],
+            # 'adapteq_ksize': [4, 6, 8, 16, 32],
+            # 'adapteq_ksize': [4, 8, 32],
+            'adapteq_ksize': [6, 8, 16],
+            # 'adapteq_limit': [1, 2, 3, 6],
+            # 'adapteq_limit': [1, 6],
+            'adapteq_limit': [2],
+            # 'affine_invariance': [True, False]
+        }
+
+        grid_output = {}
+
+        grid_output['baseline'] = to_optimize({})
+        print('SO FAR: ')
+        print(ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2))
+
+        for dial in ut.shuffle(list(ut.all_dict_combinations(dials)), rng=32132):
+            score = to_optimize(dial)
+            print('FINISHED: ')
+            print('score = {!r}'.format(score))
+            print('dial = {!r}'.format(dial))
+            hashdial = ut.hashdict(dial)
+            grid_output[hashdial] = score
+
+            print('SO FAR: ')
+            print(ut.align(ut.repr4(ut.sort_dict(grid_output, 'vals'), precision=4), ':', pos=2))
 
     def measure_hard_cases(self, task_key):
         """

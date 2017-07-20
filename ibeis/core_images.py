@@ -671,8 +671,8 @@ def compute_localizations(depc, gid_list, config=None):
             yield package_to_numpy(base_key_list, result_list, score)
 
 
-def get_localization_chips_worker(tup):
-    gid, img, bbox_list, theta_list, target_size = tup
+def get_localization_chips_worker(gid, img, bbox_list, theta_list,
+                                  target_size):
     target_size_list = [target_size] * len(bbox_list)
 
     # Build transformation from image to chip
@@ -701,8 +701,7 @@ def get_localization_chips_worker(tup):
     return gid_list, chip_list
 
 
-def get_localization_masks_worker(tup):
-    gid, img, bbox_list, theta_list, target_size = tup
+def get_localization_masks_worker(gid, img, bbox_list, theta_list, target_size):
     target_size_list = [target_size] * len(bbox_list)
     verts_list = vt.geometry.scaled_verts_from_bbox_gen(bbox_list, theta_list)
 
@@ -792,8 +791,8 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
         arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
                             target_size_list))
-        result_list = ut.util_parallel.generate(get_localization_chips_worker, arg_iter,
-                                                ordered=True)
+        result_list = ut.util_parallel.generate2(get_localization_chips_worker,
+                                                 arg_iter, ordered=True)
         # Compute results
         result_list = list(result_list)
         # Extract results
@@ -871,8 +870,8 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
         img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
         arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
                             target_size_list))
-        result_list = ut.util_parallel.generate(get_localization_masks_worker, arg_iter,
-                                                ordered=True)
+        result_list = ut.util_parallel.generate2(get_localization_masks_worker,
+                                                 arg_iter, ordered=True)
         # Compute results
         result_list = list(result_list)
         # Extract results
@@ -975,8 +974,10 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         worker_func = get_localization_chips_worker
 
     arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
-    result_list = ut.util_parallel.generate(worker_func, arg_iter, ordered=True,
-                                            nTasks=len(gid_list_), force_serial=True)
+    result_list = ut.util_parallel.generate2(worker_func, arg_iter,
+                                             ordered=True,
+                                             nTasks=len(gid_list_),
+                                             force_serial=True)
 
     # Return the results
     for gid, chip_list in result_list:

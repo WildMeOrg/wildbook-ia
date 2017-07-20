@@ -404,7 +404,18 @@ def compute_chip(depc, aid_list, config=None):
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
-    if 1:
+    _parallel_chips = getattr(ibs, '_parallel_chips', False)
+
+    if _parallel_chips:
+        gpath_list = ibs.get_image_paths(gid_list)
+        args_gen = zip(gpath_list, M_list, newsize_list)
+
+        gen_kw = {'filter_list': filter_list, 'warpkw': warpkw}
+        gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(aid_list),
+                           force_serial=ibs.force_serial)
+        for chipBGR, width, height, M in gen:
+            yield chipBGR, width, height, M
+    else:
         #arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
         arg_iter = zip(gid_list, M_list, newsize_list)
         arg_list = list(arg_iter)
@@ -426,15 +437,6 @@ def compute_chip(depc, aid_list, config=None):
                 chipBGR = ipreproc.preprocess(chipBGR, filter_list)
             width, height = vt.get_size(chipBGR)
             yield (chipBGR, width, height, M)
-    else:
-        gpath_list = ibs.get_image_paths(gid_list)
-        args_gen = zip(gpath_list, M_list, newsize_list)
-
-        gen_kw = {'filter_list': filter_list, 'warpkw': warpkw}
-        gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(aid_list),
-                           force_serial=ibs.force_serial)
-        for chipBGR, width, height, M in gen:
-            yield chipBGR, width, height, M
     print('Done Preprocessing Chips')
 
 

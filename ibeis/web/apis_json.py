@@ -131,7 +131,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>         401,
         >>>     ],
         >>> }
-        >>> gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)
+        >>> gid_list = ibeis.web.apis_json.add_images_json(web_instance, **_payload)
         >>> print(gid_list)
         >>> print(web_instance.get_image_uuids(gid_list))
         >>> print(web_instance.get_image_uris(gid_list))
@@ -188,8 +188,8 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
     kwargs['sanitize'] = kwargs.get('sanitize', False)
 
     index_list = range(len(image_uri_list))
-    params_gen = ut.generate(_parse_imageinfo, index_list, adjust=True,
-                             force_serial=True, **kwargs)
+    params_gen = ut.generate2(_parse_imageinfo, zip(index_list),
+                              force_serial=True)
     params_gen = list(params_gen)
     gpath_list = [ _[0] for _ in params_gen ]
     gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)  # NOQA

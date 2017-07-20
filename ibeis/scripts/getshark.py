@@ -1321,7 +1321,7 @@ def download_missing_images(parsed, num=None):
         # pool = multiprocessing.Pool(7)
         # res = pool.map(ut.partial(ut.download_url, new=True, verbose=False), _iter)
 
-        # gen = ut.util_parallel.generate(ut.download_url, _iter, new=True, verbose=False)
+        # gen = ut.util_parallel.generate2(ut.download_url, zip(_iter), new=True, verbose=False)
         # for _ in gen:
         #     pass
 

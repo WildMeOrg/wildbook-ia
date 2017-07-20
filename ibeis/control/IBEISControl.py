@@ -296,6 +296,11 @@ class IBEISController(BASE_CLASS):
             # ibs._init_burned_in_species()
             ibs._clean_species()
         ibs.job_manager = None
+
+        # Hack for changing the way chips compute
+        # by default use serial because warpAffine is weird with multiproc
+        ibs._parallel_chips = False
+
         print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):

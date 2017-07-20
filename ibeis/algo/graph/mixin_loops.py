@@ -227,11 +227,12 @@ class InfrLoops(object):
                 new_edges = list(infr.find_pos_redun_candidate_edges())
                 if len(new_edges) > 0:
                     infr.add_candidate_edges(new_edges)
-                yield new_edges
+                    yield new_edges
             else:
                 for new_edges in ub.chunks(infr.find_pos_redun_candidate_edges(), 100):
-                    infr.add_candidate_edges(new_edges)
-                    yield new_edges
+                    if len(new_edges) > 0:
+                        infr.add_candidate_edges(new_edges)
+                        yield new_edges
 
         for count in it.count(0):
             infr.print('check pos-redun iter {}'.format(count))
@@ -253,6 +254,7 @@ class InfrLoops(object):
                 for value in gen:
                     yield value
 
+            print('found_any = {!r}'.format(found_any))
             if not found_any:
                 break
 

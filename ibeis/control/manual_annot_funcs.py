@@ -58,224 +58,6 @@ SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts',
 
 
 # ==========
-# IDERS
-# ==========
-
-# TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT
-# ADD ANNOTS, DELETE ANNOTS ANYTHING ELSE?
-@register_ibs_method
-@accessor_decors.ider
-def _get_all_aids(ibs):
-    r"""
-    Returns:
-        list_ (list):  all unfiltered aids (annotation rowids)
-    """
-    all_aids = ibs.db.get_all_rowids(const.ANNOTATION_TABLE)
-    return all_aids
-
-
-@register_ibs_method
-def get_num_annotations(ibs, **kwargs):
-    r"""
-    Number of valid annotations
-    """
-    aid_list = ibs.get_valid_aids(**kwargs)
-    return len(aid_list)
-
-
-@register_ibs_method
-@accessor_decors.ider
-@register_api('/api/annot/', methods=['GET'])
-def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
-                   yaw='no-filter',
-                   is_exemplar=None,
-                   species=None,
-                   is_known=None,
-                   hasgt=None,
-                   minqual=None,
-                   has_timestamp=None,
-                   min_timedelta=None):
-    r"""
-    High level function for getting all annotation ids according a set of filters.
-
-    Note: The yaw value cannot be None as a default because None is used as a
-          filtering value
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        imgsetid (int): imageset id (default = None)
-        include_only_gid_list (list): if specified filters annots not in these gids (default = None)
-        yaw (str): (default = 'no-filter')
-        is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)
-        species (str): (default = None)
-        is_known (bool): (default = None)
-        min_timedelta (int): minimum timedelta between annots of known individuals
-        hasgt (bool): (default = None)
-
-    Returns:
-        list: aid_list - a list of valid ANNOTATION unique ids
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
-
-    Ignore:
-        ibs.print_annotation_table()
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot/
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> ut.exec_funckw(get_valid_aids, globals())
-        >>> imgsetid = 1
-        >>> yaw = 'no-filter'
-        >>> species = ibs.const.TEST_SPECIES.ZEB_PLAIN
-        >>> is_known = False
-        >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
-        >>> aid_list = get_valid_aids(ibs, imgsetid=imgsetid, species=species, is_known=is_known)
-        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [ibs.const.UNKNOWN] * 2, 'bad name')
-        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [species] * 2, 'bad species')
-        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
-        >>> result = str(aid_list)
-        >>> print(result)
-
-        [1, 4]
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
-        >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
-        >>> intersect_aids = set(aid_list1).intersection(aid_list2)
-        >>> ut.assert_eq(len(aid_list1), 9)
-        >>> ut.assert_eq(len(aid_list2), 4)
-        >>> ut.assert_eq(len(intersect_aids), 0)
-
-    Ignore:
-        import utool as ut
-        setup = ut.codeblock(
-            '''
-            import ibeis
-            ibs = ibeis.opendb('PZ_Master1')
-            '''
-        )
-        stmt_list = [
-            ut.codeblock(
-                '''
-                ibs.db.get_all_rowids_where(ibs.const.ANNOTATION_TABLE, ibeis.control.DB_SCHEMA.ANNOT_PARENT_ROWID + " IS NULL", tuple())
-                '''),
-            ut.codeblock(
-                '''
-                ibs.db.get_all_rowids(ibs.const.ANNOTATION_TABLE)
-                '''),
-        ]
-        iterations = 100
-        verbose = True
-        _ = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
-
-    """
-    # getting imageset aid
-    if imgsetid is None:
-        if is_exemplar is not None:
-            # Optimization Hack
-            aid_list = ibs.db.get_all_rowids_where(
-                const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
-        else:
-            aid_list = ibs._get_all_aids()
-    else:
-        # HACK: Check to see if you want the
-        # exemplar "imageset" (image group)
-        imagesettext = ibs.get_imageset_text(imgsetid)
-        if imagesettext == const.EXEMPLAR_IMAGESETTEXT:
-            is_exemplar = True
-        aid_list = ibs.get_imageset_aids(imgsetid)
-        if is_exemplar is True:
-            # corresponding unoptimized hack for is_exemplar
-            flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.compress(aid_list, flag_list)
-        elif is_exemplar is False:
-            flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.filterfalse_items(aid_list, flag_list)
-    aid_list = filter_annotation_set(
-        ibs, aid_list, include_only_gid_list=include_only_gid_list, yaw=yaw,
-        is_exemplar=is_exemplar, species=species, is_known=is_known,
-        hasgt=hasgt, minqual=minqual, has_timestamp=has_timestamp,
-        min_timedelta=min_timedelta)
-    return aid_list
-
-
-@register_ibs_method
-@register_api('/api/annot/<rowid>/', methods=['GET'])
-def annotation_src_api(rowid=None):
-    r"""
-    Returns the base64 encoded image of annotation <aid>
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot/<aid>/
-    """
-    return routes_ajax.annotation_src(rowid)
-
-
-def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
-                          yaw='no-filter', is_exemplar=None, species=None,
-                          is_known=None, hasgt=None, minqual=None,
-                          has_timestamp=None, min_timedelta=None):
-    # -- valid aid filtering --
-    if include_only_gid_list is not None:
-        gid_list     = ibs.get_annot_gids(aid_list)
-        is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
-        aid_list     = ut.compress(aid_list, is_valid_gid)
-    if yaw != 'no-filter':
-        yaw_list     = ibs.get_annot_yaws(aid_list)
-        is_valid_yaw = [yaw == flag for flag in yaw_list]
-        aid_list     = ut.compress(aid_list, is_valid_yaw)
-    if species is not None:
-        aid_list = ibs.filter_aids_to_species(aid_list, species)
-    if is_known is not None:
-        aid_list = ibs.filter_aids_without_name(aid_list, invert=not is_known)
-    if minqual is not None:
-        aid_list = ibs.filter_aids_to_quality(aid_list, minqual, unknown_ok=True)
-    if has_timestamp is not None:
-        aid_list = ibs.filter_aids_without_timestamps(aid_list, invert=not has_timestamp)
-    if min_timedelta is not None:
-        aid_list = ibs.filter_annots_using_minimum_timedelta(aid_list, min_timedelta)
-    if hasgt:
-        hasgt_list = ibs.get_annot_has_groundtruth(aid_list)
-        aid_list = ut.compress(aid_list, hasgt_list)
-    aid_list = sorted(aid_list)
-    return aid_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
-    """ self verifier
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids() + [None, -1, 10434320432]
-        >>> aid_list_ = ibs.get_annot_aid(aid_list)
-        >>> assert [r is None for r in aid_list_[-3:]]
-        >>> assert [r is not None for r in aid_list_[0:-3]]
-    """
-    id_iter = aid_list
-    colnames = (ANNOT_ROWID,)
-    aid_list = ibs.db.get(const.ANNOTATION_TABLE, colnames,
-                          id_iter, id_colname='rowid', eager=eager, nInput=nInput)
-    return aid_list
-
-
-# ==========
 # ADDERS
 # ==========
 
@@ -550,6 +332,224 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from ut
     config2_ = {'thumbsize': 221}
     ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
+    return aid_list
+
+
+# ==========
+# IDERS
+# ==========
+
+# TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT
+# ADD ANNOTS, DELETE ANNOTS ANYTHING ELSE?
+@register_ibs_method
+@accessor_decors.ider
+def _get_all_aids(ibs):
+    r"""
+    Returns:
+        list_ (list):  all unfiltered aids (annotation rowids)
+    """
+    all_aids = ibs.db.get_all_rowids(const.ANNOTATION_TABLE)
+    return all_aids
+
+
+@register_ibs_method
+def get_num_annotations(ibs, **kwargs):
+    r"""
+    Number of valid annotations
+    """
+    aid_list = ibs.get_valid_aids(**kwargs)
+    return len(aid_list)
+
+
+@register_ibs_method
+@accessor_decors.ider
+@register_api('/api/annot/', methods=['GET'])
+def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
+                   yaw='no-filter',
+                   is_exemplar=None,
+                   species=None,
+                   is_known=None,
+                   hasgt=None,
+                   minqual=None,
+                   has_timestamp=None,
+                   min_timedelta=None):
+    r"""
+    High level function for getting all annotation ids according a set of filters.
+
+    Note: The yaw value cannot be None as a default because None is used as a
+          filtering value
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        imgsetid (int): imageset id (default = None)
+        include_only_gid_list (list): if specified filters annots not in these gids (default = None)
+        yaw (str): (default = 'no-filter')
+        is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)
+        species (str): (default = None)
+        is_known (bool): (default = None)
+        min_timedelta (int): minimum timedelta between annots of known individuals
+        hasgt (bool): (default = None)
+
+    Returns:
+        list: aid_list - a list of valid ANNOTATION unique ids
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
+
+    Ignore:
+        ibs.print_annotation_table()
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ut.exec_funckw(get_valid_aids, globals())
+        >>> imgsetid = 1
+        >>> yaw = 'no-filter'
+        >>> species = ibs.const.TEST_SPECIES.ZEB_PLAIN
+        >>> is_known = False
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
+        >>> aid_list = get_valid_aids(ibs, imgsetid=imgsetid, species=species, is_known=is_known)
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [ibs.const.UNKNOWN] * 2, 'bad name')
+        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [species] * 2, 'bad species')
+        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
+        >>> result = str(aid_list)
+        >>> print(result)
+
+        [1, 4]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
+        >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
+        >>> intersect_aids = set(aid_list1).intersection(aid_list2)
+        >>> ut.assert_eq(len(aid_list1), 9)
+        >>> ut.assert_eq(len(aid_list2), 4)
+        >>> ut.assert_eq(len(intersect_aids), 0)
+
+    Ignore:
+        import utool as ut
+        setup = ut.codeblock(
+            '''
+            import ibeis
+            ibs = ibeis.opendb('PZ_Master1')
+            '''
+        )
+        stmt_list = [
+            ut.codeblock(
+                '''
+                ibs.db.get_all_rowids_where(ibs.const.ANNOTATION_TABLE, ibeis.control.DB_SCHEMA.ANNOT_PARENT_ROWID + " IS NULL", tuple())
+                '''),
+            ut.codeblock(
+                '''
+                ibs.db.get_all_rowids(ibs.const.ANNOTATION_TABLE)
+                '''),
+        ]
+        iterations = 100
+        verbose = True
+        _ = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
+
+    """
+    # getting imageset aid
+    if imgsetid is None:
+        if is_exemplar is not None:
+            # Optimization Hack
+            aid_list = ibs.db.get_all_rowids_where(
+                const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
+        else:
+            aid_list = ibs._get_all_aids()
+    else:
+        # HACK: Check to see if you want the
+        # exemplar "imageset" (image group)
+        imagesettext = ibs.get_imageset_text(imgsetid)
+        if imagesettext == const.EXEMPLAR_IMAGESETTEXT:
+            is_exemplar = True
+        aid_list = ibs.get_imageset_aids(imgsetid)
+        if is_exemplar is True:
+            # corresponding unoptimized hack for is_exemplar
+            flag_list = ibs.get_annot_exemplar_flags(aid_list)
+            aid_list  = ut.compress(aid_list, flag_list)
+        elif is_exemplar is False:
+            flag_list = ibs.get_annot_exemplar_flags(aid_list)
+            aid_list  = ut.filterfalse_items(aid_list, flag_list)
+    aid_list = filter_annotation_set(
+        ibs, aid_list, include_only_gid_list=include_only_gid_list, yaw=yaw,
+        is_exemplar=is_exemplar, species=species, is_known=is_known,
+        hasgt=hasgt, minqual=minqual, has_timestamp=has_timestamp,
+        min_timedelta=min_timedelta)
+    return aid_list
+
+
+@register_ibs_method
+@register_api('/api/annot/<rowid>/', methods=['GET'])
+def annotation_src_api(rowid=None):
+    r"""
+    Returns the base64 encoded image of annotation <aid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/<aid>/
+    """
+    return routes_ajax.annotation_src(rowid)
+
+
+def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
+                          yaw='no-filter', is_exemplar=None, species=None,
+                          is_known=None, hasgt=None, minqual=None,
+                          has_timestamp=None, min_timedelta=None):
+    # -- valid aid filtering --
+    if include_only_gid_list is not None:
+        gid_list     = ibs.get_annot_gids(aid_list)
+        is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
+        aid_list     = ut.compress(aid_list, is_valid_gid)
+    if yaw != 'no-filter':
+        yaw_list     = ibs.get_annot_yaws(aid_list)
+        is_valid_yaw = [yaw == flag for flag in yaw_list]
+        aid_list     = ut.compress(aid_list, is_valid_yaw)
+    if species is not None:
+        aid_list = ibs.filter_aids_to_species(aid_list, species)
+    if is_known is not None:
+        aid_list = ibs.filter_aids_without_name(aid_list, invert=not is_known)
+    if minqual is not None:
+        aid_list = ibs.filter_aids_to_quality(aid_list, minqual, unknown_ok=True)
+    if has_timestamp is not None:
+        aid_list = ibs.filter_aids_without_timestamps(aid_list, invert=not has_timestamp)
+    if min_timedelta is not None:
+        aid_list = ibs.filter_annots_using_minimum_timedelta(aid_list, min_timedelta)
+    if hasgt:
+        hasgt_list = ibs.get_annot_has_groundtruth(aid_list)
+        aid_list = ut.compress(aid_list, hasgt_list)
+    aid_list = sorted(aid_list)
+    return aid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
+    """ self verifier
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids() + [None, -1, 10434320432]
+        >>> aid_list_ = ibs.get_annot_aid(aid_list)
+        >>> assert [r is None for r in aid_list_[-3:]]
+        >>> assert [r is not None for r in aid_list_[0:-3]]
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_ROWID,)
+    aid_list = ibs.db.get(const.ANNOTATION_TABLE, colnames,
+                          id_iter, id_colname='rowid', eager=eager, nInput=nInput)
     return aid_list
 
 
@@ -1554,7 +1554,7 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         URL:    /api/annot/yaw/
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -1649,6 +1649,16 @@ def set_annot_viewpoint_int(ibs, aids, view_ints, _code_update=True):
 
 @register_ibs_method
 def get_annot_viewpoint_code(ibs, aids):
+    """
+    Doctest:
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::3]
+        >>> result = get_annot_viewpoint_code(ibs, aid_list)
+        >>> print(result)
+        ['left', 'left', 'unknown', 'left', 'unknown']
+    """
     return ut.dict_take(ibs.const.VIEW.INT_TO_CODE,
                         ibs.get_annot_viewpoint_int(aids))
 
@@ -1668,6 +1678,8 @@ def set_annot_viewpoint_code(ibs, aids, view_codes, _code_update=True):
 def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     r"""
     Sets the  yaw of a list of chips by aid
+
+    DEPRICATE
 
     A yaw is the yaw of the annotation in radians yaw is inverted. Will be fixed soon.
 
@@ -2432,13 +2444,13 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     image_uuid_list, verts_list, theta_list = visual_infotup
     # It is visual info augmented with name and species
     name_list       = ibs.get_annot_names(aid_list)
-    species_list    = ibs.get_annot_species_texts(aid_list)
 
-    # TODO: Remove yaw?
-    yaw_list        = ibs.get_annot_yaws(aid_list)
+    # TODO: Remove yaw and species?
+    species_list    = ibs.get_annot_species_texts(aid_list)
+    view_list       = ibs.get_annot_viewpoint_code(aid_list)
 
     semantic_infotup = SemanticInfoTup(
-        image_uuid_list, verts_list, theta_list, yaw_list, name_list,
+        image_uuid_list, verts_list, theta_list, view_list, name_list,
         species_list)
     return semantic_infotup
 
@@ -3041,6 +3053,8 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
     r"""
     Auto-docstr for 'set_annot_yaw_texts'
 
+    DEPRICATE
+
     RESTful:
         Method: PUT
         URL:    /api/annot/yaw/text/
@@ -3049,8 +3063,7 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
         aid_list = [aid_list]
     if isinstance(yaw_text_list, six.string_types):
         yaw_text_list = [yaw_text_list]
-    yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, yaw_text_list, None)
-    ibs.set_annot_yaws(aid_list, yaw_list)
+    ibs.set_annot_viewpoint_code(aid_list, yaw_text_list)
 
 
 @register_ibs_method
