@@ -732,6 +732,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         uuid_list = request.depc.get_root_uuid(root_rowids)
         #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
         uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
+        # TODO: uuid_hashid = ut.hashid_arr(uuid_list, label=label)
         return uuid_hashid
 
     def get_cfgstr(request, with_input=False, with_pipe=True, **kwargs):
