@@ -1004,8 +1004,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
         {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
         {'label': 'V3 (GRID)',          'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'background_whale_fluke', 'weight_filepath' : 'background_whale_fluke'},
-        {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'background_whale_fluke', 'weight_filepath' : 'background_whale_fluke'},
+        {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke'},
+        {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke'},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
