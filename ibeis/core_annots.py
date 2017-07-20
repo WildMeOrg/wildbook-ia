@@ -231,7 +231,8 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('dim_size', 700, 'sz', hideif=None,
                      type_=eval),  # TODO: allow types to vary
         ut.ParamInfo(
-            'resize_dim', 'width', '',
+            'resize_dim', 'maxwh', '',
+            # 'resize_dim', 'width', '',
             #'resize_dim', 'area', '',
             valid_values=['area', 'width', 'height', 'diag', 'maxwh', 'wh'],
             hideif=lambda cfg: cfg['dim_size'] is None),
@@ -241,7 +242,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('histeq', False, hideif=False),
         # ---
         ut.ParamInfo('adapteq', False, hideif=False),
-        ut.ParamInfo('adapteq_ksize', 8, hideif=lambda cfg: not cfg['adapteq']),
+        ut.ParamInfo('adapteq_ksize', 16, hideif=lambda cfg: not cfg['adapteq']),
         ut.ParamInfo('adapteq_limit', 2.0, hideif=lambda cfg: not cfg['adapteq']),
         # ---
         ut.ParamInfo('medianblur', False, hideif=False),

@@ -150,7 +150,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if species == 'humpback':
             hyper_params['vsone_kpts']['affine_invariance'] = False
             hyper_params['chip']['medianblur'] = True
-            hyper_params['chip']['medianblur_thresh'] = 0
+            hyper_params['chip']['medianblur_thresh'] = 45
             hyper_params['chip']['adapteq'] = True
             hyper_params['chip']['adapteq_ksize'] = 16
             hyper_params['chip']['adapteq_limit'] = 2
@@ -159,7 +159,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params['vsone_kpts']['affine_invariance'] = False
             # Parameters from manta matcher
             hyper_params['chip']['medianblur'] = True
-            hyper_params['chip']['medianblur_thresh'] = 0
+            hyper_params['chip']['medianblur_thresh'] = 45
             hyper_params['chip']['adapteq'] = True
             hyper_params['chip']['adapteq_ksize'] = 16
             hyper_params['chip']['adapteq_limit'] = 2

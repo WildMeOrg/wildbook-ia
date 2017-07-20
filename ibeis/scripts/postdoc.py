@@ -1333,8 +1333,11 @@ class VerifierExpt(DBInputs):
         # target_n_daids = 128
         # target_n_daids = 64
 
-        target_n_qaids = 16
-        target_n_daids = 64
+        # target_n_qaids = 16
+        # target_n_daids = 64
+
+        target_n_qaids = 32
+        target_n_daids = 128
 
         border = pd.DataFrame(object(), index=qaids, columns=['qaid', 'rank', 'daids'])
         for cm in cm_list:
@@ -1373,6 +1376,8 @@ class VerifierExpt(DBInputs):
 
         '''
         pip install git+git://github.com/pandas-dev/pandas.git@master
+
+        (26, 876),
         '''
 
         ut.set_num_procs(4)
@@ -1409,11 +1414,18 @@ class VerifierExpt(DBInputs):
             # 'affine_invariance': [True, False]
         }
 
+        dials = {
+            'adapteq_ksize': [16],
+            'adapteq_limit': [2],
+            # 'medianblur_thresh': [40, 50, 60, 100],
+            'medianblur_thresh': [40, 45, 50],
+        }
+
         combos = list(ut.all_dict_combinations(dials))
-        combos += [
-            {'adapteq': False},
-            {'adapteq': False, 'medianblur': False},
-        ]
+        # combos += [
+        #     {'adapteq': False},
+        #     {'adapteq': False, 'medianblur': False},
+        # ]
         combos = ut.shuffle(combos, rng=32132)
 
         grid_output = {}
