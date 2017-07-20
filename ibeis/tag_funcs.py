@@ -206,6 +206,8 @@ def get_cate_categories():
 
 def export_tagged_chips(ibs, aid_list, dpath='.'):
     """
+    DEPRICATE
+
     CommandLine:
         python -m ibeis.tag_funcs --exec-export_tagged_chips --tags Hard interesting needswork --db PZ_Master1
         python -m ibeis.tag_funcs --exec-export_tagged_chips --logic=or --any_startswith quality occlusion --has_any lighting needswork interesting hard --db GZ_Master1 --dpath=/media/raid
@@ -226,7 +228,7 @@ def export_tagged_chips(ibs, aid_list, dpath='.'):
         >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
         >>> export_tagged_chips(ibs, aid_list, dpath)
     """
-    visual_uuid_hashid = ibs.get_annot_hashid_visual_uuid(aid_list, _new=True)
+    visual_uuid_hashid = ibs.get_annot_hashid_visual_uuid(aid_list)
     zip_fpath = ut.unixjoin(dpath, 'exported_chips2_' + ibs.get_dbname() +
                             visual_uuid_hashid + '.zip')
     chip_fpath = ibs.get_annot_chip_fpath(aid_list)

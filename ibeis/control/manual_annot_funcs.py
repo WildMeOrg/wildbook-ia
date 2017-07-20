@@ -15,7 +15,7 @@ from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis.other import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
-from collections import namedtuple
+# from collections import namedtuple
 from ibeis.web import routes_ajax
 import requests
 print, rrr, profile = ut.inject2(__name__)
@@ -51,10 +51,6 @@ ANNOT_QUALITY            = 'annot_quality'
 ANNOT_ROWIDS             = 'annot_rowids'
 GAR_ROWID                = 'gar_rowid'
 PART_ROWID               = 'part_rowid'
-
-SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts',
-                                                 'theta', 'yaw', 'name',
-                                                 'species'))
 
 
 # ==========
@@ -165,13 +161,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> result += str(postvalid)
         >>> print(result)
         [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
-        [UUID('68160c90-4b82-dc96-dafa-b12948739577'), UUID('03e74d19-1bf7-bc43-a291-8ee06a44da2e')]
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-
-        # semantic uuids change when hashing is different
-
-        [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
-        [UUID('68160c90-4b82-dc96-dafa-b12948739577'), UUID('03e74d19-1bf7-bc43-a291-8ee06a44da2e')]
+        [UUID('58905a72-dd31-c42b-d5b5-2312adfc7cba'), UUID('dd58665a-2a8b-8e84-4919-038c80bd9be0')]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
     Example2:
@@ -201,6 +191,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> print(result)
         [14, 15]
     """
+    assert yaw_list is None, 'yaw is depricated'
     #ut.embed()
     from vtool import geometry
     if ut.VERBOSE:
@@ -219,7 +210,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     else:
         if nid_list is None:
             nid_list = [const.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
-        name_list = ibs.get_name_texts(nid_list)
 
     if species_rowid_list is not None:
         assert species_list is None, 'cannot mix species_rowid and species'
@@ -261,8 +251,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         print(ut.repr2(locals()))
         return []
 
-    if yaw_list is None:
-        yaw_list = [-1.0] * len(gid_list)
     if viewpoint_list is None:
         viewpoint_list = [None] * len(gid_list)
     if quality_list is None:
@@ -271,13 +259,15 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         multiple_list = [False] * len(gid_list)
     if interest_list is None:
         interest_list = [False] * len(gid_list)
+
+    viewpoint_ints = _ensure_viewpoint_to_int(viewpoint_list)
+
     nVert_list = [len(verts) for verts in vert_list]
     vertstr_list = [six.text_type(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids
-    image_uuid_list = ibs.get_image_uuids(gid_list)
     if annot_uuid_list is None:
         annot_uuid_list = [uuid.uuid4() for _ in range(len(gid_list))]
 
@@ -286,53 +276,239 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # with the updating of the determenistic uuids. Find a way to
     # integrate both pieces of code without too much reundancy.
     # Make sure these tuples are constructed correctly
-    if annot_visual_uuid_list is None:
-        visual_infotup = (image_uuid_list, vert_list, theta_list)
-        assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
-        annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
-    if annot_semantic_uuid_list is None:
-        semantic_infotup = (image_uuid_list, vert_list, theta_list, yaw_list,
-                            name_list, species_list)
-        assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
-        annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
+    if annot_visual_uuid_list is None or annot_semantic_uuid_list is None:
+        if name_list is None:
+            name_list = ibs.get_name_texts(nid_list)
+        view_codes = ut.dict_take(ibs.const.VIEW.INT_TO_CODE, viewpoint_ints)
+        props = {
+            'image_uuids': ibs.get_image_uuids(gid_list),
+            'verts': vert_list,
+            'thetas': theta_list,
+            'names': name_list,
+            'viewpoint_code': view_codes,
+            'species_texts': species_list,
+        }
+        if annot_visual_uuid_list is None:
+            visual_infotup = ut.take(props, VISUAL_TUP_PROPS)
+            annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
+        if annot_semantic_uuid_list is None:
+            semantic_infotup = ut.take(props, VISUAL_TUP_PROPS + SEMANTIC_TUP_PROPS)
+            annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
 
     # Define arguments to insert
-    colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
-                'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                'annot_verts', ANNOT_YAW, 'annot_viewpoint', 'annot_quality',
-                'annot_toggle_multiple', 'annot_toggle_interest',
-                'annot_detect_confidence',
-                'annot_note', 'name_rowid', 'species_rowid',
-                'annot_visual_uuid', 'annot_semantic_uuid')
+    props = ut.odict([
+        ('annot_uuid', annot_uuid_list),
+        ('image_rowid', gid_list),
+        ('annot_xtl', xtl_list),
+        ('annot_ytl', ytl_list),
+        ('annot_width', width_list),
+        ('annot_height', height_list),
+        ('annot_theta', theta_list),
+        ('annot_num_verts', nVert_list),
+        ('annot_verts', vertstr_list),
+        ('annot_viewpoint', viewpoint_list),
+        ('annot_quality', quality_list),
+        ('annot_toggle_multiple', multiple_list),
+        ('annot_toggle_interest', interest_list),
+        ('annot_detect_confidence', detect_confidence_list),
+        ('annot_note', notes_list),
+        ('name_rowid', nid_list),
+        ('species_rowid', species_rowid_list),
+        ('annot_viewpoint_int', viewpoint_ints),
+        ('annot_visual_uuid', annot_visual_uuid_list),
+        ('annot_semantic_uuid', annot_semantic_uuid_list),
+    ])
 
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in annot_uuid_list]
     if any(check_uuid_flags):
         pos = ut.list_where(check_uuid_flags)
         raise ValueError('positions %r have malformated UUIDS' % (pos,))
 
-    params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
-                            width_list, height_list, theta_list, nVert_list,
-                            vertstr_list, yaw_list, viewpoint_list, quality_list,
-                            multiple_list, interest_list,
-                            detect_confidence_list,
-                            notes_list, nid_list, species_rowid_list,
-                           annot_visual_uuid_list, annot_semantic_uuid_list))
+    colnames = tuple(props.keys())
+    params_iter = zip(*props.values())
 
     # Execute add ANNOTATIONs SQL
     if prevent_visual_duplicates:
-        superkey_paramx = (len(colnames) - 2,)
+        # superkey_paramx = (len(colnames) - 2,)
+        superkey_paramx = (colnames.index('annot_visual_uuid'),)
         get_rowid_from_superkey = ibs.get_annot_aids_from_visual_uuid
     else:
-        superkey_paramx = (0,)
+        # superkey_paramx = (0,)
+        superkey_paramx = (colnames.index('annot_uuid'),)
         get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
     aid_list = ibs.db.add_cleanly(const.ANNOTATION_TABLE, colnames, params_iter,
                                   get_rowid_from_superkey, superkey_paramx)
-    #ibs.update_annot_visual_uuids(aid_list)
+    # Updates both semantic and visual uuids
+    # WE NEED TO DO THIS BEFOREHAND DUE TO VISUAL DUPLICATES
+    # ibs.update_annot_visual_uuids(aid_list)
 
     # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from ut
     config2_ = {'thumbsize': 221}
     ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
     return aid_list
+
+
+# Define the properties that will make up the semantic / visual uuids
+VISUAL_TUP_PROPS = ['image_uuids', 'verts', 'thetas']
+# TODO: Remove viewpoint and species?
+SEMANTIC_TUP_PROPS = [
+    'viewpoint_code',
+    'names',
+    'species_texts'
+]
+
+
+@register_ibs_method
+# @register_api('/api/annot/uuid/visual/info/', methods=['GET'])
+def get_annot_visual_uuid_info(ibs, aid_list):
+    r"""
+
+    Returns information used to compute annotation UUID.
+    The image uuid, annotation verticies, are theta is hashted together to
+      compute the visual uuid.
+     The visual uuid does not include name or species information.
+
+    get_annot_visual_uuid_info
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        tuple: visual_infotup (image_uuid_list, verts_list, theta_list)
+
+    SeeAlso:
+        get_annot_visual_uuids
+        get_annot_semantic_uuid_info
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+        >>> result = str(list(zip(*visual_infotup))[0])
+        >>> print(result)
+        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
+    """
+    # image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+    # verts_list      = ibs.get_annot_verts(aid_list)
+    # theta_list      = ibs.get_annot_thetas(aid_list)
+    # #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, yaw_list)
+    # #visual_info_list = list(visual_info_iter)
+    # visual_infotup = (image_uuid_list, verts_list, theta_list)
+
+    # Use predefined attributes
+    annots = ibs.annots(aid_list)
+    visual_infotup = tuple(getattr(annots, key) for key in VISUAL_TUP_PROPS)
+    return visual_infotup
+
+
+@register_ibs_method
+# @register_api('/api/annot/uuid/semantic/info/', methods=['GET'])
+def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
+    r"""
+    Semenatic uuids are made up of visual and semantic information. Semantic
+    information is name, species, yaw.  Visual info is image uuid, verts,
+    and theta
+
+    Args:
+        aid_list (list):
+        _visual_infotup (tuple) : internal use only
+
+    Returns:
+        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
+        >>> result = ut.repr2(list(zip(*semantic_infotup))[1])
+        >>> print(result)
+        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, 'left', 'easy', 'zebra_plains')
+
+    """
+    # Semantic info depends on visual info
+    if _visual_infotup is None:
+        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+    else:
+        visual_infotup = _visual_infotup
+
+    # Use predefined attributes
+    annots = ibs.annots(aid_list)
+    other_part = tuple(getattr(annots, key) for key in SEMANTIC_TUP_PROPS)
+
+    # image_uuid_list, verts_list, theta_list = visual_infotup
+    # It is visual info augmented with name and species
+    # name_list       = ibs.get_annot_names(aid_list)
+    # species_list    = ibs.get_annot_species_texts(aid_list)
+    # viewpoint_codes = ibs.get_annot_viewpoint_code(aid_list)
+
+    semantic_infotup = visual_infotup + other_part
+    # (image_uuid_list, verts_list, theta_list, viewpoint_codes, name_list,
+    #  species_list)
+    return semantic_infotup
+
+
+@register_ibs_method
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=0)
+# @register_api('/api/annot/uuid/semantic/', methods=['PUT'])
+def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
+    r"""
+    Ensures that annots have the proper semantic uuids
+    """
+    semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
+    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+
+
+@register_ibs_method
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE,
+                                   [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0)
+# @register_api('/api/annot/uuid/visual/', methods=['PUT'])
+def update_annot_visual_uuids(ibs, aid_list):
+    r"""
+    Ensures that annots have the proper visual uuids
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids --db PZ_Master1
+        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids
+        python -m ibeis update_annot_visual_uuids --db PZ_Master1
+        python -m ibeis update_annot_visual_uuids --db PZ_Master0
+        python -m ibeis update_annot_visual_uuids --db PZ_MTEST
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs._get_all_aids()[0:1]
+        >>> update_annot_visual_uuids(ibs, aid_list)
+        >>> result = ibs.get_annot_visual_uuids(aid_list)[0]
+        >>> print(result)
+        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
+    """
+    visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+    print('visual_infotup = %r' % (visual_infotup,))
+    assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
+    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+    # If visual uuids are changes semantic ones are also changed
+    ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
 
 # ==========
@@ -1279,7 +1455,6 @@ def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
 
 
 @register_ibs_method
-# @register_api('/api/annot/uuid/visual/hashid/', methods=['GET'])
 def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', pathsafe=False):
     r"""
     builds an aggregate visual hash id for a list of aids
@@ -1290,16 +1465,16 @@ def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', pathsafe=False):
     """
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     label = ''.join(('_', prefix, 'VUUIDS'))
-    #if _new:
     visual_uuid_hashid  = ut.hashstr_arr27(visual_uuid_list, label, pathsafe=pathsafe)
-    #else:
-    #visual_uuid_hashid  = ut.hashstr_arr(visual_uuid_list, label)
+    # TODO: use this implementation instead
+    # visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+    # label = ''.join((prefix, 'VUUIDS'))
+    # visual_uuid_hashid  = ut.hashid_arr(visual_uuid_list, label)
     return visual_uuid_hashid
 
 
 @register_ibs_method
-# @register_api('/api/annot/uuid/semantic/hashid/', methods=['GET'])
-def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', pathsafe=False):
+def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
     r"""
     builds an aggregate semantic hash id for a list of aids
 
@@ -1321,24 +1496,23 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', pathsafe=False):
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> aid_list = ibs.get_valid_aids()
+        >>> annots = ibs.annots()
         >>> prefix = ''
         >>> semantic_uuid_hashid = get_annot_hashid_semantic_uuid(ibs, aid_list, prefix)
-        >>> result = ut.repr2(ibs.get_annot_semantic_uuids(aid_list), nl=1) + '\n'
-        >>> result += ('semantic_uuid_hashid = %s' % (str(semantic_uuid_hashid),))
+        >>> result = ut.repr2(annots.semantic_uuids[0:2], nl=1) + '\n'
+        >>> result += ('semantic_uuid_hashid = ' + str(semantic_uuid_hashid))
         >>> print(result)
         [
-            UUID('4f30b2cd-f22b-4b9b-5801-93d0b0a9ef27'),
-            UUID('4f1c511a-e145-1b87-8aeb-ae0f7656a4b9'),
+            UUID('9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9'),
+            UUID('9b03e268-aaed-9341-25ee-733859629a3a'),
         ]
-        semantic_uuid_hashid = _SUUIDS((2)cnxdmohuthekuwlt)
+        semantic_uuid_hashid = SUUIDS-13-tnvebtbaoyvqirwi
+
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
-    label = ''.join(('_', prefix, 'SUUIDS'))
-    #if _new:
-    semantic_uuid_hashid  = ut.hashstr_arr27(semantic_uuid_list, label, pathsafe=pathsafe)
-    #else:
-    #semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)
+    label = ''.join((prefix, 'SUUIDS'))
+    semantic_uuid_hashid = ut.hashid_arr(semantic_uuid_list, label)
     return semantic_uuid_hashid
 
 
@@ -1428,7 +1602,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_semantic_uuid_list)
         >>> result = annot_semantic_uuid_list
-        [UUID('4f30b2cd-f22b-4b9b-5801-93d0b0a9ef27')]
+        [UUID('9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9')]
     """
     id_iter = aid_list
     colnames = (ANNOT_SEMANTIC_UUID,)
@@ -1532,6 +1706,8 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
     r"""
     A yaw is the yaw of the annotation in radians yaw is inverted. Will be fixed soon.
 
+    DEPRICATE
+
     The following views have these angles of yaw:
         left side  - 0.50 tau radians
         front side - 0.25 tau radians
@@ -1598,6 +1774,8 @@ def get_annot_viewpoints(ibs, aid_list, assume_unique=False):
 def get_annot_yaws_asfloat(ibs, aid_list):
     r"""
     Ensures that Nones are returned as nans
+
+    DEPRICATE
     """
     yaw_list = ibs.get_annot_yaws(aid_list)
     yaw_list = np.array(ut.replace_nones(yaw_list, np.nan))
@@ -1610,6 +1788,8 @@ def get_annot_yaws_asfloat(ibs, aid_list):
 def get_annot_yaw_texts(ibs, aid_list, assume_unique=False):
     r"""
     Auto-docstr for 'get_annot_yaw_texts'
+
+    DEPRICATE
 
     RESTful:
         Method: GET
@@ -1659,15 +1839,26 @@ def get_annot_viewpoint_code(ibs, aids):
         >>> print(result)
         ['left', 'left', 'unknown', 'left', 'unknown']
     """
-    return ut.dict_take(ibs.const.VIEW.INT_TO_CODE,
-                        ibs.get_annot_viewpoint_int(aids))
+    view_ints = ibs.get_annot_viewpoint_int(aids)
+    return ut.dict_take(ibs.const.VIEW.INT_TO_CODE, view_ints)
+
+
+def _ensure_viewpoint_to_code(view_codes):
+    view_codes = [
+        const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
+    return view_codes
+
+
+def _ensure_viewpoint_to_int(view_codes):
+    view_codes = [
+        const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
+    view_ints = ut.dict_take(const.VIEW.CODE_TO_INT, view_codes)
+    return view_ints
 
 
 @register_ibs_method
 def set_annot_viewpoint_code(ibs, aids, view_codes, _code_update=True):
-    view_codes = [
-        const.VIEW.CODE.UNKNOWN if v is None else v for v in view_codes]
-    view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, view_codes)
+    view_ints = _ensure_viewpoint_to_int(view_codes)
     ibs.set_annot_viewpoint_int(aids, view_ints, _code_update=_code_update)
 
 
@@ -2359,152 +2550,6 @@ def get_annot_images(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
     image_list = ibs.get_image_imgdata(gid_list)
     return image_list
-
-
-@register_ibs_method
-# @register_api('/api/annot/uuid/visual/info/', methods=['GET'])
-def get_annot_visual_uuid_info(ibs, aid_list):
-    r"""
-
-    Returns information used to compute annotation UUID.
-    The image uuid, annotation verticies, are theta is hashted together to
-      compute the visual uuid.
-     The visual uuid does not include name or species information.
-
-    get_annot_visual_uuid_info
-
-    Args:
-        aid_list (list):
-
-    Returns:
-        tuple: visual_infotup (image_uuid_list, verts_list, theta_list)
-
-    SeeAlso:
-        get_annot_visual_uuids
-        get_annot_semantic_uuid_info
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:2]
-        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-        >>> result = str(list(zip(*visual_infotup))[0])
-        >>> print(result)
-        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
-    """
-    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-    verts_list      = ibs.get_annot_verts(aid_list)
-    theta_list      = ibs.get_annot_thetas(aid_list)
-    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, yaw_list)
-    #visual_info_list = list(visual_info_iter)
-    visual_infotup = (image_uuid_list, verts_list, theta_list)
-    return visual_infotup
-
-
-@register_ibs_method
-# @register_api('/api/annot/uuid/semantic/info/', methods=['GET'])
-def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
-    r"""
-    Semenatic uuids are made up of visual and semantic information. Semantic
-    information is name, species, yaw.  Visual info is image uuid, verts,
-    and theta
-
-    Args:
-        aid_list (list):
-        _visual_infotup (tuple) : internal use only
-
-    Returns:
-        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:2]
-        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
-        >>> result = ut.repr2(list(zip(*semantic_infotup))[1])
-        >>> print(result)
-        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, 3.141592653589793, 'easy', 'zebra_plains')
-
-    """
-    # Semantic info depends on visual info
-    if _visual_infotup is None:
-        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
-    else:
-        visual_infotup = _visual_infotup
-    image_uuid_list, verts_list, theta_list = visual_infotup
-    # It is visual info augmented with name and species
-    name_list       = ibs.get_annot_names(aid_list)
-
-    # TODO: Remove yaw and species?
-    species_list    = ibs.get_annot_species_texts(aid_list)
-    view_list       = ibs.get_annot_viewpoint_code(aid_list)
-
-    semantic_infotup = SemanticInfoTup(
-        image_uuid_list, verts_list, theta_list, view_list, name_list,
-        species_list)
-    return semantic_infotup
-
-
-@register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=0)
-# @register_api('/api/annot/uuid/semantic/', methods=['PUT'])
-def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
-    r"""
-    Ensures that annots have the proper semantic uuids
-    """
-    semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
-    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
-    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
-
-
-@register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE,
-                                   [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0)
-# @register_api('/api/annot/uuid/visual/', methods=['PUT'])
-def update_annot_visual_uuids(ibs, aid_list):
-    r"""
-    Ensures that annots have the proper visual uuids
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (list):  list of annotation rowids
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids --db PZ_Master1
-        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids
-        python -m ibeis update_annot_visual_uuids --db PZ_Master1
-        python -m ibeis update_annot_visual_uuids --db PZ_Master0
-        python -m ibeis update_annot_visual_uuids --db PZ_MTEST
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aid_list = ibs._get_all_aids()[0:1]
-        >>> update_annot_visual_uuids(ibs, aid_list)
-        >>> result = ibs.get_annot_visual_uuids(aid_list)[0]
-        >>> print(result)
-        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
-    """
-    visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-    print('visual_infotup = %r' % (visual_infotup,))
-    assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
-    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
-    # If visual uuids are changes semantic ones are also changed
-    ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
 
 #### SETTERS ####  # NOQA
