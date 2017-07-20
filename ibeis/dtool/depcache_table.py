@@ -1889,7 +1889,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
                 # Break iterator into chunks
 
-                if verbose:
+                if False and verbose:
                     # check parent configs we are working with
                     for x, parname in enumerate(table.parents()):
                         if parname == table.depc.root:
