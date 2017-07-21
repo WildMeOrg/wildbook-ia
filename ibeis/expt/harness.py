@@ -103,7 +103,7 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
             ut.colorprint('\n---Annot config testnameid=%r' % (
                 testnameid,), 'turquoise')
         subindexer_partial = ut.ProgPartial(parent_index=acfgx,
-                                            parent_nTotal=nAcfg,
+                                            parent_length=nAcfg,
                                             enabled=ut.NOT_QUIET)
         testres_ = make_single_testres(ibs, qaids, daids, pipecfg_list,
                                        cfgx2_lbl, cfgdict_list, lbl,
@@ -191,8 +191,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         indent_prefix = '[%s cfg %d/%d]' % (
             dbname,
             # cfgiter.count (doesnt work when quiet)
-            (cfgiter.parent_index * cfgiter.nTotal) + cfgx ,
-            cfgiter.nTotal * cfgiter.parent_nTotal
+            (cfgiter.parent_index * cfgiter.length) + cfgx ,
+            cfgiter.length * cfgiter.parent_length
         )
 
         with ut.Indenter(indent_prefix):

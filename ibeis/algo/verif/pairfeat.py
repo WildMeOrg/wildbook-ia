@@ -240,7 +240,7 @@ class PairwiseFeatureExtractor(object):
         idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
         dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
         iter_ = zip(matches_, idx_list, dist_list)
-        prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+        prog = ut.ProgIter(iter_, length=len(matches_), label='lnbnn scoring')
         for match_, neighb_idx, neighb_dist in prog:
             qaid = match_.annot2['aid']
             norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm,

@@ -308,7 +308,7 @@ def load_oxford_2007():
         data_uri_order = [x.replace('oxc1_', '') for x in imgid_order]
 
         imgid_to_df = {}
-        for imgid in ut.ProgIter(imgid_order, lbl='reading kpts'):
+        for imgid in ut.ProgIter(imgid_order, label='reading kpts'):
             word_fpath = imgid_to_word_fpath[imgid]
             row_gen = (map(float, line.strip('\n').split(' '))
                        for line in ut.read_lines_from(word_fpath)[2:])
@@ -746,7 +746,7 @@ def run_asmk_script():
     int_rvec = config['int_rvec']
 
     X_list = []
-    _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True,
+    _prog = ut.ProgPartial(length=len(qaids), label='new X', bs=True,
                            adjust=True)
     for aid, fx_to_wxs, fx_to_maws in _prog(zip(qaids, query_wxs,
                                                 query_maws)):
@@ -757,7 +757,7 @@ def run_asmk_script():
     # Y_list = ydata_cacher.tryload()
     # if Y_list is None:
     Y_list = []
-    _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True,
+    _prog = ut.ProgPartial(length=len(daids), label='new Y', bs=True,
                            adjust=True)
     for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
         Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
@@ -871,21 +871,21 @@ def run_asmk_script():
                 Y.agg_flags = agg_flags[:, None]
         else:
             # This non-stacked way is about 500x slower
-            _prog = ut.ProgPartial(lbl='agg Y rvecs', bs=True, adjust=True)
+            _prog = ut.ProgPartial(label='agg Y rvecs', bs=True, adjust=True)
             for Y in _prog(Y_list_):
                 make_agg_vecs(Y, words, Y.vecs)
 
-            _prog = ut.ProgPartial(lbl='agg X rvecs', bs=True, adjust=True)
+            _prog = ut.ProgPartial(label='agg X rvecs', bs=True, adjust=True)
             for X in _prog(X_list):
                 make_agg_vecs(X, words, X.vecs)
     elif method == 'bow2':
         # Hack for orig tf-idf bow vector
         nwords = len(words)
-        for X in ut.ProgIter(X_list, lbl='make bow vector'):
+        for X in ut.ProgIter(X_list, label='make bow vector'):
             ensure_tf(X)
             bow_vector(X, wx_to_weight, nwords)
 
-        for Y in ut.ProgIter(Y_list_, lbl='make bow vector'):
+        for Y in ut.ProgIter(Y_list_, label='make bow vector'):
             ensure_tf(Y)
             bow_vector(Y, wx_to_weight, nwords)
 
@@ -897,7 +897,7 @@ def run_asmk_script():
 
     # Execute matches (could go faster by enumerating candidates)
     scores_list = []
-    for X in ut.ProgIter(X_list, lbl='query %s' % (smk,)):
+    for X in ut.ProgIter(X_list, label='query %s' % (smk,)):
         scores = [smk.kernel(X, Y) for Y in Y_list_]
         scores = np.array(scores)
         scores = np.nan_to_num(scores)
@@ -906,7 +906,7 @@ def run_asmk_script():
     import sklearn.metrics
     avep_list = []
     _iter = list(zip(scores_list, X_list))
-    _iter = ut.ProgIter(_iter, lbl='evaluate %s' % (smk,))
+    _iter = ut.ProgIter(_iter, label='evaluate %s' % (smk,))
     for scores, X in _iter:
         truth = [X.nid == Y.nid for Y in Y_list_]
         avep = sklearn.metrics.average_precision_score(truth, scores)

@@ -382,7 +382,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
     ibs, annots, target, target_names, config, metadata, enc = tup
     data_shape = config['dim_size'] + (3,)
-    nTotal = len(annots)
+    length = len(annots)
 
     # Build dataset configuration string
     trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
@@ -401,7 +401,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     training_dpath = ibs.get_neuralnet_dir()
     dataset = DataSet(cfgstr,
                       data_shape=data_shape,
-                      num_data=nTotal,
+                      num_data=length,
                       training_dpath=training_dpath,
                       name=name)
 
@@ -427,8 +427,8 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         else:
             chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
                                           eager=False, config=config)
-            iter_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal, lbl='load chip'))
-            shape = (nTotal,) + data_shape
+            iter_ = iter(ut.ProgIter(chip_gen, length=length, lbl='load chip'))
+            shape = (length,) + data_shape
             data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
             labels = target
             # Save data where dataset expects it to be
@@ -829,7 +829,7 @@ class ClfProblem(object):
             #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
             #_iter = skf.split(X=np.empty(len(y)), y=y)
         msg = 'cross-val test on %s' % (problem.ds.name)
-        progiter = ut.ProgIter(_iter, nTotal=n_folds, lbl=msg)
+        progiter = ut.ProgIter(_iter, length=n_folds, lbl=msg)
         for train_idx, test_idx in progiter:
             yield train_idx, test_idx
 

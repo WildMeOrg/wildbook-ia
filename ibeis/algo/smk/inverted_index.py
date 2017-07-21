@@ -139,7 +139,7 @@ class InvertedAnnotsExtras(object):
             vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
             #vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
             for chip, kpts in _prog(zip(chip_list, sub_kpts_list),
-                                    nTotal=len(aid_list))
+                                    length=len(aid_list))
         ])
         word_patches = vt.fromiter_nd(_patchiter, shape, dtype=np.uint8)
         return word_patches
@@ -417,7 +417,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         """
         # TODO: sep
         wx_to_weight = inva.wx_to_weight
-        _prog = ut.ProgPartial(nTotal=len(inva.wx_lists), bs=True, lbl='gamma',
+        _prog = ut.ProgPartial(length=len(inva.wx_lists), bs=True, lbl='gamma',
                                adjust=True)
         _iter = zip(inva.wx_lists, inva.agg_rvecs, inva.agg_flags)
         gamma_list = []
@@ -631,7 +631,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     print('Building residual args')
     worker = residual_worker
     args_gen = gen_residual_args(vocab, vecs_list, nAssign, int_rvec)
-    args_gen = [args for args in ut.ProgIter(args_gen, nTotal=len(vecs_list),
+    args_gen = [args for args in ut.ProgIter(args_gen, length=len(vecs_list),
                                              lbl='building args')]
     # nprocs = ut.num_unused_cpus(thresh=10) - 1
     nprocs = ut.num_cpus()

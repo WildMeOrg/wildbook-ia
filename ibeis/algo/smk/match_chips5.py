@@ -193,8 +193,8 @@ def _load_singles(qreq_):
     fpaths_hit = ut.compress(fpath_list, exists_flags)
     # First, try a fast reload assuming no errors
     fpath_iter = ut.ProgIter(
-        fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
-        lbl='loading cache hits', adjust=True, freq=1)
+        fpaths_hit, length=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+        label='loading cache hits', adjust=True, freq=1)
     try:
         qaid_to_hit = {
             qaid: chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
@@ -210,7 +210,7 @@ def _load_singles(qreq_):
 def _load_singles_fallback(fpaths_hit):
     fpath_iter = ut.ProgIter(
         fpaths_hit, enabled=len(fpaths_hit) > 1,
-        lbl='checking chipmatch cache', adjust=True, freq=1)
+        label='checking chipmatch cache', adjust=True, freq=1)
     # Recompute those that fail loading
     qaid_to_hit = {}
     for fpath in fpath_iter:
@@ -258,8 +258,8 @@ def execute_and_save(qreq_miss):
     # Iterate over vsone queries in chunks.
     total_chunks = ut.get_num_chunks(len(qreq_miss.qaids), qreq_miss.chunksize)
     qaid_chunk_iter = ut.ichunks(qreq_miss.qaids, qreq_miss.chunksize)
-    _prog = ut.ProgPartial(nTotal=total_chunks, freq=1,
-                           lbl='[mc5] query chunk: ',
+    _prog = ut.ProgPartial(length=total_chunks, freq=1,
+                           label='[mc5] query chunk: ',
                            prog_hook=qreq_miss.prog_hook, bs=False)
     qaid_chunk_iter = iter(_prog(qaid_chunk_iter))
 
@@ -273,8 +273,8 @@ def execute_and_save(qreq_miss):
         # TODO: we already computed the fpaths
         # should be able to pass them in
         fpath_list = sub_qreq.get_chipmatch_fpaths(qaids)
-        _prog = ut.ProgPartial(nTotal=len(cm_batch), adjust=True, freq=1,
-                               lbl='saving chip matches', bs=True)
+        _prog = ut.ProgPartial(length=len(cm_batch), adjust=True, freq=1,
+                               label='saving chip matches', bs=True)
         for cm, fpath in _prog(zip(cm_batch, fpath_list)):
             cm.save_to_fpath(fpath, verbose=False)
         qaid_to_cm.update({cm.qaid: cm for cm in cm_batch})

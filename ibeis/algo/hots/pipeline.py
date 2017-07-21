@@ -734,7 +734,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         for nn in nns_list)
     filter_iter_ = zip(neighb_aids_iter, impossible_daids_list)
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    filter_iter = ut.ProgressIter(filter_iter_, nTotal=len(nns_list),
+    filter_iter = ut.ProgressIter(filter_iter_, length=len(nns_list),
                                   enabled=False, lbl=FILT_LBL,
                                   prog_hook=prog_hook, **PROGKW)
     # Check to be sure that none of the matched annotations are in the impossible set
@@ -1251,7 +1251,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
                                                      nAnnotPerName,
                                                      score_method)
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist),
+    cm_progiter = ut.ProgressIter(cm_shortlist, length=len(cm_shortlist),
                                   prog_hook=prog_hook, lbl=SVER_LVL, **PROGKW)
 
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
@@ -1399,7 +1399,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
     _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, kpts2_list,
                  top_dlen_sqrd_list, match_weight_list)
     if verbose:
-        _iter1 = ut.ProgIter(_iter1, nTotal=len(cm.daid_list), lbl='sver shortlist', freq=1)
+        _iter1 = ut.ProgIter(_iter1, length=len(cm.daid_list), lbl='sver shortlist', freq=1)
     svtup_list = []
     for daid, fm, fsv, kpts2, dlen_sqrd2, match_weights in _iter1:
         if len(fm) == 0:

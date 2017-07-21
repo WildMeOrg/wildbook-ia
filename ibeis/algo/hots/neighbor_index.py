@@ -789,7 +789,7 @@ class NeighborIndex(object):
         # Generate chunk slices
         num_chunks = ut.get_num_chunks(vecs.shape[0], chunksize)
         iter_ = ut.ichunk_slices(vecs.shape[0], chunksize)
-        prog = ut.ProgIter(iter_, nTotal=num_chunks, label=label)
+        prog = ut.ProgIter(iter_, length=num_chunks, label=label)
         for sl_ in prog:
             idxs[sl_], dists[sl_] = indexer.knn(vecs[sl_], K=K)
         return idxs, dists

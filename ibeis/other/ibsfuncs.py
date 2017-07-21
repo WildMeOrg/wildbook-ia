@@ -1012,7 +1012,7 @@ def fix_exif_data(ibs, gid_list):
     exif_dict_list = [
         vt.get_exif_dict(pil_img)
         for pil_img in ut.ProgIter(
-            pil_img_gen, nTotal=len(gpath_list), lbl='reading exif: ',
+            pil_img_gen, length=len(gpath_list), lbl='reading exif: ',
             adjust=True)
     ]
 
@@ -3254,7 +3254,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
     new_aid_list = []
     new_flag_list = []
     _iter = ut.ProgIter(zip(grouped_aids, unique_nids),
-                        nTotal=len(unique_nids),
+                        length=len(unique_nids),
                         #freq=100,
                         lbl='Picking best annots per viewpoint',
                         prog_hook=prog_hook)

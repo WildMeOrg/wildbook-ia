@@ -207,8 +207,8 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         qaids_hit = ut.compress(external_qaids, exists_flags)
         fpaths_hit = ut.compress(fpath_list, exists_flags)
         fpath_iter = ut.ProgIter(
-            fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
-            lbl='loading cache hits', adjust=True, freq=1)
+            fpaths_hit, length=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+            label='loading cache hits', adjust=True, freq=1)
         try:
             cm_hit_list = [
                 chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
@@ -220,8 +220,8 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         except chip_match.NeedRecomputeError:
             print('NeedRecomputeError: Some cached chips need to recompute')
             fpath_iter = ut.ProgIter(
-                fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
-                lbl='checking chipmatch cache', adjust=True, freq=1)
+                fpaths_hit, length=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+                label='checking chipmatch cache', adjust=True, freq=1)
             # Recompute those that fail loading
             qaid2_cm_hit = {}
             for fpath in fpath_iter:
@@ -284,11 +284,11 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
     chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
 
     # Iterate over vsone queries in chunks.
-    nTotalChunks    = ut.get_num_chunks(len(all_qaids), chunksize)
+    n_total_chunks = ut.get_num_chunks(len(all_qaids), chunksize)
     qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
     _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
-    sub_qreq_iter = ut.ProgIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
-                                lbl='[mc4] query chunk: ',
+    sub_qreq_iter = ut.ProgIter(_qreq_iter, length=n_total_chunks, freq=1,
+                                label='[mc4] query chunk: ',
                                 prog_hook=qreq_.prog_hook)
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
@@ -301,8 +301,8 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
         if save_qcache:
             fpath_list = list(qreq_.get_chipmatch_fpaths(sub_qreq_.qaids))
             _iter = zip(sub_cm_list, fpath_list)
-            _iter = ut.ProgIter(_iter, nTotal=len(sub_cm_list),
-                                lbl='saving chip matches', adjust=True, freq=1)
+            _iter = ut.ProgIter(_iter, length=len(sub_cm_list),
+                                label='saving chip matches', adjust=True, freq=1)
             for cm, fpath in _iter:
                 cm.save_to_fpath(fpath, verbose=False)
         else:

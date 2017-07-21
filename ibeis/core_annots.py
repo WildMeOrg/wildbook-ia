@@ -670,7 +670,7 @@ def compute_probchip(depc, aid_list, config=None):
     #grouped_probchip_fpath_list = []
     grouped_probchips = []
     _iter = zip(grouped_aids, unique_species, grouped_mpaths)
-    _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
+    _iter = ut.ProgIter(_iter, length=len(grouped_aids),
                         lbl='probchip for {} species'.format(len(unique_species)),
                         enabled=ut.VERBOSE, bs=True)
 
@@ -1324,7 +1324,7 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
         # annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
         #                      np.array(annot['chip_size'])[:, None])
 
-    for qaid, daid in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
+    for qaid, daid in ut.ProgIter(zip(qaids, daids), length=len(qaids),
                                   lbl='compute vsone', bs=True, freq=1):
         annot1 = configured_lazy_annots[qannot_cfg][qaid]
         annot2 = configured_lazy_annots[dannot_cfg][daid]

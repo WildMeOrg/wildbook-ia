@@ -1314,7 +1314,7 @@ def download_missing_images(parsed, num=None):
         ex = futures.ProcessPoolExecutor(7)
         fs = [ex.submit(ut.download_url, *args, new=True, verbose=False) for args in _iter]
 
-        for f in ut.ProgIter(futures.as_completed(fs), nTotal=len(_iter), label='downloading wildbook images'):
+        for f in ut.ProgIter(futures.as_completed(fs), length=len(_iter), label='downloading wildbook images'):
             pass
 
         # import multiprocessing
