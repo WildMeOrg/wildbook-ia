@@ -683,7 +683,8 @@ def flann_index_time_experiment():
         data_list = []
         num = 1000
         print('-----')
-        for count in ut.ProgressIter(itertools.count(), nTotal=-1, freq=1, autoadjust=False):
+        for count in ut.ProgIter(itertools.count(), length=-1, freq=1,
+                                 adjust=False):
             num = int(num * 1.2)
             print('num = %r' % (num,))
             #if num > 1E6:
