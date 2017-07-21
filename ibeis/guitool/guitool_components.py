@@ -375,7 +375,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
           need to do task function in another thread
 
         if False:
-            for x in ut.ProgIter(ut.expensive_task_gen(40000), nTotal=40000,
+            for x in ut.ProgIter(ut.expensive_task_gen(40000), length=40000,
                                  prog_hook=ctx.prog_hook):
                 pass
 
@@ -403,7 +403,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> hook = prog_bar.utool_prog_hook
         >>> subhook_list = hook.subdivide(num=4)
         >>> hook_0_25 = subhook_list[0]
-        >>> hook_0_25.nTotal = 2
+        >>> hook_0_25.length = 2
         >>> print('hook_0_25 = %s' % (hook_0_25,))
         >>> hook_0_25.set_progress(0)
         >>> print('hook_0_25 = %s' % (hook_0_25,))
@@ -441,7 +441,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         #hook.substep_min = substep_min
         #hook.substep_size = substep_size
         hook._count = 0
-        hook.nTotal = 1
+        hook.length = 1
         hook.progiter = None
         hook.lbl = ''
         hook.level = level
@@ -455,7 +455,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         lbl = hook.lbl
         gpos = hook.global_progress()
         lpos = hook.local_progress()
-        return '(%s, [%r, %r ,%r], %r=%d/%d)' % (lbl, gmin, gpos, gmax, lpos, hook.count, hook.nTotal)
+        return '(%s, [%r, %r ,%r], %r=%d/%d)' % (lbl, gmin, gpos, gmax, lpos, hook.count, hook.length)
 
     @property
     def prog_bar(hook):
@@ -488,7 +488,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
     def register_progiter(hook, progiter):
         hook.progiter = weakref.ref(progiter)
-        hook.nTotal = hook.progiter().nTotal
+        hook.length = hook.progiter().length
         hook.lbl = hook.progiter().lbl
 
     def initialize_subhooks(hook, num=None, spacing=None):
@@ -561,22 +561,22 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         if spacing is None:
             spacing = np.linspace(0, 1, num + 1)  # Assume uniform sub iterators
         spacing = np.array(spacing)
-        nTotal = hook.nTotal
-        step_extent_local = 1 / nTotal
+        length = hook.length
+        step_extent_local = 1 / length
         step_extent_global = step_extent_local * hook.global_extent()
 
-        #assert hook.count < nTotal, 'already finished this subhook'
+        #assert hook.count < length, 'already finished this subhook'
         count = hook.count
-        if count >= nTotal:
+        if count >= length:
             # HACK
-            count = nTotal - 1
+            count = length - 1
 
         step_min = count * step_extent_global + hook.global_min
         global_spacing = step_min + (spacing * step_extent_global)
         sub_min_list = global_spacing[:-1]
         sub_max_list = global_spacing[1:]
 
-        hook.nTotal / hook.global_extent()
+        hook.length / hook.global_extent()
 
         prog_bar = hook.prog_bar
         subhook_list = [ProgHook(prog_bar, min_, max_, hook.level + 1)
@@ -587,15 +587,15 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         #                for substep_min in substep_min_list]
         #return subhook_list
 
-        #step_min = ((count - 1) / nTotal) * hook.substep_size  + hook.substep_min
-        #step_size = (1.0 / nTotal) * hook.substep_size
+        #step_min = ((count - 1) / length) * hook.substep_size  + hook.substep_min
+        #step_size = (1.0 / length) * hook.substep_size
 
         #substep_size = step_size / num_substeps
         #substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
 
         #DEBUG = False
         #if DEBUG:
-        #    with ut.Indenter(' ' * 4 * nTotal):
+        #    with ut.Indenter(' ' * 4 * length):
         #        print('\n')
         #        print('+____<NEW SUBSTEPS>____')
         #        print('Making %d substeps for hook.lbl = %s' % (num_substeps, hook.lbl,))
@@ -606,13 +606,13 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         #        print(r'L____</NEW SUBSTEPS>____')
         #        print('\n')
 
-    def set_progress(hook, count, nTotal=None, lbl=None):
-        if nTotal is None:
-            nTotal = hook.nTotal
-            if nTotal is None:
-                nTotal = 100
+    def set_progress(hook, count, length=None, lbl=None):
+        if length is None:
+            length = hook.length
+            if length is None:
+                length = 100
         else:
-            hook.nTotal = nTotal
+            hook.length = length
         hook._count = count
         if lbl is not None:
             hook.lbl = lbl
@@ -620,14 +620,14 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         hook.progress_changed_signal.emit(global_fraction, hook.lbl)
         #hook.on_progress_changed(global_fraction, hook.lbl)
 
-    def __call__(hook, count, nTotal=None, lbl=None):
-        hook.set_progress(count, nTotal, lbl)
+    def __call__(hook, count, length=None, lbl=None):
+        hook.set_progress(count, length, lbl)
 
     def local_progress(hook):
         """ percent done of this subhook """
-        nTotal = hook.nTotal
+        length = hook.length
         count = hook.count
-        local_fraction = (count) / nTotal
+        local_fraction = (count) / length
         return local_fraction
 
     def global_progress(hook):
@@ -801,8 +801,8 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     progressBar.setSizePolicy(sizePolicy)
     progressBar.setMaximum(10000)
     progressBar.setProperty('value', 0)
-    #def utool_prog_hook(count, nTotal):
-    #    progressBar.setProperty('value', int(100 * count / nTotal))
+    #def utool_prog_hook(count, length):
+    #    progressBar.setProperty('value', int(100 * count / length))
     #    # major hack
     #    import guitool
     #    qtapp = guitool.get_qtapp()
