@@ -1196,7 +1196,7 @@ class SQLDatabaseController(object):
                         lbl = showprog
                     else:
                         lbl = 'sqlread'
-                    prog = ut.ProgPartial(adjust=True, nTotal=nInput, freq=1, lbl=lbl, bs=True)
+                    prog = ut.ProgPartial(adjust=True, length=nInput, freq=1, lbl=lbl, bs=True)
                     params_iter = prog(params_iter)
                 results_iter = [list(context.execute_and_generate_results(params))
                                 for params in params_iter]
