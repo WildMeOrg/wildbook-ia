@@ -449,7 +449,8 @@ def classification_report2(y_true, y_pred, target_names=None,
     index = pd.Index(target_names, name='class')
 
     perclass_df = pd.DataFrame(perclass_data, index=index)
-    combined_df = pd.DataFrame(combined_data, index=['ave/sum'])
+    # combined_df = pd.DataFrame(combined_data, index=['ave/sum'])
+    combined_df = pd.DataFrame(combined_data, index=['combined'])
 
     metric_df = pd.concat([perclass_df, combined_df])
     metric_df.index.name = 'class'
@@ -491,9 +492,35 @@ def classification_report2(y_true, y_pred, target_names=None,
 
     # FIXME: What is the difference between sklearn multiclass-MCC
     # and BM * MK MCC?
+
+    def matthews_corrcoef(y_true, y_pred, sample_weight=None):
+        from sklearn.metrics.classification import (
+            _check_targets, LabelEncoder, confusion_matrix)
+        y_type, y_true, y_pred = _check_targets(y_true, y_pred)
+        if y_type not in {"binary", "multiclass"}:
+            raise ValueError("%s is not supported" % y_type)
+        lb = LabelEncoder()
+        lb.fit(np.hstack([y_true, y_pred]))
+        y_true = lb.transform(y_true)
+        y_pred = lb.transform(y_pred)
+        C = confusion_matrix(y_true, y_pred, sample_weight=sample_weight)
+        t_sum = C.sum(axis=1)
+        p_sum = C.sum(axis=0)
+        n_correct = np.trace(C)
+        n_samples = p_sum.sum()
+        cov_ytyp = n_correct * n_samples - np.dot(t_sum, p_sum)
+        cov_ypyp = n_samples ** 2 - np.dot(p_sum, p_sum)
+        cov_ytyt = n_samples ** 2 - np.dot(t_sum, t_sum)
+        mcc = cov_ytyp / np.sqrt(cov_ytyt * cov_ypyp)
+        if np.isnan(mcc):
+            return 0.
+        else:
+            return mcc
+
     try:
-        mcc = sklearn.metrics.matthews_corrcoef(
-            y_true, y_pred, sample_weight=sample_weight)
+        # mcc = sklearn.metrics.matthews_corrcoef(
+        #     y_true, y_pred, sample_weight=sample_weight)
+        mcc = matthews_corrcoef(y_true, y_pred, sample_weight=sample_weight)
         # These scales are chosen somewhat arbitrarily in the context of a
         # computer vision application with relatively reasonable quality data
         # https://stats.stackexchange.com/questions/118219/how-to-interpret

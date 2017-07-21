@@ -148,7 +148,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params['vsone_kpts']['affine_invariance'] = True
 
         if species == 'humpback':
+            hyper_params['chip']['resize_dim'] = 'width'
+            # hyper_params['chip']['dim_size'] = 800
             hyper_params['vsone_kpts']['affine_invariance'] = False
+            hyper_params['vsone_kpts']['affine_invariance'] = True
             hyper_params['chip']['medianblur'] = True
             hyper_params['chip']['adapteq'] = True
             hyper_params['chip']['medianblur_thresh'] = 0

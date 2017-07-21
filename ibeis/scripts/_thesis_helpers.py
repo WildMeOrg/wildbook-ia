@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
+import re
 import six
 import numpy as np
 import utool as ut
@@ -160,6 +161,7 @@ class DBInputs(object):
         else:
             # expt_name = splitext(basename(fpath))[0]
             fpath = join(str(self.dpath), expt_name + '.pkl')
+            # fpath = ut.truepath(fpath)
             if not exists(fpath):
                 ut.cprint('Experiment results {} do not exist'.format(expt_name), 'red')
                 ut.cprint('First re-setup to check if it is a path issue', 'red')
@@ -558,12 +560,36 @@ class Tabular(object):
         self.caption = caption
         self.groupxs = None
 
+        self.multicol_headers = []
+
+        self._align_multicolumn_hack = True
+
         self.precision = 2
 
         self.n_index_levels = 1
         # pandas options
         self.index = index
         self.escape = escape
+
+    def add_multicolumn_header(self, size_col_name):
+        """
+        size_col_name is a list of tuples indicating the number of columns,
+        column format, and text.
+        """
+        multicol_parts = []
+        for tup in size_col_name:
+            if tup is None:
+                multicol_parts.append('{}')
+            else:
+                size, col, text = tup
+                if self._align_multicolumn_hack:
+                    hack = '&' * (size - 1)
+                    part = '\\multi%scolumn{%d}{%s}{%s}' % (hack, size, col, text)
+                else:
+                    part = '\\multicolumn{%d}{%s}{%s}' % (size, col, text)
+                multicol_parts.append(part)
+        line = ' & '.join(multicol_parts) + ' \\\\'
+        self.multicol_headers.append(line)
 
     def _rectify_colfmt(self, colfmt=None):
         if colfmt is None:
@@ -574,7 +600,6 @@ class Tabular(object):
         return colfmt
 
     def _rectify_text(self, text):
-        import re
         text = text.replace('±', '\pm')
         # Put all numbers in math mode
         pat = (
@@ -653,7 +678,20 @@ class Tabular(object):
 
     def as_tabular(self):
         parts = self.as_parts()
-        tabular = join_tabular(parts, hline=self.hline)
+        top, header, mid, bot = parts
+
+        header = '\n'.join(self.multicol_headers) + '\n' + header
+        new_parts = top, header, mid, bot
+        tabular = join_tabular(new_parts, hline=self.hline)
+
+        if self._align_multicolumn_hack:
+            def hack_repl_align(match):
+                part = match.string[match.start():match.end()]
+                spaces = part.count(' ') + part.count('&')
+                return ' ' * spaces + '\\multicolumn'
+            tabular = re.sub('\\\\multi( *&)*column', hack_repl_align, tabular)
+            tabular = tabular.replace('\\midrule', '\\hline')
+
         return tabular
 
     def as_table(self, caption=None):
