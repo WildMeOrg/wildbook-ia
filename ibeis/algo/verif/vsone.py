@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 
 CommandLine:
@@ -131,6 +130,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         species = infr.ibs.get_primary_database_species()
         print('species = {!r}'.format(species))
 
+        # Parameters from manta matcher
+        hyper_params['chip']['resize_dim'] = 'maxwh'
+        hyper_params['chip']['dim_size'] = 800
+
         # Setup per-species parameters
         if species in {'manta_ray'}:
             # Parameters from manta matcher
@@ -151,27 +154,27 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params['chip']['resize_dim'] = 'width'
             # hyper_params['chip']['dim_size'] = 800
             hyper_params['vsone_kpts']['affine_invariance'] = False
-            hyper_params['vsone_kpts']['affine_invariance'] = True
             hyper_params['chip']['medianblur'] = True
             hyper_params['chip']['adapteq'] = True
-            hyper_params['chip']['medianblur_thresh'] = 0
-            hyper_params['chip']['adapteq_ksize'] = 32
-            hyper_params['chip']['adapteq_limit'] = 6
-            # hyper_params['chip']['medianblur_thresh'] = 45
-            # hyper_params['chip']['adapteq_ksize'] = 16
-            # hyper_params['chip']['adapteq_limit'] = 2
+            hyper_params['chip']['medianblur_thresh'] = 45
+            hyper_params['chip']['adapteq_ksize'] = 16
+            hyper_params['chip']['adapteq_limit'] = 2
+            # hyper_params['vsone_kpts']['affine_invariance'] = True
+            # hyper_params['chip']['medianblur_thresh'] = 0
+            # hyper_params['chip']['adapteq_ksize'] = 32
+            # hyper_params['chip']['adapteq_limit'] = 6
 
         if species == 'manta_ray':
             hyper_params['vsone_kpts']['affine_invariance'] = False
             # Parameters from manta matcher
             hyper_params['chip']['medianblur'] = True
             hyper_params['chip']['adapteq'] = True
-            hyper_params['chip']['medianblur_thresh'] = 0
-            hyper_params['chip']['adapteq_ksize'] = 32
-            hyper_params['chip']['adapteq_limit'] = 6
-            # hyper_params['chip']['medianblur_thresh'] = 45
-            # hyper_params['chip']['adapteq_ksize'] = 16
-            # hyper_params['chip']['adapteq_limit'] = 2
+            hyper_params['chip']['medianblur_thresh'] = 45
+            hyper_params['chip']['adapteq_ksize'] = 16
+            hyper_params['chip']['adapteq_limit'] = 2
+            # hyper_params['chip']['medianblur_thresh'] = 0
+            # hyper_params['chip']['adapteq_ksize'] = 32
+            # hyper_params['chip']['adapteq_limit'] = 6
 
         if species in {'sea_turtle'}:
             hyper_params['vsone_kpts']['affine_invariance'] = False
