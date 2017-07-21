@@ -1127,9 +1127,9 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
     # Draw nodes
     large_graph = len(graph) > LARGE_GRAPH
-    #for edge, pts in ut.ProgIter(edge_pos.items(), nTotal=len(edge_pos), enabled=large_graph, lbl='drawing edges'):
+    #for edge, pts in ut.ProgIter(edge_pos.items(), length=len(edge_pos), enabled=large_graph, lbl='drawing edges'):
 
-    for node, nattrs in ut.ProgIter(graph.nodes(data=True), nTotal=len(graph),
+    for node, nattrs in ut.ProgIter(graph.nodes(data=True), length=len(graph),
                                     lbl='drawing nodes', enabled=large_graph):
         # shape = nattrs.get('shape', 'circle')
         if nattrs is None:
@@ -1290,7 +1290,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     edge_pos = layout_info['edge'].get('ctrl_pts', None)
     n_invis_edge = 0
     if edge_pos is not None:
-        for edge, pts in ut.ProgIter(edge_pos.items(), nTotal=len(edge_pos),
+        for edge, pts in ut.ProgIter(edge_pos.items(), length=len(edge_pos),
                                      enabled=large_graph, lbl='drawing edges'):
             data = get_default_edge_data(graph, edge)
 
