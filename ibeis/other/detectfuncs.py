@@ -2350,8 +2350,6 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     depc = ibs.depc_image
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
 
-    ut.embed()
-
     if species_list is None:
         confidence_dict = confidence_dict_list[0]
         category_set = sorted(confidence_dict.keys())
@@ -2369,9 +2367,10 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
             'label': category_nice,
             'category': category,
         }
+        config_dict.update(kwargs)
         config_list.append(config_dict)
 
-    color_list_ = [(0.2, 0.2, 0.2)]
+    color_list_ = []
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
