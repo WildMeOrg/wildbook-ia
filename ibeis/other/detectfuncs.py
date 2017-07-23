@@ -2348,6 +2348,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     depc = ibs.depc_image
+    ut.embed()
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
 
     if species_list is None:
