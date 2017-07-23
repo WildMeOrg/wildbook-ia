@@ -2335,7 +2335,8 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
 
 
 @register_ibs_method
-def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
+def classifier2_precision_recall_algo_display(ibs, species_list=None,
+                                              figsize=(16, 16), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2346,11 +2347,16 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
 
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
-    test_gid_set = test_gid_set[:1]
+    # test_gid_set = test_gid_set[:1]
     depc = ibs.depc_image
+    ut.embed()
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
-    confidence_dict = confidence_dict_list[0]
-    category_set = sorted(confidence_dict.keys())
+
+    if species_list is None:
+        confidence_dict = confidence_dict_list[0]
+        category_set = sorted(confidence_dict.keys())
+    else:
+        category_set = sorted(species_list)
 
     config_list = []
     for category in category_set:
@@ -3256,7 +3262,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
     random.shuffle(gid_list)
-    gid_list = gid_list[:100]
+    # gid_list = gid_list[:100]
 
     # Load forest
     if model_path is None:
