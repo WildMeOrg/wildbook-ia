@@ -264,11 +264,13 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         for uuid_ in annot_uuid_list
     ]
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    aid_list = ibs.add_annots(gid_list, annot_uuid_list=annot_uuid_list,  # NOQA
-                              theta_list=annot_theta_list, viewpoint_list=annot_viewpoint_list,
-                              quality_list=annot_quality_list, species_list=annot_species_list,
+    aid_list = ibs.add_annots(gid_list,
+                              bbox_list=annot_bbox_list, theta_list=annot_theta_list,
+                              species_list=annot_species_list, name_list=annot_name_list,
+                              annot_uuid_list=annot_uuid_list, viewpoint_list=annot_viewpoint_list,
+                              quality_list=annot_quality_list,
                               multiple_list=annot_multiple_list, interest_list=annot_interest_list,
-                              name_list=annot_name_list, notes_list=annot_notes_list, **kwargs)
+                              notes_list=annot_notes_list, **kwargs)
     # return aid_list
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     return annot_uuid_list

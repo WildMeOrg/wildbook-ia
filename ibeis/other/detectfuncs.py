@@ -79,8 +79,9 @@ def simple_code(label):
 
 
 @register_ibs_method
-def export_to_xml(ibs, offset='auto', enforce_viewpoint=False, target_size=900, purge=False,
-                  use_maximum_linear_dimension=True, use_existing_train_test=True, **kwargs):
+def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
+                  target_size=900, purge=False, use_maximum_linear_dimension=True,
+                  use_existing_train_test=True, **kwargs):
     """
     Creates training XML for training models
     """
@@ -162,6 +163,10 @@ def export_to_xml(ibs, offset='auto', enforce_viewpoint=False, target_size=900, 
             bbox_list = ibs.get_annot_bboxes(aid_list)
             theta_list = ibs.get_annot_thetas(aid_list)
             for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
+                species_name = ibs.get_annot_species_texts(aid)
+                if species_list is not None:
+                    if species_name not in species_list:
+                        continue
                 # Transformation matrix
                 R = vt.rotation_around_bbox_mat3x3(theta, bbox)
                 # Get verticies of the annotation polygon
@@ -183,7 +188,6 @@ def export_to_xml(ibs, offset='auto', enforce_viewpoint=False, target_size=900, 
                 ymax = min(ymax, height - 1)
                 # Get info
                 info = {}
-                species_name = ibs.get_annot_species_texts(aid)
                 viewpoint = ibs.get_annot_viewpoints(aid)
                 if viewpoint != -1 and viewpoint is not None:
                     info['pose'] = viewpoint
@@ -191,7 +195,10 @@ def export_to_xml(ibs, offset='auto', enforce_viewpoint=False, target_size=900, 
                     viewpointed = False
                     print("UNVIEWPOINTED: %d " % gid)
                 annotation.add_object(
-                    species_name, (xmax, xmin, ymax, ymin), **info)
+                    species_name,
+                    (xmax, xmin, ymax, ymin),
+                    **info
+                )
             dst_annot = annotdir + out_name  + '.xml'
 
             if gid in test_gid_set:
@@ -2328,21 +2335,26 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
 
 
 @register_ibs_method
-def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
+def classifier2_precision_recall_algo_display(ibs, species_list=None,
+                                              figsize=(16, 16), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
     fig_ = plt.figure(figsize=figsize)
 
-    kwargs['classifier_weight_filepath'] = 'v3'
+    # kwargs['classifier_two_weight_filepath'] = 'v3'
+    kwargs['classifier_two_weight_filepath'] = 'candidacy'
 
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
-    test_gid_set = test_gid_set[:1]
     depc = ibs.depc_image
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
-    confidence_dict = confidence_dict_list[0]
-    category_set = sorted(confidence_dict.keys())
+
+    if species_list is None:
+        confidence_dict = confidence_dict_list[0]
+        category_set = sorted(confidence_dict.keys())
+    else:
+        category_set = sorted(species_list)
 
     config_list = []
     for category in category_set:
@@ -3248,7 +3260,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
     random.shuffle(gid_list)
-    gid_list = gid_list[:100]
+    # gid_list = gid_list[:100]
 
     # Load forest
     if model_path is None:
@@ -4333,8 +4345,8 @@ def classifier2_train(ibs, species_list=None, **kwargs):
     from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
     values = get_cnn_classifier2_training_images(ibs, species_list,
-                                                           dest_path=data_path,
-                                                           **kwargs)
+                                                 dest_path=data_path,
+                                                 **kwargs)
     extracted_path, category_list = values
     id_file, X_file, y_file = numpy_processed_directory3(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier2')
@@ -4354,9 +4366,9 @@ def classifier_train(ibs, **kwargs):
 
 
 @register_ibs_method
-def localizer_train(ibs, **kwargs):
+def localizer_train(ibs, species_list=None, **kwargs):
     from pydarknet import Darknet_YOLO_Detector
-    data_path = ibs.export_to_xml(**kwargs)
+    data_path = ibs.export_to_xml(species_list=species_list, **kwargs)
     output_path = join(ibs.get_cachedir(), 'training', 'localizer')
     ut.ensuredir(output_path)
     dark = Darknet_YOLO_Detector()
@@ -4366,12 +4378,14 @@ def localizer_train(ibs, **kwargs):
 
 
 @register_ibs_method
-def labeler_train(ibs, **kwargs):
+def labeler_train(ibs, species_list=None, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_labeler_training_images(ibs, data_path, **kwargs)
+    extracted_path = get_cnn_labeler_training_images(ibs, data_path,
+                                                     category_list=species_list,
+                                                     **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
     model_path = train_labeler(output_path, X_file, y_file)
