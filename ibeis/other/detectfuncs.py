@@ -2350,6 +2350,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     depc = ibs.depc_image
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
 
+    ut.embed()
+
     if species_list is None:
         confidence_dict = confidence_dict_list[0]
         category_set = sorted(confidence_dict.keys())
