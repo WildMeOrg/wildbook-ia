@@ -295,6 +295,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'thumbsize'   : (192, 192),
         }
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
+        ut.embed()
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
     else:
         raise ValueError('specified classifier_two algo is not supported in config = %r' % (config, ))
