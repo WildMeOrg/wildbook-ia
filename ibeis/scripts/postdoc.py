@@ -21,7 +21,7 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-CLF = 'VPAS'
+CLF = 'VAMP'
 LNBNN = 'LNBNN'
 
 

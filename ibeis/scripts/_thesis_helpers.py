@@ -78,7 +78,9 @@ class DBInputs(object):
 
         if self.dpath is None and dbname is not None:
             self.dname = self.dbname
-            self.dpath = join(self.base_dpath, 'link', self.dname)
+
+            link_dname = ut.get_argval('--link', default='link')
+            self.dpath = join(self.base_dpath, link_dname, self.dname)
 
     def _setup_links(self, cfg_prefix, config=None):
         """
