@@ -2245,7 +2245,6 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         for confidence_dict in confidence_dict_list
     ]
 
-    ut.embed()
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
@@ -4345,7 +4344,8 @@ def classifier2_train(ibs, species_list=None, **kwargs):
     from ibeis_cnn.process import numpy_processed_directory3
     from ibeis_cnn.models.classifier2 import train_classifier2
     from ibeis_cnn.utils import save_model
-    ut.embed()
+    if species_list is not None:
+        species_list = sorted(species_list)
     data_path = join(ibs.get_cachedir(), 'extracted')
     values = get_cnn_classifier2_training_images(ibs, species_list,
                                                  dest_path=data_path,
