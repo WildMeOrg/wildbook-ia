@@ -1023,8 +1023,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'Localizer',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
-        {'label': 'Localizer (GRID)', 'grid' : True,  'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
+        {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
+        {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[0] ]},
+        {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[1] ]},
+        {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[2] ]},
+        {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[3] ]},
+        {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[4] ]},
+        {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[5] ]},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
@@ -1599,8 +1604,9 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # color_list += [(0.2, 0.2, 0.2)]
     # color_list += [(0.2, 0.2, 0.2)]
 
+    # color_list_ = []
+    color_list_ = [(0.2, 0.2, 0.2)]
     # color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)]
-    color_list_ = []
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
