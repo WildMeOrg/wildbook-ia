@@ -210,6 +210,20 @@ class InfrLoops(object):
             yield _
 
     def pos_redun_gen(infr):
+        """
+        Does the autoreviews / generates the manual reviews for the positive
+        redundancy loop.
+
+        Doctest:
+            >>> from ibeis.algo.graph.mixin_loops import *
+            >>> import ibeis
+            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
+            >>>                             autoinit='staging', verbose=4)
+            >>> #infr.load_published()
+            >>> gen = infr.pos_redun_gen()
+            >>> feedback = next(gen)
+
+        """
         infr.print('===========================', color='white')
         infr.print('--- POSITIVE REDUN LOOP ---', color='white')
         # FIXME: should prioritize inconsistentices first
@@ -234,20 +248,37 @@ class InfrLoops(object):
                         infr.add_candidate_edges(new_edges)
                         yield new_edges
 
-        for count in it.count(0):
-            infr.print('check pos-redun iter {}'.format(count))
-            infr.queue.clear()
-
+        def filtered_gen():
             # Buffer one-vs-one scores in the background and present an edge to
             # the user ASAP.
             # if infr.test_mode:
             candgen = serial_gen()
             # else:
             #     candgen = thread_gen()
+            for new_edges in candgen:
+                if infr.ibs is not None:
+                    ibs = infr.ibs
+                    qual_edges = ibs.unflat_map(ibs.get_annot_quality_int, new_edges)
+                    valid_edges = []
+                    for (u, v), (q1, q2) in zip(new_edges, qual_edges):
+                        # Skip edges involving qualities less than ok
+                        if q1 is not None and q1 < ibs.const.QUAL.OK:
+                            continue
+                        if q2 is not None and q1 < ibs.const.QUAL.OK:
+                            continue
+                        valid_edges.append((u, v))
+                    if len(valid_edges) > 0:
+                        yield valid_edges
+                else:
+                    yield new_edges
+
+        for count in it.count(0):
+            infr.print('check pos-redun iter {}'.format(count))
+            infr.queue.clear()
 
             found_any = False
 
-            for new_edges in candgen:
+            for new_edges in filtered_gen():
                 found_any = True
                 gen = infr.inner_priority_gen(use_refresh=False)
                 # yield from gen
