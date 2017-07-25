@@ -21,7 +21,7 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-CLF = 'VPAS'
+CLF = 'VAMP'
 LNBNN = 'LNBNN'
 
 
@@ -230,6 +230,7 @@ class VerifierExpt(DBInputs):
         """
 
         python -m ibeis VerifierExpt.agg_results
+        python -m ibeis VerifierExpt.agg_results --link link-paper-final
 
         GZ_Master1,LF_ALL,MantaMatcher,RotanTurtles,humpbacks_fb,GIRM_Master1
 
@@ -606,9 +607,6 @@ class VerifierExpt(DBInputs):
 
         if method == 1:
 
-            pos = rank1_cmc_table.diff(axis=1)[rank1_cmc_table.diff(axis=1) > 0]
-            pos.mean()
-
             # Does going from rank 1 to rank inf generally improve deltas?
             # -rank_tpr_tables[np.inf].diff(axis=1) - -rank_tpr_tables[1].diff(axis=1)
 
@@ -855,6 +853,31 @@ class VerifierExpt(DBInputs):
 
             ut.render_latex(confusion_tex, dpath=dpath, fname=confusion_fname)
             ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
+
+        old_cmc = rank1_cmc_table[LNBNN]
+        new_cmc = rank1_cmc_table[CLF]
+        cmc_diff = new_cmc - old_cmc
+        cmc_change = cmc_diff / old_cmc
+        improved = cmc_diff > 0
+        print('{} / {} datasets saw CMC improvement'.format(sum(improved),
+                                                            len(cmc_diff)))
+        print('CMC average absolute diff: {}'.format(cmc_diff.mean()))
+        print('CMC average percent change: {}'.format(cmc_change.mean()))
+
+        print('Average AUC:\n{}'.format(rank1_auc_table.mean(axis=0)))
+
+        print('Average TPR:\n{}'.format(rank1_tpr_table.mean(axis=0)))
+
+
+        old_tpr = rank1_tpr_table[LNBNN]
+        new_tpr = rank1_tpr_table[CLF]
+        tpr_diff = new_tpr - old_tpr
+        tpr_change = tpr_diff / old_tpr
+        improved = tpr_diff > 0
+        print('{} / {} datasets saw TPR improvement'.format(sum(improved),
+                                                            len(tpr_diff)))
+        print('TPR average absolute diff: {}'.format(tpr_diff.mean()))
+        print('TPR average percent change: {}'.format(tpr_change.mean()))
 
     @profile
     def measure_dbstats(self):

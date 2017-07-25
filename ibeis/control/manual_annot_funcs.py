@@ -3020,6 +3020,12 @@ def get_annot_qualities(ibs, aid_list, eager=True):
 
 
 @register_ibs_method
+def get_annot_quality_int(ibs, aid_list, eager=True):
+    """ new alias """
+    return ibs.get_annot_qualities(aid_list, eager=eager)
+
+
+@register_ibs_method
 @accessor_decors.setter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_QUALITY], rowidx=0)
 @register_api('/api/annot/quality/', methods=['PUT'])

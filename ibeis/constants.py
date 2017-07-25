@@ -90,6 +90,7 @@ QUALITY_INT_TO_TEXT = OrderedDict([
     (-1, QUAL_UNKNOWN,),
 ])
 
+
 QUALITY_TEXT_TO_INT       = ut.invert_dict(QUALITY_INT_TO_TEXT)
 QUALITY_INT_TO_TEXT[1]    = QUAL_JUNK
 #QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)
@@ -546,6 +547,39 @@ class CONFIDENCE(object):
         (NOT_SURE, 'Unsure'),
         (GUESSING, 'Guessing'),
         (UNKNOWN, 'Unspecified'),
+    ])
+
+    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
+    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
+    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
+    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
+
+
+@six.add_metaclass(_ConstHelper)
+class QUAL(object):
+    EXCELLENT = 5
+    GOOD      = 4
+    OK        = 3
+    POOR      = 2
+    JUNK      = 1
+    UNKNOWN   = None
+
+    INT_TO_CODE = ut.odict([
+        (EXCELLENT , 'excellent'),
+        (GOOD      , 'good'),
+        (OK        , 'ok'),
+        (POOR      , 'poor'),
+        (JUNK      , 'junk'),
+        (UNKNOWN   , 'unspecified'),
+    ])
+
+    INT_TO_NICE = ut.odict([
+        (EXCELLENT , 'Excellent'),
+        (GOOD      , 'Good'),
+        (OK        , 'OK'),
+        (POOR      , 'Poor'),
+        (JUNK      , 'Junk'),
+        (UNKNOWN   , 'Unspecified'),
     ])
 
     CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
