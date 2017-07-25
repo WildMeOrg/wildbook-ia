@@ -840,7 +840,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
     if filter_annots and species_set is not None:
         dict_list = [
             (gt_dict, 'Ground-Truth'),
-            (pred_dict, 'Predictions'),
+            # (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
             total = 0
@@ -944,7 +944,7 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
     if filter_annots and species_set is not None:
         dict_list = [
             (gt_dict, 'Ground-Truth'),
-            (pred_dict, 'Predictions'),
+            # (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
             total = 0
