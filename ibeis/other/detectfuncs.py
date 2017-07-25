@@ -121,7 +121,7 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
     if not use_existing_train_test:
         ibs.imageset_train_test_split(**kwargs)
 
-    train_gid_set = set(general_get_imageset_gids(ibs, '_S_SET', **kwargs))
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
 
     print('Exporting %d images' % (len(gid_list),))
@@ -605,11 +605,12 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
     return tp, fp, fn
 
 
-def general_get_imageset_gids(ibs, imageset_text, species_set=None, unique=False,
+def general_get_imageset_gids(ibs, imageset_text, species_set=None,
+                              filter_images=True, unique=False,
                               **kwargs):
     imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_text)
     test_gid_list = ibs.get_imageset_gids(imageset_id)
-    if species_set is not None:
+    if filter_images and species_set is not None:
         species_set = set(species_set)
         args = (len(test_gid_list), species_set, )
         print('Filtering GIDs (%d) on species set: %r' % args)
@@ -824,7 +825,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     return pred_dict
 
 
-def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERIAL, **kwargs):
+def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
+                                    force_serial=FORCE_SERIAL, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -833,6 +835,10 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
 
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    species_set = kwargs.get('species_set', None)
+    if filter_annots and species_set is not None:
+        ut.embed()
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
@@ -903,7 +909,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
 
 
 def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overlap=0.5,
-                                         write_images=True, **kwargs):
+                                         write_images=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
@@ -1023,13 +1029,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
-        {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[0] ]},
-        {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[1] ]},
-        {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[2] ]},
-        {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[3] ]},
-        {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[4] ]},
-        {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[5] ]},
+        {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : species_set},
+        {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
+        {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
+        {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
+        {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : [ species_set[3] ]},
+        {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : [ species_set[4] ]},
+        {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_images' : False, 'filter_annots' : True, 'species_set' : [ species_set[5] ]},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
