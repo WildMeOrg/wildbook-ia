@@ -2343,6 +2343,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     fig_ = plt.figure(figsize=figsize)
 
+    ut.embed()
+
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     kwargs['classifier_two_weight_filepath'] = 'candidacy'
 
