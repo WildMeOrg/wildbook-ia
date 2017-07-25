@@ -999,6 +999,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # species_set = set(['elephant'])
     # species_set = None
 
+    species_set = [
+        'giraffe_masai',
+        'giraffe_reticulated',
+        'turtle_sea',
+        'whale_fluke',
+        'zebra_grevys',
+        'zebra_plains',
+    ]
+
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         # {'label': 'V1 (GRID)',      'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -1009,10 +1018,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'V3 Whale Shark', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
         # {'label': 'V3 Whale Fluke', 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-        {'label': 'V3 (GRID)',          'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-        {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
-        {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'V3 (GRID)',          'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'Whale Fluke',        'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'Whale Fluke (GRID)', 'grid' : True,  'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
+
+        {'label': 'Localizer',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
+        {'label': 'Localizer (GRID)', 'grid' : True,  'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
