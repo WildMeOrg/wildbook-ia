@@ -903,7 +903,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
 
 
 def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overlap=0.5,
-                                         write_images=False, **kwargs):
+                                         write_images=True, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
