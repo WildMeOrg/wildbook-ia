@@ -4353,7 +4353,7 @@ def classifier2_train(ibs, species_list=None, **kwargs):
     extracted_path, category_list = values
     id_file, X_file, y_file = numpy_processed_directory3(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier2')
-    model_path = train_classifier2(output_path, X_file, y_file)
+    model_path = train_classifier2(output_path, X_file, y_file, purge=True)
     # Add the species_list to the model
     model_state = ut.load_cPkl(model_path)
     assert 'category_list' not in model_state
