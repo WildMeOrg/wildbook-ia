@@ -2245,6 +2245,7 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         for confidence_dict in confidence_dict_list
     ]
 
+    ut.embed()
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
@@ -2348,6 +2349,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     depc = ibs.depc_image
+
+    depc.delete_property('classifier_two', test_gid_set, config=kwargs)
 
     if species_list is None:
         test_gid = test_gid_set[0]
