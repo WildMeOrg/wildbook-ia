@@ -928,7 +928,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
 
 
 def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overlap=0.5,
-                                         write_images=False, **kwargs):
+                                         filter_annots=False, write_images=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
@@ -939,6 +939,29 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
 
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    species_set = kwargs.get('species_set', None)
+    if filter_annots and species_set is not None:
+        dict_list = [
+            (gt_dict, 'Ground-Truth'),
+            (pred_dict, 'Predictions'),
+        ]
+        for dict_, dict_tag in dict_list:
+            total = 0
+            survived = 0
+            for image_uuid in dict_:
+                annot_list = dict_[image_uuid]
+                total += len(annot_list)
+                annot_list = [
+                    annot
+                    for annot in annot_list
+                    if annot.get('class', None) in species_set
+                ]
+                survived += len(annot_list)
+                dict_[image_uuid] = annot_list
+            args = (dict_tag, total, species_set)
+            print('Filtering %s AIDs (%d) on species set: %r' % args)
+            print('    %d AIDs survived' % (survived , ))
 
     if write_images:
         output_folder = 'localizer-precision-recall-%0.2f-images' % (min_overlap, )
