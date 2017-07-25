@@ -2350,13 +2350,12 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     test_gid_set = list(test_gid_set)
     depc = ibs.depc_image
 
-    ut.embed()
     if species_list is None:
         test_gid = test_gid_set[0]
         confidence_dict = depc.get_property('classifier_two', test_gid, 'scores', config=kwargs)
-        category_set = sorted(confidence_dict.keys())
-    else:
-        category_set = sorted(species_list)
+        species_list = confidence_dict.keys()
+
+    category_set = sorted(species_list)
 
     config_list = []
     for category in category_set:
@@ -4346,6 +4345,7 @@ def classifier2_train(ibs, species_list=None, **kwargs):
     from ibeis_cnn.process import numpy_processed_directory3
     from ibeis_cnn.models.classifier2 import train_classifier2
     from ibeis_cnn.utils import save_model
+    ut.embed()
     data_path = join(ibs.get_cachedir(), 'extracted')
     values = get_cnn_classifier2_training_images(ibs, species_list,
                                                  dest_path=data_path,
