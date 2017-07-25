@@ -838,7 +838,23 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
 
     species_set = kwargs.get('species_set', None)
     if filter_annots and species_set is not None:
-        ut.embed()
+        for image_uuid in gt_dict:
+            annot_list = gt_dict[image_uuid]
+            annot_list = [
+                annot
+                for annot in annot_list
+                if annot.get('class', None) in species_set
+            ]
+            gt_dict[image_uuid] = annot_list
+
+        for image_uuid in pred_dict:
+            annot_list = pred_dict[image_uuid]
+            annot_list = [
+                annot
+                for annot in annot_list
+                if annot.get('class', None) in species_set
+            ]
+            pred_dict[image_uuid] = annot_list
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
