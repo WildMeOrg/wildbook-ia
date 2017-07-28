@@ -30,6 +30,7 @@ import hmac
 from ibeis import constants as const
 import string
 import random
+import base64
 # <flask>
 # TODO: allow optional flask import
 try:
@@ -438,7 +439,23 @@ def create_key():
 
 
 def get_signature(key, message):
-    return str(hmac.new(key, message, sha1).digest().encode("base64").rstrip('\n'))
+    def encode(x):
+        return bytes(x, 'utf-8')
+
+    def decode(x):
+        return x.decode('utf-8')
+
+    if six.PY3:
+        key = encode(key)
+        message = encode(message)
+
+    signature = hmac.new(key, message, sha1)
+    signature = signature.digest()
+    signature = base64.b64encode(signature)
+    signature = decode(signature)
+    signature = str(signature)
+    signature = signature.strip()
+    return signature
 
 
 def get_url_authorization(url):

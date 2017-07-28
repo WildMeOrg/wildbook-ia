@@ -1056,6 +1056,22 @@ def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
     return appf.template('turk', 'identification_insert', **embedded)
 
 
+@register_api('/api/status/query/graph/v2/', methods=['GET'], __api_plural_check__=False)
+def view_graphs_status(ibs):
+    graph_dict = {}
+    for graph_uuid in current_app.GRAPH_CLIENT_DICT:
+        graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+        if graph_client is None:
+            continue
+        graph_status, graph_exception = graph_client.refresh_status()
+        graph_uuid = str(graph_uuid)
+        graph_dict[graph_uuid] = {
+            'status': graph_status,
+            'num_aids': len(graph_client.aids),
+        }
+    return graph_dict
+
+
 @register_ibs_method
 @register_api('/api/review/query/graph/v2/', methods=['POST'])
 def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):

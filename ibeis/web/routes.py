@@ -1295,8 +1295,16 @@ def view_graphs(**kwargs):
             continue
         graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
         graph_uuid_str = graph_uuid_str.replace(': ', ':')
+        graph_status, graph_exception = graph_client.refresh_status()
+        if graph_exception is not None:
+            import traceback
+            trace = traceback.format_tb(graph_exception.__traceback__)
+            trace = '\n\n'.join(trace)
+            graph_exception = 'Exception: %s\n%s' % (graph_exception, trace, )
         graph = (
             graph_uuid,
+            graph_status,
+            graph_exception,
             len(graph_client.aids),
             graph_uuid_str,
         )

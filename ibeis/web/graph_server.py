@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.control import controller_inject
 import utool as ut
+import concurrent
 import random
 import time
 # from ibeis.web import futures_utils as futures_actors
@@ -310,6 +311,10 @@ class GraphClient(object):
         # Hack around the double review problem
         client.prev_vip = None
 
+        # Save status of the client (the status of the futures)
+        client.status = 'Initialized'
+        client.exception = None
+
         client.aids = None
         client.config = None
         client.extr = None
@@ -324,6 +329,10 @@ class GraphClient(object):
         client.shutdown()
 
     def shutdown(client):
+        for action, future in client.futures:
+            future.cancel()
+        client.futures = []
+        client.status = 'Shutdown'
         if client.executor is not None:
             client.executor.shutdown(wait=True)
             client.executor = None
@@ -339,7 +348,15 @@ class GraphClient(object):
         # remove done items from our list
         new_futures = []
         for action, future in client.futures:
-            if not future.done():
+            exception = None
+            if future.done():
+                try:
+                    exception = future.exception()
+                except concurrent.futures.CancelledError:
+                    pass
+                if exception is not None:
+                    new_futures.append((action, future))
+            else:
                 if future.running():
                     new_futures.append((action, future))
                 elif action == 'continue_review':
@@ -349,6 +366,28 @@ class GraphClient(object):
                 else:
                     new_futures.append((action, future))
         client.futures = new_futures
+
+    def refresh_status(client):
+        client.cleanup()
+        num_futures = len(client.futures)
+        if num_futures == 0:
+            client.status = 'Waiting (Empty Queue)'
+        else:
+            action, future = client.futures[0]
+            exception = None
+            if future.done():
+                try:
+                    exception = future.exception()
+                except concurrent.futures.CancelledError:
+                    pass
+            if exception is None:
+                status = 'Working'
+                client.exception = None
+            else:
+                status = 'Exception'
+                client.exception = exception
+            client.status = '%s (%d in Queue)' % (status, num_futures, )
+        return client.status, client.exception
 
     def add_annots(client):
         raise NotImplementedError('not done yet')
