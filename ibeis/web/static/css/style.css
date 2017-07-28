@@ -106,6 +106,21 @@
   margin-right: -8%;
 }
 
+.col-custom-span-8
+{
+  width: 14.29%;
+}
+
+.col-custom-span-8:first-child
+{
+  margin-left: -7.5%;
+}
+
+.col-custom-span-8:last-child
+{
+  margin-right: -7.5%;
+}
+
 .col-custom-span-9
 {
   width: 12.3%;
