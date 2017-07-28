@@ -1064,10 +1064,16 @@ def view_graphs_status(ibs):
         if graph_client is None:
             continue
         graph_status, graph_exception = graph_client.refresh_status()
+        if graph_client.review_dict is None:
+            num_edges = None
+        else:
+            edge_list = list(graph_client.review_dict.keys())
+            num_edges = len(edge_list)
         graph_uuid = str(graph_uuid)
         graph_dict[graph_uuid] = {
             'status': graph_status,
             'num_aids': len(graph_client.aids),
+            'num_reviews': num_edges,
         }
     return graph_dict
 

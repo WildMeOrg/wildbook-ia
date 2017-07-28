@@ -1301,11 +1301,17 @@ def view_graphs(**kwargs):
             trace = traceback.format_tb(graph_exception.__traceback__)
             trace = '\n\n'.join(trace)
             graph_exception = 'Exception: %s\n%s' % (graph_exception, trace, )
+        if graph_client.review_dict is None:
+            num_edges = None
+        else:
+            edge_list = list(graph_client.review_dict.keys())
+            num_edges = len(edge_list)
         graph = (
             graph_uuid,
             graph_status,
             graph_exception,
             len(graph_client.aids),
+            num_edges,
             graph_uuid_str,
         )
         graph_list.append(graph)

@@ -28,6 +28,7 @@
             <th>UUID</th>
             <th>Status</th>
             <th>nAnnots</th>
+            <th>nReviews</th>
             <th>Turk</th>
             <th>Sync</th>
             <th>Delete</th>
@@ -39,11 +40,12 @@
               <th class="no-items" colspan="99">Sorry, no graph UUIDs to display</th>
             </tr>
           {% else %}
-            {% for (graph_uuid, graph_status, graph_exception, num_aids, graph_uuid_str) in graph_list %}
+            {% for (graph_uuid, graph_status, graph_exception, num_aids, num_edges, graph_uuid_str) in graph_list %}
             <tr>
               <th scope="row">{{ graph_uuid }}</th>
               <th scope="row">{{ graph_status }}</th>
               <td>{{ num_aids }}</td>
+              <td>{{ num_edges }}</td>
               <td><a href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}">Review</a></td>
               <td><a href="{{ url_for('sync_query_chips_graph_v2') }}?{{ graph_uuid_str }}" style="color: #eea236;">Sync</a></td>
               <td><a href="{{ url_for('delete_query_chips_graph_v2_refer') }}?{{ graph_uuid_str }}" style="color: #d9534f;">Delete</a></td>
