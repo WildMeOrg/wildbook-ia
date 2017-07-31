@@ -78,7 +78,7 @@ def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     graph.add_nodes_from(netx_nodes)
     graph.add_edges_from(netx_edges)
     #import plottool as pt
-    #nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE)
+    #nx.set_edge_attributes(graph, name='color', values=pt.DARK_ORANGE)
     return graph
 
 
@@ -95,8 +95,8 @@ def ensure_names_are_connected(graph, aids_list):
 
     aug_graph.add_edges_from(new_edges)
     # Ensure the largest possible set of original edges is in the MST
-    nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 1.0) for edge in new_edges]))
-    nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 0.1) for edge in orig_edges]))
+    nx.set_edge_attributes(aug_graph, name='weight', values=dict([(edge, 1.0) for edge in new_edges]))
+    nx.set_edge_attributes(aug_graph, name='weight', values=dict([(edge, 0.1) for edge in orig_edges]))
     for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
         mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
         for edge in mst_sub_graph.edges():
@@ -153,10 +153,10 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
             if graph.has_edge(*edge):
                 ensure_edges_.append(edge)
                 pass
-                #nx.set_edge_attributes(graph, 'weight', {edge: .001})
+                #nx.set_edge_attributes(graph, name='weight', values={edge: .001})
             elif (not allow_directed) and graph.has_edge(*redge):
                 ensure_edges_.append(redge)
-                #nx.set_edge_attributes(graph, 'weight', {redge: .001})
+                #nx.set_edge_attributes(graph, name='weight', values={redge: .001})
                 pass
             else:
                 ensure_edges_.append(edge)
@@ -170,7 +170,8 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
         unique_nids = [1] * len(list(graph.nodes()))
         #unique_nids = temp_nids
 
-    nx.set_node_attributes(graph, 'nid', dict(zip(graph.nodes(), unique_nids)))
+    nx.set_node_attributes(graph, name='nid',
+                           value=ut.dzip(graph.nodes(), unique_nids))
 
     import plottool as pt
     ensure_names_are_connected(graph, aids_list)
@@ -180,15 +181,14 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
     if invis_edges:
         for edge in invis_edges:
             if graph.has_edge(*edge):
-                nx.set_edge_attributes(graph, 'style', {edge: 'invis'})
-                nx.set_edge_attributes(graph, 'invisible', {edge: True})
+                nx.set_edge_attributes(graph, name='style', values={edge: 'invis'})
+                nx.set_edge_attributes(graph, name='invisible', values={edge: True})
             else:
                 graph.add_edge(*edge, style='invis', invisible=True)
 
     # Hack color images orange
     if ensure_edges:
-        nx.set_edge_attributes(graph, 'color',
-                               {tuple(edge): pt.ORANGE for edge in ensure_edges_})
+        nx.set_edge_attributes(graph, name='color', values={tuple(edge): pt.ORANGE for edge in ensure_edges_})
 
     return graph
 
@@ -229,8 +229,8 @@ def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     flagged_edge_colors = [nid_to_color[nids[0]] for nids in flagged_edge_nids]
     edge_to_color = dict(zip(flagged_edge_aids, flagged_edge_colors))
     node_to_color = ut.map_dict_vals(ut.partial(ut.take, nid_to_color), node_to_nid)
-    nx.set_edge_attributes(graph, 'color', edge_to_color)
-    nx.set_node_attributes(graph, 'color', node_to_color)
+    nx.set_edge_attributes(graph, name='color', values=edge_to_color)
+    nx.set_node_attributes(graph, name='color', values=node_to_color)
 
 
 def augment_graph_mst(ibs, graph):
@@ -241,7 +241,7 @@ def augment_graph_mst(ibs, graph):
     aid_list = list(graph.nodes())
     aug_digraph = graph.copy()
     # Change all weights in initial graph to be small (likely to be part of mst)
-    nx.set_edge_attributes(aug_digraph, 'weight', .0001)
+    nx.set_edge_attributes(aug_digraph, name='weight', values=.0001)
     aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
     if False:
         # Weight edges in the MST based on tenative distances
@@ -282,9 +282,9 @@ def ensure_node_images(ibs, graph):
     imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
                                                config=dict(dim_size=200),
                                                read_extern=False)
-    nx.set_node_attributes(graph, 'image', dict(zip(node_list, imgpath_list)))
+    nx.set_node_attributes(graph, name='image', values=dict(zip(node_list, imgpath_list)))
     if True:
-        nx.set_node_attributes(graph, 'shape', 'rect')
+        nx.set_node_attributes(graph, name='shape', values='rect')
 
 
 def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
@@ -337,7 +337,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
 
     if use_image:
         ensure_node_images(ibs, graph)
-    nx.set_node_attributes(graph, 'shape', 'rect')
+    nx.set_node_attributes(graph, name='shape', values='rect')
 
     if layoutkw is None:
         layoutkw = {}
@@ -386,7 +386,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.use_image = use_image
         self.show_cuts = False
         self.config = InferenceConfig()
-        nx.set_node_attributes(self.infr.graph, 'label', node2_label)
+        nx.set_node_attributes(self.infr.graph, name='label', values=node2_label)
 
     def make_hud(self):
         """ Creates heads up display """

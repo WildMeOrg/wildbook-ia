@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+DEPRICATE THIS ENTIRE FILE
+
 this module lists most of the command line args available for use.  there are
 still many cases where util_arg.get_argval and util_arg.get_argflag are used
 instead of this module. Those command line arguments will not be represented

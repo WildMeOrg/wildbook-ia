@@ -385,14 +385,13 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> result = result1 + '\n' + result2
         >>> print(result)
         nn_mid_cacheid_list1 = [
-            'nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
-            'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
         ]
         nn_mid_cacheid_list2 = [
-            'nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
-            'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,maxwh)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
         ]
-
     """
     from ibeis.algo import Config
     chip_cfgstr    = qreq_.qparams.chip_cfgstr

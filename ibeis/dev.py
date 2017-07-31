@@ -45,7 +45,6 @@ import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     ibeis._preload()
-    #from ibeis.all_imports import *  # NOQA
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
 from ibeis._devcmds_ibeis import *  # NOQA
@@ -173,7 +172,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         python dev.py -t inc --db PZ_Master0 --noqcache --interactive-after 10000 --ninit 400
 
     Example:
-        >>> from ibeis.all_imports import *  # NOQA
+        >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()
         >>> daid_list = None

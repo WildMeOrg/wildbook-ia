@@ -595,14 +595,14 @@ def merge_viewpoint_graph():
 
     #right_graph = right_graph.to_undirected().to_directed()
     #left_graph = left_graph.to_undirected().to_directed()
-    nx.set_node_attributes(right_graph, 'groupid', 'right')
-    nx.set_node_attributes(left_graph, 'groupid', 'left')
+    nx.set_node_attributes(right_graph, name='groupid', values='right')
+    nx.set_node_attributes(left_graph, name='groupid', values='left')
 
-    #nx.set_node_attributes(right_graph, 'scale', .2)
-    #nx.set_node_attributes(left_graph, 'scale', .2)
+    #nx.set_node_attributes(right_graph, name='scale', values=.2)
+    #nx.set_node_attributes(left_graph, name='scale', values=.2)
     #back_graph.node[back[0]]['scale'] = 2.3
 
-    nx.set_node_attributes(back_graph, 'groupid', 'back')
+    nx.set_node_attributes(back_graph, name='groupid', values='back')
 
     view_graph = nx.compose_all([left_graph, back_graph, right_graph])
     view_graph.add_edges_from([
@@ -613,9 +613,9 @@ def merge_viewpoint_graph():
     graph = graph = view_graph  # NOQA
     #graph = graph.to_undirected()
 
-    nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE[0:3])
-    #nx.set_edge_attributes(graph, 'color', pt.BLACK)
-    nx.set_edge_attributes(graph, 'color', {edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
+    nx.set_edge_attributes(graph, name='color', values=pt.DARK_ORANGE[0:3])
+    #nx.set_edge_attributes(graph, name='color', values=pt.BLACK)
+    nx.set_edge_attributes(graph, name='color', values={edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
 
     #pt.close_all_figures();
     from ibeis.viz import viz_graph
@@ -741,11 +741,11 @@ def setcover_example():
         temp_nids=[1] * len(aids))
     viz_graph.ensure_node_images(ibs, graph)
 
-    nx.set_node_attributes(graph, 'framewidth', False)
-    nx.set_node_attributes(graph, 'framewidth', {aid: 4.0 for aid in exemplars})
-    nx.set_edge_attributes(graph, 'color', pt.ORANGE)
-    nx.set_node_attributes(graph, 'color', pt.LIGHT_BLUE)
-    nx.set_node_attributes(graph, 'shape', 'rect')
+    nx.set_node_attributes(graph, name='framewidth', values=False)
+    nx.set_node_attributes(graph, name='framewidth', values={aid: 4.0 for aid in exemplars})
+    nx.set_edge_attributes(graph, name='color', values=pt.ORANGE)
+    nx.set_node_attributes(graph, name='color', values=pt.LIGHT_BLUE)
+    nx.set_node_attributes(graph, name='shape', values='rect')
 
     layoutkw = {
         'sep' : 1 / 10,
@@ -1081,7 +1081,7 @@ def show_id_graph():
     import networkx as nx
 
     infr.show(pin=True, **showkw)
-    nx.set_node_attributes(infr.graph, 'pin', 'true')
+    nx.set_node_attributes(infr.graph, name='pin', values='true')
     fig = pt.gcf()
     fig.savefig('id_graph5.png',
                 bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
@@ -1193,7 +1193,7 @@ def intraoccurrence_connected():
     viz_graph.color_by_nids(unlabeled_graph, unique_nids=[1] *
                             len(list(unlabeled_graph.nodes())))
     viz_graph.ensure_node_images(ibs, unlabeled_graph)
-    nx.set_node_attributes(unlabeled_graph, 'shape', 'rect')
+    nx.set_node_attributes(unlabeled_graph, name='shape', values='rect')
     #unlabeled_graph = unlabeled_graph.to_undirected()
 
     # Find the "database exemplars for these annots"
@@ -1219,11 +1219,11 @@ def intraoccurrence_connected():
     viz_graph.ensure_node_images(ibs, exemplars)
     viz_graph.color_by_nids(exemplars, ibs=ibs)
 
-    nx.set_node_attributes(unlabeled_graph, 'framewidth', False)
-    nx.set_node_attributes(exemplars,  'framewidth', 4.0)
+    nx.set_node_attributes(unlabeled_graph, name='framewidth', values=False)
+    nx.set_node_attributes(exemplars, name= 'framewidth', values=4.0)
 
-    nx.set_node_attributes(unlabeled_graph, 'group', 'unlab')
-    nx.set_node_attributes(exemplars,  'group', 'exemp')
+    nx.set_node_attributes(unlabeled_graph, name='group', values='unlab')
+    nx.set_node_attributes(exemplars, name= 'group', values='exemp')
 
     #big_graph = nx.compose_all([unlabeled_graph])
     big_graph = nx.compose_all([exemplars, unlabeled_graph])
@@ -1250,7 +1250,7 @@ def intraoccurrence_connected():
             big_graph.add_edges_from(list(ut.product([aid_], exmatches)))
         pass
 
-    nx.set_node_attributes(big_graph, 'shape', 'rect')
+    nx.set_node_attributes(big_graph, name='shape', values='rect')
     #if False and postcut:
     #    ut.nx_delete_node_attr(big_graph, 'nid')
     #    ut.nx_delete_edge_attr(big_graph, 'color')
@@ -1274,8 +1274,8 @@ def intraoccurrence_connected():
     graph = big_graph
     ut.nx_ensure_agraph_color(graph)
     if hacknode:
-        nx.set_edge_attributes(graph, 'taillabel', {e: str(e[0]) for e in graph.edges()})
-        nx.set_edge_attributes(graph, 'headlabel', {e: str(e[1]) for e in graph.edges()})
+        nx.set_edge_attributes(graph, name='taillabel', values={e: str(e[0]) for e in graph.edges()})
+        nx.set_edge_attributes(graph, name='headlabel', values={e: str(e[1]) for e in graph.edges()})
 
     _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
@@ -1283,7 +1283,7 @@ def intraoccurrence_connected():
         graph.node[7660]['pos'] = np.array([550, 350])
         graph.node[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
         graph.node[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
-        nx.set_node_attributes(graph, 'pin', 'true')
+        nx.set_node_attributes(graph, name='pin', values='true')
         _, layout_info = pt.nx_agraph_layout(graph,
                                              inplace=True, **layoutkw)
     elif ut.get_argflag('--small'):
@@ -1291,7 +1291,7 @@ def intraoccurrence_connected():
         graph.node[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
         graph.node[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
         graph.node[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
-        nx.set_node_attributes(graph, 'pin', 'true')
+        nx.set_node_attributes(graph, name='pin', values='true')
         _, layout_info = pt.nx_agraph_layout(graph,
                                              inplace=True, **layoutkw)
 
@@ -1317,13 +1317,13 @@ def intraoccurrence_connected():
 
         #for key, vals in layout_info['node'].items():
         #    #print('[special] key = %r' % (key,))
-        #    nx.set_node_attributes(graph, key, vals)
+        #    nx.set_node_attributes(graph, name=key, values=vals)
 
         #for key, vals in layout_info['edge'].items():
         #    #print('[special] key = %r' % (key,))
-        #    nx.set_edge_attributes(graph, key, vals)
+        #    nx.set_edge_attributes(graph, name=key, values=vals)
 
-        #nx.set_edge_attributes(graph, 'alpha', .8)
+        #nx.set_edge_attributes(graph, name='alpha', values=.8)
         #graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
         #graph.graph['splines'] = 'polyline'   # graph_layout_attrs.get('splines', 'line')
         #graph.graph['splines'] = 'line'
@@ -1351,7 +1351,7 @@ def intraoccurrence_connected():
 
         graph = cut_graph
         viz_graph.color_by_nids(cut_graph, ibs=ibs, nid2_color_=nid2_color_)
-        nx.set_node_attributes(cut_graph, 'framewidth', 4)
+        nx.set_node_attributes(cut_graph, name='framewidth', values=4)
 
         pt.show_nx(cut_graph, layout='custom', layoutkw=layoutkw,
                    as_directed=as_directed, hacknode=hacknode)
@@ -1365,8 +1365,8 @@ def intraoccurrence_connected():
     #print(interact)
 
     # Groupid only works for dot
-    #nx.set_node_attributes(unlabeled_graph, 'groupid', 'unlabeled')
-    #nx.set_node_attributes(exemplars, 'groupid', 'exemplars')
+    #nx.set_node_attributes(unlabeled_graph, name='groupid', values='unlabeled')
+    #nx.set_node_attributes(exemplars, name='groupid', values='exemplars')
     #exemplars = exemplars.to_undirected()
     #add_clique(exemplars, aids_, edgeattrs=dict(constraint=False))
     #layoutkw = {}

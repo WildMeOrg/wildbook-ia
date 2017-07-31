@@ -240,17 +240,11 @@ class OrigAnnotInference(object):
                         graph.remove_edge(aid1, aid2)
         if show:
             import plottool as pt
-            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PINK
-                                                    for aid in qreq_.daids})
-            nx.set_node_attributes(graph, 'color', {aid: pt.TRUE_BLUE
-                                                    for aid in qreq_.qaids})
-            nx.set_node_attributes(graph, 'color', {
-                aid: pt.LIGHT_PURPLE
-                for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
-            nx.set_node_attributes(graph, 'label', {node: 'n%r' % (node[1],)
-                                                    for node in name_nodes})
-            nx.set_node_attributes(graph, 'color', {node: pt.LIGHT_GREEN
-                                                    for node in name_nodes})
+            nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PINK for aid in qreq_.daids})
+            nx.set_node_attributes(graph, name='color', values={aid: pt.TRUE_BLUE for aid in qreq_.qaids})
+            nx.set_node_attributes(graph, name='color', values={aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
+            nx.set_node_attributes(graph, name='label', values={node: 'n%r' % (node[1],) for node in name_nodes})
+            nx.set_node_attributes(graph, name='color', values={node: pt.LIGHT_GREEN for node in name_nodes})
         if show:
             import plottool as pt
             pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)

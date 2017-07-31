@@ -784,7 +784,7 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
         A = netx.to_agraph(netx_graph2)
 
     #if name_nodes is not None:
-    #    #netx.set_node_attributes(netx_graph, 'label', {n: {'label': n} for n in all_nodes})
+    #    #netx.set_node_attributes(netx_graph, name='label', values={n: {'label': n} for n in all_nodes})
     #    invis_edges = list(ut.itertwo(name_nodes))
     #    netx_graph2.add_edges_from(invis_edges)
     #    A.add_subgraph(name_nodes, rank='same')

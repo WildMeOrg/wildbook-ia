@@ -137,6 +137,8 @@ def ensure_smaller_testingdbs():
 
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
+    import ibeis
+    ibeis.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False
                     for key in six.iterkeys(TEST_DBNAMES_MAP)}
     default_args['reset_all'] = False

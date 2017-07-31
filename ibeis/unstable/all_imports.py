@@ -2,6 +2,7 @@
 # flake8: noqa
 """
 TODO DEPRICATE
+DEPRICATE THIS ENTIRE FILE
 
 This file contains most every module I've ever used.
 Serves as a good check to make sure either everything I

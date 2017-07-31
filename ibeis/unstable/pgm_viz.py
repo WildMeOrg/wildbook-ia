@@ -436,8 +436,8 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
                     # ttype_nodes = sorted(ttype_nodes)
                     invis_edges = list(ut.itertwo(ttype_nodes))
                     graph.add_edges_from(invis_edges)
-                    nx.set_edge_attributes(graph, 'style', {edge: 'invis' for edge in invis_edges})
-                    nx.set_node_attributes(graph, 'groupid', {node: ttype for node in ttype_nodes})
+                    nx.set_edge_attributes(graph, name='style', values={edge: 'invis' for edge in invis_edges})
+                    nx.set_node_attributes(graph, name='groupid', values={node: ttype for node in ttype_nodes})
                     graph.graph['groupattrs'][ttype]['rank'] = 'same'
                     graph.graph['groupattrs'][ttype]['cluster'] = False
         else:
