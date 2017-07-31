@@ -465,7 +465,8 @@ def post_1_3_4(db, ibs=None):
     if ibs is not None:
         ibs._init_rowid_constants()
         ibs._init_config()
-        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+        # Move up because this has changed
+        # ibs.update_annot_visual_uuids(ibs.get_valid_aids())
 
 
 def pre_1_3_1(db, ibs=None):
@@ -1610,6 +1611,9 @@ def post_1_7_0(db, ibs=None):
 
         ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',),
                    view_ints, id_iter=aids)
+
+        # Moved here from 1.3.4 because the way it is calculated changed
+        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
 
 
 # ========================
