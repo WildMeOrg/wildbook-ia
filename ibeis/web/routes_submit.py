@@ -392,6 +392,95 @@ def submit_viewpoint(**kwargs):
                                 dst_ag=dst_ag, previous=aid))
 
 
+@register_route('/submit/viewpoint2/', methods=['POST'])
+def submit_viewpoint2(**kwargs):
+    ibs = current_app.ibs
+    method = request.form.get('viewpoint-submit', '')
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    src_ag = request.args.get('src_ag', '')
+    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+    dst_ag = request.args.get('dst_ag', '')
+    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+
+    aid = int(request.form['viewpoint-aid'])
+    turk_id = request.cookies.get('ia-turk_id', -1)
+    if method.lower() == 'delete':
+        ibs.delete_annots(aid)
+        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        aid = None  # Reset AID to prevent previous
+    if method.lower() == 'make junk':
+        ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
+        print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    if method.lower() == 'rotate left':
+        theta = ibs.get_annot_thetas(aid)
+        theta = (theta + PI / 2) % TAU
+        ibs.set_annot_thetas(aid, theta)
+        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
+        diffx = int(round((w / 2.0) - (h / 2.0)))
+        diffy = int(round((h / 2.0) - (w / 2.0)))
+        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
+        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    if method.lower() == 'rotate right':
+        theta = ibs.get_annot_thetas(aid)
+        theta = (theta - PI / 2) % TAU
+        ibs.set_annot_thetas(aid, theta)
+        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
+        diffx = int(round((w / 2.0) - (h / 2.0)))
+        diffy = int(round((h / 2.0) - (w / 2.0)))
+        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
+        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    else:
+        if src_ag is not None and dst_ag is not None:
+            appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
+
+        # Get metadata
+        viewpoint1 = int(kwargs.get('ia-viewpoint-value-1', None))
+        viewpoint2 = int(kwargs.get('ia-viewpoint-value-2', None))
+        viewpoint3 = int(kwargs.get('ia-viewpoint-value-3', None))
+        viewpoint_tup = (viewpoint1, viewpoint2, viewpoint3, )
+        viewpoint = appf.convert_tuple_to_viewpoint(viewpoint_tup)
+        ibs.set_annot_viewpoints([aid], [viewpoint])
+        species_text = request.form['viewpoint-species']
+        # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
+        ibs.set_annot_species([aid], [species_text])
+        print('[web] turk_id: %s, aid: %d, viewpoint_text: %s' % (turk_id, aid, viewpoint))
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_viewpoint2', imgsetid=imgsetid, src_ag=src_ag,
+                                dst_ag=dst_ag, previous=aid))
+
+
 @register_route('/submit/annotation/', methods=['POST'])
 def submit_annotation(**kwargs):
     ibs = current_app.ibs
