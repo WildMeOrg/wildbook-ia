@@ -460,7 +460,7 @@ def split_analysis(ibs):
             print('name_population_size = %r' % (pop,))
             vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
 
-        nx.set_edge_attributes(infr.graph, 'score', dict(zip(aid_pairs, scores)))
+        nx.set_edge_attributes(infr.graph, name='score', values=dict(zip(aid_pairs, scores)))
 
         win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
                                           init_mode=None)
@@ -495,11 +495,9 @@ def split_analysis(ibs):
             if infr.graph.has_edge(aid1, aid2):
                 flipped_edges.append((aid1, aid2))
             infr.add_feedback((aid1, aid2), NEGTV)
-        nx.set_edge_attributes(infr.graph, '_speed_split', 'orig')
-        nx.set_edge_attributes(infr.graph, '_speed_split',
-                               {edge: 'new' for edge in bad_edges})
-        nx.set_edge_attributes(infr.graph, '_speed_split',
-                               {edge: 'flip' for edge in flipped_edges})
+        nx.set_edge_attributes(infr.graph, name='_speed_split', values='orig')
+        nx.set_edge_attributes(infr.graph, name='_speed_split', values={edge: 'new' for edge in bad_edges})
+        nx.set_edge_attributes(infr.graph, name='_speed_split', values={edge: 'flip' for edge in flipped_edges})
 
     #for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', **progkw):
     #    annots = ibs.annots(infr.aids)
@@ -878,7 +876,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
             for g, t_xy in zip(graph_list_, t_xy_list):
                 ut.translate_graph(g, t_xy)
-                nx.set_node_attributes(g, 'pin', 'true')
+                nx.set_node_attributes(g, name='pin', values='true')
 
             new_graph = nx.compose_all(graph_list_)
             #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
@@ -890,7 +888,7 @@ def draw_twoday_count(ibs, visit_info_list_):
             edges = [(int(u), int(v)) for u, v in info['edges']
                      if u is not None and v is not None]
             graph.add_edges_from(edges, attr_dict={'zorder': 10})
-            nx.set_node_attributes(graph, 'zorder', 20)
+            nx.set_node_attributes(graph, name='zorder', values=20)
 
             # Layout in neato
             _ = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)  # NOQA
@@ -939,7 +937,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         graph_list = [graph1_, graph2_]
         twoday_graph = stack_graphs(graph_list, vert=True, pad=None)
-        nx.set_node_attributes(twoday_graph, 'pin', 'true')
+        nx.set_node_attributes(twoday_graph, name='pin', values='true')
 
         if debug:
             ut.nx_delete_None_edge_attr(twoday_graph)

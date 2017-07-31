@@ -70,8 +70,8 @@ class GraphVisualization(object):
         if graph is None:
             graph = infr.graph
 
-        # nx.set_node_attributes(graph, 'framewidth', 3.0)
-        # nx.set_node_attributes(graph, 'shape', ut.dzip(annot_nodes, ['rect']))
+        # nx.set_node_attributes(graph, name='framewidth', values=3.0)
+        # nx.set_node_attributes(graph, name='shape', values=ut.dzip(annot_nodes, ['rect']))
         ut.nx_delete_node_attr(graph, 'size')
         ut.nx_delete_node_attr(graph, 'width')
         ut.nx_delete_node_attr(graph, 'height')
@@ -97,15 +97,14 @@ class GraphVisualization(object):
         aid_list = list(graph.nodes())
 
         if infr.ibs is not None:
-            nx.set_node_attributes(graph, 'framewidth', 3.0)
-            nx.set_node_attributes(graph, 'shape', ut.dzip(aid_list, ['rect']))
+            nx.set_node_attributes(graph, name='framewidth', values=3.0)
+            nx.set_node_attributes(graph, name='shape', values=ut.dzip(aid_list, ['rect']))
             if infr.ibs is None:
                 raise ValueError('Cannot show images when ibs is None')
             imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
                                                    config=infr._viz_image_config,
                                                    read_extern=False)
-            nx.set_node_attributes(graph, 'image', ut.dzip(aid_list,
-                                                           imgpath_list))
+            nx.set_node_attributes(graph, name='image', values=ut.dzip(aid_list, imgpath_list))
         if graph is infr.graph:
             infr._viz_image_config_dirty = False
 
@@ -258,7 +257,7 @@ class GraphVisualization(object):
 
         if not getattr(infr, '_viz_init_nodes', False):
             infr._viz_init_nodes = True
-            nx.set_node_attributes(graph, 'shape', 'circle')
+            nx.set_node_attributes(graph, name='shape', values='circle')
             # infr.set_node_attrs('shape', 'circle')
 
         if getattr(infr, '_viz_image_config_dirty', True):
@@ -294,10 +293,10 @@ class GraphVisualization(object):
         # Set annotation node labels
         node_to_nid = None
         if not show_labels:
-            nx.set_node_attributes(graph, 'label', ut.dzip(graph.nodes(), ['']))
+            nx.set_node_attributes(graph, name='label', values=ut.dzip(graph.nodes(), ['']))
         else:
             if simple_labels:
-                nx.set_node_attributes(graph, 'label', {n: str(n) for n in graph.nodes()})
+                nx.set_node_attributes(graph, name='label', values={n: str(n) for n in graph.nodes()})
             else:
                 if node_to_nid is None:
                     node_to_nid = nx.get_node_attributes(graph, 'name_label')
@@ -313,7 +312,7 @@ class GraphVisualization(object):
                         aid: 'aid=%r\nnid=%r' % (aid, node_to_nid[aid])
                         for aid in graph.nodes()
                     }
-                nx.set_node_attributes(graph, 'label', annotnode_to_label)
+                nx.set_node_attributes(graph, name='label', values=annotnode_to_label)
 
         # NODE_COLOR: based on name_label
         ut.color_nodes(graph, labelattr=colorby,
@@ -353,10 +352,9 @@ class GraphVisualization(object):
                                               neg_edges + incomp_edges)
         nontrivial_inferred_edges = (nontrivial_inferred_same +
                                      nontrivial_inferred_diff)
-        nx_set_edge_attrs = nx.set_edge_attributes
 
         # EDGE_COLOR: based on edge_weight
-        nx_set_edge_attrs(graph, 'color', ut.dzip(edges, edge_colors))
+        nx.set_edge_attributes(graph, name='color', values=ut.dzip(edges, edge_colors))
 
         # LINE_WIDTH: based on review_state
         # unreviewed_width = 2.0
@@ -364,81 +362,70 @@ class GraphVisualization(object):
         unreviewed_width = 1.0
         reviewed_width = 2.0
         if highlight_reviews:
-            nx_set_edge_attrs(graph, 'linewidth', ut.dzip(
-                reviewed_edges, [reviewed_width]))
-            nx_set_edge_attrs(graph, 'linewidth', ut.dzip(
-                unreviewed_edges, [unreviewed_width]))
+            nx.set_edge_attributes(graph, name='linewidth', values=ut.dzip(reviewed_edges, [reviewed_width]))
+            nx.set_edge_attributes(graph, name='linewidth', values=ut.dzip(unreviewed_edges, [unreviewed_width]))
         else:
-            nx_set_edge_attrs(graph, 'linewidth', ut.dzip(
-                edges, [unreviewed_width]))
+            nx.set_edge_attributes(graph, name='linewidth', values=ut.dzip(edges, [unreviewed_width]))
 
         # EDGE_STROKE: based on decision and maybe_error
         # fg = pt.WHITE if dark_background else pt.BLACK
-        # nx_set_edge_attrs(graph, 'stroke', ut.dzip(reviewed_edges, [
-        #     {'linewidth': 3, 'foreground': fg}]))
+        # nx.set_edge_attributes(graph, name='stroke', values=ut.dzip(reviewed_edges, [{'linewidth': 3, 'foreground': fg}]))
         if show_inconsistency:
-            nx_set_edge_attrs(graph, 'stroke', ut.dzip(recheck_edges, [
-                {'linewidth': 5, 'foreground': infr._error_color}]))
+            nx.set_edge_attributes(graph, name='stroke', values=ut.dzip(recheck_edges, [{'linewidth': 5, 'foreground': infr._error_color}]))
 
         # Cut edges are implicit and dashed
-        # nx_set_edge_attrs(graph, 'implicit', ut.dzip(cut_edges, [True]))
-        # nx_set_edge_attrs(graph, 'linestyle', ut.dzip(cut_edges, ['dashed']))
-        # nx_set_edge_attrs(graph, 'alpha', ut.dzip(cut_edges, [alpha_med]))
+        # nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(cut_edges, [True]))
+        # nx.set_edge_attributes(graph, name='linestyle', values=ut.dzip(cut_edges, ['dashed']))
+        # nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(cut_edges, [alpha_med]))
 
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(uncompared_edges, [True]))
+        nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(uncompared_edges, [True]))
 
         # Only matching edges should impose constraints on the graph layout
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(neg_edges, [True]))
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(neg_edges, [alpha_med]))
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(incomp_edges, [True]))
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(incomp_edges, [alpha_med]))
+        nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(neg_edges, [True]))
+        nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(neg_edges, [alpha_med]))
+        nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(incomp_edges, [True]))
+        nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(incomp_edges, [alpha_med]))
 
         # Ensure reviewed edges are visible
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(reviewed_edges, [False]))
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(reviewed_edges,
-                                                  [alpha_high]))
+        nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(reviewed_edges, [False]))
+        nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(reviewed_edges, [alpha_high]))
 
         if True:
             # Infered same edges can be allowed to constrain in order
             # to make things look nice sometimes
-            nx_set_edge_attrs(graph, 'implicit', ut.dzip(inferred_same,
-                                                         [False]))
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_same,
-                                                      [alpha_high]))
+            nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(inferred_same, [False]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(inferred_same, [alpha_high]))
 
         if not kwargs.get('show_same', True):
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_same, [0]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(inferred_same, [0]))
 
         if not kwargs.get('show_diff', True):
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_diff, [0]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(inferred_diff, [0]))
 
         if not kwargs.get('show_positive_edges', True):
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(pos_edges, [0]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(pos_edges, [0]))
 
         if not kwargs.get('show_negative_edges', True):
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(neg_edges, [0]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(neg_edges, [0]))
 
         if not kwargs.get('show_incomparable_edges', True):
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(incomp_edges, [0]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(incomp_edges, [0]))
 
         if not kwargs.get('show_between', True):
             if node_to_nid is None:
                 node_to_nid = nx.get_node_attributes(graph, 'name_label')
             between_edges = [(u, v) for u, v in edges
                              if node_to_nid[u] != node_to_nid[v]]
-            nx_set_edge_attrs(graph, 'alpha', ut.dzip(between_edges, [0]))
+            nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(between_edges, [0]))
 
         # SKETCH: based on inferred_edges
         # Make inferred edges wavy
         if wavy:
-            nx_set_edge_attrs(
-                graph, 'sketch', ut.dzip(nontrivial_inferred_edges, [
-                    dict(scale=10.0, length=64.0, randomness=None)]
-                    # dict(scale=3.0, length=18.0, randomness=None)]
-                ))
+            # dict(scale=3.0, length=18.0, randomness=None)]
+            nx.set_edge_attributes(graph, name='sketch', values=ut.dzip(nontrivial_inferred_edges, [dict(scale=10.0, length=64.0, randomness=None)]))
 
         # Make dummy edges more transparent
-        # nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
+        # nx.set_edge_attributes(graph, name='alpha', values=ut.dzip(dummy_edges, [alpha_low]))
         selected_edges = kwargs.pop('selected_edges', None)
 
         # SHADOW: based on most recent
@@ -452,7 +439,7 @@ class GraphVisualization(object):
         if selected_edges is not None:
             # TODO: add photoshop-like parameters like
             # spread and size. offset is the same as angle and distance.
-            nx_set_edge_attrs(graph, 'shadow', ut.dzip(selected_edges, [{
+            nx.set_edge_attributes(graph, name='shadow', values=ut.dzip(selected_edges, [{
                 'rho': .3,
                 'alpha': .6,
                 'shadow_color': 'w' if dark_background else 'k',
@@ -462,36 +449,31 @@ class GraphVisualization(object):
 
         # Z_ORDER: make sure nodes are on top
         nodes = list(graph.nodes())
-        nx.set_node_attributes(graph, 'zorder', ut.dzip(nodes, [10]))
-        nx_set_edge_attrs(graph, 'zorder', ut.dzip(edges, [0]))
-        nx_set_edge_attrs(graph, 'picker', ut.dzip(edges, [10]))
+        nx.set_node_attributes(graph, name='zorder', values=ut.dzip(nodes, [10]))
+        nx.set_edge_attributes(graph, name='zorder', values=ut.dzip(edges, [0]))
+        nx.set_edge_attributes(graph, name='picker', values=ut.dzip(edges, [10]))
 
         # VISIBILITY: Set visibility of edges based on arguments
         if not show_reviewed_edges:
             infr.print('Making reviewed edges invisible', 10)
-            nx_set_edge_attrs(graph, 'style',
-                                   ut.dzip(reviewed_edges, ['invis']))
+            nx.set_edge_attributes(graph, name='style', values=ut.dzip(reviewed_edges, ['invis']))
 
         if not show_unreviewed_edges:
             infr.print('Making un-reviewed edges invisible', 10)
-            nx_set_edge_attrs(graph, 'style',
-                                   ut.dzip(unreviewed_edges, ['invis']))
+            nx.set_edge_attributes(graph, name='style', values=ut.dzip(unreviewed_edges, ['invis']))
 
         if not show_inferred_same:
             infr.print('Making nontrivial_same edges invisible', 10)
-            nx_set_edge_attrs(graph, 'style', ut.dzip(
-                nontrivial_inferred_same, ['invis']))
+            nx.set_edge_attributes(graph, name='style', values=ut.dzip(nontrivial_inferred_same, ['invis']))
 
         if not show_inferred_diff:
             infr.print('Making nontrivial_diff edges invisible', 10)
-            nx_set_edge_attrs(graph, 'style', ut.dzip(
-                nontrivial_inferred_diff, ['invis']))
+            nx.set_edge_attributes(graph, name='style', values=ut.dzip(nontrivial_inferred_diff, ['invis']))
 
         if selected_edges is not None:
             # Always show the most recent review (remove setting of invis)
             # infr.print('recent_edges = %r' % (recent_edges,))
-            nx_set_edge_attrs(graph, 'style',
-                                   ut.dzip(selected_edges, ['']))
+            nx.set_edge_attributes(graph, name='style', values=ut.dzip(selected_edges, ['']))
 
         if reposition:
             # LAYOUT: update the positioning layout
@@ -513,7 +495,7 @@ class GraphVisualization(object):
 
         if edge_overrides:
             for key, edge_to_attr in edge_overrides.items():
-                nx_set_edge_attrs(graph, key, edge_to_attr)
+                nx.set_edge_attributes(graph, name=key, values=edge_to_attr)
 
     @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,
@@ -665,9 +647,9 @@ class GraphVisualization(object):
         ax = pt.gca()
         xy, w, h = pt.get_axis_xy_width_height(ax=ax)
 
-        nx.set_node_attributes(sub_infr.graph, 'framewidth', 1.0)
-        nx.set_node_attributes(sub_infr.graph, 'framealign', 'outer')
-        nx.set_node_attributes(sub_infr.graph, 'framealpha', 0.7)
+        nx.set_node_attributes(sub_infr.graph, name='framewidth', values=1.0)
+        nx.set_node_attributes(sub_infr.graph, name='framealign', values='outer')
+        nx.set_node_attributes(sub_infr.graph, name='framealpha', values=0.7)
         sub_infr.show_graph(
             fnum=fnum, pnum=(2, 1, 1), show_recent_review=False,
             zoomable=False,

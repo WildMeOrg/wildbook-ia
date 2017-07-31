@@ -822,7 +822,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def set_pin_state(graph_widget, flag):
         if flag:
-            nx.set_node_attributes(graph_widget.infr.graph, 'pin', 'true')
+            nx.set_node_attributes(graph_widget.infr.graph, name='pin', values='true')
         else:
             ut.nx_delete_node_attr(graph_widget.infr.graph, 'pin')
 
@@ -1671,7 +1671,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr = self.infr
         num_names, num_inconsistent = infr.relabel_using_reviews()
         aid_to_newname = infr.get_ibeis_name_delta()
-        nx.set_node_attributes(infr.graph, 'name_label', aid_to_newname['new_name'].to_dict())
+        nx.set_node_attributes(infr.graph, name='name_label', values=aid_to_newname['new_name'].to_dict())
 
     def hack_keep_old_tags(self):
         # Creates new reviews that rectify old tags in the annotmatch table

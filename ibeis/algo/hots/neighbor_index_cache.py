@@ -149,7 +149,7 @@ UUID_MAP_CACHE = UUIDMapHyrbridCache()
 def get_nnindexer_uuid_map_fpath(qreq_):
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache get_nnindexer_uuid_map_fpath --show
+        python -m ibeis.algo.hots.neighbor_index_cache get_nnindexer_uuid_map_fpath
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -159,8 +159,8 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
-        .../_ibeis_cache/flann/uuid_map_mzwwsbjisbkdxorl.cPkl
 
+        .../_ibeis_cache/flann/uuid_map_mzwwsbjisbkdxorl.cPkl
         .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees_fgwthrsh=0.3)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
         .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
         .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl

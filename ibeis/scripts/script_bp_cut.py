@@ -547,7 +547,7 @@ def build_graph(uvw_list):
     G = nx.Graph()
     G.add_edges_from(_edges)
     node_to_label = {e: '%s,%s\n%s' % (e + (d,)) for e, d in nx.get_edge_attributes(G, 'weight').items()}
-    nx.set_edge_attributes(G, 'label', node_to_label)
+    nx.set_edge_attributes(G, name='label', values=node_to_label)
     return G
 
 
@@ -574,7 +574,7 @@ def main():
 
         annot_idxs = list(range(n_annots))
         lookup_annot_idx = ut.dzip(nodes, annot_idxs)
-        nx.set_node_attributes(G, 'annot_idx', lookup_annot_idx)
+        nx.set_node_attributes(G, name='annot_idx', values=lookup_annot_idx)
 
         edge_probs = np.array([get_edge_id_probs(G, aid1, aid2, n_names) for aid1, aid2 in edges])
 

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: the k-components will soon be implemented in networkx 2.0 use those instead
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
@@ -748,7 +751,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False,
 def weighted_one_edge_connected_augmentation(G, avail):
     """ this is the MST problem """
     G2 = G.copy()
-    nx.set_edge_attributes(G2, 'weight', 0)
+    nx.set_edge_attributes(G2, name='weight', values=0)
     G2.add_edges_from(avail, weight=1)
     mst = nx.minimum_spanning_tree(G2)
     aug_edges = [(u, v) for u, v in avail if mst.has_edge(u, v)]
@@ -924,7 +927,7 @@ def weighted_bridge_connected_augmentation(G, avail, return_anyway=False):
         # Add to D the directed edges of T and set their weight to zero
         # This indicates that it costs nothing to use edges that were given.
         D = T.copy()
-        nx.set_edge_attributes(D, 'weight', 0)
+        nx.set_edge_attributes(D, name='weight', values=0)
         # Add in feasible edges with respective weights
         for u, v in feasible_mapped_uv.keys():
             mrd = _most_recent_descendant(T, u, v)
@@ -983,7 +986,7 @@ def weighted_bridge_connected_augmentation(G, avail, return_anyway=False):
         G2.add_edges_from(aug_edges, implicit=True)
         C_labels = {k: '{}:\n{}'.format(k, v)
                     for k, v in nx.get_node_attributes(C, 'members').items()}
-        nx.set_node_attributes(C, 'label', C_labels)
+        nx.set_node_attributes(C, name='label', values=C_labels)
         print('is_strongly_connected(D) = %r' % nx.is_strongly_connected(D))
         pnum_ = pt.make_pnum_nextgen(nSubplots=6)
         _ = pt.show_nx(C, arrow_width=2, fnum=1, pnum=pnum_(), title='C')
@@ -1046,7 +1049,7 @@ def bridge_connected_augmentation(G):
         >>> ut.quit_if_noshow()
         >>> pt.qtensure()
         >>> pt.nx_agraph_layout(G, inplace=True, prog='neato')
-        >>> nx.set_node_attributes(G, 'pin', 'true')
+        >>> nx.set_node_attributes(G, name='pin', values='true')
         >>> G2 = G.copy()
         >>> G2.add_edges_from(bridge_edges)
         >>> pt.nx_agraph_layout(G2, inplace=True, prog='neato')
@@ -1064,7 +1067,7 @@ def bridge_connected_augmentation(G):
         >>> ut.quit_if_noshow()
         >>> pt.qtensure()
         >>> pt.nx_agraph_layout(G, inplace=True, prog='neato')
-        >>> nx.set_node_attributes(G, 'pin', 'true')
+        >>> nx.set_node_attributes(G, name='pin', values='true')
         >>> G2 = G.copy()
         >>> G2.add_edges_from(bridge_edges)
         >>> pt.nx_agraph_layout(G2, inplace=True, prog='neato')
@@ -1171,7 +1174,7 @@ def collapse(G, grouped_nodes):
     C.add_edges_from((mapping[u], mapping[v]) for u, v in G.edges()
                      if mapping[u] != mapping[v])
     # Add a list of members (ie original nodes) to each node (ie scc) in C.
-    nx.set_node_attributes(C, 'members', members)
+    nx.set_node_attributes(C, name='members', values=members)
     # Add mapping dict as graph attribute
     C.graph['mapping'] = mapping
     return C
@@ -1183,6 +1186,8 @@ def edge_connected_components(G, k):
 
     For k in {1, 2} the algorithm runs in O(n)
     For other k the algorithm runs in O(n^5)
+
+    TODO: use nx.connectivity.edge_kcomponents.k_edge_components instead
 
     References:
         wang_simple_2015
@@ -1205,7 +1210,7 @@ def edge_connected_components(G, k):
     else:
         # FIXME: there is an efficient algorithm for k == 3
         G = G.copy()
-        nx.set_edge_attributes(G, 'capacity', ut.dzip(G.edges(), [1]))
+        nx.set_edge_attributes(G, name='capacity', values=ut.dzip(G.edges(), [1]))
         A = aux_graph(G)
         return query_aux_graph(A, k)
 
@@ -1247,21 +1252,21 @@ def aux_graph(G, source=None, avail=None, A=None):
         >>>     (f, g, f),
         >>> ]
         >>> G = nx.DiGraph(ut.flatten(ut.itertwo(path) for path in di_paths))
-        >>> nx.set_edge_attributes(G, 'capacity', ut.dzip(G.edges(), [1]))
+        >>> nx.set_edge_attributes(G, name='capacity', values=ut.dzip(G.edges(), [1]))
         >>> A = aux_graph(G, source=a)
         >>> import plottool as pt
         >>> attrs = pt.nx_agraph_layout(G, inplace=True, prog='neato')[1]
-        >>> nx.set_node_attributes(G, 'pin', 'true')
-        >>> nx.set_edge_attributes(A, 'label', nx.get_edge_attributes(A, 'capacity'))
+        >>> nx.set_node_attributes(G, name='pin', values='true')
+        >>> nx.set_edge_attributes(A, name='label', values=nx.get_edge_attributes(A, 'capacity'))
         >>> for key in list(attrs['node'].keys()) + ['pin']:
-        >>>     nx.set_node_attributes(A, key, nx.get_node_attributes(G, key))
+        >>>     nx.set_node_attributes(A, name=key, values=nx.get_node_attributes(G, key))
         >>> pt.nx_agraph_layout(A, inplace=True, prog='neato')
         >>> pt.show_nx(G, fnum=1, pnum=(1, 2, 1), layout='custom', arrow_width=1)
         >>> pt.show_nx(A, fnum=1, pnum=(1, 2, 2), layout='custom', arrow_width=1)
         >>> ut.show_if_requested()
 
     G = G.copy()
-    nx.set_edge_attributes(G, 'capacity', ut.dzip(G.edges(), [1]))
+    nx.set_edge_attributes(G, name='capacity', values=ut.dzip(G.edges(), [1]))
     A = aux_graph(G)
     G.node
     A.node
@@ -1269,7 +1274,7 @@ def aux_graph(G, source=None, avail=None, A=None):
 
     """
     if source is None:
-        source = next(G.nodes())
+        source = next(iter(G.nodes()))
     if avail is None:
         avail = set(G.nodes())
     if A is None:

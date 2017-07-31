@@ -70,11 +70,11 @@ class AttrAccess(object):
 
     def set_node_attrs(infr, key, node_to_prop):
         """ Networkx node setter helper """
-        return nx.set_node_attributes(infr.graph, key, node_to_prop)
+        return nx.set_node_attributes(infr.graph, name=key, values=node_to_prop)
 
     def set_edge_attrs(infr, key, edge_to_prop):
         """ Networkx edge setter helper """
-        return nx.set_edge_attributes(infr.graph, key, edge_to_prop)
+        return nx.set_edge_attributes(infr.graph, name=key, values=edge_to_prop)
 
     def get_edge_attr(infr, edge, key, default=ut.NoParam, on_missing='error'):
         """ single edge getter helper """

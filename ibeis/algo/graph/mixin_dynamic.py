@@ -680,8 +680,7 @@ class Recovery(object):
         pos_weight = infr._mincut_edge_weights(pos_edges)
 
         capacity = 'weight'
-        nx.set_edge_attributes(pos_subgraph, capacity,
-                               ut.dzip(pos_edges, pos_weight))
+        nx.set_edge_attributes(pos_subgraph, name=capacity, values=ut.dzip(pos_edges, pos_weight))
 
         # Solve a multicut problem for multiple pairs of terminal nodes.
         # Running multiple min-cuts produces a k-factor approximation

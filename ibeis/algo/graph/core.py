@@ -806,7 +806,7 @@ class AltConstructors(object):
         G.add_edges_from(aid_pairs)
         if attrs is not None:
             for key in attrs.keys():
-                nx.set_edge_attributes(G, key, ut.dzip(aid_pairs, attrs[key]))
+                nx.set_edge_attributes(G, name=key, values=ut.dzip(aid_pairs, attrs[key]))
         infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
         return infr
 

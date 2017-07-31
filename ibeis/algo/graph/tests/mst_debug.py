@@ -48,8 +48,8 @@ graph = nx.Graph(edges)
 graph.add_nodes_from(nodes.keys())
 
 df = pd.DataFrame.from_dict(nodes, orient='index')
-nx.set_node_attributes(graph, 'orig_name_label', ut.dzip(df['aid'], df['orig_name_label']))
-nx.set_node_attributes(graph, 'name_label', ut.dzip(df['aid'], df['name_label']))
+nx.set_node_attributes(graph, name='orig_name_label', values=ut.dzip(df['aid'], df['orig_name_label']))
+nx.set_node_attributes(graph, name='name_label', values=ut.dzip(df['aid'], df['name_label']))
 
 aug_graph = graph
 node_to_label = nx.get_node_attributes(graph, 'name_label')
@@ -94,8 +94,7 @@ def _randint():
 aug_graph.add_edges_from(candidate_mst_edges)
 # Weight edges in aug_graph such that existing edges are chosen
 # to be part of the MST first before suplementary edges.
-nx.set_edge_attributes(aug_graph, 'weight',
-                       {edge: 0.1 for edge in orig_edges})
+nx.set_edge_attributes(aug_graph, name='weight', values={edge: 0.1 for edge in orig_edges})
 
 try:
     # Try linking by time for lynx data
@@ -116,15 +115,10 @@ try:
     extra_weight = comp_weight + time_delta_weight
 
     # print('time_deltas = %r' % (time_deltas,))
-    nx.set_edge_attributes(
-        aug_graph, 'weight', {
-            edge: 10.0 + extra for edge, extra in
-            zip(candidate_mst_edges, extra_weight)})
+    nx.set_edge_attributes(aug_graph, name='weight', values={edge: 10.0 + extra for edge, extra in zip(candidate_mst_edges, extra_weight)})
 except Exception:
     print('FAILED WEIGHTING USING TIME')
-    nx.set_edge_attributes(aug_graph, 'weight',
-                           {edge: 10.0 + _randint()
-                            for edge in candidate_mst_edges})
+    nx.set_edge_attributes(aug_graph, name='weight', values={edge: 10.0 + _randint() for edge in candidate_mst_edges})
 new_edges = []
 for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
     mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
