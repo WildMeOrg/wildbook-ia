@@ -701,9 +701,9 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> lens = ut.map_dict_vals(lambda x: (1 - ((x + 1) / 2)) / 2, weights)
         >>> labels = floatfmt1(weights)
         >>> #labels = floatfmt2(lens)
-        >>> nx.set_edge_attributes(graph, 'label', labels)
-        >>> #nx.set_edge_attributes(graph, 'len', lens)
-        >>> nx.set_node_attributes(graph, 'shape', 'ellipse')
+        >>> nx.set_edge_attributes(graph, name='label', values=labels)
+        >>> #nx.set_edge_attributes(graph, name='len', values=lens)
+        >>> nx.set_node_attributes(graph, name='shape', values='ellipse')
         >>> encounter_lbls_str = [str(x) for x in name_labels]
         >>> node_name_lbls = dict(zip(aids, encounter_lbls_str))
         >>> import vtool as vt
@@ -714,9 +714,9 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>>     list(ut.group_items(aids, mcut_labels).values()))
         >>> print('diff = %r' % (diff,))
         >>> #
-        >>> nx.set_node_attributes(graph, 'label', node_name_lbls)
+        >>> nx.set_node_attributes(graph, name='label', values=node_name_lbls)
         >>> node_mcut_lbls = dict(zip(aids, mcut_labels))
-        >>> nx.set_node_attributes(graph, 'mcut_label', node_mcut_lbls)
+        >>> nx.set_node_attributes(graph, name='mcut_label', values=node_mcut_lbls)
         >>> #
         >>> print('mc_val(name) ' + str(multicut_value(cost_matrix, name_labels)))
         >>> print('mc_val(mcut) ' + str(multicut_value(cost_matrix, mcut_labels)))

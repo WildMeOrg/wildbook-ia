@@ -287,10 +287,10 @@ def RhombicuboctahedronDistanceDemo():
                 node_to_group[f] = '1.' + str(len(f))
             else:
                 node_to_group[f] = '2.' + str(len(f))
-        nx.set_node_attributes(G, 'groupid', node_to_group)
+        nx.set_node_attributes(G, name='groupid', values=node_to_group)
 
         node_to_label = {f: ''.join(ut.take_column(f, 0)).upper() for f in faces}
-        nx.set_node_attributes(G, 'label', node_to_label)
+        nx.set_node_attributes(G, name='label', values=node_to_label)
 
         import plottool as pt
         pt.qt4ensure()
