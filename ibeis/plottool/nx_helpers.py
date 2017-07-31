@@ -94,10 +94,10 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         >>> graph = nx.DiGraph()
         >>> graph.add_nodes_from(['a', 'b', 'c', 'd'])
         >>> graph.add_edges_from({'a': 'b', 'b': 'c', 'b': 'd', 'c': 'd'}.items())
-        >>> nx.set_node_attributes(graph, 'shape', 'rect')
-        >>> nx.set_node_attributes(graph, 'image', {'a': ut.grab_test_imgpath('carl.jpg')})
-        >>> nx.set_node_attributes(graph, 'image', {'d': ut.grab_test_imgpath('lena.png')})
-        >>> #nx.set_node_attributes(graph, 'height', 100)
+        >>> nx.set_node_attributes(graph, name='shape', values='rect')
+        >>> nx.set_node_attributes(graph, name='image', values={'a': ut.grab_test_imgpath('carl.jpg')})
+        >>> nx.set_node_attributes(graph, name='image', values={'d': ut.grab_test_imgpath('lena.png')})
+        >>> #nx.set_node_attributes(graph, name='height', values=100)
         >>> with_labels = True
         >>> fnum = None
         >>> pnum = None
@@ -484,10 +484,10 @@ def apply_graph_layout_attrs(graph, layout_info):
         return isNone or isNoneStr
     for key, vals in layout_info['node'].items():
         vals = {n: v for n, v in vals.items() if not noneish(n)}
-        nx.set_node_attributes(graph, key, vals)
+        nx.set_node_attributes(graph, name=key, values=vals)
     for key, vals in layout_info['edge'].items():
         vals = {e: v for e, v in vals.items() if not noneish(e)}
-        nx.set_edge_attributes(graph, key, vals)
+        nx.set_edge_attributes(graph, name=key, values=vals)
     graph_attrs = {k: v for k, v in layout_info['graph'].items() if not noneish(k)}
     graph.graph.update(graph_attrs)
 
@@ -580,8 +580,8 @@ def make_agraph(graph_):
     height_in = height_px / inputscale * scale
     width_in_dict = dict(zip(shaped_nodes, width_in))
     height_in_dict = dict(zip(shaped_nodes, height_in))
-    nx.set_node_attributes(graph_, 'width', width_in_dict)
-    nx.set_node_attributes(graph_, 'height', height_in_dict)
+    nx.set_node_attributes(graph_, name='width', values=width_in_dict)
+    nx.set_node_attributes(graph_, name='height', values=height_in_dict)
     ut.nx_delete_node_attr(graph_, 'scale')
 
     # Check for any nodes with groupids
@@ -694,7 +694,7 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
         graph_ = subgraph_grid(subgraph_list, hpad, vpad)
 
         # graph_ = ut.stack_graphs(subgraph_list)
-        nx.set_node_attributes(graph_, 'pin', 'true')
+        nx.set_node_attributes(graph_, name='pin', values='true')
         return True, graph_
     else:
         return False, graph_
@@ -723,8 +723,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     CommandLine:
         python -m plottool.nx_helpers nx_agraph_layout --show
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from plottool.nx_helpers import *  # NOQA
         >>> import plottool as pt
         >>> import networkx as nx
@@ -737,12 +736,12 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         >>> [graph.add_nodes_from(nodes) for nodes in node_groups]
         >>> [graph.add_edges_from(edges) for edges in edge_groups]
         >>> for count, nodes in enumerate(node_groups):
-        ...     nx.set_node_attributes(graph, 'id', ut.dzip(nodes, [count]))
+        ...     nx.set_node_attributes(graph, name='id', values=ut.dzip(nodes, [count]))
         >>> layoutkw = dict(prog='neato')
         >>> graph1, info1 = nx_agraph_layout(graph.copy(), inplace=True, groupby='id', **layoutkw)
         >>> graph2, info2 = nx_agraph_layout(graph.copy(), inplace=True, **layoutkw)
         >>> graph3, _ = nx_agraph_layout(graph1.copy(), inplace=True, **layoutkw)
-        >>> nx.set_node_attributes(graph1, 'pin', 'true')
+        >>> nx.set_node_attributes(graph1, name='pin', values='true')
         >>> graph4, _ = nx_agraph_layout(graph1.copy(), inplace=True, **layoutkw)
         >>> if pt.show_was_requested():
         >>>     pt.show_nx(graph1, layout='custom', pnum=(2, 2, 1), fnum=1)
