@@ -1144,8 +1144,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                      depc.cachetable_dict.items()}
             props[depc.root] = dict_['root']
             return props
-        nx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
-        nx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
+        nx.set_node_attributes(graph, name='color', values=_node_attrs(color_dict))
+        nx.set_node_attributes(graph, name='shape', values=_node_attrs(shape_dict))
         if kwargs.get('reduced', False):
             # FIXME; There is a bug in the reduction of the image depc graph
             # Reduce only the non-multi part of the graph
@@ -1232,8 +1232,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         #graph_tr[new_parent][v][0]['is_multi'] = True
                         print("NEW MULTI")
                         print((new_parent, v))
-                        nx.set_edge_attributes(graph_tr, 'ismulti',
-                                               {(new_parent, v, 0): True})
+                        nx.set_edge_attributes(graph_tr, name='ismulti', values={(new_parent, v, 0): True})
                         #print(v)
             else:
                 pass
@@ -1254,8 +1253,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         #utool.embed()
                         graph_tr.add_edge(new_parent, node)
                     #G_tr[new_parent][v][0]['is_multi'] = True
-            nx.set_node_attributes(graph_tr, 'color', _node_attrs(color_dict))
-            nx.set_node_attributes(graph_tr, 'shape', _node_attrs(shape_dict))
+            nx.set_node_attributes(graph_tr, name='color', values=_node_attrs(color_dict))
+            nx.set_node_attributes(graph_tr, name='shape', values=_node_attrs(shape_dict))
             graph = graph_tr
 
         if kwargs.get('remove_local_input_id', False):

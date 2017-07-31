@@ -252,7 +252,7 @@ def make_expanded_input_graph(graph, target):
             for node in exi_nodes
         }
         exi_graph.add_nodes_from(exi_nodes)
-        nx.set_node_attributes(exi_graph, 'label', exi_node_to_label)
+        nx.set_node_attributes(exi_graph, name='label', values=exi_node_to_label)
 
         # Undo any accumulation ordering and remove dummy nodes
         old_edges = ut.reverse_path_edges(edge_list[1:-1])
