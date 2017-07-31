@@ -27,6 +27,7 @@ print('thresh_sec = %r' % (thresh_sec,))
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import numpy as np
+import utool as ut
 import scipy.cluster.hierarchy
 from scipy.spatial import distance
 
@@ -51,8 +52,8 @@ def haversine(latlon1, latlon2):
         gis.stackexchange.com/questions/81551/matching-gps-tracks
         stackoverflow.com/questions/4913349/haversine-distance-gps-points
 
-    Example:
-        >>> from occurrence_blackbox import *  # NOQA
+    Doctest:
+        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> import scipy.spatial.distance as spdist
         >>> import functools
         >>> latlon1 = [-80.21895315, -158.81099213]
@@ -101,19 +102,25 @@ def timespace_distance_km(pt1, pt2, km_per_sec=KM_PER_SEC):
     Returns:
         float: distance in kilometers
 
-    Example:
-        >>> from occurrence_blackbox import *  # NOQA
+    Doctest:
+        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> import scipy.spatial.distance as spdist
         >>> import functools
         >>> km_per_sec = .02
-        >>> latlon1 = [-80.21895315, -158.81099213]
-        >>> latlon2 = [  9.77816711,  -17.27471498]
+        >>> latlon1 = [40.779299,-73.9719498] # museum of natural history
+        >>> latlon2 = [37.7336402,-122.5050342] # san fransisco zoo
+        >>> pt1 = [0.0] + latlon1
+        >>> pt2 = [0.0] + latlon2
+        >>> # google measures about 4138.88 kilometers
+        >>> dist_km1 = timespace_distance_km(pt1, pt2)
+        >>> print('dist_km1 = {!r}'.format(dist_km1))
+        >>> # Now add a time component
         >>> pt1 = [360.0] + latlon1
         >>> pt2 = [0.0] + latlon2
-        >>> kilometers = timespace_distance_km(pt1, pt2)
-        >>> result = ('kilometers = %s' % (kilometers,))
-        >>> print(result)
-        kilometers = 2058.6323187
+        >>> dist_km2 = timespace_distance_km(pt1, pt2)
+        >>> print('dist_km2 = {!r}'.format(dist_km2))
+        >>> assert np.isclose(dist_km1, 4136.4568647922624)
+        >>> assert np.isclose(dist_km2, 4137.1768647922627)
     """
     sec1, latlon1 = pt1[0], pt1[1:]
     sec2, latlon2 = pt2[0], pt2[1:]
@@ -188,8 +195,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
     CommandLine:
         python -m ibeis.algo.preproc.occurrence_blackbox prepare_data
 
-    Example:
-        >>> # DISABLE_DOCTEST
+    Doctest:
         >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> posixtimes = np.array([10, 50, np.nan, np.nan, 5, 80, np.nan, np.nan])
         >>> latlons = np.array([
@@ -294,9 +300,11 @@ def cluster_timespace_km(posixtimes, latlons, thresh_km, km_per_sec=KM_PER_SEC):
         # Visualize spots
         http://www.darrinward.com/lat-long/?id=2009879
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from occurrence_blackbox import *  # NOQA
+    CommandLine:
+        python -m ibeis.algo.preproc.occurrence_blackbox cluster_timespace_km
+
+    Doctest:
+        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
         >>> # Nx3 matrix where each columns are (time, lat, lon)
@@ -314,12 +322,16 @@ def cluster_timespace_km(posixtimes, latlons, thresh_km, km_per_sec=KM_PER_SEC):
         >>> thresh_km = 5.0  # kilometers
         >>> posixtimes = X_data.T[0]
         >>> latlons = X_data.T[1:3].T
-        >>> X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_km)
-        >>> result = ('X_labels = %r' % (X_labels,))
+        >>> km_per_sec = KM_PER_SEC
+        >>> X_labels = cluster_timespace_km(posixtimes, latlons, thresh_km)
+        >>> result = 'X_labels = {}'.format(ut.repr2(X_labels))
         >>> print(result)
-        X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)
+        X_labels = np.array([3, 2, 2, 2, 2, 2, 1, 1, 1])
     """
-    X_data, dist_func = prepare_data(posixtimes, latlons, km_per_sec, 'km')
+    X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec, 'km')
+
+    if X_data is None:
+        return None
 
     # Compute pairwise distances between all inputs
     dist_func = functools.partial(dist_func, km_per_sec=km_per_sec)
@@ -339,8 +351,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         X_data (ndarray) : Nx3 array where columns are (seconds, lat, lon)
         thresh_sec (float) : threshold in seconds
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
@@ -364,8 +375,7 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> print(result)
         X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
         >>> # Nx1 matrix denoting groundtruth locations (for testing)
         >>> X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])
@@ -383,9 +393,9 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> thresh_sec = 250  # seconds
         >>> km_per_sec = KM_PER_SEC
         >>> X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)
-        >>> result = ('X_labels = %r' % (X_labels,))
+        >>> result = 'X_labels = {}'.format(ut.repr2(X_labels))
         >>> print(result)
-        X_labels = array([3, 4, 1, 2, 4, 5])
+        X_labels = np.array([3, 4, 1, 2, 4, 5])
     """
     X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec,
                                               'seconds')
@@ -455,9 +465,11 @@ def _cluster_part(X_part, dist_func, columns, thresh_sec, km_per_sec):
 
 def _cluster_chunk(X_data, dist_func, thresh_sec):
     if len(X_data) == 0:
-        X_labels = np.empty(0, dtype=np.int)
+        X_labels = np.empty(len(X_data), dtype=np.int)
     elif len(X_data) == 1:
-        X_labels = np.ones(1, dtype=np.int)
+        X_labels = np.ones(len(X_data), dtype=np.int)
+    elif np.all(np.isnan(X_data)):
+        X_labels = np.arange(1, len(X_data) + 1, dtype=np.int)
     else:
         # Compute pairwise distances between all inputs
         condenced_dist_mat = distance.pdist(X_data, dist_func)
@@ -577,4 +589,13 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    r"""
+    CommandLine:
+        python -m ibeis.algo.preproc.occurrence_blackbox
+        python -m ibeis.algo.preproc.occurrence_blackbox --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    if not ut.doctest_funcs():
+        main()
