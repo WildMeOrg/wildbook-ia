@@ -12,10 +12,6 @@ import sys
 CMD = ut.get_argflag('--cmd')
 
 
-# For Pyinstaller
-#from ibeis.all_imports import *  # NOQA
-
-
 def dependencies_for_myprogram():
     """ Let pyintaller find these modules
 
@@ -139,7 +135,6 @@ def run_ibeis():
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>
     if 'back' in main_locals and CMD:
-        #from ibeis.all_imports import *  # NOQA
         back = main_locals['back']
         front = getattr(back, 'front', None)  # NOQA
         #front = back.front

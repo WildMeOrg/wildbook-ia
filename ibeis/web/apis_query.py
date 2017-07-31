@@ -690,7 +690,6 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> #from ibeis.all_imports import *  # NOQA
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
@@ -704,7 +703,6 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
 
     Example1:
         >>> # SLOW_DOCTEST
-        >>> #from ibeis.all_imports import *  # NOQA
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]

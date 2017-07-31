@@ -128,7 +128,6 @@ def myquery():
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.algo.hots.devcases import *  # NOQA
         >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
         >>> pt.show_if_requested()
@@ -309,7 +308,6 @@ def testdata_my_exmaples(index):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.algo.hots.devcases import *  # NOQA
         >>> index = 1
     """
@@ -382,7 +380,6 @@ def show_power_law_plots():
     Example:
         >>> # DISABLE_DOCTEST
         >>> #%pylab qt4
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.algo.hots.devcases import *  # NOQA
         >>> show_power_law_plots()
         >>> pt.show_if_requested()

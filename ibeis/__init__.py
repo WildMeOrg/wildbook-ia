@@ -328,8 +328,8 @@ Regen Command:
     autogenerate correctly.
 
     cd /home/joncrall/code/ibeis/ibeis/other
-    makeinit.py -x web viz tests gui all_imports
-    makeinit.py -x constants params main_module other control dbio tests all_imports
+    makeinit.py -x web viz tests gui
+    makeinit.py -x constants params main_module other control dbio tests
 """
 
 if __name__ == '__main__':

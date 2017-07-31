@@ -2924,8 +2924,11 @@ class MainWindowBackend(GUIBACK_BASE):
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
-        from ibeis import all_imports
-        all_imports.embed(back)
+        ibs = back.ibs  # NOQA
+        front = back.front  # NOQA
+        #import IPython
+        #IPython.embed()
+        ut.embed()
 
     @blocking_slot()
     def dev_cls(back):

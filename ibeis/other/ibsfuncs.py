@@ -82,30 +82,9 @@ def postinject_func(ibs):
 
 
 @register_ibs_method
-def refresh(ibs):
-    """
-    DEPRICATE
-    """
-    from ibeis import ibsfuncs
-    from ibeis import all_imports
-    ibsfuncs.rrr()
-    all_imports.reload_all()
-    ibs.rrr()
-
-
-@register_ibs_method
 def export_to_hotspotter(ibs):
     from ibeis.dbio import export_hsdb
     export_hsdb.export_ibeis_to_hotspotter(ibs)
-
-
-#def export_image_subset(ibs, gid_list, dst_fpath=None):
-#    dst_fpath = ut.truepath('~')
-#    #gid_list = [692, 693, 680, 781, 751, 753, 754, 755, 756]
-#    gpath_list = ibs.get_image_paths(gid_list)
-#    gname_list = [join(dst_fpath, gname) for gname in
-#    ibs.get_image_gnames(gid_list)]
-#    ut.copy_files_to(gpath_list, dst_fpath_list=gname_list)
 
 
 @register_ibs_method
