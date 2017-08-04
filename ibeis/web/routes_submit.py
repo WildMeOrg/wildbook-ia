@@ -461,7 +461,7 @@ def submit_viewpoint2(**kwargs):
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
         if method.lower() == 'ignore':
-            viewpoint = 'ignore'
+            viewpoint = 'unknown'
         else:
             # Get metadata
             viewpoint1 = int(kwargs.get('ia-viewpoint-value-1', None))
