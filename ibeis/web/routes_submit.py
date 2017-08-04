@@ -460,13 +460,15 @@ def submit_viewpoint2(**kwargs):
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-
-        # Get metadata
-        viewpoint1 = int(kwargs.get('ia-viewpoint-value-1', None))
-        viewpoint2 = int(kwargs.get('ia-viewpoint-value-2', None))
-        viewpoint3 = int(kwargs.get('ia-viewpoint-value-3', None))
-        viewpoint_tup = (viewpoint1, viewpoint2, viewpoint3, )
-        viewpoint = appf.convert_tuple_to_viewpoint(viewpoint_tup)
+        if method.lower() == 'ignore':
+            viewpoint = 'ignore'
+        else:
+            # Get metadata
+            viewpoint1 = int(kwargs.get('ia-viewpoint-value-1', None))
+            viewpoint2 = int(kwargs.get('ia-viewpoint-value-2', None))
+            viewpoint3 = int(kwargs.get('ia-viewpoint-value-3', None))
+            viewpoint_tup = (viewpoint1, viewpoint2, viewpoint3, )
+            viewpoint = appf.convert_tuple_to_viewpoint(viewpoint_tup)
         ibs.set_annot_viewpoints([aid], [viewpoint])
         species_text = request.form['viewpoint-species']
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
