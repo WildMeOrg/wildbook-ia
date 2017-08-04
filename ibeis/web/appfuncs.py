@@ -432,6 +432,8 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
 def convert_viewpoint_to_tuple(viewpoint_text):
     if viewpoint_text is None or viewpoint_text not in const.VIEW.CODE_TO_INT:
         return (-1, -1, -1)
+    elif viewpoint_text == 'unknown':
+        return (-1, -1, -1)
     else:
         viewpoint_text = viewpoint_text.replace('up',    '_0_')
         viewpoint_text = viewpoint_text.replace('down',  '_1_')
