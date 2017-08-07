@@ -3,7 +3,6 @@ from six.moves import zip
 from plottool import mpl_sift
 import numpy as np
 import matplotlib as mpl
-import vtool.keypoint as ktool
 import utool as ut
 ut.noinject(__name__, '[pt.mpl_keypoint]')
 
@@ -92,6 +91,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
+    import vtool.keypoint as ktool
     if kpts_.shape[1] == 2:
         # pad out structure if only xy given
         kpts = np.zeros((len(kpts_), 6))
@@ -260,6 +260,7 @@ def get_invVR_aff2Ds(kpts, H=None):
         >>> # we start out with a unit circle not a half circle
         >>> pt.draw_keypoints(pt.gca(), kpts, pts=True, ori=True, eig=True, rect=True)
     """
+    import vtool.keypoint as ktool
     #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
     invVR_mats = ktool.get_invVR_mats3x3(kpts)
     if H is None:
@@ -309,6 +310,7 @@ def eigenvector_actors(invVR_aff2Ds):
 
 def orientation_actors(kpts, H=None):
     """ creates orientation actors w.r.t. the gravity vector """
+    import vtool.keypoint as ktool
     try:
         # Get xy diretion of the keypoint orientations
         _xs, _ys = ktool.get_xys(kpts)
@@ -347,7 +349,7 @@ def orientation_actors(kpts, H=None):
     except ValueError as ex:
         print('\n[mplkp.2] !!! ERROR %s: ' % str(ex))
         print('_oris.shape = %r' % (_oris.shape,))
-        print('x, y, dx, dy = %r' % ((x, y, dx, dy),))
+        # print('x, y, dx, dy = %r' % ((x, y, dx, dy),))
         print('_dxs = %r' % (_dxs,))
         print('_dys = %r' % (_dys,))
         print('_xs = %r' % (_xs,))

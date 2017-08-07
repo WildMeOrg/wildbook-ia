@@ -31,7 +31,10 @@ from __future__ import absolute_import, division, print_function
 import six
 import re
 import numpy as np
-import vtool as vt
+try:
+    import vtool as vt
+except ImportError:
+    pass
 import utool as ut
 import itertools as it
 import matplotlib as mpl

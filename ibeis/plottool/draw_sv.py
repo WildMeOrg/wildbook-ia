@@ -3,7 +3,6 @@ import utool as ut
 import numpy as np
 import plottool.draw_func2 as df2
 from plottool import custom_constants
-import vtool as vt
 #from vtool import keypoint as ktool
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
 ut.noinject(__name__, '[viz_sv]')
@@ -13,6 +12,7 @@ def get_blended_chip(chip1, chip2, M):
     """
     warps chip1 into chip2 space
     """
+    import vtool as vt
     wh2 = vt.get_size(chip2)
     chip1_Mt = vt.warpHomog(chip1, M, wh2)
     chip2_blendM = vt.blend_images(chip1_Mt, chip2)
@@ -29,6 +29,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         python -m vtool.spatial_verification --test-spatially_verify_kpts --show
 
     """
+    import vtool as vt
     #import plottool as pt
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]

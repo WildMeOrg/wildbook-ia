@@ -25,7 +25,10 @@ Ignore:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import six
-import dtool
+try:
+    import dtool as dt
+except ImportError:
+    pass
 import numpy as np
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
@@ -238,77 +241,80 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     return imgdat
 
 
-class GraphVizLayoutConfig(dtool.Config):
-    r"""
-    Ignore:
-        Node Props:
-            colorscheme    CEGN           string                NaN
-              fontcolor    CEGN            color                NaN
-               fontname    CEGN           string                NaN
-               fontsize    CEGN           double                NaN
-                  label    CEGN        lblString                NaN
-              nojustify    CEGN             bool                NaN
-                  style    CEGN            style                NaN
-                  color     CEN   colorcolorList                NaN
-              fillcolor     CEN   colorcolorList                NaN
-                  layer     CEN       layerRange                NaN
-               penwidth     CEN           double                NaN
-           radientangle     CGN              int                NaN
-               labelloc     CGN           string                NaN
-                 margin     CGN      doublepoint                NaN
-                  sortv     CGN              int                NaN
-            peripheries      CN              int                NaN
-              showboxes     EGN              int           dot only
-                comment     EGN           string                NaN
-                    pos      EN  pointsplineType                NaN
-                 xlabel      EN        lblString                NaN
-               ordering      GN           string           dot only
-                  group       N           string           dot only
-                    pin       N             bool   fdp | neato only
-             distortion       N           double                NaN
-              fixedsize       N       boolstring                NaN
-                 height       N           double                NaN
-                  image       N           string                NaN
-             imagescale       N       boolstring                NaN
-            orientation       N           double                NaN
-                regular       N             bool                NaN
-           samplepoints       N              int                NaN
-                  shape       N            shape                NaN
-              shapefile       N           string                NaN
-                  sides       N              int                NaN
-                   skew       N           double                NaN
-                  width       N           double                NaN
-                      z       N           double                NaN
-    """
-    # TODO: make a gridsearchable config for layouts
-    @staticmethod
-    def get_param_info_list():
-        param_info_list = [
-            # GENERAL
-            ut.ParamInfo('splines', 'spline', valid_values=[
-                'none', 'line', 'polyline', 'curved', 'ortho', 'spline']),
-            ut.ParamInfo('pack', True),
-            ut.ParamInfo('packmode', 'cluster'),
-            #ut.ParamInfo('nodesep', ?),
-            # NOT DOT
-            ut.ParamInfo('overlap', 'prism', valid_values=[
-                'true', 'false', 'prism', 'ipsep']),
-            ut.ParamInfo('sep', 1 / 8),
-            ut.ParamInfo('esep', 1 / 8),  # stricly  less than sep
-            # NEATO ONLY
-            ut.ParamInfo('mode', 'major', valid_values=['heir', 'KK', 'ipsep']),
-            #kwargs['diredgeconstraints'] = 'heir'
-            #kwargs['inputscale'] = kwargs.get('inputscale', 72)
-            #kwargs['Damping'] = kwargs.get('Damping', .1)
-            # DOT ONLY
-            ut.ParamInfo('rankdir', 'LR', valid_values=['LR', 'RL', 'TB', 'BT']),
-            ut.ParamInfo('ranksep', 2.5),
-            ut.ParamInfo('nodesep', 2.0),
-            ut.ParamInfo('clusterrank', 'local', valid_values=['local', 'global'])
-            # OUTPUT ONLY
-            #kwargs['dpi'] = kwargs.get('dpi', 1.0)
-        ]
-        return param_info_list
+try:
+    class GraphVizLayoutConfig(dt.Config):
+        r"""
+        Ignore:
+            Node Props:
+                colorscheme    CEGN           string                NaN
+                  fontcolor    CEGN            color                NaN
+                   fontname    CEGN           string                NaN
+                   fontsize    CEGN           double                NaN
+                      label    CEGN        lblString                NaN
+                  nojustify    CEGN             bool                NaN
+                      style    CEGN            style                NaN
+                      color     CEN   colorcolorList                NaN
+                  fillcolor     CEN   colorcolorList                NaN
+                      layer     CEN       layerRange                NaN
+                   penwidth     CEN           double                NaN
+               radientangle     CGN              int                NaN
+                   labelloc     CGN           string                NaN
+                     margin     CGN      doublepoint                NaN
+                      sortv     CGN              int                NaN
+                peripheries      CN              int                NaN
+                  showboxes     EGN              int           dot only
+                    comment     EGN           string                NaN
+                        pos      EN  pointsplineType                NaN
+                     xlabel      EN        lblString                NaN
+                   ordering      GN           string           dot only
+                      group       N           string           dot only
+                        pin       N             bool   fdp | neato only
+                 distortion       N           double                NaN
+                  fixedsize       N       boolstring                NaN
+                     height       N           double                NaN
+                      image       N           string                NaN
+                 imagescale       N       boolstring                NaN
+                orientation       N           double                NaN
+                    regular       N             bool                NaN
+               samplepoints       N              int                NaN
+                      shape       N            shape                NaN
+                  shapefile       N           string                NaN
+                      sides       N              int                NaN
+                       skew       N           double                NaN
+                      width       N           double                NaN
+                          z       N           double                NaN
+        """
+        # TODO: make a gridsearchable config for layouts
+        @staticmethod
+        def get_param_info_list():
+            param_info_list = [
+                # GENERAL
+                ut.ParamInfo('splines', 'spline', valid_values=[
+                    'none', 'line', 'polyline', 'curved', 'ortho', 'spline']),
+                ut.ParamInfo('pack', True),
+                ut.ParamInfo('packmode', 'cluster'),
+                #ut.ParamInfo('nodesep', ?),
+                # NOT DOT
+                ut.ParamInfo('overlap', 'prism', valid_values=[
+                    'true', 'false', 'prism', 'ipsep']),
+                ut.ParamInfo('sep', 1 / 8),
+                ut.ParamInfo('esep', 1 / 8),  # stricly  less than sep
+                # NEATO ONLY
+                ut.ParamInfo('mode', 'major', valid_values=['heir', 'KK', 'ipsep']),
+                #kwargs['diredgeconstraints'] = 'heir'
+                #kwargs['inputscale'] = kwargs.get('inputscale', 72)
+                #kwargs['Damping'] = kwargs.get('Damping', .1)
+                # DOT ONLY
+                ut.ParamInfo('rankdir', 'LR', valid_values=['LR', 'RL', 'TB', 'BT']),
+                ut.ParamInfo('ranksep', 2.5),
+                ut.ParamInfo('nodesep', 2.0),
+                ut.ParamInfo('clusterrank', 'local', valid_values=['local', 'global'])
+                # OUTPUT ONLY
+                #kwargs['dpi'] = kwargs.get('dpi', 1.0)
+            ]
+            return param_info_list
+except Exception:
+    pass
 
 
 def get_explicit_graph(graph):

@@ -13,7 +13,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import matplotlib.pyplot as plt
 import numpy as np
-import vtool as vt
+try:
+    import vtool as vt
+except ImportError:
+    pass
 from plottool import abstract_interaction
 import math
 from six.moves import range, zip, input  # NOQA

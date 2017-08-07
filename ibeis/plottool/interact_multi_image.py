@@ -12,7 +12,10 @@ from matplotlib.widgets import Button  # NOQA
 import matplotlib.pyplot as plt  # NOQA
 import matplotlib as mpl  # NOQA
 import six
-import vtool as vt
+try:
+    import vtool as vt
+except ImportError:
+    pass
 #import utool
 import utool as ut
 ut.noinject(__name__, '[pt.interact_multiimage]')

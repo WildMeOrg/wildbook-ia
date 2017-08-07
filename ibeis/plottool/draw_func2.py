@@ -25,7 +25,6 @@ except ImportError as ex:
 import pylab
 import warnings
 import numpy as np
-import vtool as vt
 from os.path import relpath
 try:
     import cv2
@@ -311,7 +310,7 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         >>> ut.show_if_requested()
     """
     #from mpl_toolkits.axes_grid.anchored_artists import AnchoredAuxTransformBox
-
+    import vtool as vt
     ax = gca()
     if isinstance(icon, six.string_types):
         # hack because icon is probably a url
@@ -2702,6 +2701,7 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
         >>> result = show_kpts(kpts)
         >>> ut.show_if_requested()
     """
+    import vtool as vt
     import plottool as pt
     pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
     pt.draw_kpts2(kpts, **kwargs)
@@ -3210,6 +3210,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         #>>> chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
         #>>> kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
     """
+    import vtool as vt
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
     wh1 = vt.get_size(rchip1)
