@@ -22,8 +22,8 @@
 
         for gt_nid, aids in group.items():
             pos_sub = infr.pos_graph.subgraph(aids)
-            aug_edges = nxu.edge_connected_augmentation(
-                pos_sub, 1, return_anyway=True)
+            aug_edges = nxu.edge_augmentation(
+                pos_sub, k=1, partial=True)
             fix_edges.extend(aug_edges)
 
         if infr.test_mode:

@@ -594,12 +594,15 @@ class CandidateSearch(object):
             pos_k = k
         pos_sub = infr.pos_graph.subgraph(pcc)
 
+        # TODO:
+        # weight by pairs most likely to be comparable
+
         # First try to augment only with unreviewed existing edges
         unrev_avail = list(nxu.edges_inside(infr.unreviewed_graph, pcc))
         try:
-            check_edges = nxu.edge_connected_augmentation(
-                pos_sub, pos_k, avail=unrev_avail, return_anyway=False)
-        except ValueError:
+            check_edges = list(nxu.k_edge_augmentation(
+                pos_sub, k=pos_k, avail=unrev_avail, partial=False))
+        except nx.NetworkXUnfeasible:
             check_edges = None
         if not check_edges:
             # Allow new edges to be introduced
@@ -610,12 +613,12 @@ class CandidateSearch(object):
             n_complement = n_max - pos_sub.number_of_edges()
             if len(full_avail) == n_complement:
                 # can use the faster algorithm
-                check_edges = nxu.edge_connected_augmentation(
-                    pos_sub, k=pos_k, return_anyway=True)
+                check_edges = list(nxu.k_edge_augmentation(
+                    pos_sub, k=pos_k, partial=True))
             else:
                 # have to use the slow approximate algo
-                check_edges = nxu.edge_connected_augmentation(
-                    pos_sub, k=pos_k, avail=full_avail, return_anyway=True)
+                check_edges = list(nxu.k_edge_augmentation(
+                    pos_sub, k=pos_k, avail=full_avail, partial=True))
         check_edges = set(it.starmap(e_, check_edges))
         return check_edges
 

@@ -13,23 +13,26 @@ Algorithms for finding k-edge-connected components and subgraphs.
 A k-edge-connected component (k-edge-cc) is a maximal set of nodes in G, such
 that all pairs of node have an edge-connectivity of at least k.
 
-A k-edge-connected subgraph (k-edge-subgraph) is a maximal set of nodes in G,
+A k-edge-connectd subgraph (k-edge-subgraph) is a maximal set of nodes in G,
 such that the subgraph of G defined by the nodes has an edge-connectivity at
 least k.
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
 import networkx as nx
 from networkx.utils import arbitrary_element
-from networkx.utils import not_implemented_for  # NOQA
+from networkx.utils import not_implemented_for
 from networkx.algorithms import bridges
 from functools import partial
 import itertools as it
+import utool as ut
+print, rrr, profile = ut.inject2(__name__)
 
-__all__ = [
-    'k_edge_components',
-    'k_edge_subgraphs',
-    'bridge_components',
-    'EdgeComponentAuxGraph',
-]
+# __all__ = [
+#     'k_edge_components',
+#     'k_edge_subgraphs',
+#     'bridge_components',
+#     'EdgeComponentAuxGraph',
+# ]
 
 
 @not_implemented_for('multigraph')
@@ -176,7 +179,7 @@ def k_edge_subgraphs(G, k):
     if k < 1:
         raise ValueError('k cannot be less than 1')
     if G.is_directed():
-        if k < 1:
+        if k <= 1:
             # For directed graphs ,
             # When k == 1, k-edge-ccs and k-edge-subgraphs are the same
             return k_edge_components(G, k)

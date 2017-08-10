@@ -437,10 +437,12 @@ class DummyEdges(object):
             >>> from ibeis.algo.graph import demo
             >>> label = 'name_label'
             >>> infr = demo.demodata_infr(num_pccs=3, size=5)
-            >>> assert infr.status()['nEdges'] == 21
+            >>> print(infr.status())
+            >>> assert infr.status()['nEdges'] < 33
             >>> infr.ensure_cliques()
+            >>> print(infr.status())
             >>> assert infr.status()['nEdges'] == 33
-            >>> assert infr.status()['nUnrevEdges'] == 15
+            >>> assert infr.status()['nUnrevEdges'] == 12
             >>> assert len(list(infr.find_clique_edges(label))) > 0
             >>> infr.ensure_cliques(meta_decision=SAME)
             >>> assert infr.status()['nUnrevEdges'] == 0
@@ -565,6 +567,9 @@ class DummyEdges(object):
                 time_weight = time_delta / time_denom
                 weights += time_weight
 
+            weights = np.array(weights)
+            weights[np.isnan(weights)] = 1.0
+
             avail = [(u, v, {'weight': w})
                      for (u, v), w in zip(avail_uv, weights)]
             return avail
@@ -586,8 +591,7 @@ class DummyEdges(object):
             )))
             if len(impossible) == 0 and not weight_heuristic:
                 # Simple mst augmentation
-                aug_edges = list(nxu.edge_connected_augmentation(
-                    pos_sub, k=1))
+                aug_edges = list(nxu.k_edge_augmentation(pos_sub, k=1))
             else:
                 complement = it.starmap(e_, nxu.complement_edges(pos_sub))
                 avail_uv = [
@@ -598,8 +602,15 @@ class DummyEdges(object):
                     avail = _heuristic_weighting(nodes, avail_uv)
                 else:
                     avail = avail_uv
-                aug_edges = list(nxu.edge_connected_augmentation(
-                    pos_sub, k=1, avail=avail))
+                # print(len(pos_sub))
+                try:
+                    aug_edges = list(nxu.k_edge_augmentation(
+                        pos_sub, k=1, avail=avail))
+                except nx.NetworkXUnfeasible:
+                    print('Warning: MST augmentation is not feasible')
+                    print('explicit negative edges might disconnect a PCC')
+                    aug_edges = list(nxu.k_edge_augmentation(
+                        pos_sub, k=1, avail=avail, partial=True))
             new_edges.extend(aug_edges)
         prog.ensure_newline()
 
@@ -634,8 +645,7 @@ class DummyEdges(object):
             candidates = set(nx.complement(G).edges())
             candidates.difference_update(impossible)
 
-            aug_edges = nxu.edge_connected_augmentation(
-                G, k=k, candidates=candidates, hack=False)
+            aug_edges = nxu.k_edge_augmentation(G, k=k, avail=candidates)
             new_edges += aug_edges
         prog.ensure_newline()
         return new_edges

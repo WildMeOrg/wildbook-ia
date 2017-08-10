@@ -1413,7 +1413,7 @@ class Redundancy(_RedundancyHelpers):
             if n_max == (n_pos + n_incomp):
                 return True
         # In all other cases test edge-connectivity
-        return nxu.is_edge_connected(pos_subgraph, k=k)
+        return nxu.is_k_edge_connected(pos_subgraph, k=k)
 
     @profile
     def is_neg_redundant(infr, cc1, cc2, k=None):
