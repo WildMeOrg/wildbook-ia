@@ -570,7 +570,10 @@ def make_agraph(graph_):
     # Hack to make the w/h of the node take thae max instead of
     # dot which takes the minimum
     shaped_nodes = [n for n, d in graph_.nodes(data=True) if 'width' in d]
-    node_attrs = ut.dict_take(graph_.node, shaped_nodes)
+    if nx.__version__.startswith('1'):
+        node_attrs = ut.dict_take(graph_.node, shaped_nodes)
+    else:
+        node_attrs = ut.dict_take(graph_.nodes, shaped_nodes)
     width_px = np.array(ut.take_column(node_attrs, 'width'))
     height_px = np.array(ut.take_column(node_attrs, 'height'))
     scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
@@ -1168,8 +1171,12 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
 
             # rounded = angle == 0
-            rounded = 'rounded' in graph.node.get(node, {}).get('style', '')
-            isdiag = 'diagonals' in graph.node.get(node, {}).get('style', '')
+            if nx.__version__.startswith('1'):
+                rounded = 'rounded' in graph.node.get(node, {}).get('style', '')
+                isdiag = 'diagonals' in graph.node.get(node, {}).get('style', '')
+            else:
+                rounded = 'rounded' in graph.nodes.get(node, {}).get('style', '')
+                isdiag = 'diagonals' in graph.nodes.get(node, {}).get('style', '')
 
             from matplotlib import patches
 
@@ -1376,7 +1383,9 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         extent = vt.get_pointset_extents(pts)
                         graph_w, graph_h = vt.bbox_from_extent(extent)[2:4]
                         graph_dim = np.sqrt(graph_w ** 2 + graph_h ** 2)
-                        width = graph_dim * .0005
+
+                        # width = graph_dim * .0005
+                        width = graph_dim * .005
                 except Exception:
                     pass
             arrow_width = kwargs.get('arrow_width', width)
