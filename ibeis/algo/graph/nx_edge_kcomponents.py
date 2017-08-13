@@ -13,11 +13,10 @@ Algorithms for finding k-edge-connected components and subgraphs.
 A k-edge-connected component (k-edge-cc) is a maximal set of nodes in G, such
 that all pairs of node have an edge-connectivity of at least k.
 
-A k-edge-connectd subgraph (k-edge-subgraph) is a maximal set of nodes in G,
+A k-edge-connected subgraph (k-edge-subgraph) is a maximal set of nodes in G,
 such that the subgraph of G defined by the nodes has an edge-connectivity at
 least k.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import networkx as nx
 from networkx.utils import arbitrary_element
 from networkx.utils import not_implemented_for
@@ -26,13 +25,6 @@ from functools import partial
 import itertools as it
 import utool as ut
 print, rrr, profile = ut.inject2(__name__)
-
-# __all__ = [
-#     'k_edge_components',
-#     'k_edge_subgraphs',
-#     'bridge_components',
-#     'EdgeComponentAuxGraph',
-# ]
 
 
 @not_implemented_for('multigraph')
@@ -568,11 +560,11 @@ def general_k_edge_subgraphs(G, k):
     # Quick return optimization
     if G.number_of_nodes() < k:
         for node in G.nodes():
-            yield G.subgraph([node])
+            yield G.subgraph([node]).copy()
         raise StopIteration()
 
     # Intermediate results
-    R0 = {G.subgraph(cc) for cc in find_ccs(G)}
+    R0 = {G.subgraph(cc).copy() for cc in find_ccs(G)}
     # Subdivide CCs in the intermediate results until they are k-conn
     while R0:
         G1 = R0.pop()
@@ -586,7 +578,7 @@ def general_k_edge_subgraphs(G, k):
                 # G1 is not k-edge-connected, so subdivide it
                 G1.remove_edges_from(cut_edges)
                 for cc in find_ccs(G1):
-                    R0.add(G1.subgraph(cc))
+                    R0.add(G1.subgraph(cc).copy())
             else:
                 # Otherwise we found a k-edge-connected subgraph
                 yield G1
