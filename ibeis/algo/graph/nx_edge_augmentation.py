@@ -68,7 +68,8 @@ def is_k_edge_connected(G, k):
         elif k == 2:
             return not nx.has_bridges(G)
         else:
-            return nx.edge_connectivity(G, cutoff=k) >= k
+            # return nx.edge_connectivity(G, cutoff=k) >= k
+            return nx.edge_connectivity(G) >= k
 
 
 @not_implemented_for('directed')
