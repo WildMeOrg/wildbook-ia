@@ -219,7 +219,7 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
                 ('impossible to {} connect in graph with less than {} '
                  'nodes').format(k, k + 1))
         elif avail is not None and len(avail) == 0:
-            if not nx.is_k_edge_connected(G, k):
+            if not is_k_edge_connected(G, k):
                 raise nx.NetworkXUnfeasible('no available edges')
             aug_edges = []
         elif k == 1:
