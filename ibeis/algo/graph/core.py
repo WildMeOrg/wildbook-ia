@@ -1052,7 +1052,7 @@ class AnnotInference(ut.NiceRepr,
 
         # setup logging
         infr.logger = None
-        if ut.get_argflag(('--loginfr', '--log-infr')):
+        if True or ut.get_argflag(('--loginfr', '--log-infr')):
             if ibs is not None:
                 from os.path import join
                 import ubelt as ub
