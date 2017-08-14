@@ -863,12 +863,14 @@ class DevGraphWidget(gt.GuitoolWidget):
             return
         node = aid
         frame = graph_widget.plotinfo['patch_frame_dict'][node]
-        framewidth = graph_widget.infr.graph.node[node]['framewidth']
+        node_dict = ut.nx_node_dict(graph_widget.infr.graph)
+
+        framewidth = node_dict[node]['framewidth']
         if color is True:
             color = pt.ORANGE
         if color is None or color is False:
             color = pt.DARK_BLUE
-            color = graph_widget.infr.graph.node[node]['color']
+            color = node_dict[node]['color']
             color = pt.ensure_nonhex_color(color)
             frame.set_linewidth(framewidth)
         else:
@@ -1999,8 +2001,9 @@ class EdgeAPIHelper(object):
 
     def _get_inference_info(self, edge):
         aid1, aid2 = edge
-        nid1 = self.graph.node[aid1]['name_label']
-        nid2 = self.graph.node[aid2]['name_label']
+        node_dict = ut.nx_node_dict(self.graph)
+        nid1 = node_dict[aid1]['name_label']
+        nid2 = node_dict[aid2]['name_label']
         # nid1, nid2 = self.infr.node_labels(aid1, aid2)
         data = self.infr.graph.get_edge_data(*edge)
         inferred_state = data.get('inferred_state', None)
@@ -2299,14 +2302,17 @@ def make_node_api(infr):
     col_name_list = ['aid', 'thumb', 'name_label']
 
     def get_node_data(aid):
-        data = infr.graph.node[aid].copy()
+        node_dict = ut.nx_node_dict(infr.graph)
+        data = node_dict[aid].copy()
         ut.delete_dict_keys(data, infr.visual_node_attrs)
         return ut.repr2(data, precision=2)
+
+    node_dict = ut.nx_node_dict(infr.graph)
     col_getter_dict = {
         'aid': np.array(aids),
         'data': get_node_data,
         'thumb': infr.ibs.get_annot_chip_thumbtup,
-        'name_label': lambda node: infr.graph.node[node].get('name_label', None)
+        'name_label': lambda node: node_dict[node].get('name_label', None)
     }
     col_ider_dict = {
         'thumb': 'aid',
@@ -2352,12 +2358,14 @@ def make_name_node_api(infr, review_cfg={}):
         list(range(len(names))),
         grouped_aid_idxs,
     ]
+
+    node_dict = ut.nx_node_dict(infr.graph)
     col_getter_dict = {
         'thumb': infr.ibs.get_annot_chip_thumbtup,
         'name_label': names,
         'n_annots': list(map(len, grouped_aid_idxs)),
         'aid': flat_aids,
-        'name_label2': lambda node: infr.graph.node[node].get('name_label', None)
+        'name_label2': lambda node: node_dict[node].get('name_label', None)
     }
     col_ider_dict = {
         'thumb': 'aid',

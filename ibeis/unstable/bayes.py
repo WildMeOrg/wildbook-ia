@@ -742,12 +742,13 @@ def draw_tree_model(model, **kwargs):
                 ', '.join(k) if isinstance(k, tuple) else k: fixtupkeys(v)
                 for k, v in dict_.items()
             }
+        # FIXME
         n = fixtupkeys(netx_graph.node)
         e = fixtupkeys(netx_graph.edge)
         a = fixtupkeys(netx_graph.adj)
-        netx_graph.node = n
-        netx_graph.edge = e
-        netx_graph.adj = a
+        netx_graph.nodes.update(n)
+        netx_graph.edges.update(e)
+        netx_graph.adj.update(a)
         #netx_graph = model.to_markov_model()
         #pos = netx.pygraphviz_layout(netx_graph)
         #pos = netx.graphviz_layout(netx_graph)

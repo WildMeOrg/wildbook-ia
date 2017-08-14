@@ -1035,8 +1035,8 @@ def draw_ete(dbname):
                 data = infr.graph.get_edge_data(*edge)
                 print('user_id = %r' % (data['user_id'],))
                 aid1, aid2 = edge
-                nid1 = infr.graph.node[aid1]['orig_name_label']
-                nid2 = infr.graph.node[aid2]['orig_name_label']
+                nid1 = infr.graph.nodes[aid1]['orig_name_label']
+                nid2 = infr.graph.nodes[aid2]['orig_name_label']
                 cc1 = infr.nid_to_gt_cc[nid1]
                 cc2 = infr.nid_to_gt_cc[nid2]
                 print('nid1, nid2 = %r, %r' % (nid1, nid2))
@@ -1048,8 +1048,8 @@ def draw_ete(dbname):
 
             for (real, pred), edges in groups_type.items():
                 for edge in edges:
-                    nid1 = infr.graph.node[aid1]['orig_name_label']
-                    nid2 = infr.graph.node[aid2]['orig_name_label']
+                    nid1 = infr.graph.nodes[aid1]['orig_name_label']
+                    nid2 = infr.graph.nodes[aid2]['orig_name_label']
 
     infos = {info['dials']['name']: info
              for info in infos_ if 'Error' in info['dials']['name']}

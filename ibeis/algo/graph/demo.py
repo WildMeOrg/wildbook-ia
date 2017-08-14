@@ -213,7 +213,8 @@ def demo2():
     if VISUALIZE:
         infr.update_visual_attrs(groupby='name_label')
         infr.set_node_attrs('pin', 'true')
-        print(ut.repr4(infr.graph.node[1]))
+        node_dict = ut.nx_node_dict(infr.graph)
+        print(ut.repr4(node_dict[1]))
 
     if VISUALIZE:
         infr.latest_logs()
@@ -349,11 +350,12 @@ adjacent_views = {
 
 
 def get_edge_truth(infr, n1, n2):
-    nid1 = infr.graph.node[n1]['orig_name_label']
-    nid2 = infr.graph.node[n2]['orig_name_label']
+    node_dict = ut.nx_node_dict(infr.graph)
+    nid1 = node_dict[n1]['orig_name_label']
+    nid2 = node_dict[n2]['orig_name_label']
     try:
-        view1 = infr.graph.node[n1]['viewpoint']
-        view2 = infr.graph.node[n2]['viewpoint']
+        view1 = node_dict[n1]['viewpoint']
+        view2 = node_dict[n2]['viewpoint']
         comparable = view1 in adjacent_views[view2]
     except KeyError:
         comparable = True
@@ -786,8 +788,9 @@ class DummyVerif(object):
         infr = verif.infr
         if edge in infr.edge_truth:
             return infr.edge_truth[edge]
-        nid1 = infr.graph.node[edge[0]]['orig_name_label']
-        nid2 = infr.graph.node[edge[1]]['orig_name_label']
+        node_dict = ut.nx_node_dict(infr.graph)
+        nid1 = node_dict[edge[0]]['orig_name_label']
+        nid2 = node_dict[edge[1]]['orig_name_label']
         return POSTV if nid1 == nid2 else NEGTV
 
     def predict_proba_df(verif, edges):

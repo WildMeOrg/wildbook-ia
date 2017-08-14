@@ -535,13 +535,13 @@ def draw_markov_model(model, fnum=None, **kwargs):
         for n in G:
             c = Circle(pos[n], radius=10, alpha=0.5, color=pt.NEUTRAL_BLUE)
             ax.add_patch(c)
-            G.node[n]['patch'] = c
+            G.nodes[n]['patch'] = c
             x, y = pos[n]
             pt.ax_absolute_text(x, y, n, ha='center', va='center')
         seen = {}
         for (u, v, d) in G.edges(data=True):
-            n1 = G.node[u]['patch']
-            n2 = G.node[v]['patch']
+            n1 = G.nodes[u]['patch']
+            n2 = G.nodes[v]['patch']
             rad = 0.1
             if (u, v) in seen:
                 rad = seen.get((u, v))
@@ -586,10 +586,10 @@ def draw_junction_tree(model, fnum=None, **kwargs):
             ', '.join(k) if isinstance(k, tuple) else k: fixtupkeys(v)
             for k, v in dict_.items()
         }
-    n = fixtupkeys(netx_graph.node)
+    n = fixtupkeys(netx_graph.nodes)
     e = fixtupkeys(netx_graph.edge)
     a = fixtupkeys(netx_graph.adj)
-    netx_graph.node = n
+    netx_graph.nodes = n
     netx_graph.edge = e
     netx_graph.adj = a
     #netx_graph = model.to_markov_model()

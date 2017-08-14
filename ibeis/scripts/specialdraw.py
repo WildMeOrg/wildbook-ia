@@ -4,6 +4,13 @@ import numpy as np
 (print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
 
 
+def nx_makenode(graph, name, **attrkw):
+    if 'size' in attrkw:
+        attrkw['width'], attrkw['height'] = attrkw.pop('size')
+    graph.add_node(name, **attrkw)
+    return name
+
+
 def multidb_montage():
     r"""
     CommandLine:
@@ -184,9 +191,9 @@ def double_depcache_graph():
     nx.relabel_nodes(image_graph, {x: 'image_' + x for x in to_rename}, copy=False)
     graph = nx.compose_all([image_graph, annot_graph])
     #graph = nx.union_all([image_graph, annot_graph], rename=('image', 'annot'))
-    # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
-    # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
-    userdecision = ut.nx_makenode(graph, 'User decision', shape='rect',
+    # userdecision = nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
+    # userdecision = nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
+    userdecision = nx_makenode(graph, 'User decision', shape='rect',
                                   #width=100, height=100,
                                   color=pt.YELLOW, style='diagonals')
     #longcat = True
@@ -319,7 +326,7 @@ def general_identify_flow():
     graph = nx.DiGraph()
 
     def makecluster(name, num, **attrkw):
-        return [ut.nx_makenode(name + str(n), **attrkw) for n in range(num)]
+        return [nx_makenode(name + str(n), **attrkw) for n in range(num)]
 
     def add_edge2(u, v, *args, **kwargs):
         v = ut.ensure_iterable(v)
@@ -338,7 +345,7 @@ def general_identify_flow():
 
     ns = 512
 
-    ut.inject_func_as_method(graph, ut.nx_makenode)
+    ut.inject_func_as_method(graph, nx_makenode)
 
     annot1_color = p_shade2
     annot2_color = s1_shade2
@@ -406,22 +413,23 @@ def general_identify_flow():
     #ut.nx_delete_node_attr(graph, 'regular')
     #ut.nx_delete_node_attr(graph, 'shape')
 
-    #graph.node[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
-    #graph.node[annot2]['label'] = ut.codeblock(
+    # node_dict = ut.nx_node_dict(graph)
+    #node_dict[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
+    #node_dict[annot2]['label'] = ut.codeblock(
     #    '''
     #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
     #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
     #    </TABLE>>
     #    ''')
-    #graph.node[annot1]['label'] = ut.codeblock(
+    #node_dict[annot1]['label'] = ut.codeblock(
     #    '''
     #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
     #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
     #    </TABLE>>
     #    ''')
 
-    #graph.node[annot1]['shape'] = 'none'
-    #graph.node[annot1]['margin'] = '0'
+    #node_dict[annot1]['shape'] = 'none'
+    #node_dict[annot1]['margin'] = '0'
 
     layoutkw = {
         'forcelabels': True,
@@ -483,7 +491,7 @@ def graphcut_flow():
     graph = nx.DiGraph()
 
     def makecluster(name, num, **attrkw):
-        return [ut.nx_makenode(graph, name + str(n), **attrkw) for n in range(num)]
+        return [nx_makenode(graph, name + str(n), **attrkw) for n in range(num)]
 
     def add_edge2(u, v, *args, **kwargs):
         v = ut.ensure_iterable(v)
@@ -502,13 +510,13 @@ def graphcut_flow():
     # *** Complement color
     c_shade2 = '#E8B353'
 
-    annot1 = ut.nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
+    annot1 = nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
                             groupid='annot', color=p_shade2)
-    annot2 = ut.nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
+    annot2 = nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
                             groupid='annot', color=s1_shade2)
-    occurprob = ut.nx_makenode(graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, .1))
-    cacheprob = ut.nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
-    sparseprob = ut.nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
+    occurprob = nx_makenode(graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, .1))
+    cacheprob = nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
+    sparseprob = nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
 
     graph.add_edge(annot1, occurprob)
 
@@ -516,9 +524,9 @@ def graphcut_flow():
     graph.add_edge(annot2, sparseprob)
     graph.add_edge(annot2, cacheprob)
 
-    matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
-    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
-    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected components', color=lighten_hex(s2_shade2, .3))
+    matchgraph = nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
+    cutalgo = nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
+    cc_names = nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected components', color=lighten_hex(s2_shade2, .3))
 
     graph.add_edge(occurprob, matchgraph)
     graph.add_edge(sparseprob, matchgraph)
@@ -600,7 +608,7 @@ def merge_viewpoint_graph():
 
     #nx.set_node_attributes(right_graph, name='scale', values=.2)
     #nx.set_node_attributes(left_graph, name='scale', values=.2)
-    #back_graph.node[back[0]]['scale'] = 2.3
+    # node_dict[back[0]]['scale'] = 2.3
 
     nx.set_node_attributes(back_graph, name='groupid', values='back')
 
@@ -1220,10 +1228,10 @@ def intraoccurrence_connected():
     viz_graph.color_by_nids(exemplars, ibs=ibs)
 
     nx.set_node_attributes(unlabeled_graph, name='framewidth', values=False)
-    nx.set_node_attributes(exemplars, name= 'framewidth', values=4.0)
+    nx.set_node_attributes(exemplars, name='framewidth', values=4.0)
 
     nx.set_node_attributes(unlabeled_graph, name='group', values='unlab')
-    nx.set_node_attributes(exemplars, name= 'group', values='exemp')
+    nx.set_node_attributes(exemplars, name='group', values='exemp')
 
     #big_graph = nx.compose_all([unlabeled_graph])
     big_graph = nx.compose_all([exemplars, unlabeled_graph])
@@ -1279,18 +1287,19 @@ def intraoccurrence_connected():
 
     _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
+    node_dict = ut.nx_node_dict(graph)
     if ut.get_argflag('--smaller'):
-        graph.node[7660]['pos'] = np.array([550, 350])
-        graph.node[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
-        graph.node[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
+        node_dict[7660]['pos'] = np.array([550, 350])
+        node_dict[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
+        node_dict[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
         nx.set_node_attributes(graph, name='pin', values='true')
         _, layout_info = pt.nx_agraph_layout(graph,
                                              inplace=True, **layoutkw)
     elif ut.get_argflag('--small'):
-        graph.node[7660]['pos'] = np.array([750, 350])
-        graph.node[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
-        graph.node[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
-        graph.node[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
+        node_dict[7660]['pos'] = np.array([750, 350])
+        node_dict[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
+        node_dict[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
+        node_dict[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
         nx.set_node_attributes(graph, name='pin', values='true')
         _, layout_info = pt.nx_agraph_layout(graph,
                                              inplace=True, **layoutkw)

@@ -490,7 +490,7 @@ class GraphVisualization(object):
                 nodesep=.1
             )
             layoutkw.update(kwargs)
-            # print(ut.repr3(graph.edge))
+            # print(ut.repr3(graph.edges))
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
         if edge_overrides:

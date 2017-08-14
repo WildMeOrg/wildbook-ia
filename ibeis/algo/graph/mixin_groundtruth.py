@@ -19,8 +19,6 @@ class Groundtruth(object):
         is_comp = list(infr.gen_edge_values('gt_comparable', edges=aid_pairs,
                                             default=True,
                                             on_missing='default'))
-        # is_comp = [infr.graph.edge[n1][n2].get('gt_comparable', True)
-        #            for n1, n2 in aid_pairs]
         return np.array(is_comp)
 
     def is_photobomb(infr, aid_pairs):
@@ -31,9 +29,10 @@ class Groundtruth(object):
     def is_same(infr, aid_pairs):
         if infr.ibs is not None:
             return infr.ibeis_is_same(aid_pairs)
-        nid1 = [infr.graph.node[n1]['orig_name_label']
+        node_dict = ut.nx_node_dict(infr.graph)
+        nid1 = [node_dict[n1]['orig_name_label']
                 for n1, n2 in aid_pairs]
-        nid2 = [infr.graph.node[n2]['orig_name_label']
+        nid2 = [node_dict[n2]['orig_name_label']
                 for n1, n2 in aid_pairs]
         return np.equal(nid1, nid2)
 

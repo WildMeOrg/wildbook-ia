@@ -305,7 +305,7 @@ class Feedback(object):
             >>> #infr.add_feedback((1, 2), 'unknown', tags=[])
             >>> infr.add_feedback((1, 2), INCMP, tags=[])
             >>> infr.apply_feedback_edges()
-            >>> print('edges = ' + ut.repr4(infr.graph.edge))
+            >>> print('edges = ' + ut.repr4(dict(infr.graph.edges)))
             >>> result = str(infr)
             >>> print(result)
             <AnnotInference(nNodes=6, nEdges=3, nCCs=4)>
@@ -686,7 +686,7 @@ class MiscHelpers(object):
             >>> infr.add_aids(aids, nids)
             >>> result = infr.aids
             >>> print(result)
-            >>> assert len(infr.graph.node) == len(infr.aids)
+            >>> assert len(infr.graph) == len(infr.aids)
             [1, 2, 3, 4, 5, 6, 7, 9, 22, 8]
         """
         nids = infr._rectify_nids(aids, nids)

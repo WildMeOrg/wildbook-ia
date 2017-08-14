@@ -46,13 +46,13 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     import networkx as nx
 
     if len(name_nodes) == 3 and len(annot_nodes) == 4:
-        graph.node[annot_nodes[0]]['pos'] = (20.,  200.)
-        graph.node[annot_nodes[1]]['pos'] = (220., 200.)
-        graph.node[annot_nodes[2]]['pos'] = (20.,  100.)
-        graph.node[annot_nodes[3]]['pos'] = (220., 100.)
-        graph.node[name_nodes[0]]['pos'] = (10., 300.)
-        graph.node[name_nodes[1]]['pos'] = (120., 300.)
-        graph.node[name_nodes[2]]['pos'] = (230., 300.)
+        graph.nodes[annot_nodes[0]]['pos'] = (20.,  200.)
+        graph.nodes[annot_nodes[1]]['pos'] = (220., 200.)
+        graph.nodes[annot_nodes[2]]['pos'] = (20.,  100.)
+        graph.nodes[annot_nodes[3]]['pos'] = (220., 100.)
+        graph.nodes[name_nodes[0]]['pos'] = (10., 300.)
+        graph.nodes[name_nodes[1]]['pos'] = (120., 300.)
+        graph.nodes[name_nodes[2]]['pos'] = (230., 300.)
         nx.set_node_attributes(graph, name='pin', values='true')
 
         print('annot_nodes = %r' % (annot_nodes,))

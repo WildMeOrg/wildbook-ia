@@ -606,7 +606,7 @@ class CandidateSearch(object):
             check_edges = None
         if not check_edges:
             # Allow new edges to be introduced
-            full_sub = infr.graph.subgraph(pcc)
+            full_sub = infr.graph.subgraph(pcc).copy()
             new_avail = ut.estarmap(infr.e_, nx.complement(full_sub).edges())
             full_avail = unrev_avail + new_avail
             n_max = (len(pos_sub) * (len(pos_sub) - 1)) // 2

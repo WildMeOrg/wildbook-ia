@@ -597,7 +597,7 @@ class AnnotGraphInteraction(AbstractInteraction):
             self.highlight_aid(aid, pt.ORANGE)
         #self.static_plot(fnum, pnum)
         self.make_hud()
-        #print(ut.repr2(self.infr.graph.edge, nl=2))
+        #print(ut.repr2(self.infr.graph.edges, nl=2))
         print('Finished Plot')
 
     def highlight_aid(self, aid, color=None):
