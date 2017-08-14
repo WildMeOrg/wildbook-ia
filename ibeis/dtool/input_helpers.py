@@ -208,7 +208,7 @@ def make_expanded_input_graph(graph, target):
     assert len(sources) == 1, 'expected a unique source'
     source = sources[0]
 
-    graph = graph.subgraph(ut.nx_all_nodes_between(graph, source, target))
+    graph = graph.subgraph(ut.nx_all_nodes_between(graph, source, target)).copy()
     # Remove superfluous data
     ut.nx_delete_edge_attr(graph, ['edge_type', 'isnwise',
                                    'nwise_idx',
@@ -271,6 +271,7 @@ def make_expanded_input_graph(graph, target):
     sink_node = sink_nodes[0]
 
     # First identify if a node is root_specifiable
+    node_dict = ut.nx_node_dict(exi_graph)
     for node in exi_graph.nodes():
         root_specifiable = False
         # for edge in exi_graph.in_edges(node, keys=True):
@@ -283,7 +284,7 @@ def make_expanded_input_graph(graph, target):
                     root_specifiable = True
         if exi_graph.in_degree(node) == 0:
             root_specifiable = True
-        exi_graph.node[node]['root_specifiable'] = root_specifiable
+        node_dict[node]['root_specifiable'] = root_specifiable
 
     # Need to specify any combo of red nodes such that
     # 1) for each path from a (leaf) to the (root) there is exactly one red
@@ -293,13 +294,13 @@ def make_expanded_input_graph(graph, target):
         for source_node in source_nodes])
     rootmost_nodes = set([])
     for path in path_list:
-        flags = [exi_graph.node[node]['root_specifiable'] for node in path]
+        flags = [node_dict[node]['root_specifiable'] for node in path]
         valid_nodes = ut.compress(path, flags)
         rootmost_nodes.add(valid_nodes[-1])
     # Rootmost nodes are the ones specifiable by default when computing the
     # normal property.
     for node in rootmost_nodes:
-        exi_graph.node[node]['rootmost'] = True
+        node_dict[node]['rootmost'] = True
 
     # We actually need to hack away any root-most nodes that have another
     # rootmost node as the parent.  Otherwise, this would cause constraints in
@@ -315,11 +316,12 @@ def make_expanded_input_graph(graph, target):
 
 
 def recolor_exi_graph(exi_graph, rootmost_nodes):
+    node_dict = ut.nx_node_dict(exi_graph)
     for node in exi_graph.nodes():
-        if exi_graph.node[node]['root_specifiable']:
-            exi_graph.node[node]['color'] = [1, .7, .6]
+        if node_dict[node]['root_specifiable']:
+            node_dict[node]['color'] = [1, .7, .6]
     for node in rootmost_nodes:
-        exi_graph.node[node]['color'] = [1, 0, 0]
+        node_dict[node]['color'] = [1, 0, 0]
 
 
 #@ut.reloadable_class
@@ -346,9 +348,11 @@ class RootMostInput(ut.HashComparable):
             >>> assert len(rmi.parent_level()) == 2
         """
         def yield_if(G, child, edge):
-            return G.node[child].get('root_specifiable')
+            node_dict = ut.nx_node_dict(G)
+            return node_dict[child].get('root_specifiable')
         def continue_if(G, child, edge):
-            return not G.node[child].get('root_specifiable')
+            node_dict = ut.nx_node_dict(G)
+            return not node_dict[child].get('root_specifiable')
         bfs_iter = ut.bfs_conditional(
             rmi.exi_graph, rmi.node, reverse=True,
             yield_if=yield_if,
@@ -611,6 +615,8 @@ class TableInput(ut.NiceRepr):
 
     def flat_compute_order(inputs):
         """
+        This is basically the scheduler
+
         CommandLine:
             python -m dtool.input_helpers flat_compute_order
 
@@ -623,7 +629,7 @@ class TableInput(ut.NiceRepr):
             >>> flat_compute_order = inputs.flat_compute_order()
             >>> result = ut.repr2(flat_compute_order)
             >>> print(result)
-            [probchip[t, t:1, 1:1], chip[t, t:1, 1:1], feat[t, t:1]]
+            [chip[t, t:1, 1:1], probchip[t, t:1, 1:1], feat[t, t:1]]
         """
         # Compute the order in which all noes must be evaluated
         import networkx as nx  # NOQA
@@ -772,11 +778,12 @@ class TableInput(ut.NiceRepr):
         recolor_exi_graph(exi_graph, inputs.exi_nodes())
 
         # Add numbering to indicate the input order
+        node_dict = ut.nx_node_dict(exi_graph)
         for count, rmi in enumerate(inputs.rmi_list, start=0):
             if rmi.ismulti:
-                exi_graph.node[rmi.node]['label'] += ' #%d*' % (count,)
+                node_dict[rmi.node]['label'] += ' #%d*' % (count,)
             else:
-                exi_graph.node[rmi.node]['label'] += ' #%d' % (count,)
+                node_dict[rmi.node]['label'] += ' #%d' % (count,)
 
         plot_kw = {'fontname': 'Ubuntu'}
         #inter.append_plot(

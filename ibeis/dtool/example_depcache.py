@@ -662,6 +662,7 @@ def dummy_example_depcacahe():
     #db_list.print_table_csv('config', exclude_columns='config_strid')
 
     print('config table')
+    tablename = 'config'
     column_list, column_names = db.get_table_column_data(tablename,
                                                          ['config_strid'])
     print('\n'.join([ut.hz_str(*list(ut.interleave((r, [', '] * (len(r) - 1)))))

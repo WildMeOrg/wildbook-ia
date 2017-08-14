@@ -267,8 +267,8 @@ def sanitize_sql(db, tablename_, columns=None):
             if column_ not in valid_columns:
                 raise Exception(
                     'UNSAFE COLUMN: must be all lowercase. '
-                    'tablename=%r column=%r' %
-                    (tablename, column))
+                    'tablename={}, column={}, valid_columns={} column_={}'.format(
+                        tablename, column, valid_columns, column_))
                 return None
             else:
                 return column_
@@ -2118,7 +2118,7 @@ class SQLDatabaseController(object):
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
             >>> colrichinfo_list = db.get_columns(tablename)
-            >>> result = ('colrichinfo_list = %s' % (ut.repr2(colrichinfo_list),))
+            >>> result = ('colrichinfo_list = %s' % (ut.repr2(colrichinfo_list, nl=1),))
             >>> print(result)
             colrichinfo_list = [
                 (0, 'keypoint_rowid', 'INTEGER', 0, None, 1),

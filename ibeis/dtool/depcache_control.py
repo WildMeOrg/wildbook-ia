@@ -275,7 +275,6 @@ class _CoreDependencyCache(object):
             ]
         """
         try:
-            # get_ancestor_levels
             assert tablename in depc.cachetable_dict, (
                 'tablename=%r does not exist' % (tablename,))
             root = depc.root_tablename
