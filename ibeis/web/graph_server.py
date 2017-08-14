@@ -174,7 +174,12 @@ class GraphActor(GRAPH_ACTOR_CLASS):
             if func is None:
                 raise ValueError('Unknown action=%r' % (action,))
             else:
-                return func(**message)
+                try:
+                    return func(**message)
+                except Exception as ex:
+                    if actor.infr is not None:
+                        actor.infr.print('Actor Server Error: %s' (repr(ex),))
+                    raise
 
     def start(actor, dbdir, aids='all', config={},
               **kwargs):
