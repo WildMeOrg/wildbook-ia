@@ -570,10 +570,9 @@ def make_agraph(graph_):
     # Hack to make the w/h of the node take thae max instead of
     # dot which takes the minimum
     shaped_nodes = [n for n, d in graph_.nodes(data=True) if 'width' in d]
-    if nx.__version__.startswith('1'):
-        node_attrs = ut.dict_take(graph_.node, shaped_nodes)
-    else:
-        node_attrs = ut.dict_take(graph_.nodes, shaped_nodes)
+    node_dict = ut.nx_node_dict(graph_)
+    node_attrs = ut.dict_take(node_dict, shaped_nodes)
+
     width_px = np.array(ut.take_column(node_attrs, 'width'))
     height_px = np.array(ut.take_column(node_attrs, 'height'))
     scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
@@ -662,7 +661,8 @@ def _groupby_prelayout(graph_, layoutkw, groupby):
     has_pins = any([
         v.lower() == 'true'
         for v in nx.get_node_attributes(graph_, 'pin').values()])
-    has_pins &= all('pos' in d for n, d in graph_.node.items())
+
+    has_pins &= all('pos' in d for n, d in graph_.nodes(data=True))
     if not has_pins:
         # Layout groups separately
         node_to_group = nx.get_node_attributes(graph_, groupby)
@@ -1070,7 +1070,8 @@ def _get_node_size(graph, node, node_size):
     import vtool as vt
     if node_size is not None and node in node_size:
         return node_size[node]
-    nattrs = graph.node[node]
+    node_dict = ut.nx_node_dict(graph)
+    nattrs = node_dict[node]
     scale = nattrs.get('scale', 1.0)
     if 'width' in nattrs and 'height' in nattrs:
         width = nattrs['width'] * scale
@@ -1171,12 +1172,9 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
 
             # rounded = angle == 0
-            if nx.__version__.startswith('1'):
-                rounded = 'rounded' in graph.node.get(node, {}).get('style', '')
-                isdiag = 'diagonals' in graph.node.get(node, {}).get('style', '')
-            else:
-                rounded = 'rounded' in graph.nodes.get(node, {}).get('style', '')
-                isdiag = 'diagonals' in graph.nodes.get(node, {}).get('style', '')
+            node_dict = ut.nx_node_dict(graph)
+            rounded = 'rounded' in node_dict.get(node, {}).get('style', '')
+            isdiag = 'diagonals' in node_dict.get(node, {}).get('style', '')
 
             from matplotlib import patches
 
