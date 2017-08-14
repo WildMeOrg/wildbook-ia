@@ -948,6 +948,8 @@ class AnnotInference(ut.NiceRepr,
         ibeis AnnotInference:1 --show
         ibeis AnnotInference:2 --show
 
+        ibeis AnnotInference:0 --loginfr
+
     Doctest:
         >>> from ibeis.algo.graph.core import *  # NOQA
         >>> import ibeis
@@ -1050,11 +1052,12 @@ class AnnotInference(ut.NiceRepr,
 
         # setup logging
         infr.logger = None
-        if ut.get_argflag('--loginfr', '--log-infr'):
+        if ut.get_argflag(('--loginfr', '--log-infr')):
             if ibs is not None:
                 from os.path import join
                 import ubelt as ub
-                logdir = ibs.get_logdir_local()
+                # logdir = ibs.get_logdir_local()
+                logdir = '.'
                 logname = 'AnnotInference' + ub.timestamp()
                 logger = logging.getLogger(logname)
                 if not logger.handlers:
