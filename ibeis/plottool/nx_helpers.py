@@ -83,9 +83,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         >>> graph = nx.DiGraph()
         >>> graph.add_nodes_from(['a', 'b', 'c', 'd'])
         >>> graph.add_edges_from({'a': 'b', 'b': 'c', 'b': 'd', 'c': 'd'}.items())
-        >>> nx.set_node_attributes(graph, 'shape', 'rect')
-        >>> nx.set_node_attributes(graph, 'image', {'a': ut.grab_test_imgpath('carl.jpg')})
-        >>> nx.set_node_attributes(graph, 'image', {'d': ut.grab_test_imgpath('lena.png')})
+        >>> nx.set_node_attributes(graph, name='shape', values='rect')
+        >>> nx.set_node_attributes(graph, name='image', values={'a': ut.grab_test_imgpath('carl.jpg')})
+        >>> nx.set_node_attributes(graph, name='image', values={'d': ut.grab_test_imgpath('lena.png')})
         >>> #nx.set_node_attributes(graph, 'height', 100)
         >>> with_labels = True
         >>> fnum = None
@@ -406,10 +406,10 @@ def apply_graph_layout_attrs(graph, layout_info):
         return isNone or isNoneStr
     for key, vals in layout_info['node'].items():
         vals = {n: v for n, v in vals.items() if not noneish(n)}
-        nx.set_node_attributes(graph, key, vals)
+        nx.set_node_attributes(graph, name=key, values=vals)
     for key, vals in layout_info['edge'].items():
         vals = {e: v for e, v in vals.items() if not noneish(e)}
-        nx.set_edge_attributes(graph, key, vals)
+        nx.set_edge_attributes(graph, name=key, values=vals)
     graph_attrs = {k: v for k, v in layout_info['graph'].items() if not noneish(k)}
     graph.graph.update(graph_attrs)
 
@@ -441,9 +441,10 @@ def make_agraph(graph_):
     height_in = height_px / 72.0 * scale
     width_in_dict = dict(zip(shaped_nodes, width_in))
     height_in_dict = dict(zip(shaped_nodes, height_in))
-    nx.set_node_attributes(graph_, 'width', width_in_dict)
-    nx.set_node_attributes(graph_, 'height', height_in_dict)
-    ut.nx_delete_node_attr(graph_, 'scale')
+
+    nx.set_node_attributes(graph_, name='width', values=width_in_dict)
+    nx.set_node_attributes(graph_, name='height', values=height_in_dict)
+    ut.nx_delete_node_attr(graph_, name='scale')
 
     # Check for any nodes with groupids
     node_to_groupid = nx.get_node_attributes(graph_, 'groupid')
@@ -812,7 +813,6 @@ def format_anode_pos(xy, pin=True):
 
 
 def _get_node_size(graph, node, node_size):
-    import vtool as vt
     if node_size is not None and node in node_size:
         return node_size[node]
     nattrs = graph.node[node]
@@ -825,6 +825,7 @@ def _get_node_size(graph, node, node_size):
     else:
         if 'image' in nattrs:
             img_fpath = nattrs['image']
+            import vtool as vt
             width, height = vt.image.open_image_size(img_fpath)
         else:
             height = width = 1100 / 50 * scale
@@ -840,7 +841,6 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     # python -m dtool --tf DependencyCache.make_graph --show
     """
     import plottool as pt
-    import vtool as vt
     import matplotlib as mpl
 
     patch_dict = {
@@ -924,6 +924,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             else:
                 bbox = list(xy_bl) + [width, height]
                 if isdiag:
+                    import vtool as vt
                     center_xy  = vt.bbox_center(bbox)
                     _xy =  np.array(center_xy)
                     newverts_ = [
@@ -1099,6 +1100,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 width = .5
                 lw = 1.0
                 try:
+                    import vtool as vt
                     # Compute arrow width using estimated graph size
                     if node_size is not None and node_pos is not None:
                         xys = np.array(ut.take(node_pos, node_pos.keys())).T
