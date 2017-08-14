@@ -54,7 +54,7 @@ __WHO_INITIALIZED__ = None
 
 
 VERBOSE_MPLINIT = ut.get_argflag(('--verb-mpl', '--verbose'))
-TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=None)
+TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=os.environ.get('MPL_BACKEND', None))
 FALLBACK_BACKEND = ut.get_argval(('--mpl-fallback-backend', '--mplfbbe'), type_=str, default='agg')
 
 
