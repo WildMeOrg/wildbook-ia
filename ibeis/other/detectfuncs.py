@@ -478,16 +478,6 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
             x_list,
             y_list
         )
-    tup = general_identify_operating_point(conf_list, x_list, y_list, target=target)
-    best_conf_list, best_x_list, best_y_list = tup
-    best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
-    # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
-    # label = '%s [OP = %s]' % (label, best_conf_list_, )
-    label = '%s [OP = %0.02f]' % (label, best_conf, )
-    linestyle = '--' if kwargs.get('line_dotted', False) else '-'
-    plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
-    if plot_point:
-        plt.plot(best_x_list, best_y_list, color=color, marker='o')
     if interpolate:
         ap_list = []
         for AP_POINT in AP_SAMPLE_POINTS:
@@ -500,6 +490,17 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
         y_list = y_list[::-1]
         x_list = x_list[::-1]
         ap = np.trapz(y_list, x=x_list)
+    tup = general_identify_operating_point(conf_list, x_list, y_list, target=target)
+    best_conf_list, best_x_list, best_y_list = tup
+    best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
+    # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
+    # label = '%s [OP = %s]' % (label, best_conf_list_, )
+    label = '%s [OP = %0.02f]' % (label, best_conf, )
+    label = '%s [AP = %0.02f]' % (label, ap * 100.0, )
+    linestyle = '--' if kwargs.get('line_dotted', False) else '-'
+    plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
+    if plot_point:
+        plt.plot(best_x_list, best_y_list, color=color, marker='o')
     if len(best_conf_list) > 1:
         print('WARNING: %r' % (best_conf_list, ))
     return ap, best_conf, tup
@@ -1124,7 +1125,7 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
 
 
 @register_ibs_method
-def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7),
+def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9),
                                             write_images=False, min_recall=0.9,
                                             plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
