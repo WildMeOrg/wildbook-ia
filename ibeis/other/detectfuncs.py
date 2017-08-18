@@ -29,6 +29,10 @@ SAMPLES = 1000
 CHUNK_SIZE = SAMPLES // ut.num_cpus()
 FORCE_SERIAL = True
 
+AP_SAMPLE_POINTS = [_ / 100.0 for _ in range(0, 101)]
+# AP_SAMPLE_POINTS = AP_SAMPLE_POINTS[1:-1]
+# print('USING AP_SAMPLE_POINTS = %r' % (AP_SAMPLE_POINTS, ))
+
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
@@ -410,16 +414,40 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
 
-def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_limit=0.90):
+def general_interpolate_precision_recall(conf_list, re_list, pr_list):
+    conf_list_, re_list_, pr_list_ = [], [], []
+    zipped = zip(re_list, conf_list, pr_list)
+    zipped = sorted(zipped, reverse=True)
+    max_pr = None
+    for re, conf, pr in zipped:
+        if max_pr is None or pr > max_pr:
+            if max_pr is not None:
+                conf_list_.append(np.nan)
+                re_list_.append(re)
+                pr_list_.append(max_pr)
+            max_pr = pr
+        if pr < max_pr:
+            pr = max_pr
+        conf_list_.append(conf)
+        re_list_.append(re)
+        pr_list_.append(pr)
+    return conf_list_, re_list_, pr_list_
+
+
+def general_identify_operating_point(conf_list, x_list, y_list, x_norm=None,
+                                     target=(1.0, 1.0)):
     best_length = np.inf
     best_conf_list = []
     best_x_list = []
     best_y_list = []
+    tx, ty = target
     for conf, x, y in zip(conf_list, x_list, y_list):
-        x_ = 1.0 - x if not invert else x
-        if x_ > 1.0 - x_limit:
-            continue
-        y_ = 1.0 - y
+        x_ = x
+        y_ = y
+        if x_norm is not None:
+            x_ /= x_norm
+        x_ = (x_ - tx)
+        y_ = (y_ - ty)
         length = np.sqrt(x_ * x_ + y_ * y_)
         if length < best_length:
             best_length = length
@@ -427,7 +455,10 @@ def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_
             best_x_list = [x]
             best_y_list = [y]
         elif length == best_length:
-            flag_list = [ abs(best_conf - conf) > 0.01 for best_conf in best_conf_list ]
+            flag_list = [
+                abs(best_conf - conf) > 0.01
+                for best_conf in best_conf_list
+            ]
             if False in flag_list:
                 continue
             best_conf_list.append(conf)
@@ -438,9 +469,17 @@ def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_
 
 
 def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
-                           invert=False, x_limit=0.90, plot_point=True, **kwargs):
+                           plot_point=True, interpolate=True, target=(1.0, 1.0),
+                           **kwargs):
     import matplotlib.pyplot as plt
-    best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
+    if interpolate:
+        conf_list, x_list, y_list = general_interpolate_precision_recall(
+            conf_list,
+            x_list,
+            y_list
+        )
+    tup = general_identify_operating_point(conf_list, x_list, y_list, target=target)
+    best_conf_list, best_x_list, best_y_list = tup
     best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
     # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
@@ -449,11 +488,21 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
     if plot_point:
         plt.plot(best_x_list, best_y_list, color=color, marker='o')
-    area = np.trapz(y_list, x=x_list)
+    if interpolate:
+        ap_list = []
+        for AP_POINT in AP_SAMPLE_POINTS:
+            for re, pr in sorted(zip(x_list, y_list)):
+                if AP_POINT <= re:
+                    ap_list.append(pr)
+                    break
+        ap = sum(ap_list) / len(ap_list)
+    else:
+        y_list = y_list[::-1]
+        x_list = x_list[::-1]
+        ap = np.trapz(y_list, x=x_list)
     if len(best_conf_list) > 1:
         print('WARNING: %r' % (best_conf_list, ))
-    tup = general_identify_operating_point(conf_list, x_list, y_list, x_limit=x_limit)
-    return area, best_conf, tup
+    return ap, best_conf, tup
 
 
 def general_confusion_matrix_algo(label_correct_list, label_predict_list,
@@ -566,43 +615,92 @@ def general_overlap(gt_list, pred_list):
 
 def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                      check_species=False, check_viewpoint=False, **kwargs):
-    overlap = general_overlap(gt_list, pred_list)
-    num_gt, num_pred = overlap.shape
-    if num_gt == 0:
-        tp = 0.0
-        fp = num_pred
-        fn = 0.0
-    elif num_pred == 0:
-        tp = 0.0
-        fp = 0.0
-        fn = num_gt
-    else:
-        index_list = np.argmax(overlap, axis=1)
-        max_overlap = np.max(overlap, axis=1)
-        max_overlap[max_overlap < min_overlap] = 0.0
-        assignment_dict = {
-            i : index_list[i] for i in range(num_gt) if max_overlap[i] != 0
-        }
-        tp = len(assignment_dict.keys())
-        # Fix where multiple GT claim the same prediction
-        if tp > num_pred:
-            index_list_ = np.argmax(overlap, axis=0)
-            key_list = sorted(assignment_dict.keys())
-            for key in key_list:
-                if key not in index_list_:
-                    del assignment_dict[key]
+    OLD = False
+    if OLD:
+        overlap = general_overlap(gt_list, pred_list)
+        num_gt, num_pred = overlap.shape
+        if num_gt == 0:
+            tp = 0.0
+            fp = num_pred
+            fn = 0.0
+        elif num_pred == 0:
+            tp = 0.0
+            fp = 0.0
+            fn = num_gt
+        else:
+            index_list = np.argmax(overlap, axis=1)
+            max_overlap = np.max(overlap, axis=1)
+            max_overlap[max_overlap < min_overlap] = 0.0
+            assignment_dict = {
+                i : index_list[i] for i in range(num_gt) if max_overlap[i] != 0
+            }
             tp = len(assignment_dict.keys())
-        if check_species or check_viewpoint:
-            for gt, pred in assignment_dict.items():
-                # print(gt_list[gt]['class'], pred_list[pred]['class'])
-                # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
-                if gt_list[gt]['class'] != pred_list[pred]['class']:
-                    tp -= 1
-                elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
-                    tp -= 1
-        fp = num_pred - tp
-        fn = num_gt - tp
-    return tp, fp, fn
+            # Fix where multiple GT claim the same prediction
+            if tp > num_pred:
+                index_list_ = np.argmax(overlap, axis=0)
+                key_list = sorted(assignment_dict.keys())
+                for key in key_list:
+                    if key not in index_list_:
+                        del assignment_dict[key]
+                tp = len(assignment_dict.keys())
+            if check_species or check_viewpoint:
+                for gt, pred in assignment_dict.items():
+                    # print(gt_list[gt]['class'], pred_list[pred]['class'])
+                    # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
+                    if gt_list[gt]['class'] != pred_list[pred]['class']:
+                        tp -= 1
+                    elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
+                        tp -= 1
+            fp = num_pred - tp
+            fn = num_gt - tp
+        return tp, fp, fn
+    else:
+        overlap = general_overlap(gt_list, pred_list)
+        num_gt, num_pred = overlap.shape
+        if num_gt == 0:
+            tp = 0.0
+            fp = num_pred
+            fn = 0.0
+        elif num_pred == 0:
+            tp = 0.0
+            fp = 0.0
+            fn = num_gt
+        else:
+            pred_index_list = range(num_pred)
+            gt_index_list = np.argmax(overlap, axis=0)
+            max_overlap_list = np.max(overlap, axis=0)
+            confidence_list = [
+                pred.get('confidence', None)
+                for pred in pred_list
+            ]
+            assert None not in confidence_list
+            zipped = zip(
+                confidence_list,
+                max_overlap_list,
+                pred_index_list,
+                gt_index_list
+            )
+            pred_conf_list = [
+                (
+                    confidence,
+                    max_overlap,
+                    pred_index,
+                    gt_index,
+                )
+                for confidence, max_overlap, pred_index, gt_index in zipped
+            ]
+            pred_conf_list = sorted(pred_conf_list, reverse=True)
+
+            assignment_dict = {}
+            for pred_conf, max_overlap, pred_index, gt_index in pred_conf_list:
+                if max_overlap > min_overlap:
+                    if gt_index not in assignment_dict:
+                        assignment_dict[gt_index] = pred_index
+
+            tp = len(assignment_dict.keys())
+            fp = num_pred - tp
+            fn = num_gt - tp
+        return tp, fp, fn
 
 
 def general_get_imageset_gids(ibs, imageset_text, species_set=None,
@@ -1663,8 +1761,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
     ret_list = [
         localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
-                                             x_limit=min_recall, plot_point=plot_point,
-                                             **config)
+                                             plot_point=plot_point, **config)
         for color, config in zip(color_list, config_list)
     ]
 
@@ -1987,10 +2084,9 @@ def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
 
 def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    kwargs['invert'] = True
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
 
 
 def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
@@ -2191,10 +2287,9 @@ def classifier_binary_precision_recall_algo_plot(ibs, **kwargs):
 
 def classifier_binary_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    kwargs['invert'] = True
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_binary_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
 
 
 def classifier_binary_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):
@@ -2327,10 +2422,9 @@ def classifier2_precision_recall_algo_plot(ibs, **kwargs):
 
 def classifier2_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    kwargs['invert'] = True
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
 
 
 def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, **kwargs):
@@ -2602,10 +2696,9 @@ def labeler_precision_recall_algo_plot(ibs, **kwargs):
 def labeler_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     category_list = kwargs['category_list']
-    kwargs['invert'] = True
     print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
 
 
 def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwargs):
@@ -2992,7 +3085,7 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
         'c',
     ]
     ret_list = [
-        detector_precision_recall_algo_plot(ibs, label=label, color=color, x_limit=0.5, **kwargs_)
+        detector_precision_recall_algo_plot(ibs, label=label, color=color, **kwargs_)
         for label, color, kwargs_ in zip(label_list, color_list, kwargs_list)
     ]
 
