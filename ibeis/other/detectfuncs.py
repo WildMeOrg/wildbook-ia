@@ -2409,7 +2409,6 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         for species_set in species_set_list
     ]
 
-    depc.delete_property('classifier_two', test_gid_set, config=kwargs)
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
     confidence_list = [
         confidence_dict[category]
@@ -2515,9 +2514,11 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     kwargs['classifier_two_weight_filepath'] = 'candidacy'
 
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = list(test_gid_set)
+    depc.delete_property('classifier_two', test_gid_set, config=kwargs)
+
     if species_list is None:
-        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-        test_gid_set = list(test_gid_set)
         test_gid = test_gid_set[0]
         depc = ibs.depc_image
         confidence_dict = depc.get_property('classifier_two', test_gid, 'scores', config=kwargs)
