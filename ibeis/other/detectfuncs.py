@@ -1670,8 +1670,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    index = np.argmax(area_list)
-    # index = 0
+    # index = np.argmax(area_list)
+    index = 0
     best_label = config_list[index]['label']
     best_color = color_list[index]
     best_config = config_list[index]
@@ -1680,31 +1680,23 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
     plt.title('Precision-Recall Curves', y=1.13)
 
+    # Display graph of the overall highest area
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
     axes_ = plt.subplot(132)
-    for best_color, best_conf, best_config in zip(color_list, conf_list, config_list):
-        localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
-                                             min_overlap=min_overlap,
-                                             write_images=write_images,
-                                             fig_=fig_, axes_=axes_,
-                                             **best_config)
-
-    # # Display graph of the overall highest area
-    # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-    #            borderaxespad=0.0)
-
-    # axes_ = plt.subplot(132)
-    # axes_.set_aspect(1)
-    # gca_ = plt.gca()
-    # gca_.grid(False)
-    # correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
-    #                                                        min_overlap=min_overlap,
-    #                                                        write_images=write_images,
-    #                                                        fig_=fig_, axes_=axes_,
-    #                                                        **best_config)
-    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    # axes_.set_ylabel('Ground-Truth')
-    # args = (best_area, best_label, best_conf, )
-    # plt.title('Confusion Matrix for Highest mAP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
+                                                           min_overlap=min_overlap,
+                                                           write_images=write_images,
+                                                           fig_=fig_, axes_=axes_,
+                                                           **best_config)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    args = (best_area, best_label, best_conf, )
+    plt.title('Confusion Matrix for Highest mAP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # # Show best that is greater than the best_pr
     # best_index = None
