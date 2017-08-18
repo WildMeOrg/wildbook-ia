@@ -2515,7 +2515,7 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
 
 @register_ibs_method
 def classifier2_precision_recall_algo_display(ibs, species_list=None,
-                                              figsize=(32, 16), **kwargs):
+                                              figsize=(20, 9), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2554,7 +2554,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
-    axes_ = plt.subplot(323)
+    axes_ = plt.subplot(121)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
@@ -2568,7 +2568,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(324)
+    axes_ = plt.subplot(122)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('False-Positive Rate')
