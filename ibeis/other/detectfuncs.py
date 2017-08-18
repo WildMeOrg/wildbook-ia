@@ -369,7 +369,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     def errors(zipped, conf):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         for index, (label, confidence) in enumerate(zipped):
-            if label == 'positive':
+            if label == category:
                 if conf <= confidence:
                     tp += 1
                 else:
@@ -382,7 +382,6 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
         return tp, tn, fp, fn
 
     zipped = list(zip(label_list, confidence_list))
-    zipped = list(zip(confidence_list, label_list))
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
     for conf in conf_list:
@@ -2422,6 +2421,8 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         confidence_dict[category]
         for confidence_dict in confidence_dict_list
     ]
+
+    ut.embed()
 
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
