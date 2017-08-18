@@ -2575,14 +2575,14 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
 
-    axes_ = plt.subplot(325)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    best_conf, (correct_rate, _) = classifier2_confusion_matrix_algo_plot(ibs, category_set=category_set, fig_=fig_, axes_=axes_)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('Confusion Matrix (OP = %0.02f)' % (best_conf, ), y=1.12)
+    # axes_ = plt.subplot(325)
+    # axes_.set_aspect(1)
+    # gca_ = plt.gca()
+    # gca_.grid(False)
+    # best_conf, (correct_rate, _) = classifier2_confusion_matrix_algo_plot(ibs, category_set=category_set, fig_=fig_, axes_=axes_, **kwargs)
+    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    # axes_.set_ylabel('Ground-Truth')
+    # plt.title('Confusion Matrix (OP = %0.02f)' % (best_conf, ), y=1.12)
 
     fig_filename = 'classifier2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
