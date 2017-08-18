@@ -367,17 +367,19 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
 
 def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
     def errors(zipped, conf):
-        error_list = [0, 0, 0, 0]
+        tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         for index, (label, confidence) in enumerate(zipped):
-            if label == category and conf <= confidence:
-                error_list[0] += 1
-            elif label != category and conf <= confidence:
-                error_list[2] += 1
-            elif label == category:
-                error_list[3] += 1
-            elif label != category:
-                error_list[1] += 1
-        return error_list
+            if label == 'positive':
+                if conf <= confidence:
+                    tp += 1
+                else:
+                    fn += 1
+            else:
+                if conf <= confidence:
+                    fp += 1
+                else:
+                    tn += 1
+        return tp, tn, fp, fn
 
     zipped = list(zip(label_list, confidence_list))
     zipped = list(zip(confidence_list, label_list))
