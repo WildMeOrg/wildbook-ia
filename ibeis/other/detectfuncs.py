@@ -2409,7 +2409,6 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         for species_set in species_set_list
     ]
 
-    ut.embed()
     depc.delete_property('classifier_two', test_gid_set, config=kwargs)
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
     confidence_list = [
