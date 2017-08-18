@@ -495,7 +495,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
     # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
-    label = '%s [OP = %0.02f]' % (label, best_conf, )
+    # label = '%s [OP = %0.02f]' % (label, best_conf, )
     label = '%s [AP = %0.02f]' % (label, ap * 100.0, )
     linestyle = '--' if kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
