@@ -2512,11 +2512,11 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
 
 @register_ibs_method
 def classifier2_precision_recall_algo_display(ibs, species_list=None,
-                                              figsize=(16, 16), **kwargs):
+                                              figsize=(32, 16), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    fig_ = plt.figure(figsize=figsize)
+    fig_ = plt.figure(figsize=figsize)  # NOQA
 
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     kwargs['classifier_two_weight_filepath'] = 'candidacy2'
