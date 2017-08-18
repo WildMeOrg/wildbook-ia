@@ -366,8 +366,6 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
 
 
 def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
-    ut.embed()
-
     def errors(zipped, conf):
         error_list = [0, 0, 0, 0]
         for index, (label, confidence) in enumerate(zipped):
@@ -382,6 +380,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
         return error_list
 
     zipped = list(zip(label_list, confidence_list))
+    zipped = list(zip(confidence_list, label_list))
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
     for conf in conf_list:
@@ -472,7 +471,7 @@ def general_identify_operating_point(conf_list, x_list, y_list, x_norm=None,
 
 def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
                            plot_point=True, interpolate=True, target=(1.0, 1.0),
-                           **kwargs):
+                           version=1, **kwargs):
     import matplotlib.pyplot as plt
     if interpolate:
         conf_list, x_list, y_list = general_interpolate_precision_recall(
@@ -489,8 +488,8 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                     break
         ap = sum(ap_list) / len(ap_list)
     else:
-        y_list = y_list[::-1]
-        x_list = x_list[::-1]
+        # y_list = y_list[::-1]
+        # x_list = x_list[::-1]
         ap = np.trapz(y_list, x=x_list)
     tup = general_identify_operating_point(conf_list, x_list, y_list, target=target)
     best_conf_list, best_x_list, best_y_list = tup
@@ -498,7 +497,10 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
     # label = '%s [OP = %0.02f]' % (label, best_conf, )
-    label = '%s [AP = %0.02f]' % (label, ap * 100.0, )
+    if interpolate:
+        label = '%s [AP = %0.02f]' % (label, ap * 100.0, )
+    else:
+        label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
     linestyle = '--' if kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
     if plot_point:
@@ -2077,7 +2079,7 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
     confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
+        for prediction, confidence in zip(prediction_list, confidence_list)
     ]
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
