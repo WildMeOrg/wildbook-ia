@@ -366,6 +366,8 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
 
 
 def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
+    ut.embed()
+
     def errors(zipped, conf):
         error_list = [0, 0, 0, 0]
         for index, (label, confidence) in enumerate(zipped):
@@ -2091,7 +2093,8 @@ def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
 
 def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
@@ -2294,7 +2297,8 @@ def classifier_binary_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_binary_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
 
 def classifier_binary_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):
@@ -2396,7 +2400,7 @@ def classifier_binary_precision_recall_algo_display(ibs, figsize=(16, 16), **kwa
 
 def classifier2_precision_recall_algo(ibs, category, **kwargs):
     depc = ibs.depc_image
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
@@ -2429,7 +2433,8 @@ def classifier2_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
 
 def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, **kwargs):
@@ -2459,7 +2464,7 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
 
     print('Processing Confusion Matrix')
     depc = ibs.depc_image
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
@@ -2514,7 +2519,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     kwargs['classifier_two_weight_filepath'] = 'candidacy2'
 
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     depc = ibs.depc_image
     depc.delete_property('classifier_two', test_gid_set, config=kwargs)
@@ -2702,7 +2707,8 @@ def labeler_roc_algo_plot(ibs, **kwargs):
     category_list = kwargs['category_list']
     print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, fpr_list, tpr_list, target=(0.0, 1.0), **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
 
 def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwargs):
