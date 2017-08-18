@@ -1775,7 +1775,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     best_config = config_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    # plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
+    # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
     plt.title('Precision-Recall Curves', y=1.13)
 
     # Display graph of the overall highest area
@@ -1793,8 +1793,12 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
                                                            **best_config)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    args = (best_area, best_label, best_conf, )
-    plt.title('Confusion Matrix for Highest mAP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    # args = (best_area, best_label, best_conf, )
+    # plt.title('Confusion Matrix for Highest AP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    area_list_ = area_list[1:]
+    mAP = sum(area_list_) / len(area_list_)
+    args = (mAP * 100.0, )
+    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.26)
 
     # # Show best that is greater than the best_pr
     # best_index = None
@@ -2195,7 +2199,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2222,7 +2226,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, mAP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2351,7 +2355,7 @@ def classifier_binary_precision_recall_algo_display(ibs, figsize=(16, 16), **kwa
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     area, best_conf1, _ = classifier_binary_precision_recall_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.title('Precision-Recall Curve (AP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2363,7 +2367,7 @@ def classifier_binary_precision_recall_algo_display(ibs, figsize=(16, 16), **kwa
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     area, best_conf2, _ = classifier_binary_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.title('ROC Curve (AP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2776,7 +2780,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
         conf_list.append(conf)
     best_area = area_list[0]
     best_conf = conf_list[0]
-    plt.title('Precision-Recall Curve (Algo: All, mAP = %0.02f)' % (best_area, ), y=1.19)
+    plt.title('Precision-Recall Curve (Algo: All, AP = %0.02f)' % (best_area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2795,7 +2799,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
-    plt.title('ROC Curve (Algo: All, mAP = %0.02f)' % (best_area, ), y=1.19)
+    plt.title('ROC Curve (Algo: All, AP = %0.02f)' % (best_area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -3097,7 +3101,7 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     best_kwargs = kwargs_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.20)
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.20)
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
