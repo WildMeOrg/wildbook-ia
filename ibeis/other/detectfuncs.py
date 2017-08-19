@@ -2403,7 +2403,7 @@ def classifier_binary_precision_recall_algo_display(ibs, figsize=(16, 16), **kwa
 
 def classifier2_precision_recall_algo(ibs, category, **kwargs):
     depc = ibs.depc_image
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
@@ -2467,7 +2467,7 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
 
     print('Processing Confusion Matrix')
     depc = ibs.depc_image
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
@@ -2522,7 +2522,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     kwargs['classifier_two_weight_filepath'] = 'candidacy4'
 
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'))
     test_gid_set = list(test_gid_set)
     depc = ibs.depc_image
     depc.delete_property('classifier_two', test_gid_set, config=kwargs)
