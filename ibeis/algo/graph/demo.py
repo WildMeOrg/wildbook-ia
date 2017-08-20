@@ -398,6 +398,10 @@ def apply_dummy_viewpoints(infr):
 
 
 def make_demo_infr(ccs, edges=[], nodes=[], infer=True):
+    """
+    Depricate in favor of demodata_infr
+    """
+
     import ibeis
     import networkx as nx
 
@@ -459,6 +463,11 @@ def demodata_infr(**kwargs):
         >>> ut.quit_if_noshow()
         >>> infr.show(pickable=True, groupby='name_label')
         >>> ut.show_if_requested()
+
+    Ignore:
+        kwargs = {
+            'ccs': [[1, 2, 3], [4, 5]]
+        }
     """
     import networkx as nx
     import vtool as vt
@@ -485,7 +494,6 @@ def demodata_infr(**kwargs):
 
     rng = np.random.RandomState(0)
     counter = 1
-    new_ccs = []
 
     if pcc_sizes is None:
         pcc_sizes = [int(randn(size_mean, size_std, rng=rng, a_min=1))
@@ -493,6 +501,14 @@ def demodata_infr(**kwargs):
     else:
         num_pccs = len(pcc_sizes)
 
+    if 'ccs' in kwargs:
+        # Overwrites other options
+        pcc_sizes = list(map(len, kwargs['ccs']))
+        num_pccs = len(pcc_sizes)
+        size_mean = None
+        size_std = 0
+
+    new_ccs = []
     pcc_iter = list(enumerate(pcc_sizes))
     pcc_iter = ut.ProgIter(pcc_iter, enabled=num_pccs > 20,
                            label='make pos-demo')
@@ -504,24 +520,25 @@ def demodata_infr(**kwargs):
         # Create basic graph of positive edges with desired connectivity
         g = nx_utils.random_k_edge_connected_graph(
             size, k=want_connectivity, p=p, rng=rng)
-        new_nodes = np.array(list(g.nodes()))
-        new_edges_ = np.array(list(g.edges()))
-        new_edges_ += counter
-        new_nodes += counter
-        counter = new_nodes.max() + 1
-        new_edges = [
-            (int(min(u, v)), int(max(u, v)), {'evidence_decision': POSTV, 'truth': POSTV})
-            for u, v in new_edges_
-        ]
-        new_g = nx.Graph(new_edges)
-        new_g.add_nodes_from(new_nodes)
-        assert nx.is_connected(new_g)
+        nx.set_edge_attributes(g, name='evidence_decision', values=POSTV)
+        nx.set_edge_attributes(g, name='truth', values=POSTV)
+        # nx.set_node_attributes(g, name='orig_name_label', values=i)
+        assert nx.is_connected(g)
+
+        # Relabel graph with non-conflicting names
+        if 'ccs' in kwargs:
+            g = nx.relabel_nodes(g, dict(enumerate(kwargs['ccs'][i])))
+        else:
+            # Make sure nodes do not conflict with others
+            g = nx.relabel_nodes(g, dict(
+                enumerate(range(counter, len(g) + counter + 1))))
+            counter += len(g)
 
         # The probability any edge is inconsistent is `p_incon`
         # This is 1 - P(all edges consistent)
         # which means p(edge is consistent) = (1 - p_incon) / N
         complement_edges = ut.estarmap(nx_utils.e_,
-                                       nx_utils.complement_edges(new_g))
+                                       nx_utils.complement_edges(g))
         if len(complement_edges) > 0:
             # compute probability that any particular edge is inconsistent
             # to achieve probability the PCC is inconsistent
@@ -565,12 +582,13 @@ def demodata_infr(**kwargs):
                 # Add in candidate edges
                 attrs = {'evidence_decision': evidence_decision, 'truth': truth}
                 for (u, v) in edges:
-                    new_edges.append((u, v, attrs))
-        new_ccs.append((new_nodes, new_edges))
+                    g.add_edge(u, v, **attrs)
+        new_ccs.append(g)
+        # (list(g.nodes()), new_edges))
 
-    pos_g = nx.Graph(ut.flatten(ut.take_column(new_ccs, 1)))
-    pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
-    assert num_pccs == len(list(nx.connected_components(pos_g)))
+    pos_g = nx.union_all(new_ccs)
+    assert len(new_ccs) == len(list(nx.connected_components(pos_g)))
+    assert num_pccs == len(new_ccs)
 
     # Add edges between the PCCS
     neg_edges = []
@@ -590,8 +608,8 @@ def demodata_infr(**kwargs):
         p_pair_unrev = kwalias('p_pair_unrev', 0)
 
         # p_pair_neg = 1
-        cc_combos = ((itempair[0][0], itempair[1][0])
-                     for itempair in it.combinations(new_ccs, 2))
+        cc_combos = ((list(g1.nodes()), list(g2.nodes()))
+                     for (g1, g2) in it.combinations(new_ccs, 2))
         valid_cc_combos = [
             (cc1, cc2)
             for cc1, cc2 in cc_combos if len(cc1) and len(cc2)
@@ -626,11 +644,15 @@ def demodata_infr(**kwargs):
     else:
         print('ignoring pairs')
 
-    edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
-    edges = [(int(u), int(v), d) for u, v, d in edges]
-    nodes = ut.flatten(ut.take_column(new_ccs, 0))
-    infr = make_demo_infr([], edges, nodes=nodes,
-                          infer=kwargs.get('infer', True))
+    import ibeis
+    G = ibeis.AnnotInference._graph_cls()
+    G.add_nodes_from(pos_g.nodes(data=True))
+    G.add_edges_from(pos_g.edges(data=True))
+    G.add_edges_from(neg_edges)
+    infr = ibeis.AnnotInference.from_netx(G, infer=kwargs.get('infer', True))
+    infr.verbose = 3
+
+    infr.relabel_using_reviews(rectify=False)
 
     # fontname = 'Ubuntu'
     fontsize = 12

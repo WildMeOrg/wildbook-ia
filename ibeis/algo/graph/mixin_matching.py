@@ -713,7 +713,8 @@ class CandidateSearch(object):
     @profile
     def ensure_priority_scores(infr, priority_edges):
         """
-        Ensures that priority attributes are assigned to the edges
+        Ensures that priority attributes are assigned to the edges.
+        This does not change the state of the queue.
 
         Doctest:
             >>> import ibeis
@@ -769,21 +770,25 @@ class CandidateSearch(object):
             ]
             default_priority[already_pos] = 1 - default_priority[already_pos]
 
-            # Give negatives that pass automatic thresholds high priority
             if infr.params['autoreview.enabled']:
-
                 if infr.params['autoreview.prioritize_nonpos']:
+                    # Give positives that pass automatic thresholds high priority
+                    _probs = primary_probs[POSTV]
+                    flags = _probs > primary_thresh[POSTV]
+                    default_priority[flags] = np.maximum(default_priority[flags],
+                                                         _probs[flags]) + 1
+
+                    # Give negatives that pass automatic thresholds high priority
                     _probs = primary_probs[NEGTV]
                     flags = _probs > primary_thresh[NEGTV]
                     default_priority[flags] = np.maximum(default_priority[flags],
-                                                         _probs[flags])
+                                                         _probs[flags]) + 1
 
-                # Give not-comps that pass automatic thresholds high priority
-                if infr.params['autoreview.prioritize_nonpos']:
+                    # Give not-comps that pass automatic thresholds high priority
                     _probs = primary_probs[INCMP]
                     flags = _probs > primary_thresh[INCMP]
                     default_priority[flags] = np.maximum(default_priority[flags],
-                                                         _probs[flags])
+                                                         _probs[flags]) + 1
 
             infr.set_edge_attrs('prob_match', prob_match.to_dict())
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
@@ -808,6 +813,11 @@ class CandidateSearch(object):
         infr.set_edge_attrs(metric, ut.dzip(priority_edges, priority))
         return metric, priority
 
+    def ensure_prioritized(infr, priority_edges):
+        priority_edges = list(priority_edges)
+        metric, priority = infr.ensure_priority_scores(priority_edges)
+        infr.prioritize(metric=metric, edges=priority_edges, scores=priority)
+
     @profile
     def add_candidate_edges(infr, candidate_edges):
         candidate_edges = list(candidate_edges)
@@ -826,10 +836,7 @@ class CandidateSearch(object):
             priority_edges = candidate_edges
 
         if len(priority_edges) > 0:
-            metric, priority = infr.ensure_priority_scores(priority_edges)
-            infr.prioritize(metric=metric, edges=priority_edges,
-                            scores=priority)
-
+            infr.ensure_prioritized(priority_edges)
             if hasattr(infr, 'on_new_candidate_edges'):
                 # hack callback for demo
                 infr.on_new_candidate_edges(infr, new_edges)
@@ -850,7 +857,8 @@ class CandidateSearch(object):
             infr.print('Searching for dummy candidates')
             infr.print('dummy vsone params =' + ut.repr4(
                 infr.dummy_verif.dummy_params, nl=1, si=True))
-            candidate_edges = infr.dummy_verif.find_candidate_edges()
+            ranks_top = infr.params['ranking.ntop']
+            candidate_edges = infr.dummy_verif.find_candidate_edges(K=ranks_top)
         else:
             raise Exception(
                 'No method available to search for candidate edges')

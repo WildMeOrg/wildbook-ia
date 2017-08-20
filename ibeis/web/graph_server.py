@@ -178,7 +178,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                     return func(**message)
                 except Exception as ex:
                     if actor.infr is not None:
-                        actor.infr.print('Actor Server Error: %s' (repr(ex),))
+                        actor.infr.print('Actor Server Error: {!r}'.format(ex))
                     raise
 
     def start(actor, dbdir, aids='all', config={},

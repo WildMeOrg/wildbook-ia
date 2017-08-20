@@ -1032,6 +1032,7 @@ class AnnotInference(ut.NiceRepr,
         state = self.__dict__.copy()
         # Dont pickle generators
         state['_gen'] = None
+        state['logger'] = None
         return state
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
@@ -1052,7 +1053,9 @@ class AnnotInference(ut.NiceRepr,
 
         # setup logging
         infr.logger = None
-        if True or ut.get_argflag(('--loginfr', '--log-infr')):
+        do_logging = ut.get_argflag(('--loginfr', '--log-infr'))
+        do_logging = True
+        if do_logging:
             if ibs is not None:
                 from os.path import join
                 import ubelt as ub
@@ -1128,6 +1131,7 @@ class AnnotInference(ut.NiceRepr,
         infr.ranker = None
         infr.verifiers = None
 
+        # TODO: move to params
         infr.task_thresh = {
             'match_state': {
                 POSTV: np.inf,

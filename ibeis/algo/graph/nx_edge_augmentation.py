@@ -306,7 +306,7 @@ def partial_k_edge_augmentation(G, k, avail, weight=None):
             C.remove_edges_from(sub_avail.keys())
             # Find a subset of these edges that makes the compoment
             # k-edge-connected and ignore the rest
-            for edge in nx.k_edge_augmentation(C, k=k, avail=sub_avail):
+            for edge in k_edge_augmentation(C, k=k, avail=sub_avail):
                 yield edge
 
     # Generate all edges between CCs that could not be k-edge-connected
