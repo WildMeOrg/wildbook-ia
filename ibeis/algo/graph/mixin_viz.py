@@ -242,6 +242,7 @@ class GraphVisualization(object):
                             reposition=True,
                             use_image=False,
                             edge_overrides=None,
+                            node_overrides=None,
                             colorby='name_label',
                             **kwargs
                             # hide_unreviewed_inferred=True
@@ -496,6 +497,9 @@ class GraphVisualization(object):
         if edge_overrides:
             for key, edge_to_attr in edge_overrides.items():
                 nx.set_edge_attributes(graph, name=key, values=edge_to_attr)
+        if node_overrides:
+            for key, node_to_attr in node_overrides.items():
+                nx.set_node_attributes(graph, name=key, values=node_to_attr)
 
     @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,

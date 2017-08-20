@@ -6,6 +6,7 @@ import utool as ut
 import ubelt as ub
 import pandas as pd
 import itertools as it
+import ibeis.constants as const
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, NULL)
 from ibeis.algo.graph.refresh import RefreshCriteria
@@ -162,7 +163,7 @@ class InfrLoops(object):
             infr.print('infr status: ' + ut.repr4(infr.status()))
 
         # Don't re-review anything that was confidently reviewed
-        # CONFIDENCE = infr.ibs.const.CONFIDENCE
+        # CONFIDENCE = const.CONFIDENCE
         # CODE_TO_INT = CONFIDENCE.CODE_TO_INT.copy()
         # CODE_TO_INT[CONFIDENCE.CODE.UNKNOWN] = 0
         # conf = ut.take(CODE_TO_INT, infr.gen_edge_values(
@@ -174,7 +175,7 @@ class InfrLoops(object):
         assert not infr.params['redun.enabled']
         assert not infr.params['ranking.enabled']
         assert infr.params['inference.enabled']
-        # infr.ibs.const.CONFIDENCE.CODE.PRETTY_SURE
+        # const.CONFIDENCE.CODE.PRETTY_SURE
         if infr.params['queue.conf.thresh'] is None:
             # != 'pretty_sure':
             infr.print('WARNING: should queue.conf.thresh = "pretty_sure"?')
@@ -388,10 +389,14 @@ class InfrLoops(object):
 
     def main_loop(infr, max_loops=None, use_refresh=True):
         """ DEPRICATED """
-        gen = infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
+        infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
         # To automatically run through the loop just exhaust the generator
-        result = next(gen)
-        assert result is None, 'need user interaction. cannot auto loop'
+        try:
+            result = next(infr._gen)
+            assert result is None, 'need user interaction. cannot auto loop'
+        except StopIteration:
+            pass
+        infr._gen = None
 
 
 class InfrReviewers(object):
@@ -399,7 +404,7 @@ class InfrReviewers(object):
     def try_auto_review(infr, edge):
         review = {
             'user_id': 'algo:auto_clf',
-            'confidence': infr.ibs.const.CONFIDENCE.CODE.PRETTY_SURE,
+            'confidence': const.CONFIDENCE.CODE.PRETTY_SURE,
             'evidence_decision': None,
             'meta_decision': NULL,
             'timestamp_s1': None,
@@ -434,27 +439,32 @@ class InfrReviewers(object):
         hasone = sum(decision_flags.values()) == 1
         auto_flag = False
         if hasone:
-            # Check to see if it might be confounded by a photobomb
-            pb_probs = infr.task_probs['photobomb_state'][edge]
-            # pb_probs = infr.task_probs['photobomb_state'].loc[edge]
-            # pb_probs = data['task_probs']['photobomb_state']
-            pb_thresh = infr.task_thresh['photobomb_state']['pb']
-            confounded = pb_probs['pb'] > pb_thresh
+            try:
+                # Check to see if it might be confounded by a photobomb
+                pb_probs = infr.task_probs['photobomb_state'][edge]
+                # pb_probs = infr.task_probs['photobomb_state'].loc[edge]
+                # pb_probs = data['task_probs']['photobomb_state']
+                pb_thresh = infr.task_thresh['photobomb_state']['pb']
+                confounded = pb_probs['pb'] > pb_thresh
+            except KeyError:
+                print('Warning: confounding task probs not set (i.e. photobombs)')
+                confounded = False
             if not confounded:
                 # decision = decision_flags.argmax()
                 evidence_decision = ut.argmax(decision_probs)
                 review['evidence_decision'] = evidence_decision
                 truth = infr.match_state_gt(edge)
                 if review['evidence_decision'] != truth:
-                    infr.print('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
-                               (edge, truth, review['evidence_decision']), 2,
-                               color='darkred')
+                    infr.print(
+                        'AUTOMATIC ERROR edge={}, truth={}, decision={}, probs={}'.format(
+                            edge, truth, review['evidence_decision'], decision_probs),
+                        2, color='darkred')
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
             infr.print('Automatic review success')
 
         if auto_flag:
-            review
+            return review
         else:
             return None
 

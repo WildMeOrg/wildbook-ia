@@ -809,10 +809,10 @@ def k_redun_demo():
     # infr.add_feedback((7464, 7376), NEGTV)
 
     # Adjust between new and old variable names
-    infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', POSTV), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', NEGTV), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', INCMP), [0.5]))
+    infr.set_edge_attrs('evidence_decision', infr.get_edge_attrs('evidence_decision'))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]))
 
     infr.initialize_visual_node_attrs()
     infr.update_node_image_attribute(use_image=True)
@@ -821,7 +821,7 @@ def k_redun_demo():
                              splines='spline',
                              show_cand=False)
     infr.set_edge_attrs('linewidth', 2)
-    # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', POSTV), [4]))
+    # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4]))
     # infr.set_edge_attrs('color', pt.BLACK)
     infr.set_edge_attrs('alpha', .7)
     viz_graph.ensure_node_images(ibs, infr.graph)
@@ -926,10 +926,10 @@ def graph_iden_cut_demo():
         infr.ensure_full()
 
     # Adjust between new and old variable names
-    infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', POSTV), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', NEGTV), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', INCMP), [0.5]))
+    infr.set_edge_attrs('evidence_decision', infr.get_edge_attrs('evidence_decision'))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', NEGTV), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('evidence_decision', INCMP), [0.5]))
 
     infr.initialize_visual_node_attrs()
     infr.update_node_image_attribute(use_image=True)
@@ -937,7 +937,7 @@ def graph_iden_cut_demo():
                              groupby='name_label', splines='spline',
                              show_cand=not postcut)
     infr.set_edge_attrs('linewidth', 2)
-    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', POSTV), [4]))
+    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('evidence_decision', POSTV), [4]))
     if not postcut:
         infr.set_edge_attrs('color', pt.BLACK)
     infr.set_edge_attrs('alpha', .7)
@@ -1035,29 +1035,29 @@ def show_id_graph():
     infr.apply_nondynamic_update()
     # infr.ensure_mst()
     infr.ensure_mst(label='orig_name_label')
-    # infr.ensure_cliques(decision=POSTV)
+    # infr.ensure_cliques(evidence_decision=POSTV)
 
     # infr.show(pickable=True, use_image=True, groupby='name_label',
     #              splines='spline')
 
     infr.apply_nondynamic_update()
     for edge in infr.find_neg_redun_candidate_edges(k=1):
-        infr.add_feedback(edge, decision=NEGTV)
+        infr.add_feedback(edge, evidence_decision=NEGTV)
 
     import itertools as it
     edges = list(it.combinations(infr.aids, 2))
     n = 0
     incomp_edges = ut.compress(edges, [not f for f in infr.is_comparable(edges)])
     for e in ut.shuffle(incomp_edges, rng=3545115929):
-        infr.add_feedback(e, decision=INCMP)
+        infr.add_feedback(e, evidence_decision=INCMP)
         n += 1
         if n > 3:
             break
     for e in force_incomp_edge:
-        infr.add_feedback(e, decision=INCMP)
+        infr.add_feedback(e, evidence_decision=INCMP)
 
     for edge in infr.find_neg_redun_candidate_edges(k=1):
-        infr.add_feedback(edge, decision=NEGTV)
+        infr.add_feedback(edge, evidence_decision=NEGTV)
 
     savekw = dict(dpi=300, transparent=True, edgecolor='none')
     showkw = dict(pickable=True, use_image=True, groupby='name_label',
@@ -1096,14 +1096,14 @@ def show_id_graph():
 
     infr2 = infr.copy()
     for edge in infr2.find_pos_redun_candidate_edges(k=2):
-        infr2.add_feedback(edge, decision=POSTV)
+        infr2.add_feedback(edge, evidence_decision=POSTV)
     infr2.show(pickable=True, use_image=True,
                  groupby='name_label', fnum=1, splines='spline')
     fig = pt.gcf()
     fig.savefig('id_graph6.png',
                 bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw)
     for edge in infr2.find_neg_redun_candidate_edges(k=2):
-        infr2.add_feedback(edge, decision=NEGTV)
+        infr2.add_feedback(edge, evidence_decision=NEGTV)
     infr2.show(pickable=True, use_image=True,
                  groupby='name_label', fnum=1, splines='spline')
     fig = pt.gcf()
@@ -1112,10 +1112,10 @@ def show_id_graph():
 
     infr3 = infr.copy()
     for edge in infr3.find_pos_redun_candidate_edges(k=2):
-        infr3.add_feedback(edge, decision=POSTV)
+        infr3.add_feedback(edge, evidence_decision=POSTV)
     for cc in infr3.non_pos_redundant_pccs(k=3):
         for edge in infr3.find_pos_augment_edges(cc, k=3):
-            infr3.add_feedback(edge, decision=NEGTV)
+            infr3.add_feedback(edge, evidence_decision=NEGTV)
             break
     infr3.show(pickable=True, use_image=True, show_between=False,
                show_inconsistency=True,
@@ -1126,7 +1126,7 @@ def show_id_graph():
 
     infr4 = infr.copy()
     for edge in infr4.edges():
-        infr4.add_feedback(edge, decision=UNREV)
+        infr4.add_feedback(edge, evidence_decision=UNREV)
     infr4.refresh_candidate_edges()
     infr4.show(show_cand=True, **showkw)
     fig = pt.gcf()
@@ -1731,33 +1731,33 @@ def redun_demo2():
             ax.set_xlabel(str(infr.neg_redundancy(cc1, cc2)) + '-negative-redundant')
 
     infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4), (6,)])
-    infr.add_feedback((5, 6), decision=POSTV)
-    # infr.add_feedback((3, 4), decision='unreviewed')
+    infr.add_feedback((5, 6), evidence_decision=POSTV)
+    # infr.add_feedback((3, 4), evidence_decision='unreviewed')
     show_redun(infr)
 
     infr = infr.copy()
     for u, v in infr.find_pos_augment_edges(set(infr.graph.nodes()), k=2):
-        infr.add_feedback((u, v), decision=POSTV)
+        infr.add_feedback((u, v), evidence_decision=POSTV)
     show_redun(infr)
 
     infr = infr.copy()
     for u, v in infr.find_pos_augment_edges(set(infr.graph.nodes()), k=3):
-        infr.add_feedback((u, v), decision=POSTV)
+        infr.add_feedback((u, v), evidence_decision=POSTV)
     show_redun(infr)
 
     infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
-    infr.add_feedback((2, 11), decision=NEGTV)
+    infr.add_feedback((2, 11), evidence_decision=NEGTV)
     show_redun(infr)
 
     infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
-    infr.add_feedback((2, 11), decision=NEGTV)
-    infr.add_feedback((4, 14), decision=NEGTV)
+    infr.add_feedback((2, 11), evidence_decision=NEGTV)
+    infr.add_feedback((4, 14), evidence_decision=NEGTV)
     show_redun(infr)
 
     infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
-    infr.add_feedback((2, 11), decision=NEGTV)
-    infr.add_feedback((4, 14), decision=NEGTV)
-    infr.add_feedback((2, 14), decision=NEGTV)
+    infr.add_feedback((2, 11), evidence_decision=NEGTV)
+    infr.add_feedback((4, 14), evidence_decision=NEGTV)
+    infr.add_feedback((2, 14), evidence_decision=NEGTV)
     show_redun(infr)
 
     fig = pt.gcf()
@@ -1795,9 +1795,9 @@ def redun_demo3():
     pnum_ = pt.make_pnum_nextgen(2, 1)
 
     infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4), (6,)])
-    infr.add_feedback((5, 6), decision=POSTV)
+    infr.add_feedback((5, 6), evidence_decision=POSTV)
     for e in nxu.complement_edges(infr.graph):
-        infr.add_feedback(e, decision=INCMP)
+        infr.add_feedback(e, evidence_decision=INCMP)
 
     infr.graph.graph.update(graphkw)
     infr.show(pnum=pnum_(), **showkw)
@@ -1806,11 +1806,11 @@ def redun_demo3():
 
     ccs = [(1, 2, 3, 4), (11, 12, 13, 14, 15)]
     infr = demo.make_demo_infr(ccs=ccs)
-    infr.add_feedback((4, 14), decision=NEGTV)
+    infr.add_feedback((4, 14), evidence_decision=NEGTV)
     import networkx as nx
     for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
         print('e = %r' % (e,))
-        infr.add_feedback(e, decision=INCMP)
+        infr.add_feedback(e, evidence_decision=INCMP)
     infr.graph.graph.update(graphkw)
     infr.show(pnum=pnum_(), **showkw)
     ax = pt.gca()
@@ -1820,6 +1820,132 @@ def redun_demo3():
     fig.set_size_inches(10 / 3, 5)
 
     ut.show_if_requested()
+
+
+def system_diagram():
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    from ibeis.algo.graph import demo
+    from ibeis.algo.graph import nx_utils as nxu
+    import plottool as pt
+
+    # import networkx as nx
+    pt.ensureqt()
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    # fnum = 1
+    # showkw = dict(show_inconsistency=False, show_labels=True,
+    #               simple_labels=True,
+    #               show_recent_review=False, wavy=False,
+    #               groupby='name_label',
+    #               splines='spline',
+    #               show_all=True,
+    #               pickable=True, fnum=fnum)
+
+    # graphkw = dict(hpad=50, vpad=50, group_grid=True)
+    # pnum_ = pt.make_pnum_nextgen(2, 1)
+
+    infr = demo.demodata_infr(ccs=[(1, 2, 3, 4), (5, 6, 7), (8, 9,), (10,)])
+    showkw = dict(
+        show_unreviewed_edges=True, show_inferred_same=False,
+        show_inferred_diff=False, show_labels=True, simple_labels=True,
+        show_recent_review=False, reposition=False, pickable=True,
+        outof=(len(infr.aids)),  # hack for colors
+    )
+    infr.clear_edges()
+
+    # ----------------------
+    # Step1: Find candidates
+    # ----------------------
+    infr.params['ranking.ntop'] = 4
+    infr.refresh_candidate_edges()
+
+    infr.update_visual_attrs(groupby='name_label')
+    infr.set_node_attrs('pin', 'true')
+    infr.set_node_attrs('shape', 'circle')
+
+    infr.clear_feedback()
+    infr.clear_name_labels()
+
+    # infr.ensure_edges_from([(10, 5), (10, 6)])
+    infr.ensure_prioritized(list(infr.edges()))
+    edge_overrides = {
+        # 'linestyle': {e: 'dashed' for e in infr.edges()},
+        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    }
+    infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 1), **showkw)
+    pt.gca().set_aspect('equal')
+
+    # ---------------------------
+    # Step 2: Automatic decisions
+    # ---------------------------
+    infr.task_probs.pop('photobomb_state', None)
+    infr.params['autoreview.enabled'] = True
+    infr.params['autoreview.prioritize_nonpos'] = True
+    infr.task_thresh['match_state'][POSTV] = .8
+    infr.task_thresh['match_state'][NEGTV] = .54
+    infr.task_thresh['match_state'][INCMP] = .5
+
+    # infr.add_feedback((1, 2), POSTV)  # hack
+
+    infr.ensure_prioritized(infr.get_edges_where_eq('decision', UNREV))
+    gen = infr.inner_priority_gen()
+    next(gen)
+
+    edge_overrides = {
+        # 'linestyle': {e: 'dashed' for e in infr.edges()},
+        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    }
+    infr.update_visual_attrs(groupby='name_label')
+    infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 2), **showkw)
+    pt.gca().set_aspect('equal')
+
+    # --------------
+    # Error recovery
+    # --------------
+    possible = list(infr.find_pos_redun_candidate_edges())
+    edge = possible[min(1, len(possible) - 1)]
+    infr.add_feedback(edge, NEGTV)
+
+    node_overrides = {
+        'label': {n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())}
+    }
+    edge_overrides = {
+        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    }
+    infr.update_visual_attrs(groupby='name_label')
+    infr.show(edge_overrides=edge_overrides, node_overrides=node_overrides,
+              fnum=1, pnum=(1, 4, 3), **showkw)
+    pt.gca().set_aspect('equal')
+
+    # Manual Decisions
+    infr.init_simulation(oracle_accuracy=1.0)
+    infr.params['redun.neg.only_auto'] = False
+    infr.main_loop()
+
+    # ISSUE:
+    # For some reason a incomparable edge (3, 10) is being manually reviewed
+    # again in the main loop even though it was already reviewed.
+    # Quick Fix: add feedback specifically for this example.
+    infr.add_feedback((3, 10), INCMP)
+
+    # ISSUE:
+    # When candidate edges are added within pos-redun CCs, the inferred state
+    # should be set (but currently it is not).
+    # EG: edge (1, 2) is added, but the CC is already pos-redun, but the
+    # inferred state on the edge is never set.
+    # Quick Fix: inference between newly added edges that were already
+    # pos-redun
+    infr.apply_nondynamic_update()
+
+    edge_overrides = {
+        # 'linestyle': {e: 'dashed' for e in infr.edges()},
+        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    }
+    infr.update_visual_attrs(groupby='name_label')
+    infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 4), **showkw)
+    pt.gca().set_aspect('equal')
 
 
 if __name__ == '__main__':
