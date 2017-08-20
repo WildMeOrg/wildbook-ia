@@ -1775,10 +1775,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     conf_list = [ ret[1] for ret in ret_list ]
     # index = np.argmax(area_list)
     index = 0
-    best_label = config_list[index]['label']
+    best_label = config_list[index]['label']  # NOQA
     best_color = color_list[index]
     best_config = config_list[index]
-    best_area = area_list[index]
+    best_area = area_list[index]  # NOQA
     best_conf = conf_list[index]
     # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
     plt.title('Precision-Recall Curves', y=1.13)
@@ -3164,6 +3164,135 @@ def detector_metric_graphs(ibs, species_list=[]):
     ibs.localizer_precision_recall_algo_display()
     ibs.labeler_precision_recall_algo_display()
     ibs.detector_precision_recall_algo_display()
+
+
+def get_classifier2_rf_data_labels(ibs, dataset_tag, category_list):
+    depc = ibs.depc_image
+    train_gid_set = general_get_imageset_gids(ibs, dataset_tag)
+    config = {
+        'algo': 'resnet',
+    }
+    data_list = depc.get_property('features', train_gid_set, 'vector', config=config)
+    data_list = np.array(data_list)
+
+    print('Loading labels for images')
+    # Load targets
+    aids_list = ibs.get_image_aids(train_gid_set)
+    species_set_list = [
+        set(ibs.get_annot_species_texts(aid_list_))
+        for aid_list_ in aids_list
+    ]
+    label_list = [
+        [
+            1.0 if category in species_set else 0.0
+            for category in category_list
+        ]
+        for species_set in species_set_list
+    ]
+    label_list = np.array(label_list)
+
+    # Return values
+    return train_gid_set, data_list, label_list
+
+
+@register_ibs_method
+def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False,
+                               n_estimators=10):
+    from sklearn import ensemble, preprocessing
+
+    # Load data
+    print('Loading pre-trained features for images')
+
+    ut.embed()
+
+    # Save model pickle
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    ut.ensuredir(output_path)
+    species_list = [species.lower() for species in species_list]
+    species_list_str = '.'.join(species_list)
+
+    args = (species_list_str, n_estimators, )
+    output_filename = 'classifier2.rf.image.%s.%s.pkl' % args
+    output_filepath = join(output_path, output_filename)
+    if not dryrun:
+        vals = get_classifier2_rf_data_labels(ibs, 'TRAIN_SET', species_list)
+        train_gid_set, data_list, label_list = vals
+
+        print('Train data scaler using features')
+        # Train new scaler and model using data and labels
+        scaler = preprocessing.StandardScaler().fit(data_list)
+        data_list = scaler.transform(data_list)
+        print('Train RF model using features and target labels')
+        model = ensemble.RandomForestClassifier(n_estimators=n_estimators)
+        model.fit(data_list, label_list)
+
+        model_tup = (model, scaler, )
+        ut.save_cPkl(output_filepath, model_tup)
+
+        # Load model pickle
+        model_tup_ = ut.load_cPkl(output_filepath)
+        model_, scaler_ = model_tup_
+
+        # Test accuracy
+        vals = get_classifier2_rf_data_labels(ibs, 'TEST_SET', species_list)
+        train_gid_set, data_list, label_list = vals
+        # Normalize data
+        data_list = scaler_.transform(data_list)
+        label_list_ = model_.predict(data_list)
+        ut.embed()
+        # score_list_ = model_.decision_function(data_list)  # NOQA
+        score_list_ = model_.predict_proba(data_list)  # NOQA
+        tp, tn, fp, fn = 0, 0, 0, 0
+        for label_, label in zip(label_list_, label_list):
+            if label == 1 and label == label_:
+                tp += 1
+            elif label == 0 and label == label_:
+                tn += 1
+            elif label == 1 and label != label_:
+                fn += 1
+            elif label == 0 and label != label_:
+                fp += 1
+            else:
+                raise ValueError
+
+        pos, neg = tp + fn, tn + fp
+        correct = tp + tn
+        total = tp + tn + fp + fn
+        accuracy = correct / total
+        print('Accuracy: %0.02f' % (accuracy, ))
+        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
+        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
+        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
+        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+
+    return output_filepath
+
+
+@register_ibs_method
+def classifier2_train_image_rf_sweep(ibs, species_list, precompute=True, **kwargs):
+
+    depc = ibs.depc_image
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', species_list)
+
+    config_list = [
+        (10, ),
+    ]
+    output_filepath_list = []
+    for n_estimators in config_list:
+        output_filepath = ibs.classifier2_train_image_rf(species_list,
+                                                         n_estimators=n_estimators,
+                                                         **kwargs)
+        output_filepath_list.append(output_filepath)
+
+        if precompute:
+            config = {
+                'classifier_two_algo'            : 'rf',
+                'classifier_two_weight_filepath' : output_filepath,
+            }
+            depc.get_rowids('classifier_two', test_gid_list, config=config)
+
+    return output_filepath_list
 
 
 def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
