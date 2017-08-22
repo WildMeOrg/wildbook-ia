@@ -3197,7 +3197,7 @@ def get_classifier2_rf_data_labels(ibs, dataset_tag, category_list):
 
 @register_ibs_method
 def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False,
-                               n_estimators=10):
+                               n_estimators=100):
     from sklearn import ensemble, preprocessing
 
     # Load data
@@ -3224,7 +3224,8 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
         scaler = preprocessing.StandardScaler().fit(data_list)
         data_list = scaler.transform(data_list)
         print('Train RF model using features and target labels')
-        model = ensemble.RandomForestClassifier(n_estimators=n_estimators)
+        model = ensemble.RandomForestClassifier(n_estimators=n_estimators,
+                                                max_features=None)
         model.fit(data_list, label_list)
 
         model_tup = (model, scaler, )
@@ -3276,7 +3277,7 @@ def classifier2_train_image_rf_sweep(ibs, species_list, precompute=True, **kwarg
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', species_list)
 
     config_list = [
-        (10, ),
+        10,
     ]
     output_filepath_list = []
     for n_estimators in config_list:
