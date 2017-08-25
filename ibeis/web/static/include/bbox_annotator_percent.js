@@ -1823,10 +1823,19 @@ TODO
                     holder = ''
                 }
                 if(entry.highlighted) {
-                    element.label.html(holder + "*")
-                } else {
+                    value1 = entry['metadata']['viewpoint1']
+                    value2 = entry['metadata']['viewpoint2']
+                    value3 = entry['metadata']['viewpoint3']
+                    species = entry['metadata']['species']
+                    tag = normalize_viewpoint(value1, value2, value3)
+                    holder = species + ' ' + tag
                     element.label.html(holder)
+                    // holder = holder + "*"
+                    element.label.html(holder)
+                } else {
+                    holder = ''
                 }
+                element.label.html(holder)
                 element.label.show()
             } else {
                 element.label.hide()

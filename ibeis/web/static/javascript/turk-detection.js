@@ -263,9 +263,7 @@ function fix_metadata_panels() {
     }
 }
 
-function update_label() {
-    state = states.active
-
+function normalize_viewpoint(value1, value2, value3) {
     var viewpoint_strs = [];
     viewpoint_strs[-1] = null;
     viewpoint_strs[0] = 'Top';
@@ -274,19 +272,6 @@ function update_label() {
     viewpoint_strs[3] = 'Back';
     viewpoint_strs[4] = 'Left';
     viewpoint_strs[5] = 'Right';
-
-    for (var index = 0; index <= 6; index++) {
-        $("#col-viewpoint-ticks-2-" + index).css({
-            opacity: 1.0,
-        })
-        $("#col-viewpoint-ticks-3-" + index).css({
-            opacity: 1.0,
-        })
-    }
-
-    value1 = parseFloat($("#ia-detection-" + state + "-viewpoint-1").val());
-    value2 = parseFloat($("#ia-detection-" + state + "-viewpoint-2").val());
-    value3 = parseFloat($("#ia-detection-" + state + "-viewpoint-3").val());
 
     if (value3 >= 0 && value1 == -1) {
         value3 = -1
@@ -359,6 +344,26 @@ function update_label() {
         tag = "<i>Unspecified</i>"
     }
 
+    return tag
+}
+
+function update_label() {
+    state = states.active
+
+    for (var index = 0; index <= 6; index++) {
+        $("#col-viewpoint-ticks-2-" + index).css({
+            opacity: 1.0,
+        })
+        $("#col-viewpoint-ticks-3-" + index).css({
+            opacity: 1.0,
+        })
+    }
+
+    value1 = parseFloat($("#ia-detection-" + state + "-viewpoint-1").val());
+    value2 = parseFloat($("#ia-detection-" + state + "-viewpoint-2").val());
+    value3 = parseFloat($("#ia-detection-" + state + "-viewpoint-3").val());
+
+    tag = normalize_viewpoint(value1, value2, value3)
     $("#ia-detection-" + state + "-viewpoint-label").html(tag);
 
     var quality_strs = [];

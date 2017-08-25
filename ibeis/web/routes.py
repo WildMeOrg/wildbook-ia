@@ -22,7 +22,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-THROW_TEST_AOI_TURKING = True
+THROW_TEST_AOI_TURKING = False
 THROW_TEST_AOI_TURKING_PERCENTAGE = 0.05
 THROW_TEST_AOI_TURKING_ERROR_MODES = {
     'addition'   : [1, 2, 3],
