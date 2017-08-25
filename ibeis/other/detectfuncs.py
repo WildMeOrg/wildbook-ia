@@ -2520,7 +2520,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     fig_ = plt.figure(figsize=figsize)  # NOQA
 
     # kwargs['classifier_two_weight_filepath'] = 'v3'
-    kwargs['classifier_two_weight_filepath'] = 'candidacy5'
+    kwargs['classifier_two_weight_filepath'] = 'candidacy6'
 
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
