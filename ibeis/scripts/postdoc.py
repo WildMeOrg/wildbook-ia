@@ -2398,9 +2398,9 @@ class GraphExpt(DBInputs):
         infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
         infr1.enable_auto_prioritize_nonpos = True
-        infr1._refresh_params['window'] = 20
-        infr1._refresh_params['thresh'] = 0.052
-        infr1._refresh_params['patience'] = 72
+        infr1.params['refresh.window'] = 20
+        infr1.params['refresh.thresh'] = 0.052
+        infr1.params['refresh.patience'] = 72
 
         infr1.init_simulation(classifiers=classifiers, **dials1)
         infr1.init_test_mode()
@@ -2481,13 +2481,13 @@ def entropy_potential(infr, u, v, decision):
         n_ccs = infr.pos_graph.number_of_components()
 
         # Find needed negative redundency when appart
-        if infr.neg_redun_nids.has_node(nid1):
-            neg_redun_set1 = set(infr.neg_redun_nids.neighbors(nid1))
+        if infr.neg_redun_metagraph.has_node(nid1):
+            neg_redun_set1 = set(infr.neg_redun_metagraph.neighbors(nid1))
         else:
             neg_redun_set1 = set()
 
-        if infr.neg_redun_nids.has_node(nid2):
-            neg_redun_set2 = set(infr.neg_redun_nids.neighbors(nid2))
+        if infr.neg_redun_metagraph.has_node(nid2):
+            neg_redun_set2 = set(infr.neg_redun_metagraph.neighbors(nid2))
         else:
             neg_redun_set2 = set()
 

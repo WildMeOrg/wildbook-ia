@@ -704,7 +704,7 @@ class SimulationHelpers(object):
                 with timer:
                     # Find undetectable errors
                     num_undetectable_fn = 0
-                    for nid1, nid2 in infr.neg_redun_nids.edges():
+                    for nid1, nid2 in infr.neg_redun_metagraph.edges():
                         cc1 = infr.pos_graph.component(nid1)
                         cc2 = infr.pos_graph.component(nid2)
                         neg_edges = nxu.edges_cross(infr.neg_graph, cc1, cc2)

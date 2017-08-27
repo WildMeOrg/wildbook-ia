@@ -236,7 +236,7 @@ class GraphVisualization(object):
                             show_recent_review=False,
                             highlight_reviews=True,
                             show_inconsistency=True,
-                            wavy=True,
+                            wavy=False,
                             simple_labels=False,
                             show_labels=True,
                             reposition=True,
@@ -344,6 +344,12 @@ class GraphVisualization(object):
                          if state == 'same']
         inferred_diff = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'diff']
+        inconsistent_external = [
+            edge for edge, state in edge_to_inferred_state.items()
+            if state == 'inconsistent_external']
+        inferred_notcomp = [edge for edge, state in edge_to_inferred_state.items()
+                            if state == 'notcomp']
+
         reviewed_edges = incomp_edges + pos_edges + neg_edges
         compared_edges = pos_edges + neg_edges
         uncompared_edges = ut.setdiff(edges, compared_edges)
@@ -373,6 +379,17 @@ class GraphVisualization(object):
         # nx.set_edge_attributes(graph, name='stroke', values=ut.dzip(reviewed_edges, [{'linewidth': 3, 'foreground': fg}]))
         if show_inconsistency:
             nx.set_edge_attributes(graph, name='stroke', values=ut.dzip(recheck_edges, [{'linewidth': 5, 'foreground': infr._error_color}]))
+
+        # Set linestyles to emphasize PCCs
+        # Dash lines between PCCs inferred to be different
+        nx.set_edge_attributes(graph, name='linestyle', values=ut.dzip(inferred_diff, ['dashed']))
+
+        # Treat incomparable/incon-external inference as different
+        nx.set_edge_attributes(graph, name='linestyle', values=ut.dzip(inferred_notcomp, ['dashed']))
+        nx.set_edge_attributes(graph, name='linestyle', values=ut.dzip(inconsistent_external, ['dashed']))
+
+        # Dot lines that we are unsure of
+        nx.set_edge_attributes(graph, name='linestyle', values=ut.dzip(unreviewed_edges, ['dotted']))
 
         # Cut edges are implicit and dashed
         # nx.set_edge_attributes(graph, name='implicit', values=ut.dzip(cut_edges, [True]))
@@ -505,6 +522,43 @@ class GraphVisualization(object):
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,
                    with_colorbar=False, pnum=(1, 1, 1), zoomable=True,
                    pickable=False, **kwargs):
+        r"""
+        Args:
+            infr (?):
+            graph (None): (default = None)
+            use_image (bool): (default = False)
+            update_attrs (bool): (default = True)
+            with_colorbar (bool): (default = False)
+            pnum (tuple):  plot number(default = (1, 1, 1))
+            zoomable (bool): (default = True)
+            pickable (bool): (de = False)
+            **kwargs: verbose, with_labels, fnum, layout, ax, pos, img_dict,
+                      title, layoutkw, framewidth, modify_ax, as_directed,
+                      hacknoedge, hacknode, node_labels, arrow_width, fontsize,
+                      fontweight, fontname, fontfamilty, fontproperties
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_viz GraphVisualization.show_graph --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_viz import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> import plottool as pt
+            >>> infr = demo.demodata_infr(ccs=ut.estarmap(
+            >>>    range, [(1, 6), (6, 10), (10, 13), (13, 15), (15, 16),
+            >>>            (17, 20)]))
+            >>> pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=3)
+            >>> infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())
+            >>> infr.add_feedback((1, 5), INCMP)
+            >>> infr.add_feedback((14, 18), INCMP)
+            >>> infr.refresh_candidate_edges()
+            >>> infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())
+            >>> infr.add_feedback((17, 18), NEGTV)  # add inconsistency
+            >>> infr.apply_nondynamic_update()
+            >>> infr.show_graph(show_cand=True, simple_labels=True, pickable=True, fnum=1, pnum=pnum_())
+            >>> ut.show_if_requested()
+        """
         import plottool as pt
         if graph is None:
             graph = infr.graph
@@ -693,3 +747,15 @@ def on_pick(event, infr=None):
         else:
             print('???: ' + ut.repr2(plotdat))
     print(ut.get_timestamp())
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.graph.mixin_viz
+        python -m ibeis.algo.graph.mixin_viz --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

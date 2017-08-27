@@ -1548,7 +1548,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         #         return True
         #     else:
         #         return False
-        #     # elif infr.neg_redun_nids.has_edge(nid1, nid2):
+        #     # elif infr.neg_redun_metagraph.has_edge(nid1, nid2):
         #     #     return False
         #     # else:
         #     #     return None
@@ -1558,7 +1558,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         #     nid1, nid2 = infr.pos_graph.node_labels(u, v)
         #     if nid1 == nid2:
         #         return True
-        #     elif infr.neg_redun_nids.has_edge(nid1, nid2):
+        #     elif infr.neg_redun_metagraph.has_edge(nid1, nid2):
         #         return False
         #     else:
         #         return None

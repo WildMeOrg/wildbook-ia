@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+TODO:
+    Negative bookkeeping, needs a small re-organization fix.
+    MOVE FROM neg_redun_metagraph TO neg_metagraph
+
+    Instead of maintaining a graph that contains PCCS which are neg redundant
+    to each other, the graph should maintain PCCs that have ANY negative edge
+    between them (aka 1 neg redundant). Then that edge should store a flag
+    indicating the strength / redundancy of that connection.
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
@@ -10,8 +20,6 @@ from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN,
                                     UNINFERABLE)
 from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
-from ibeis.algo.graph.nx_utils import (edges_inside, edges_cross,
-                                       edges_outgoing)
 print, rrr, profile = ut.inject2(__name__)
 
 DECISION_LEVEL = 4
@@ -296,7 +304,7 @@ class DynamicUpdate(object):
 
             %timeit list(infr.pos_graph.subgraph(cc1, dynamic=True).edges())
             %timeit list(infr.pos_graph.subgraph(cc1, dynamic=False).edges())
-            %timeit list(edges_inside(infr.pos_graph, cc1))
+            %timeit list(nxu.edges_inside(infr.pos_graph, cc1))
         """
         decision = POSTV
         nid1, nid2 = infr.pos_graph.node_labels(*edge)
@@ -326,16 +334,16 @@ class DynamicUpdate(object):
                 # print_('Inconsistent merge',)
                 print_('pos-between-dirty-merge')
                 if not incon1:
-                    recover_edges = list(edges_inside(infr.pos_graph, cc1))
+                    recover_edges = list(nxu.edges_inside(infr.pos_graph, cc1))
                 else:
-                    recover_edges = list(edges_inside(infr.pos_graph, cc2))
+                    recover_edges = list(nxu.edges_inside(infr.pos_graph, cc2))
                 infr.recover_graph.add_edges_from(recover_edges)
                 infr._purge_redun_flags(nid1)
                 infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, decision)
                 infr.recover_graph.add_edge(*edge)
                 new_nid = infr.pos_graph.node_label(edge[0])
-            elif any(edges_cross(infr.neg_graph, cc1, cc2)):
+            elif any(nxu.edges_cross(infr.neg_graph, cc1, cc2)):
                 # print_('Merge creates inconsistency',)
                 print_('pos-between-clean-merge-dirty')
                 infr._purge_redun_flags(nid1)
@@ -507,6 +515,15 @@ class DynamicUpdate(object):
                     print_('incon-between-neg-dirty')
             else:
                 print_('incon-between')
+                # HACK, this sortof fixes inferred state not being set
+                if infr.params['inference.update_attrs']:
+                    if decision == INCMP:
+                        if not infr.is_neg_redundant(cc1, cc2, k=1):
+                            # TODO: verify that there isn't a negative inferred
+                            # state
+                            infr.set_edge_attrs(
+                                'inferred_state', ut.dzip([edge], [INCMP])
+                            )
             action = infr.on_between(edge, decision, nid1, nid2)
         return action
 
@@ -619,7 +636,7 @@ class Recovery(object):
         if cc is None:
             cc = infr.pos_graph.component(nid)
         was_clean = infr._purge_error_edges(nid)
-        neg_edges = list(edges_inside(infr.neg_graph, cc))
+        neg_edges = list(nxu.edges_inside(infr.neg_graph, cc))
         if neg_edges:
             pos_subgraph_ = infr.pos_graph.subgraph(cc, dynamic=False).copy()
             if not nx.is_connected(pos_subgraph_):
@@ -688,7 +705,7 @@ class Recovery(object):
         for (s, t), join_weight in zip(neg_edges, neg_weight):
             cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t,
                                                capacity=capacity)
-            cut_edgeset = edges_cross(pos_subgraph, *parts)
+            cut_edgeset = nxu.edges_cross(pos_subgraph, *parts)
             if join_weight < cut_weight:
                 join_edgeset = {(s, t)}
                 chosen = join_edgeset
@@ -721,7 +738,7 @@ class Consistency(object):
             >>> infr = demo.demodata_infr(num_pccs=1, p_incon=0)
             >>> assert infr.is_consistent(next(infr.positive_components()))
         """
-        return len(cc) <= 2 or not any(edges_inside(infr.neg_graph, cc))
+        return len(cc) <= 2 or not any(nxu.edges_inside(infr.neg_graph, cc))
 
     def positive_components(infr, graph=None):
         r"""
@@ -764,455 +781,6 @@ class Consistency(object):
                 yield cc
 
 
-class Priority(object):
-    """
-    Handles prioritization of edges for review.
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-        >>> from ibeis.algo.graph import demo
-        >>> infr = demo.demodata_infr(num_pccs=20)
-    """
-
-    def remaining_reviews(infr):
-        assert infr.queue is not None
-        return len(infr.queue)
-
-    def _pop(infr, *args):
-        """ Wraps queue so ordering is determenistic """
-        (e, (p, _)) = infr.queue.pop(*args)
-        return (e, -p)
-
-    def _push(infr, edge, priority):
-        """ Wraps queue so ordering is determenistic """
-        PSEUDO_RANDOM_TIEBREAKER = False
-        if PSEUDO_RANDOM_TIEBREAKER:
-            # Make it so tiebreakers have a pseudo-random order
-            chaotic = int.from_bytes(ut.digest_data(edge, alg='sha1')[:8], 'big')
-            tiebreaker = (chaotic,) + edge
-        else:
-            tiebreaker = edge
-        # tiebreaker = (chaotic(chaotic(u) + chaotic(v)), u, v)
-        infr.queue[edge] = (-priority, tiebreaker)
-
-    def _peek_many(infr, n):
-        """ Wraps queue so ordering is determenistic """
-        return [(k, -p) for (k, (p, _)) in infr.queue.peek_many(n)]
-
-    def _remove_edge_priority(infr, edges):
-        if infr.queue is None:
-            return
-        edges_ = [edge for edge in edges if edge in infr.queue]
-        if len(edges_) > 0:
-            infr.print('removed priority from {} edges'.format(len(edges_)), 5)
-            infr.queue.delete_items(edges_)
-
-    def _reinstate_edge_priority(infr, edges):
-        if infr.queue is None:
-            return
-        edges_ = [edge for edge in edges if edge not in infr.queue]
-        if len(edges_) > 0:
-            # TODO: use whatever the current metric is
-            metric = 'prob_match'
-            infr.print('reprioritize {} edges'.format(len(edges_)), 5)
-            priorities = infr.gen_edge_values(metric, edges_, default=1e-9)
-            for edge, priority in zip(edges_, priorities):
-                infr._push(edge, priority)
-
-    def _increase_priority(infr, edges, amount=10):
-        if infr.queue is None:
-            return
-        infr.print('increase priority of {} edges'.format(len(edges)), 5)
-        metric = 'prob_match'
-        priorities = infr.gen_edge_values(metric, edges, default=1e-9)
-        for edge, base in zip(edges, priorities):
-            infr.push(edge, base + amount)
-
-    def remove_internal_priority(infr, cc):
-        if infr.queue is not None:
-            infr._remove_edge_priority(edges_inside(infr.graph, cc))
-
-    def remove_external_priority(infr, cc):
-        if infr.queue is not None:
-            infr._remove_edge_priority(edges_outgoing(infr.graph, cc))
-
-    def remove_between_priority(infr, cc1, cc2):
-        if infr.queue is not None:
-            infr._remove_edge_priority(edges_cross(infr.graph, cc1, cc2))
-
-    def reinstate_between_priority(infr, cc1, cc2):
-        if infr.queue is not None:
-            # Reinstate the appropriate edges into the queue
-            edges = edges_cross(infr.unreviewed_graph, cc1, cc2)
-            infr._reinstate_edge_priority(edges)
-
-    def reinstate_internal_priority(infr, cc):
-        if infr.queue is not None:
-            # Reinstate the appropriate edges into the queue
-            edges = edges_inside(infr.unreviewed_graph, cc)
-            infr._reinstate_edge_priority(edges)
-
-    def reinstate_external_priority(infr, cc):
-        if infr.queue is not None:
-            # Reinstate the appropriate edges into the queue
-            edges = edges_outgoing(infr.unreviewed_graph, cc)
-            infr._reinstate_edge_priority(edges)
-
-    @profile
-    def prioritize(infr, metric=None, edges=None, scores=None,
-                   force_inconsistent=True, reset=False):
-        """
-        Adds edges to the priority queue
-
-        Doctest:
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr(num_pccs=7, size=5)
-            >>> infr.ensure_cliques(meta_decision=SAME)
-            >>> # Add a negative edge inside a PCC
-            >>> ccs = list(infr.positive_components())
-            >>> edge1 = tuple(list(ccs[0])[0:2])
-            >>> edge2 = tuple(list(ccs[1])[0:2])
-            >>> infr.add_feedback(edge1, NEGTV)
-            >>> infr.add_feedback(edge2, NEGTV)
-            >>> num_new = infr.prioritize(reset=True)
-            >>> order = infr._peek_many(np.inf)
-            >>> scores = ut.take_column(order, 1)
-            >>> assert scores[0] > 10
-            >>> assert len(scores) == num_new, 'should prioritize two hypotheis edges'
-            >>> unrev_edges = set(infr.unreviewed_graph.edges())
-            >>> err_edges = set(ut.flatten(infr.nid_to_errors.values()))
-            >>> edges = set(list(unrev_edges - err_edges)[0:2])
-            >>> edges.update(list(err_edges)[0:2])
-            >>> num_new = infr.prioritize(edges=edges, reset=True)
-            >>> order2 = infr._peek_many(np.inf)
-            >>> scores2 = np.array(ut.take_column(order2, 1))
-            >>> assert np.all(scores2[0:2] > 10)
-            >>> assert np.all(scores2[2:] < 10)
-
-        Example:
-            import ibeis
-            infr = ibeis.AnnotInference('PZ_MTEST', aids='all', autoinit='staging')
-            infr.verbose = 1000
-            infr.load_published()
-            incon_edges = set(ut.iflatten(infr.nid_to_errors.values()))
-            assert len(incon_edges) > 0
-            edges = list(infr.find_pos_redun_candidate_edges())
-            assert len(set(incon_edges).intersection(set(edges))) == 0
-            infr.add_candidate_edges(edges)
-
-            infr.prioritize()
-            print(ut.repr4(infr.status()))
-        """
-        if reset or infr.queue is None:
-            infr.queue = ut.PriorityQueue()
-        low = 1e-9
-        if metric is None:
-            metric = 'prob_match'
-
-        # If edges are not explicilty specified get unreviewed and error edges
-        # that are not redundant
-        if edges is None:
-            if scores is not None:
-                raise ValueError('must provide edges with scores')
-            unrev_edges = infr.unreviewed_graph.edges()
-            edges = set(infr.filter_nonredun_edges(unrev_edges))
-
-        infr.print('ensuring {} edge(s) get priority'.format(
-            len(edges)), 5)
-
-        if infr.params['inference.enabled'] and force_inconsistent:
-            # Ensure that maybe_error edges are always prioritized
-            maybe_error_edges = set(infr.maybe_error_edges())
-            extra_edges = set(maybe_error_edges).difference(set(edges))
-            extra_edges = list(extra_edges)
-            infr.print('ensuring {} inconsistent edge(s) get priority'.format(
-                len(extra_edges)), 5)
-
-            if scores is not None:
-                pgen = list(infr.gen_edge_values(metric, extra_edges, default=low))
-                extra_scores = np.array(pgen)
-                extra_scores[np.isnan(extra_scores)] = low
-
-                scores = ut.aslist(scores) + ut.aslist(extra_scores)
-            edges = ut.aslist(edges) + extra_edges
-
-        # Ensure edges are in some arbitrary order
-        edges = list(edges)
-
-        # Ensure given scores do not have nan values
-        if scores is None:
-            pgen = infr.gen_edge_values(metric, edges, default=low)
-            priorities = np.array(list(pgen))
-            priorities[np.isnan(priorities)] = low
-        else:
-            priorities = np.asarray(scores)
-            if np.any(np.isnan(priorities)):
-                priorities[np.isnan(priorities)] = low
-
-        if infr.params['inference.enabled']:
-            # Increase priority of any flagged maybe_error edges
-            err_flags = [e in maybe_error_edges for e in edges]
-            priorities[err_flags] += 10
-
-        # Push new items into the priority queue
-        num_new = 0
-        for edge, priority in zip(edges, priorities):
-            if edge not in infr.queue:
-                num_new += 1
-            infr._push(edge, priority)
-
-        infr.print('added %d edges to the queue' % (num_new,), 1)
-        return num_new
-
-    def push(infr, edge, priority=None):
-        """
-        Push an edge back onto the queue
-        """
-        if priority is None:
-            priority = 'prob_match'
-        if isinstance(priority, six.string_types):
-            prob_match = infr.get_edge_attr(edge, priority, default=1e-9)
-            priority = prob_match
-        # Use edge-ids to break ties for determenistic behavior
-        infr._push(edge, priority)
-
-    @profile
-    def pop(infr):
-        """
-        Main interface to the priority queue used by the algorithm loops.
-        Pops the highest priority edge from the queue.
-        """
-        try:
-            edge, priority = infr._pop()
-        except IndexError:
-            raise StopIteration('no more to review!')
-        else:
-            if infr.params['redun.enabled']:
-                u, v = edge
-                nid1, nid2 = infr.node_labels(u, v)
-                pos_graph = infr.pos_graph
-                pos_graph[nid1]
-                if nid1 == nid2:
-                    if nid1 not in infr.nid_to_errors:
-                        # skip edges that increase local connectivity beyond
-                        # redundancy thresholds.
-                        k_pos = infr.params['redun.pos']
-                        # Much faster to compute local connectivity on subgraph
-                        cc = infr.pos_graph.component(nid1)
-                        pos_subgraph = infr.pos_graph.subgraph(cc)
-                        pos_conn = nx.connectivity.local_edge_connectivity(
-                            pos_subgraph, u, v, cutoff=k_pos)
-                        # Compute local connectivity
-                        if pos_conn >= k_pos:
-                            return infr.pop()
-            if infr.params['queue.conf.thresh'] is not None:
-                # Ignore reviews that would re-enforce a relationship that
-                # already has high confidence.
-                thresh_code = infr.params['queue.conf.thresh']
-                thresh = const.CONFIDENCE.CODE_TO_INT[thresh_code]
-                if priority < 10:
-                    u, v = edge
-                    nid1, nid2 = infr.node_labels(u, v)
-                    if nid1 == nid2:
-                        if infr.confidently_connected(u, v, thresh):
-                            infr.pop()
-                    else:
-                        if infr.confidently_separated(u, v, thresh):
-                            infr.pop()
-
-            if getattr(infr, 'fix_mode_split', False):
-                # only checking edges within a name
-                nid1, nid2 = infr.pos_graph.node_labels(*edge)
-                if nid1 != nid2:
-                    return infr.pop()
-            if getattr(infr, 'fix_mode_merge', False):
-                # only checking edges within a name
-                nid1, nid2 = infr.pos_graph.node_labels(*edge)
-                if nid1 == nid2:
-                    return infr.pop()
-            if getattr(infr, 'fix_mode_predict', False):
-                # No longer needed.
-                pred = infr.get_edge_data(edge).get('pred', None)
-                # only report cases where the prediction differs
-                if priority < 10:
-                    nid1, nid2 = infr.node_labels(*edge)
-                    if nid1 == nid2:
-                        u, v = edge
-                        # Don't re-review confident CCs
-                        thresh = const.CONFIDENCE.CODE_TO_INT['pretty_sure']
-                        if infr.confidently_connected(u, v, thresh):
-                            return infr.pop()
-                    if pred == POSTV and nid1 == nid2:
-                        # print('skip pos')
-                        return infr.pop()
-                    if pred == NEGTV and nid1 != nid2:
-                        # print('skip neg')
-                        return infr.pop()
-                else:
-                    print('in error recover mode')
-            assert edge[0] < edge[1]
-            return edge, priority
-
-    def peek(infr):
-        return infr.peek_many(n=1)[0]
-
-    def peek_many(infr, n):
-        """
-        Peeks at the top n edges in the queue.
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr(num_pccs=7, size=5)
-            >>> infr.refresh_candidate_edges()
-            >>> infr.peek_many(50)
-        """
-        # Do pops that may invalidate pos redun edges internal to PCCs
-        items = []
-        count = 0
-        # Pop the top n edges off the queue
-        while len(infr.queue) > 0 and count < n:
-            items.append(infr.pop())
-            count += 1
-        # Push them back because we are just peeking
-        # (although we may have invalidated things based on local connectivity)
-        for edge, priority in items:
-            infr.push(edge, priority)
-        return items
-
-    def confidently_connected(infr, u, v, thresh=2):
-        """
-        Checks if u and v are conneted by edges above a confidence threshold
-        """
-        def satisfied(G, child, edge):
-            decision = infr.edge_decision(edge)
-            if decision != POSTV:
-                return False
-            data = G.get_edge_data(*edge)
-            conf = data.get('confidence', 'unspecified')
-            conf_int = const.CONFIDENCE.CODE_TO_INT[conf]
-            conf_int = 0 if conf_int is None else conf_int
-            return conf_int >= thresh
-        for node in ut.bfs_conditional(infr.graph, u,
-                                       yield_if=satisfied,
-                                       continue_if=satisfied):
-            if node == v:
-                return True
-        return False
-
-    def confidently_separated(infr, u, v, thresh=2):
-        """
-        Checks if u and v are conneted by edges above a confidence threshold
-
-        Doctest:
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.make_demo_infr(ccs=[(1, 2), (3, 4), (5, 6), (7, 8)])
-            >>> infr.add_feedback((1, 5), NEGTV)
-            >>> infr.add_feedback((5, 8), NEGTV)
-            >>> infr.add_feedback((6, 3), NEGTV)
-            >>> u, v = (1, 4)
-            >>> thresh = 0
-            >>> assert not infr.confidently_separated(u, v, thresh)
-            >>> infr.add_feedback((2, 3), NEGTV)
-            >>> assert not infr.confidently_separated(u, v, thresh)
-        """
-
-        def can_cross(G, edge, n_negs):
-            """
-            DFS state condition
-
-            Args:
-                edge (tuple): the edge we are trying to cross
-                n_negs (int): the number of negative edges crossed so far
-
-            Returns:
-                flag, new_state -
-                   flag (bool): True if the edge can be crossed
-                   new_state: new state for future decisions in this path.
-            """
-            decision = infr.edge_decision(edge)
-            # only cross positive or negative edges
-            if decision in {POSTV, NEGTV}:
-                # only cross a negative edge once
-                willcross = (decision == NEGTV)
-                if willcross and n_negs == 0:
-                    data = G.get_edge_data(*edge)
-                    # only cross edges above a threshold
-                    conf = data.get('confidence', 'unspecified')
-                    conf_int = const.CONFIDENCE.CODE_TO_INT[conf]
-                    conf_int = 0 if conf_int is None else conf_int
-                    flag = conf_int >= thresh
-                    num = n_negs + willcross
-                    return flag, num
-            return False, n_negs
-
-        # need to do DFS check for this. Make DFS only allowed to
-        # cross a negative edge once.
-        # def dfs_cond_rec(G, parent, state, visited=None):
-        #     if visited is None:
-        #         visited = set()
-        #     visited.add(parent)
-        #     for child in G.neighbors(parent):
-        #         if child not in visited:
-        #             edge = (parent, child)
-        #             flag, new_state = can_cross(G, edge, state)
-        #             if flag:
-        #                 yield child
-        #                 for _ in dfs_cond_rec(G, child, new_state, visited):
-        #                     yield _
-
-        # need to do DFS check for this. Make DFS only allowed to
-        # cross a negative edge once.
-        def dfs_cond_stack(G, source, state):
-            # stack based version
-            visited = {source}
-            stack = [(source, iter(G[source]), state)]
-            while stack:
-                parent, children, state = stack[-1]
-                try:
-                    child = next(children)
-                    if child not in visited:
-                        edge = (parent, child)
-                        flag, new_state = can_cross(G, edge, state)
-                        if flag:
-                            yield child
-                            visited.add(child)
-                            stack.append((child, iter(G[child]), new_state))
-                except StopIteration:
-                    stack.pop()
-
-        for node in dfs_cond_stack(infr.graph, u, 0):
-            if node == v:
-                return True
-        return False
-
-    def generate_reviews(infr, pos_redun=None, neg_redun=None,
-                         data=False):
-        """
-        Dynamic generator that yeilds high priority reviews
-        """
-        if pos_redun is not None:
-            infr.params['redun.pos'] = pos_redun
-        if neg_redun is not None:
-            infr.params['redun.neg'] = neg_redun
-        infr.prioritize()
-        return infr._generate_reviews(data=data)
-
-    def _generate_reviews(infr, data=False):
-        if data:
-            while True:
-                edge, priority = infr.pop()
-                yield edge, priority
-        else:
-            while True:
-                edge, priority = infr.pop()
-                yield edge
-
-
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _RedundancyHelpers(object):
     """ methods for computing redundancy """
@@ -1222,7 +790,7 @@ class _RedundancyHelpers(object):
         Find enough edges to between two pccs to make them k-negative complete
         """
         k = infr.params['redun.neg']
-        existing_edges = edges_cross(infr.graph, c1_nodes, c2_nodes)
+        existing_edges = nxu.edges_cross(infr.graph, c1_nodes, c2_nodes)
         reviewed_edges = {
             edge: state
             for edge, state in infr.get_edge_attrs(
@@ -1292,8 +860,8 @@ class Redundancy(_RedundancyHelpers):
         """
         if not infr.params['redun.enabled']:
             return []
-        if infr.neg_redun_nids.has_node(nid):
-            prev_neg_nids = set(infr.neg_redun_nids.neighbors(nid))
+        if infr.neg_redun_metagraph.has_node(nid):
+            prev_neg_nids = set(infr.neg_redun_metagraph.neighbors(nid))
         else:
             prev_neg_nids = []
         # infr.print('_purge, nid=%r, prev_neg_nids = %r' % (nid, prev_neg_nids,))
@@ -1440,29 +1008,29 @@ class Redundancy(_RedundancyHelpers):
         """
         if k is None:
             k = infr.params['redun.neg']
-        neg_edge_gen = edges_cross(infr.neg_graph, cc1, cc2)
+        neg_edge_gen = nxu.edges_cross(infr.neg_graph, cc1, cc2)
         # do a lazy count of negative edges
         for count, _ in enumerate(neg_edge_gen, start=1):
             if count >= k:
                 return True
         return False
 
-    def pos_redundancy(infr, cc):
-        """ Returns how positive redundant a cc is """
-        pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False)
-        if nxu.is_complete(pos_subgraph):
-            return np.inf
-        else:
-            return nx.edge_connectivity(pos_subgraph)
+    # def pos_redundancy(infr, cc):
+    #     """ Returns how positive redundant a cc is """
+    #     pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False)
+    #     if nxu.is_complete(pos_subgraph):
+    #         return np.inf
+    #     else:
+    #         return nx.edge_connectivity(pos_subgraph)
 
-    def neg_redundancy(infr, cc1, cc2):
-        """ Returns how negative redundant a cc is """
-        neg_edge_gen = edges_cross(infr.neg_graph, cc1, cc2)
-        num_neg = len(list(neg_edge_gen))
-        if num_neg == len(cc1) or num_neg == len(cc2):
-            return np.inf
-        else:
-            return num_neg
+    # def neg_redundancy(infr, cc1, cc2):
+    #     """ Returns how negative redundant a cc is """
+    #     neg_edge_gen = nxu.edges_cross(infr.neg_graph, cc1, cc2)
+    #     num_neg = len(list(neg_edge_gen))
+    #     if num_neg == len(cc1) or num_neg == len(cc2):
+    #         return np.inf
+    #     else:
+    #         return num_neg
 
     # def pos_redun_edge_flag(infr, edge):
     #     """ Quickly check if edge is flagged as pos redundant """
@@ -1472,15 +1040,18 @@ class Redundancy(_RedundancyHelpers):
     # def neg_redun_edge_flag(infr, edge):
     #     """ Quickly check if edge is flagged as neg redundant """
     #     nid1, nid2 = infr.pos_graph.node_labels(*edge)
-    #     return infr.neg_redun_nids.has_edge(nid1, nid2)
+    #     return infr.neg_redun_metagraph.has_edge(nid1, nid2)
 
     def is_redundant(infr, edge):
+        """
+        Tests redundancy against bookkeeping structure against cache
+        """
         nidu, nidv = infr.node_labels(*edge)
         if nidu == nidv:
             if nidu in infr.pos_redun_nids:
                 return True
         elif nidu != nidv:
-            if infr.neg_redun_nids.has_edge(nidu, nidv):
+            if infr.neg_redun_metagraph.has_edge(nidu, nidv):
                 return True
         return False
 
@@ -1557,7 +1128,7 @@ class Redundancy(_RedundancyHelpers):
             yield nid
 
     def find_neg_redun_nids(infr):
-        """ recomputes edges in infr.neg_redun_nids """
+        """ recomputes edges in infr.neg_redun_metagraph """
         for cc in infr.consistent_components():
             node = next(iter(cc))
             nid1 = infr.pos_graph.node_label(node)
@@ -1615,7 +1186,7 @@ class Redundancy(_RedundancyHelpers):
             if infr.params['inference.update_attrs']:
                 infr.set_edge_attrs(
                     'inferred_state',
-                    ut.dzip(edges_inside(infr.graph, cc), ['same'])
+                    ut.dzip(nxu.edges_inside(infr.graph, cc), ['same'])
                 )
         else:
             if was_pos_redun:
@@ -1628,7 +1199,7 @@ class Redundancy(_RedundancyHelpers):
             if infr.params['inference.update_attrs']:
                 infr.set_edge_attrs(
                     'inferred_state',
-                    ut.dzip(edges_inside(infr.graph, cc), [None])
+                    ut.dzip(nxu.edges_inside(infr.graph, cc), [None])
                 )
 
     @profile
@@ -1645,7 +1216,7 @@ class Redundancy(_RedundancyHelpers):
 
         # Determine what needs what
         for nid2, flag in zip(other_nids, flags):
-            was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
+            was_neg_redun = infr.neg_redun_metagraph.has_edge(nid1, nid2)
             if flag:
                 if not was_neg_redun:
                     needs_flag.append(nid2)
@@ -1677,9 +1248,9 @@ class Redundancy(_RedundancyHelpers):
 
         # Do the flagging/unflagging
         for nid2 in needs_flag:
-            infr.neg_redun_nids.add_edge(nid1, nid2)
+            infr.neg_redun_metagraph.add_edge(nid1, nid2)
         for nid2 in needs_unflag:
-            infr.neg_redun_nids.remove_edge(nid1, nid2)
+            infr.neg_redun_metagraph.remove_edge(nid1, nid2)
 
         # Update priorities and attributes
         if infr.params['inference.update_attrs'] or infr.queue is not None:
@@ -1687,7 +1258,7 @@ class Redundancy(_RedundancyHelpers):
             # Unprioritize all edges between flagged nids
             for nid2 in it.chain(needs_flag, already_flagged):
                 cc2 = infr.pos_graph.component(nid2)
-                all_flagged_edges.extend(edges_cross(infr.graph, cc1, cc2))
+                all_flagged_edges.extend(nxu.edges_cross(infr.graph, cc1, cc2))
 
         if infr.queue is not None or infr.params['inference.update_attrs']:
             all_unflagged_edges = []
@@ -1698,10 +1269,10 @@ class Redundancy(_RedundancyHelpers):
             for nid2 in it.chain(needs_unflag, already_unflagged):
                 cc2 = infr.pos_graph.component(nid2)
                 if infr.queue is not None:
-                    _edges = edges_cross(unrev_graph, cc1, cc2)
+                    _edges = nxu.edges_cross(unrev_graph, cc1, cc2)
                     unrev_unflagged_edges.extend(_edges)
                 if infr.params['inference.update_attrs']:
-                    _edges = edges_cross(infr.graph, cc1, cc2)
+                    _edges = nxu.edges_cross(infr.graph, cc1, cc2)
                     all_unflagged_edges.extend(_edges)
 
             # Batch set prioritize
@@ -1724,44 +1295,44 @@ class Redundancy(_RedundancyHelpers):
         nid1, nid2 = nid_edge
         infr._set_neg_redun_flags(nid1, [nid2], [flag])
         return
-        was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
-        if flag:
-            if not was_neg_redun:
-                infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2), 5)
-            else:
-                infr.print('flag_neg_redun nids=%r,%r (already done)' % (
-                    nid1, nid2), 6)
+        # was_neg_redun = infr.neg_redun_metagraph.has_edge(nid1, nid2)
+        # if flag:
+        #     if not was_neg_redun:
+        #         infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2), 5)
+        #     else:
+        #         infr.print('flag_neg_redun nids=%r,%r (already done)' % (
+        #             nid1, nid2), 6)
 
-            infr.neg_redun_nids.add_edge(nid1, nid2)
-            cc1 = infr.pos_graph.component(nid1)
-            cc2 = infr.pos_graph.component(nid2)
-            infr.remove_between_priority(cc1, cc2)
-            if infr.params['inference.update_attrs']:
-                infr.set_edge_attrs(
-                    'inferred_state',
-                    ut.dzip(edges_cross(infr.graph, cc1, cc2), ['diff'])
-                )
-        else:
-            was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
-            if was_neg_redun:
-                infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2), 5)
-            else:
-                infr.print('unflag_neg_redun nids=%r,%r (already done)' % (
-                    nid1, nid2), 6)
-            try:
-                infr.neg_redun_nids.remove_edge(nid1, nid2)
-            except nx.exception.NetworkXError:
-                pass
-            # import utool
-            # with utool.embed_on_exception_context:
-            cc1 = infr.pos_graph.component(nid1)
-            cc2 = infr.pos_graph.component(nid2)
-            infr.reinstate_between_priority(cc1, cc2)
-            if infr.params['inference.update_attrs']:
-                infr.set_edge_attrs(
-                    'inferred_state',
-                    ut.dzip(edges_cross(infr.graph, cc1, cc2), [None])
-                )
+        #     infr.neg_redun_metagraph.add_edge(nid1, nid2)
+        #     cc1 = infr.pos_graph.component(nid1)
+        #     cc2 = infr.pos_graph.component(nid2)
+        #     infr.remove_between_priority(cc1, cc2)
+        #     if infr.params['inference.update_attrs']:
+        #         infr.set_edge_attrs(
+        #             'inferred_state',
+        #             ut.dzip(nxu.edges_cross(infr.graph, cc1, cc2), ['diff'])
+        #         )
+        # else:
+        #     was_neg_redun = infr.neg_redun_metagraph.has_edge(nid1, nid2)
+        #     if was_neg_redun:
+        #         infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2), 5)
+        #     else:
+        #         infr.print('unflag_neg_redun nids=%r,%r (already done)' % (
+        #             nid1, nid2), 6)
+        #     try:
+        #         infr.neg_redun_metagraph.remove_edge(nid1, nid2)
+        #     except nx.exception.NetworkXError:
+        #         pass
+        #     # import utool
+        #     # with utool.embed_on_exception_context:
+        #     cc1 = infr.pos_graph.component(nid1)
+        #     cc2 = infr.pos_graph.component(nid2)
+        #     infr.reinstate_between_priority(cc1, cc2)
+        #     if infr.params['inference.update_attrs']:
+        #         infr.set_edge_attrs(
+        #             'inferred_state',
+        #             ut.dzip(nxu.edges_cross(infr.graph, cc1, cc2), [None])
+        #         )
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1811,13 +1382,13 @@ class NonDynamicUpdate(object):
         # * negative redundancy
         # * inconsistency
         infr.pos_redun_nids = set(infr.find_pos_redun_nids())
-        infr.neg_redun_nids = infr._graph_cls(list(infr.find_neg_redun_nids()))
+        infr.neg_redun_metagraph = infr._graph_cls(list(infr.find_neg_redun_nids()))
         infr.recover_graph.clear()
         nid_to_errors = {}
         for nid, intern_edges in categories['inconsistent_internal'].items():
             cc = infr.pos_graph.component_nodes(nid)
             pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False).copy()
-            neg_edges = list(edges_inside(infr.neg_graph, cc))
+            neg_edges = list(nxu.edges_inside(infr.neg_graph, cc))
             recover_hypothesis = dict(infr.hypothesis_errors(pos_subgraph,
                                                              neg_edges))
             nid_to_errors[nid] = set(recover_hypothesis.keys())
@@ -1989,8 +1560,8 @@ class NonDynamicUpdate(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.dynamic_review
-        python -m ibeis.algo.graph.dynamic_review --allexamples
+        python -m ibeis.algo.graph.mixin_dynamic
+        python -m ibeis.algo.graph.mixin_dynamic --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
