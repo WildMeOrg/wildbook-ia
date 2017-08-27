@@ -13,6 +13,7 @@ from ibeis.algo.graph import nx_dynamic_graph
 from ibeis.algo.graph import mixin_viz
 from ibeis.algo.graph import mixin_helpers
 from ibeis.algo.graph import mixin_dynamic
+from ibeis.algo.graph import mixin_priority
 from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
@@ -399,7 +400,7 @@ class Feedback(object):
             infr.review_graphs[UNREV].add_edges_from(prev_edges)
 
         infr.pos_redun_nids.clear()
-        infr.neg_redun_nids.clear()
+        infr.neg_redun_metagraph.clear()
         infr.nid_to_errors.clear()
 
         if __debug__:
@@ -413,7 +414,7 @@ class Feedback(object):
             graph.remove_edges_from(list(graph.edges()))
         infr.graph.remove_edges_from(list(infr.graph.edges()))
         infr.pos_redun_nids.clear()
-        infr.neg_redun_nids.clear()
+        infr.neg_redun_metagraph.clear()
         infr.nid_to_errors.clear()
 
     def reset_feedback(infr, mode='annotmatch', apply=True):
@@ -853,7 +854,7 @@ class AltConstructors(object):
             ('nIncmpEdges', infr.incomp_graph.number_of_edges()),
             ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
             ('nPosRedunCCs', len(infr.pos_redun_nids)),
-            ('nNegRedunPairs', infr.neg_redun_nids.number_of_edges()),
+            ('nNegRedunPairs', infr.neg_redun_metagraph.number_of_edges()),
             ('nInconsistentCCs', len(infr.nid_to_errors)),
             #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
         ])
@@ -915,8 +916,8 @@ class AnnotInference(ut.NiceRepr,
                      mixin_dynamic.Recovery,
                      mixin_dynamic.Consistency,
                      mixin_dynamic.Redundancy,
-                     mixin_dynamic.Priority,
                      mixin_dynamic.DynamicUpdate,
+                     mixin_priority.Priority,
                      mixin_matching.CandidateSearch,
                      mixin_matching.InfrLearning,
                      mixin_matching.AnnotInfrMatching,
@@ -1111,7 +1112,10 @@ class AnnotInference(ut.NiceRepr,
         # Set of PCCs that are positive redundant
         infr.pos_redun_nids = set([])
         # Represents the metagraph of negative edges between PCCs
-        infr.neg_redun_nids = infr._graph_cls()
+        infr.neg_redun_metagraph = infr._graph_cls()
+        # NEW VERSION: metagraph of PCCs with ANY number of negative edges
+        # between them. The weight on the edge should represent the strength.
+        infr.neg_metagraph = infr._graph_cls()
 
         # This should represent The feedback read from a database. We do not
         # need to do any updates to an external database based on this data.
@@ -1269,7 +1273,7 @@ class AnnotInference(ut.NiceRepr,
         infr2.recover_graph = copy.deepcopy(infr.recover_graph)
 
         infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
-        infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
+        infr2.neg_redun_metagraph = copy.deepcopy(infr.neg_redun_metagraph)
 
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
         infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
@@ -1329,7 +1333,7 @@ class AnnotInference(ut.NiceRepr,
         # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)
         # infr2.recover_graph = copy.deepcopy(infr.recover_graph)
         # infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
-        # infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
+        # infr2.neg_redun_metagraph = copy.deepcopy(infr.neg_redun_metagraph)
 
         infr2.review_graphs = {}
         for k, g in infr.review_graphs.items():

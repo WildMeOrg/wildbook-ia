@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
-(print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def nx_makenode(graph, name, **attrkw):
@@ -1823,9 +1823,14 @@ def redun_demo3():
 
 
 def system_diagram():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw system_diagram --show
+
+    """
     from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
     from ibeis.algo.graph import demo
-    from ibeis.algo.graph import nx_utils as nxu
+    from ibeis.algo.graph import nx_utils as nxu  # NOQA
     import plottool as pt
 
     # import networkx as nx
@@ -1870,10 +1875,11 @@ def system_diagram():
 
     # infr.ensure_edges_from([(10, 5), (10, 6)])
     infr.ensure_prioritized(list(infr.edges()))
-    edge_overrides = {
-        # 'linestyle': {e: 'dashed' for e in infr.edges()},
-        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
-    }
+    edge_overrides = {}
+    # edge_overrides = {
+    #     # 'linestyle': {e: 'dashed' for e in infr.edges()},
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
     infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 1), **showkw)
     pt.gca().set_aspect('equal')
 
@@ -1893,10 +1899,11 @@ def system_diagram():
     gen = infr.inner_priority_gen()
     next(gen)
 
-    edge_overrides = {
-        # 'linestyle': {e: 'dashed' for e in infr.edges()},
-        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
-    }
+    # edge_overrides = {
+    #     # 'linestyle': {e: 'dashed' for e in infr.edges()},
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
+    infr.apply_nondynamic_update()
     infr.update_visual_attrs(groupby='name_label')
     infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 2), **showkw)
     pt.gca().set_aspect('equal')
@@ -1911,9 +1918,9 @@ def system_diagram():
     node_overrides = {
         'label': {n: '{}!'.format(n) for n in ut.flatten(infr.inconsistent_components())}
     }
-    edge_overrides = {
-        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
-    }
+    # edge_overrides = {
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
     infr.update_visual_attrs(groupby='name_label')
     infr.show(edge_overrides=edge_overrides, node_overrides=node_overrides,
               fnum=1, pnum=(1, 4, 3), **showkw)
@@ -1939,13 +1946,15 @@ def system_diagram():
     # pos-redun
     infr.apply_nondynamic_update()
 
-    edge_overrides = {
-        # 'linestyle': {e: 'dashed' for e in infr.edges()},
-        'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
-    }
+    # edge_overrides = {
+    #     # 'linestyle': {e: 'dashed' for e in infr.edges()},
+    #     'linestyle': {e: 'dashed' for e in infr.get_edges_where_eq('decision', UNREV)},
+    # }
     infr.update_visual_attrs(groupby='name_label')
     infr.show(edge_overrides=edge_overrides, fnum=1, pnum=(1, 4, 4), **showkw)
     pt.gca().set_aspect('equal')
+
+    ut.show_if_requested()
 
 
 if __name__ == '__main__':

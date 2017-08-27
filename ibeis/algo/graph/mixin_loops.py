@@ -265,7 +265,7 @@ class InfrLoops(object):
                         # Skip edges involving qualities less than ok
                         if q1 is not None and q1 < ibs.const.QUAL.OK:
                             continue
-                        if q2 is not None and q1 < ibs.const.QUAL.OK:
+                        if q2 is not None and q2 < ibs.const.QUAL.OK:
                             continue
                         valid_edges.append((u, v))
                     if len(valid_edges) > 0:
@@ -642,7 +642,7 @@ class SimulationHelpers(object):
         infr.metrics_list = []
         infr.test_state = {
             'n_decision': 0,
-            'n_auto': 0,
+            'n_algo': 0,
             'n_manual': 0,
             'n_true_merges': 0,
             'n_error_edges': 0,
@@ -704,7 +704,7 @@ class SimulationHelpers(object):
                 with timer:
                     # Find undetectable errors
                     num_undetectable_fn = 0
-                    for nid1, nid2 in infr.neg_redun_nids.edges():
+                    for nid1, nid2 in infr.neg_redun_metagraph.edges():
                         cc1 = infr.pos_graph.component(nid1)
                         cc2 = infr.pos_graph.component(nid2)
                         neg_edges = nxu.edges_cross(infr.neg_graph, cc1, cc2)
@@ -760,7 +760,7 @@ class SimulationHelpers(object):
         metrics = {
             'n_decision': infr.test_state['n_decision'],
             'n_manual': infr.test_state['n_manual'],
-            'n_auto': infr.test_state['n_auto'],
+            'n_algo': infr.test_state['n_algo'],
             'pos_acc': pos_acc,
             'n_merge_total': infr.real_n_pcc_mst_edges,
             'n_merge_remain': infr.real_n_pcc_mst_edges - n_true_merges,
