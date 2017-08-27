@@ -387,16 +387,16 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     for conf in conf_list:
         conf_dict[conf] = errors(zipped, conf)
 
-    # conf_list_ = [-1.0]
-    # pr_list = [1.0]
-    # re_list = [0.0]
-    # tpr_list = [0.0]
-    # fpr_list = [0.0]
-    conf_list_ = []
-    pr_list = []
-    re_list = []
-    tpr_list = []
-    fpr_list = []
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
+    tpr_list = [0.0, 1.0]
+    fpr_list = [0.0, 1.0]
+    # conf_list_ = []
+    # pr_list = []
+    # re_list = []
+    # tpr_list = []
+    # fpr_list = []
     for conf in sorted(conf_dict.keys(), reverse=True):
         error_list = conf_dict[conf]
         tp, tn, fp, fn = error_list
@@ -976,12 +976,12 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
                              nTasks=len(conf_list), ordered=True,
                              chunksize=CHUNK_SIZE, force_serial=force_serial)
 
-    # conf_list_ = [-1.0]
-    # pr_list = [1.0]
-    # re_list = [0.0]
-    conf_list_ = []
-    pr_list = []
-    re_list = []
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
+    # conf_list_ = []
+    # pr_list = []
+    # re_list = []
     for values in pr_re_gen:
         if values is None:
             continue
@@ -2683,16 +2683,16 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
                 zipped_ = zip(cur_list, new_list)
                 global_conf_dict[conf] = [cur + new for cur, new in zipped_]
 
-    # conf_list_ = [-1.0]
-    # pr_list = [1.0]
-    # re_list = [0.0]
-    # tpr_list = [0.0]
-    # fpr_list = [0.0]
-    conf_list_ = []
-    pr_list = []
-    re_list = []
-    tpr_list = []
-    fpr_list = []
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
+    tpr_list = [0.0, 1.0]
+    fpr_list = [0.0, 1.0]
+    # conf_list_ = []
+    # pr_list = []
+    # re_list = []
+    # tpr_list = []
+    # fpr_list = []
     for conf in sorted(global_conf_dict.keys(), reverse=True):
         error_list = global_conf_dict[conf]
         tp, tn, fp, fn = error_list
@@ -2951,12 +2951,12 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
                              nTasks=len(conf_list), ordered=True,
                              chunksize=CHUNK_SIZE, force_serial=force_serial)
 
-    # conf_list_ = [-1.0]
-    # pr_list = [1.0]
-    # re_list = [0.0]
-    conf_list_ = []
-    pr_list = []
-    re_list = []
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
+    # conf_list_ = []
+    # pr_list = []
+    # re_list = []
     for conf, pr, re in pr_re_gen:
         conf_list_.append(conf)
         pr_list.append(pr)
