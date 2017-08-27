@@ -2252,7 +2252,30 @@ class VerifierExpt(DBInputs):
 @ut.reloadable_class
 class GraphExpt(DBInputs):
     """
-    python -m ibeis GraphExpt.measure all PZ_MTEST
+
+    TODO:
+        - [ ] Experimental analysis of duration of each phase and state of
+            graph.
+
+        - [ ] Experimental analysis of phase 3, including how far we can get
+            with automatic decision making and do we discover new merges?  If
+            there are potential merges, can we run phase iii with exactly the
+            same ordering as before:  ordering by probability for automatically
+            decidable and then by positive probability for others.  This should
+            work for phase 3 and therefore allow a clean combination of the
+            three phases and our termination criteria.  I just thought of this
+            so don't really have it written cleanly above.
+
+        - [ ] Experimental analysis of choice of automatic decision thresholds.
+            by lowering the threshold we increase the risk of mistakes.  Each
+            mistake costs some number of manual reviews (perhaps 2-3), but if
+            the frequency of errors is low then we could be saving ourselves a
+            lot of manual reviews.
+
+        \item OTHER SPECIES
+
+    CommandLine:
+        python -m ibeis GraphExpt.measure all PZ_MTEST
 
     Ignore:
         >>> from ibeis.scripts.postdoc import *
@@ -2343,8 +2366,8 @@ class GraphExpt(DBInputs):
     def measure_graphsim(self):
         """
         CommandLine:
-            python -m ibeis Chap5.measure graphsim GZ_Master1
-            python -m ibeis Chap5.measure graphsim PZ_Master1
+            python -m ibeis GraphExpt.measure graphsim GZ_Master1
+            python -m ibeis GraphExpt.measure graphsim PZ_Master1
 
         Ignore:
             >>> from ibeis.scripts.postdoc import *
