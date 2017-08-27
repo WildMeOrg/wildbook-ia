@@ -10,7 +10,6 @@ import vtool as vt
 from os.path import join  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
@@ -455,90 +454,35 @@ class InfrLearning(object):
         return pb_edges
 
 
-class CandidateSearch(object):
-    """ Search for candidate edges """
-    @profile
-    def find_lnbnn_candidate_edges(infr):
-        """
+class _RedundancyAugmentation(object):
 
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_mtest_infr()
-            >>> cand_edges = infr.find_lnbnn_candidate_edges()
-            >>> assert len(cand_edges) > 200
-        """
-        # Refresh the name labels
-
-        # TODO: abstract into a Ranker class
-
-        # do LNBNN query for new edges
-        # Use one-vs-many to establish candidate edges to classify
-        infr.exec_matching(name_method='edge', cfgdict={
-            'resize_dim': 'width',
-            'dim_size': 700,
-            'requery': True,
-            'can_match_samename': False,
-            'can_match_sameimg': False,
-            # 'sv_on': False,
-        })
-        # infr.apply_match_edges(review_cfg={'ranks_top': 5})
-        ranks_top = infr.params['ranking.ntop']
-        lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
-        already_reviewed = set(infr.get_edges_where_ne(
-            'decision', 'unreviewed', edges=lnbnn_results,
-            default='unreviewed', on_missing='filter'))
-        candidate_edges = lnbnn_results - already_reviewed
-
-        infr.print('ranking alg found {}/{} unreviewed edges'.format(
-            len(candidate_edges), len(lnbnn_results)), 1)
-
-        # if infr.params['inference.enabled']:
-        #     orig_candidate_edges = candidate_edges
-        #     candidate_edges = set(infr.filter_nonredun_edges(candidate_edges))
-        #     infr.print('removed {} redundant candidates'.format(
-        #         len(orig_candidate_edges) - len(candidate_edges)), 1)
-
-        return candidate_edges
-
-    @profile
-    def find_neg_redun_candidate_edges(infr, k=None):
-        """
-        Get pairs of PCCs that are not complete.
-        Finds edges that might complete them.
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr2()
-            >>> categories = infr.categorize_edges(graph)
-            >>> negative = categories[NEGTV]
-            >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
-            >>> infr.graph.remove_edges_from(edges)
-            >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
-            >>> result = non_complete_pcc_pairs(infr)
-            >>> print(result)
-        """
-        if k is None:
-            k = infr.params['redun.neg']
-        # Loop through all pairs
-        for cc1, cc2 in infr.find_non_neg_redun_pccs(k=k):
-            for u, v in infr.find_neg_augment_edges(cc1, cc2, k):
-                yield e_(u, v)
-
-    @profile
-    def find_non_neg_redun_pccs(infr, k=None):
-        """
-        Get pairs of PCCs that are not complete.
-        """
-        if k is None:
-            k = infr.params['redun.neg']
-        pccs = infr.positive_components()
-        # Loop through all pairs
-        for cc1, cc2 in it.combinations(pccs, 2):
-            if not infr.is_neg_redundant(cc1, cc2):
-                yield cc1, cc2
+    # def rand_neg_check_edges(infr, c1_nodes, c2_nodes):
+    #     """
+    #     Find enough edges to between two pccs to make them k-negative complete
+    #     """
+    #     k = infr.params['redun.neg']
+    #     existing_edges = nxu.edges_cross(infr.graph, c1_nodes, c2_nodes)
+    #     reviewed_edges = {
+    #         edge: state
+    #         for edge, state in infr.get_edge_attrs(
+    #             'decision', existing_edges,
+    #             default=UNREV).items()
+    #         if state != UNREV
+    #     }
+    #     n_neg = sum([state == NEGTV for state in reviewed_edges.values()])
+    #     if n_neg < k:
+    #         # Find k random negative edges
+    #         check_edges = existing_edges - set(reviewed_edges)
+    #         if len(check_edges) < k:
+    #             edges = it.starmap(nxu.e_, it.product(c1_nodes, c2_nodes))
+    #             for edge in edges:
+    #                 if edge not in reviewed_edges:
+    #                     check_edges.add(edge)
+    #                     if len(check_edges) == k:
+    #                         break
+    #     else:
+    #         check_edges = {}
+    #     return check_edges
 
     def find_neg_augment_edges(infr, cc1, cc2, k=None):
         """
@@ -546,7 +490,7 @@ class CandidateSearch(object):
         """
         if k is None:
             k = infr.params['redun.neg']
-        existing_edges = set(edges_cross(infr.graph, cc1, cc2))
+        existing_edges = set(nxu.edges_cross(infr.graph, cc1, cc2))
         reviewed_edges = {
             edge: state
             for edge, state in infr.get_edge_attrs(
@@ -642,7 +586,7 @@ class CandidateSearch(object):
         # Add random edges between exisiting non-redundant PCCs
         if k is None:
             k = infr.params['redun.pos']
-        # pcc_gen = list(infr.non_pos_redundant_pccs(relax=True))
+        # infr.find_non_pos_redundant_pccs(k=k, relax=True)
         pcc_gen = list(infr.positive_components())
         prog = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
         for pcc in prog:
@@ -650,6 +594,79 @@ class CandidateSearch(object):
                                          assume_connected=True):
                 for edge in infr.find_pos_augment_edges(pcc, k=k):
                     yield nxu.e_(*edge)
+
+    @profile
+    def find_neg_redun_candidate_edges(infr, k=None):
+        """
+        Get pairs of PCCs that are not complete.
+        Finds edges that might complete them.
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr2()
+            >>> categories = infr.categorize_edges(graph)
+            >>> negative = categories[NEGTV]
+            >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
+            >>> infr.graph.remove_edges_from(edges)
+            >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
+            >>> result = non_complete_pcc_pairs(infr)
+            >>> print(result)
+        """
+        if k is None:
+            k = infr.params['redun.neg']
+        # Loop through all pairs
+        for cc1, cc2 in infr.find_non_neg_redun_pccs(k=k):
+            for u, v in infr.find_neg_augment_edges(cc1, cc2, k):
+                yield e_(u, v)
+
+
+class CandidateSearch(_RedundancyAugmentation):
+    """ Search for candidate edges """
+    @profile
+    def find_lnbnn_candidate_edges(infr):
+        """
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_mtest_infr()
+            >>> cand_edges = infr.find_lnbnn_candidate_edges()
+            >>> assert len(cand_edges) > 200
+        """
+        # Refresh the name labels
+
+        # TODO: abstract into a Ranker class
+
+        # do LNBNN query for new edges
+        # Use one-vs-many to establish candidate edges to classify
+        infr.exec_matching(name_method='edge', cfgdict={
+            'resize_dim': 'width',
+            'dim_size': 700,
+            'requery': True,
+            'can_match_samename': False,
+            'can_match_sameimg': False,
+            # 'sv_on': False,
+        })
+        # infr.apply_match_edges(review_cfg={'ranks_top': 5})
+        ranks_top = infr.params['ranking.ntop']
+        lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
+        already_reviewed = set(infr.get_edges_where_ne(
+            'decision', 'unreviewed', edges=lnbnn_results,
+            default='unreviewed', on_missing='filter'))
+        candidate_edges = lnbnn_results - already_reviewed
+
+        infr.print('ranking alg found {}/{} unreviewed edges'.format(
+            len(candidate_edges), len(lnbnn_results)), 1)
+
+        # if infr.params['inference.enabled']:
+        #     orig_candidate_edges = candidate_edges
+        #     candidate_edges = set(infr.filter_edges_flagged_as_redun(candidate_edges))
+        #     infr.print('removed {} redundant candidates'.format(
+        #         len(orig_candidate_edges) - len(candidate_edges)), 1)
+
+        return candidate_edges
 
     def ensure_task_probs(infr, edges):
         """
@@ -829,7 +846,7 @@ class CandidateSearch(object):
             infr.apply_edge_truth(new_edges)
 
         if infr.params['redun.enabled']:
-            priority_edges = list(infr.filter_nonredun_edges(candidate_edges))
+            priority_edges = list(infr.filter_edges_flagged_as_redun(candidate_edges))
             infr.print('using only {}/{} non-redun candidate edges'.format(
                 len(priority_edges), len(candidate_edges)))
         else:

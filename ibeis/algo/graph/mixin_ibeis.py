@@ -95,8 +95,8 @@ class IBEISIO(object):
     def name_group_stats(infr, verbose=None):
         stats = ut.odict()
         statsmap = ut.partial(lambda x: ut.stats_dict(map(len, x), size=True))
-        stats['pos_redun'] = statsmap(infr.pos_redundant_pccs())
-        stats['non_pos_redun'] = statsmap(infr.non_pos_redundant_pccs())
+        stats['pos_redun'] = statsmap(infr.find_pos_redundant_pccs())
+        stats['non_pos_redun'] = statsmap(infr.find_non_pos_redundant_pccs())
         stats['inconsistent'] = statsmap(infr.inconsistent_components())
         stats['consistent'] = statsmap(infr.consistent_components())
         df = pd.DataFrame.from_dict(stats, orient='index')

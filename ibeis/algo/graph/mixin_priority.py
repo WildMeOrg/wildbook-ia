@@ -163,7 +163,7 @@ class Priority(object):
             if scores is not None:
                 raise ValueError('must provide edges with scores')
             unrev_edges = infr.unreviewed_graph.edges()
-            edges = set(infr.filter_nonredun_edges(unrev_edges))
+            edges = set(infr.filter_edges_flagged_as_redun(unrev_edges))
 
         infr.print('ensuring {} edge(s) get priority'.format(
             len(edges)), 5)
