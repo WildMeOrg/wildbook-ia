@@ -2422,6 +2422,8 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         for confidence_dict in confidence_dict_list
     ]
 
+    ut.embed()
+
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
