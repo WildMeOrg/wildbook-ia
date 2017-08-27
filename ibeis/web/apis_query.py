@@ -1257,8 +1257,11 @@ def query_graph_v2_on_request_review(future):
     if not future.cancelled():
         graph_client = future.graph_client
         data_list = future.result()
-        graph_client.update(data_list)
-        callback_type = 'finished' if data_list is None else 'review'
+        if data_list is not None:
+            graph_client.update(data_list)
+            callback_type = 'review'
+        else:
+            callback_type = 'finished'
         query_graph_v2_callback(graph_client, callback_type)
 
 

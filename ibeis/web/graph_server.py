@@ -398,6 +398,9 @@ class GraphClient(object):
         raise NotImplementedError('not done yet')
 
     def update(client, data_list):
+        if data_list is None:
+            print('GRAPH CLIENT GOT NONE UPDATE')
+            return
         print('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(len(data_list)))
         print('First few are: ' + ut.repr4(data_list[0:3], si=2, precision=4))
         client.review_dict = {}
