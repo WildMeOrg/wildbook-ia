@@ -305,7 +305,6 @@ def compute_classifications2(depc, gid_list, config=None):
         vector_list = depc.get_property('features', gid_list, 'vector', config=config_)
         classifier_weight_filepath = config['classifier_weight_filepath']
         result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
-        ut.embed()
     else:
         raise ValueError('specified classifier_two algo is not supported in config = %r' % (config, ))
 

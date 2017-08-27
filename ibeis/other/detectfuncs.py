@@ -2435,8 +2435,6 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         image_path = '/home/jason/Desktop/batch3/image----%s----%s----%s----%s.png'
         cv2.imwrite(image_path % (index, test_gid, x, y), thumbnail)
 
-    ut.embed()
-
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
@@ -3218,8 +3216,6 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
     # Load data
     print('Loading pre-trained features for images')
 
-    ut.embed()
-
     # Save model pickle
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
@@ -3256,7 +3252,6 @@ def classifier2_train_image_rf(ibs, species_list, output_path=None, dryrun=False
         # Normalize data
         data_list = scaler_.transform(data_list)
         label_list_ = model_.predict(data_list)
-        ut.embed()
         # score_list_ = model_.decision_function(data_list)  # NOQA
         score_list_ = model_.predict_proba(data_list)  # NOQA
         tp, tn, fp, fn = 0, 0, 0, 0
