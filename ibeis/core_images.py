@@ -118,7 +118,7 @@ def compute_thumbnails(depc, gid_list, config=None):
     args_list = list(zip(thumbsize_list, gpath_list, orient_list, bboxes_list,
                          thetas_list, interests_list))
     genkw = {
-        'ordered': False,
+        'ordered': True,
         'chunksize': 256,
         'progkw': {'freq': 50},
         #'adjust': True,
@@ -294,6 +294,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'draw_annots' : False,
             'thumbsize'   : (192, 192),
         }
+        depc.delete_property('thumbnails', gid_list, config=config_)
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
     elif config['classifier_algo'] in ['rf']:

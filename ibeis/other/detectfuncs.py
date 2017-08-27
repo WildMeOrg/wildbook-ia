@@ -2406,10 +2406,7 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
-    species_set_list = [
-        set(ibs.get_annot_species_texts(aid_list))
-        for aid_list in aids_list
-    ]
+    species_set_list = list(map(ibs.get_annot_species_texts, aids_list))
 
     label_list = [
         'positive' if category in species_set else 'negative'
@@ -2421,6 +2418,22 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         confidence_dict[category]
         for confidence_dict in confidence_dict_list
     ]
+
+    config_ = {
+        'draw_annots' : False,
+        'thumbsize'   : (192, 192),
+    }
+    thumbnail_list = depc.get_property('thumbnails', test_gid_set, 'img', config=config_)
+    zipped = zip(test_gid_set, thumbnail_list, species_set_list, confidence_dict_list)
+    for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
+        print(index)
+        x = ';'.join(species_set)
+        y = []
+        for key in confidence_dict:
+            y.append('%s-%0.04f' % (key, confidence_dict[key], ))
+        y = ';'.join(y)
+        image_path = '/home/jason/Desktop/batch3/image----%s----%s----%s----%s.png'
+        cv2.imwrite(image_path % (index, test_gid, x, y), thumbnail)
 
     ut.embed()
 
