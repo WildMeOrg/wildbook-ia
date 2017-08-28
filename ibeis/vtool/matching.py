@@ -11,7 +11,11 @@ import warnings
 import utool as ut
 import numpy as np
 import parse
-import pyhesaff
+try:
+    import pyhesaff
+except ImportError:
+    pyhesaff = None
+    pass
 from collections import namedtuple
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -25,10 +29,13 @@ class MatchingError(Exception):
     pass
 
 
-VSONE_FEAT_CONFIG = [
-    ut.ParamInfo(key, val)
-    for key, val in pyhesaff.get_hesaff_default_params().items()
-]
+if pyhesaff is not None:
+    VSONE_FEAT_CONFIG = [
+        ut.ParamInfo(key, val)
+        for key, val in pyhesaff.get_hesaff_default_params().items()
+    ]
+else:
+    VSONE_FEAT_CONFIG = []
 
 VSONE_ASSIGN_CONFIG = [
     ut.ParamInfo('checks', 20),

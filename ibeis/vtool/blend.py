@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range  # NOQA
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[blend]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def testdata_blend(scale=128):
@@ -51,10 +51,29 @@ def overlay_alpha_images(img1, img2):
     import vtool as vt
     img1 = vt.rectify_to_float01(img1)
     img2 = vt.rectify_to_float01(img2)
+
     img1, img2 = vt.make_channels_comparable(img1, img2)
 
-    alpha1 = img1[:, :, 3]
-    alpha2 = img2[:, :, 3]
+    # print('img1.shape = {!r}'.format(img1.shape))
+    # print('img1.dtype = {!r}'.format(img1.dtype))
+    # print('img1.max() = {!r}'.format(img1.max()))
+
+    # print('img2.shape = {!r}'.format(img2.shape))
+    # print('img2.dtype = {!r}'.format(img2.dtype))
+    # print('img2.max() = {!r}'.format(img2.max()))
+
+    c1 = vt.get_num_channels(img1)
+    c2 = vt.get_num_channels(img2)
+    if c1 == 4:
+        alpha1 = img1[:, :, 3]
+    else:
+        alpha1 = np.ones(img1.shape[0:2], dtype=img1.dtype)
+
+    if c2 == 4:
+        alpha2 = img2[:, :, 3]
+    else:
+        alpha2 = np.ones(img2.shape[0:2], dtype=img2.dtype)
+
     rgb1 = img1[:, :, 0:3]
     rgb2 = img2[:, :, 0:3]
 
@@ -65,12 +84,8 @@ def overlay_alpha_images(img1, img2):
     numer2 = (rgb2 * alpha2[..., None] * (1.0 - alpha1[..., None]))
     rgb3 = (numer1 + numer2) / alpha3[..., None]
 
-    img3 = np.dstack([rgb3, alpha3[..., None]])
+    # img3 = np.dstack([rgb3, alpha3[..., None]])
     return rgb3
-
-
-
-    pass
 
 
 def blend_images(img1, img2, mode='average', **kwargs):
@@ -78,12 +93,14 @@ def blend_images(img1, img2, mode='average', **kwargs):
     Args:
         img1 (np.ndarray): first image
         img2 (np.ndarray): second image
-        mode (str): can be average or multiply
+        mode (str): can be average, multiply, or overlay
     """
     if mode == 'average':
         return blend_images_average(img1, img2, **kwargs)
     elif mode == 'multiply':
         return blend_images_multiply(img1, img2, **kwargs)
+    elif mode == 'overlay':
+        return overlay_alpha_images(img1, img2)
     else:
         raise ValueError('mode = %r' % (mode,))
 
@@ -291,7 +308,11 @@ def blend_images_multiply(img1, img2, alpha=0.5):
     # rectify type
     img1_ = vt.rectify_to_float01(img1)
     img2_ = vt.rectify_to_float01(img2)
+
     img1_, img2_ = vt.make_channels_comparable(img1_, img2_)
+
+    # print(ut.repr2(ut.get_stats(img1_, axis=2)))
+    # print(ut.repr2(ut.get_stats(img2_.ravel())))
     #assert img1_.min() >= 0 and img1_.max() <= 1
     #assert img2_.min() >= 0 and img2_.max() <= 1
     # apply transform

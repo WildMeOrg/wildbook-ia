@@ -87,6 +87,28 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
     return heatmask
 
 
+def make_heatmask(mask, cmap='plasma'):
+    # import vtool as vt
+    # use a disk instead of a gaussian
+    import plottool as pt
+    import vtool as vt
+    assert len(mask.shape) == 2
+    mask = vt.rectify_to_float01(mask)
+    heatmask = pt.plt.get_cmap(cmap)(mask)
+    # conver to bgr
+    heatmask[:, :, 0:3] = heatmask[:, :, 0:3][:, :, ::-1]
+    # apply alpha channel
+    # print('\n'.join([
+    #     'mask: ',
+    #     '  dtype: ' + str(mask.dtype),
+    #     '  shape: ' + str(mask.shape),
+    #     '  stats: ' + ut.repr2(ut.get_stats(mask.ravel()), precision=2),
+    # ]))
+    heatmask[:, :, 3] = mask
+    # print('heatmask = {!r}'.format(heatmask))
+    return heatmask
+
+
 #@ut.memprof
 def make_kpts_coverage_mask(
         kpts, chipsize,

@@ -3,9 +3,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import os
-from os.path import exists, join
+from os.path import exists, join  # NOQA
 from os.path import splitext
-from six.moves import zip, map, range
+from six.moves import zip, map, range  # NOQA
 import numpy as np
 from PIL import Image
 try:
@@ -562,7 +562,8 @@ def get_num_channels(img):
     elif ndims == 3 and img.shape[2] == 1:
         nChannels = 1
     else:
-        raise ValueError('Cannot determine number of channels')
+        raise ValueError('Cannot determine number of channels '
+                         'for img.shape={}'.format(img.shape))
     return nChannels
 
 
@@ -2328,9 +2329,35 @@ def embed_channels(img, input_channels=(0,), nchannels=3, fill=0):
     return newimg
 
 
+def ensure_4channel(img):
+    assert len(img.shape) == 3
+
+    if len(img.shape) == 3 and img.shape[2] == 4:
+        img_alpha = img
+        return img_alpha
+
+    h, w = img.shape[0:2]
+    if img.dtype.kind in {'i', 'u'}:
+        alpha = np.full((h, w, 1), fill_value=255, dtype=img.dtype)
+    elif img.dtype.kind == 'f':
+        alpha = np.full((h, w, 1), fill_value=1, dtype=img.dtype)
+    else:
+        raise NotImplementedError('kind={}'.format(img.dtype.kind))
+
+    if img.shape[2] == 1:
+        img_alpha = np.dstack([img, img, img, alpha])
+    elif img.shape[2] == 3:
+        img_alpha = np.dstack([img, alpha])
+    else:
+        raise NotImplementedError('shape={}'.format(img.shape))
+    # print('img_alpha.shape = {!r}'.format(img_alpha.shape))
+
+    return img_alpha
+
+
 def ensure_3channel(patch):
     r"""
-    DEPRICATE IN FAVOR OF atleast_3channels
+    DEPRICATE IN FAVOR OF atleast_3channels?
 
     Ensures that there are 3 channels in the image
 
