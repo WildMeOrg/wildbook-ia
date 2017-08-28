@@ -2562,11 +2562,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     config_list = []
     for category in category_set:
-        value = nice_mapping.get(category, None)
-        if value is not None:
-            category_nice = value
-        else:
-            category_nice = category
+        category_nice = nice_mapping.get(category, category)
         config_dict = {
             'label': category_nice,
             'category': category,
