@@ -2775,8 +2775,9 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, **
         )
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
+    ut.embed()
     conf_list = depc.get_property('labeler', aid_list, 'score')
-    species_list = depc.get_property('labeler', aid_list, 'class')
+    species_list = depc.get_property('labeler', aid_list, 'species')
     viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint')
     prediction_list = [
         '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
@@ -2879,7 +2880,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('Confusion Matrix', y=1.15)
