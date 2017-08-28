@@ -1827,6 +1827,8 @@ TODO
                     species_strs['giraffe_masai']       = 'Masai Giraffe'
                     species_strs['giraffe_reticulated'] = 'Reticulated Giraffe'
                     species_strs['turtle_sea']          = 'Sea Turtle'
+                    species_strs['turtle_hawksbill']    = 'Sea Turtle'
+                    species_strs['turtle_green']        = 'Sea Turtle'
                     species_strs['whale_fluke']         = 'Whale Fluke'
                     species_strs['zebra_grevys']        = 'Grevy\'s Zebra'
                     species_strs['zebra_plains']        = 'Plains Zebra'
