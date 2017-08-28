@@ -2906,24 +2906,28 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
 
 @register_ibs_method
-def background_accuracy_display(ibs):
+def background_accuracy_display(ibs, category_list):
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
     species_list = ibs.get_annot_species_texts(aid_list)
 
-    for aid, species in zip(aid_list, species_list):
-        if species not in ['giraffe_masai', 'giraffe_reticulated']:
-            continue
-        config2_ = {
-            'fw_detector': 'cnn'
-        }
-        hough_cpath = ibs.get_annot_probchip_fpath(aid, config2_=config2_)
-        img = vt.imread(hough_cpath)
-        chip = ibs.get_annot_chips(aid, config2_=config2_)
-        img = vt.blend_images_multiply(chip, vt.resize_mask(img, chip))
-        cv2.imwrite('~/Desktop/background.%d.png' % (aid, ), img)
+    aid_list = [
+        aid
+        for aid, species in zip(aid_list, species_list)
+        if species in category_list
+    ]
+
+    config2_ = {
+        'fw_detector': 'cnn'
+    }
+    hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)
+    image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
+    chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
+    for index, (image, chip) in enumerate(zip(image_list, chip_list)):
+        canvas = vt.blend_images_multiply(chip, vt.resize_mask(image, chip))
+        cv2.imwrite('~/Desktop/background.%d.png' % (aid, ), canvas)
 
 
 def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
