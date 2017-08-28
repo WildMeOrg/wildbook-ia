@@ -523,7 +523,6 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
                                   category_list, category_mapping,
                                   fig_, axes_, fuzzy_dict=None, conf=None,
                                   conf_list=None, **kwargs):
-    ut.embed()
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
     suppressed_label = 'SUP'
@@ -585,7 +584,8 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
             axes_.annotate(
                 str(number), xy=(y, x),
                 horizontalalignment='center',
-                verticalalignment='center'
+                verticalalignment='center',
+                size=8,
             )
 
     cb = fig_.colorbar(res)  # NOQA
@@ -2802,7 +2802,6 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
         simple_code(key): category_mapping[key]
         for key in category_mapping
     }
-    ut.embed()
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
                                                  category_mapping, conf_list=conf_list,
                                                  **kwargs)
@@ -2839,7 +2838,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
-    fig_ = plt.figure(figsize=figsize)  # NOQA
+    fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
     axes_ = plt.subplot(131)
     axes_.set_autoscalex_on(False)
@@ -2875,7 +2874,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
-    plt.title('ROC Curve\nAUC = %0.02f)' % (best_area, ), y=1.19)
+    plt.title('ROC Curve\nAUC = %0.02f' % (best_area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
