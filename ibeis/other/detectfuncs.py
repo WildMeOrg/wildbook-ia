@@ -79,6 +79,8 @@ def simple_code(label):
     label = label.replace('back',                'B')
     label = label.replace('left',                'L')
     label = label.replace('right',               'R')
+    label = label.replace('up',                  'U')
+    label = label.replace('down',                'D')
     return label
 
 
@@ -2757,7 +2759,7 @@ def labeler_roc_algo_plot(ibs, **kwargs):
                                   target=(0.0, 1.0), **kwargs)
 
 
-def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwargs):
+def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, label, color, **kwargs):
     print('Processing Confusion Matrix for: %r' % (label, ))
     depc = ibs.depc_annot
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2767,7 +2769,10 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
     species_list = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     label_list = [
-        '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
+        '%s:%s' % (
+            species,
+            viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
+        )
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     conf_list = depc.get_property('labeler', aid_list, 'score')
@@ -2789,7 +2794,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
 
 @register_ibs_method
 def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
-                                          figsize=(16, 16), **kwargs):
+                                          figsize=(24, 7), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2822,7 +2827,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
     fig_ = plt.figure(figsize=figsize)  # NOQA
 
-    axes_ = plt.subplot(221)
+    axes_ = plt.subplot(131)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
@@ -2837,12 +2842,11 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
-    best_conf = conf_list[0]
-    plt.title('Precision-Recall Curve (Algo: All, AP = %0.02f)' % (best_area, ), y=1.19)
+    plt.title('Precision-Recall Curve\nAP = %0.02f' % (best_area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(222)
+    axes_ = plt.subplot(132)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('False-Positive Rate')
@@ -2857,39 +2861,30 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
-    plt.title('ROC Curve (Algo: All, AP = %0.02f)' % (best_area, ), y=1.19)
+    plt.title('ROC Curve\nAUC = %0.02f)' % (best_area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    ut.embed()
+    key_list = sorted(label_dict.keys())
     fuzzy_dict = {}
-    for index1, label1 in enumerate(category_list):
+    for index1, label1 in enumerate(key_list):
         if label1 == 'ignore':
             fuzzy_list = []
         else:
             species, viewpoint = label1.strip().split(':')
             fuzzy_list = []
-            for index2, label2 in enumerate(category_list):
+            for index2, label2 in enumerate(key_list):
                 if species in label2:
                     fuzzy_list.append(index2)
         fuzzy_dict[index1] = set(fuzzy_list)
-    axes_ = plt.subplot(223)
+    axes_ = plt.subplot(133)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', category_list=category_list, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', category_list=key_list, viewpoint_mapping=viewpoint_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix', y=1.15)
-
-    axes_ = plt.subplot(224)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', category_list=category_list, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=best_conf)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Algo: All, OP = %0.02f)' % (best_conf, ), y=1.15)
+    plt.title('Confusion Matrix', y=1.15)
 
     fig_filename = 'labeler-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
