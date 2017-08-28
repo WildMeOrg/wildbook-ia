@@ -562,7 +562,7 @@ def get_num_channels(img):
     elif ndims == 3 and img.shape[2] == 1:
         nChannels = 1
     else:
-        raise Exception('Cannot determine number of channels')
+        raise ValueError('Cannot determine number of channels')
     return nChannels
 
 

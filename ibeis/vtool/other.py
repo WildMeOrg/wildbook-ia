@@ -2212,6 +2212,94 @@ def inbounds(num, low, high, eq=False):
     return is_inbounds
 
 
+def fromiter_nd(iter_, shape, dtype):
+    """
+    Like np.fromiter but handles iterators that generated
+    n-dimensional arrays. Slightly faster than np.array.
+
+    maybe commit to numpy?
+
+    Args:
+        iter_ (iter): an iterable that generates homogenous ndarrays
+        shape (tuple): the expected output shape
+        dtype (dtype): the numpy datatype of the generated ndarrays
+
+    Note:
+        The iterable must yeild a numpy array. It cannot yeild a Python list.
+
+    CommandLine:
+        python -m vtool.other fromiter_nd --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> dtype = np.float
+        >>> total = 11
+        >>> rng = np.random.RandomState(0)
+        >>> iter_ = (rng.rand(5, 7, 3) for _ in range(total))
+        >>> shape = (total, 5, 7, 3)
+        >>> result = fromiter_nd(iter_, shape, dtype)
+        >>> assert result.shape == shape
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> dtype = np.int
+        >>> qfxs = np.array([1, 2, 3])
+        >>> dfxs = np.array([4, 5, 6])
+        >>> iter_ = (np.array(x) for x in ut.product(qfxs, dfxs))
+        >>> total = len(qfxs) * len(dfxs)
+        >>> shape = (total, 2)
+        >>> result = fromiter_nd(iter_, shape, dtype)
+        >>> assert result.shape == shape
+    """
+    num_rows = shape[0]
+    chunksize = np.prod(shape[1:])
+    itemsize = np.dtype(dtype).itemsize
+    # Create dtype that makes an entire ndarray appear as a single item
+    chunk_dtype = np.dtype((np.void, itemsize * chunksize))
+    arr = np.fromiter(iter_, count=num_rows, dtype=chunk_dtype)
+    # Convert back to original dtype and shape
+    arr = arr.view(dtype)
+    arr.shape = shape
+    return arr
+
+
+def ensure_shape(arr, dimshape):
+    """
+    Ensures that an array takes a certain shape. The total size of the array
+    must not change.
+
+    Args:
+        arr (ndarray): array to change the shape of
+        dimshape (tuple): desired shape (Nones can be used to broadcast
+            dimensions)
+
+    Returns:
+        ndarray: arr_ -  the input array, which has been modified inplace.
+
+    CommandLine:
+        python -m vtool.other ensure_shape
+
+    Doctest:
+        >>> from vtool.other import *  # NOQA
+        >>> ensure_shape(np.array([[1, 2]]), (None, 2))
+        >>> ensure_shape(np.array([]), (None, 2))
+    """
+    if isinstance(dimshape, tuple):
+        n = len(dimshape)
+    else:
+        n = dimshape
+        dimshape = None
+    arr_ = atleast_nd(arr, n)
+    if dimshape is not None:
+        newshape = tuple([
+            d1 if d2 is None else d2
+            for d1, d2 in zip(arr_.shape, dimshape)])
+        arr_.shape = newshape
+    return arr_
+
+
 def make_video2(images, outdir):
     import vtool as vt
     from os.path import join
