@@ -2923,7 +2923,7 @@ def background_accuracy_display(ibs):
         img = vt.imread(hough_cpath)
         chip = ibs.get_annot_chips(aid, config2_=config2_)
         img = vt.blend_images_multiply(chip, vt.resize_mask(img, chip))
-        cv2.imwrite('~/Desktop/background.%d.png' % (aid, ))
+        cv2.imwrite('~/Desktop/background.%d.png' % (aid, ), img)
 
 
 def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
