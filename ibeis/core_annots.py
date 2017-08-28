@@ -1707,11 +1707,11 @@ def compute_labels_annotations(depc, aid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
-    config = {
+    config_ = {
         'dim_size': (128, 128),
         'resize_dim': 'wh',
     }
-    chip_list = depc.get_property('chips', aid_list, 'img', config=config)
+    chip_list = depc.get_property('chips', aid_list, 'img', config=config_)
     result_list = ibs.generate_chip_label_list(chip_list, **config)
     # yield detections
     for result in result_list:

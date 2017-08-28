@@ -2664,6 +2664,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     # Get predictions
+    depc.delete_property('labeler', aid_list, config=kwargs)
     probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
