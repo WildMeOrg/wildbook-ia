@@ -2778,8 +2778,13 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
         )
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
-    label_list = [_ for _ in label_list if _ in category_list]
-    ut.embed()
+    temp_list = [
+        (aid, label)
+        for aid, label in zip(aid_list, label_list)
+        if label in category_list
+    ]
+    aid_list = [_[0] for _ in temp_list]
+    label_list = [_[1] for _ in temp_list]
     conf_list = depc.get_property('labeler', aid_list, 'score', config=kwargs)
     species_list = depc.get_property('labeler', aid_list, 'species', config=kwargs)
     viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint', config=kwargs)
