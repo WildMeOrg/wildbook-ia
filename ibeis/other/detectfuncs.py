@@ -534,7 +534,10 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
         if fuzzy_dict is not None:
             fuzzy_dict[index] = set([])
 
-    ut.embed()
+    if category_mapping is not None:
+        index_list = [category_mapping[category] for category in category_list]
+        zipped = list(sorted(zip(index_list, category_list)))
+        category_list = [_[1] for _ in zipped]
 
     # Get the number of categories
     num_categories = len(category_list)
