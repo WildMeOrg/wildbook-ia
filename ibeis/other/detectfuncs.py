@@ -2906,9 +2906,10 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
 
 @register_ibs_method
-def background_accuracy_display(ibs, category_list):
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-    test_gid_set = list(test_gid_set)
+def background_accuracy_display(ibs, category_list, test_gid_set=None):
+    if test_gid_set is None:
+        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
     species_list = ibs.get_annot_species_texts(aid_list)
@@ -2919,6 +2920,7 @@ def background_accuracy_display(ibs, category_list):
         if species in category_list
     ]
     species_list = ibs.get_annot_species_texts(aid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
 
     config2_ = {
         'fw_detector': 'cnn'
@@ -2926,8 +2928,8 @@ def background_accuracy_display(ibs, category_list):
     hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)
     image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
     chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
-    zipped = zip(aid_list, species_list, image_list, chip_list)
-    for index, (aid, species, image, chip) in enumerate(zipped):
+    zipped = zip(aid_list, gid_list, species_list, image_list, chip_list)
+    for index, (aid, gid, species, image, chip) in enumerate(zipped):
         print(index)
         canvas = vt.blend_images_multiply(chip, vt.resize_mask(image, chip))
         canvas *= 255.0
@@ -2935,7 +2937,7 @@ def background_accuracy_display(ibs, category_list):
         canvas[canvas < 0] = 0
         canvas[canvas > 255] = 255
         canvas = canvas.astype(np.uint8)
-        cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.png' % (species, aid, ), canvas)
+        cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.%d.png' % (species, gid, aid, ), canvas)
 
 
 def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
