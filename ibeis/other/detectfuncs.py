@@ -1150,7 +1150,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    fig_ = plt.figure(figsize=figsize)
+    fig_ = plt.figure(figsize=figsize, dpi=400)
 
     axes_ = plt.subplot(131)
     axes_.set_autoscalex_on(False)
@@ -1795,7 +1795,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     best_area = area_list[index]  # NOQA
     best_conf = conf_list[index]
     # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
-    plt.title('Precision-Recall Curves', y=1.13)
+    plt.title('Precision-Recall Curves', y=1.19)
 
     # Display graph of the overall highest area
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
