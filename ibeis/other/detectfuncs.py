@@ -2551,9 +2551,18 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     category_set = sorted(species_list)
 
+    nice_mapping = {
+        'giraffe_masai'       : 'Masai Giraffe',
+        'giraffe_reticulated' : 'Reticulated Giraffe',
+        'turtle_sea'          : 'Sea Turtle',
+        'whale_fluke'         : 'Whale Fluke',
+        'zebra_grevys'        : 'Grevy\'s Zebra',
+        'zebra_plains'        : 'Plains Zebra',
+    }
+
     config_list = []
     for category in category_set:
-        value = const.SPECIES_MAPPING.get(category, None)
+        value = nice_mapping.get(category, None)
         if value is not None:
             category_tag, category_nice = value
         else:
@@ -2767,6 +2776,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     import matplotlib.pyplot as plt
     import plottool as pt
 
+    ut.embed()
+
     if category_list is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
         test_gid_set = list(test_gid_set)
@@ -2779,13 +2790,16 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, **kwargs)
 
     config_list = [
-        {'label': 'All', 'category_list': None},
-        {'label': 'Zebras', 'category_list': None},
-        {'label': 'Plains Only', 'category_list': None},
-        {'label': 'Grevy\'s Only', 'category_list': None},
-        {'label': 'Ignore Only', 'category_list': None},
+        {'label': 'All Species',         'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'Masai Giraffe',       'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'Reticulated Giraffe', 'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'Sea Turtle',          'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'Whale Fluke',         'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'Grevy\'s Zebra',      'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'Plains Zebra',        'labeler_weight_filepath': 'candidacy', 'category_list': None},
     ]
-    color_list = pt.distinct_colors(len(config_list), randomize=False)
+    color_list = [(0.0, 0.0, 0.0)]
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     fig_ = plt.figure(figsize=figsize)  # NOQA
 
