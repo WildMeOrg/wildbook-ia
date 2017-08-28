@@ -2907,6 +2907,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
 @register_ibs_method
 def background_accuracy_display(ibs, category_list):
+    ut.embed()
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
@@ -2926,6 +2927,7 @@ def background_accuracy_display(ibs, category_list):
     image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
     chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
     for index, (image, chip) in enumerate(zip(image_list, chip_list)):
+        print(index)
         canvas = vt.blend_images_multiply(chip, vt.resize_mask(image, chip))
         cv2.imwrite('~/Desktop/background.%d.png' % (aid, ), canvas)
 

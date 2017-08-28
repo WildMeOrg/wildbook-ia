@@ -620,8 +620,8 @@ def compute_probchip(depc, aid_list, config=None):
 
     # Use the labeled species for the fw_detector
     species_list = ibs.get_annot_species_texts(aid_list)
-    print('aid_list = %r' % (aid_list,))
-    print('species_list = %r' % (species_list,))
+    # print('aid_list = %r' % (aid_list,))
+    # print('species_list = %r' % (species_list,))
 
     fw_detector = config['fw_detector']
     dim_size = config['fw_dim_size']
