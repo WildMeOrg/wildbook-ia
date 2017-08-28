@@ -2905,6 +2905,27 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     plt.savefig(fig_path, bbox_inches='tight')
 
 
+@register_ibs_method
+def background_accuracy_display(ibs):
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = list(test_gid_set)
+    aids_list = ibs.get_image_aids(test_gid_set)
+    aid_list = ut.flatten(aids_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+
+    for aid, species in zip(aid_list, species_list):
+        if species not in ['giraffe_masai', 'giraffe_reticulated']:
+            continue
+        config2_ = {
+            'fw_detector': 'cnn'
+        }
+        hough_cpath = ibs.get_annot_probchip_fpath(aid, config2_=config2_)
+        img = vt.imread(hough_cpath)
+        chip = ibs.get_annot_chips(aid, config2_=config2_)
+        img = vt.blend_images_multiply(chip, vt.resize_mask(img, chip))
+        cv2.imwrite('~/Desktop/background.%d.png' % (aid, ))
+
+
 def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
