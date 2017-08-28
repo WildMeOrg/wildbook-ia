@@ -4703,13 +4703,14 @@ def localizer_train(ibs, species_list=None, **kwargs):
 
 
 @register_ibs_method
-def labeler_train(ibs, species_list=None, **kwargs):
+def labeler_train(ibs, species_list=None, viewpoint_mapping=None, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_labeler_training_images(ibs, data_path,
                                                      category_list=species_list,
+                                                     viewpoint_mapping=viewpoint_mapping,
                                                      **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
