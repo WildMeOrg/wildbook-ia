@@ -726,6 +726,270 @@ def zipcat(arr1_list, arr2_list, axis=None):
     return arr3_list
 
 
+def atleast_nd(arr, n, tofront=False):
+    r"""
+    View inputs as arrays with at least n dimensions.
+    TODO: Commit to numpy
+
+    Args:
+        arr (array_like): One array-like object.  Non-array inputs are
+            converted to arrays.  Arrays that already have n or more dimensions
+            are preserved.
+        n (int):
+        tofront (bool): if True new dims are added to the front of the array
+
+    CommandLine:
+        python -m vtool.other --exec-atleast_nd --show
+
+    Returns:
+        ndarray :
+            An array with ``a.ndim >= n``.  Copies are avoided where possible,
+            and views with three or more dimensions are returned.  For example,
+            a 1-D array of shape ``(N,)`` becomes a view of shape
+            ``(1, N, 1)``, and a 2-D array of shape ``(M, N)`` becomes a view of shape
+            ``(M, N, 1)``.
+
+    See Also:
+        atleast_1d, atleast_2d, atleast_3d
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> n = 2
+        >>> arr = np.array([1, 1, 1])
+        >>> arr_ = atleast_nd(arr, n)
+        >>> result = ut.repr2(arr_.tolist())
+        >>> print(result)
+        [[1], [1], [1]]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> n = 4
+        >>> arr1 = [1, 1, 1]
+        >>> arr2 = np.array(0)
+        >>> arr3 = np.array([[[[[1]]]]])
+        >>> arr1_ = atleast_nd(arr1, n)
+        >>> arr2_ = atleast_nd(arr2, n)
+        >>> arr3_ = atleast_nd(arr3, n)
+        >>> result1 = ut.repr2(arr1_.tolist())
+        >>> result2 = ut.repr2(arr2_.tolist())
+        >>> result3 = ut.repr2(arr3_.tolist())
+        >>> result = '\n'.join([result1, result2, result3])
+        >>> print(result)
+        [[[[1]]], [[[1]]], [[[1]]]]
+        [[[[0]]]]
+        [[[[[1]]]]]
+
+    Ignore:
+        # Hmm, mine is actually faster
+        %timeit atleast_nd(arr, 3)
+        %timeit np.atleast_3d(arr)
+    """
+    arr_ = np.asanyarray(arr)
+    ndims = len(arr_.shape)
+    if n is not None and ndims <  n:
+        # append the required number of dimensions to the end
+        if tofront:
+            expander = (None,) * (n - ndims) + (Ellipsis,)
+        else:
+            expander = (Ellipsis,) + (None,) * (n - ndims)
+        arr_ = arr_[expander]
+    return arr_
+
+
+def ensure_shape(arr, dimshape):
+    """
+    Ensures that an array takes a certain shape. The total size of the array
+    must not change.
+
+    Args:
+        arr (ndarray): array to change the shape of
+        dimshape (tuple): desired shape (Nones can be used to broadcast
+            dimensions)
+
+    Returns:
+        ndarray: arr_ -  the input array, which has been modified inplace.
+
+    CommandLine:
+        python -m vtool.other ensure_shape
+
+    Doctest:
+        >>> from vtool.other import *  # NOQA
+        >>> arr = np.zeros((7, 7))
+        >>> dimshape = (None, None, 3)
+        >>> arr2 = ensure_shape(np.array([[1, 2]]), (None, 2))
+        >>> assert arr2.shape == (1, 2)
+        >>> arr3 = ensure_shape(np.array([]), (None, 2))
+        >>> assert arr3.shape == (0, 2)
+    """
+    if isinstance(dimshape, tuple):
+        n = len(dimshape)
+    else:
+        n = dimshape
+        dimshape = None
+    arr_ = atleast_nd(arr, n)
+    if dimshape is not None:
+        newshape = tuple([
+            d1 if d2 is None else d2
+            for d1, d2 in zip(arr_.shape, dimshape)])
+        arr_.shape = newshape
+    return arr_
+
+
+def significant_shape(arr):
+    """ find the shape without trailing 1's """
+    sig_dim = 0
+    for i, dim in enumerate(arr.shape, start=1):
+        if dim != 1:
+            sig_dim = i
+    sig_shape = arr.shape[0:sig_dim]
+    return sig_shape
+
+
+def atleast_shape(arr, dimshape):
+    """
+    Ensures that an array takes a certain shape. The total size of the array
+    must not change.
+
+    Args:
+        arr (ndarray): array to change the shape of
+        dimshape (tuple): desired shape (Nones can be used to broadcast
+            dimensions)
+
+    Returns:
+        ndarray: arr_ -  the input array, which has been modified inplace.
+
+    CommandLine:
+        python -m vtool.other ensure_shape
+
+    Doctest:
+        >>> from vtool.other import *  # NOQA
+        >>> arr = np.zeros((7, 7))
+        >>> assert atleast_shape(arr, (1, 1, 3,)).shape == (7, 7, 3)
+        >>> assert atleast_shape(arr, (1, 1, 2, 4,)).shape == (7, 7, 2, 4)
+        >>> assert atleast_shape(arr, (1, 1,)).shape == (7, 7,)
+        >>> assert atleast_shape(arr, (1, 1, 1)).shape == (7, 7, 1)
+        >>> assert atleast_shape(np.zeros(()), (1,)).shape == (1,)
+        >>> assert atleast_shape(np.zeros(()), tuple()).shape == tuple()
+        >>> assert atleast_shape(np.zeros(()), (1, 2, 3,)).shape == (1, 2, 3)
+        >>> ut.assert_raises(ValueError, atleast_shape, arr, (2, 2))
+        >>> assert atleast_shape(np.zeros((7, 7, 3)), (1, 1, 3)).shape == (7, 7, 3)
+        >>> ut.assert_raises(ValueError, atleast_shape, np.zeros((7, 7, 3)), (1, 1, 4))
+
+    """
+    n = len(dimshape)
+    sig_shape = significant_shape(arr)
+    if n < len(sig_shape):
+        raise ValueError(
+            'len(dimshape)={} must be >= than '
+            'len(significant_shape(arr)={})'.format(n, sig_shape))
+    arr_ = atleast_nd(arr, n)
+    for d1, d2 in zip(arr_.shape, dimshape):
+        if d2 > 1 and d1 != 1 and d1 != d2:
+            raise ValueError('cannot broadcast {} to {}'.format(
+                arr_.shape, dimshape
+            ))
+    reps = tuple(1 if d2 is None or (d1 == d2) else d2
+                 for d1, d2 in zip(arr_.shape, dimshape))
+    arr_ = np.tile(arr_, reps)
+    return arr_
+
+
+def atleast_3channels(arr, copy=True):
+    r"""
+    Ensures that there are 3 channels in the image
+
+    Args:
+        arr (ndarray[N, M, ...]): the image
+        copy (bool): Always copies if True, if False, then copies only when the
+            size of the array must change.
+
+    Returns:
+        ndarray: with shape (N, M, C), where C in {3, 4}
+
+    CommandLine:
+        python -m vtool.other atleast_3channels
+
+    Doctest:
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> assert atleast_3channels(np.zeros((10, 10))).shape[-1] == 3
+        >>> assert atleast_3channels(np.zeros((10, 10, 1))).shape[-1] == 3
+        >>> assert atleast_3channels(np.zeros((10, 10, 3))).shape[-1] == 3
+        >>> assert atleast_3channels(np.zeros((10, 10, 4))).shape[-1] == 4
+    """
+    # atleast_shape(arr, (None, None, 3))
+    ndims = len(arr.shape)
+    if ndims == 2:
+        res = np.tile(arr[:, :, None], 3)
+        return res
+    elif ndims == 3:
+        h, w, c = arr.shape
+        if c == 1:
+            res = np.tile(arr, 3)
+        elif c in [3, 4]:
+            res = arr.copy() if copy else arr
+        else:
+            raise ValueError('Cannot handle ndims={}'.format(ndims))
+    else:
+        raise ValueError('Cannot handle arr.shape={}'.format(arr.shape))
+    return res
+
+
+def iter_reduce_ufunc(ufunc, arr_iter, out=None):
+    """
+    constant memory iteration and reduction
+
+    applys ufunc from left to right over the input arrays
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr_list = [
+        ...     np.array([0, 1, 2, 3, 8, 9]),
+        ...     np.array([4, 1, 2, 3, 4, 5]),
+        ...     np.array([0, 5, 2, 3, 4, 5]),
+        ...     np.array([1, 1, 6, 3, 4, 5]),
+        ...     np.array([0, 1, 2, 7, 4, 5])
+        ... ]
+        >>> memory = np.array([9, 9, 9, 9, 9, 9])
+        >>> gen_memory = memory.copy()
+        >>> def arr_gen(arr_list, gen_memory):
+        ...     for arr in arr_list:
+        ...         gen_memory[:] = arr
+        ...         yield gen_memory
+        >>> print('memory = %r' % (memory,))
+        >>> print('gen_memory = %r' % (gen_memory,))
+        >>> ufunc = np.maximum
+        >>> res1 = iter_reduce_ufunc(ufunc, iter(arr_list), out=None)
+        >>> res2 = iter_reduce_ufunc(ufunc, iter(arr_list), out=memory)
+        >>> res3 = iter_reduce_ufunc(ufunc, arr_gen(arr_list, gen_memory), out=memory)
+        >>> print('res1       = %r' % (res1,))
+        >>> print('res2       = %r' % (res2,))
+        >>> print('res3       = %r' % (res3,))
+        >>> print('memory     = %r' % (memory,))
+        >>> print('gen_memory = %r' % (gen_memory,))
+        >>> assert np.all(res1 == res2)
+        >>> assert np.all(res2 == res3)
+    """
+    # Get first item in iterator
+    try:
+        initial = next(arr_iter)
+    except StopIteration:
+        return None
+    # Populate the outvariable if specified otherwise make a copy of the first
+    # item to be the output memory
+    if out is not None:
+        out[:] = initial
+    else:
+        out = initial.copy()
+    # Iterate and reduce
+    for arr in arr_iter:
+        ufunc(out, arr, out=out)
+    return out
+
+
 def clipnorm(arr, min_, max_, out=None):
     """
     normalizes arr to the range 0 to 1 using min_ and max_ as clipping bounds
@@ -2263,41 +2527,6 @@ def fromiter_nd(iter_, shape, dtype):
     arr = arr.view(dtype)
     arr.shape = shape
     return arr
-
-
-def ensure_shape(arr, dimshape):
-    """
-    Ensures that an array takes a certain shape. The total size of the array
-    must not change.
-
-    Args:
-        arr (ndarray): array to change the shape of
-        dimshape (tuple): desired shape (Nones can be used to broadcast
-            dimensions)
-
-    Returns:
-        ndarray: arr_ -  the input array, which has been modified inplace.
-
-    CommandLine:
-        python -m vtool.other ensure_shape
-
-    Doctest:
-        >>> from vtool.other import *  # NOQA
-        >>> ensure_shape(np.array([[1, 2]]), (None, 2))
-        >>> ensure_shape(np.array([]), (None, 2))
-    """
-    if isinstance(dimshape, tuple):
-        n = len(dimshape)
-    else:
-        n = dimshape
-        dimshape = None
-    arr_ = atleast_nd(arr, n)
-    if dimshape is not None:
-        newshape = tuple([
-            d1 if d2 is None else d2
-            for d1, d2 in zip(arr_.shape, dimshape)])
-        arr_.shape = newshape
-    return arr_
 
 
 def make_video2(images, outdir):

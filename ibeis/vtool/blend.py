@@ -74,6 +74,12 @@ def overlay_alpha_images(img1, img2):
 
 
 def blend_images(img1, img2, mode='average', **kwargs):
+    """
+    Args:
+        img1 (np.ndarray): first image
+        img2 (np.ndarray): second image
+        mode (str): can be average or multiply
+    """
     if mode == 'average':
         return blend_images_average(img1, img2, **kwargs)
     elif mode == 'multiply':
@@ -96,8 +102,8 @@ def blend_images_average(img1, img2, alpha=.5):
         https://en.wikipedia.org/wiki/Blend_modes
 
     CommandLine:
-        python -m vtool.blend --test-blend_images_average:0 --show
-        python -m vtool.blend --test-blend_images_average:1 --show
+        python -m vtool.blend blend_images_average:0 --show
+        python -m vtool.blend blend_images_average:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST

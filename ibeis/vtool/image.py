@@ -1210,11 +1210,25 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     return img_warped
 
 
-def get_round_scaled_dsize(dsize_old, scale):
-    w, h = dsize_old
-    dsize = int(round(w * scale)), int(round(h * scale))
-    tonew_sf = dsize[0] / w, dsize[1] / h
-    return dsize, tonew_sf
+def get_round_scaled_dsize(dsize, scale):
+    """
+    Returns an integer size and scale that best approximates
+    the floating point scale on the original size
+
+    Args:
+        dsize (tuple): original width height
+        scale (float or tuple): desired floating point scale factor
+    """
+    try:
+        sx, sy = scale
+    except TypeError:
+        sx = sy = scale
+    w, h = dsize
+    new_w = int(round(w * sx))
+    new_h = int(round(h * sy))
+    new_scale = new_w / w, new_h / h
+    new_dsize = (new_w, new_h)
+    return new_dsize, new_scale
 
 
 def rectify_to_square(img, extreme='max'):
@@ -1846,7 +1860,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
         http://www.siafoo.net/snippet/229
 
     CommandLine:
-        python -m vtool.image --test-perlin_noise --show
+        python -m vtool.image perlin_noise --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1868,8 +1882,8 @@ def perlin_noise(size, scale=32.0, rng=np.random):
 
         def __init__(self, size=None, n=None):
 
-            n = n if n else  256
-            self.size = size if size else (256, 256)
+            n = n if n is not None else  256
+            self.size = size if size is not None else (256, 256)
 
             self.order = len(self.size)
 
@@ -2316,6 +2330,8 @@ def embed_channels(img, input_channels=(0,), nchannels=3, fill=0):
 
 def ensure_3channel(patch):
     r"""
+    DEPRICATE IN FAVOR OF atleast_3channels
+
     Ensures that there are 3 channels in the image
 
     Args:
@@ -2343,12 +2359,6 @@ def ensure_3channel(patch):
         >>> assert res1.shape[-1] == 3
         >>> assert res2.shape[-1] == 3
         >>> assert res3.shape[-1] == 3
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.imshow(res1, pnum=(1, 3, 1), fnum=1)
-        >>> pt.imshow(res2, pnum=(1, 3, 2), fnum=1)
-        >>> pt.imshow(res3, pnum=(1, 3, 3), fnum=1)
-        >>> ut.show_if_requested()
     """
     # TODO: should this use atleast_nd as a subroutine?
     # res = vt.atleast_nd(patch, 3)
@@ -2434,9 +2444,9 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
     if nChannels1 == 1 and nChannels2 == 3:
-        img1 = vt.ensure_3channel(img1)
+        img1 = vt.atleast_3channels(img1, copy=False)
     if nChannels1 == 3 and nChannels2 == 1:
-        img2 = vt.ensure_3channel(img2)
+        img2 = vt.atleast_3channels(img2, copy=False)
     nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
     assert nChannels1 == nChannels2
