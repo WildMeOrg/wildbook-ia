@@ -2621,20 +2621,20 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
                         samples=SAMPLES, **kwargs):
 
-    def labeler_tp_tn_fp_fn_(zipped, conf, category):
-        error_list = [0, 0, 0, 0]
+    def errors(zipped, conf, category):
+        tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         for index, (label, confidence) in enumerate(zipped):
-            if label == category and conf <= confidence:
-                error_list[0] += 1
-            elif label != category and conf <= confidence:
-                error_list[2] += 1
-            elif label == category:
-                error_list[3] += 1
-            elif label != category:
-                error_list[1] += 1
-        return error_list
-
-    ut.embed()
+            if label == category:
+                if conf <= confidence:
+                    tp += 1
+                else:
+                    fn += 1
+            else:
+                if conf <= confidence:
+                    fp += 1
+                else:
+                    tn += 1
+        return tp, tn, fp, fn
 
     depc = ibs.depc_annot
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2664,29 +2664,43 @@ def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     # Get predictions
-    depc.delete_property('labeler', aid_list, config=kwargs)
+    # depc.delete_property('labeler', aid_list, config=kwargs)
     probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
-    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
+    value1_list = set(label_list)
+    value2_list = set(probability_dict_list[0].keys())
+    assert len(value1_list - value2_list) == 0
+    assert len(value2_list - value1_list) == 0
+
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     label_dict = {}
-    for category in category_list:
-        print('\t%r' % (category, ))
+    for key in value1_list:
+        print('\t%r' % (key, ))
         conf_dict = {}
         confidence_list = [
-            probability_dict[category]
+            probability_dict[key]
             for probability_dict in probability_dict_list
         ]
         zipped = list(zip(label_list, confidence_list))
         for conf in conf_list:
-            conf_dict[conf] = labeler_tp_tn_fp_fn_(zipped, conf, category)
-        label_dict[category] = conf_dict
+            conf_dict[conf] = errors(zipped, conf, key)
+        label_dict[key] = conf_dict
     return label_dict
 
 
 def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
 
+    if category_list is None:
+        category_list_ = label_dict.keys()
+    else:
+        category_list_ = []
+        for category in category_list:
+            for key in label_dict:
+                if category in key or category is None:
+                    category_list_.append(key)
+
     global_conf_dict = {}
-    for category in category_list:
+    for category in category_list_:
         conf_dict = label_dict[category]
         for conf in conf_dict:
             new_list = conf_dict[conf]
@@ -2796,12 +2810,12 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
     config_list = [
         {'label': 'All Species',         'category_list': None},
-        {'label': 'Masai Giraffe',       'category_list': None},
-        {'label': 'Reticulated Giraffe', 'category_list': None},
-        {'label': 'Sea Turtle',          'category_list': None},
-        {'label': 'Whale Fluke',         'category_list': None},
-        {'label': 'Grevy\'s Zebra',      'category_list': None},
-        {'label': 'Plains Zebra',        'category_list': None},
+        {'label': 'Masai Giraffe',       'category_list': ['giraffe_masai']},
+        {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
+        {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
+        {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},
+        {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
+        {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
     ]
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
@@ -4778,14 +4792,18 @@ def background_train(ibs, species):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.background import train_background
+    from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_background_training_patches2(ibs, data_path,
-                                                      species=species,
+    extracted_path = get_background_training_patches2(ibs, species, data_path,
                                                       patch_size=50,
                                                       global_limit=500000)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')
     model_path = train_background(output_path, X_file, y_file)
+    model_state = ut.load_cPkl(model_path)
+    assert 'species' not in model_state
+    model_state['species'] = species
+    save_model(model_state, model_path)
     return model_path
 
 
