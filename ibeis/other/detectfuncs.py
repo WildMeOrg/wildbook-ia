@@ -2861,6 +2861,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
+    ut.embed()
     fuzzy_dict = {}
     for index1, label1 in enumerate(category_list):
         if label1 == 'ignore':
