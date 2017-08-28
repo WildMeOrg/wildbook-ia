@@ -2594,7 +2594,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     for color, config in zip(color_list, config_list):
         classifier2_precision_recall_algo_plot(ibs, color=color, **config)
-    plt.title('Precision-Recall Curves', y=1.14)
+    plt.title('Precision-Recall Curves', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2608,7 +2608,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     for color, config in zip(color_list, config_list):
         classifier2_roc_algo_plot(ibs, color=color, **config)
-    plt.title('ROC Curves', y=1.14)
+    plt.title('ROC Curves', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2857,7 +2857,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
                                                            color=color, **config)
         area_list.append(area)
-    plt.title('Precision-Recall Curve', y=1.15)
+    plt.title('Precision-Recall Curve', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2898,7 +2898,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     area_list_ = area_list[1:]
     mAP = sum(area_list_) / len(area_list_)
     args = (mAP * 100.0, )
-    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.15)
+    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.19)
 
     fig_filename = 'labeler-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
