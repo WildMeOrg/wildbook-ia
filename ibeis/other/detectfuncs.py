@@ -4707,6 +4707,7 @@ def labeler_train(ibs, species_list=None, viewpoint_mapping=None, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
+    from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_labeler_training_images(ibs, data_path,
                                                      category_list=species_list,
@@ -4715,6 +4716,13 @@ def labeler_train(ibs, species_list=None, viewpoint_mapping=None, **kwargs):
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
     model_path = train_labeler(output_path, X_file, y_file)
+    # Add the species_list to the model
+    model_state = ut.load_cPkl(model_path)
+    assert 'category_list' not in model_state
+    model_state['category_list'] = species_list
+    assert 'viewpoint_mapping' not in model_state
+    model_state['viewpoint_mapping'] = viewpoint_mapping
+    save_model(model_state, model_path)
     return model_path
 
 
@@ -4747,12 +4755,13 @@ def detector_train(ibs):
 
 
 @register_ibs_method
-def background_train(ibs):
+def background_train(ibs, species):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.background import train_background
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_background_training_patches2(ibs, data_path,
+                                                      species=species,
                                                       patch_size=50,
                                                       global_limit=500000)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
