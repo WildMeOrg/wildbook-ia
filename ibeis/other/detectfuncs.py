@@ -47,9 +47,11 @@ def simple_code(label):
     label = label.replace('antelope',            'ANTEL')
     label = label.replace('elephant_savannah',   'ELEPH')
     label = label.replace('person',              'PERSON')
-    label = label.replace('giraffe_reticulated', 'GIR')
+    # label = label.replace('giraffe_reticulated', 'GIR')
+    label = label.replace('giraffe_reticulated', 'RG')
     label = label.replace('zebra_grevys',        'GZ')
-    label = label.replace('giraffe_masai',       'GIRM')
+    # label = label.replace('giraffe_masai',       'GIRM')
+    label = label.replace('giraffe_masai',       'MG')
     label = label.replace('unspecified_animal',  'UNSPEC')
     label = label.replace('car',                 'CAR')
     label = label.replace('bird',                'B')
@@ -2759,7 +2761,7 @@ def labeler_roc_algo_plot(ibs, **kwargs):
                                   target=(0.0, 1.0), **kwargs)
 
 
-def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, **kwargs):
+def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, category_mapping=None, **kwargs):
     print('Processing Confusion Matrix')
     depc = ibs.depc_annot
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2775,19 +2777,25 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, **
         )
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
+    label_list = [_ for _ in label_list if _ in category_list]
     ut.embed()
-    conf_list = depc.get_property('labeler', aid_list, 'score')
-    species_list = depc.get_property('labeler', aid_list, 'species')
-    viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint')
+    conf_list = depc.get_property('labeler', aid_list, 'score', config=kwargs)
+    species_list = depc.get_property('labeler', aid_list, 'species', config=kwargs)
+    viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint', config=kwargs)
     prediction_list = [
-        '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
+        '%s:%s' % (species, viewpoint, )
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
 
-    category_list = map(simple_code, category_list)
-    label_list = map(simple_code, label_list)
-    prediction_list = map(simple_code, prediction_list)
-    category_mapping = { key: index for index, key in enumerate(category_list) }
+    category_list = list(map(simple_code, category_list))
+    label_list = list(map(simple_code, label_list))
+    prediction_list = list(map(simple_code, prediction_list))
+    if category_mapping is None:
+        category_mapping = { key: index for index, key in enumerate(category_list) }
+    category_mapping = {
+        simple_code(key): category_mapping[key]
+        for key in category_mapping
+    }
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
                                                  category_mapping, conf_list=conf_list,
                                                  **kwargs)
@@ -2795,7 +2803,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, **
 
 @register_ibs_method
 def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
-                                          figsize=(24, 7), **kwargs):
+                                          category_mapping=None, figsize=(24, 7), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2880,7 +2888,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('Confusion Matrix', y=1.15)
