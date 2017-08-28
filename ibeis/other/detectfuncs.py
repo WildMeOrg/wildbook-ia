@@ -2798,8 +2798,6 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    ut.embed()
-
     if category_list is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
         test_gid_set = list(test_gid_set)
