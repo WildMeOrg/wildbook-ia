@@ -523,6 +523,7 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
                                   category_list, category_mapping,
                                   fig_, axes_, fuzzy_dict=None, conf=None,
                                   conf_list=None, **kwargs):
+    ut.embed()
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
     suppressed_label = 'SUP'
@@ -2796,6 +2797,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
         simple_code(key): category_mapping[key]
         for key in category_mapping
     }
+    ut.embed()
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
                                                  category_mapping, conf_list=conf_list,
                                                  **kwargs)
@@ -2803,7 +2805,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
 
 @register_ibs_method
 def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
-                                          category_mapping=None, figsize=(24, 7), **kwargs):
+                                          category_mapping=None, figsize=(30, 9), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
