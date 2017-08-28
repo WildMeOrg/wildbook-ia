@@ -2871,7 +2871,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     for color, config in zip(color_list, config_list):
         labeler_roc_algo_plot(ibs, label_dict=label_dict,
                               color=color, **config)
-    plt.title('ROC Curve', y=1.15)
+    plt.title('ROC Curve', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
