@@ -2544,7 +2544,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    fig_ = plt.figure(figsize=figsize)  # NOQA
+    fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     kwargs['classifier_two_weight_filepath'] = 'candidacy'
@@ -2594,7 +2594,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     for color, config in zip(color_list, config_list):
         classifier2_precision_recall_algo_plot(ibs, color=color, **config)
-    plt.title('Precision-Recall Curves', y=1.10)
+    plt.title('Precision-Recall Curves', y=1.14)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2608,7 +2608,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     for color, config in zip(color_list, config_list):
         classifier2_roc_algo_plot(ibs, color=color, **config)
-    plt.title('ROC Curves', y=1.10)
+    plt.title('ROC Curves', y=1.14)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2853,14 +2853,11 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     area_list = []
-    conf_list = []
     for color, config in zip(color_list, config_list):
         area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
                                                            color=color, **config)
         area_list.append(area)
-        conf_list.append(conf)
-    best_area = area_list[0]
-    plt.title('Precision-Recall Curve\nAP = %0.02f' % (best_area, ), y=1.19)
+    plt.title('Precision-Recall Curve', y=1.15)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2871,15 +2868,10 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_ylabel('True-Positive Rate')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area_list = []
-    conf_list = []
     for color, config in zip(color_list, config_list):
-        area, conf, _ = labeler_roc_algo_plot(ibs, label_dict=label_dict,
-                                              color=color, **config)
-        area_list.append(area)
-        conf_list.append(conf)
-    best_area = area_list[0]
-    plt.title('ROC Curve\nAUC = %0.02f' % (best_area, ), y=1.19)
+        labeler_roc_algo_plot(ibs, label_dict=label_dict,
+                              color=color, **config)
+    plt.title('ROC Curve', y=1.15)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2895,6 +2887,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
                 if species in label2:
                     fuzzy_list.append(index2)
         fuzzy_dict[index1] = set(fuzzy_list)
+
     axes_ = plt.subplot(133)
     axes_.set_aspect(1)
     gca_ = plt.gca()
@@ -2902,7 +2895,10 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('Confusion Matrix', y=1.15)
+    area_list_ = area_list[1:]
+    mAP = sum(area_list_) / len(area_list_)
+    args = (mAP * 100.0, )
+    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.15)
 
     fig_filename = 'labeler-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
