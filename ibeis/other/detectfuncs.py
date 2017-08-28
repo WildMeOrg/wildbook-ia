@@ -2759,8 +2759,8 @@ def labeler_roc_algo_plot(ibs, **kwargs):
                                   target=(0.0, 1.0), **kwargs)
 
 
-def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, label, color, **kwargs):
-    print('Processing Confusion Matrix for: %r' % (label, ))
+def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, **kwargs):
+    print('Processing Confusion Matrix')
     depc = ibs.depc_annot
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
@@ -2879,7 +2879,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', category_list=key_list, viewpoint_mapping=viewpoint_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=None)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('Confusion Matrix', y=1.15)
