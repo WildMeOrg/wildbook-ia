@@ -2633,6 +2633,8 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
                 error_list[1] += 1
         return error_list
 
+    ut.embed()
+
     depc = ibs.depc_annot
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
@@ -2658,7 +2660,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     # Get predictions
-    probability_dict_list = depc.get_property('labeler', aid_list, 'probs')
+    probability_dict_list = depc.get_property('labeler', aid_list, 'probs', **kwargs)
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
     label_dict = {}
@@ -2783,16 +2785,17 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
+    kwargs['labeler_weight_filepath'] = 'candidacy'
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, **kwargs)
 
     config_list = [
-        {'label': 'All Species',         'labeler_weight_filepath': 'candidacy', 'category_list': None},
-        {'label': 'Masai Giraffe',       'labeler_weight_filepath': 'candidacy', 'category_list': None},
-        {'label': 'Reticulated Giraffe', 'labeler_weight_filepath': 'candidacy', 'category_list': None},
-        {'label': 'Sea Turtle',          'labeler_weight_filepath': 'candidacy', 'category_list': None},
-        {'label': 'Whale Fluke',         'labeler_weight_filepath': 'candidacy', 'category_list': None},
-        {'label': 'Grevy\'s Zebra',      'labeler_weight_filepath': 'candidacy', 'category_list': None},
-        {'label': 'Plains Zebra',        'labeler_weight_filepath': 'candidacy', 'category_list': None},
+        {'label': 'All Species',         'category_list': None},
+        {'label': 'Masai Giraffe',       'category_list': None},
+        {'label': 'Reticulated Giraffe', 'category_list': None},
+        {'label': 'Sea Turtle',          'category_list': None},
+        {'label': 'Whale Fluke',         'category_list': None},
+        {'label': 'Grevy\'s Zebra',      'category_list': None},
+        {'label': 'Plains Zebra',        'category_list': None},
     ]
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
