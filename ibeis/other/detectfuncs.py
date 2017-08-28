@@ -2935,7 +2935,7 @@ def background_accuracy_display(ibs, category_list):
         canvas[canvas < 0] = 0
         canvas[canvas > 255] = 255
         canvas = canvas.astype(np.uint8)
-        cv2.imwrite('/home/jason/Desktop/background.%s.%d.png' % (species, aid, ), canvas)
+        cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.png' % (species, aid, ), canvas)
 
 
 def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
