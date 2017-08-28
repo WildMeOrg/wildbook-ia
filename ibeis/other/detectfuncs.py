@@ -474,6 +474,10 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                            plot_point=True, interpolate=True, target=(1.0, 1.0),
                            version=1, **kwargs):
     import matplotlib.pyplot as plt
+    zipped = list(sorted(zip(x_list, y_list, conf_list)))
+    x_list = [_[0] for _ in zipped]
+    y_list = [_[1] for _ in zipped]
+    conf_list = [_[2] for _ in zipped]
     if interpolate:
         conf_list, x_list, y_list = general_interpolate_precision_recall(
             conf_list,
@@ -2419,21 +2423,21 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         for confidence_dict in confidence_dict_list
     ]
 
-    config_ = {
-        'draw_annots' : False,
-        'thumbsize'   : (192, 192),
-    }
-    thumbnail_list = depc.get_property('thumbnails', test_gid_set, 'img', config=config_)
-    zipped = zip(test_gid_set, thumbnail_list, species_set_list, confidence_dict_list)
-    for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
-        print(index)
-        x = ';'.join(species_set)
-        y = []
-        for key in confidence_dict:
-            y.append('%s-%0.04f' % (key, confidence_dict[key], ))
-        y = ';'.join(y)
-        image_path = '/home/jason/Desktop/batch3/image----%s----%s----%s----%s.png'
-        cv2.imwrite(image_path % (index, test_gid, x, y), thumbnail)
+    # config_ = {
+    #     'draw_annots' : False,
+    #     'thumbsize'   : (192, 192),
+    # }
+    # thumbnail_list = depc.get_property('thumbnails', test_gid_set, 'img', config=config_)
+    # zipped = zip(test_gid_set, thumbnail_list, species_set_list, confidence_dict_list)
+    # for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
+    #     print(index)
+    #     x = ';'.join(species_set)
+    #     y = []
+    #     for key in confidence_dict:
+    #         y.append('%s-%0.04f' % (key, confidence_dict[key], ))
+    #     y = ';'.join(y)
+    #     image_path = '/home/jason/Desktop/batch3/image----%s----%s----%s----%s.png'
+    #     cv2.imwrite(image_path % (index, test_gid, x, y), thumbnail)
 
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
