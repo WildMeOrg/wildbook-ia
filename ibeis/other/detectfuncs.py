@@ -2618,7 +2618,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
+def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
+                        samples=SAMPLES, **kwargs):
 
     def labeler_tp_tn_fp_fn_(zipped, conf, category):
         error_list = [0, 0, 0, 0]
@@ -2645,18 +2646,21 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     # Filter aids with species of interest and undefined viewpoints
     flag_list = [
-        species in category_list and viewpoint is None
+        species in category_list
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
-    flag_list = ut.not_list(flag_list)
     if False in flag_list:
         aid_list = ut.compress(aid_list, flag_list)
         # Get new species and viewpoints
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
+
     # Make ground-truth
     label_list = [
-        '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
+        '%s:%s' % (
+            species,
+            viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
+        )
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     # Get predictions
@@ -2769,8 +2773,8 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
 
 
 @register_ibs_method
-def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 16),
-                                          **kwargs):
+def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
+                                          figsize=(16, 16), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2786,7 +2790,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
 
     print('Compiling raw numbers...')
     kwargs['labeler_weight_filepath'] = 'candidacy'
-    label_dict = labeler_tp_tn_fp_fn(ibs, category_list, **kwargs)
+    label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,
+                                     **kwargs)
 
     config_list = [
         {'label': 'All Species',         'category_list': None},
