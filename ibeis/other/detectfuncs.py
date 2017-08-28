@@ -534,6 +534,8 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
         if fuzzy_dict is not None:
             fuzzy_dict[index] = set([])
 
+    ut.embed()
+
     # Get the number of categories
     num_categories = len(category_list)
 
