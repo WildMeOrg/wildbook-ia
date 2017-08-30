@@ -1,13 +1,9 @@
 # I'm not quite sure how to organize these functions yet
 from __future__ import absolute_import, division, print_function
-# Standard
 from six.moves import zip
-# Science
 import numpy as np
 import cv2
-# Matplotlib
 import matplotlib.pyplot as plt
-# VTool
 import vtool.histogram as htool
 import utool as ut
 ut.noinject(__name__, '[pt.other]')

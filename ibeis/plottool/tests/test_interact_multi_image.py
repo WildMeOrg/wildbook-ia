@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 # DUPLICATE CODE, DELETE
 from __future__ import absolute_import, division, print_function

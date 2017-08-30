@@ -176,20 +176,24 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, ver
         >>> ut.show_if_requested()
     """
     import plottool as pt
-    colors = df2.distinct_colors(2, brightness=.95)
+    colors = pt.distinct_colors(2, brightness=.95)
     color1, color2 = colors[0:2]
     # Begin the drawing
     fnum = pt.ensure_fnum(fnum)
-    df2.figure(fnum=fnum, pnum=(1, 1, 1), docla=True, doclf=True)
+    pt.figure(fnum=fnum, pnum=(1, 1, 1), docla=True, doclf=True)
     #dmkwargs = dict(fs=None, title='Inconsistent Matches', all_kpts=False, draw_lines=True,
-    #                docla=True, draw_border=True, fnum=fnum, pnum=(1, 1, 1), colors=df2.ORANGE)
+    #                docla=True, draw_border=True, fnum=fnum, pnum=(1, 1, 1), colors=pt.ORANGE)
     inlier_mask = vt.index_to_boolmask(inliers, maxval=len(fm))
     fm_inliers = fm.compress(inlier_mask, axis=0)
     fm_outliers = fm.compress(np.logical_not(inlier_mask), axis=0)
-    ax, xywh1, xywh2 = df2.show_chipmatch2(chip1, chip2, vert=vert)
+    xywh1, xywh2, sf_tup = pt.show_chipmatch2(chip1, chip2, vert=vert,
+                                              modifysize=True, new_return=True)
+    sf1, sf2 = sf_tup
     fmatch_kw = dict(ell_linewidth=2, ell_alpha=.7, line_alpha=.7)
-    df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_inliers, colors=color1, **fmatch_kw)
-    df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_outliers, colors=color2, **fmatch_kw)
+    pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_inliers, colors=color1,
+                   scale_factor1=sf1, scale_factor2=sf2, **fmatch_kw)
+    pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_outliers, colors=color2,
+                   scale_factor1=sf1, scale_factor2=sf2, **fmatch_kw)
 
 
 if __name__ == '__main__':

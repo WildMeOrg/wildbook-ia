@@ -64,6 +64,10 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> nRows = 1
         >>> nCols = 2
         >>> px = 0
+        >>> if True:
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     import matplotlib as mpl
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> hack = ut.get_argflag('--feat-all')
         >>> sift = sift if not ut.get_argflag('--no-sift') else None
         >>> draw_desc = sift is not None
@@ -108,7 +112,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     if draw_chip:
         pnum = pnum_()
         df2.imshow(chip, fnum=fnum, pnum=pnum)
-        kpts_kw = dict(ell_linewidth=5, ell_alpha=1.0)
+        kpts_kw = dict(ell_linewidth=1, ell_alpha=1.0)
         kpts_kw.update(kwargs)
         df2.draw_kpts2([kp], **kpts_kw)
 
@@ -159,11 +163,12 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
             df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
         else:
             if sift.dtype.type == np.uint8:
-                sigtitle =  'sift histogram' if (px % 3) == 0 else ''
-                ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+                # sigtitle =  'sift histogram' if (px % 3) == 0 else ''
+                # ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+                ax = df2.plot_sift_signature(sift, fnum=fnum, pnum=pnum)
             else:
-                sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
-                ax = df2.plot_descriptor_signature(sift, sigtitle,  fnum=fnum, pnum=pnum)
+                # sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
+                ax = df2.plot_descriptor_signature(sift, fnum=fnum, pnum=pnum)
             ax._hs_viztype = 'histogram'
         #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
         #dist_list = ['L2', 'hist_isect']

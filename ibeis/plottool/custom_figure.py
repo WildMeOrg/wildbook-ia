@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, splitext, join, split
 import six
 import utool as ut
@@ -9,26 +9,29 @@ import warnings
 import functools
 from plottool import custom_constants
 import matplotlib.gridspec as gridspec  # NOQA
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[customfig]')
 ut.noinject(__name__, '[customfig]')
 
 
-#LABEL_SIZE = 8
-#TITLE_SIZE = 8
-#LABEL_SIZE = ut.get_argval('--labelsize', default=8)
-#TITLE_SIZE = ut.get_argval('--titlesize', default=8)
+# LABEL_SIZE = ut.get_argval('--labelsize', default=None)
+# TITLE_SIZE = ut.get_argval('--titlesize', default=None)
+# FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=None) # figure.titlesize
+# LEGEND_SIZE = ut.get_argval('--legendsize', default=None)
+# TICK_SIZE = ut.get_argval('--ticksize', default=None)
 
-
-LABEL_SIZE = ut.get_argval('--labelsize', default=10)
-TITLE_SIZE = ut.get_argval('--titlesize', default=12)
-FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=10)
-LEGEND_SIZE = ut.get_argval('--legendsize', default=8)
-
-# UNCOMMENT FOR PRESENTATIONS
-LABEL_SIZE = ut.get_argval('--labelsize', default=14)
-TITLE_SIZE = ut.get_argval('--titlesize', default=18)
-FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
-LEGEND_SIZE = ut.get_argval('--legendsize', default=14)
+# CUSTOM_RC = {
+#     'legend.fontsize': LEGEND_SIZE,
+#     'axes.titlesize': TITLE_SIZE,
+#     'axes.labelsize': LABEL_SIZE,
+#     # 'legend.facecolor': 'w',
+#     # 'font.family': 'DejaVu Sans',
+#     'xtick.labelsize': TICK_SIZE,
+#     'ytick.labelsize': TICK_SIZE,
+# }
+# for key, val in CUSTOM_RC.items():
+#     print(key)
+#     print(val)
+#     if val is not None:
+#         mpl.rcParams[key] = val
 
 
 def customize_figure(fig, docla):
@@ -93,15 +96,26 @@ def _convert_pnum_int_to_tup(int_pnum):
     return pnum
 
 
+def _pnum_to_subspec(pnum):
+    if isinstance(pnum, six.string_types):
+        pnum = list(pnum)
+    nrow, ncols, plotnum = pnum
+    # if kwargs.get('use_gridspec', True):
+    # Convert old pnums to gridspec
+    gs = gridspec.GridSpec(nrow, ncols)
+    if isinstance(plotnum, (tuple, slice, list)):
+        subspec = gs[plotnum]
+    else:
+        subspec = gs[plotnum - 1]
+    return (subspec,)
+    # else:
+    #     return (nrow, ncols, plotnum)
+
+
 def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
            doclf=False, projection=None, **kwargs):
     """
-    TODO: gridspec
     http://matplotlib.org/users/gridspec.html
-
-    Args:
-        fnum (int):  fignum = figure number
-        pnum (int, str, or tuple(int, int, int)): plotnum = plot tuple
 
     Args:
         fnum (int): fignum = figure number
@@ -146,69 +160,34 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
     axes_list = fig.get_axes()
     # Ensure my customized settings
     customize_figure(fig, docla)
+    if pnum is None:
+        return fig
     if ut.is_int(pnum):
         pnum = _convert_pnum_int_to_tup(pnum)
-
-    def pnum_to_subspec(pnum):
-        if isinstance(pnum, six.string_types):
-            pnum = list(pnum)
-        #if isinstance(pnum, (list, tuple)):
-        nrow, ncols, plotnum = pnum
-
-        if kwargs.get('use_gridspec', True):
-            # Convert old pnums to gridspec
-            gs = gridspec.GridSpec(nrow, ncols)
-            if isinstance(plotnum, (tuple, slice, list)):
-                subspec = gs[plotnum]
-            else:
-                subspec = gs[plotnum - 1]
-            return (subspec,)
-        else:
-            return (nrow, ncols, plotnum)
-
-    if doclf:  # a bit hacky. Need to rectify docla and doclf
+    if doclf:
         fig.clf()
-        # <HACK TO CLEAR AXES>
-        #for ax in axes_list:
-        #    ax.clear()
-        #for ax in fig.get_axes:
-        #    fig.delaxes(ax)
-        #axes_list = []
-        # </HACK TO CLEAR AXES>
-    # Get the subplot
     if docla or len(axes_list) == 0:
-        #printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
             assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
-            #ax = plt.subplot(*pnum)
-            subspec = pnum_to_subspec(pnum)
+            subspec = _pnum_to_subspec(pnum)
             ax = fig.add_subplot(*subspec, projection=projection)
-            #ax = fig.add_subplot(*pnum, projection=projection)
-            ax.cla()
+            if docla:
+                ax.cla()
         else:
             ax = gca()
     else:
-        #printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
-            subspec = pnum_to_subspec(pnum)
+            subspec = _pnum_to_subspec(pnum)
             ax = plt.subplot(*subspec)
-            #ax = plt.subplot(nrow, ncols, plotnum)
-            #ax = plt.subplot(*pnum)  # fig.add_subplot fails here
-            #ax = fig.add_subplot(*pnum)
         else:
             ax = gca()
-        #ax  = axes_list[0]
-    # Set the title
+    # Set the title / figtitle
     if title is not None:
         ax = gca()
         set_title(title, ax=ax)
-        # Add title to figure
-        # HACK HACK HACK
-        if figtitle is None and pnum == (1, 1, 1):
-            figtitle = title
-        if figtitle is not None:
-            set_figtitle(figtitle, incanvas=False)
+    if figtitle is not None:
+        set_figtitle(figtitle, incanvas=False, fig=fig)
     return fig
 
 
@@ -401,7 +380,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
         #print('[df2] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
         savekw['bbox_inches'] = extent.expanded(1.0, 1.0)
         if verbose == 2:
-            print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
+            print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
         #ut.embed()
 
     #fname_clean = split(fpath_clean)[1]
@@ -416,7 +395,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
             #fig.savefig(fpath_clean)
             if verbose > 1 or ut.VERBOSE:
                 print(']pt.save_figure] fpath_clean = %s' % (fpath_clean, ))
-                print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
+                print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
             # savekw['bbox_inches'] = 'tight'
             #print('savekw = %r' % (savekw,))
             if fpath_clean.endswith('.png'):
@@ -462,61 +441,134 @@ def customize_fontprop(font_prop, **fontkw):
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
-    titlesize = fontkw.get('titlesize', TITLE_SIZE)
-    titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light',
-                                                          size=titlesize)
-    }
+    if fontkw:
+        fontsize = fontkw.get('fontsize', mpl.rcParams['axes.titlesize'])
+        titlesize = fontkw.get('titlesize', fontsize)
+        titlekw = {
+            'fontproperties': mpl.font_manager.FontProperties(
+                weight=fontkw.get('weight', 'light'), size=titlesize)
+        }
+    else:
+        titlekw = {}
     #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, **titlekw)
 
 
 def set_xlabel(lbl, ax=None, **kwargs):
+    r"""
+    Args:
+        lbl (?):
+        ax (None): (default = None)
+        **kwargs:
+
+    CommandLine:
+        python -m plottool.custom_figure set_xlabel
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.custom_figure import *  # NOQA
+        >>> import plottool as pt
+        >>> fig = pt.figure()
+        >>> pt.adjust_subplots(fig=fig, bottom=.5)
+        >>> ax = pt.gca()
+        >>> lbl = 'a\nab\nabc'
+        >>> result = set_xlabel(lbl, ax)
+        >>> xaxis = ax.get_xaxis()
+        >>> xlabel = xaxis.get_label()
+        >>> xlabel.set_horizontalalignment('left')
+        >>> xlabel.set_x(0)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> ut.show_if_requested()
+    """
     if ax is None:
         ax = gca()
-    labelsize = kwargs.get('labelsize', LABEL_SIZE)
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
-    }
-    #ax.set_xlabel(lbl, **labelkw)
+    # labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
+    fontkw = {}
+    labelkw = {}
+    if 'labelsize' in kwargs:
+        fontkw['labelsize'] = kwargs.get('labelsize')
+    if 'weight' in kwargs:
+        fontkw['weight'] = kwargs.get('weight')
+    if fontkw:
+        labelkw['fontproperties'] = mpl.font_manager.FontProperties(**fontkw)
     # Have to strip for tex output to work with mpl. uggg
     ax.set_xlabel(lbl.strip('\n'), **labelkw)
-    #ax.set_xlabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
-def set_ylabel(lbl, **kwargs):
-    ax = gca()
-    labelsize = kwargs.get('labelsize', LABEL_SIZE)
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
-    }
+def set_ylabel(lbl, ax=None, **kwargs):
+    if ax is None:
+        ax = gca()
+    # labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
+    # labelkw = {
+    #     'fontproperties': mpl.font_manager.FontProperties(
+    #         weight=kwargs.get('weight', 'light'), size=labelsize)
+    # }
+    fontkw = {}
+    labelkw = {}
+    if 'labelsize' in kwargs:
+        fontkw['labelsize'] = kwargs.get('labelsize')
+    if 'weight' in kwargs:
+        fontkw['weight'] = kwargs.get('weight')
+    if fontkw:
+        labelkw['fontproperties'] = mpl.font_manager.FontProperties(**fontkw)
     ax.set_ylabel(lbl, **labelkw)
-    #ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
-                 size=None, font=None):
-    if size is None:
-        size = FIGTITLE_SIZE
+                 size=None, fontfamily=None, fontweight=None,
+                 fig=None, font=None):
+    r"""
+    Args:
+        figtitle (?):
+        subtitle (str): (default = '')
+        forcefignum (bool): (default = True)
+        incanvas (bool): (default = True)
+        fontfamily (None): (default = None)
+        fontweight (None): (default = None)
+        size (None): (default = None)
+        fig (None): (default = None)
+
+    CommandLine:
+        python -m plottool.custom_figure set_figtitle --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.custom_figure import *  # NOQA
+        >>> import plottool as pt
+        >>> fig = pt.figure(fnum=1, doclf=True)
+        >>> result = pt.set_figtitle(figtitle='figtitle', fig=fig)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    # if size is None:
+    #     size = FIGTITLE_SIZE
     if font is not None:
         print('WARNING set_figtitle font kwarg is DEPRICATED')
     if figtitle is None:
         figtitle = ''
-    fig = gcf()
+    if fig is None:
+        fig = gcf()
+    figtitle = ut.ensure_unicode(figtitle)
+    subtitle = ut.ensure_unicode(subtitle)
     if incanvas:
         if subtitle != '':
             subtitle = '\n' + subtitle
-        #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
-        #fontprop = getattr(custom_constants.FONTS, font)
-        #fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
-        #fontproperties = mpl.font_manager.FontProperties(weight='light',
-        #                                                 size=size)
-        fontproperties = mpl.font_manager.FontProperties(size=size)
-        fig.suptitle(figtitle + subtitle, fontproperties=fontproperties, fontsize=size)
-        #fig_relative_text(.5, .96, subtitle,
-        # fontproperties=custom_constants.FONTS.subtitle)
+        prop = {
+            'family': fontfamily,
+            'weight': fontweight,
+            'size': size,
+        }
+        prop = {k: v for k, v in prop.items() if v is not None}
+        sup = fig.suptitle(figtitle + subtitle)
+
+        if prop:
+            fontproperties = sup.get_fontproperties().copy()
+            for key, val in prop.items():
+                getattr(fontproperties, 'set_' + key)(val)
+            sup.set_fontproperties(fontproperties)
+            # fontproperties = mpl.font_manager.FontProperties(**prop)
     else:
         fig.suptitle('')
     # Set title in the window

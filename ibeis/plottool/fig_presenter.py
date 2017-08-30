@@ -1,19 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import sys
-import textwrap
 import time
-#import warnings
 import utool as ut
-# maptlotlib
 import matplotlib as mpl
-#import matplotlib.pyplot as plt
-# Science
 from plottool.custom_figure import get_fig
 
 #from .custom_constants import golden_wh
 
 
-SLEEP_TIME = .05
+SLEEP_TIME = .01
 __QT4_WINDOW_LIST__ = []
 ut.noinject(__name__, '[fig_presenter]')
 
@@ -93,7 +88,7 @@ def get_all_qt4_wins():
 def all_figures_show():
     if VERBOSE:
         print('all_figures_show')
-    if '--noshow' not in sys.argv:
+    if not ut.get_argflag('--noshow'):
         for fig in get_all_figures():
             time.sleep(SLEEP_TIME)
             show_figure(fig)
@@ -118,13 +113,17 @@ def all_figures_tight_layout():
 
 
 def get_main_win_base():
+    if hasattr(mpl.backends, 'backend_qt4'):
+        backend = mpl.backends.backend_qt4
+    else:
+        backend = mpl.backends.backend_qt5
     try:
-        QMainWin = mpl.backends.backend_qt4.MainWindow
+        QMainWin = backend.MainWindow
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
             #from guitool.__PYQT__ import QtGui
-            QMainWin = mpl.backends.backend_qt4.QtWidgets.QMainWindow
+            QMainWin = backend.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
             QMainWin = object
@@ -145,11 +144,9 @@ def get_all_windows():
 
 
 #@profile
-def all_figures_tile(max_rows=None,
-                     row_first=True,
-                     no_tile=False,
-                     monitor_num=None,
-                     **kwargs):
+def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
+                     monitor_num=None, percent_w=None, percent_h=None,
+                     hide_toolbar=True):
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
@@ -171,7 +168,8 @@ def all_figures_tile(max_rows=None,
 
     valid_positions = screeninfo.get_valid_fig_positions(num_wins, max_rows,
                                                          row_first, monitor_num,
-                                                         adaptive=True)
+                                                         percent_w=percent_w,
+                                                         percent_h=percent_h)
 
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
@@ -186,6 +184,9 @@ def all_figures_tile(max_rows=None,
             raise NotImplementedError('%r-th Backend %r is not a Qt Window' %
                                       (ix, win))
         try:
+            if hide_toolbar:
+                toolbar = win.findChild(QtWidgets.QToolBar)
+                toolbar.setVisible(False)
             win.setGeometry(x, y, w, h)
         except Exception as ex:
             ut.printex(ex)
@@ -278,29 +279,31 @@ iup = iupdate
 
 def present(*args, **kwargs):
     """
-    execing present should cause IPython magic
-
     basically calls show if not embeded.
+
+    Kwargs:
+        max_rows, row_first, no_tile, monitor_num, percent_w, percent_h,
+        hide_toolbar
+
+    CommandLine:
+        python -m plottool.fig_presenter present
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.fig_presenter import *  # NOQA
+        >>> result = present()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
     """
     if VERBOSE:
         print('[pt] present')
-    if '--noshow' not in sys.argv:
+    if not ut.get_argflag('--noshow'):
         #print('[fig_presenter] Presenting figures...')
         #with warnings.catch_warnings():
         #    warnings.simplefilter("ignore")
         all_figures_tile(*args, **kwargs)
+        # Both of these lines cause the weird non-refresh black border behavior
         all_figures_show()
         all_figures_bring_to_front()
-        # Return an exec string
-    execstr = ut.ipython_execstr()
-    execstr += textwrap.dedent('''
-    if not embedded:
-        if '--quiet' not in sys.argv:
-            print('[fig_presenter] Presenting in normal shell.')
-            print('[fig_presenter] ... plt.show()')
-        import matplotlib.pyplot as plt
-        if '--noshow' not in sys.argv:
-            print('WARNING USING plt.show')
-            plt.show()
-    ''')
-    return execstr

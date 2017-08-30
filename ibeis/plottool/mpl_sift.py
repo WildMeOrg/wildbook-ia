@@ -1,13 +1,10 @@
-from __future__ import absolute_import, division, print_function
-# Standard
-from itertools import product as iprod
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-# Science
+import itertools as it
 import numpy as np
-# Matplotlib
 import matplotlib as mpl
 import utool as ut
-from plottool import color_funcs as color_fns  # NOQA
+from plottool import color_funcs as color_fns
 ut.noinject(__name__, '[pt.mpl_sift]')
 
 
@@ -27,22 +24,6 @@ def testdata_sifts():
     return sifts
 
 
-def _cirlce_rad2xy(radians, mag):
-    return np.cos(radians) * mag, np.sin(radians) * mag
-
-
-def _set_colltup_list_transform(colltup_list, trans):
-    for coll_tup in colltup_list:
-        for coll in coll_tup:
-            coll.set_transform(trans)
-
-
-def _draw_colltup_list(ax, colltup_list):
-    for coll_tup in colltup_list:
-        for coll in coll_tup:
-            ax.add_collection(coll)
-
-
 # Create a patch collection with attributes
 def _circl_collection(patch_list, color, alpha):
     coll = mpl.collections.PatchCollection(patch_list)
@@ -52,17 +33,10 @@ def _circl_collection(patch_list, color, alpha):
     return coll
 
 
-def _arm_collection(patch_list, color, alpha, lw):
-    coll = mpl.collections.PatchCollection(patch_list)
-    coll.set_alpha(alpha)
-    coll.set_color(color)
-    coll.set_linewidth(lw)
-    return coll
-
-
 def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
                         arm2_color=BLACK, arm_alpha=1.0, arm1_lw=1.0,
-                        arm2_lw=2.0, circ_alpha=.5, **kwargs):
+                        arm2_lw=2.0, stroke=1.0, circ_alpha=.5, fidelity=256,
+                        scaling=True, **kwargs):
     """
     Creates a collection of SIFT matplotlib patches
 
@@ -78,6 +52,7 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         arm1_lw (float):
         arm2_lw (float):
         circ_alpha (float):
+        fidelity (int): quantization factor
 
     Returns:
         ?: coll_tup
@@ -96,7 +71,9 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         >>> arm1_lw = 0.5
         >>> arm2_lw = 1.0
         >>> circ_alpha = 0.5
-        >>> coll_tup = get_sift_collection(sift, aff, bin_color, arm1_color, arm2_color, arm_alpha, arm1_lw, arm2_lw, circ_alpha)
+        >>> coll_tup = get_sift_collection(sift, aff, bin_color, arm1_color,
+        >>>                                arm2_color, arm_alpha, arm1_lw,
+        >>>                                arm2_lw, circ_alpha)
         >>> print(coll_tup)
     """
     # global offset scale adjustments
@@ -104,65 +81,152 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         aff = mpl.transforms.Affine2D()
     MULTI_COLORED_ARMS = kwargs.pop('multicolored_arms', False)
     _kwarm = kwargs.copy()
-    _kwarm.update(dict(head_width=1e-10, length_includes_head=False, transform=aff, color=[1, 1, 0]))
+    _kwarm.update(dict(head_width=1e-10, length_includes_head=False,
+                       transform=aff, color=[1, 1, 0]))
     _kwcirc = dict(transform=aff)
-    arm_patches = []
     DSCALE   =  0.25  # Descriptor scale factor
-    ARMSCALE =  1.5   # Arm length scale factor
     XYSCALE  =  0.5   # Position scale factor
     XYOFFST  = -0.75  # Position offset
     NORI, NX, NY = 8, 4, 4  # SIFT BIN CONSTANTS
     NBINS = NX * NY
     discrete_ori = (np.arange(0, NORI) * (TAU / NORI))
-    # Arm magnitude and orientations
-    arm_mag = sift / 255.0
-    arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
-    # Arm orientation in dxdy format
-    arm_dxy = np.array(list(zip(*_cirlce_rad2xy(arm_ori, arm_mag))))
-    # Arm locations and dxdy index
-    yxt_gen = iprod(range(NY), range(NX), range(NORI))
-    # Circle x,y locations
-    yx_gen  = iprod(range(NY), range(NX))
-    # Draw 8 directional arms in each of the 4x4 grid cells
-    arm_args_list = []
 
+    # import utool
+    # utool.embed()
+    # Arm magnitude and orientations
+    #arm_mag = sift / 255.0
+    # If given the correct fidelity, each arm will have a max magnitude of 1.0
+    # Because the diameter of each circle is 1.0
+    arm_mag = sift / (float(fidelity))
+    # arm_mag = sift / 512.0  # technically correct
+    # arm_mag = sift / 256.0  # but use this instead as it is max bin
+
+    arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
+
+    if scaling and False:
+        # Use entropy as a scaling factor to more clearly visualize differences
+        p = np.bincount(sift) / len(sift)
+        maximum_entropy = -np.log2(1 / len(sift))
+        entropy = -np.nansum(p * np.log2(p))
+        # Alpha is 1 when entropy is maximum
+        # When entropy is maximum, we want to scale things up a bit
+        alpha = (entropy / maximum_entropy)
+
+        max_ = arm_mag.max()
+        # Always scale up, but no more than max.
+        pt1 = min(max_, 1)  # max_
+        pt2 = max(max_, 1)  # 1
+        denom = (pt2 * alpha) + (pt1 * (1 - alpha))
+        scale_factor = 1 / denom
+        arm_mag = arm_mag * scale_factor
+    # arm_mag *= 4
+
+    ori_dxy = np.hstack([np.cos(arm_ori)[:, None],
+                         np.sin(arm_ori)[:, None]])
+
+    # Arm orientation in dxdy format
+    # arm_dx = np.cos(arm_ori) * arm_mag
+    # arm_dy = np.sin(arm_ori) * arm_mag
+    # arm_dxy = np.hstack([arm_dx[:, None], arm_dy[:, None]])
+    # assert np.all(np.isclose(np.sqrt(arm_dy ** 2 + arm_dx ** 2), arm_mag))
+    #np.linalg.norm(arm_dxy, axis=1).max()
+
+    # Arm locations and dxdy index
+    yxt_gen = it.product(range(NY), range(NX), range(NORI))
+    # Circle x,y locations
+    yx_gen  = it.product(range(NY), range(NX))
+    # Draw 8 directional arms in each of the 4x4 grid cells
+
+    # MOVETO = mpl.path.Path.MOVETO
+    # LINETO = mpl.path.Path.LINETO
+    # STOP = mpl.path.Path.STOP
+
+    arm_patches = []
     for y, x, t in yxt_gen:
-        #print('y=%r, x=%r, t=%r' % (y, x, t))
         index = (y * NX * NORI) + (x * NORI) + (t)
-        (dx, dy) = arm_dxy[index]
+        (dx, dy) = ori_dxy[index]
+        mag = arm_mag[index]
+        # (mdx, mdy) = arm_dxy[index]
         arm_x  = (x * XYSCALE) + XYOFFST  # MULTIPLY BY -1 to invert X axis
         arm_y  = (y * XYSCALE) + XYOFFST
-        arm_dy = (dy * DSCALE) * ARMSCALE
-        arm_dx = (dx * DSCALE) * ARMSCALE
-        _args = [arm_x, arm_y, arm_dx, arm_dy]
-        arm_args_list.append(_args)
+        arm_dy = (dy * mag * DSCALE)
+        arm_dx = (dx * mag * DSCALE)
 
-    for _args in arm_args_list:
-        arm_patch = mpl.patches.FancyArrow(*_args, **_kwarm)
+        # Move arms a little bit away from the center
+        nudge = .05
+        arm_x = arm_x + dx * (nudge * DSCALE)
+        arm_y = arm_y + dy * (nudge * DSCALE)
+        arm_dx = arm_dx + dx * (nudge * DSCALE)
+        arm_dy = arm_dy + dy * (nudge * DSCALE)
+
+        if 0:
+            _args = [arm_x, arm_y, arm_dx, arm_dy]
+            arm_patch = mpl.patches.FancyArrow(*_args, **_kwarm)
+        else:
+            arm_x2 = arm_x + arm_dx
+            arm_y2 = arm_y + arm_dy
+            pt1 = np.array([arm_x, arm_y])
+            pt2 = np.array([arm_x2, arm_y2])
+            # Hack a small eps rectangle to make the ends of the line also have
+            # a stroke
+            eps = 1e-6
+            verts = [pt1, pt2, pt2 + eps, pt2 - eps]
+            path = mpl.path.Path(verts, closed=True)
+            arm_patch = mpl.patches.PathPatch(
+                path,
+                # joinstyle='bevel',
+                # joinstyle='round',
+                edgecolor='k',
+                transform=aff,
+            )
         arm_patches.append(arm_patch)
 
-    #print('len(arm_patches) = %r' % (len(arm_patches),))
     # Draw circles around each of the 4x4 grid cells
     circle_patches = []
     for y, x in yx_gen:
         circ_xy = (x * XYSCALE + XYOFFST, y * XYSCALE + XYOFFST)
         circ_radius = DSCALE
-        circle_patches += [mpl.patches.Circle(circ_xy, circ_radius, **_kwcirc)]
+        patch = mpl.patches.Circle(circ_xy, circ_radius, **_kwcirc)
+        circle_patches.append(patch)
 
-    circ_coll = _circl_collection(circle_patches,  bin_color, circ_alpha)
-    arm2_coll = _arm_collection(arm_patches, arm2_color, arm_alpha, arm2_lw)
+    circ_coll = mpl.collections.PatchCollection(circle_patches)
+    circ_coll.set_alpha(circ_alpha)
+    circ_coll.set_edgecolor(bin_color)
+    circ_coll.set_facecolor('none')
+
+    # arm2_coll = _arm_collection(arm_patches, arm2_color, arm_alpha, arm2_lw)
+
+    # Add stroke instead of another arm
+    from matplotlib import patheffects
+    path_effects = []
+    print('stroke = %r' % (stroke,))
+    if stroke > 0:
+        path_effects.append(
+            patheffects.withStroke(linewidth=arm1_lw + stroke, foreground='k')
+        )
+    path_effects.append(patheffects.Normal())
 
     if MULTI_COLORED_ARMS:
         # Hack in same colorscheme for arms as the sift bars
         ori_colors = color_fns.distinct_colors(16)
-        coll_tup = [circ_coll, arm2_coll]
-        coll_tup += [_arm_collection(_, color, arm_alpha, arm1_lw)
-                     for _, color in zip(ut.ichunks(arm_patches, 8), ori_colors)]
-        coll_tup = tuple(coll_tup)
+        arm_collections = [
+            mpl.collections.PatchCollection(patches)
+            for patches in ut.ichunks(arm_patches, 8)
+        ]
+        for col, color in zip(arm_collections, ori_colors):
+            col.set_color(color)
     else:
         # Just use a single color for all the arms
-        arm1_coll = _arm_collection(arm_patches, arm1_color, arm_alpha, arm1_lw)
-        coll_tup = (circ_coll, arm2_coll, arm1_coll)
+        arm1_coll = mpl.collections.PatchCollection(arm_patches)
+        arm1_coll.set_color(arm1_color)
+        arm_collections = [arm1_coll]
+
+    for col in arm_collections:
+        col.set_alpha(arm_alpha)
+        col.set_path_effects(path_effects)
+        col.set_linewidth(arm1_lw)
+
+    coll_tup = [circ_coll] + arm_collections
     return coll_tup
 
 
@@ -174,34 +238,41 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
         python -m plottool.mpl_sift --test-draw_sifts --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from plottool.mpl_sift import *  # NOQA
         >>> # build test data
         >>> import plottool as pt
         >>> pt.figure(1)
         >>> ax = pt.gca()
-        >>> ax.set_xlim(-1.5, 1.5)
-        >>> ax.set_ylim(-1.5, 1.5)
+        >>> ax.set_xlim(-1.1, 1.1)
+        >>> ax.set_ylim(-1.1, 1.1)
         >>> sifts = testdata_sifts()
+        >>> sifts[:, 0:8] = 0
         >>> invVR_aff2Ds = None
-        >>> #kwargs = dict(arm1_lw=1, arm2_lw=2)
         >>> kwargs = dict(multicolored_arms=False)
-        >>> # execute function
+        >>> kwargs['arm1_lw'] = 3
+        >>> kwargs['stroke'] = 5
         >>> result = draw_sifts(ax, sifts, invVR_aff2Ds, **kwargs)
-        >>> # verify results
+        >>> ax.set_aspect('equal')
         >>> print(result)
-        >>> #pt.dark_background()
         >>> pt.show_if_requested()
     """
     if invVR_aff2Ds is None:
         invVR_aff2Ds = [mpl.transforms.Affine2D() for _ in range(len(sifts))]
     if isinstance(invVR_aff2Ds, (list, np.ndarray)):
-        invVR_aff2Ds = [mpl.transforms.Affine2D(matrix=aff_) for aff_ in invVR_aff2Ds]
+        invVR_aff2Ds = [mpl.transforms.Affine2D(matrix=aff_)
+                        for aff_ in invVR_aff2Ds]
     colltup_list = [get_sift_collection(sift, aff, **kwargs)
                     for sift, aff in zip(sifts, invVR_aff2Ds)]
     ax.invert_xaxis()
-    _set_colltup_list_transform(colltup_list, ax.transData)
-    _draw_colltup_list(ax, colltup_list)
+
+    for coll_tup in colltup_list:
+        for coll in coll_tup:
+            coll.set_transform(ax.transData)
+
+    for coll_tup in colltup_list:
+        for coll in coll_tup:
+            ax.add_collection(coll)
     ax.invert_xaxis()
 
 

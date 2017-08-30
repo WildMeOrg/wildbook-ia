@@ -1,12 +1,15 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range, zip, map  # NOQA
 from plottool import custom_constants  # NOQA
+import six
+from matplotlib import colors as mcolors
 import colorsys
 import numpy as np  # NOQA
 import utool as ut
 #from plottool import colormaps as cmaps2
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
-ut.noinject(__name__, '[colorfuncs]')
+ut.noinject(__name__)
+# '[colorfuncs]')
 
 
 def _test_base01(channels):
@@ -27,11 +30,15 @@ def _test_base255(channels):
 
 def is_base01(channels):
     """ check if a color is in base 01 """
+    if isinstance(channels, six.string_types):
+        return False
     return all(_test_base01(channels).values())
 
 
 def is_base255(channels):
     """ check if a color is in base 01 """
+    if isinstance(channels, six.string_types):
+        return False
     return all(_test_base255(channels).values())
 
 
@@ -60,16 +67,99 @@ def to_base01(color255):
     return color01
 
 
-def to_base255(color01):
+def to_base255(color01, assume01=False):
     """ converts base 01 color to base 255 color """
-    assert_base01(color01)
+    if not assume01:
+        assert_base01(color01)
     color255 = list(map(int, [round(channel * 255.0) for channel in color01]))
     return color255
 
 
-def ensure_base255(color):
-    """ always returns a base 255 color """
+def ensure_base01(color):
+    """ always returns a base 01 color
+
+    Note, some colors cannot be determined to be either 255 or 01 if they are
+    in float format.
+
+    Args:
+        color (?):
+
+    Returns:
+        ?: color01
+
+    CommandLine:
+        python -m plottool.color_funcs ensure_base01
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> ensure_base01('g')
+        >>> ensure_base01('orangered')
+        >>> ensure_base01('#AAAAAA')
+        >>> ensure_base01([0, 0, 0])
+        >>> ensure_base01([1, 1, 0, 0])
+        >>> ensure_base01([1., 1., 0., 0.])
+        >>> ensure_base01([.7, .2, 0., 0.])
+    """
     if is_base01(color):
+        color01 = color
+    else:
+        if isinstance(color, six.string_types) and color in mcolors.BASE_COLORS:
+            # base colors are 01 based
+            color01 = mcolors.BASE_COLORS[color]
+            color01 = [float(c) for c in color01]
+        else:
+            color255 = ensure_base255(color)
+            color01 = to_base01(color255)
+    return color01
+
+
+def convert_hex_to_255(hex_color):
+    """
+    hex_color = '#6A5AFFAF'
+    """
+    assert hex_color.startswith('#'), 'not a hex string %r' % (hex_color,)
+    parts = hex_color[1:].strip()
+    color255 = tuple(int(parts[i: i + 2], 16) for i in range(0, len(parts), 2))
+    assert len(color255) in [3, 4], 'must be length 3 or 4'
+    # # color = mcolors.hex2color(hex_color[0:7])
+    # if len(hex_color) > 8:
+    #     alpha_hex = hex_color[7:9]
+    #     alpha_float = int(alpha_hex, 16) / 255.0
+    #     color = color + (alpha_float,)
+    return color255
+
+
+def ensure_base255(color):
+    """
+    always returns a base 255 color
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> ensure_base255('g')
+        >>> ensure_base255('orangered')
+        >>> ensure_base255('#AAAAAA')
+        >>> ensure_base255([0, 0, 0])
+        >>> ensure_base255([1, 1, 0, 0])
+        >>> ensure_base255([.9, 1., 0., 0.])
+        >>> ensure_base255([1., 1., 0., 0.])  # FIXME
+        >>> ensure_base255([.7, .2, 0., 0.])
+    """
+    if isinstance(color, six.string_types):
+        if color in mcolors.BASE_COLORS:
+            # base colors are 01 based
+            color01 = mcolors.BASE_COLORS[color]
+            color255 = to_base255(color01, assume01=True)
+        elif color in mcolors.CSS4_COLORS:
+            # cs4 are hex based
+            color_hex = mcolors.CSS4_COLORS[color]
+            color255 = convert_hex_to_255(color_hex)
+        elif color.startswith('#'):
+            color255 = convert_hex_to_255(color)
+        else:
+            raise ValueError('unknown color=%r' % (color,))
+    elif is_base01(color):
         color255 = to_base255(color)
     else:
         color255 = color
@@ -85,13 +175,32 @@ def brighten_rgb(rgb, amount):
 
 
 def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
+    """
+
+    colors = ['r', 'b', 'purple', 'orange', 'deeppink', 'g']
+
+    colors = list(mcolors.CSS4_COLORS.keys())
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> colors = ut.get_argval('--colors', type_=list, default=['k', 'r'])
+        >>> ut.quit_if_noshow()
+        >>> rgb_list = ut.emap(ensure_base01, colors)
+        >>> testshow_colors(rgb_list)
+        >>> ut.show_if_requested()
+    """
     import plottool as pt
     import vtool as vt
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
-    #print(ut.list_str(block_list))
-    #print(ut.list_str(rgb_list))
-    stacked_block = vt.stack_image_list(block_list, vert=False)
+    #print(ut.repr2(block_list))
+    #print(ut.repr2(rgb_list))
+    chunks = ut.ichunks(block_list, 10)
+    stacked_chunk = []
+    for chunk in chunks:
+        stacked_chunk.append(vt.stack_image_list(chunk, vert=False))
+    stacked_block = vt.stack_image_list(stacked_chunk, vert=True)
     # convert to bgr
     stacked_block = stacked_block[:, :, ::-1]
     uint8_img = (255 * stacked_block).astype(np.uint8)
@@ -99,7 +208,7 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
         import cv2
         uint8_img = cv2.cvtColor(uint8_img, cv2.COLOR_RGB2GRAY)
     pt.imshow(uint8_img)
-    pt.show_if_requested()
+    # pt.show_if_requested()
 
 
 def desaturate_rgb(rgb, amount):
@@ -291,6 +400,7 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         python -m plottool.color_funcs --test-distinct_colors --N 4 --show --hue-range=0.05,.95
         python -m plottool.color_funcs --test-distinct_colors --N 3 --show --no-randomize
         python -m plottool.color_funcs --test-distinct_colors --N 4 --show --no-randomize
+        python -m plottool.color_funcs --test-distinct_colors --N 6 --show --no-randomize
         python -m plottool.color_funcs --test-distinct_colors --N 20 --show
 
     References:
@@ -465,6 +575,7 @@ def show_all_colormaps():
     CommandLine:
         python -m plottool.color_funcs --test-show_all_colormaps --show
         python -m plottool.color_funcs --test-show_all_colormaps --show --type=Miscellaneous
+        python -m plottool.color_funcs --test-show_all_colormaps --show --cmap=RdYlBu
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -496,6 +607,10 @@ def show_all_colormaps():
     else:
         maps = CMAP_DICT[type_]
         print('CMAP_DICT = %s' % (ut.repr3(CMAP_DICT),))
+
+    cmap_ = ut.get_argval('--cmap', default=None)
+    if cmap_ is not None:
+        maps = [getattr(plt.cm, cmap_)]
 
     l = len(maps) + 1
     for i, m in enumerate(maps):

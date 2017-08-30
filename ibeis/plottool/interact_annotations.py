@@ -41,7 +41,7 @@ import matplotlib as mpl
 from six.moves import zip, range
 from plottool import draw_func2 as df2
 from plottool import abstract_interaction
-print, rrr, profile = ut.inject2(__name__, '[interact_annotations]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 DEFAULT_SPECIES_TAG = '____'
@@ -970,6 +970,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
                     if poly.is_near_handle(mouse_xy, self.max_dist):
                         self._current_rotate_poly = poly
                         break
+                if event.dblclick:
+                    # Reset rotation
+                    if self._current_rotate_poly is not None:
+                        self._current_rotate_poly.theta = 0
+                        self._current_rotate_poly.update_display_coords()
 
         polyind, self._ind = self.get_poly_under_cursor(event.x, event.y)
 

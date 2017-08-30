@@ -32,7 +32,7 @@ class MatchInteraction2(BASE_CLASS):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(augment_queryside_hack=True))
+        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = qreq_.execute()[0]
         >>> qaid = cm.qaid
         >>> daid = cm.get_top_aids()[0]
@@ -133,7 +133,7 @@ class MatchInteraction2(BASE_CLASS):
             show_matches_kw['H1'] = self.H1
             show_matches_kw['H2'] = self.H2
         if verbose:
-            print('show_matches_kw = %s' % (ut.dict_str(show_matches_kw, truncate=True)))
+            print('show_matches_kw = %s' % (ut.repr2(show_matches_kw, truncate=True)))
 
         #tup = show_matches(fm, fs, **show_matches_kw)
         ax, xywh1, xywh2 = pt.show_chipmatch2(
@@ -171,7 +171,7 @@ class MatchInteraction2(BASE_CLASS):
         fsv = self.fsv
         fs  = self.fs
         print('score stats:')
-        print(ut.get_stats_str(fsv, axis=0, newlines=True))
+        print(ut.repr2(ut.get_stats(fsv, axis=0), nl=1))
         print('fsv[mx] = %r' % (fsv[mx],))
         print('fs[mx] = %r' % (fs[mx],))
         #----------------------
@@ -255,8 +255,9 @@ class MatchInteraction2(BASE_CLASS):
                 kpts1_m = self.kpts1[self.fm[:, 0]]
                 kpts2_m = self.kpts2[self.fm[:, 1]]
                 x2, y2, w2, h2 = self.xywh2
-                _mx1, _dist1 = ut.nearest_point(x, y, kpts1_m)
-                _mx2, _dist2 = ut.nearest_point(x - x2, y - y2, kpts2_m)
+                import vtool as vt
+                _mx1, _dist1 = vt.nearest_point(x, y, kpts1_m)
+                _mx2, _dist2 = vt.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
                 self.select_ith_match(mx)

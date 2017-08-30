@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 from plottool import viz_image2
 from plottool import draw_func2 as df2
@@ -27,7 +27,7 @@ def test_viz_image(img_fpath):
         'label_list' : ['test label', 'lbl2'],
     }
     # Print the keyword arguments to illustrate their format
-    print('showkw = ' + utool.dict_str(showkw))
+    print('showkw = ' + utool.repr2(showkw))
     # Display the image in figure-num 42, using a 1x1 axis grid in the first
     # axis. Pass showkw as keyword arguments.
     viz_image2.show_image(img, fnum=42, pnum=(1, 1, 1), **showkw)

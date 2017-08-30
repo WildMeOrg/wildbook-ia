@@ -1,4 +1,7 @@
 # flake8: noqa
+"""
+Wrappers around matplotlib
+"""
 from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.1.dev1'
@@ -67,7 +70,6 @@ from plottool.mpl_sift import draw_sifts, render_sift_on_patch
 from plottool import fig_presenter
 
 import utool
-#print, print_, printDBG, rrr, profile = utool.inject(__name__, '[plottool]')
 
 #def reload_subs():
 #    rrr()
@@ -82,7 +84,7 @@ import utool
 
 
 import sys
-__DYNAMIC__ = not '--nodyn' in sys.argv
+__DYNAMIC__ = '--nodyn' not in sys.argv
 
 #__DYNAMIC__ = '--dyn' in sys.argv
 """
@@ -126,7 +128,7 @@ if DOELSE:
     from plottool import interact_matches
     from plottool import nx_helpers
     from plottool.plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw,
-                                       ensure_pylab_qt4, get_bbox_centers,
+                                       ensureqt, get_bbox_centers,
                                        get_plotdat, get_plotdat_dict,
                                        get_square_row_cols, kp_info, qt4ensure,
                                        set_plotdat,)
@@ -187,7 +189,7 @@ if DOELSE:
                                      FALSE, LEGEND_LOCATION, OffsetImage2,
                                      RenderingContext, SAFE_POS, TAU,
                                      TMP_mevent, TRUE, absolute_lbl, add_alpha,
-                                     adjust_subplots, adjust_subplots2,
+                                     adjust_subplots, adjust_subplots,
                                      adjust_subplots_safe,
                                      append_phantom_legend_label,
                                      ax_absolute_text, ax_relative_text,
@@ -199,14 +201,15 @@ if DOELSE:
                                      draw_bbox, draw_border, draw_boxedX,
                                      draw_keypoint_gradient_orientations,
                                      draw_keypoint_patch, draw_kpts2,
-                                     draw_line_segments, draw_lines2,
-                                     draw_patches_and_sifts, draw_stems,
-                                     draw_text, draw_text_annotations,
-                                     draw_vector_field, ensure_divider,
-                                     ensure_fnum, execstr_global,
-                                     extract_axes_extents, fig_relative_text,
-                                     fnum_generator, get_all_markers,
-                                     get_axis_bbox, get_axis_xy_width_height,
+                                     draw_line_segments, draw_line_segments2,
+                                     draw_lines2, draw_patches_and_sifts,
+                                     draw_stems, draw_text,
+                                     draw_text_annotations, draw_vector_field,
+                                     ensure_divider, ensure_fnum,
+                                     execstr_global, extract_axes_extents,
+                                     fig_relative_text, fnum_generator,
+                                     get_all_markers, get_axis_bbox,
+                                     get_axis_xy_width_height,
                                      get_binary_svm_cmap, get_num_rc,
                                      get_orientation_color, get_pnum_func,
                                      get_save_directions, imshow, imshow_null,
@@ -226,6 +229,7 @@ if DOELSE:
                                      remove_patches, render_figure_to_image,
                                      reverse_colormap, rotate_plot,
                                      scores_to_cmap, scores_to_color,
+                                     set_axis_extent, set_axis_limit,
                                      set_figsize, show_chipmatch2,
                                      show_histogram, show_if_requested,
                                      show_kpts, show_phantom_legend_labels,

@@ -54,7 +54,7 @@ __WHO_INITIALIZED__ = None
 
 
 VERBOSE_MPLINIT = ut.get_argflag(('--verb-mpl', '--verbose'))
-TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=None)
+TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=os.environ.get('MPL_BACKEND', None))
 FALLBACK_BACKEND = ut.get_argval(('--mpl-fallback-backend', '--mplfbbe'), type_=str, default='agg')
 
 
@@ -71,16 +71,16 @@ def print_all_backends():
 
 def get_pyqt():
     have_guitool = ut.check_module_installed('guitool')
-    if have_guitool:
-        from guitool import __PYQT__ as PyQt
-        pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
-    else:
-        try:
+    try:
+        if have_guitool:
+            from guitool import __PYQT__ as PyQt
+            pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
+        else:
             import PyQt4 as PyQt
             pyqt_version = 4
-        except ImportError:
-            PyQt = None
-            pyqt_version = None
+    except ImportError:
+        PyQt = None
+        pyqt_version = None
     return PyQt, pyqt_version
 
 
@@ -198,6 +198,9 @@ def _init_mpl_rcparams():
     # Disable mpl shortcuts
     #    mpl.rcParams['toolbar'] = 'None'
     #    mpl.rcParams['interactive'] = True
+
+    # import matplotlib.pyplot as plt
+    # plt.xkcd()
 
 
 def _mpl_set_backend(target_backend):

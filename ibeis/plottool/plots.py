@@ -4,28 +4,24 @@ import warnings
 from six.moves import zip, range, zip_longest
 from plottool import draw_func2 as df2
 import six
+from six.moves import reduce
 import scipy.stats
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
-from plottool import custom_figure
-
-#ut.noinject(__name__, '[plots]')
-print, rrr, profile = ut.inject2(__name__, '[plots]')
-
-#custom_figure.TITLE_SIZE = 8
-# Titlesize for old non-multiplot plots
-#custom_figure.TITLE_SIZE = 12
+print, rrr, profile = ut.inject2(__name__)
 
 
 def is_default_dark_bg():
     #return True
     #lightbg = not  ut.get_argflag('--darkbg')
-    lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
+    # lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
+    lightbg = True
     return not lightbg
 
 
-def multi_plot(xdata, ydata_list, **kwargs):
+def multi_plot(xdata=None, ydata_list=[], **kwargs):
     r"""
     plots multiple lines, bars, etc...
 
@@ -33,17 +29,30 @@ def multi_plot(xdata, ydata_list, **kwargs):
     this file.  Any function not using this should probably find a way to use
     it. It is pretty general and relatively clean.
 
-
     Args:
-        xdata (ndarray):
-        ydata_list (list of ndarrays):
+        xdata (ndarray): can also be a list of arrays
+        ydata_list (list of ndarrays): can also be a single array
 
     Kwargs:
-        fnum, pnum, title, xlabel, ylabel, num_xticks, use_legend, legend_loc,
-        labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize, spread_list
-        can append _list to any of these
-        plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
-        kind = ['bar', 'plot', ...]
+        Misc:
+            fnum, pnum, use_legend, legend_loc
+        Labels:
+            xlabel, ylabel, title, figtitle
+            ticksize, titlesize, legendsize, labelsize
+        Grid:
+            gridlinewidth, gridlinestyle
+        Ticks:
+            num_xticks, num_yticks, tickwidth, ticklength, ticksize
+        Data:
+            xmin, xmax, ymin, ymax, spread_list
+            # can append _list to any of these
+            plot_kw_keys = ['label', 'color', 'marker', 'markersize',
+                'markeredgewidth', 'linewidth', 'linestyle']
+            kind = ['bar', 'plot', ...]
+        if kind='plot':
+            spread
+        if kind='bar':
+            stacked, width
 
     References:
         matplotlib.org/examples/api/barchart_demo.html
@@ -56,17 +65,40 @@ def multi_plot(xdata, ydata_list, **kwargs):
         >>> from plottool.plots import *  # NOQA
         >>> xdata = [1, 2, 3, 4, 5]
         >>> ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
-        >>> kwargs = {'label_list': ['spam', 'eggs', 'jam', 'pram'],  'linestyle': '-'}
-        >>> fig = multi_plot(xdata, ydata_list, title='$\phi_1(\\vec{x})$', xlabel='\nfds', **kwargs)
+        >>> kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
+        >>> #fig = multi_plot(xdata, ydata_list, title='$\phi_1(\\vec{x})$', xlabel='\nfds', **kwargs)
+        >>> fig = multi_plot(xdata, ydata_list, title='ΣΣΣµµµ', xlabel='\nfdsΣΣΣµµµ', **kwargs)
         >>> result = ('fig = %s' % (str(fig),))
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    import matplotlib as mpl
     import plottool as pt
 
-    xdata = np.array(xdata).copy()
+    if isinstance(ydata_list, dict):
+        # Special case where ydata is a dictionary
+        if isinstance(xdata, six.string_types):
+            # Special-er case where xdata is specified in ydata
+            xkey = xdata
+            ykeys = ut.setdiff(ydata_list.keys(), [xkey])
+            xdata = ydata_list[xkey]
+        else:
+            ykeys = list(ydata_list.keys())
+        # Normalize input
+        ydata_list = ut.take(ydata_list, ykeys)
+        kwargs['label_list'] = kwargs.get('label_list', ykeys)
+    if xdata is None:
+        xdata = list(range(len(ydata_list[0])))
+
     num_lines = len(ydata_list)
+
+    # Transform xdata into xdata_list
+    if isinstance(xdata, list):
+        if len(xdata) > 0 and isinstance(xdata[0], (list, np.ndarray)):
+            xdata_list = [np.array(xd, copy=True) for xd in xdata]
+        else:
+            xdata_list = [np.array(xdata, copy=True)] * num_lines
+    else:
+        xdata_list = [np.array(xdata, copy=True)] * num_lines
 
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
     pnum = kwargs.get('pnum', None)
@@ -89,9 +121,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Parse out arguments to ax.plot
     plot_kw_keys = ['label', 'color', 'marker', 'markersize',
-                    'markeredgewidth', 'linewidth', 'linestyle']
+                    'markeredgewidth', 'linewidth', 'linestyle', 'alpha']
     # hackish / extra args that dont go to plot, but help
-    extra_plot_kw_keys = ['spread_alpha', 'autolabel']
+    extra_plot_kw_keys = ['spread_alpha', 'autolabel', 'edgecolor', 'fill']
     plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
     plot_list_kw = dict([
@@ -112,13 +144,20 @@ def multi_plot(xdata, ydata_list, **kwargs):
         # Remove non-bar kwargs
         ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker',
                                       'markersize', 'linestyle'])
-        width = kwargs.get('width', .9) / num_lines
-        if transpose:
-            #plot_list_kw['orientation'] = ['horizontal'] * num_lines
-            plot_list_kw['height'] = [width] * num_lines
+        stacked = kwargs.get('stacked', False)
+        width_key = 'height' if transpose else 'width'
+        if 'width_list' in kwargs:
+            plot_list_kw[width_key] = kwargs['width_list']
         else:
-            plot_list_kw['width'] = [width] * num_lines
-        #xdata - (width / 2)
+            width = kwargs.get('width', .9)
+            # if width is None:
+            #     # HACK: need variable width
+            #     # width = np.mean(np.diff(xdata_list[0]))
+            #     width = .9
+            if not stacked:
+                width /= num_lines
+            #plot_list_kw['orientation'] = ['horizontal'] * num_lines
+            plot_list_kw[width_key] = [width] * num_lines
 
     spread_list = kwargs.get('spread_list', None)
     if spread_list is None:
@@ -133,16 +172,17 @@ def multi_plot(xdata, ydata_list, **kwargs):
     extra_kw_vals = ut.dict_take(plot_list_kw, extra_kw_keys)
     extra_kw_list = [dict(zip(extra_kw_keys, vals)) for vals in zip(*extra_kw_vals)]
 
-    # Setup figure
-    # newfig = kwargs.get('newfig', True)
-    # if newfig:
-    fig = pt.figure(fnum=fnum, pnum=pnum)
-    # else:
-    #     fig = pt.gcf()
+    # Get passed in axes or setup a new figure
+    ax = kwargs.get('ax', None)
+    if ax is None:
+        fig = pt.figure(fnum=fnum, pnum=pnum, docla=False)
+        ax = pt.gca()
+    else:
+        pt.plt.sca(ax)
+        fig = ax.figure
 
     # +---------------
     # Draw plot lines
-    ax = pt.gca()
     ydata_list = np.array(ydata_list)
 
     if transpose:
@@ -155,25 +195,31 @@ def multi_plot(xdata, ydata_list, **kwargs):
         plot_func = getattr(ax, kind)  # usually ax.plot
 
     assert len(ydata_list) > 0, 'no ydata'
-    #ut.embed()
     #assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
     #assert len(extra_kw_list) == len(ydata_list), 'bad length'
-    _iter = enumerate(zip_longest(ydata_list, plot_kw_list, extra_kw_list))
-    for count, (ydata, plot_kw, extra_kw) in _iter:
-        ymask = np.isfinite(ydata)
-        ydata_ = ydata.compress(ymask)
-        xdata_ = xdata.compress(ymask)
-        #print('count = %r' % (count,))
-        #print('ydata_ = %r' % (ydata_,))
-        #print('xdata_ = %r' % (xdata_,))
-        #ax.plot(xdata_, ydata_, **plot_kw)
+    _iter = enumerate(zip_longest(xdata_list, ydata_list, plot_kw_list, extra_kw_list))
+    for count, (_xdata, _ydata, plot_kw, extra_kw) in _iter:
+        ymask = np.isfinite(_ydata)
+        ydata_ = _ydata.compress(ymask)
+        xdata_ = _xdata.compress(ymask)
         if kind == 'bar':
-            baseoffset = (width * num_lines) / 2
-            lineoffset = (width * count)
-            offset = baseoffset - lineoffset  # Fixeme for more histogram bars
-            xdata_ = xdata_ - offset
+            if stacked:
+                # Plot bars on top of each other
+                xdata_ = xdata_
+            else:
+                # Plot bars side by side
+                baseoffset = (width * num_lines) / 2
+                lineoffset = (width * count)
+                offset = baseoffset - lineoffset  # Fixeme for more histogram bars
+                xdata_ = xdata_ - offset
+            # width_key = 'height' if transpose else 'width'
+            # plot_kw[width_key] = np.diff(xdata)
         objs = plot_func(xdata_, ydata_, **plot_kw)
+
         if kind == 'bar':
+            if extra_kw is not None and 'edgecolor' in extra_kw:
+                for rect in objs:
+                    rect.set_edgecolor(extra_kw['edgecolor'])
             if extra_kw is not None and extra_kw.get('autolabel', False):
                 # FIXME: probably a more cannonical way to include bar
                 # autolabeling with tranpose support, but this is a hack that
@@ -181,7 +227,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
                 for rect in objs:
                     if transpose:
                         numlbl = width = rect.get_width()
-                        xpos = width + ((xdata.max() - xdata.min()) * .005)
+                        xpos = width + ((_xdata.max() - _xdata.min()) * .005)
                         ypos = rect.get_y() + rect.get_height() / 2.
                         ha, va = 'left', 'center'
                     else:
@@ -192,10 +238,15 @@ def multi_plot(xdata, ydata_list, **kwargs):
                     barlbl = '%.3f' % (numlbl,)
                     ax.text(xpos, ypos, barlbl, ha=ha, va=va)
 
+        # print('extra_kw = %r' % (extra_kw,))
+        if kind == 'plot' and extra_kw.get('fill', False):
+            ax.fill_between(_xdata, ydata_, alpha=plot_kw.get('alpha', 1.0),
+                            color=plot_kw.get('color', None))  # , zorder=0)
+
         if spread_list is not None:
             # Plots a spread around plot lines usually indicating standard
             # deviation
-            xdata = np.array(xdata)
+            _xdata = np.array(_xdata)
             spread = spread_list[count]
             ydata_ave = np.array(ydata_)
             y_data_dev = np.array(spread)
@@ -203,13 +254,15 @@ def multi_plot(xdata, ydata_list, **kwargs):
             y_data_min = ydata_ave - y_data_dev
             ax = df2.gca()
             spread_alpha = extra_kw['spread_alpha']
-            ax.fill_between(xdata, y_data_min, y_data_max, alpha=spread_alpha,
+            ax.fill_between(_xdata, y_data_min, y_data_max, alpha=spread_alpha,
                             color=plot_kw.get('color', None))  # , zorder=0)
     # L________________
 
     #max_y = max(np.max(y_data), max_y)
     #min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
 
+    ydata = _ydata  # HACK
+    xdata = _xdata  # HACK
     if transpose:
         #xdata_list = ydata_list
         ydata = xdata
@@ -233,35 +286,100 @@ def multi_plot(xdata, ydata_list, **kwargs):
     title      = kwargs.get('title', None)
     xlabel     = kwargs.get('xlabel', '')
     ylabel     = kwargs.get('ylabel', '')
+    def none_or_unicode(text):
+        return None if text is None else ut.ensure_unicode(text)
 
-    # Font sizes
-    #titlesize  = kwargs.get('titlesize',  12)
-    #labelsize  = kwargs.get('labelsize',  10)
-    #legendsize = kwargs.get('legendsize', 10)
+    xlabel = none_or_unicode(xlabel)
+    ylabel = none_or_unicode(ylabel)
+    title = none_or_unicode(title)
 
-    titlesize  = kwargs.get('titlesize',  custom_figure.TITLE_SIZE)
-    labelsize  = kwargs.get('labelsize',  custom_figure.LABEL_SIZE)
-    legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
+    # Initial integration with mpl rcParams standards
+    mplrc = mpl.rcParams.copy()
+    mplrc.update({
+        # 'legend.fontsize': custom_figure.LEGEND_SIZE,
+        # 'axes.titlesize': custom_figure.TITLE_SIZE,
+        # 'axes.labelsize': custom_figure.LABEL_SIZE,
+        # 'legend.facecolor': 'w',
+        # 'font.family': 'sans-serif',
+        # 'xtick.labelsize': custom_figure.TICK_SIZE,
+        # 'ytick.labelsize': custom_figure.TICK_SIZE,
+    })
+    mplrc.update(kwargs.get('rcParams', {}))
+
+    titlesize  = kwargs.get('titlesize',  mplrc['axes.titlesize'])
+    labelsize  = kwargs.get('labelsize',  mplrc['axes.labelsize'])
+    legendsize = kwargs.get('legendsize', mplrc['legend.fontsize'])
+    xticksize = kwargs.get('ticksize', mplrc['xtick.labelsize'])
+    yticksize = kwargs.get('ticksize', mplrc['ytick.labelsize'])
+    family = kwargs.get('fontfamily', mplrc['font.family'])
+
+    tickformat = kwargs.get('tickformat', None)
+    ytickformat = kwargs.get('ytickformat', tickformat)
+    xtickformat = kwargs.get('xtickformat', tickformat)
+
+    # 'DejaVu Sans','Verdana', 'Arial'
+    weight = kwargs.get('fontweight', None)
+    if weight is None:
+        weight = 'normal'
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
+            weight=weight,
+            family=family, size=labelsize)
     }
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
 
-    ticksize = kwargs.get('ticksize', None)
-    if ticksize is not None:
-        for label in ax.get_xticklabels():
-            label.set_fontsize(ticksize)
-        for label in ax.get_yticklabels():
-            label.set_fontsize(ticksize)
+    tick_fontprop = mpl.font_manager.FontProperties(family=family,
+                                                    weight=weight)
+
+    if tick_fontprop is not None:
+        for ticklabel in ax.get_xticklabels():
+            ticklabel.set_fontproperties(tick_fontprop)
+        for ticklabel in ax.get_yticklabels():
+            ticklabel.set_fontproperties(tick_fontprop)
+    if xticksize is not None:
+        for ticklabel in ax.get_xticklabels():
+            ticklabel.set_fontsize(xticksize)
+    if yticksize is not None:
+        for ticklabel in ax.get_yticklabels():
+            ticklabel.set_fontsize(yticksize)
+
+    if xtickformat is not None:
+        # mpl.ticker.StrMethodFormatter  # newstyle
+        # mpl.ticker.FormatStrFormatter  # oldstyle
+        ax.xaxis.set_major_formatter(mpl.ticker.FormatStrFormatter(xtickformat))
+    if ytickformat is not None:
+        ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter(ytickformat))
+
+    xtick_kw = ytick_kw = {
+        'width': kwargs.get('tickwidth', None),
+        'length': kwargs.get('ticklength', None),
+    }
+    xtick_kw = ut.dict_filter_nones(xtick_kw)
+    ytick_kw = ut.dict_filter_nones(ytick_kw)
+    ax.xaxis.set_tick_params(**xtick_kw)
+    ax.yaxis.set_tick_params(**ytick_kw)
+
+    #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
 
     # Setup axes limits
     if 'xlim' in kwargs:
-        raise AssertionError('use xmax xmin instead')
+        xlim = kwargs['xlim']
+        if xlim is not None:
+            if 'xmin' not in kwargs and 'xmax' not in kwargs:
+                kwargs['xmin'] = xlim[0]
+                kwargs['xmax'] = xlim[1]
+            else:
+                raise ValueError('use xmax, xmin instead of xlim')
     if 'ylim' in kwargs:
-        raise AssertionError('use ymax ymin instead')
+        ylim = kwargs['ylim']
+        if ylim is not None:
+            if 'ymin' not in kwargs and 'ymay' not in kwargs:
+                kwargs['ymin'] = ylim[0]
+                kwargs['ymay'] = ylim[1]
+            else:
+                raise ValueError('use ymay, ymin instead of ylim')
 
     xmin = kwargs.get('xmin', ax.get_xlim()[0])
     xmax = kwargs.get('xmax', ax.get_xlim()[1])
@@ -271,13 +389,14 @@ def multi_plot(xdata, ydata_list, **kwargs):
     text_type = six.text_type
 
     if text_type(xmax) == 'data':
-        xmax = xdata.max()
+        xmax = max([xd.max() for xd in xdata_list])
     if text_type(xmin) == 'data':
-        xmin = xdata.min()
+        xmin = min([xd.min() for xd in xdata_list])
 
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
     num_yticks = kwargs.get('num_yticks', None)
+
     if num_xticks is not None:
         # TODO check if xdata is integral
         if ut.is_int(xdata):
@@ -293,6 +412,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
         else:
             yticks = np.linspace((ymin), (ymax), num_yticks)
         ax.set_yticks(yticks)
+
+    force_xticks = kwargs.get('force_xticks', None)
+    if force_xticks is not None:
+        xticks = np.array(sorted(ax.get_xticks().tolist() + force_xticks))
+        ax.set_xticks(xticks)
 
     yticklabels = kwargs.get('yticklabels', None)
     if yticklabels is not None:
@@ -343,11 +467,23 @@ def multi_plot(xdata, ydata_list, **kwargs):
     if xscale is not None:
         ax.set_xscale(xscale)
 
+    gridlinestyle = kwargs.get('gridlinestyle', None)
+    gridlinewidth = kwargs.get('gridlinewidth', None)
+    gridlines = ax.get_xgridlines() + ax.get_ygridlines()
+    if gridlinestyle:
+        for line in gridlines:
+            line.set_linestyle(gridlinestyle)
+    if gridlinewidth:
+        for line in gridlines:
+            line.set_linewidth(gridlinewidth)
+
     # Setup title
     if title is not None:
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
-                weight='light', size=titlesize)
+                family=family,
+                weight=weight,
+                size=titlesize)
         }
         ax.set_title(title, **titlekw)
 
@@ -355,7 +491,19 @@ def multi_plot(xdata, ydata_list, **kwargs):
     legend_loc   = kwargs.get('legend_loc', 'best')
     legend_alpha = kwargs.get('legend_alpha', 1.0)
     if use_legend:
-        df2.legend(loc=legend_loc, size=legendsize, alpha=legend_alpha)
+        legendkw = {
+            'alpha': legend_alpha,
+            'fontproperties': mpl.font_manager.FontProperties(
+                family=family,
+                weight=weight,
+                size=legendsize)
+        }
+        df2.legend(loc=legend_loc, ax=ax, **legendkw)
+
+    figtitle = kwargs.get('figtitle', None)
+    if figtitle is not None:
+        pt.set_figtitle(figtitle, fontfamily=family, fontweight=weight,
+                        size=kwargs.get('figtitlesize'))
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     lightbg = kwargs.get('lightbg', None)
@@ -368,6 +516,41 @@ def multi_plot(xdata, ydata_list, **kwargs):
         pt.dark_background(force=use_darkbackground is True)
     # TODO: return better info
     return fig
+
+
+def demo_fonts():
+    r"""
+    CommandLine:
+        python -m plottool.plots demo_fonts --show
+
+    References:
+        http://stackoverflow.com/questions/8753835/list-of-fonts-avail-mpl
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> demo_fonts()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.present()
+        >>> ut.show_if_requested()
+    """
+    import matplotlib.font_manager
+    avail_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    names = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in avail_fonts]
+    print('avail_fonts = %s' % ut.repr4(sorted(set(names))))
+
+    xdata = [1, 2, 3, 4, 5]
+    ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
+    kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
+    f = ['DejaVu Sans', 'Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
+         'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+    f = ['DejaVu Sans', 'Verdana', 'Arial']
+    f = ['DejaVu Sans', 'CMU Serif', 'FreeMono']
+    for count, family in enumerate(f):
+        multi_plot(xdata, ydata_list, title=family + ' ΣΣΣµµµ',
+                   xlabel='\nfdsΣΣΣµµµ', fontfamily=family, fnum=count,
+                   **kwargs)
 
 
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
@@ -404,7 +587,6 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    #import matplotlib as mpl
     assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
 
     # Put the data into a dense field grid
@@ -456,6 +638,8 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
                       edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
                       num_xticks=None, kind='bar', **kwargs):
     r"""
+    Plots CMC curves
+    TODO rename to plot_cmc
 
     CommandLine:
         python -m plottool.plots --test-plot_rank_cumhist --show
@@ -477,6 +661,11 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
         >>> ut.show_if_requested()
     """
+    # Remove values of None (those are defaults)
+    for k in list(kwargs.keys()):
+        if kwargs[k] is None:
+            del kwargs[k]
+
     num_cdfs = len(cdf_list)
     num_data = len(cdf_list[0])
     if color_list is None:
@@ -493,25 +682,32 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         marker_list = df2.distinct_markers(num_cdfs)
     if len(x_data) > 256:
         marker_list = [None] * num_cdfs
-    if len(x_data) <= 10:
-        markersize = 12
+    if 'markersize' in kwargs:
+        markersize = kwargs['markersize']
     else:
-        markersize = 7
+        if len(x_data) <= 10:
+            markersize = 12
+        else:
+            markersize = 7
+
+    multi_kw = dict(
+        linewidth=2, markeredgewidth=2, linestyle='-', markersize=markersize,
+        xlabel=xlabel, ylabel=ylabel, num_xticks=num_xticks,
+        use_legend=use_legend,
+    )
+    multi_kw.update(kwargs)
 
     fig = multi_plot(
         x_data, cdf_list,
-        kind=kind,
-        label_list=label_list, color_list=color_list, marker_list=marker_list,
-        markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
-        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
-        use_legend=use_legend,
-        **kwargs
+        kind=kind, label_list=label_list, color_list=color_list,
+        marker_list=marker_list,
+        **multi_kw
     )
     return fig
 
 
 def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
-                            maxima_thresh=None, **kwargs):
+                            maxima_thresh=None, remove_endpoints=True, **kwargs):
     r"""
     Args:
         hist (ndarray):
@@ -541,14 +737,15 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     argmaxima = np.array(ut.ensure_iterable(argmaxima))
     maxima_y = np.array(ut.ensure_iterable(maxima_y))
     maxima_x = np.array(ut.ensure_iterable(maxima_x))
-    if len(argmaxima) > 0 and argmaxima[-1] == len(hist) - 1:
-        argmaxima = argmaxima[:-1]
-        maxima_x = maxima_x[:-1]
-        maxima_y = maxima_y[:-1]
-    if len(argmaxima) > 0 and argmaxima[0] == 0:
-        maxima_x = maxima_x[1:]
-        maxima_y = maxima_y[1:]
-        argmaxima = argmaxima[1:]
+    if remove_endpoints:
+        if len(argmaxima) > 0 and argmaxima[-1] == len(hist) - 1:
+            argmaxima = argmaxima[:-1]
+            maxima_x = maxima_x[:-1]
+            maxima_y = maxima_y[:-1]
+        if len(argmaxima) > 0 and argmaxima[0] == 0:
+            maxima_x = maxima_x[1:]
+            maxima_y = maxima_y[1:]
+            argmaxima = argmaxima[1:]
     # Expand parabola points around submaxima
     x123, y123 = vt.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
@@ -577,7 +774,6 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
         plt.plot(centers, hist, linecolor + '-')
     else:
         # TODO use bin_color correctly
-        #import matplotlib as mpl
         # Create a colormap using exact specified colors
         #bin_cmap = mpl.colors.ListedColormap(bin_colors)
         bin_cmap = plt.get_cmap('hsv')  # HACK
@@ -600,6 +796,93 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     print('submaxima_x = %r' % (submaxima_x,))
     print('submaxima_y = %r' % (submaxima_y,))
     #return (submaxima_x, submaxima_y)
+
+
+def draw_subextrema(ydata, xdata=None, op='max', bin_colors=None,
+                    thresh_factor=None, normalize_x=True, flat=True):
+    r"""
+    Args:
+        ydata (ndarray):
+        xdata (None):
+
+    CommandLine:
+        python -m plottool.plots --test-draw_subextrema --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> import vtool as vt
+        >>> import plottool as pt
+        >>> ydata = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.01, 0.00, 6.73, 8.69])
+        >>> xdata = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
+        >>> bin_colors = pt.df2.plt.get_cmap('hsv')(xdata / vt.TAU)
+        >>> use_darkbackground = True
+        >>> thresh_factor = .01
+        >>> op = 'max'
+        >>> ut.exec_funckw(draw_subextrema, globals())
+        >>> result = draw_subextrema(ydata, xdata, bin_colors=bin_colors,
+        >>>                          thresh_factor=thresh_factor, op=op)
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
+    # Find maxima
+    import vtool as vt
+    # Hack into the source code
+    locals_ = ut.exec_func_src2(vt.argsubextrema2)
+
+    x123               = locals_.get('x123', None)
+    coeff_list         = locals_['coeff_list']
+    rel_subextrema_x   = locals_['rel_subextrema_x']
+    rel_subextrema_y   = locals_['rel_subextrema_y']
+    rel_argextrema     = locals_['rel_argextrema']
+    other_subextrema_y = locals_['other_subextrema_y']
+    other_subextrema_x = locals_['other_subextrema_x']
+    thresh_value       = locals_['thresh_value']
+
+    # Find the original max bins of the rel_extrema
+    if xdata is None:
+        xdata_ = np.arange(len(ydata))
+        rel_extrema_x = rel_argextrema
+    else:
+        xdata_ = xdata
+        rel_extrema_x = xdata_[rel_argextrema]
+    rel_extrema_y = ydata[rel_argextrema]
+
+    # Find submaxima
+    if x123 is None:
+        xpoints = []
+        ypoints = []
+    else:
+        # Extract parabola points
+        xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
+        ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
+
+    # Draw threshold lines
+    if thresh_factor is not None:
+        plt.plot(xdata_, [thresh_value] * len(xdata_), 'r--')
+    # Draw linear interpolation lines
+    if bin_colors is None:
+        bin_colors = 'r'
+        plt.plot(xdata_, ydata, 'k-')
+    else:
+        # TODO use bin_color correctly
+        # Create a colormap using exact specified colors
+        #bin_cmap = mpl.colors.ListedColormap(bin_colors)
+        bin_cmap = plt.get_cmap('hsv')  # HACK
+        #mpl.colors.ListedColormap(bin_colors)
+        colorline(xdata_, ydata, cmap=bin_cmap)
+    # Draw Submax Parabola
+    for x_pts, y_pts in zip(xpoints, ypoints):
+        plt.plot(x_pts, y_pts, 'y--')
+
+    # Draw flat extrema
+    plt.scatter(other_subextrema_x, other_subextrema_y, marker='*', color='r', s=100)
+    # Draw maxbin relative extrema
+    plt.scatter(rel_extrema_x,    rel_extrema_y,    marker='o', color='k',  s=50)
+    # Draw relative sub-extrema
+    plt.scatter(rel_subextrema_x, rel_subextrema_y, marker='*', color='r', s=100)
+    # Draw Bins
+    plt.scatter(xdata_, ydata, c=bin_colors, marker='o', s=25)
 
 
 def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
@@ -809,7 +1092,7 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
 
 
 def plot_score_histograms(scores_list,
-                          scores_lbls=None,
+                          score_lbls=None,
                           score_markers=None,
                           score_colors=None,
                           markersizes=None,
@@ -820,34 +1103,33 @@ def plot_score_histograms(scores_list,
                           score_thresh=None,
                           overlay_prob_given_list=None,
                           overlay_score_domain=None,
+                          logscale=False,
+                          histnorm=False,
                           **kwargs):
-    """
-    TODO:
-        rewrite using multiplog
+    r"""
+    Accumulates scores into histograms and plots them
 
     CommandLine:
         python -m plottool.plots --test-plot_score_histograms --show
 
+    Ignore:
+        >>> score_label = 'score'
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
-        >>> randstate = np.random.RandomState(seed=0)
-        >>> # Get a training sample
-        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
-        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> rng = np.random.RandomState(seed=0)
+        >>> tp_support = rng.normal(loc=6.5, size=(256,))
+        >>> tn_support = rng.normal(loc=3.5, size=(256,))
         >>> scores_list = [tp_support, tn_support]
-        >>> scores_lbls = None
-        >>> score_markers = None
-        >>> score_colors = None
-        >>> markersizes = None
-        >>> fnum = None
-        >>> pnum = (1, 1, 1)
         >>> logscale = True
         >>> title = 'plot_scores_histogram'
-        >>> result = plot_score_histograms(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, title)
+        >>> result = plot_score_histograms(scores_list, title=title,
+        >>>                                logscale=logscale)
         >>> ut.show_if_requested()
         >>> print(result)
     """
+    import plottool as pt
     if isinstance(scores_list, np.ndarray):
         if len(scores_list.shape) == 1:
             scores_list = [scores_list]
@@ -858,83 +1140,151 @@ def plot_score_histograms(scores_list,
         else:
             title = 'Histogram of ' + score_label + 's'
     title += kwargs.get('titlesuf', '')
-    if scores_lbls is None:
-        scores_lbls = [six.text_type(lblx) for lblx in range(len(scores_list))]
+    if score_lbls is None:
+        score_lbls = [six.text_type(lblx) for lblx in range(len(scores_list))]
     if score_markers is None:
         score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
-        score_colors = df2.distinct_colors(len(scores_list))[::-1]
+        score_colors = pt.distinct_colors(len(scores_list))[::-1]
     if markersizes is None:
         markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
     #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
-    agg_scores  = np.hstack(scores_list)
 
     # append amount of support
-    scores_lbls = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in zip(scores_lbls, scores_list)]
-
-    dmin = agg_scores.min()
-    dmax = agg_scores.max()
+    score_lbls_ = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in
+                   zip(score_lbls, scores_list)]
 
     # References:
     # stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
     #bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
 
     if fnum is None:
-        fnum = df2.next_fnum()
+        fnum = pt.next_fnum()
 
-    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+    pt.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+
+    # agg_scores  = np.hstack(scores_list)
+    # dmin = agg_scores.min()
+    # dmax = agg_scores.max()
 
     bins = None
     bin_width = kwargs.get('bin_width', None)
+    bin_list = [bins] * len(scores_list)
+
+    def make_bins(width, d_min, d_max, num_bins=None):
+        if num_bins is None:
+            num_bins = int((d_max - d_min) // width)
+        bins = [d_min + (width * count) for count in range(num_bins)]
+        return bins
+
+    def make_bins2(width, start, end):
+        num_bins = int((end - start) // width)
+        print('num_bins = %r' % (num_bins,))
+        return [start + (width * count) for count in range(num_bins)]
+
     if bin_width is not None:
         total_min = np.floor(min([min(scores) for scores in scores_list]))
         total_max = np.ceil(max([max(scores) for scores in scores_list]))
         #ave_diff = np.mean(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
         #std_diff = np.std(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
         #(total_max - total_min) / bin_width
-        start = min(0, total_min)
         num_bins = kwargs.get('num_bins', None)
-        if num_bins is None:
-            num_bins = int((total_max - start) // bin_width)
-        #end = total_max
-        bins = [start + (bin_width * count) for count in range(num_bins)]
+        total_min = min(0, total_min)  # HACK
+        bins = make_bins(bin_width, total_min, total_max, num_bins)
+        bin_list = [bins] * len(scores_list)
     else:
-        import scipy as sp
-        sortscores = np.sort(np.hstack(scores_list))
-        area = sp.integrate.cumtrapz(sortscores)
-        area = area / area[-1]
-        inlier_scores = sortscores[np.logical_and(area < .95, area > .05)]
-        (inlier_scores.max() - inlier_scores.min())
+        # _, agg_bins = np.histogram(agg_scores, 'auto')
+        bin_width = min([np.diff(np.histogram(scores)[1])[0] for scores in scores_list])
+        print('bin_width = %r' % (bin_width,))
+        # total_min = np.floor(min([min(scores) for scores in scores_list]))
+        # total_max = np.ceil(max([max(scores) for scores in scores_list]))
+        # start = total_min - bin_width / 2
+        # end = total_max + bin_width / 2
+        # if total_min > 0:
+        #     start = max(0, start)
+        # bin_width = np.mean(np.diff(agg_bins))
+        # num_bins = len(agg_bins)
+        # d_min, d_max = scores.min(), scores.max()
+        # width = bin_width
+        # import utool
+        # utool.embed()
+        bin_list = [make_bins2(bin_width, scores.min(), scores.max()) for scores in scores_list]
+    # else:
+    #     import scipy as sp
+    #     sortscores = np.sort(np.hstack(scores_list))
+    #     area = sp.integrate.cumtrapz(sortscores, initial=0)
+    #     area = area / area[-1]
+    #     inlier_scores = sortscores[np.logical_and(area < .95, area > .05)]
+    #     (inlier_scores.max() - inlier_scores.min())
 
     # Plot each datapoint on a line
     _n_max = 0
     _n_min = 0
     _bin_max = 0
+    freq_list = []
+    # ax  = df2.gca()
+
+    if histnorm:
+        if histnorm not in ['density', 'frequency']:
+            histnorm = 'percent'
+    else:
+        histnorm = 'frequency'
+
+    xdata_list = []
+    width_list = []
     for lblx in list(range(len(scores_list))):
-        label = scores_lbls[lblx]
-        color = score_colors[lblx]
         #marker = score_markers[lblx]
         data = scores_list[lblx]
+        bins = bin_list[lblx]
 
-        dmin = int(np.floor(data.min()))
-        dmax = int(np.ceil(data.max()))
+        # dmin = int(np.floor(data.min()))
+        # dmax = int(np.ceil(data.max()))
         if bins is None:
-            bins = dmax - dmin
-            bins = 50
-        ax  = df2.gca()
+            bins = 'auto'
+        #     bins = dmax - dmin
+        #     bins = 50
 
         try:
-            _n, _bins, _patches = ax.hist(
-                data, bins=bins, label=str(label), color=color,
-                histtype='stepfilled', alpha=.7, stacked=True)
-            #range=(dmin, dmax),
-            #for _p in _patches:
-            #    _p.set_edgecolor(None)
+            # freq, _bins = np.histogram(data, bins, density=histnorm)
+            if histnorm == 'percent':
+                freq, _bins = np.histogram(data, bins)
+                freq = freq.astype(np.float)
+                freq = freq / freq.sum()
+            elif histnorm == 'density':
+                freq, _bins = np.histogram(data, bins, density=True)
+            elif histnorm == 'frequency':
+                freq, _bins = np.histogram(data, bins)
+            else:
+                raise ValueError('Unknown mode histnorm=%r' % (histnorm,))
+
+            # Accumulate ydata
+            freq_list.append(freq)
+
+            # accumulate a list of bins
+            # _xdata = (_bins[1:] + _bins[:-1]) / 2
+            _xdata = _bins[:-1]
+            _width = np.diff(_bins)
+            xdata_list += [_xdata]
+            width_list.append(_width)
+
+            _n = freq
+            # if False:
+            #     # Old non-multiplot way
+            #     label = score_lbls_[lblx]
+            #     color = score_colors[lblx]
+            #     _n, _bins, _patches = ax.hist(
+            #         data, bins=bins, label=str(label), color=color,
+            #         rwidth=None, normed=True,
+            #         histtype='stepfilled', alpha=.7, stacked=True)
+            #     #range=(dmin, dmax),
+            #     #for _p in _patches:
+            #     #    _p.set_edgecolor(None)
             _n_min = min(_n_min, _n.min())
             _n_max = max(_n_max, _n.max())
             _bin_max = max(_bin_max, max(_bins))
         except Exception as ex:
-            ut.printex(ex, 'probably gave negative scores', keys=['bins', 'data', 'total_min'])
+            ut.printex(ex, 'probably gave negative scores', keys=[
+                'bins', 'data', 'total_min'])
             import utool
             utool.embed()
             raise
@@ -942,7 +1292,42 @@ def plot_score_histograms(scores_list,
             if ut.SUPER_STRICT:
                 raise
 
+    if True:
+        # TODO:
+        # Ensure that multiplot can take in a list of xdata as well as a list
+        # of ydata
+        # New multiplot way
+        # if bin_width is None:
+        #     bin_width = np.mean(np.diff(bins))  # FIXME: variable widths
+        pt.multi_plot(xdata_list, freq_list, label_list=score_lbls_, fnum=fnum,
+                      color_list=score_colors, pnum=pnum, kind='bar',
+                      width_list=width_list, alpha=.7, stacked=True,
+                      edgecolor='none', xlabel=score_label, ylabel=histnorm,
+                      title=title, xlim=kwargs.get('xlim', None))
+
+    ax = df2.gca()
+
+    if logscale:
+        if logscale is True:
+            symlogkw = {}
+        else:
+            symlogkw = logscale
+        # ax.set_xscale('log')
+        print(symlogkw)
+        if symlogkw.get('basex', 10) > 0:
+            print('XSCALE')
+            ax.set_xscale('symlog', **symlogkw)
+        if symlogkw.get('basey', 10) > 0:
+            print('YSCALE')
+            ax.set_yscale('symlog', **symlogkw)
+        # ax.set_xscale('symlog', nonposx='clip')
+        # ax.set_yscale('symlog', nonposy='clip')
+        # ax.set_xscale('log', nonposx='clip')
+        # ax.set_yscale('log', nonposy='clip')
+        # set_logyscale_from_data(sorted(ut.flatten(scores_list)))
+
     if overlay_score_domain is not None:
+        ax  = df2.gca()
         p_max = max([prob.max() for prob in overlay_prob_given_list])
         scale_factor = _n_max / p_max
         for lblx in list(range(len(scores_list))):
@@ -960,41 +1345,10 @@ def plot_score_histograms(scores_list,
     if score_thresh is not None:
         ydomain = np.linspace(_n_min, _n_max, 10)
         xvalues = [score_thresh] * len(ydomain)
-        df2.plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
+        plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
-    import matplotlib as mpl
-    ax = df2.gca()
-    xlim = kwargs.get('xlim', None)
-    if xlim is not None:
-        ax.set_xlim(xlim)
-
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
-    }
-    #df2.set_xlabel('sorted ' +  score_label + ' indices')
-    ax.set_xlabel(score_label, **labelkw)
-    ax.set_ylabel('frequency', **labelkw)
-    #df2.dark_background()
-    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
-    titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
-    }
-    ax.set_title(title, **titlekw)
-    #df2.legend(loc='upper left')
-    df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
-    #print('[df2] show_histogram()')
-    #df2.dark_background()
-
-    #ax.set_xscale('log')
-    #ax.set_yscale('log')
-
-    use_darkbackground = kwargs.get('use_darkbackground', None)
-    if use_darkbackground is None:
-        use_darkbackground = is_default_dark_bg()
-    if use_darkbackground:
-        df2.dark_background()
-    #return fig
+    size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
+    df2.legend(loc='best', size=size)
 
 
 def plot_probabilities(prob_list,
@@ -1057,24 +1411,15 @@ def plot_probabilities(prob_list,
 
     assert len(prob_list) == len(prob_lbls)
     assert len(prob_list) == len(prob_colors)
-    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(prob_list)]
-    #agg_scores  = np.hstack()
-    #agg_labelx  = np.hstack(labelx_list)
-    #agg_sortx = agg_scores.argsort()
 
     if fnum is None:
         fnum = df2.next_fnum()
 
-    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
-
-    for tup in zip(prob_list, prob_lbls, prob_colors):
-        density, label, color = tup
-        ydata = density
-        df2.plt.plot(xdata, ydata, color=color, label=label, alpha=.7)
-        if fill:
-            df2.plt.fill_between(xdata, ydata, color=color, alpha=.7)
-        #ut.embed()
-        #help(df2.plot)
+    # df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+    multi_plot(xdata, prob_list, label_list=prob_lbls, color_list=prob_colors,
+               alpha=.7, fnum=fnum, pnum=pnum, fill=fill,
+               marker='', xlabel='score value', ylabel='probability',
+               title=figtitle, use_legend=False)
 
     if prob_thresh is not None:
         df2.plt.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
@@ -1085,34 +1430,12 @@ def plot_probabilities(prob_list,
         ydomain = np.linspace(ydata_min, ydata_max, 10)
         df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-',
                      label='score thresh=%.2f' % (score_thresh,))
-    import matplotlib as mpl
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
-    }
-
     ax = df2.gca()
-    #ax.set_xlim(xdata.min(), xdata.max())
-    ax.set_xlabel('score value', **labelkw)
-    ax.set_ylabel('probability', **labelkw)
-
-    use_darkbackground = kwargs.get('use_darkbackground', None)
-    if use_darkbackground is None:
-        use_darkbackground = is_default_dark_bg()
-    if use_darkbackground:
-        df2.dark_background()
-
-    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
-    titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
-    }
-    ax.set_title(figtitle, **titlekw)
-    #df2.legend(loc='upper left')
     if kwargs.get('use_legend', True):
-        df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
-    #df2.iup()
+        size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
+        df2.legend(loc='best', size=kwargs.get('legendsize', size))
 
 
 # Short alias
@@ -1122,7 +1445,7 @@ plot_densities = plot_probabilities
 
 
 def plot_sorted_scores(scores_list,
-                       scores_lbls=None,
+                       score_lbls=None,
                        score_markers=None,
                        score_colors=None,
                        markersizes=None,
@@ -1134,13 +1457,13 @@ def plot_sorted_scores(scores_list,
                        thresh=None,
                        use_stems=None,
                        **kwargs):
-    """
+    r"""
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
 
     Args:
         scores_list (list): a list of scores
-        scores_lbls (None):
+        score_lbls (None):
         score_markers (None):
         score_colors (None):
         markersizes (None):
@@ -1155,12 +1478,11 @@ def plot_sorted_scores(scores_list,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
-        >>> randstate = np.random.RandomState(seed=0)
-        >>> # Get a training sample
-        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
-        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> rng = np.random.RandomState(seed=0)
+        >>> tp_support = rng.normal(loc=6.5, size=(256,))
+        >>> tn_support = rng.normal(loc=3.5, size=(256,))
         >>> scores_list = [tp_support, tn_support]
-        >>> scores_lbls = None
+        >>> score_lbls = None
         >>> score_markers = None
         >>> score_colors = None
         >>> markersizes = None
@@ -1168,15 +1490,16 @@ def plot_sorted_scores(scores_list,
         >>> pnum = (1, 1, 1)
         >>> logscale = True
         >>> figtitle = 'plot_sorted_scores'
-        >>> result = plot_sorted_scores(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, figtitle)
+        >>> result = plot_sorted_scores(scores_list, score_lbls, score_markers,
+        >>>                             score_colors, markersizes, fnum, pnum,
+        >>>                             logscale, figtitle)
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import matplotlib as mpl
     if figtitle is None:
         figtitle = 'sorted ' + score_label
-    if scores_lbls is None:
-        scores_lbls = [lblx for lblx in range(len(scores_list))]
+    if score_lbls is None:
+        score_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
         score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
@@ -1214,7 +1537,7 @@ def plot_sorted_scores(scores_list,
 
     # Plot each datapoint on a line
     for lblx in range(len(scores_list)):
-        label = scores_lbls[lblx]
+        label = score_lbls[lblx]
         color = score_colors[lblx]
         marker = score_markers[lblx]
         markersize = markersizes[lblx]
@@ -1240,7 +1563,7 @@ def plot_sorted_scores(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
+            weight='light', size=kwargs.get('labelsize', mpl.rcParams['axes.labelsize']))
     }
 
     ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
@@ -1251,13 +1574,16 @@ def plot_sorted_scores(scores_list,
         use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
-    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
+    titlesize = kwargs.get('titlesize', mpl.rcParams['axes.titlesize'])
     titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+        'fontproperties': mpl.font_manager.FontProperties(
+            family='DejaVu Sans',
+            weight='light', size=titlesize)
     }
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
+    size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
+    df2.legend(loc='best', size=kwargs.get('legendsize', size))
     #df2.legend(loc='best')
     #df2.iup()
 
@@ -1597,10 +1923,11 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
     else:
         unknown_nd_data, ug_shape = compute_interpolation_grid(known_nd_data, 0 * 5)
         interpolated_error = interpolate_error(known_nd_data, known_target_points, unknown_nd_data)
-        import matplotlib as mpl
 
         label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
         title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
+        # label_fontprop = mpl.font_manager.FontProperties(size=8)
+        # title_fontprop = mpl.font_manager.FontProperties(size=10)
         labelkw = dict(labelpad=1000, fontproperties=label_fontprop)
         titlekw = dict(fontproperties=title_fontprop)
 
@@ -1772,7 +2099,6 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
 
     width = .95
     ymax = freq.max() if len(freq) > 0 else 0
-    print('ymax = %r' % (ymax,))
 
     if len(freq) == 0:
         freq_max = 1
@@ -1879,27 +2205,71 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
                   ylabel=ylabel, xlabel=xlabel, **kwargs)
 
 
-def draw_time_distribution(unixtime_list):
+def draw_time_distribution(unixtime_list, bw=None):
     import vtool as vt
     import plottool as pt
     if len(unixtime_list) > 0:
-        unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
-        unixtime_pdf = vt.estimate_pdf(unixtime_list)
-        unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+        from sklearn.neighbors.kde import KernelDensity
+        unixtime_arr = np.asarray(unixtime_list)
+        # Remove nans from list
+        nanflags = np.isnan(unixtime_arr)
+        unixtimes = unixtime_arr[~nanflags]
+        mintime = vt.safe_min(unixtimes)
+        maxtime = vt.safe_max(unixtimes)
+        unixtime_domain = np.linspace(mintime, maxtime, 1000)
+
+        # num_nan = sum(nanflags)
+        # num_nonnan = len(unixtimes)
+        # print('num_nan = %r' % (num_nan,))
+        # print('num_nonnan = %r' % (num_nonnan,))
+
+        if bw is None:
+            from sklearn.model_selection import GridSearchCV  # NOQA
+            from sklearn.model_selection import RandomizedSearchCV
+            day = 60 * 60 * 24
+            # bw_low = day
+            # bw_high = (maxtime - mintime) / 10
+            grid_params = {
+                # 'bandwidth': np.logspace(np.log(bw_low), np.log(bw_high), 30)
+                # 'bandwidth': np.linspace(bw_low, bw_high, 30)
+                'bandwidth': np.linspace(day, day * 14, 14)
+            }
+            # searcher = ut.partial(GridSearchCV, n_jobs=7)
+            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
+            print('Searching for best bandwidth')
+            grid = searcher(KernelDensity(kernel='gaussian'),
+                                grid_params, cv=2, verbose=0)
+            grid.fit(unixtimes[:, None])
+            bw = grid.best_params_['bandwidth']
+            # print('bw = %r' % (bw,))
+        # else:
+        #     # scott_bw = len(unixtimes) ** (-1 / 4)
+        #     # 3 days bandwidth
+        #     bw = 60 * 60 * 24 * 3
+        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
+        kde.fit(unixtimes[:, None])
+        log_density = kde.score_samples(unixtime_domain[:, None])
+        unixtime_density = np.exp(log_density)
         xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+
+        # unixtime_pdf = vt.estimate_pdf(unixtimes)
+        # unixtime_density = unixtime_pdf.evaluate(unixtime_domain)
     else:
-        unixtime_prob = []
+        unixtime_density = []
         xdata = []
 
     fnum = pt.ensure_fnum(None)
-    pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata, fill=True,
+    pt.plot_probabilities([unixtime_density], ['time'], xdata=xdata, fill=True,
                           use_legend=False, fnum=fnum, remove_yticks=True)
-    #freq, bins = np.histogram(unixtime_list, bins=30, normed=True)
-    #xints = np.arange(len(xdata))
-    #ut.embed()
-    #pt.multi_plot(xints, [freq],
-    #              fnum=fnum,
-    #              kind='bar', dark_background=False)
+
+    if False:
+        # freq, bins = np.histogram(unixtimes, bins=30, normed=True)
+        freq, bins = np.histogram(unixtimes, bins=30, normed=False)
+        # xints = np.arange(len(bins))
+        pt.multi_plot(bins, [freq],
+                      fnum=fnum,
+                      width=np.diff(bins)[0],
+                      kind='bar', dark_background=False)
     #xtick_rotation=30,
     #num_yticks=num_yticks,
     #xticklabels=bin_labels,
@@ -1912,14 +2282,14 @@ def draw_time_distribution(unixtime_list):
     #**kwargs)
 
 
-def wordcloud(text, fnum=None, pnum=None):
+def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
     """
     References:
         bioinfoexpert.com/?p=592
         sudo pip install git+git://github.com/amueller/word_cloud.git
 
     Args:
-        text (str):
+        text (str or dict): raw text or dictionary of frequencies
         fnum (int):  figure number(default = None)
         pnum (tuple):  plot number(default = None)
 
@@ -1950,15 +2320,57 @@ def wordcloud(text, fnum=None, pnum=None):
     """
     import plottool as pt
     from wordcloud import WordCloud
-    fnum = pt.ensure_fnum(fnum)
-    pt.figure(fnum=fnum, pnum=pnum)
-    if len(text) > 0:
-        _wc = WordCloud(background_color='black' if is_default_dark_bg() else 'white')
-        wordcloud = _wc.generate(text)
-        pt.plt.imshow(wordcloud)
+    if ax is None:
+        fnum = pt.ensure_fnum(fnum)
+        pt.figure(fnum=fnum, pnum=pnum)
+        ax = pt.gca()
     else:
-        pt.imshow_null('NO WORDCLOUD DATA')
-    pt.plt.axis('off')
+        assert fnum is None, 'dont pass ax with fnum'
+        assert pnum is None, 'dont pass ax with pnum'
+
+    background_color = 'black' if is_default_dark_bg() else 'white'
+    # font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    # font_path = '/usr/share/fonts/truetype/freefont/FreeMono.ttf'
+    font_path = ut.truepath('~/.local/share/fonts/Inconsolata-Regular.ttf')
+    font_path = '/usr/share/fonts/opentype/Inconsolata.otf'
+    # /home/joncrall/.local/share/fonts/Inconsolata-Regular.ttf
+
+    from os.path import exists
+    if not exists(font_path):
+        font_path = None
+
+    colormap = pt.interpolated_colormap([
+            (pt.RED, 0),
+            (pt.PINK, .15),
+            (pt.ORANGE, .3),
+            (pt.GREEN, .55),
+            (pt.TRUE_BLUE, .75),
+            (pt.PURPLE, 1.0),
+    ])
+
+    if size is None:
+        size = (600, 300)
+    width, height = size
+
+    if len(text) > 0:
+        _wc = WordCloud(
+            font_path=font_path,
+            background_color=background_color,
+            # min_font_size=12,
+            width=width, height=height,
+            # relative_scaling=.8,
+            # colormap='rainbow'
+            colormap=colormap,
+        )
+        if isinstance(text, dict):
+            # wordcloud = _wc.fit_words(list(text.items()))
+            wordcloud = _wc.generate_from_frequencies(text)
+        else:
+            wordcloud = _wc.generate(text)
+        ax.imshow(wordcloud, interpolation='bilinear')
+    else:
+        pt.imshow_null('NO WORDCLOUD DATA', ax=ax)
+    ax.axis('off')
 
 
 if __name__ == '__main__':

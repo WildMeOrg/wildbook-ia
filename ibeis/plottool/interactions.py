@@ -29,6 +29,12 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     Append a list of functions that draw plots and this interaction will plot
     them in appropriate subplots and let you click on them to zoom in.
 
+    Args:
+        fnum (int):  figure number(default = None)
+        _pnumiter (None): (default = None)
+        interactive (None): (default = None)
+        **kwargs: nRows, nCols
+
     CommandLine:
         python -m plottool.interactions --exec-ExpandableInteraction --show
 
@@ -57,57 +63,76 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         autostart = False
         super(ExpandableInteraction, self).__init__(autostart=autostart, **kwargs)
 
+    def __iadd__(self, func):
+        """ inplace apppend a plot function """
+        self.append_plot(func)
+        return self
+
     def append_plot(self, func, pnum=None, ishow_func=None, px=None):
         """
-        Func must take fnum and pnum as inputs
+        Register a plotting function
+
+        Args:
+            func (callable): must take fnum and pnum as keyword arguments.
+            pnum (tuple): plot num / gridspec. Defaults based on append order
+            ishow_func (callable): an interactive version of func
+            px (int): None or a plot index into (nRows, nCols)
         """
         if pnum is None:
-            if px is not None:
-                if isinstance(px, tuple):
-                    rx, cx = px
-                    px = (rx * self.nCols) + cx + 1
-                pnum = (self.nRows, self.nCols, px)
-            else:
+            if px is None:
                 if self._pnumiter is None:
                     pnum = None
                 else:
                     pnum = self._pnumiter()
+            else:
+                if isinstance(px, tuple):
+                    rx, cx = px
+                    px = (rx * self.nCols) + cx + 1
+                pnum = (self.nRows, self.nCols, px)
         self.pnum_list.append(pnum)
         self.func_list.append(func)
         self.ishow_func_list.append(ishow_func)
 
     def append_partial(self, func, *args, **kwargs):
         """
-        Func must take fnum and pnum as inputs
+        Register a plotting function with default arguments
+
+        Args:
+            func (callable): plotting function (does NOT need fnum/pnum).
+            *args: args to be passed to func
+            **kwargs: kwargs to be passed to func
         """
-        pnum = None
-        if pnum is None:
-            if self._pnumiter is None:
-                pnum = None
-            else:
-                pnum = self._pnumiter()
         def _partial(fnum=None, pnum=None):
             pt.figure(fnum=fnum, pnum=pnum)
             func(*args, **kwargs)
-        self.pnum_list.append(pnum)
-        self.func_list.append(_partial)
-        self.ishow_func_list.append(None)
+        self.append_plot(_partial)
+        # pnum = None
+        # if pnum is None:
+        #     if self._pnumiter is None:
+        #         pnum = None
+        #     else:
+        #         pnum = self._pnumiter()
+        # self.pnum_list.append(pnum)
+        # self.func_list.append(_partial)
+        # self.ishow_func_list.append(None)
 
     def show_page(self):
         if self.fig is None:
             raise AssertionError('fig is None, did you run interction.start()?')
         import plottool as pt
         fig = ih.begin_interaction('expandable', self.fnum)
-        if not any(self.pnum_list) and self.nRows is None and self.nRows is None:
-            # Hack if no pnum was given
+        if not any(self.pnum_list):
+            # If no pnum was given, find a set that agrees with constraints
             self.nRows, self.nCols = pt.get_num_rc(len(self.pnum_list),
                                                    nRows=self.nRows,
                                                    nCols=self.nCols)
             nSubplots = len(self.func_list)
             pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols, nSubplots=nSubplots)
-            self.pnum_list = [pnum_() for _ in self.pnum_list]
+            pnum_list = [pnum_() for _ in self.pnum_list]
+        else:
+            pnum_list = self.pnum_list
 
-        for index, (pnum, func) in enumerate(zip(self.pnum_list, self.func_list)):
+        for index, (pnum, func) in enumerate(zip(pnum_list, self.func_list)):
             if check_if_subinteract(func):
                 # Hack
                 interclass = func
@@ -116,7 +141,12 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 inter = func
                 inter.plot(fnum=self.fnum, pnum=pnum)
             else:
-                func(fnum=self.fnum, pnum=pnum)
+                try:
+                    func(fnum=self.fnum, pnum=pnum)
+                except Exception as ex:
+                    ut.printex(ex, 'failed plotting', keys=[
+                        'func', 'fnum', 'pnum'])
+                    raise
             ax = pt.gca()
             pt.set_plotdat(ax, 'plot_func', func)
             pt.set_plotdat(ax, 'expandable_index', index)
