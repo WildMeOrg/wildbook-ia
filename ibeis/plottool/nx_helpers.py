@@ -763,8 +763,12 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         >>> g4pos = nx.get_node_attributes(graph4, 'pos')['1']
         >>> g2pos = nx.get_node_attributes(graph2, 'pos')['1']
         >>> g3pos = nx.get_node_attributes(graph3, 'pos')['1']
-        >>> assert np.all(g1pos == g4pos)
-        >>> assert np.all(g2pos == g3pos)
+        >>> print('g1pos = {!r}'.format(g1pos))
+        >>> print('g4pos = {!r}'.format(g4pos))
+        >>> print('g2pos = {!r}'.format(g2pos))
+        >>> print('g3pos = {!r}'.format(g3pos))
+        >>> assert np.all(g1pos == g4pos), 'points between 1 and 4 were pinned so they should be equal'
+        >>> #assert np.all(g2pos != g3pos), 'points between 2 and 3 were not pinned, so they should be different'
 
         assert np.all(nx.get_node_attributes(graph1, 'pos')['1'] == nx.get_node_attributes(graph4, 'pos')['1'])
         assert np.all(nx.get_node_attributes(graph2, 'pos')['1'] == nx.get_node_attributes(graph3, 'pos')['1'])
