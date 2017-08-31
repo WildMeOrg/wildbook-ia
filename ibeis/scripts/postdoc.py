@@ -2416,7 +2416,23 @@ class GraphExpt(DBInputs):
         self.expt_results[expt_name] = sim_results
         ut.ensuredir(self.dpath)
         ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
-        pass
+
+    def _collect_sim_results(self, infr, dials):
+        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
+        pred_confusion.index.name = 'real'
+        pred_confusion.columns.name = 'pred'
+        print('Edge confusion')
+        print(pred_confusion)
+
+        expt_data = {
+            'real_ccs': list(infr.nid_to_gt_cc.values()),
+            'pred_ccs': list(infr.pos_graph.connected_components()),
+            'graph': infr.graph.copy(),
+            'dials': dials,
+            'refresh_thresh': infr.refresh._prob_any_remain_thresh,
+            'metrics': infr.metrics_list,
+        }
+        return expt_data
 
 
 def draw_match_states():

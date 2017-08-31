@@ -230,76 +230,84 @@ class Priority(object):
         Main interface to the priority queue used by the algorithm loops.
         Pops the highest priority edge from the queue.
         """
-        try:
-            edge, priority = infr._pop()
-        except IndexError:
-            raise StopIteration('no more to review!')
-        else:
-            if infr.params['redun.enabled']:
-                u, v = edge
-                nid1, nid2 = infr.node_labels(u, v)
-                pos_graph = infr.pos_graph
-                pos_graph[nid1]
-                if nid1 == nid2:
-                    if nid1 not in infr.nid_to_errors:
-                        # skip edges that increase local connectivity beyond
-                        # redundancy thresholds.
-                        k_pos = infr.params['redun.pos']
-                        # Much faster to compute local connectivity on subgraph
-                        cc = infr.pos_graph.component(nid1)
-                        pos_subgraph = infr.pos_graph.subgraph(cc)
-                        pos_conn = nx.connectivity.local_edge_connectivity(
-                            pos_subgraph, u, v, cutoff=k_pos)
-                        # Compute local connectivity
-                        if pos_conn >= k_pos:
-                            return infr.pop()
-            if infr.params['queue.conf.thresh'] is not None:
-                # Ignore reviews that would re-enforce a relationship that
-                # already has high confidence.
-                thresh_code = infr.params['queue.conf.thresh']
-                thresh = const.CONFIDENCE.CODE_TO_INT[thresh_code]
-                if priority < 10:
+        # The outer loop simulates recursive calls without using the stack
+        while True:
+            try:
+                edge, priority = infr._pop()
+            except IndexError:
+                raise StopIteration('no more to review!')
+            else:
+                if infr.params['redun.enabled']:
                     u, v = edge
                     nid1, nid2 = infr.node_labels(u, v)
+                    pos_graph = infr.pos_graph
+                    pos_graph[nid1]
                     if nid1 == nid2:
-                        if infr.confidently_connected(u, v, thresh):
-                            infr.pop()
-                    else:
-                        if infr.confidently_separated(u, v, thresh):
-                            infr.pop()
-
-            if getattr(infr, 'fix_mode_split', False):
-                # only checking edges within a name
-                nid1, nid2 = infr.pos_graph.node_labels(*edge)
-                if nid1 != nid2:
-                    return infr.pop()
-            if getattr(infr, 'fix_mode_merge', False):
-                # only checking edges within a name
-                nid1, nid2 = infr.pos_graph.node_labels(*edge)
-                if nid1 == nid2:
-                    return infr.pop()
-            if getattr(infr, 'fix_mode_predict', False):
-                # No longer needed.
-                pred = infr.get_edge_data(edge).get('pred', None)
-                # only report cases where the prediction differs
-                if priority < 10:
-                    nid1, nid2 = infr.node_labels(*edge)
-                    if nid1 == nid2:
+                        if nid1 not in infr.nid_to_errors:
+                            # skip edges that increase local connectivity beyond
+                            # redundancy thresholds.
+                            k_pos = infr.params['redun.pos']
+                            # Much faster to compute local connectivity on subgraph
+                            cc = infr.pos_graph.component(nid1)
+                            pos_subgraph = infr.pos_graph.subgraph(cc)
+                            pos_conn = nx.connectivity.local_edge_connectivity(
+                                pos_subgraph, u, v, cutoff=k_pos)
+                            # Compute local connectivity
+                            if pos_conn >= k_pos:
+                                continue  # Loop instead of recursion
+                                # return infr.pop()
+                if infr.params['queue.conf.thresh'] is not None:
+                    # Ignore reviews that would re-enforce a relationship that
+                    # already has high confidence.
+                    thresh_code = infr.params['queue.conf.thresh']
+                    thresh = const.CONFIDENCE.CODE_TO_INT[thresh_code]
+                    if priority < 10:
                         u, v = edge
-                        # Don't re-review confident CCs
-                        thresh = const.CONFIDENCE.CODE_TO_INT['pretty_sure']
-                        if infr.confidently_connected(u, v, thresh):
-                            return infr.pop()
-                    if pred == POSTV and nid1 == nid2:
-                        # print('skip pos')
-                        return infr.pop()
-                    if pred == NEGTV and nid1 != nid2:
-                        # print('skip neg')
-                        return infr.pop()
-                else:
-                    print('in error recover mode')
-            assert edge[0] < edge[1]
-            return edge, priority
+                        nid1, nid2 = infr.node_labels(u, v)
+                        if nid1 == nid2:
+                            if infr.confidently_connected(u, v, thresh):
+                                infr.pop()
+                        else:
+                            if infr.confidently_separated(u, v, thresh):
+                                infr.pop()
+
+                if getattr(infr, 'fix_mode_split', False):
+                    # only checking edges within a name
+                    nid1, nid2 = infr.pos_graph.node_labels(*edge)
+                    if nid1 != nid2:
+                        continue  # Loop instead of recursion
+                        # return infr.pop()
+                if getattr(infr, 'fix_mode_merge', False):
+                    # only checking edges within a name
+                    nid1, nid2 = infr.pos_graph.node_labels(*edge)
+                    if nid1 == nid2:
+                        continue  # Loop instead of recursion
+                        # return infr.pop()
+                if getattr(infr, 'fix_mode_predict', False):
+                    # No longer needed.
+                    pred = infr.get_edge_data(edge).get('pred', None)
+                    # only report cases where the prediction differs
+                    if priority < 10:
+                        nid1, nid2 = infr.node_labels(*edge)
+                        if nid1 == nid2:
+                            u, v = edge
+                            # Don't re-review confident CCs
+                            thresh = const.CONFIDENCE.CODE_TO_INT['pretty_sure']
+                            if infr.confidently_connected(u, v, thresh):
+                                continue  # Loop instead of recursion
+                                # return infr.pop()
+                        if pred == POSTV and nid1 == nid2:
+                            # print('skip pos')
+                            continue  # Loop instead of recursion
+                            # return infr.pop()
+                        if pred == NEGTV and nid1 != nid2:
+                            # print('skip neg')
+                            continue  # Loop instead of recursion
+                            # return infr.pop()
+                    else:
+                        print('in error recover mode')
+                assert edge[0] < edge[1]
+                return edge, priority
 
     def peek(infr):
         return infr.peek_many(n=1)[0]
