@@ -1244,7 +1244,7 @@ def rectify_to_square(img, extreme='max'):
 
 def rectify_to_float01(img, dtype=np.float32):
     """ Ensure that an image is encoded using a float properly """
-    if ut.is_int(img):
+    if img.dtype.kind in ('i', 'u'):
         assert img.max() <= 255
         img_ = img.astype(dtype) / 255.0
     else:
@@ -1254,9 +1254,10 @@ def rectify_to_float01(img, dtype=np.float32):
 
 def rectify_to_uint8(img):
     """ Ensure that an image is encoded in uint8 properly """
-    if ut.is_float(img):
-        assert img.max() <= 1.0, ut.repr2(ut.get_stats(img.ravel()), precision=2)
-        assert img.min() >= 0.0, ut.repr2(ut.get_stats(img.ravel()), precision=2)
+    if img.dtype.kind in ('f'):
+        if img.max() <= 1.0 or img.min() >= 0.0:
+            raise ValueError('Bad input image. Stats={}'.format(
+                ut.repr2(ut.get_stats(img.ravel()), precision=2)))
         img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
