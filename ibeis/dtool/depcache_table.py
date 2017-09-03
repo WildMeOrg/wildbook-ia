@@ -47,8 +47,6 @@ CONFIG_DICT      = 'config_dict'
 #     GRACE_PERIOD = 10
 # else:
 GRACE_PERIOD = ut.get_argval('--grace', type_=int, default=0)
-#ALLOW_NONE_YIELD = False
-ALLOW_NONE_YIELD = True
 
 STORE_CFGDICT = True
 
@@ -1299,7 +1297,7 @@ class _TableComputeHelper(object):
         for ids_, data_cols, args_ in zip(dirty_parent_ids, proptup_gen,
                                           dirty_preproc_args):
             try:
-                if ALLOW_NONE_YIELD and data_cols is None:
+                if data_cols is None:
                     yield None
                 else:
                     multi_parent_flags = table.get_parent_col_attr('ismulti')
@@ -1410,7 +1408,7 @@ class _TableComputeHelper(object):
         idxs1 = ut.where(table.get_data_col_attr('isnested'))
         idxs2 = ut.index_complement(idxs1, nCols)
         for data in proptup_gen:
-            if ALLOW_NONE_YIELD and data is None:
+            if data is None:
                 yield None
                 continue
             # Split data into nested and unnested columns
@@ -1453,7 +1451,7 @@ class _TableComputeHelper(object):
         # ]
 
         for data, extern_fpaths in zip(proptup_gen, extern_fnames_list):
-            if ALLOW_NONE_YIELD and data is None:
+            if data is None:
                 yield None
                 continue
             normal_data = ut.take(data, idxs2)
@@ -1664,9 +1662,8 @@ class _TableComputeHelper(object):
                     assert len(dirty_params_iter) == nChunkInput
                 # TODO: Separate into func which can be specified as a callback.
                 # None data means that there was an error for a specific row
-                if ALLOW_NONE_YIELD:
-                    dirty_params_iter = ut.filter_Nones(dirty_params_iter)
-                    nChunkInput = len(dirty_params_iter)
+                dirty_params_iter = ut.filter_Nones(dirty_params_iter)
+                nChunkInput = len(dirty_params_iter)
                 yield colnames, dirty_params_iter, nChunkInput
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
@@ -1860,18 +1857,38 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                     verbose=True, _debug=None):
         """
         Lazy addition
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> table = depc['vsone']
+            >>> exec(ut.execstr_funckw(table.get_rowid), globals())
+            >>> config = table.configclass()
+            >>> _debug = 5
+            >>> verbose = True
+            >>> # test duplicate inputs are detected and accounted for
+            >>> parent_rowids = [(i, i) for i in list(range(100))] * 100
+            >>> rectify_tup = table._rectify_ids(parent_rowids)
+            >>> (parent_ids_, preproc_args, idxs1, idxs2) = rectify_tup
+            >>> rowids = table.ensure_rows(parent_ids_, preproc_args, config=config, _debug=_debug)
+            >>> result = ('rowids = %r' % (rowids,))
+            >>> print(result)
         """
         _debug = table.depc._debug if _debug is None else _debug
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
 
+        # Check which rows are already computed
         initial_rowid_list = table._get_rowid(parent_ids_, config=config)
         initial_rowid_list = list(initial_rowid_list)
 
         if table.depc._debug:
-            print('[deptbl.add] initial_rowid_list = %s' %
+            print('[deptbl.ensure] initial_rowid_list = %s' %
                   (ut.trunc_repr(initial_rowid_list),))
-            print('[deptbl.add] config_rowid = %r' % (config_rowid,))
+            print('[deptbl.ensure] config_rowid = %r' % (config_rowid,))
+
         # Get corresponding "dirty" parent rowids
         isdirty_list = ut.flag_None_items(initial_rowid_list)
         num_dirty = sum(isdirty_list)
@@ -1885,10 +1902,15 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                     print('[deptbl.add]  * config_rowid = {}, config={}'.format(
                         config_rowid, str(config)))
 
-                dirty_parent_ids  = ut.compress(parent_ids_, isdirty_list)
-                dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
-                # Break iterator into chunks
+                dirty_parent_ids_  = ut.compress(parent_ids_, isdirty_list)
+                dirty_preproc_args_ = ut.compress(preproc_args, isdirty_list)
 
+                # Process only unique items
+                unique_flags = ut.flag_unique_items(dirty_parent_ids_)
+                dirty_parent_ids  = ut.compress(dirty_parent_ids_, unique_flags)
+                dirty_preproc_args = ut.compress(dirty_preproc_args_, unique_flags)
+
+                # Break iterator into chunks
                 if False and verbose:
                     # check parent configs we are working with
                     for x, parname in enumerate(table.parents()):
@@ -1919,7 +1941,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 table._hack_chunk_cache = None
                 if verbose or _debug:
                     print('[deptbl.add] finished add')
-                # Dverything is clean in the database, now get correct order.
+                #
+                # The requested data is clean and must now exist in the parent
+                # database, do a lookup to ensure the correct order.
                 rowid_list = table._get_rowid(parent_ids_, config=config)
         else:
             rowid_list = initial_rowid_list
@@ -1927,11 +1951,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             print('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
         return rowid_list
 
-    #@profile
     def _rectify_ids(table, parent_rowids):
         r"""
-        Removes Nones, and turns many-to-one sets of rowids into hashable
-        UUIDS.
+        Filters any rows containing None ids and transforms many-to-one sets of
+        rowids into hashable UUIDS.
 
         Setup:
             >>> # DISABLE_DOCTEST
@@ -1960,15 +1983,12 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             >>> print('model_uuid = %r' % (model_uuid,))
             >>> rowids2 = table.get_model_rowids(model_uuid_list)
         """
-        if ALLOW_NONE_YIELD:
-            # Force entire row to be none if any are none
-            anyNone_flags = [x is None or any(ut.flag_None_items(x))
-                             for x in parent_rowids]
-            idxs2 = ut.where(anyNone_flags)
-            idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
-            valid_parent_ids_ = ut.take(parent_rowids, idxs1)
-        else:
-            valid_parent_ids_ = parent_rowids
+        # Force entire row to be none if any are none
+        anyNone_flags = [x is None or any(ut.flag_None_items(x))
+                         for x in parent_rowids]
+        idxs2 = ut.where(anyNone_flags)
+        idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
+        valid_parent_ids_ = ut.take(parent_rowids, idxs1)
 
         preproc_args = valid_parent_ids_
         if table.ismulti:
@@ -1987,10 +2007,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             parent_uuid_getters = [table.depc.get_root_uuid
                                    if col == table.depc.root else ut.identity
                                    for col in multicol_tables]
-            #parent_uuid_getters = [table.depc.get_root_uuid for idx in
-            #table.multi_parent_colxs]
-            #[table.depc[col].get_internal_columns([2, 3], (CONFIG_ROWID,)) for
-            #col in multicol_tables]
+
             parent_uuids_list = [[uuid_getter(ids_) for uuid_getter, ids_ in
                                   zip(parent_uuid_getters, ids_tup)]
                                  for ids_tup in multi_parents]
@@ -1999,9 +2016,6 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                                   for parent_uuids_tup in parent_uuids_list]
             # preproc args are usually the same as parent ids.  Model tables
             # are the exception.
-            #parent_num = len(parent_rowids)
-            #parent_ids_ = [(multiset_uuid, parent_num)]
-            #parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
             parent_ids_ = [
                 tuple(ut.ungroup(
                     [uuids, normalids],
@@ -2016,16 +2030,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
     def _unrectify_ids(table, rowid_list_, parent_rowids, idxs1, idxs2):
         """
-        Ensures that output is the same length as input. Inserts necessary Nones
+        Ensures that output is the same length as input. Inserts necessary
+        Nones where the original input was also None.
         """
-        if ALLOW_NONE_YIELD:
-            # FIXME: turn into generator
-            rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
-        else:
-            rowid_list = rowid_list_
+        # FIXME: turn into generator
+        rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
         return rowid_list
 
-    #@profile
     def get_rowid(table, parent_rowids, config=None, ensure=True,
                   eager=True, nInput=None, recompute=False, _debug=None,
                   num_retries=1):
@@ -2047,9 +2058,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             list: rowid_list
 
         CommandLine:
-         -m dtool.depcache_table --exec-get_rowid
+            python -m dtool.depcache_table --exec-get_rowid
 
-        Example5:
+        Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache2 import testdata_depc3
@@ -2080,7 +2091,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         if recompute:
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
-                                           eager=True, nInput=None)
+                                           eager=True, nInput=None,
+                                           _debug=_debug)
             rowid_list_ = list(rowid_list_)
             needs_recompute_rowids = ut.filter_Nones(rowid_list_)
             try:
@@ -2094,13 +2106,14 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             for try_num in range(num_retries):
                 try:
                     rowid_list_ = table.ensure_rows(parent_ids_, preproc_args,
-                                                    config=config)
+                                                    config=config, _debug=_debug)
                 except ExternalStorageException:
                     if try_num == num_retries - 1:
                         raise
         else:
             rowid_list_ = table._get_rowid(
-                parent_ids_, config=config, eager=eager, nInput=nInput)
+                parent_ids_, config=config, eager=eager, nInput=nInput,
+                _debug=_debug)
         # Map outputs to correspond with inputs
         rowid_list = table._unrectify_ids(rowid_list_, parent_rowids, idxs1,
                                           idxs2)
@@ -2380,13 +2393,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             print('[deptbl.get_row_data] flat_intern_colnames = %r' %
                   (flat_intern_colnames,))
 
-        if ALLOW_NONE_YIELD:
-            nonNone_flags = ut.flag_not_None_items(tbl_rowids)
-            nonNone_tbl_rowids = ut.compress(tbl_rowids, nonNone_flags)
-            idxs1 = ut.where(nonNone_flags)
-        else:
-            nonNone_tbl_rowids = tbl_rowids
-            idxs1 = []
+        nonNone_flags = ut.flag_not_None_items(tbl_rowids)
+        nonNone_tbl_rowids = ut.compress(tbl_rowids, nonNone_flags)
+        idxs1 = ut.where(nonNone_flags)
+
         idxs2 = ut.index_complement(idxs1, len(tbl_rowids))
 
         ####
@@ -2484,11 +2494,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         else:
             prop_list = []
 
-        if ALLOW_NONE_YIELD:
-            if len(idxs2) > 0:
-                prop_list = ut.ungroup(
-                    [prop_list, [None] * len(idxs2)],
-                    [idxs1, idxs2], len(tbl_rowids) - 1)
+        if len(idxs2) > 0:
+            prop_list = ut.ungroup(
+                [prop_list, [None] * len(idxs2)],
+                [idxs1, idxs2], len(tbl_rowids) - 1)
         return prop_list
 
     def _resolve_any_external_data(table, nonNone_tbl_rowids, raw_prop_list,
