@@ -4872,13 +4872,12 @@ def aoi_train(ibs, species_list=None):
 
 @register_ibs_method
 def aoi2_train(ibs, species_list=None):
-    ut.embed()
     from ibeis_cnn.ingest_ibeis import get_aoi2_training_data
     from ibeis_cnn.process import numpy_processed_directory5
     from ibeis_cnn.models.aoi2 import train_aoi2
     from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_aoi2_training_data(ibs, data_path, target_species_list=species_list)
+    extracted_path = get_aoi2_training_data(ibs, dest_path=data_path, target_species_list=species_list)
     id_file, X_file, y_file = numpy_processed_directory5(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'aoi2')
     model_path = train_aoi2(output_path, X_file, y_file)
