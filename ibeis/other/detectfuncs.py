@@ -3054,11 +3054,9 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
 
 
 @register_ibs_method
-def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
+def aoi2_precision_recall_algo_display(ibs, figsize=(20, 20)):
     import matplotlib.pyplot as plt
     import plottool as pt
-
-    ut.embed()
 
     fig_ = plt.figure(figsize=figsize)
 
