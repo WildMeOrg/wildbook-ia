@@ -1140,7 +1140,7 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
         'negative': 1,
     }
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, **kwargs)
+                                         category_mapping, size=20, **kwargs)
 
 
 @register_ibs_method
@@ -2014,7 +2014,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
         'negative': 1,
     }
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, **kwargs)
+                                         category_mapping, size=20, **kwargs)
 
 
 @register_ibs_method
@@ -2535,7 +2535,7 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
     }
     return best_conf, general_confusion_matrix_algo(label_list_, prediction_list_,
                                                     category_list, category_mapping,
-                                                    **kwargs)
+                                                    size=20, **kwargs)
 
 
 @register_ibs_method
@@ -2809,7 +2809,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
     }
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
                                                  category_mapping, conf_list=conf_list,
-                                                 **kwargs)
+                                                 size=20, **kwargs)
 
 
 @register_ibs_method
