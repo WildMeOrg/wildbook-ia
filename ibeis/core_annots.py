@@ -1717,6 +1717,67 @@ def compute_labels_annotations(depc, aid_list, config=None):
     for result in result_list:
         yield result
 
+
+class AoIConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('aoi_two_weight_filepath', None),
+    ]
+
+
+@derived_attribute(
+    tablename='aoi_two', parents=['annotations'],
+    colnames=['score', 'class'],
+    coltypes=[float, str],
+    configclass=AoIConfig,
+    fname='chipcache4',
+    chunksize=256,
+)
+def compute_aoi2(depc, aid_list, config=None):
+    r"""
+    Extracts the Annotation of Interest (AoI) for a given input annotation
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        aid_list (list):  list of annotation rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_aoi2
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[0:8]
+        >>> # depc.delete_property('aoi_two', aid_list)
+        >>> results = depc.get_property('aoi_two', aid_list, None)
+        >>> print(results)
+    """
+    print('[ibs] Process Annotation AoI2s')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    depc = ibs.depc_image
+    config_ = {
+        'draw_annots' : False,
+        'thumbsize'   : (192, 192),
+    }
+    gid_list = ibs.get_annot_gids(aid_list)
+    thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    size_list = ibs.get_image_sizes(gid_list)
+    result_list = ibs.generate_thumbnail_aoi2_list(thumbnail_list, bbox_list, size_list, **config)
+    # yield detections
+    for result in result_list:
+        yield result
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
