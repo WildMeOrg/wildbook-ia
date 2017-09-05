@@ -3023,11 +3023,11 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
         manifest_dict = {}
         test_gid_list = ibs.get_annot_gids(test_aid_list)
         zipped = zip(test_gid_list, test_aid_list, label_list, prediction_list)
-        for test_gid, test_aid, label, prediction, confidence in zipped:
+        for test_gid, test_aid, label, prediction in zipped:
             if test_gid not in manifest_dict:
                 manifest_dict[test_gid] = {}
             assert test_aid not in manifest_dict[test_gid]
-            manifest_dict[test_gid][test_aid] = (label, prediction, confidence, )
+            manifest_dict[test_gid][test_aid] = (label, prediction, )
 
         for test_gid in manifest_dict:
             image = ibs.get_images(test_gid)
@@ -3036,7 +3036,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
             height_, width_, channels_ = image.shape
 
             for test_aid in manifest_dict[test_gid]:
-                label, prediction, confidence = manifest_dict[test_gid][test_aid]
+                label, prediction = manifest_dict[test_gid][test_aid]
                 bbox = ibs.get_annot_bboxes(test_aid)
                 xtl, ytl, width, height = bbox
                 xbr = xtl + width
