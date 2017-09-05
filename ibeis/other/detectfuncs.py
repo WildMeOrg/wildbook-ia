@@ -2148,7 +2148,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
     ]
 
     if output_cases:
-        output_path = 'confusion-incorrect'
+        output_path = 'cameratrap-confusion-incorrect'
         output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
         positive_path = join(output_path, 'positive')
         negative_path = join(output_path, 'negative')
@@ -2938,6 +2938,211 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None):
         canvas[canvas > 255] = 255
         canvas = canvas.astype(np.uint8)
         cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.%d.png' % (species, gid, aid, ), canvas)
+
+
+def aoi2_precision_recall_algo(ibs, category_list=None, **kwargs):
+    depc = ibs.depc_image
+    test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')
+    test_aid_list_ = list(set(ut.flatten(ibs.get_image_aids(test_gid_set_))))
+    species_list = ibs.get_annot_species_texts(test_aid_list_)
+    interest_list = ibs.get_annot_interest(test_aid_list_)
+
+    test_aid_list = []
+    label_list = []
+    for test_aid, species, interest in zip(test_aid_list_, species_list, interest_list):
+        if category_list is not None:
+            if species not in category_list:
+                continue
+        if interest is None:
+            continue
+        label = 'positive' if interest else 'negative'
+        test_aid_list.append(test_aid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('aoi_two', test_aid_list, 'class', config=kwargs)
+    confidence_list = depc.get_property('aoi_two', test_aid_list, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+
+
+def aoi2_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+
+
+def aoi2_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
+
+
+def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False, category_list=None, **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    depc = ibs.depc_image
+    test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')
+    test_aid_list_ = list(set(ut.flatten(ibs.get_image_aids(test_gid_set_))))
+    species_list = ibs.get_annot_species_texts(test_aid_list_)
+    interest_list = ibs.get_annot_interest(test_aid_list_)
+
+    test_aid_list = []
+    label_list = []
+    for test_aid, species, interest in zip(test_aid_list_, species_list, interest_list):
+        if category_list is not None:
+            if species not in category_list:
+                continue
+        if interest is None:
+            continue
+        label = 'positive' if interest else 'negative'
+        test_aid_list.append(test_aid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('aoi_two', test_aid_list, 'class', config=kwargs)
+    confidence_list = depc.get_property('aoi_two', test_aid_list, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
+
+    if output_cases:
+        output_path = 'aoi2-confusion-incorrect'
+        output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
+        positive_path = join(output_path, 'positive')
+        negative_path = join(output_path, 'negative')
+        ut.ensuredir(output_path)
+        ut.ensuredir(positive_path)
+        ut.ensuredir(negative_path)
+
+        for test_aid, label, prediction in zip(test_aid_list, label_list, prediction_list):
+            if label == prediction:
+                continue
+            gid = ibs.get_annot_gids(test_aid)
+            image = ibs.get_images(gid)
+
+            bbox = ibs.get_annot_bboxes(test_aid)
+            xtl, ytl, width, height = bbox
+            xbr = xtl + width
+            ybr = ytl + height
+
+            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), (0, 0, 255), 5)
+
+            # Get path
+            image_path = positive_path if label == 'positive' else negative_path
+            image_filename = 'hardidx_%d_label_%s_pred_%s_case_fail.jpg' % (gid, label, prediction, )
+            image_filepath = join(image_path, image_filename)
+            # Save path
+            cv2.imwrite(image_filepath, image)
+
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
+
+
+@register_ibs_method
+def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=figsize)
+
+    config_list = [
+        {'label': 'All Species',         'category_list': None},
+        {'label': 'Masai Giraffe',       'category_list': ['giraffe_masai']},
+        {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
+        {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
+        {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},
+        {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
+        {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
+    ]
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
+
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        aoi2_precision_recall_algo_plot(ibs, color=color, **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    index = np.argmax(area_list)
+    # index = 0
+    best_label1 = config_list[index]['label']
+    best_config1 = config_list[index]
+    best_color1 = color_list[index]
+    best_area1 = area_list[index]
+    best_conf1 = conf_list[index]
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        aoi2_roc_algo_plot(ibs, color=color, **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    index = np.argmax(area_list)
+    # index = 0
+    best_label2 = config_list[index]['label']
+    best_config2 = config_list[index]
+    best_color2 = color_list[index]
+    best_area2 = area_list[index]
+    best_conf2 = conf_list[index]
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(223)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = aoi2_confusion_matrix_algo_plot(ibs, color=best_color1,
+                                                      conf=best_conf1, fig_=fig_, axes_=axes_,
+                                                      output_cases=True, **best_config1)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = aoi2_confusion_matrix_algo_plot(ibs, color=best_color2,
+                                                      conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                      **best_config2)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+
+    fig_filename = 'aoi2-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
 
 
 def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
