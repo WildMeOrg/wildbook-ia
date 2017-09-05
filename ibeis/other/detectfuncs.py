@@ -590,7 +590,7 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
                 str(number), xy=(y, x),
                 horizontalalignment='center',
                 verticalalignment='center',
-                size=8,
+                size=size,
             )
 
     cb = fig_.colorbar(res)  # NOQA
