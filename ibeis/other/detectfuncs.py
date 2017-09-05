@@ -2941,7 +2941,7 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None):
 
 
 def aoi2_precision_recall_algo(ibs, category_list=None, **kwargs):
-    depc = ibs.depc_image
+    depc = ibs.depc_annot
     test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')
     test_aid_list_ = list(set(ut.flatten(ibs.get_image_aids(test_gid_set_))))
     species_list = ibs.get_annot_species_texts(test_aid_list_)
@@ -2985,7 +2985,7 @@ def aoi2_roc_algo_plot(ibs, **kwargs):
 
 def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False, category_list=None, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
-    depc = ibs.depc_image
+    depc = ibs.depc_annot
     test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')
     test_aid_list_ = list(set(ut.flatten(ibs.get_image_aids(test_gid_set_))))
     species_list = ibs.get_annot_species_texts(test_aid_list_)
@@ -3056,6 +3056,8 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
 def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
     import matplotlib.pyplot as plt
     import plottool as pt
+
+    ut.embed()
 
     fig_ = plt.figure(figsize=figsize)
 
