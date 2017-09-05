@@ -3055,7 +3055,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
                     color = (255, 99, 46)
                 else:
                     color = (127, 255, 127)
-                cv2.rectangle(image, (xtl - 2, ytl - 2), (xbr + 2, ybr + 2), color, 4)
+                cv2.rectangle(image, (xtl - 4, ytl - 4), (xbr + 4, ybr + 4), color, 4)
 
             image_filename = 'image_%d.png' % (test_gid, )
             image_filepath = join(output_path, image_filename)
