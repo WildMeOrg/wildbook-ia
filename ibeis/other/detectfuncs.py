@@ -3017,31 +3017,43 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
     if output_cases:
         output_path = 'aoi2-confusion-incorrect'
         output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
-        positive_path = join(output_path, 'positive')
-        negative_path = join(output_path, 'negative')
         ut.delete(output_path)
         ut.ensuredir(output_path)
-        ut.ensuredir(positive_path)
-        ut.ensuredir(negative_path)
 
-        for test_aid, label, prediction, confidence in zip(test_aid_list, label_list, prediction_list, confidence_list):
-            if label == prediction:
-                continue
-            gid = ibs.get_annot_gids(test_aid)
-            image = ibs.get_images(gid)
+        manifest_dict = {}
+        test_gid_list = ibs.get_annot_gids(test_aid_list)
+        zipped = zip(test_gid_list, test_aid_list, label_list, prediction_list)
+        for test_gid, test_aid, label, prediction, confidence in zipped:
+            if test_gid not in manifest_dict:
+                manifest_dict[test_gid] = {}
+            assert test_aid not in manifest_dict[test_gid]
+            manifest_dict[test_gid][test_aid] = (label, prediction, confidence, )
 
-            bbox = ibs.get_annot_bboxes(test_aid)
-            xtl, ytl, width, height = bbox
-            xbr = xtl + width
-            ybr = ytl + height
+        for test_gid in manifest_dict:
+            image = ibs.get_images(test_gid)
+            w, h = ibs.get_image_sizes(test_gid)
+            image = _resize(image, t_width=600, verbose=False)
+            height_, width_, channels_ = image.shape
 
-            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), (0, 0, 255), 5)
+            for test_aid in manifest_dict[test_gid]:
+                label, prediction, confidence = manifest_dict[test_gid][test_aid]
+                bbox = ibs.get_annot_bboxes(test_aid)
+                xtl, ytl, width, height = bbox
+                xbr = xtl + width
+                ybr = ytl + height
 
-            # Get path
-            image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_label_%s_pred_%s_conf_%0.02f_case_fail.jpg' % (gid, label, prediction, confidence, )
-            image_filepath = join(image_path, image_filename)
-            # Save path
+                xtl = int(np.round((xtl / w) * width_))
+                ytl = int(np.round((ytl / h) * height_))
+                xbr = int(np.round((xbr / w) * width_))
+                ybr = int(np.round((ybr / h) * height_))
+                if label == prediction:
+                    color = (127, 255, 127)
+                else:
+                    color = (127, 127, 255)
+                cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 5)
+
+            image_filename = 'image_%d.png' % (test_gid, )
+            image_filepath = join(output_path, image_filename)
             cv2.imwrite(image_filepath, image)
 
     category_list = ['positive', 'negative']
