@@ -3019,11 +3019,12 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
         output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
         positive_path = join(output_path, 'positive')
         negative_path = join(output_path, 'negative')
+        ut.delete(output_path)
         ut.ensuredir(output_path)
         ut.ensuredir(positive_path)
         ut.ensuredir(negative_path)
 
-        for test_aid, label, prediction in zip(test_aid_list, label_list, prediction_list):
+        for test_aid, label, prediction, confidence in zip(test_aid_list, label_list, prediction_list, confidence_list):
             if label == prediction:
                 continue
             gid = ibs.get_annot_gids(test_aid)
@@ -3038,7 +3039,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
 
             # Get path
             image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_label_%s_pred_%s_case_fail.jpg' % (gid, label, prediction, )
+            image_filename = 'hardidx_%d_label_%s_pred_%s_conf_%0.02f_case_fail.jpg' % (gid, label, prediction, confidence, )
             image_filepath = join(image_path, image_filename)
             # Save path
             cv2.imwrite(image_filepath, image)
@@ -3070,7 +3071,8 @@ def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
         {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
         {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
     ]
-    color_list = pt.distinct_colors(len(config_list), randomize=False)
+    color_list = [(0, 0, 0)]
+    color_list = pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -3085,8 +3087,8 @@ def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
     ]
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    index = np.argmax(area_list)
-    # index = 0
+    # index = np.argmax(area_list)
+    index = 0
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
     best_color1 = color_list[index]
@@ -3109,8 +3111,8 @@ def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
     ]
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    index = np.argmax(area_list)
-    # index = 0
+    # index = np.argmax(area_list)
+    index = 0
     best_label2 = config_list[index]['label']
     best_config2 = config_list[index]
     best_color2 = color_list[index]
@@ -3119,7 +3121,7 @@ def aoi2_precision_recall_algo_display(ibs, figsize=(16, 16)):
     plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
-
+    plt.plot([0.0, 1.0], [0.0, 1.0], color=(0.5, 0.5, 0.5), linestyle='--')
     axes_ = plt.subplot(223)
     axes_.set_aspect(1)
     gca_ = plt.gca()
