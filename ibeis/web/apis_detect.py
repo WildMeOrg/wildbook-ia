@@ -11,7 +11,7 @@ from os.path import join, dirname, abspath
 from flask import url_for, request, current_app
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
-
+from ibeis.scripts import labelShark
 
 USE_LOCALIZATIONS = True
 
@@ -776,6 +776,24 @@ def get_working_species(ibs):
     else:
         working_species_tups = species_tup_list
     return working_species_tups
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/detect/whaleSharkInjury/', methods=['PUT', 'GET'])
+def detect_ws_injury(ibs, gid_list):
+    """
+    Classifies if a whale shark is injured
+
+    Args:
+        gid_list (list): list of image ids to run classification on
+
+    Returns:
+        result_list (dictionary): predictions is list of strings representing a possible tag.
+            confidences is a list of floats of correspoinding cofidence to the prediction
+
+    """
+    labels = labelShark.classifyShark(ibs, gid_list)
+    return labels
 
 if __name__ == '__main__':
     """
