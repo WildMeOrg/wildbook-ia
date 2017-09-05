@@ -1726,8 +1726,8 @@ class AoIConfig(dtool.Config):
 
 @derived_attribute(
     tablename='aoi_two', parents=['annotations'],
-    colnames=['score', 'flag'],
-    coltypes=[float, bool],
+    colnames=['score', 'class'],
+    coltypes=[float, str],
     configclass=AoIConfig,
     fname='chipcache4',
     chunksize=256,
