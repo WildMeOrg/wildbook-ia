@@ -522,7 +522,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
 def general_confusion_matrix_algo(label_correct_list, label_predict_list,
                                   category_list, category_mapping,
                                   fig_, axes_, fuzzy_dict=None, conf=None,
-                                  conf_list=None, **kwargs):
+                                  conf_list=None, size=8, **kwargs):
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
     suppressed_label = 'SUP'
@@ -3067,7 +3067,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
         'negative': 1,
     }
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, **kwargs)
+                                         category_mapping, size=20, **kwargs)
 
 
 @register_ibs_method
