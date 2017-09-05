@@ -3071,7 +3071,7 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
 
 
 @register_ibs_method
-def aoi2_precision_recall_algo_display(ibs, figsize=(20, 20)):
+def aoi2_precision_recall_algo_display(ibs, output_cases=False, figsize=(20, 20)):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -3143,7 +3143,7 @@ def aoi2_precision_recall_algo_display(ibs, figsize=(20, 20)):
     gca_.grid(False)
     correct_rate, _ = aoi2_confusion_matrix_algo_plot(ibs, color=best_color1,
                                                       conf=best_conf1, fig_=fig_, axes_=axes_,
-                                                      output_cases=True, **best_config1)
+                                                      output_cases=output_cases, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
