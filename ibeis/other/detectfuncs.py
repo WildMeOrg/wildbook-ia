@@ -3046,11 +3046,16 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
                 ytl = int(np.round((ytl / h) * height_))
                 xbr = int(np.round((xbr / w) * width_))
                 ybr = int(np.round((ybr / h) * height_))
-                if label == prediction:
-                    color = (127, 255, 127)
+                if label == 'positive':
+                    color = (255, 99, 46)
                 else:
-                    color = (127, 127, 255)
-                cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 5)
+                    color = (127, 255, 127)
+                cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 4)
+                if prediction == 'positive':
+                    color = (255, 99, 46)
+                else:
+                    color = (127, 255, 127)
+                cv2.rectangle(image, (xtl - 2, ytl - 2), (xbr + 2, ybr + 2), color, 4)
 
             image_filename = 'image_%d.png' % (test_gid, )
             image_filepath = join(output_path, image_filename)
