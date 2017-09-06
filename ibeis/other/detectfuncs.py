@@ -2189,10 +2189,11 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     config_list = [
         # {'label': 'Initial Model', 'classifier_weight_filepath': 'megan2.1'},
 
-        {'label': 'Initial Model', 'classifier_weight_filepath': 'megan1.1'},
+        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
         {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
         {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
         {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
+        {'label': 'Retrained Model (4%)', 'classifier_weight_filepath': 'megan1.5'},
     ]
     color_list = pt.distinct_colors(len(config_list), randomize=False)
 
