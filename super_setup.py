@@ -405,7 +405,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         ])
         if WITH_FLUKEMATCH:
             ibeis_rman.add_repos([
-                'https://github.com/zmjjmz/ibeis-flukematch-module.git'
+                'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
             ])
         # CNN Dependencies
         tpl_rman.add_repos([
