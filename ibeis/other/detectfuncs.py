@@ -1791,8 +1791,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    # index = np.argmax(area_list)
-    index = 0
+    index = np.argmax(area_list)
+    # index = 0
     best_label = config_list[index]['label']  # NOQA
     best_color = color_list[index]
     best_config = config_list[index]
@@ -1818,10 +1818,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     axes_.set_ylabel('Ground-Truth')
     # args = (best_area, best_label, best_conf, )
     # plt.title('Confusion Matrix for Highest AP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
-    area_list_ = area_list[1:]
-    mAP = sum(area_list_) / len(area_list_)
-    args = (mAP * 100.0, )
-    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.26)
+
+    # area_list_ = area_list[1:]
+    # mAP = sum(area_list_) / len(area_list_)
+    # args = (mAP * 100.0, )
+    # plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.26)
+
+    plt.title('Confusion Matrix', y=1.26)
 
     # # Show best that is greater than the best_pr
     # best_index = None
