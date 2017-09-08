@@ -2655,6 +2655,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
+    ut.embed()
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
