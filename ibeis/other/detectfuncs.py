@@ -865,7 +865,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     # Get species and viewpoints labels
     if kwargs.get('labels', False):
         classs_list = depc.get_property('localizations_labeler', test_gid_list,
-                                        'vector', config=kwargs)
+                                        'species', config=kwargs)
         viewpoints_list = depc.get_property('localizations_labeler', test_gid_list,
                                             'viewpoint', config=kwargs)
 
