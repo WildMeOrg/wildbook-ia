@@ -745,6 +745,9 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                     if not gt_list[gt_index]['interest']:
                         gt_mod_set.add(gt_index)
 
+            if kwargs.get('VERIFY', False):
+                ut.embed()
+
             tp = len(assignment_dict.keys()) - len(assign_mod_set)
             fp = num_pred - len(pred_mod_set) - tp
             fn = num_gt - len(gt_mod_set) - tp
@@ -834,6 +837,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     keeps_list = [ [True] * length for length in length_list ]
     features_list = [ [None] * length for length in length_list ]
     features_lazy_list = [ [None] * length for length in length_list ]
+    viewpoints_list = [ [None] * length for length in length_list ]
+    interests_list = [ [None] * length for length in length_list ]
 
     # Get features
     if kwargs.get('features', False):
@@ -856,6 +861,13 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
             ]
             for test_gid, length in zip(test_gid_list, length_list)
         ]
+
+    # Get species and viewpoints labels
+    if kwargs.get('labels', False):
+        classs_list = depc.get_property('localizations_labeler', test_gid_list,
+                                        'vector', config=kwargs)
+        viewpoints_list = depc.get_property('localizations_labeler', test_gid_list,
+                                            'viewpoint', config=kwargs)
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
@@ -934,6 +946,12 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         print('[thresh] %0.02f old avg. -> %0.02f new avg.' % args)
         # Alias
 
+    # Get updated confidences for boxes
+    if kwargs.get('interest', False):
+        print('Using alternate AoI interest flags')
+        interests_list = depc.get_property('localizations_classifier', test_gid_list,
+                                           'class', config=kwargs)
+
     # Reformat results for json
     zipped_list_list = zip(
         keeps_list,
@@ -943,6 +961,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         thetas_list,
         confss_list,
         classs_list,
+        viewpoints_list,
+        interests_list,
         features_list,
         features_lazy_list,
     )
@@ -959,10 +979,12 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
                 'theta'        : theta,
                 'confidence'   : conf,
                 'class'        : class_,
+                'viewpoint'    : viewpoint,
+                'interest'     : interest,
                 'feature'      : feature,
                 'feature_lazy' : feature_lazy,
             }
-            for keep_, test_gid, (width, height), bbox, theta, conf, class_, feature, feature_lazy in zip(*zipped_list)
+            for keep_, test_gid, (width, height), bbox, theta, conf, class_, viewpoint, interest, feature, feature_lazy in zip(*zipped_list)
             if keep_
         ]
         for zipped_list in zipped_list_list
@@ -1821,6 +1843,26 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
+
+    ######################################################################################
+
+    best_color = color_list[0]
+    best_config = config_list[0]
+    best_conf = conf_list[0]
+    print('BEST OPERATING POINT %0.04f' % (best_conf, ))
+    best_config['interest'] = True
+    best_config['labels'] = True
+    best_config['labeler_weight_filepath'] = 'candidacy'
+    best_config['VERIFY'] = True
+    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
+                                                           min_overlap=min_overlap,
+                                                           write_images=write_images,
+                                                           fig_=fig_, axes_=axes_,
+                                                           **best_config)
+    print('BEST CORRECT RATE: %0.04f' % (correct_rate, ))
+
+    ######################################################################################
+
     index = np.argmax(area_list)
     # index = 0
     best_label = config_list[index]['label']  # NOQA
@@ -1828,7 +1870,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     best_config = config_list[index]
     best_area = area_list[index]  # NOQA
     best_conf = conf_list[index]
-    print('BEST OPERATING POINT %0.04f' % (best_conf[0], ))
     # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
     plt.title('Precision-Recall Curves', y=1.19)
 
