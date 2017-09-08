@@ -977,28 +977,28 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    species_set = kwargs.get('species_set', None)
-    if filter_annots and species_set is not None:
-        dict_list = [
-            (gt_dict, 'Ground-Truth'),
-            # (pred_dict, 'Predictions'),
-        ]
-        for dict_, dict_tag in dict_list:
-            total = 0
-            survived = 0
-            for image_uuid in dict_:
-                annot_list = dict_[image_uuid]
-                total += len(annot_list)
-                annot_list = [
-                    annot
-                    for annot in annot_list
-                    if annot.get('class', None) in species_set
-                ]
-                survived += len(annot_list)
-                dict_[image_uuid] = annot_list
-            args = (dict_tag, total, species_set)
-            print('Filtering %s AIDs (%d) on species set: %r' % args)
-            print('    %d AIDs survived' % (survived , ))
+    # species_set = kwargs.get('species_set', None)
+    # if filter_annots and species_set is not None:
+    #     dict_list = [
+    #         (gt_dict, 'Ground-Truth'),
+    #         # (pred_dict, 'Predictions'),
+    #     ]
+    #     for dict_, dict_tag in dict_list:
+    #         total = 0
+    #         survived = 0
+    #         for image_uuid in dict_:
+    #             annot_list = dict_[image_uuid]
+    #             total += len(annot_list)
+    #             annot_list = [
+    #                 annot
+    #                 for annot in annot_list
+    #                 if annot.get('class', None) in species_set
+    #             ]
+    #             survived += len(annot_list)
+    #             dict_[image_uuid] = annot_list
+    #         args = (dict_tag, total, species_set)
+    #         print('Filtering %s AIDs (%d) on species set: %r' % args)
+    #         print('    %d AIDs survived' % (survived , ))
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
