@@ -738,7 +738,8 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                         gt_mod_set.add(gt_index)
                         pred_mod_set.add(pred_index)
 
-            ut.embed()
+            if num_pred > 2 and num_gt > 2:
+                ut.embed()
 
             tp = len(assignment_dict.keys())
             fp = num_pred - tp
