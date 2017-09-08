@@ -956,6 +956,9 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
 
     species_set = kwargs.get('species_set', None)
     if filter_annots and species_set is not None:
+        FILTER_INTEREST = True
+        interest_set = [1] if FILTER_INTEREST else [0, 1, None]
+        interest_set = set(interest_set)
         dict_list = [
             (gt_dict, 'Ground-Truth'),
             # (pred_dict, 'Predictions'),
@@ -969,7 +972,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
                 annot_list = [
                     annot
                     for annot in annot_list
-                    if annot.get('class', None) in species_set
+                    if annot.get('class', None) in species_set and annot.get('interest', None) in interest_set
                 ]
                 survived += len(annot_list)
                 dict_[image_uuid] = annot_list
@@ -1165,27 +1168,25 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     # species_set = set(['elephant'])
     # species_set = None
 
-    # species_set = [
-    #     'giraffe_masai',
-    #     'giraffe_reticulated',
-    #     'turtle_sea',
-    #     'whale_fluke',
-    #     'zebra_grevys',
-    #     'zebra_plains',
-    # ]
+    species_set = [
+        'giraffe_masai',
+        'giraffe_reticulated',
+        'turtle_sea',
+        'whale_fluke',
+        'zebra_grevys',
+        'zebra_plains',
+    ]
 
     config_list = [
 
 
-        # {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : species_set},
-        # {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
-        # {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
-        # {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
-        # {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[3] ]},
-        # {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[4] ]},
-        # {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[5] ]},
-
-
+        {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : species_set},
+        {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
+        {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
+        {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
+        {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[3] ]},
+        {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[4] ]},
+        {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[5] ]},
 
 
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -1197,9 +1198,9 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'V3 Whale Shark', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
         # {'label': 'V3 Whale Fluke', 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-        {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
-        {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
+        # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
@@ -2625,23 +2626,21 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    ut.embed()
-
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
-    species_set_list = list(map(ibs.get_annot_species_texts, aids_list))
-
-    label_list = [
-        'positive' if category in species_set else 'negative'
-        for species_set in species_set_list
-    ]
-
+    species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
-    confidence_list = [
-        confidence_dict[category]
-        for confidence_dict in confidence_dict_list
-    ]
+
+    correct = 0
+    for confidence_dict, species_set in zip(confidence_dict_list, species_set_list):
+        species_set_ = set([])
+        for key in confidence_dict:
+            if op_dict[key] <= confidence_dict[key]:
+                species_set_.add(key)
+        if len(species_set ^ species_set_) == 0:
+            correct += 1
+    print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_set)))
 
     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
 
