@@ -635,7 +635,7 @@ def general_overlap(gt_list, pred_list):
 
 def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                      check_species=True, check_viewpoint=False,
-                     check_intereset=True, **kwargs):
+                     check_intereset=False, **kwargs):
     OLD = False
     if OLD:
         overlap = general_overlap(gt_list, pred_list)
@@ -976,7 +976,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
 
 def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERIAL,
-                                    filter_annots=True, **kwargs):
+                                    **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
