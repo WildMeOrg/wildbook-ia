@@ -718,6 +718,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                     if gt_index not in assignment_dict:
                         assignment_dict[gt_index] = pred_index
 
+            assign_mod_set = set([])
             gt_mod_set = set([])
             pred_mod_set = set([])
             if check_species:
@@ -726,17 +727,25 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                     for gt_index in assignment_dict:
                         pred_index = assignment_dict[gt_index]
                         if gt_list[gt_index]['class'] not in species_set:
-                            gt_mod_set.add(gt_index)
+                            assign_mod_set.add(gt_index)
                             pred_mod_set.add(pred_index)
+
+                    for gt_index in range(len(num_gt)):
+                        if gt_list[gt_index]['class'] not in species_set:
+                            gt_mod_set.add(gt_index)
 
             if check_intereset:
                 for gt_index in assignment_dict:
                     pred_index = assignment_dict[gt_index]
                     if not gt_list[gt_index]['interest']:
-                        gt_mod_set.add(gt_index)
+                        assign_mod_set.add(gt_index)
                         pred_mod_set.add(pred_index)
 
-            tp = len(assignment_dict.keys()) - len(gt_mod_set)
+                for gt_index in range(len(num_gt)):
+                    if not gt_list[gt_index]['interest']:
+                        gt_mod_set.add(gt_index)
+
+            tp = len(assignment_dict.keys()) - len(assign_mod_set)
             fp = num_pred - len(pred_mod_set) - tp
             fn = num_gt - len(gt_mod_set) - tp
             assert tp >= 0
