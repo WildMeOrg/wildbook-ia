@@ -28,6 +28,7 @@ from ibeis import annotmatch_funcs  # NOQA
 SAMPLES = 1000
 CHUNK_SIZE = SAMPLES // ut.num_cpus()
 FORCE_SERIAL = True
+FILTER_INTEREST = True
 
 AP_SAMPLE_POINTS = [_ / 100.0 for _ in range(0, 101)]
 # AP_SAMPLE_POINTS = AP_SAMPLE_POINTS[1:-1]
@@ -634,7 +635,8 @@ def general_overlap(gt_list, pred_list):
 
 
 def general_tp_fp_fn(gt_list, pred_list, min_overlap,
-                     check_species=False, check_viewpoint=False, **kwargs):
+                     check_species=True, check_viewpoint=False,
+                     check_intereset=FILTER_INTEREST, **kwargs):
     OLD = False
     if OLD:
         overlap = general_overlap(gt_list, pred_list)
@@ -716,6 +718,8 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                 if max_overlap > min_overlap:
                     if gt_index not in assignment_dict:
                         assignment_dict[gt_index] = pred_index
+
+            ut.embed()
 
             tp = len(assignment_dict.keys())
             fp = num_pred - tp
@@ -956,7 +960,6 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, filter_annots=False,
 
     species_set = kwargs.get('species_set', None)
     if filter_annots and species_set is not None:
-        FILTER_INTEREST = True
         interest_set = [1] if FILTER_INTEREST else [0, 1, None]
         interest_set = set(interest_set)
         dict_list = [
