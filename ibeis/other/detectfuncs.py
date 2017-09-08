@@ -1232,12 +1232,12 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
 
         {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : species_set},
-        {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
-        {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
-        {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
-        {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[3] ]},
-        {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[4] ]},
-        {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[5] ]},
+        # {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
+        # {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
+        # {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
+        # {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[3] ]},
+        # {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[4] ]},
+        # {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[5] ]},
 
 
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
