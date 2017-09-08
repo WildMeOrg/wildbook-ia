@@ -730,7 +730,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                             assign_mod_set.add(gt_index)
                             pred_mod_set.add(pred_index)
 
-                    for gt_index in range(len(num_gt)):
+                    for gt_index in range(num_gt):
                         if gt_list[gt_index]['class'] not in species_set:
                             gt_mod_set.add(gt_index)
 
