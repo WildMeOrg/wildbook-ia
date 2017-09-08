@@ -729,8 +729,6 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                             gt_mod_set.add(gt_index)
                             pred_mod_set.add(pred_index)
 
-            gt_mod_set = set([])
-            pred_mod_set = set([])
             if check_intereset:
                 for gt_index in assignment_dict:
                     pred_index = assignment_dict[gt_index]
@@ -969,7 +967,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
 
 def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERIAL,
-                                    **kwargs):
+                                    filter_annots=True, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -979,30 +977,28 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    # species_set = kwargs.get('species_set', None)
-    # if filter_annots and species_set is not None:
-    #     interest_set = [1] if FILTER_INTEREST else [0, 1, None]
-    #     interest_set = set(interest_set)
-    #     dict_list = [
-    #         (gt_dict, 'Ground-Truth'),
-    #         # (pred_dict, 'Predictions'),
-    #     ]
-    #     for dict_, dict_tag in dict_list:
-    #         total = 0
-    #         survived = 0
-    #         for image_uuid in dict_:
-    #             annot_list = dict_[image_uuid]
-    #             total += len(annot_list)
-    #             annot_list = [
-    #                 annot
-    #                 for annot in annot_list
-    #                 if annot.get('class', None) in species_set and annot.get('interest', None) in interest_set
-    #             ]
-    #             survived += len(annot_list)
-    #             dict_[image_uuid] = annot_list
-    #         args = (dict_tag, total, species_set)
-    #         print('Filtering %s AIDs (%d) on species set: %r' % args)
-    #         print('    %d AIDs survived' % (survived , ))
+    species_set = kwargs.get('species_set', None)
+    if filter_annots and species_set is not None:
+        dict_list = [
+            (gt_dict, 'Ground-Truth'),
+            # (pred_dict, 'Predictions'),
+        ]
+        for dict_, dict_tag in dict_list:
+            total = 0
+            survived = 0
+            for image_uuid in dict_:
+                annot_list = dict_[image_uuid]
+                total += len(annot_list)
+                annot_list = [
+                    annot
+                    for annot in annot_list
+                    if annot.get('class', None) in species_set
+                ]
+                survived += len(annot_list)
+                dict_[image_uuid] = annot_list
+            args = (dict_tag, total, species_set)
+            print('Filtering %s AIDs (%d) on species set: %r' % args)
+            print('    %d AIDs survived' % (survived , ))
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
