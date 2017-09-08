@@ -896,6 +896,31 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
     return gid_list_, gid_list, mask_list
 
 
+def get_localization_aoi2(ibs, loc_id_list, target_size=(192, 192)):
+    depc = ibs.depc_image
+    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
+    assert len(gid_list_) == len(loc_id_list)
+
+    # Grab the localizations
+    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    gids_list = [
+        np.array([gid] * len(bbox_list))
+        for gid, bbox_list in zip(gid_list_, bboxes_list)
+    ]
+    # Flatten all of these lists for efficiency
+    gid_list       = ut.flatten(gids_list)
+    bbox_list      = ut.flatten(bboxes_list)
+    size_list = ibs.get_image_sizes(gid_list)
+
+    config_ = {
+        'draw_annots' : False,
+        'thumbsize'   : target_size,
+    }
+    thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
+
+    return gid_list_, gid_list, thumbnail_list, bbox_list, size_list
+
+
 ChipListImgType = dtool.ExternType(
     ut.partial(ut.load_cPkl, verbose=False),
     ut.partial(ut.save_cPkl, verbose=False),
@@ -1422,6 +1447,83 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
             np.array(zipped_list[3]),
             np.array(zipped_list[4]),
             list(zipped_list[5]),
+        )
+        yield ret_tuple
+
+
+class AoIConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('aoi_two_weight_filepath', None),
+    ]
+
+
+@register_preproc(
+    tablename='localizations_aoi_two', parents=['localizations'],
+    colnames=['score', 'class'],
+    coltypes=[np.ndarray, np.ndarray],
+    configclass=AoIConfig,
+    fname='detectcache',
+    chunksize=256,
+)
+def compute_localizations_interest(depc, loc_id_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        loc_id_list (list):  list of localization rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_localizations_labels
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:100]
+        >>> depc.delete_property('labeler', gid_list)
+        >>> results = depc.get_property('labeler', gid_list, None)
+        >>> results = depc.get_property('labeler', gid_list, 'species')
+        >>> print(results)
+    """
+    print('[ibs] Process Localization AoI2s')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+
+    values = get_localization_aoi2(ibs, loc_id_list, target_size=(192, 192))
+    gid_list_, gid_list, thumbnail_list, bbox_list, size_list = values
+
+    # Get the results from the algorithm
+    size_list = ibs.get_image_sizes(gid_list)
+    result_list = ibs.generate_thumbnail_aoi2_list(thumbnail_list, bbox_list, size_list, **config)
+    assert len(gid_list) == len(result_list)
+
+    # Release chips
+    thumbnail_list = None
+
+    # Group the results
+    group_dict = {}
+    for gid, result in zip(gid_list, result_list):
+        if gid not in group_dict:
+            group_dict[gid] = []
+        group_dict[gid].append(result)
+    assert len(gid_list_) == len(group_dict.keys())
+
+    # Return the results
+    for gid in gid_list_:
+        result_list = group_dict[gid]
+        zipped_list = list(zip(*result_list))
+        ret_tuple = (
+            np.array(zipped_list[0]),
+            np.array(zipped_list[1]),
         )
         yield ret_tuple
 

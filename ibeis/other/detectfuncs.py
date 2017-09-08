@@ -635,7 +635,7 @@ def general_overlap(gt_list, pred_list):
 
 def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                      check_species=True, check_viewpoint=False,
-                     check_intereset=False, **kwargs):
+                     check_intereset=True, **kwargs):
     OLD = False
     if OLD:
         overlap = general_overlap(gt_list, pred_list)
@@ -1828,6 +1828,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     best_config = config_list[index]
     best_area = area_list[index]  # NOQA
     best_conf = conf_list[index]
+    print('BEST OPERATING POINT %0.04f' % (best_conf[0], ))
     # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
     plt.title('Precision-Recall Curves', y=1.19)
 
@@ -2671,6 +2672,15 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
         if len(species_set ^ species_set_) == 0:
             correct += 1
     print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_set)))
+
+    skipped_gid_list = []
+    for test_gid, confidence_dict in zip(test_gid_set, confidence_dict_list):
+        species_set_ = set([])
+        for key in confidence_dict:
+            if op_dict[key] <= confidence_dict[key]:
+                species_set_.add(key)
+        if len(species_set_) == 0:
+            skipped_gid_list.append(test_gid)
 
     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
 
