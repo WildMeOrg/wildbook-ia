@@ -2615,11 +2615,33 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
+    op_dict = {}
     for color, config in zip(color_list, config_list):
-        classifier2_roc_algo_plot(ibs, color=color, **config)
+        values = classifier2_roc_algo_plot(ibs, color=color, **config)
+        ap, best_conf, tup = values
+        op_dict[config['category']] = best_conf
+
     plt.title('ROC Curves', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
+
+    ut.embed()
+
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = list(test_gid_set)
+    aids_list = ibs.get_image_aids(test_gid_set)
+    species_set_list = list(map(ibs.get_annot_species_texts, aids_list))
+
+    label_list = [
+        'positive' if category in species_set else 'negative'
+        for species_set in species_set_list
+    ]
+
+    confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
+    confidence_list = [
+        confidence_dict[category]
+        for confidence_dict in confidence_dict_list
+    ]
 
     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
 
