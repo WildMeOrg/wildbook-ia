@@ -749,6 +749,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                         gt_mod_set.add(gt_index)
 
             if kwargs.get('VERIFY', False):
+                ut.embed()
                 global GLOBAL_CORRECT, GLOBAL_SEEN
 
                 for gt_index in assignment_dict:
@@ -993,7 +994,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
                 'confidence'   : conf,
                 'class'        : class_,
                 'viewpoint'    : viewpoint,
-                'interest'     : interest,
+                'interest'     : None if interest is None else interest == 'positive',
                 'feature'      : feature,
                 'feature_lazy' : feature_lazy,
             }
