@@ -638,7 +638,7 @@ def general_overlap(gt_list, pred_list):
 
 def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                      check_species=True, check_viewpoint=False,
-                     check_intereset=True, **kwargs):
+                     check_intereset=False, **kwargs):
     OLD = False
     if OLD:
         overlap = general_overlap(gt_list, pred_list)
