@@ -750,13 +750,15 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
 
             if kwargs.get('VERIFY', False):
                 global GLOBAL_CORRECT, GLOBAL_SEEN
-                GLOBAL_SEEN += len(assignment_dict.keys)
+
                 for gt_index in assignment_dict:
+                    GLOBAL_SEEN += 1
                     pred_index = assignment_dict[gt_index]
-                    gt_index['interest'] == 'positive'
-                    if (gt_index['interest'] == 'positive') == pred_index['interest']:
+                    gt_temp = gt_list[gt_index]
+                    pred_temp = pred_list[pred_index]
+                    if (gt_temp['interest'] == 'positive') == pred_temp['interest']:
                         GLOBAL_CORRECT[0] += 1
-                    if gt_index['class'] == pred_index['class']:
+                    if gt_temp['class'] == pred_temp['class']:
                         GLOBAL_CORRECT[1] += 1
 
             tp = len(assignment_dict.keys()) - len(assign_mod_set)
