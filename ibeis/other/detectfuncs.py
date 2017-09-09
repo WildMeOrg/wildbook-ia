@@ -1864,8 +1864,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     best_conf = conf_list[0]
     print('BEST OPERATING POINT %0.04f' % (best_conf, ))
     best_config['interest'] = True
-    best_config['labels'] = True
-    best_config['labeler_weight_filepath'] = 'candidacy'
+    best_config['labels'] = False
+    # best_config['labeler_weight_filepath'] = 'candidacy'
     best_config['VERIFY'] = True
     global GLOBAL_CORRECT, GLOBAL_SEEN
     GLOBAL_CORRECT = [0, 0]
