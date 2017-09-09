@@ -25,6 +25,9 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
+GLOBAL_CORRECT = None
+GLOBAL_SEEN = None
+
 SAMPLES = 1000
 CHUNK_SIZE = SAMPLES // ut.num_cpus()
 FORCE_SERIAL = True
@@ -746,7 +749,15 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                         gt_mod_set.add(gt_index)
 
             if kwargs.get('VERIFY', False):
-                ut.embed()
+                global GLOBAL_CORRECT, GLOBAL_SEEN
+                GLOBAL_SEEN += len(assignment_dict.keys)
+                for gt_index in assignment_dict:
+                    pred_index = assignment_dict[gt_index]
+                    gt_index['interest'] == 'positive'
+                    if (gt_index['interest'] == 'positive') == pred_index['interest']:
+                        GLOBAL_CORRECT[0] += 1
+                    if gt_index['class'] == pred_index['class']:
+                        GLOBAL_CORRECT[1] += 1
 
             tp = len(assignment_dict.keys()) - len(assign_mod_set)
             fp = num_pred - len(pred_mod_set) - tp
@@ -1854,11 +1865,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     best_config['labels'] = True
     best_config['labeler_weight_filepath'] = 'candidacy'
     best_config['VERIFY'] = True
+    global GLOBAL_CORRECT, GLOBAL_SEEN
+    GLOBAL_CORRECT = [0, 0]
+    GLOBAL_SEEN = 0
     correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
                                                            min_overlap=min_overlap,
                                                            write_images=write_images,
                                                            fig_=fig_, axes_=axes_,
                                                            **best_config)
+    ut.embed()
     print('BEST CORRECT RATE: %0.04f' % (correct_rate, ))
 
     ######################################################################################
