@@ -963,7 +963,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     if kwargs.get('interest', False):
         print('Using alternate AoI interest flags')
         interests_list = depc.get_property('localizations_classifier', test_gid_list,
-                                           'class', config=kwargs)
+                                           'score', config=kwargs)
 
     # Reformat results for json
     zipped_list_list = zip(
@@ -993,7 +993,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
                 'confidence'   : conf,
                 'class'        : class_,
                 'viewpoint'    : viewpoint,
-                'interest'     : None if interest is None else interest == 'positive',
+                'interest'     : None if interest is None else interest >= 0.84,
                 'feature'      : feature,
                 'feature_lazy' : feature_lazy,
             }
