@@ -203,6 +203,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'colorama',
         # Amazon server
         'boto',
+        #
+        'futures_actors',
     ]
 
     import platform
