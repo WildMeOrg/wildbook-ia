@@ -850,6 +850,7 @@ def move_wildme(ibeis_rman, fmt):
                     print('  * Change origin url to %r' % (wildme_url,))
                     gitorigin.set_url(wildme_url)
             except:
+                ut.embed()
                 print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
 
 
