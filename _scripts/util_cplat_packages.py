@@ -622,10 +622,10 @@ def check_python_installed(pkg, target_version=None):
 
 def __install_command_pip(pkg, upgrade=None):
     import platform
-    import sys
+    import os
     python_version = platform.python_version()
     PYTHON3 = python_version.startswith('3')
-    ANACONDA = 'anaconda' in sys.version.lower()
+    ANACONDA = len(os.environ.get('CONDA_PREFIX', '')) > 0
     if PYTHON3:
         pipcmd = 'pip' if ANACONDA else 'pip3'
     else:
