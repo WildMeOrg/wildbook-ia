@@ -835,12 +835,10 @@ def move_wildme(ibeis_rman, fmt):
 
         if 'origin' in remotes:
             try:
-                if 'ibeis_cnn' in message:
-                    import utool as ut
-                    ut.embed()
                 origin = remotes['origin']
+                origin_protocol = origin['url'].split(':')[0]
                 origin_user = origin['username']
-                if origin_user != wildme_user or incorrect_version:
+                if origin_user != wildme_user or origin_protocol != fmt or incorrect_version:
                     if origin_user not in remotes:
                         # first add a remote that is the original origin
                         origin_url = origin['url']
