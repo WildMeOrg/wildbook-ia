@@ -625,7 +625,11 @@ def __install_command_pip(pkg, upgrade=None):
     python_version = platform.python_version()
     PYTHON3 = python_version.startswith('3')
     if PYTHON3:
-        pipcmd = 'pip3'
+        import sys
+        if 'anaconda' in sys.version.lower():
+            pipcmd = 'pip'
+        else:
+            pipcmd = 'pip3'
     else:
         if FEDORA_FAMILY:
             pipcmd = 'pip27'
