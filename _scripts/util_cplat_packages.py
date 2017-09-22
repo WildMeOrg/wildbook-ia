@@ -622,14 +622,12 @@ def check_python_installed(pkg, target_version=None):
 
 def __install_command_pip(pkg, upgrade=None):
     import platform
+    import sys
     python_version = platform.python_version()
     PYTHON3 = python_version.startswith('3')
+    ANACONDA = 'anaconda' in sys.version.lower()
     if PYTHON3:
-        import sys
-        if 'anaconda' in sys.version.lower():
-            pipcmd = 'pip'
-        else:
-            pipcmd = 'pip3'
+        pipcmd = 'pip' if ANACONDA else 'pip3'
     else:
         if FEDORA_FAMILY:
             pipcmd = 'pip27'
