@@ -181,7 +181,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'flask',
         'flask-cors',
         'flask-cas',
-        'requests >= 2.13.0',
+        'requests',
         'pyopenssl',  # needed for secure requests
         'ndg-httpsclient',  # needed for secure requests
         'pyasn1',  # needed for secure requests
