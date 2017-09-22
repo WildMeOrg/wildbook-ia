@@ -828,12 +828,15 @@ def move_wildme(ibeis_rman, fmt):
         gitrepo = repo.as_gitpython()
         wildme_url = repo._new_remote_url(host='github.com', user=wildme_user, fmt=fmt)
         remotes = repo.remotes
-        print('Checking %s for move to wildme' % (repo,))
+        message = 'Checking %s for move to wildme' % (repo,)
+        print(message)
 
         incorrect_version = repo._ensure_remote_exists(wildme_remote, wildme_url)
 
         if 'origin' in remotes:
             try:
+                if 'ibeis_cnn' in message:
+                    ut.embed()
                 origin = remotes['origin']
                 origin_user = origin['username']
                 if origin_user != wildme_user or incorrect_version:
