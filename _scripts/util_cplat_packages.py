@@ -214,7 +214,7 @@ APT_GET_PKGMAP = {
     'fftw3'        : 'libfftw3-dev',
     'openssl'      : 'libopenssl-devel',
     'ffmpeg'       : 'libav-tools',
-    'littlecms'    : 'liblcms1-dev',
+    'littlecms'    : 'liblcms2-dev',
 }
 
 YUM_PKGMAP = {
