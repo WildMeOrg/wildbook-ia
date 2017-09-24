@@ -27,7 +27,6 @@ class AnnotInfrMatching(object):
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores ibeis labeling
         """
-        infr.print('exec_matching', 1)
         infr._make_rankings(qaids, daids, prog_hook, cfgdict, name_method)
 
     def _set_vsmany_info(infr, qreq_, cm_list):
@@ -39,6 +38,10 @@ class AnnotInfrMatching(object):
     def _make_rankings(infr, qaids=None, daids=None, prog_hook=None,
                        cfgdict=None, name_method='node'):
         #from ibeis.algo.graph import graph_iden
+
+        # TODO: expose other ranking algos like SMK
+        rank_algo = 'LNBNN'
+        infr.print('Exec {} ranking algorithm'.format(rank_algo), 1)
         ibs = infr.ibs
         if qaids is None:
             qaids = infr.aids
@@ -487,15 +490,39 @@ class _RedundancyAugmentation(object):
     def find_neg_augment_edges(infr, cc1, cc2, k=None):
         """
         Find enough edges to between two pccs to make them k-negative complete
+        The two CCs should be disjoint and not have any positive edges between
+        them.
+
+        Args:
+            cc1 (set): nodes in one PCC
+            cc2 (set): nodes in another positive-disjoint PCC
+            k (int): redundnacy level (if None uses infr.params['redun.neg'])
+
+        Example:
+            >>> from ibeis.algo.graph import demo
+            >>> k = 2
+            >>> cc1, cc2 = {1}, {2, 3}
+            >>> # --- return an augmentation if feasible
+            >>> infr = demo.demodata_infr(ccs=[cc1, cc2], ignore_pair=True)
+            >>> edges = set(infr.find_neg_augment_edges(cc1, cc2, k=k))
+            >>> assert edges == {(1, 2), (1, 3)}
+            >>> # --- if infeasible return a partial augmentation
+            >>> infr.add_feedback((1, 2), INCMP)
+            >>> edges = set(infr.find_neg_augment_edges(cc1, cc2, k=k))
+            >>> assert edges == {(1, 3)}
         """
         if k is None:
             k = infr.params['redun.neg']
+        import ipdb
+        with ipdb.launch_ipdb_on_exception():
+            assert cc1 is not cc2, 'CCs should be disjoint (but they are the same)'
+            assert len(cc1.intersection(cc2)) == 0, 'CCs should be disjoint'
         existing_edges = set(nxu.edges_cross(infr.graph, cc1, cc2))
+
         reviewed_edges = {
             edge: state
-            for edge, state in infr.get_edge_attrs(
-                'decision', existing_edges,
-                default=UNREV).items()
+            for edge, state in zip(existing_edges,
+                                   infr.edge_decision_from(existing_edges))
             if state != UNREV
         }
 
@@ -574,7 +601,7 @@ class _RedundancyAugmentation(object):
         Doctest:
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
-            >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
+            >>> infr = demo.demodata_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
             >>> infr.add_feedback((2, 5), 'match')
             >>> infr.add_feedback((1, 5), 'notcomp')
             >>> infr.params['redun.pos'] = 2
@@ -602,24 +629,47 @@ class _RedundancyAugmentation(object):
         Finds edges that might complete them.
 
         Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr2()
-            >>> categories = infr.categorize_edges(graph)
-            >>> negative = categories[NEGTV]
-            >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
-            >>> infr.graph.remove_edges_from(edges)
-            >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
-            >>> result = non_complete_pcc_pairs(infr)
-            >>> print(result)
+            >>> infr = demo.demodata_infr(ccs=[(1,), (2,), (3,)], ignore_pair=True)
+            >>> edges = list(infr.find_neg_redun_candidate_edges())
+            >>> assert len(edges) == 3, 'all should be needed here'
+            >>> infr.add_feedback_from(edges, evidence_decision=NEGTV)
+            >>> assert len(list(infr.find_neg_redun_candidate_edges())) == 0
+
+        Example:
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(pcc_sizes=[3] * 20, ignore_pair=True)
+            >>> ccs = list(infr.positive_components())
+            >>> gen = infr.find_neg_redun_candidate_edges(k=2)
+            >>> for edge in gen:
+            >>>     # What happens when we make ccs positive
+            >>>     print(infr.node_labels(edge))
+            >>>     infr.add_feedback(edge, evidence_decision=POSTV)
+            >>> import ubelt as ub
+            >>> infr = demo.demodata_infr(pcc_sizes=[1] * 30, ignore_pair=True)
+            >>> ccs = list(infr.positive_components())
+            >>> gen = infr.find_neg_redun_candidate_edges(k=3)
+            >>> for chunk in ub.chunks(gen, 2):
+            >>>     for edge in chunk:
+            >>>         # What happens when we make ccs positive
+            >>>         print(infr.node_labels(edge))
+            >>>         infr.add_feedback(edge, evidence_decision=POSTV)
+
+            list(gen)
         """
         if k is None:
             k = infr.params['redun.neg']
         # Loop through all pairs
         for cc1, cc2 in infr.find_non_neg_redun_pccs(k=k):
+            if len(cc1.intersection(cc2)) > 0:
+                # If there is modification of the underlying graph while we
+                # iterate, then two ccs may not be disjoint. Skip these cases.
+                continue
             for u, v in infr.find_neg_augment_edges(cc1, cc2, k):
-                yield e_(u, v)
+                edge = e_(u, v)
+                infr.assert_edge(edge)
+                yield edge
 
 
 class CandidateSearch(_RedundancyAugmentation):
@@ -652,19 +702,15 @@ class CandidateSearch(_RedundancyAugmentation):
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
         ranks_top = infr.params['ranking.ntop']
         lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
-        already_reviewed = set(infr.get_edges_where_ne(
-            'decision', 'unreviewed', edges=lnbnn_results,
-            default='unreviewed', on_missing='filter'))
-        candidate_edges = lnbnn_results - already_reviewed
+
+        candidate_edges = {
+            edge for edge, state in
+            zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
+            if state == UNREV
+        }
 
         infr.print('ranking alg found {}/{} unreviewed edges'.format(
             len(candidate_edges), len(lnbnn_results)), 1)
-
-        # if infr.params['inference.enabled']:
-        #     orig_candidate_edges = candidate_edges
-        #     candidate_edges = set(infr.filter_edges_flagged_as_redun(candidate_edges))
-        #     infr.print('removed {} redundant candidates'.format(
-        #         len(orig_candidate_edges) - len(candidate_edges)), 1)
 
         return candidate_edges
 
@@ -711,7 +757,7 @@ class CandidateSearch(_RedundancyAugmentation):
         if any(need_flags):
             need_edges = ut.compress(edges, need_flags)
             infr.print('There are {} edges without probabilities'.format(
-                len(need_edges)), 1)
+                    len(need_edges)), 1)
 
             # Only recompute for the needed edges
             task_probs = infr._make_task_probs(need_edges)
@@ -758,7 +804,7 @@ class CandidateSearch(_RedundancyAugmentation):
         """
         if infr.verifiers:
             infr.print('Prioritizing {} edges with one-vs-one probs'.format(
-                len(priority_edges)), 1)
+                    len(priority_edges)), 1)
 
             infr.ensure_task_probs(priority_edges)
 
@@ -839,17 +885,20 @@ class CandidateSearch(_RedundancyAugmentation):
     def add_candidate_edges(infr, candidate_edges):
         candidate_edges = list(candidate_edges)
         new_edges = infr.ensure_edges_from(candidate_edges)
-        infr.print('There are {}/{} new candidate edges'.format(
-            len(new_edges), len(candidate_edges)))
 
         if infr.test_mode:
             infr.apply_edge_truth(new_edges)
 
         if infr.params['redun.enabled']:
-            priority_edges = list(infr.filter_edges_flagged_as_redun(candidate_edges))
-            infr.print('using only {}/{} non-redun candidate edges'.format(
-                len(priority_edges), len(candidate_edges)))
+            priority_edges = list(infr.filter_edges_flagged_as_redun(
+                candidate_edges))
+            infr.print('Got {} candidate edges, {} are new, '
+                       'and {} are non-redundant'.format(
+                           len(candidate_edges), len(new_edges),
+                           len(priority_edges)))
         else:
+            infr.print('Got {} candidate edges and {} are new'.format(
+                len(candidate_edges), len(new_edges)))
             priority_edges = candidate_edges
 
         if len(priority_edges) > 0:
@@ -894,9 +943,11 @@ class CandidateSearch(_RedundancyAugmentation):
                 'need to deploy or implement eval prediction')
         task_keys = list(infr.verifiers.keys())
         task_probs = {}
-        infr.print('predict {} for {} edges'.format(
-            ut.conj_phrase(task_keys, 'and'), len(edges)))
+        # infr.print('[make_taks_probs] predict {} for {} edges'.format(
+        #     ut.conj_phrase(task_keys, 'and'), len(edges)))
         for task_key in task_keys:
+            infr.print('predict {} for {} edges'.format(
+                task_key, len(edges)))
             verif = infr.verifiers[task_key]
             probs_df = verif.predict_proba_df(edges)
             task_probs[task_key] = probs_df

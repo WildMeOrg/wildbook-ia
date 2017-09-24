@@ -217,6 +217,8 @@ class DBInputs(object):
                 self.measure_all(*args)
             else:
                 getattr(self, 'measure_' + expt_name)(*args)
+        if len(dbnames) == 1:
+            return self
 
     @classmethod
     def draw(ChapX, expt_name, dbnames, *args):

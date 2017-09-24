@@ -46,6 +46,434 @@ def turk_pz():
 
 
 @ut.reloadable_class
+class GraphExpt(DBInputs):
+    """
+
+    TODO:
+        - [ ] Experimental analysis of duration of each phase and state of
+            graph.
+
+        - [ ] Experimental analysis of phase 3, including how far we can get
+            with automatic decision making and do we discover new merges?  If
+            there are potential merges, can we run phase iii with exactly the
+            same ordering as before:  ordering by probability for automatically
+            decidable and then by positive probability for others.  This should
+            work for phase 3 and therefore allow a clean combination of the
+            three phases and our termination criteria.  I just thought of this
+            so don't really have it written cleanly above.
+
+        - [ ] Experimental analysis of choice of automatic decision thresholds.
+            by lowering the threshold we increase the risk of mistakes.  Each
+            mistake costs some number of manual reviews (perhaps 2-3), but if
+            the frequency of errors is low then we could be saving ourselves a
+            lot of manual reviews.
+
+        \item OTHER SPECIES
+
+    CommandLine:
+        python -m ibeis GraphExpt.measure all PZ_MTEST
+
+    Ignore:
+        >>> from ibeis.scripts.postdoc import *
+        >>> self = GraphExpt('PZ_MTEST')
+        >>> self._precollect()
+        >>> self._setup()
+    """
+    base_dpath = ut.truepath('~/Desktop/graph_expt')
+
+    def _precollect(self):
+        if self.ibs is None:
+            _GraphExpt = ut.fix_super_reload(GraphExpt, self)
+            super(_GraphExpt, self)._precollect()
+
+        # Split data into a training and testing test
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        names = list(annots.group_items(annots.nids).values())
+        ut.shuffle(names, rng=321)
+        train_names, test_names = names[0::2], names[1::2]
+        train_aids, test_aids = map(ut.flatten, (train_names, test_names))
+
+        self.test_train = train_aids, test_aids
+
+        params = {}
+        self.pblm = vsone.OneVsOneProblem.from_aids(
+            ibs, train_aids, **params)
+
+        # ut.get_nonconflicting_path(dpath, suffix='_old')
+        self.const_dials = {
+            # 'oracle_accuracy' : (0.98, 1.0),
+            # 'oracle_accuracy' : (0.98, .98),
+            'oracle_accuracy' : (0.99, .99),
+            'k_redun'         : 2,
+            'max_outer_loops' : np.inf,
+            # 'max_outer_loops' : 1,
+        }
+
+        config = ut.dict_union(self.const_dials)
+        cfg_prefix = '{}_{}'.format(len(test_aids), len(train_aids))
+        self._setup_links(cfg_prefix, config)
+
+    def _setup(self):
+        """
+        python -m ibeis GraphExpt._setup
+
+        Example:
+            >>> from ibeis.scripts.postdoc import *
+            >>> #self = GraphExpt('GZ_Master1')
+            >>> self = GraphExpt('PZ_Master1')
+            >>> #self = GraphExpt('PZ_MTEST')
+            >>> self._setup()
+        """
+        self._precollect()
+        train_aids, test_aids = self.test_train
+
+        task_key = 'match_state'
+        pblm = self.pblm
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+
+        pblm.eval_data_keys = [data_key]
+        pblm.setup(with_simple=False)
+        pblm.learn_evaluation_classifiers()
+
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        # pblm.report_evaluation()
+
+        # TODO: need more principled way of selecting thresholds
+        graph_thresh = res.get_pos_threshes('fpr', 0.01)
+        # rankclf_thresh = res.get_pos_threshes(fpr=0.01)
+
+        # Load or create the deploy classifiers
+        clf_dpath = ut.ensuredir((self.dpath, 'clf'))
+        classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
+
+        sim_params = {
+            'test_aids': test_aids,
+            'train_aids': train_aids,
+            'classifiers': classifiers,
+            'graph_thresh': graph_thresh,
+            # 'rankclf_thresh': rankclf_thresh,
+            'const_dials': self.const_dials,
+        }
+        self.pblm = pblm
+        self.sim_params = sim_params
+        return sim_params
+
+    def measure_all(self):
+        self.measure_graphsim()
+
+    @profile
+    def measure_graphsim(self):
+        """
+        CommandLine:
+            python -m ibeis GraphExpt.measure graphsim GZ_Master1
+            1
+
+        Ignore:
+            >>> from ibeis.scripts.postdoc import *
+            >>> #self = GraphExpt('PZ_MTEST')
+            >>> #self = GraphExpt('GZ_Master1')
+            >>> self = GraphExpt.measure('graphsim', 'PZ_Master1')
+            >>> self = GraphExpt.measure('graphsim', 'GZ_Master1')
+            >>> self = GraphExpt.measure('graphsim', 'PZ_MTEST')
+        """
+        import ibeis
+        self.ensure_setup()
+
+        ibs = self.ibs
+        sim_params = self.sim_params
+        classifiers = sim_params['classifiers']
+        test_aids = sim_params['test_aids']
+
+        graph_thresh = sim_params['graph_thresh']
+
+        const_dials = sim_params['const_dials']
+
+        sim_results = {}
+        verbose = 1
+
+        # ----------
+        # Graph test
+        dials1 = ut.dict_union(const_dials, {
+            'name'               : 'graph',
+            'enable_inference'   : True,
+            'match_state_thresh' : graph_thresh,
+        })
+        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                     verbose=verbose)
+        infr1.enable_auto_prioritize_nonpos = True
+        infr1.params['refresh.window'] = 20
+        infr1.params['refresh.thresh'] = 0.052
+        infr1.params['refresh.patience'] = 72
+
+        infr1.init_simulation(classifiers=classifiers, **dials1)
+        infr1.init_test_mode()
+
+        infr1.reset(state='empty')
+        infr1.main_loop()
+
+        sim_results['graph'] = self._collect_sim_results(infr1, dials1)
+
+        # ------------
+        # Dump experiment output to disk
+        expt_name = 'graphsim'
+        self.expt_results[expt_name] = sim_results
+        ut.ensuredir(self.dpath)
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
+
+    def _collect_sim_results(self, infr, dials):
+        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
+        pred_confusion.index.name = 'real'
+        pred_confusion.columns.name = 'pred'
+        print('Edge confusion')
+        print(pred_confusion)
+
+        expt_data = {
+            'real_ccs': list(infr.nid_to_gt_cc.values()),
+            'pred_ccs': list(infr.pos_graph.connected_components()),
+            'graph': infr.graph.copy(),
+            'dials': dials,
+            'refresh_thresh': infr.refresh._prob_any_remain_thresh,
+            'metrics': infr.metrics_list,
+        }
+        return expt_data
+
+    def draw_graphsim(self):
+        """
+        CommandLine:
+            python -m ibeis GraphExpt.draw graphsim PZ_MTEST --diskshow
+            python -m ibeis GraphExpt.draw graphsim GZ_Master1 --diskshow
+            python -m ibeis GraphExpt.draw graphsim PZ_Master1 --diskshow
+
+        Ignore:
+            >>> from ibeis.scripts.postdoc import *
+            >>> self = GraphExpt('GZ_Master1')
+        """
+        sim_results = self.ensure_results('graphsim')
+
+        # keys = ['ranking', 'rank+clf', 'graph']
+        # keycols = ['red', 'orange', 'b']
+        keys = ['graph']
+        keycols = ['b']
+        colors = ut.dzip(keys, keycols)
+        def _metrics(col):
+            return {k: ut.take_column(v['metrics'], col)
+                    for k, v in sim_results.items()}
+
+        # graph_df = pd.DataFrame(sim_results['graph']['metrics'])
+
+        fnum = 1
+
+        xdatas = _metrics('n_manual')
+        xmax = max(map(max, xdatas.values()))
+        xpad = (1.01 * xmax) - xmax
+
+        pnum_ = pt.make_pnum_nextgen(nSubplots=2)
+
+        mpl.rcParams.update(TMP_RC)
+
+        pt.figure(fnum=fnum, pnum=pnum_())
+        ax = pt.gca()
+        ydatas = _metrics('merge_remain')
+        for key in keys:
+            ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
+        ax.set_ylim(0, 1)
+        ax.set_xlim(-xpad, xmax + xpad)
+        ax.set_xlabel('# manual reviews')
+        ax.set_ylabel('fraction of merges remain')
+        ax.legend()
+
+        pt.figure(fnum=fnum, pnum=pnum_())
+        ax = pt.gca()
+        ydatas = _metrics('n_errors')
+        for key in keys:
+            ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
+        ax.set_ylim(0, max(map(max, ydatas.values())) * 1.01)
+        ax.set_xlim(-xpad, xmax + xpad)
+        ax.set_xlabel('# manual reviews')
+        ax.set_ylabel('# errors')
+        ax.legend()
+
+        fig = pt.gcf()  # NOQA
+        fig.set_size_inches([W, H * .75])
+        pt.adjust_subplots(wspace=.25, fig=fig)
+
+        fpath = join(self.dpath, 'simulation.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+
+
+def draw_match_states():
+    import ibeis
+    infr = ibeis.AnnotInference('PZ_Master1', 'all')
+
+    if infr.ibs.dbname == 'PZ_Master1':
+        # [UUID('0cb1ebf5-2a4f-4b80-b172-1b449b8370cf'),
+        #  UUID('cd644b73-7978-4a5f-b570-09bb631daa75')]
+        chosen = {
+            POSTV: (17095, 17225),
+            NEGTV: (3966, 5080),
+            INCMP: (3197, 8455),
+        }
+    else:
+        infr.reset_feedback('staging')
+        chosen = {
+            POSTV: list(infr.pos_graph.edges())[0],
+            NEGTV: list(infr.neg_graph.edges())[0],
+            INCMP: list(infr.incmp_graph.edges())[0],
+        }
+    import plottool as pt
+    import vtool as vt
+    for key, edge in chosen.items():
+        match = infr._make_matches_from([edge], config={
+            'match_config': {'ratio_thresh': .7}})[0]
+        with pt.RenderingContext(dpi=300) as ctx:
+            match.show(heatmask=True, show_ell=False, show_ori=False,
+                       show_lines=False)
+        vt.imwrite('matchstate_' + key + '.jpg', ctx.image)
+
+
+def entropy_potential(infr, u, v, decision):
+    """
+    Returns the number of edges this edge would invalidate
+
+    from ibeis.algo.graph import demo
+    infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
+    infr.refresh_candidate_edges()
+    infr.params['redun.neg'] = 1
+    infr.params['redun.pos'] = 1
+    infr.apply_nondynamic_update()
+
+    ut.qtensure()
+    infr.show(show_cand=True, groupby='name_label')
+
+    u, v = 1, 7
+    decision = 'positive'
+    """
+    nid1, nid2 = infr.pos_graph.node_labels(u, v)
+
+    # Cases for K=1
+    if decision == 'positive' and nid1 == nid2:
+        # The actual reduction is the number previously needed to make the cc
+        # k-edge-connected vs how many its needs now.
+
+        # In the same CC does nothing
+        # (unless k > 1, in which case check edge connectivity)
+        return 0
+    elif decision == 'positive' and nid1 != nid2:
+        # Between two PCCs reduces the number of PCCs by one
+        n_ccs = infr.pos_graph.number_of_components()
+
+        # Find needed negative redundency when appart
+        if infr.neg_redun_metagraph.has_node(nid1):
+            neg_redun_set1 = set(infr.neg_redun_metagraph.neighbors(nid1))
+        else:
+            neg_redun_set1 = set()
+
+        if infr.neg_redun_metagraph.has_node(nid2):
+            neg_redun_set2 = set(infr.neg_redun_metagraph.neighbors(nid2))
+        else:
+            neg_redun_set2 = set()
+
+        # The number of negative edges needed before we place this edge
+        # is the number of PCCs that each PCC doesnt have a negative edge to
+        # yet
+
+        n_neg_need1 = (n_ccs - len(neg_redun_set1) - 1)
+        n_neg_need2 = (n_ccs - len(neg_redun_set2) - 1)
+        n_neg_need_before = n_neg_need1 + n_neg_need2
+
+        # After we join them we take the union of their negative redundancy
+        # (really we should check if it changes after)
+        # and this is now the new number of negative edges that would be needed
+        neg_redun_after = neg_redun_set1.union(neg_redun_set2) - {nid1, nid2}
+        n_neg_need_after = (n_ccs - 2) - len(neg_redun_after)
+
+        neg_entropy = n_neg_need_before - n_neg_need_after  # NOQA
+
+
+def _find_good_match_states(infr, ibs, edges):
+    pos_edges = list(infr.pos_graph.edges())
+    timedelta = ibs.get_annot_pair_timedelta(*zip(*edges))
+    edges = ut.take(pos_edges, ut.argsort(timedelta))[::-1]
+    wgt = infr.qt_edge_reviewer(edges)
+
+    neg_edges = ut.shuffle(list(infr.neg_graph.edges()))
+    wgt = infr.qt_edge_reviewer(neg_edges)
+
+    if infr.incomp_graph.number_of_edges() > 0:
+        incmp_edges = list(infr.incomp_graph.edges())
+        if False:
+            ibs = infr.ibs
+            # a1, a2 = map(ibs.annots, zip(*incmp_edges))
+            # q1 = np.array(ut.replace_nones(a1.qual, np.nan))
+            # q2 = np.array(ut.replace_nones(a2.qual, np.nan))
+            # edges = ut.compress(incmp_edges,
+            #                     ((q1 > 3) | np.isnan(q1)) &
+            #                     ((q2 > 3) | np.isnan(q2)))
+
+            # a = ibs.annots(asarray=True)
+            # flags = [t is not None and 'right' == t for t in a.viewpoint_code]
+            # r = a.compress(flags)
+            # flags = [q is not None and q > 4 for q in r.qual]
+
+            rights = ibs.filter_annots_general(view='right',
+                                               minqual='excellent',
+                                               require_quality=True,
+                                               require_viewpoint=True)
+            lefts = ibs.filter_annots_general(view='left',
+                                              minqual='excellent',
+                                              require_quality=True,
+                                              require_viewpoint=True)
+
+            if False:
+                edges = list(infr._make_rankings(3197, rights))
+                wgt = infr.qt_edge_reviewer(edges)
+
+            edges = list(ut.random_product((rights, lefts), num=10, rng=0))
+            wgt = infr.qt_edge_reviewer(edges)
+
+        for edge in incmp_edges:
+            match = infr._make_matches_from([edge])[0]
+            # infr._debug_edge_gt(edge)
+
+
+def prepare_cdfs(cdfs, labels):
+    cdfs = vt.pad_vstack(cdfs, fill_value=1)
+    # Sort so the best is on top
+    sortx = np.lexsort(cdfs.T[::-1])[::-1]
+    cdfs = cdfs[sortx]
+    labels = ut.take(labels, sortx)
+    return cdfs, labels
+
+
+def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
+    cdfs, labels = prepare_cdfs(cdfs, labels)
+    # Truncte to 20 ranks
+    num_ranks = min(cdfs.shape[-1], 20)
+    xdata = np.arange(1, num_ranks + 1)
+    cdfs_trunc = cdfs[:, 0:num_ranks]
+    label_list = ['%6.3f%% - %s' % (cdf[0] * 100, lbl)
+                  for cdf, lbl in zip(cdfs_trunc, labels)]
+
+    # ymin = .4
+    num_yticks = (10 - int(ymin * 10)) + 1
+
+    pt.multi_plot(
+        xdata, cdfs_trunc, label_list=label_list,
+        xlabel='rank', ylabel='match probability',
+        use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
+        ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
+        xmax=num_ranks + 1 - .5,
+        pnum=pnum, fnum=fnum,
+        rcParams=TMP_RC,
+    )
+    return pt.gcf()
+
+
+@ut.reloadable_class
 class VerifierExpt(DBInputs):
     """
     Collect data from experiments to visualize
@@ -2247,360 +2675,6 @@ class VerifierExpt(DBInputs):
         dpath = join(str(self.dpath), subdir)
         fpath = join(str(dpath), fname + '_custom.jpg')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-
-@ut.reloadable_class
-class GraphExpt(DBInputs):
-    """
-
-    TODO:
-        - [ ] Experimental analysis of duration of each phase and state of
-            graph.
-
-        - [ ] Experimental analysis of phase 3, including how far we can get
-            with automatic decision making and do we discover new merges?  If
-            there are potential merges, can we run phase iii with exactly the
-            same ordering as before:  ordering by probability for automatically
-            decidable and then by positive probability for others.  This should
-            work for phase 3 and therefore allow a clean combination of the
-            three phases and our termination criteria.  I just thought of this
-            so don't really have it written cleanly above.
-
-        - [ ] Experimental analysis of choice of automatic decision thresholds.
-            by lowering the threshold we increase the risk of mistakes.  Each
-            mistake costs some number of manual reviews (perhaps 2-3), but if
-            the frequency of errors is low then we could be saving ourselves a
-            lot of manual reviews.
-
-        \item OTHER SPECIES
-
-    CommandLine:
-        python -m ibeis GraphExpt.measure all PZ_MTEST
-
-    Ignore:
-        >>> from ibeis.scripts.postdoc import *
-        >>> self = GraphExpt('PZ_MTEST')
-    """
-    base_dpath = ut.truepath('~/Desktop/graph_expt')
-
-    def _precollect(self):
-        if self.ibs is None:
-            _GraphExpt = ut.fix_super_reload(GraphExpt, self)
-            super(_GraphExpt, self)._precollect()
-
-        # Split data into a training and testing test
-        ibs = self.ibs
-        annots = ibs.annots(self.aids_pool)
-        names = list(annots.group_items(annots.nids).values())
-        ut.shuffle(names, rng=321)
-        train_names, test_names = names[0::2], names[1::2]
-        train_aids, test_aids = map(ut.flatten, (train_names, test_names))
-
-        self.test_train = train_aids, test_aids
-
-        params = {}
-        self.pblm = vsone.OneVsOneProblem.from_aids(
-            ibs, train_aids, **params)
-
-        # ut.get_nonconflicting_path(dpath, suffix='_old')
-        self.const_dials = {
-            # 'oracle_accuracy' : (0.98, 1.0),
-            # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.99, .99),
-            'k_redun'         : 2,
-            'max_outer_loops' : np.inf,
-            # 'max_outer_loops' : 1,
-        }
-
-        config = ut.dict_union(self.const_dials)
-        cfg_prefix = '{}_{}'.format(len(test_aids), len(train_aids))
-        self._setup_links(cfg_prefix, config)
-
-    def _setup(self):
-        """
-        python -m ibeis Chap5._setup
-
-        Example:
-            >>> from ibeis.scripts.postdoc import *
-            >>> #self = Chap5('GZ_Master1')
-            >>> self = Chap5('PZ_Master1')
-            >>> #self = Chap5('PZ_MTEST')
-            >>> self._setup()
-        """
-        self._precollect()
-        train_aids, test_aids = self.test_train
-
-        task_key = 'match_state'
-        pblm = self.pblm
-        data_key = pblm.default_data_key
-        clf_key = pblm.default_clf_key
-
-        pblm.eval_data_keys = [data_key]
-        pblm.setup(with_simple=False)
-        pblm.learn_evaluation_classifiers()
-
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
-        # pblm.report_evaluation()
-
-        # TODO: need more principled way of selecting thresholds
-        graph_thresh = res.get_pos_threshes('fpr', 0.01)
-        # rankclf_thresh = res.get_pos_threshes(fpr=0.01)
-
-        # Load or create the deploy classifiers
-        clf_dpath = ut.ensuredir((self.dpath, 'clf'))
-        classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
-
-        sim_params = {
-            'test_aids': test_aids,
-            'train_aids': train_aids,
-            'classifiers': classifiers,
-            'graph_thresh': graph_thresh,
-            # 'rankclf_thresh': rankclf_thresh,
-            'const_dials': self.const_dials,
-        }
-        self.pblm = pblm
-        self.sim_params = sim_params
-        return sim_params
-
-    @profile
-    def measure_graphsim(self):
-        """
-        CommandLine:
-            python -m ibeis GraphExpt.measure graphsim GZ_Master1
-            python -m ibeis GraphExpt.measure graphsim PZ_Master1
-
-        Ignore:
-            >>> from ibeis.scripts.postdoc import *
-            >>> self = Chap5('GZ_Master1')
-        """
-        import ibeis
-        self.ensure_setup()
-
-        ibs = self.ibs
-        sim_params = self.sim_params
-        classifiers = sim_params['classifiers']
-        test_aids = sim_params['test_aids']
-
-        graph_thresh = sim_params['graph_thresh']
-
-        const_dials = sim_params['const_dials']
-
-        sim_results = {}
-        verbose = 1
-
-        # ----------
-        # Graph test
-        dials1 = ut.dict_union(const_dials, {
-            'name'               : 'graph',
-            'enable_inference'   : True,
-            'match_state_thresh' : graph_thresh,
-        })
-        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                     verbose=verbose)
-        infr1.enable_auto_prioritize_nonpos = True
-        infr1.params['refresh.window'] = 20
-        infr1.params['refresh.thresh'] = 0.052
-        infr1.params['refresh.patience'] = 72
-
-        infr1.init_simulation(classifiers=classifiers, **dials1)
-        infr1.init_test_mode()
-
-        infr1.reset(state='empty')
-        infr1.main_loop()
-
-        sim_results['graph'] = self._collect_sim_results(infr1, dials1)
-
-        # ------------
-        # Dump experiment output to disk
-        expt_name = 'graphsim'
-        self.expt_results[expt_name] = sim_results
-        ut.ensuredir(self.dpath)
-        ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
-
-    def _collect_sim_results(self, infr, dials):
-        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
-        pred_confusion.index.name = 'real'
-        pred_confusion.columns.name = 'pred'
-        print('Edge confusion')
-        print(pred_confusion)
-
-        expt_data = {
-            'real_ccs': list(infr.nid_to_gt_cc.values()),
-            'pred_ccs': list(infr.pos_graph.connected_components()),
-            'graph': infr.graph.copy(),
-            'dials': dials,
-            'refresh_thresh': infr.refresh._prob_any_remain_thresh,
-            'metrics': infr.metrics_list,
-        }
-        return expt_data
-
-
-def draw_match_states():
-    import ibeis
-    infr = ibeis.AnnotInference('PZ_Master1', 'all')
-
-    if infr.ibs.dbname == 'PZ_Master1':
-        # [UUID('0cb1ebf5-2a4f-4b80-b172-1b449b8370cf'),
-        #  UUID('cd644b73-7978-4a5f-b570-09bb631daa75')]
-        chosen = {
-            POSTV: (17095, 17225),
-            NEGTV: (3966, 5080),
-            INCMP: (3197, 8455),
-        }
-    else:
-        infr.reset_feedback('staging')
-        chosen = {
-            POSTV: list(infr.pos_graph.edges())[0],
-            NEGTV: list(infr.neg_graph.edges())[0],
-            INCMP: list(infr.incmp_graph.edges())[0],
-        }
-    import plottool as pt
-    import vtool as vt
-    for key, edge in chosen.items():
-        match = infr._make_matches_from([edge], config={
-            'match_config': {'ratio_thresh': .7}})[0]
-        with pt.RenderingContext(dpi=300) as ctx:
-            match.show(heatmask=True, show_ell=False, show_ori=False,
-                       show_lines=False)
-        vt.imwrite('matchstate_' + key + '.jpg', ctx.image)
-
-
-def entropy_potential(infr, u, v, decision):
-    """
-    Returns the number of edges this edge would invalidate
-
-    from ibeis.algo.graph import demo
-    infr = demo.demodata_infr(pcc_sizes=[5, 2, 4, 2, 2, 1, 1, 1])
-    infr.refresh_candidate_edges()
-    infr.params['redun.neg'] = 1
-    infr.params['redun.pos'] = 1
-    infr.apply_nondynamic_update()
-
-    ut.qtensure()
-    infr.show(show_cand=True, groupby='name_label')
-
-    u, v = 1, 7
-    decision = 'positive'
-    """
-    nid1, nid2 = infr.pos_graph.node_labels(u, v)
-
-    # Cases for K=1
-    if decision == 'positive' and nid1 == nid2:
-        # The actual reduction is the number previously needed to make the cc
-        # k-edge-connected vs how many its needs now.
-
-        # In the same CC does nothing
-        # (unless k > 1, in which case check edge connectivity)
-        return 0
-    elif decision == 'positive' and nid1 != nid2:
-        # Between two PCCs reduces the number of PCCs by one
-        n_ccs = infr.pos_graph.number_of_components()
-
-        # Find needed negative redundency when appart
-        if infr.neg_redun_metagraph.has_node(nid1):
-            neg_redun_set1 = set(infr.neg_redun_metagraph.neighbors(nid1))
-        else:
-            neg_redun_set1 = set()
-
-        if infr.neg_redun_metagraph.has_node(nid2):
-            neg_redun_set2 = set(infr.neg_redun_metagraph.neighbors(nid2))
-        else:
-            neg_redun_set2 = set()
-
-        # The number of negative edges needed before we place this edge
-        # is the number of PCCs that each PCC doesnt have a negative edge to
-        # yet
-
-        n_neg_need1 = (n_ccs - len(neg_redun_set1) - 1)
-        n_neg_need2 = (n_ccs - len(neg_redun_set2) - 1)
-        n_neg_need_before = n_neg_need1 + n_neg_need2
-
-        # After we join them we take the union of their negative redundancy
-        # (really we should check if it changes after)
-        # and this is now the new number of negative edges that would be needed
-        neg_redun_after = neg_redun_set1.union(neg_redun_set2) - {nid1, nid2}
-        n_neg_need_after = (n_ccs - 2) - len(neg_redun_after)
-
-        neg_entropy = n_neg_need_before - n_neg_need_after  # NOQA
-
-
-def _find_good_match_states(infr, ibs, edges):
-    pos_edges = list(infr.pos_graph.edges())
-    timedelta = ibs.get_annot_pair_timedelta(*zip(*edges))
-    edges = ut.take(pos_edges, ut.argsort(timedelta))[::-1]
-    wgt = infr.qt_edge_reviewer(edges)
-
-    neg_edges = ut.shuffle(list(infr.neg_graph.edges()))
-    wgt = infr.qt_edge_reviewer(neg_edges)
-
-    if infr.incomp_graph.number_of_edges() > 0:
-        incmp_edges = list(infr.incomp_graph.edges())
-        if False:
-            ibs = infr.ibs
-            # a1, a2 = map(ibs.annots, zip(*incmp_edges))
-            # q1 = np.array(ut.replace_nones(a1.qual, np.nan))
-            # q2 = np.array(ut.replace_nones(a2.qual, np.nan))
-            # edges = ut.compress(incmp_edges,
-            #                     ((q1 > 3) | np.isnan(q1)) &
-            #                     ((q2 > 3) | np.isnan(q2)))
-
-            # a = ibs.annots(asarray=True)
-            # flags = [t is not None and 'right' == t for t in a.viewpoint_code]
-            # r = a.compress(flags)
-            # flags = [q is not None and q > 4 for q in r.qual]
-
-            rights = ibs.filter_annots_general(view='right',
-                                               minqual='excellent',
-                                               require_quality=True,
-                                               require_viewpoint=True)
-            lefts = ibs.filter_annots_general(view='left',
-                                              minqual='excellent',
-                                              require_quality=True,
-                                              require_viewpoint=True)
-
-            if False:
-                edges = list(infr._make_rankings(3197, rights))
-                wgt = infr.qt_edge_reviewer(edges)
-
-            edges = list(ut.random_product((rights, lefts), num=10, rng=0))
-            wgt = infr.qt_edge_reviewer(edges)
-
-        for edge in incmp_edges:
-            match = infr._make_matches_from([edge])[0]
-            # infr._debug_edge_gt(edge)
-
-
-def prepare_cdfs(cdfs, labels):
-    cdfs = vt.pad_vstack(cdfs, fill_value=1)
-    # Sort so the best is on top
-    sortx = np.lexsort(cdfs.T[::-1])[::-1]
-    cdfs = cdfs[sortx]
-    labels = ut.take(labels, sortx)
-    return cdfs, labels
-
-
-def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
-    cdfs, labels = prepare_cdfs(cdfs, labels)
-    # Truncte to 20 ranks
-    num_ranks = min(cdfs.shape[-1], 20)
-    xdata = np.arange(1, num_ranks + 1)
-    cdfs_trunc = cdfs[:, 0:num_ranks]
-    label_list = ['%6.3f%% - %s' % (cdf[0] * 100, lbl)
-                  for cdf, lbl in zip(cdfs_trunc, labels)]
-
-    # ymin = .4
-    num_yticks = (10 - int(ymin * 10)) + 1
-
-    pt.multi_plot(
-        xdata, cdfs_trunc, label_list=label_list,
-        xlabel='rank', ylabel='match probability',
-        use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
-        ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
-        xmax=num_ranks + 1 - .5,
-        pnum=pnum, fnum=fnum,
-        rcParams=TMP_RC,
-    )
-    return pt.gcf()
 
 
 if __name__ == '__main__':

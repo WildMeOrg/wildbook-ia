@@ -258,21 +258,28 @@ class DynamicUpdate(object):
         """
         Callback when a review is made between two PCCs
         """
+        action = ['between']
         if merge_nid is not None:
             # A merge occurred
             if infr.params['inference.update_attrs']:
                 cc = infr.pos_graph.component(merge_nid)
                 infr.set_node_attrs('name_label', ut.dzip(cc, [merge_nid]))
             # FIXME: this state is ugly
-            action = ['merge']
+            action += ['merge']
         else:
-            action = []
+            if decision == NEGTV:
+                action += ['neg-evidence']
+            elif decision == INCMP:
+                action += ['incomp-evidence']
+            else:
+                action += ['other-evidence']
         return action
 
     def on_within(infr, edge, decision, nid, split_nids=None):
         """
         Callback when a review is made inside a PCC
         """
+        action = ['within']
         if split_nids is not None:
             # A split occurred
             if infr.params['inference.update_attrs']:
@@ -281,9 +288,16 @@ class DynamicUpdate(object):
                 cc2 = infr.pos_graph.component(new_nid2)
                 infr.set_node_attrs('name_label', ut.dzip(cc1, [new_nid1]))
                 infr.set_node_attrs('name_label', ut.dzip(cc2, [new_nid2]))
-            action = ['split']
+            action += ['split']
         else:
-            action = []
+            if decision == POSTV:
+                action += ['pos-evidence']
+            elif decision == INCMP:
+                action += ['incomp-evidence']
+            elif decision == NEGTV:
+                action += ['neg-evidence']
+            else:
+                action += ['other-evidence']
         return action
 
     @profile
@@ -851,7 +865,7 @@ class _RedundancyComputers(object):
     @profile
     def is_neg_redundant(infr, cc1, cc2, k=None):
         r"""
-        Tests if two groups of nodes are negative redundant
+        Tests if two disjoint groups of nodes are negative redundant
         (ie. have at least k negative edges between them).
 
         Example:
@@ -964,10 +978,18 @@ class _RedundancyComputers(object):
     def find_non_neg_redun_pccs(infr, k=None):
         """
         Get pairs of PCCs that are not complete.
+
+        Example:
+            >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(pcc_sizes=[1, 1, 2, 3, 5, 8], ignore_pair=True)
+            >>> non_neg_pccs = list(infr.find_non_neg_redun_pccs(k=2))
+            >>> assert len(non_neg_pccs) == (6 * 5) / 2
         """
         if k is None:
             k = infr.params['redun.neg']
-        pccs = infr.positive_components()
+        # need to ensure pccs is static in case new user input is added
+        pccs = list(infr.positive_components())
         # Loop through all pairs
         for cc1, cc2 in it.combinations(pccs, 2):
             if not infr.is_neg_redundant(cc1, cc2):

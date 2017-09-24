@@ -763,17 +763,26 @@ class MiscHelpers(object):
     def log_message(infr, msg, level=1, color=None):
         if color is None:
             color = 'blue'
+
         if True:
+            # Record the name of the calling function
+            parent_name = ut.get_parent_frame().f_code.co_name
+            msg = '[{}] '.format(parent_name) + msg
+
+        if True:
+            # Append the message to an internal log deque
             infr.logs.append((msg, color))
             if len(infr.logs) == infr.logs.maxlen:
                 infr.log_index = max(infr.log_index - 1, 0)
 
         if infr.verbose >= level:
+            # Print the message to stdout
             loglevel = logging.INFO
             ut.cprint('[infr] ' + msg, color)
         else:
             loglevel = logging.DEBUG
         if infr.logger:
+            # Send the message to a python logger
             infr.logger.log(loglevel, msg)
 
     print = log_message

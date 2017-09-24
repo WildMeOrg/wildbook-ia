@@ -284,7 +284,7 @@ class PairwiseFeatureExtractor(object):
             >>> print('match1.global_measures = {!r}'.format(match1.global_measures))
             >>> assert len(match1.global_measures) == 3, 'global measures'
         """
-        print('extr.global_keys = {!r}'.format(extr.global_keys))
+        # print('extr.global_keys = {!r}'.format(extr.global_keys))
         if extr.global_keys is None:
             raise ValueError('specify global keys')
             # global_keys = ['view_int', 'qual', 'gps', 'time']

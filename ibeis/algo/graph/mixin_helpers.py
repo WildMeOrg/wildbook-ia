@@ -652,6 +652,13 @@ class DummyEdges(object):
 
 
 class AssertInvariants(object):
+
+    def assert_edge(infr, edge):
+        import utool
+        with utool.embed_on_exception_context:
+            assert edge[0] < edge[1], (
+                'edge={} does not satisfy ordering constraint'.format(edge))
+
     def assert_invariants(infr, msg=''):
         infr.assert_disjoint_invariant(msg)
         infr.assert_union_invariant(msg)

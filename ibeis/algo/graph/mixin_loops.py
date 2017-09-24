@@ -282,7 +282,6 @@ class InfrLoops(object):
             for new_edges in filtered_gen():
                 found_any = True
                 gen = infr.inner_priority_gen(use_refresh=False)
-                # yield from gen
                 for value in gen:
                     yield value
 
@@ -303,12 +302,14 @@ class InfrLoops(object):
 
         only_auto = infr.params['redun.neg.only_auto']
 
-        for new_edges in ub.chunks(infr.find_neg_redun_candidate_edges(), 100):
+        needs_neg_redun = infr.find_neg_redun_candidate_edges()
+        chunksize = 500
+        for new_edges in ub.chunks(needs_neg_redun, chunksize):
+            infr.print('another neg redun chunk')
             # Add chunks in a little at a time for faster response time
             infr.add_candidate_edges(new_edges)
             gen = infr.inner_priority_gen(use_refresh=False,
                                           only_auto=only_auto)
-            # yield from gen
             for value in gen:
                 yield value
 
@@ -803,7 +804,7 @@ class SimulationHelpers(object):
                 ut.emap(frozenset, ut.take_column(history, 'action')))
             infr.print(
                 'Inference Action Histogram: {}'.format(
-                    ut.repr2(action_hist, si=True)), color='yellow')
+                    ub.repr2(action_hist, si=True)), color='yellow')
         infr.print(
             'Decision Histogram: {}'.format(ut.repr2(ut.dict_hist(
                 ut.take_column(history, 'pred_decision')
