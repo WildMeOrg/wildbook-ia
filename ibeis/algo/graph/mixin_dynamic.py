@@ -125,6 +125,8 @@ class DynamicUpdate(object):
         was_gt_pos = infr.test_gt_pos_graph.has_edge(*edge)
 
         old_decision = infr.get_edge_attr(edge, 'decision', default=UNREV)
+        # old_decision = list(infr.edge_decision_from([edge]))[0]
+
         true_decision = infr.edge_truth[edge]
 
         was_within_pred = infr.pos_graph.are_nodes_connected(*edge)
@@ -134,6 +136,9 @@ class DynamicUpdate(object):
         was_correct = old_decision == true_decision
 
         is_correct = true_decision == decision
+        print('old_decision = {!r}'.format(old_decision))
+        print('decision = {!r}'.format(decision))
+        print('true_decision = {!r}'.format(true_decision))
 
         test_print = ut.partial(infr.print, level=2)
         def test_print(x, **kw):

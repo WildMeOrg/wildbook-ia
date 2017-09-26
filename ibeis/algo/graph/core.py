@@ -233,10 +233,12 @@ class Feedback(object):
         }
         infr.internal_feedback[edge].append(feedback_item)
         infr.set_edge_attr(edge, feedback_item)
-        infr.set_edge_attr(edge, {'decision': decision})
 
         if infr.test_mode:
             infr._dynamic_test_callback(edge, decision, user_id)
+
+        # must happen after dynamic test callback
+        infr.set_edge_attr(edge, {'decision': decision})
 
         if infr.params['inference.enabled']:
             assert infr.dirty is False, (
@@ -434,6 +436,14 @@ class Feedback(object):
     def reset(infr, state='empty'):
         """
         Removes all edges from graph and resets name labels.
+
+        Example:
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=5)
+            >>> assert len(list(infr.edges())) > 0
+            >>> infr.reset(state='empty')
+            >>> assert len(list(infr.edges())) == 0
         """
         infr.clear_edges()
         infr.clear_feedback()

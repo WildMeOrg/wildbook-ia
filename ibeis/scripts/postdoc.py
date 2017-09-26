@@ -121,8 +121,8 @@ class GraphExpt(DBInputs):
         Example:
             >>> from ibeis.scripts.postdoc import *
             >>> #self = GraphExpt('GZ_Master1')
+            >>> self = GraphExpt('PZ_MTEST')
             >>> self = GraphExpt('PZ_Master1')
-            >>> #self = GraphExpt('PZ_MTEST')
             >>> self._setup()
         """
         self._precollect()
@@ -191,7 +191,7 @@ class GraphExpt(DBInputs):
         const_dials = sim_params['const_dials']
 
         sim_results = {}
-        verbose = 1
+        verbose = 10
 
         # ----------
         # Graph test
@@ -211,7 +211,17 @@ class GraphExpt(DBInputs):
         infr1.init_test_mode()
 
         infr1.reset(state='empty')
-        infr1.main_loop()
+
+        # if False:
+        #     infr = infr1
+        #     infr.init_refresh()
+        #     n_prioritized = infr.refresh_candidate_edges()
+        #     gen = infr.lnbnn_priority_gen(use_refresh=True)
+        #     next(gen)
+        #     edge = (25, 118)
+
+        list(infr1.main_gen())
+        # infr1.main_loop()
 
         sim_results['graph'] = self._collect_sim_results(infr1, dials1)
 
@@ -242,6 +252,10 @@ class GraphExpt(DBInputs):
     def draw_graphsim(self):
         """
         CommandLine:
+
+            python -m ibeis GraphExpt.measure graphsim GZ_Master1
+            python -m ibeis GraphExpt.draw graphsim GZ_Master1 --diskshow
+
             python -m ibeis GraphExpt.draw graphsim PZ_MTEST --diskshow
             python -m ibeis GraphExpt.draw graphsim GZ_Master1 --diskshow
             python -m ibeis GraphExpt.draw graphsim PZ_Master1 --diskshow
@@ -249,6 +263,7 @@ class GraphExpt(DBInputs):
         Ignore:
             >>> from ibeis.scripts.postdoc import *
             >>> self = GraphExpt('GZ_Master1')
+            >>> self = GraphExpt('PZ_MTEST')
         """
         sim_results = self.ensure_results('graphsim')
 

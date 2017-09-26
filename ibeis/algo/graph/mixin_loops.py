@@ -93,7 +93,7 @@ class InfrLoops(object):
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-                for _ in infr.lnbnn_priority_gen(use_refresh):
+                for _ in infr.ranked_list_gen(use_refresh):
                     yield _
 
                 terminate = (infr.refresh.num_meaningful == 0)
@@ -187,12 +187,12 @@ class InfrLoops(object):
         for _ in infr.inner_priority_gen(use_refresh=False):
             yield _
 
-    def lnbnn_priority_gen(infr, use_refresh=True):
+    def ranked_list_gen(infr, use_refresh=True):
         infr.print('============================', color='white')
-        infr.print('--- LNBNN PRIORITY LOOP ---', color='white')
+        infr.print('--- RANKED LIST LOOP ---', color='white')
         n_prioritized = infr.refresh_candidate_edges()
         if n_prioritized == 0:
-            infr.print('LNBNN FOUND NO NEW EDGES')
+            infr.print('RANKING ALGO FOUND NO NEW EDGES')
             return
         if use_refresh:
             infr.refresh.clear()
@@ -389,7 +389,12 @@ class InfrLoops(object):
         # return infr._gen
 
     def main_loop(infr, max_loops=None, use_refresh=True):
-        """ DEPRICATED """
+        """ DEPRICATED
+
+        use list(infr.main_gen) instead
+        or assert not any(infr.main_gen())
+        maybe this is fine.
+        """
         infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
         # To automatically run through the loop just exhaust the generator
         try:
