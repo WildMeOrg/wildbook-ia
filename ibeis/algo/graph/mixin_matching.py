@@ -513,10 +513,8 @@ class _RedundancyAugmentation(object):
         """
         if k is None:
             k = infr.params['redun.neg']
-        import ipdb
-        with ipdb.launch_ipdb_on_exception():
-            assert cc1 is not cc2, 'CCs should be disjoint (but they are the same)'
-            assert len(cc1.intersection(cc2)) == 0, 'CCs should be disjoint'
+        assert cc1 is not cc2, 'CCs should be disjoint (but they are the same)'
+        assert len(cc1.intersection(cc2)) == 0, 'CCs should be disjoint'
         existing_edges = set(nxu.edges_cross(infr.graph, cc1, cc2))
 
         reviewed_edges = {
