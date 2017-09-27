@@ -39,6 +39,7 @@ class Priority(object):
             tiebreaker = (chaotic,) + edge
         else:
             tiebreaker = edge
+        infr.assert_edge(edge)
         # tiebreaker = (chaotic(chaotic(u) + chaotic(v)), u, v)
         infr.queue[edge] = (-priority, tiebreaker)
 
@@ -221,7 +222,7 @@ class Priority(object):
         if isinstance(priority, six.string_types):
             prob_match = infr.get_edge_attr(edge, priority, default=1e-9)
             priority = prob_match
-        # Use edge-ids to break ties for determenistic behavior
+        # Use edge-nids to break ties for determenistic behavior
         infr._push(edge, priority)
 
     @profile
@@ -261,6 +262,8 @@ class Priority(object):
                     # already has high confidence.
                     thresh_code = infr.params['queue.conf.thresh']
                     thresh = const.CONFIDENCE.CODE_TO_INT[thresh_code]
+                    # FIXME: at the time of writing a hard coded priority of 10
+                    # or more means that this is part of an inconsistency
                     if priority < 10:
                         u, v = edge
                         nid1, nid2 = infr.node_labels(u, v)
@@ -281,12 +284,13 @@ class Priority(object):
                     # only checking edges within a name
                     nid1, nid2 = infr.pos_graph.node_labels(*edge)
                     if nid1 == nid2:
-                        continue  # Loop instead of recursion
-                        # return infr.pop()
+                        continue  # Loop instead of recursive (infr.pop())
                 if getattr(infr, 'fix_mode_predict', False):
                     # No longer needed.
                     pred = infr.get_edge_data(edge).get('pred', None)
                     # only report cases where the prediction differs
+                    # FIXME: at the time of writing a hard coded priority of 10
+                    # or more means that this is part of an inconsistency
                     if priority < 10:
                         nid1, nid2 = infr.node_labels(*edge)
                         if nid1 == nid2:
@@ -294,19 +298,14 @@ class Priority(object):
                             # Don't re-review confident CCs
                             thresh = const.CONFIDENCE.CODE_TO_INT['pretty_sure']
                             if infr.confidently_connected(u, v, thresh):
-                                continue  # Loop instead of recursion
-                                # return infr.pop()
+                                continue  # Loop instead of recursive (infr.pop())
                         if pred == POSTV and nid1 == nid2:
-                            # print('skip pos')
-                            continue  # Loop instead of recursion
-                            # return infr.pop()
+                            continue  # Loop instead of recursive (infr.pop())
                         if pred == NEGTV and nid1 != nid2:
-                            # print('skip neg')
-                            continue  # Loop instead of recursion
-                            # return infr.pop()
+                            continue  # Loop instead of recursive (infr.pop())
                     else:
                         print('in error recover mode')
-                assert edge[0] < edge[1]
+                infr.assert_edge(edge)
                 return edge, priority
 
     def peek(infr):

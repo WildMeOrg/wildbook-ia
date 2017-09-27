@@ -233,10 +233,12 @@ class Feedback(object):
         }
         infr.internal_feedback[edge].append(feedback_item)
         infr.set_edge_attr(edge, feedback_item)
-        infr.set_edge_attr(edge, {'decision': decision})
 
         if infr.test_mode:
             infr._dynamic_test_callback(edge, decision, user_id)
+
+        # must happen after dynamic test callback
+        infr.set_edge_attr(edge, {'decision': decision})
 
         if infr.params['inference.enabled']:
             assert infr.dirty is False, (
@@ -434,6 +436,14 @@ class Feedback(object):
     def reset(infr, state='empty'):
         """
         Removes all edges from graph and resets name labels.
+
+        Example:
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=5)
+            >>> assert len(list(infr.edges())) > 0
+            >>> infr.reset(state='empty')
+            >>> assert len(list(infr.edges())) == 0
         """
         infr.clear_edges()
         infr.clear_feedback()
@@ -763,17 +773,26 @@ class MiscHelpers(object):
     def log_message(infr, msg, level=1, color=None):
         if color is None:
             color = 'blue'
+
         if True:
+            # Record the name of the calling function
+            parent_name = ut.get_parent_frame().f_code.co_name
+            msg = '[{}] '.format(parent_name) + msg
+
+        if True:
+            # Append the message to an internal log deque
             infr.logs.append((msg, color))
             if len(infr.logs) == infr.logs.maxlen:
                 infr.log_index = max(infr.log_index - 1, 0)
 
         if infr.verbose >= level:
+            # Print the message to stdout
             loglevel = logging.INFO
             ut.cprint('[infr] ' + msg, color)
         else:
             loglevel = logging.DEBUG
         if infr.logger:
+            # Send the message to a python logger
             infr.logger.log(loglevel, msg)
 
     print = log_message
