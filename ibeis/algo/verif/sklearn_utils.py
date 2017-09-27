@@ -8,7 +8,6 @@ import pandas as pd
 from sklearn.utils.validation import check_array
 # from sklearn.utils import check_random_state
 from sklearn.externals.six.moves import zip
-from sklearn.utils.fixes import bincount
 # from sklearn.model_selection._split import (_BaseKFold, KFold)
 from sklearn.model_selection._split import (_BaseKFold,)
 print, rrr, profile = ut.inject2(__name__)
@@ -87,6 +86,7 @@ class StratifiedGroupKFold(_BaseKFold):
         unique_groups, group_idxs = ut.group_indices(groups)
         # grouped_ids = list(grouping.keys())
         grouped_y = ut.apply_grouping(y, group_idxs)
+        from sklearn.utils.fixes import bincount
         grouped_y_counts = np.array([
             bincount(y_, minlength=n_classes) for y_ in grouped_y])
 

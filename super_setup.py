@@ -407,15 +407,15 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             ibeis_rman.add_repos([
                 'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
             ])
-        # CNN Dependencies
-        tpl_rman.add_repos([
-            'https://github.com/Theano/Theano.git',
-            'https://github.com/lisa-lab/pylearn2.git',
-            'https://github.com/Lasagne/Lasagne.git',
-        ])
         # if GET_ARGFLAG('--libgpuarray'):
         tpl_rman.add_repos([
             'https://github.com/Theano/libgpuarray.git',
+        ])
+        # CNN Dependencies
+        tpl_rman.add_repos([
+            'https://github.com/Theano/Theano.git',
+            # 'https://github.com/lisa-lab/pylearn2.git',
+            'https://github.com/Lasagne/Lasagne.git',
         ])
 
     if WITH_PYRF:
@@ -454,7 +454,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     python -c "import pydot; print(pydot.find_graphviz())"
     DEVICE="cuda" python -c "import pygpu;pygpu.test()"
     python -c "import theano; print(theano.__file__)"
-    python -c "import pylearn2; print(pylearn2.__file__)"
+    # python -c "import pylearn2; print(pylearn2.__file__)"
     python -c "import lasagne; print(lasagne.__file__)"
     python -c "import ibeis_cnn; print(ibeis_cnn.__file__)"
     python -c "import detecttools; print(detecttools.__file__)"
@@ -943,10 +943,10 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     if GET_ARGFLAG('--dcnn'):
         tpl_rman['theano'].clone()
-        tpl_rman['pylearn2'].clone()
+        # tpl_rman['pylearn2'].clone()
         tpl_rman['lasagne'].clone()
         tpl_rman['theano'].issue('pip install -e .')
-        tpl_rman['pylearn2'].issue('pip install -e .')
+        # tpl_rman['pylearn2'].issue('pip install -e .')
         tpl_rman['lasagne'].issue('pip install -e .')
         # tpl_rman['pylearn2'].python_develop()
         # tpl_rman['theano'].python_develop()
