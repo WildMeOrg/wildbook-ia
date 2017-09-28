@@ -41,6 +41,32 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
     pt.iup()
 
 
+def ensure_alpha_channel(img, alpha=1.0):
+    import vtool as vt
+    img = vt.rectify_to_float01(img)
+    c = vt.get_num_channels(img)
+    if c == 4:
+        return img
+    else:
+        alpha_channel = np.full(img.shape[0:2], fill_value=alpha, dtype=img.dtype)
+        if c == 3:
+            return np.dstack([img, alpha_channel])
+        elif c == 1:
+            return np.dstack([img, img, img, alpha_channel])
+        else:
+            raise ValueError('unknown dim')
+
+
+def ensure_grayscale(img, colorspace_hint='BGR'):
+    import vtool as vt
+    img = vt.rectify_to_float01(img)
+    c = vt.get_num_channels(img)
+    if c == 1:
+        return img
+    else:
+        return vt.convert_colorspace(img, 'gray', colorspace_hint)
+
+
 def overlay_alpha_images(img1, img2):
     """
     places img1 on top of img2 respecting alpha channels
