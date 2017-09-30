@@ -181,6 +181,9 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
 
     colors = list(mcolors.CSS4_COLORS.keys())
 
+    CommandLine:
+        python -m plottool.color_funcs testshow_colors --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.color_funcs import *  # NOQA
