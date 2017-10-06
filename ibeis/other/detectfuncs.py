@@ -2285,6 +2285,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     config_list = [
         {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
         {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
+        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
 
         # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
         # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
