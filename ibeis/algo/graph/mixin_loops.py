@@ -61,6 +61,7 @@ class InfrLoops(object):
 
         # Phase 0.1: Ensure the user sees something immediately
         if infr.params['algo.quickstart']:
+            infr.loop_phase = 'quickstart_init'
             # quick startup. Yield a bunch of random edges
             num = infr.params['manual.n_peek']
             user_request = []
@@ -69,12 +70,14 @@ class InfrLoops(object):
                 yield user_request
 
         if infr.params['algo.hardcase']:
+            infr.loop_phase = 'hardcase_init'
             # Check previously labeled edges that where the groundtruth and the
             # verifier disagree.
             for _ in infr.hardcase_review_gen():
                 yield _
 
         if infr.params['inference.enabled']:
+            infr.loop_phase = 'incon_recover_init'
             # First, fix any inconsistencies
             for _ in infr.incon_recovery_gen():
                 yield _
@@ -83,6 +86,7 @@ class InfrLoops(object):
         # so the user starts seeing real work after one random review is made
         # unless the graph is already positive redundant.
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
+            infr.loop_phase = 'pos_redun_init'
             # Fix positive redundancy of anything within the loop
             for _ in infr.pos_redun_gen():
                 yield _
@@ -93,6 +97,7 @@ class InfrLoops(object):
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                infr.loop_phase = 'ranking_{}'.format(count)
                 for _ in infr.ranked_list_gen(use_refresh):
                     yield _
 
@@ -101,6 +106,7 @@ class InfrLoops(object):
                     infr.print('Triggered break criteria', 1, color='red')
 
                 # Phase 2: Ensure positive redundancy.
+                infr.loop_phase = 'posredun_{}'.format(count)
                 if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                     # Fix positive redundancy of anything within the loop
                     for _ in infr.pos_redun_gen():
@@ -122,6 +128,7 @@ class InfrLoops(object):
             # Phase 3: Try to automatically acheive negative redundancy without
             # asking the user to do anything but resolve inconsistency.
             infr.print('Entering phase 3', 1, color='red')
+            infr.loop_phase = 'negredun'
             for _ in infr.neg_redun_gen():
                 yield _
 
@@ -767,6 +774,7 @@ class SimulationHelpers(object):
             'n_decision': infr.test_state['n_decision'],
             'n_manual': infr.test_state['n_manual'],
             'n_algo': infr.test_state['n_algo'],
+            'phase': infr.loop_phase,
             'pos_acc': pos_acc,
             'n_merge_total': infr.real_n_pcc_mst_edges,
             'n_merge_remain': infr.real_n_pcc_mst_edges - n_true_merges,
