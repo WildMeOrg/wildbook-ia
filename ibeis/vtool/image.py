@@ -1332,6 +1332,10 @@ def make_channels_comparable(img1, img2):
                 # assumes img1 is in 0:1 format
                 img2 = np.dstack((img2, np.ones(img2.shape[0:2])))
                 # raise NotImplementedError('alpha not handled yet')
+            elif c1 == 1 and c2  == 4:
+                img1 = np.dstack((np.tile(img1, 3), np.ones(img1.shape[0:2])))
+            elif c1 == 4 and c2  == 1:
+                img2 = np.dstack((np.tile(img2, 3), np.ones(img2.shape[0:2])))
             else:
                 raise AssertionError('Unknown shape case: %r, %r' % (img1.shape, img2.shape))
         else:
