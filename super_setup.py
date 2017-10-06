@@ -936,7 +936,7 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = ibeis_rman['flann'].get_script('install')
         script.exec_()
 
-    if GET_ARGFLAG('--libgpuarray'):
+    if GET_ARGFLAG('--libgpuarray') or GET_ARGFLAG('--dcnn'):
         tpl_rman['libgpuarray'].clone()
         script = tpl_rman['libgpuarray'].get_script('build')
         script.exec_()

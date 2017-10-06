@@ -1081,7 +1081,7 @@ class AnnotInference(ut.NiceRepr,
                 import ubelt as ub
                 # logdir = ibs.get_logdir_local()
                 logdir = '.'
-                logname = 'AnnotInference' + ub.timestamp()
+                logname = 'AnnotInference' + ut.timestamp()
                 logger = logging.getLogger(logname)
                 if not logger.handlers:
                     fh = logging.FileHandler(join(logdir, logname + '.log'))
