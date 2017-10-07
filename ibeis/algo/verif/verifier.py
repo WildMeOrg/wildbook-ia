@@ -22,6 +22,10 @@ class BaseVerifier(ut.NiceRepr):
         raise NotImplementedError('abstract')
 
     def fit(verif, edges):
+        """
+        The vsone.OneVsOneProblem currently handles fitting a model based on
+        edges. The actual fit call is in clf_helpers.py
+        """
         raise NotImplementedError('Need to use OneVsOneProblem to do this')
 
     def predict(verif, edges, method='argmax', encoded=False):

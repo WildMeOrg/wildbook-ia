@@ -270,6 +270,7 @@ class Deployer(object):
             if len(column_names) > 0 and len(column_names) != n_columns:
                 raise Exception("Column titles do not match the number of columns")
             columns = column_names if len(column_names) > 0 else range(0, n_columns)
+            import pandas as pd
             df = pd.DataFrame(columns=columns, index=list(range(0, n_rows)))
             row_marker = 0
             for row in table.find_all('tr'):

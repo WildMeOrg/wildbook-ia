@@ -720,7 +720,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
-            >>> pblm.default_clf_key = 'Logit'
+            >>> #pblm.default_clf_key = 'Logit'
+            >>> pblm.default_clf_key = 'RF'
             >>> pblm.evaluate_classifiers()
         """
         pblm.setup_evaluation(with_simple=with_simple)
