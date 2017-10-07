@@ -5,6 +5,9 @@ CommandLine:
     # Test how well out-of-the-box vsone classifiers to:
     python -m ibeis.algo.verif.vsone evaluate_classifiers --db DETECT_SEATURTLES
 
+    # Train a classifier for deployment
+    # Will output to the current working directory
+    python -m ibeis.algo.verif.vsone deploy --db GZ_Master1
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
@@ -620,6 +623,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def deploy(pblm, dpath='.', task_key=None, publish=False):
         """
         Trains and saves a classifier for deployment
+
+        Args:
+            dpath (str): where to save the deployable model
+            task_key (str): task to train for (default match_state)
+            publish (bool): if True will try to rsync the model and metadata to
+                the publication server.
+
+        Example:
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
+            >>>                                   sample_method='random')
+            >>> task_key = ut.get_argval('--task', default='match_state')
+            >>> publish = ut.get_argflag('--publish')
+            >>> pblm.deploy(task_key=task_key, publish=publish)
 
         Notes:
             A deployment consists of the following information
