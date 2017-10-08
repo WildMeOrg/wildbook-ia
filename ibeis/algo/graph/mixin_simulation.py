@@ -10,7 +10,7 @@ import ubelt as ub
 import pandas as pd
 import itertools as it
 from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, NULL)
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN, NULL)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -30,6 +30,9 @@ class SimulationHelpers(object):
 
         infr.params['redun.pos'] = k_redun
         infr.params['redun.neg'] = k_redun
+
+        # keeps track of edges where the decision != the groundtruth
+        infr.mistake_edges = set()
 
         infr.queue = ut.PriorityQueue()
 
@@ -177,6 +180,13 @@ class SimulationHelpers(object):
                 pred_n_pcc_mst_edges += len(cc) - 1
             assert n_true_merges == pred_n_pcc_mst_edges
 
+        # Find all annotations involved in a mistake
+        assert n_error_edges == len(infr.mistake_edges)
+        direct_mistake_aids = {a for edge in infr.mistake_edges for a in edge}
+        mistake_nids = set(infr.node_labels(*direct_mistake_aids))
+        mistake_aids = set(ut.flatten([infr.pos_graph.component(nid)
+                                       for nid in mistake_nids]))
+
         pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
         metrics = {
             'n_decision': infr.test_state['n_decision'],
@@ -190,6 +200,9 @@ class SimulationHelpers(object):
             'recovering': infr.is_recovering(),
             # 'recovering2': infr.test_state['recovering'],
             'merge_remain': 1 - pos_acc,
+            'n_mistake_aids': len(mistake_aids),
+            'frac_mistake_aids': len(mistake_aids) / len(infr.aids),
+            'n_mistake_nids': len(mistake_nids),
             'n_errors': n_error_edges,
             'n_fn': n_fn,
             'n_fp': n_fp,
@@ -254,9 +267,9 @@ class SimulationHelpers(object):
         was_correct = prev_decision == true_decision
 
         is_correct = true_decision == decision
-        print('prev_decision = {!r}'.format(prev_decision))
-        print('decision = {!r}'.format(decision))
-        print('true_decision = {!r}'.format(true_decision))
+        # print('prev_decision = {!r}'.format(prev_decision))
+        # print('decision = {!r}'.format(decision))
+        # print('true_decision = {!r}'.format(true_decision))
 
         test_print = ut.partial(infr.print, level=2)
         def test_print(x, **kw):
@@ -319,6 +332,7 @@ class SimulationHelpers(object):
                     test_action = 'correct duplicate'
                     action_color = 'darkyellow'
                 else:
+                    infr.mistake_edges.remove(edge)
                     test_action = 'correction'
                     action_color = 'darkgreen'
                     if decision == POSTV:
@@ -345,6 +359,7 @@ class SimulationHelpers(object):
         else:
             action_color = 'darkred'
             # INCORRECT DECISION
+            infr.mistake_edges.add(edge)
             if was_reviewed:
                 if prev_decision == decision:
                     test_action = 'incorrect duplicate'

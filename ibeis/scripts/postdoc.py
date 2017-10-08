@@ -191,7 +191,7 @@ class GraphExpt(DBInputs):
         const_dials = sim_params['const_dials']
 
         sim_results = {}
-        verbose = 10
+        verbose = 1
 
         # ----------
         # Graph test
@@ -267,6 +267,13 @@ class GraphExpt(DBInputs):
         """
         sim_results = self.ensure_results('graphsim')
 
+        metric_nice = {
+            'n_errors': '# errors',
+            'n_manual': '# manual reviews',
+            'frac_mistake_aids': 'fraction error annots',
+            'merge_remain': 'fraction of merges remain',
+        }
+
         # keys = ['ranking', 'rank+clf', 'graph']
         # keycols = ['red', 'orange', 'b']
         keys = ['graph']
@@ -275,6 +282,10 @@ class GraphExpt(DBInputs):
 
         dfs = {k: pd.DataFrame(v['metrics'])
                for k, v in sim_results.items()}
+
+        n_aids = sim_results['graph']['graph'].number_of_nodes()
+        df = dfs['graph']
+        df['frac_mistake_aids'] = df.n_mistake_aids / n_aids
         # mdf = pd.concat(dfs.values(), keys=dfs.keys())
 
         import xarray as xr
@@ -294,24 +305,26 @@ class GraphExpt(DBInputs):
         pt.figure(fnum=fnum, pnum=pnum_())
         ax = pt.gca()
 
-        datas = panel.sel(metric=['n_manual', 'merge_remain'])
+        xkey, ykey = 'n_manual', 'merge_remain'
+        datas = panel.sel(metric=[xkey, ykey])
         for key in keys:
             ax.plot(*datas.sel(key=key).values.T, label=key, color=colors[key])
         ax.set_ylim(0, 1)
         ax.set_xlim(-xpad, xmax + xpad)
-        ax.set_xlabel('# manual reviews')
-        ax.set_ylabel('fraction of merges remain')
+        ax.set_xlabel(metric_nice[xkey])
+        ax.set_ylabel(metric_nice[ykey])
         ax.legend()
 
         pt.figure(fnum=fnum, pnum=pnum_())
         ax = pt.gca()
-        datas = panel.sel(metric=['n_manual', 'n_errors'])
+        xkey, ykey = 'n_manual', 'frac_mistake_aids'
+        datas = panel.sel(metric=[xkey, ykey])
         for key in keys:
             ax.plot(*datas.sel(key=key).values.T, label=key, color=colors[key])
         ax.set_ylim(0, datas.T[1].max() * 1.01)
         ax.set_xlim(-xpad, xmax + xpad)
-        ax.set_xlabel('# manual reviews')
-        ax.set_ylabel('# errors')
+        ax.set_xlabel(metric_nice[xkey])
+        ax.set_ylabel(metric_nice[ykey])
         ax.legend()
 
         fig = pt.gcf()  # NOQA
@@ -343,21 +356,18 @@ class GraphExpt(DBInputs):
         expt_data = sim_results['graph']
         metrics_df = pd.DataFrame.from_dict(expt_data['metrics'])
 
+        # n_aids = sim_results['graph']['graph'].number_of_nodes()
+        # metrics_df['frac_mistake_aids'] = metrics_df.n_mistake_aids / n_aids
+
         fnum = 1  # NOQA
-        overshow = {
+        default_flags = {
             'phase': True,
             'pred': False,
-            'auto': True,
+            'user': True,
             'real': True,
-            'error': True,
-            'recover': True,
+            'error': 0,
+            'recover': 1,
         }
-        if overshow['auto']:
-            xdata = metrics_df['n_decision']
-            xlabel = '# decisions'
-        else:
-            xdata = metrics_df['n_manual']
-            xlabel = '# manual reviews'
 
         def plot_intervals(flags, color=None, low=0, high=1):
             ax = pt.gca()
@@ -378,7 +388,7 @@ class GraphExpt(DBInputs):
             ys.append(low)
             ax.fill_between(xs, ys, low, alpha=.6, color=color)
 
-        def overlay_actions(ymax=1):
+        def overlay_actions(ymax=1, kw=None):
             """
             Draws indicators that detail the algorithm state at given
             timestamps.
@@ -397,148 +407,162 @@ class GraphExpt(DBInputs):
                 lambda x: x == POSTV).values
             # ymax = max(metrics_df['n_errors'])
 
-            num = sum(overshow.values())
+            if kw is None:
+                kw = default_flags
+
+            num = sum(kw.values())
             steps = np.linspace(0, 1, num + 1) * ymax
             i = -1
 
             def stacked_interval(data, color, i):
                 plot_intervals(data, color, low=steps[i], high=steps[i + 1])
 
-            if overshow['auto']:
+            if kw.get('user', False):
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()),
-                                 'is_auto(auto=gold,manual=blue)')
+                                 'user(algo=gold,manual=blue)')
                 stacked_interval(is_auto, 'gold', i)
                 stacked_interval(~is_auto, 'blue', i)
 
-            if overshow['pred']:
+            if kw.get('pred', False):
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()), 'pred_pos')
                 stacked_interval(ppos, 'aqua', low=steps[i], high=steps[i + 1])
                 # stacked_interval(~ppos, 'salmon', i)
 
-            if overshow['real']:
+            if kw.get('real', False):
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_pos')
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_merge')
                 stacked_interval(rpos, 'lime', i)
                 # stacked_interval(~ppos, 'salmon', i)
 
-            if overshow['error']:
+            if kw.get('error', False):
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_error')
                 # stacked_interval(is_correct, 'blue', low=steps[i], high=steps[i + 1])
                 stacked_interval(~is_correct, 'red', i)
 
-            if overshow['recover']:
+            if kw.get('recover', False):
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_recovering')
                 stacked_interval(recovering, 'orange', i)
 
-            if overshow['phase']:
+            if kw.get('phase', False):
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()),
-                                 'phase(1=red, 2=green, 3=blue)')
-                stacked_interval(phase == 'ranking', 'red', i)
-                stacked_interval(phase == 'posredun', 'green', i)
-                stacked_interval(phase == 'negredun', 'blue', i)
+                                 'phase(1=yellow, 2=aqua, 3=pink)')
+                stacked_interval(phase == 'ranking', 'yellow', i)
+                stacked_interval(phase == 'posredun', 'aqua', i)
+                stacked_interval(phase == 'negredun', 'pink', i)
+                # stacked_interval(phase == 'ranking', 'red', i)
+                # stacked_interval(phase == 'posredun', 'green', i)
+                # stacked_interval(phase == 'negredun', 'blue', i)
 
-        pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=8)
+        def accuracy_plot(xdata, xlabel):
+            ydatas = ut.odict([
+                ('Graph',  metrics_df['merge_remain']),
+            ])
+            pt.multi_plot(
+                xdata, ydatas, marker='', markersize=1,
+                xlabel=xlabel, ylabel='fraction of merge remaining',
+                ymin=0, rcParams=TMP_RC,
+                use_legend=True, fnum=1, pnum=pnum_(),
+            )
 
-        ydatas = ut.odict([
-            ('Graph',  metrics_df['merge_remain']),
-        ])
-        pt.multi_plot(
-            xdata, ydatas, marker='', markersize=1,
-            xlabel=xlabel, ylabel='fraction of merge remaining',
-            ymin=0, rcParams=TMP_RC,
-            use_legend=True, fnum=1, pnum=pnum_(),
-        )
+        def error_plot(xdata, xlabel):
+            # ykeys = ['n_errors']
+            ykeys = ['frac_mistake_aids']
+            pt.multi_plot(
+                xdata, metrics_df[ykeys].values.T,
+                xlabel=xlabel,
+                ylabel='fraction error annots',
+                marker='', markersize=1, ymin=0, rcParams=TMP_RC,
+                fnum=1, pnum=pnum_(),
+                use_legend=False,
+            )
+
+        def refresh_plot(xdata, xlabel):
+            pt.multi_plot(
+                xdata, [metrics_df['pprob_any']],
+                label_list=['P(C=1)'],
+                xlabel=xlabel, ylabel='refresh criteria',
+                marker='', ymin=0, ymax=1, rcParams=TMP_RC,
+                fnum=1, pnum=pnum_(),
+                use_legend=False,
+            )
+            ax = pt.gca()
+            thresh = expt_data['refresh_thresh']
+            ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
+                    label='refresh thresh')
+            ax.legend()
+
+        def error_breakdown_plot(xdata, xlabel):
+            ykeys = ['n_fn', 'n_fp']
+            pt.multi_plot(
+                xdata, metrics_df[ykeys].values.T,
+                label_list=ykeys,
+                xlabel=xlabel, ylabel='# of errors',
+                marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+                ymax=max(metrics_df['n_errors']),
+                fnum=1, pnum=pnum_(),
+                use_legend=True,
+            )
+
+        def neg_redun_plot(xdata, xlabel):
+            n_aids = sim_results['graph']['graph'].number_of_nodes()
+
+            n_pred = len(sim_results['graph']['pred_ccs'])
+            z = (n_pred * (n_pred - 1)) / 2
+
+            metrics_df['p_neg_redun'] = metrics_df['n_neg_redun'] / z
+            metrics_df['p_neg_redun1'] = metrics_df['n_neg_redun1'] / z
+
+            ykeys = ['p_neg_redun', 'p_neg_redun1']
+            pt.multi_plot(
+                xdata, metrics_df[ykeys].values.T,
+                label_list=ykeys,
+                xlabel=xlabel, ylabel='% neg-redun-meta-edges',
+                marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+                ymax=max(metrics_df['p_neg_redun1']),
+                fnum=1, pnum=pnum_(),
+                use_legend=True,
+            )
+
+        pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=6)
+
+        # --- ROW 1 ---
+        xdata = metrics_df['n_decision']
+        xlabel = '# decisions'
+
+        accuracy_plot(xdata, xlabel)
         # overlay_actions(1)
 
-        ykeys = ['n_errors']
-        pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='', markersize=1, ymin=0, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
-            use_legend=False,
-        )
-        overlay_actions(max(metrics_df['n_errors']))
+        error_plot(xdata, xlabel)
+        overlay_actions(max(metrics_df['frac_mistake_aids']))
+        # overlay_actions(max(metrics_df['n_errors']))
 
-        pt.multi_plot(
-            xdata, [metrics_df['pprob_any']],
-            label_list=['P(C=1)'],
-            xlabel=xlabel, ylabel='refresh criteria',
-            marker='', ymin=0, ymax=1, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
-            use_legend=False,
-        )
-        ax = pt.gca()
-        thresh = expt_data['refresh_thresh']
-        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
-                label='refresh thresh')
-        ax.legend()
-        # overlay_actions(1)
+        # refresh_plot(xdata, xlabel)
+        # overlay_actions(1, {'phase': True})
 
-        ykeys = ['n_fn', 'n_fp']
-        pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
-            label_list=ykeys,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
-            ymax=max(metrics_df['n_errors']),
-            fnum=1, pnum=pnum_(),
-            use_legend=True,
-        )
+        # error_breakdown_plot(xdata, xlabel)
+        neg_redun_plot(xdata, xlabel)
 
+        # --- ROW 2 ---
         xdata = metrics_df['n_manual']
         xlabel = '# manual reviews'
-        ydatas = ut.odict([
-            ('Graph',  metrics_df['merge_remain']),
-        ])
-        pt.multi_plot(
-            xdata, ydatas, marker='', markersize=1,
-            xlabel=xlabel, ylabel='fraction of merge remaining',
-            ymin=0, rcParams=TMP_RC,
-            use_legend=True, fnum=1, pnum=pnum_(),
-        )
+
+        accuracy_plot(xdata, xlabel)
         # overlay_actions(1)
 
-        ykeys = ['n_errors']
-        pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='', markersize=1, ymin=0, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
-            use_legend=False,
-        )
-        overlay_actions(max(metrics_df['n_errors']))
+        error_plot(xdata, xlabel)
+        overlay_actions(max(metrics_df['frac_mistake_aids']))
+        # overlay_actions(max(metrics_df['n_errors']))
 
-        pt.multi_plot(
-            xdata, [metrics_df['pprob_any']],
-            label_list=['P(C=1)'],
-            xlabel=xlabel, ylabel='refresh criteria',
-            marker='', ymin=0, ymax=1, rcParams=TMP_RC,
-            fnum=1, pnum=pnum_(),
-            use_legend=False,
-        )
-        ax = pt.gca()
-        thresh = expt_data['refresh_thresh']
-        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
-                label='refresh thresh')
-        ax.legend()
-        # overlay_actions(1)
+        # refresh_plot(xdata, xlabel)
+        # overlay_actions(1, {'phase': True})
 
-        ykeys = ['n_fn', 'n_fp']
-        pt.multi_plot(
-            xdata, metrics_df[ykeys].values.T,
-            label_list=ykeys,
-            xlabel=xlabel, ylabel='# of errors',
-            marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
-            ymax=max(metrics_df['n_errors']),
-            fnum=1, pnum=pnum_(),
-            use_legend=True,
-        )
+        # error_breakdown_plot(xdata, xlabel)
+        neg_redun_plot(xdata, xlabel)
 
         # fpath = join(self.dpath, expt_name + '2' + '.png')
         # fig = pt.gcf()  # NOQA

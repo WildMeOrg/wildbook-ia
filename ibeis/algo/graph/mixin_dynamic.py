@@ -128,6 +128,7 @@ class DynamicUpdate(object):
                 if G.has_edge(*edge):
                     G.remove_edge(*edge)
 
+    @profile
     def _get_current_decision(infr, edge):
         """
         Find if any data structure has the edge
@@ -137,6 +138,7 @@ class DynamicUpdate(object):
                 return decision
         return UNREV
 
+    @profile
     def on_between(infr, edge, decision, prev_decision, nid1, nid2,
                    merge_nid=None):
         """
@@ -163,6 +165,7 @@ class DynamicUpdate(object):
                 action += ['other-evidence']
         return action
 
+    @profile
     def on_within(infr, edge, decision, prev_decision, nid, split_nids=None):
         """
         Callback when a review is made inside a PCC
@@ -192,6 +195,7 @@ class DynamicUpdate(object):
                 action += ['other-evidence']
         return action
 
+    @profile
     def _update_neg_metagraph(infr, decision, prev_decision, nid1, nid2,
                               merge_nid=None, split_nids=None):
         """
