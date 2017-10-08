@@ -2186,6 +2186,7 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
         test_gid_set.append(gid)
         label_list.append(label)
 
+    depc.delete_property('classifier', test_gid_set, config=kwargs)
     prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
     confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
     confidence_list = [
@@ -2276,22 +2277,22 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
 
 
 @register_ibs_method
-def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(16, 16)):
+def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(20, 20)):
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    fig_ = plt.figure(figsize=figsize)
+    fig_ = plt.figure(figsize=figsize, dpi=400)
 
     config_list = [
-        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
-        {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
-        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
+        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
+        # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
+        # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
 
-        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
-        # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
-        # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
-        # {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
-        # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
+        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
+        {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
+        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
+        {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
+        {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
     ]
     color_list = pt.distinct_colors(len(config_list), randomize=False)
 
@@ -2375,7 +2376,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_ylabel('Ground-Truth')
     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
 
-    fig_filename = 'classifier-precision-recall-roc.png'
+    fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
