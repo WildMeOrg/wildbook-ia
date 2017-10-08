@@ -7,8 +7,7 @@ import ubelt as ub
 import pandas as pd
 import itertools as it
 import ibeis.constants as const
-from ibeis.algo.graph import nx_utils as nxu
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, NULL)
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, NULL)
 from ibeis.algo.graph.refresh import RefreshCriteria
 print, rrr, profile = ut.inject2(__name__)
 
@@ -20,13 +19,28 @@ class InfrLoops(object):
 
     def main_gen(infr, max_loops=None, use_refresh=True):
         """
-        The main outer loop
+        The main outer loop.
+
+        This function is designed as an iterator that will execute the graph
+        algorithm main loop as automatically as possible, but if user input is
+        needed, it will pause and yield the decision it needs help with. Once
+        feedback is given for this item, you can continue the main loop by
+        calling next. StopIteration is raised once the algorithm is complete.
+
+        Args:
+            max_loops(int): maximum number of times to run the outer loop,
+                i.e. ranking is run at most this many times.
+            use_refresh(bool): allow the refresh criterion to stop the algo
+
+        Notes:
+            Different phases of the main loop are implemented as subiterators
 
         CommandLine:
             python -m ibeis.algo.graph.mixin_loops main_gen
 
         Doctest:
             >>> from ibeis.algo.graph.mixin_loops import *
+            >>> from ibeis.algo.graph.mixin_simulation import UserOracle
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('testdb1', aids='all',
             >>>                             autoinit='staging', verbose=4)
@@ -61,6 +75,7 @@ class InfrLoops(object):
 
         # Phase 0.1: Ensure the user sees something immediately
         if infr.params['algo.quickstart']:
+            infr.loop_phase = 'quickstart_init'
             # quick startup. Yield a bunch of random edges
             num = infr.params['manual.n_peek']
             user_request = []
@@ -69,12 +84,14 @@ class InfrLoops(object):
                 yield user_request
 
         if infr.params['algo.hardcase']:
+            infr.loop_phase = 'hardcase_init'
             # Check previously labeled edges that where the groundtruth and the
             # verifier disagree.
             for _ in infr.hardcase_review_gen():
                 yield _
 
         if infr.params['inference.enabled']:
+            infr.loop_phase = 'incon_recover_init'
             # First, fix any inconsistencies
             for _ in infr.incon_recovery_gen():
                 yield _
@@ -83,6 +100,7 @@ class InfrLoops(object):
         # so the user starts seeing real work after one random review is made
         # unless the graph is already positive redundant.
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
+            infr.loop_phase = 'pos_redun_init'
             # Fix positive redundancy of anything within the loop
             for _ in infr.pos_redun_gen():
                 yield _
@@ -93,6 +111,7 @@ class InfrLoops(object):
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                infr.loop_phase = 'ranking_{}'.format(count)
                 for _ in infr.ranked_list_gen(use_refresh):
                     yield _
 
@@ -101,6 +120,7 @@ class InfrLoops(object):
                     infr.print('Triggered break criteria', 1, color='red')
 
                 # Phase 2: Ensure positive redundancy.
+                infr.loop_phase = 'posredun_{}'.format(count)
                 if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                     # Fix positive redundancy of anything within the loop
                     for _ in infr.pos_redun_gen():
@@ -122,6 +142,7 @@ class InfrLoops(object):
             # Phase 3: Try to automatically acheive negative redundancy without
             # asking the user to do anything but resolve inconsistency.
             infr.print('Entering phase 3', 1, color='red')
+            infr.loop_phase = 'negredun'
             for _ in infr.neg_redun_gen():
                 yield _
 
@@ -133,6 +154,8 @@ class InfrLoops(object):
 
     def hardcase_review_gen(infr):
         """
+        Subiterator for hardcase review
+
         Re-review non-confident edges that vsone did not classify correctly
         """
         infr.print('==============================', color='white')
@@ -184,10 +207,15 @@ class InfrLoops(object):
         infr.prioritize(metric='hardness', edges=edges,
                         scores=hardness)
         infr.set_edge_attrs('hardness', ut.dzip(edges, hardness))
-        for _ in infr.inner_priority_gen(use_refresh=False):
+        for _ in infr._inner_priority_gen(use_refresh=False):
             yield _
 
     def ranked_list_gen(infr, use_refresh=True):
+        """
+        Subiterator for phase1 of the main algorithm
+
+        Calls the underlying ranking algorithm and prioritizes the results
+        """
         infr.print('============================', color='white')
         infr.print('--- RANKED LIST LOOP ---', color='white')
         n_prioritized = infr.refresh_candidate_edges()
@@ -196,10 +224,21 @@ class InfrLoops(object):
             return
         if use_refresh:
             infr.refresh.clear()
-        for _ in infr.inner_priority_gen(use_refresh):
+        for _ in infr._inner_priority_gen(use_refresh):
             yield _
 
     def incon_recovery_gen(infr):
+        """
+        Subiterator for recovery mode of the mainm algorithm
+
+        Iterates until the graph is consistent
+
+        Note:
+            inconsistency recovery is implicitly handled by the main algorithm,
+            so other phases do not need to call this explicitly. This exists
+            for the case where the only mode we wish to run is inconsistency
+            recovery.
+        """
         maybe_error_edges = list(infr.maybe_error_edges())
         if len(maybe_error_edges) == 0:
             raise StopIteration()
@@ -207,13 +246,14 @@ class InfrLoops(object):
         infr.print('--- INCON RECOVER LOOP ---', color='white')
         infr.queue.clear()
         infr.add_candidate_edges(maybe_error_edges)
-        for _ in infr.inner_priority_gen(use_refresh=False):
+        for _ in infr._inner_priority_gen(use_refresh=False):
             yield _
 
     def pos_redun_gen(infr):
         """
-        Does the autoreviews / generates the manual reviews for the positive
-        redundancy loop.
+        Subiterator for phase2 of the main algorithm.
+
+        Searches for decisions that would commplete positive redundancy
 
         Doctest:
             >>> from ibeis.algo.graph.mixin_loops import *
@@ -223,7 +263,6 @@ class InfrLoops(object):
             >>> #infr.load_published()
             >>> gen = infr.pos_redun_gen()
             >>> feedback = next(gen)
-
         """
         infr.print('===========================', color='white')
         infr.print('--- POSITIVE REDUN LOOP ---', color='white')
@@ -281,7 +320,7 @@ class InfrLoops(object):
 
             for new_edges in filtered_gen():
                 found_any = True
-                gen = infr.inner_priority_gen(use_refresh=False)
+                gen = infr._inner_priority_gen(use_refresh=False)
                 for value in gen:
                     yield value
 
@@ -295,6 +334,11 @@ class InfrLoops(object):
                 count + 1))
 
     def neg_redun_gen(infr):
+        """
+        Subiterator for phase3 of the main algorithm.
+
+        Searches for decisions that would commplete negative redundancy
+        """
         infr.print('===========================', color='white')
         infr.print('--- NEGATIVE REDUN LOOP ---', color='white')
 
@@ -308,21 +352,29 @@ class InfrLoops(object):
             infr.print('another neg redun chunk')
             # Add chunks in a little at a time for faster response time
             infr.add_candidate_edges(new_edges)
-            gen = infr.inner_priority_gen(use_refresh=False,
-                                          only_auto=only_auto)
+            gen = infr._inner_priority_gen(use_refresh=False,
+                                           only_auto=only_auto)
             for value in gen:
                 yield value
 
-    def inner_priority_gen(infr, use_refresh=False, only_auto=False):
+    def _inner_priority_gen(infr, use_refresh=False, only_auto=False):
         """
+        Helper function that implements the general inner priority loop.
+
         Executes reviews until the queue is empty or needs refresh
 
         Args:
             user_refresh (bool): if True enables the refresh criteria.
                 (set to True in Phase 1)
+
             only_auto (bool) if True, then the user wont be prompted with
                 reviews unless the graph is inconsistent.
                 (set to True in Phase 3)
+
+        Notes:
+            The caller is responsible for populating the priority queue.  This
+            will iterate until the queue is empty or the refresh critieron is
+            triggered.
         """
         if infr.refresh:
             infr.refresh.enabled = use_refresh
@@ -599,291 +651,8 @@ class InfrReviewers(object):
         return infr.manual_wgt
 
 
-class SimulationHelpers(object):
-    def init_simulation(infr, oracle_accuracy=1.0, k_redun=2,
-                        enable_autoreview=True, enable_inference=True,
-                        classifiers=None, match_state_thresh=None,
-                        max_outer_loops=None, name=None):
-        infr.print('INIT SIMULATION', color='yellow')
-
-        infr.name = name
-        infr.simulation_mode = True
-
-        infr.verifiers = classifiers
-        infr.params['inference.enabled'] = enable_inference
-        infr.params['autoreview.enabled'] = enable_autoreview
-
-        infr.params['redun.pos'] = k_redun
-        infr.params['redun.neg'] = k_redun
-
-        infr.queue = ut.PriorityQueue()
-
-        infr.oracle = UserOracle(oracle_accuracy, rng=infr.name)
-
-        if match_state_thresh is None:
-            match_state_thresh = {
-                POSTV: 1.0,
-                NEGTV: 1.0,
-                INCMP: 1.0,
-            }
-
-        pb_state_thresh = None
-        if pb_state_thresh is None:
-            pb_state_thresh = {
-                'pb': .5,
-                'notpb': .9,
-            }
-
-        infr.task_thresh = {
-            'photobomb_state': pd.Series(pb_state_thresh),
-            'match_state': pd.Series(match_state_thresh)
-        }
-        infr.params['algo.max_outer_loops'] = max_outer_loops
-
-    def init_test_mode(infr):
-        from ibeis.algo.graph import nx_dynamic_graph
-        infr.print('init_test_mode')
-        infr.test_mode = True
-        # infr.edge_truth = {}
-        infr.metrics_list = []
-        infr.test_state = {
-            'n_decision': 0,
-            'n_algo': 0,
-            'n_manual': 0,
-            'n_true_merges': 0,
-            'n_error_edges': 0,
-            'confusion': None,
-        }
-        infr.test_gt_pos_graph = nx_dynamic_graph.DynConnGraph()
-        infr.test_gt_pos_graph.add_nodes_from(infr.aids)
-        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
-        infr.node_truth = ut.dzip(infr.aids, infr.orig_name_labels)
-
-        # infr.real_n_pcc_mst_edges = sum(
-        #     len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
-        # ut.cprint('real_n_pcc_mst_edges = %r' % (
-        #     infr.real_n_pcc_mst_edges,), 'red')
-
-        infr.metrics_list = []
-        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
-        infr.real_n_pcc_mst_edges = sum(
-            len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
-        infr.print('real_n_pcc_mst_edges = %r' % (
-            infr.real_n_pcc_mst_edges,), color='red')
-
-    def measure_error_edges(infr):
-        for edge, data in infr.edges(data=True):
-            true_state = data['truth']
-            pred_state = data.get('evidence_decision', UNREV)
-            if pred_state != UNREV:
-                if true_state != pred_state:
-                    error = ut.odict([('real', true_state),
-                                      ('pred', pred_state)])
-                    yield edge, error
-
-    @profile
-    def measure_metrics(infr):
-        real_pos_edges = []
-
-        n_true_merges = infr.test_state['n_true_merges']
-        confusion = infr.test_state['confusion']
-
-        n_tp = confusion[POSTV][POSTV]
-        confusion[POSTV]
-        columns = set(confusion.keys())
-        reviewd_cols = columns - {UNREV}
-        non_postv = reviewd_cols - {POSTV}
-        non_negtv = reviewd_cols - {NEGTV}
-
-        n_fn = sum(ut.take(confusion[POSTV], non_postv))
-        n_fp = sum(ut.take(confusion[NEGTV], non_negtv))
-
-        n_error_edges = sum(confusion[r][c] + confusion[c][r] for r, c in
-                            ut.combinations(reviewd_cols, 2))
-        # assert n_fn + n_fp == n_error_edges
-
-        pred_n_pcc_mst_edges = n_true_merges
-
-        if 0:
-            import ubelt as ub
-            for timer in ub.Timerit(10):
-                with timer:
-                    # Find undetectable errors
-                    num_undetectable_fn = 0
-                    for nid1, nid2 in infr.neg_redun_metagraph.edges():
-                        cc1 = infr.pos_graph.component(nid1)
-                        cc2 = infr.pos_graph.component(nid2)
-                        neg_edges = nxu.edges_cross(infr.neg_graph, cc1, cc2)
-                        for u, v in neg_edges:
-                            real_nid1 = infr.node_truth[u]
-                            real_nid2 = infr.node_truth[v]
-                            if real_nid1 == real_nid2:
-                                num_undetectable_fn += 1
-                                break
-
-                    # Find undetectable errors
-                    num_undetectable_fp = 0
-                    for nid in infr.pos_redun_nids:
-                        cc = infr.pos_graph.component(nid)
-                        if not ut.allsame(ut.take(infr.node_truth, cc)):
-                            num_undetectable_fp += 1
-
-            print('num_undetectable_fn = %r' % (num_undetectable_fn,))
-            print('num_undetectable_fp = %r' % (num_undetectable_fp,))
-
-        if 0:
-            n_error_edges2 = 0
-            n_fn2 = 0
-            n_fp2 = 0
-            for edge, data in infr.edges(data=True):
-                decision = data.get('evidence_decision', UNREV)
-                true_state = infr.edge_truth[edge]
-                if true_state == decision and true_state == POSTV:
-                    real_pos_edges.append(edge)
-                elif decision != UNREV:
-                    if true_state != decision:
-                        n_error_edges2 += 1
-                        if true_state == POSTV:
-                            n_fn2 += 1
-                        elif true_state == NEGTV:
-                            n_fp2 += 1
-            assert n_error_edges2 == n_error_edges
-            assert n_tp == len(real_pos_edges)
-            assert n_fn == n_fn2
-            assert n_fp == n_fp2
-            # pred_n_pcc_mst_edges2 = sum(
-            #     len(cc) - 1 for cc in infr.test_gt_pos_graph.connected_components()
-            # )
-        if False:
-            import networkx as nx
-            # set(infr.test_gt_pos_graph.edges()) == set(real_pos_edges)
-            pred_n_pcc_mst_edges = 0
-            for cc in nx.connected_components(nx.Graph(real_pos_edges)):
-                pred_n_pcc_mst_edges += len(cc) - 1
-            assert n_true_merges == pred_n_pcc_mst_edges
-
-        pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
-        metrics = {
-            'n_decision': infr.test_state['n_decision'],
-            'n_manual': infr.test_state['n_manual'],
-            'n_algo': infr.test_state['n_algo'],
-            'pos_acc': pos_acc,
-            'n_merge_total': infr.real_n_pcc_mst_edges,
-            'n_merge_remain': infr.real_n_pcc_mst_edges - n_true_merges,
-            'n_true_merges': n_true_merges,
-            'recovering': infr.is_recovering(),
-            # 'recovering2': infr.test_state['recovering'],
-            'merge_remain': 1 - pos_acc,
-            'n_errors': n_error_edges,
-            'n_fn': n_fn,
-            'n_fp': n_fp,
-            'refresh_support': len(infr.refresh.manual_decisions),
-            'pprob_any': infr.refresh.prob_any_remain(),
-            'mu': infr.refresh._ewma,
-            'test_action': infr.test_state['test_action'],
-            'action': infr.test_state.get('action', None),
-            'user_id': infr.test_state['user_id'],
-            'pred_decision': infr.test_state['pred_decision'],
-            'true_decision': infr.test_state['true_decision'],
-        }
-
-        return metrics
-
-    def _print_previous_loop_statistics(infr, count):
-        # Print stats about what happend in the this loop
-        history = infr.metrics_list[-count:]
-        recover_blocks = ut.group_items([
-            (k, sum(1 for i in g))
-            for k, g in it.groupby(ut.take_column(history, 'recovering'))
-        ]).get(True, [])
-        infr.print((
-            'Recovery mode entered {} times, '
-            'made {} recovery decisions.').format(
-                len(recover_blocks), sum(recover_blocks)), color='green')
-        testaction_hist = ut.dict_hist(ut.take_column(history, 'test_action'))
-        infr.print(
-            'Test Action Histogram: {}'.format(
-                ut.repr4(testaction_hist, si=True)), color='yellow')
-        if infr.params['inference.enabled']:
-            action_hist = ut.dict_hist(
-                ut.emap(frozenset, ut.take_column(history, 'action')))
-            infr.print(
-                'Inference Action Histogram: {}'.format(
-                    ub.repr2(action_hist, si=True)), color='yellow')
-        infr.print(
-            'Decision Histogram: {}'.format(ut.repr2(ut.dict_hist(
-                ut.take_column(history, 'pred_decision')
-            ), si=True)), color='yellow')
-        infr.print(
-            'User Histogram: {}'.format(ut.repr2(ut.dict_hist(
-                ut.take_column(history, 'user_id')
-            ), si=True)), color='yellow')
-
-
-class UserOracle(object):
-    def __init__(oracle, accuracy, rng):
-        if isinstance(rng, six.string_types):
-            rng = sum(map(ord, rng))
-        rng = ut.ensure_rng(rng, impl='python')
-
-        if isinstance(accuracy, tuple):
-            oracle.normal_accuracy = accuracy[0]
-            oracle.recover_accuracy = accuracy[1]
-        else:
-            oracle.normal_accuracy = accuracy
-            oracle.recover_accuracy = accuracy
-        # .5
-
-        oracle.rng = rng
-        oracle.states = {POSTV, NEGTV, INCMP}
-
-    def review(oracle, edge, truth, infr, accuracy=None):
-        feedback = {
-            'user_id': 'user:oracle',
-            'confidence': 'absolutely_sure',
-            'evidence_decision': None,
-            'meta_decision': NULL,
-            'timestamp_s1': ut.get_timestamp('int', isutc=True),
-            'timestamp_c1': ut.get_timestamp('int', isutc=True),
-            'timestamp_c2': ut.get_timestamp('int', isutc=True),
-            'tags': [],
-        }
-        is_recovering = infr.is_recovering()
-
-        if accuracy is None:
-            if is_recovering:
-                accuracy = oracle.recover_accuracy
-            else:
-                accuracy = oracle.normal_accuracy
-
-        # The oracle can get anything where the hardness is less than its
-        # accuracy
-
-        hardness = oracle.rng.random()
-        error = accuracy < hardness
-
-        if error:
-            error_options = list(oracle.states - {truth} - {INCMP})
-            observed = oracle.rng.choice(list(error_options))
-        else:
-            observed = truth
-        if accuracy < 1.0:
-            feedback['confidence'] = 'pretty_sure'
-        if accuracy < .5:
-            feedback['confidence'] = 'guessing'
-        feedback['evidence_decision'] = observed
-        if error:
-            infr.print(
-                'ORACLE ERROR real={} pred={} acc={:.2f} hard={:.2f}'.format(
-                    truth, observed, accuracy, hardness), 2, color='red')
-
-            # infr.print(
-            #     'ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}'.format(edge, truth, observed, is_recovering, hardness),
-            #     2, color='red')
-        return feedback
-
-
-if True:
+if False:
+    # Testing generating using threads
     from threading import Thread
 
     _sentinel = object()
@@ -937,7 +706,8 @@ if True:
             self._queue.put(_sentinel)
 
     class buffered_add_candidate_edges(object):
-        """Buffers content of an iterator polling the contents of the given
+        """
+        Buffers content of an iterator polling the contents of the given
         iterator in a separate thread.
         When the consumer is faster than many producers, this kind of
         concurrency and buffering makes sense.
@@ -972,8 +742,8 @@ if True:
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.loops
-        python -m ibeis.algo.graph.loops --allexamples
+        python -m ibeis.algo.graph.mixin_loops
+        python -m ibeis.algo.graph.mixin_loops --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

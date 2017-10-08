@@ -33,11 +33,10 @@ class PairFeatureConfig(dt.Config):
         # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
         ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
         # ut.ParamInfo('bins', [.5, .6, .7, .8])
-        # ut.ParamInfo('bins', (.625, .8), type_=eval),
-        ut.ParamInfo('bins', (.625,), type_=eval),
         # ut.ParamInfo('bins', None, type_=eval),
+        ut.ParamInfo('bins', (.625,), type_=eval),
         # ut.ParamInfo('need_lnbnn', False),
-        # ut.ParamInfo('med', True),
+        ut.ParamInfo('use_na', False),  # change to True if sklearn has RFs with nan support
     ]
 
 
@@ -356,7 +355,8 @@ class PairwiseFeatureExtractor(object):
         # ---------------
         # Try different feature constructions
         print('[extr] building pairwise features')
-        pairfeat_cfg = extr.pairfeat_cfg
+        pairfeat_cfg = extr.pairfeat_cfg.copy()
+        use_na = pairfeat_cfg.pop('use_na')
         pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
         X = pd.DataFrame([
             m.make_feature_vector(**pairfeat_cfg)
@@ -385,6 +385,10 @@ class PairwiseFeatureExtractor(object):
         aid_pairs_ = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
         assert aid_pairs_ == edges, 'edge ordering changed'
 
+        if not use_na:
+            # Fill nan values with very large values to workaround lack of nan
+            # support in sklearn master.
+            X[pd.isnull(X)] = (2 ** 30) - 1
         return matches, X
 
     def _make_cfgstr(extr, edges):

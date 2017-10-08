@@ -1080,16 +1080,21 @@ class Chap5(DBInputs):
             >>> ut.show_if_requested()
         """
         mpl.rcParams.update(TMP_RC)
+        sim_results = self.ensure_results('simulation')
 
-        sim_results = ut.ensure_results('simulation')
         expt_data = sim_results['graph']
-
         metrics_df = pd.DataFrame.from_dict(expt_data['metrics'])
 
         fnum = 1  # NOQA
-
-        show_auto = 1
-        if show_auto:
+        overshow = {
+            'phase': True,
+            'pred': False,
+            'auto': True,
+            'real': True,
+            'error': True,
+            'recover': True,
+        }
+        if overshow['auto']:
             xdata = metrics_df['n_decision']
             xlabel = '# decisions'
         else:
@@ -1116,49 +1121,67 @@ class Chap5(DBInputs):
             ax.fill_between(xs, ys, low, alpha=.6, color=color)
 
         def overlay_actions(ymax=1):
+            """
+            Draws indicators that detail the algorithm state at given
+            timestamps.
+            """
+
+            phase = metrics_df['phase'].map(
+                lambda x: x.split('_')[0])
             is_correct = metrics_df['test_action'].map(
                 lambda x: x.startswith('correct')).values
             recovering = metrics_df['recovering'].values
             is_auto = metrics_df['user_id'].map(
-                lambda x: x.startswith('auto')).values
+                lambda x: x.startswith('algo:')).values
             ppos = metrics_df['pred_decision'].map(
                 lambda x: x == POSTV).values
             rpos = metrics_df['true_decision'].map(
                 lambda x: x == POSTV).values
             # ymax = max(metrics_df['n_errors'])
 
-            show_pred = False
-
-            num = 3 + (show_auto + show_pred)
+            num = sum(overshow.values())
             steps = np.linspace(0, 1, num + 1) * ymax
             i = -1
 
-            if show_auto:
+            def stacked_interval(data, color, i):
+                plot_intervals(data, color, low=steps[i], high=steps[i + 1])
+
+            if overshow['auto']:
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()),
                                  'is_auto(auto=gold,manual=blue)')
-                plot_intervals(is_auto, 'gold', low=steps[i], high=steps[i + 1])
-                plot_intervals(~is_auto, 'blue', low=steps[i], high=steps[i + 1])
+                stacked_interval(is_auto, 'gold', i)
+                stacked_interval(~is_auto, 'blue', i)
 
-            if show_pred:
+            if overshow['pred']:
                 i += 1
                 pt.absolute_text((.2, steps[i:i + 2].mean()), 'pred_pos')
-                plot_intervals(ppos, 'aqua', low=steps[i], high=steps[i + 1])
-                # plot_intervals(~ppos, 'salmon', low=steps[i], high=steps[i + 1])
+                stacked_interval(ppos, 'aqua', low=steps[i], high=steps[i + 1])
+                # stacked_interval(~ppos, 'salmon', i)
 
-            i += 1
-            pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_pos')
-            plot_intervals(rpos, 'lime', low=steps[i], high=steps[i + 1])
-            # plot_intervals(~ppos, 'salmon', low=steps[i], high=steps[i + 1])
+            if overshow['real']:
+                i += 1
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_pos')
+                stacked_interval(rpos, 'lime', i)
+                # stacked_interval(~ppos, 'salmon', i)
 
-            i += 1
-            pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_error')
-            # plot_intervals(is_correct, 'blue', low=steps[i], high=steps[i + 1])
-            plot_intervals(~is_correct, 'red', low=steps[i], high=steps[i + 1])
+            if overshow['error']:
+                i += 1
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_error')
+                # stacked_interval(is_correct, 'blue', low=steps[i], high=steps[i + 1])
+                stacked_interval(~is_correct, 'red', i)
 
-            i += 1
-            pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_recovering')
-            plot_intervals(recovering, 'orange', low=steps[i], high=steps[i + 1])
+            if overshow['recover']:
+                i += 1
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_recovering')
+                stacked_interval(recovering, 'orange', i)
+
+            if overshow['phase']:
+                i += 1
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'phase')
+                stacked_interval(phase == 'ranking', 'red', i)
+                stacked_interval(phase == 'posredun', 'green', i)
+                stacked_interval(phase == 'negredun', 'blue', i)
 
         pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=8)
 

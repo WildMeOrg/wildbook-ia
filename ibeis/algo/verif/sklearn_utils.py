@@ -13,6 +13,10 @@ from sklearn.model_selection._split import (_BaseKFold,)
 print, rrr, profile = ut.inject2(__name__)
 
 
+# from sklearn.utils.fixes import bincount
+bincount = np.bincount
+
+
 class StratifiedGroupKFold(_BaseKFold):
     """Stratified K-Folds cross-validator with Grouping
 
@@ -86,7 +90,6 @@ class StratifiedGroupKFold(_BaseKFold):
         unique_groups, group_idxs = ut.group_indices(groups)
         # grouped_ids = list(grouping.keys())
         grouped_y = ut.apply_grouping(y, group_idxs)
-        from sklearn.utils.fixes import bincount
         grouped_y_counts = np.array([
             bincount(y_, minlength=n_classes) for y_ in grouped_y])
 
@@ -176,7 +179,7 @@ def temp(samples):
     from sklearn import model_selection
     from ibeis.algo.verif import sklearn_utils
     def check_balance(idxs):
-        from sklearn.utils.fixes import bincount
+        # from sklearn.utils.fixes import bincount
         print('-------')
         for count, (test, train) in enumerate(idxs):
             print('split %r' % (count))

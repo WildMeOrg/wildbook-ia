@@ -5,6 +5,9 @@ CommandLine:
     # Test how well out-of-the-box vsone classifiers to:
     python -m ibeis.algo.verif.vsone evaluate_classifiers --db DETECT_SEATURTLES
 
+    # Train a classifier for deployment
+    # Will output to the current working directory
+    python -m ibeis.algo.verif.vsone deploy --db GZ_Master1
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
@@ -621,6 +624,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         Trains and saves a classifier for deployment
 
+        Args:
+            dpath (str): where to save the deployable model
+            task_key (str): task to train for (default match_state)
+            publish (bool): if True will try to rsync the model and metadata to
+                the publication server.
+
+        Example:
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
+            >>>                                   sample_method='random')
+            >>> task_key = ut.get_argval('--task', default='match_state')
+            >>> publish = ut.get_argflag('--publish')
+            >>> pblm.deploy(task_key=task_key, publish=publish)
+
         Notes:
             A deployment consists of the following information
                 * The classifier itself
@@ -720,7 +737,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST',
             >>>                                   sample_method='random')
-            >>> pblm.default_clf_key = 'Logit'
+            >>> #pblm.default_clf_key = 'Logit'
+            >>> pblm.default_clf_key = 'RF'
             >>> pblm.evaluate_classifiers()
         """
         pblm.setup_evaluation(with_simple=with_simple)
@@ -1416,7 +1434,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgdict.update(pblm.hyper_params['vsone_kpts'].asdict())
         cfgdict.update(pblm.hyper_params['chip'].asdict())
 
-        infr._gen = infr.inner_priority_gen(use_refresh=False)
+        infr._gen = infr._inner_priority_gen(use_refresh=False)
         win = infr.qt_review_loop()
         # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
         return win

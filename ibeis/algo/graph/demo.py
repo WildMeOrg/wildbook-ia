@@ -489,6 +489,9 @@ def demodata_infr(**kwargs):
     p_pcc_incomp = kwargs.get('p_incomp', 0)
     pcc_sizes = kwalias('pcc_sizes', None)
 
+    pos_redun = kwalias('pos_redun', [1, 2, 3])
+    pos_redun = ut.ensure_iterable(pos_redun)
+
     # number of maximum inconsistent edges per pcc
     max_n_incon = kwargs.get('n_incon', 3)
 
@@ -514,7 +517,7 @@ def demodata_infr(**kwargs):
                            label='make pos-demo')
     for i, size in pcc_iter:
         p = .1
-        want_connectivity = rng.choice([1, 2, 3])
+        want_connectivity = rng.choice(pos_redun)
         want_connectivity = min(size - 1, want_connectivity)
 
         # Create basic graph of positive edges with desired connectivity

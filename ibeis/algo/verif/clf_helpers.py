@@ -270,10 +270,12 @@ class ClfProblem(ut.NiceRepr):
                 # 'max_features': None,
                 'min_samples_leaf': 5,
                 'min_samples_split': 2,
-                'missing_values': np.nan,
                 # 'n_estimators': 64,
                 'n_estimators': 256,
             }
+            # Hack to only use missing values if we have the right sklearn
+            if 'missing_values' in ut.get_func_kwargs(sklearn.ensemble.RandomForestClassifier.__init__):
+                est_kw1['missing_values'] = np.nan
             est_kw2 = {
                 'random_state': 3915904814,
                 'verbose': 0,
