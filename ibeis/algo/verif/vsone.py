@@ -1434,7 +1434,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgdict.update(pblm.hyper_params['vsone_kpts'].asdict())
         cfgdict.update(pblm.hyper_params['chip'].asdict())
 
-        infr._gen = infr.inner_priority_gen(use_refresh=False)
+        infr._gen = infr._inner_priority_gen(use_refresh=False)
         win = infr.qt_review_loop()
         # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
         return win

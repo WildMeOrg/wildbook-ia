@@ -17,6 +17,7 @@ from ibeis.algo.graph import mixin_priority
 from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
+from ibeis.algo.graph import mixin_simulation
 from ibeis.algo.graph import mixin_ibeis
 from ibeis.algo.graph import nx_utils as nxu
 import pandas as pd
@@ -235,7 +236,8 @@ class Feedback(object):
         infr.set_edge_attr(edge, feedback_item)
 
         if infr.test_mode:
-            infr._dynamic_test_callback(edge, decision, user_id)
+            prev_decision = infr._get_current_decision(edge)
+            infr._dynamic_test_callback(edge, decision, prev_decision, user_id)
 
         # must happen after dynamic test callback
         infr.set_edge_attr(edge, {'decision': decision})
@@ -724,6 +726,8 @@ class MiscHelpers(object):
                 infr.graph.add_nodes_from(aids)
                 for subgraph in infr.review_graphs.values():
                     subgraph.add_nodes_from(aids)
+            nids = set(infr.pos_graph.node_labels(*aids))
+            infr.neg_metagraph.add_nodes_from(nids)
 
     def update_node_attributes(infr, aids=None, nids=None):
         if aids is None:
@@ -945,8 +949,8 @@ class AnnotInference(ut.NiceRepr,
                      mixin_helpers.DummyEdges,
                      mixin_helpers.Convenience,
                      mixin_helpers.AttrAccess,
-                     # Algorithm loops and simulation
-                     mixin_loops.SimulationHelpers,
+                     # Simulation and Loops
+                     mixin_simulation.SimulationHelpers,
                      mixin_loops.InfrReviewers,
                      mixin_loops.InfrLoops,
                      # Visualization
@@ -1297,6 +1301,7 @@ class AnnotInference(ut.NiceRepr,
 
         infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
         infr2.neg_redun_metagraph = copy.deepcopy(infr.neg_redun_metagraph)
+        infr2.neg_metagraph = copy.deepcopy(infr.neg_metagraph)
 
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
         infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)

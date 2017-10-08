@@ -196,6 +196,15 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         return self._ccs[self._union_find[node]]
 
     def node_label(self, node):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> self = DynConnGraph()
+            >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])
+            >>> assert self.node_label(2) == self.node_label(1)
+            >>> assert self.node_label(2) != self.node_label(4)
+        """
         return self._union_find[node]
 
     def node_labels(self, *nodes):
@@ -205,8 +214,22 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         return ut.allsame(self.node_labels(u, v))
 
     def connected_components(self):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> self = DynConnGraph()
+            >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])
+            >>> ccs = list(self.connected_components())
+            >>> print('ccs = {}'.format(ut.repr2(ccs, nl=0)))
+            ccs = [{1, 2, 3}, {4, 5}, {6, 7}]
+        """
         for cc in self._ccs.values():
             yield cc
+
+    def component_labels(self):
+        for label in self._ccs.keys():
+            yield label
 
     # -----
 
@@ -256,6 +279,16 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
             del self._ccs[n]
 
     def add_edge(self, u, v, **attr):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> self = DynConnGraph()
+            >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
+            >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}
+            >>> self.add_edge(1, 5)
+            >>> assert self._ccs == {1: {1, 2, 3, 4, 5, 6, 7}}
+        """
         self._union(u, v)
         super(DynConnGraph, self).add_edge(u, v, **attr)
 
@@ -281,6 +314,18 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
     # ----
 
     def remove_edge(self, u, v):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
+            >>> self = DynConnGraph()
+            >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
+            >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}
+            >>> self.add_edge(1, 5)
+            >>> assert self._ccs == {1: {1, 2, 3, 4, 5, 6, 7}}
+            >>> self.remove_edge(1, 5)
+            >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}
+        """
         super(DynConnGraph, self).remove_edge(u, v)
         self._cut(u, v)
 

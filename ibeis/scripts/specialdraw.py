@@ -1896,7 +1896,7 @@ def system_diagram():
     # infr.add_feedback((1, 2), POSTV)  # hack
 
     infr.ensure_prioritized(infr.get_edges_where_eq('decision', UNREV))
-    gen = infr.inner_priority_gen()
+    gen = infr._inner_priority_gen()
     next(gen)
 
     # edge_overrides = {
