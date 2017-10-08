@@ -1196,7 +1196,7 @@ class AnnotInference(ut.NiceRepr,
             # Termination / Refresh
             'refresh.window': 20,
             'refresh.patience': 72,
-            'refresh.thresh': .1,
+            'refresh.thresh': 0.052,
             'refresh.method': 'binomial',
 
             # Redundancy

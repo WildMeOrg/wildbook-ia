@@ -141,7 +141,8 @@ class GraphExpt(DBInputs):
         # pblm.report_evaluation()
 
         # TODO: need more principled way of selecting thresholds
-        graph_thresh = res.get_pos_threshes('fpr', 0.01)
+        # graph_thresh = res.get_pos_threshes('fpr', 0.01)
+        graph_thresh = res.get_pos_threshes('fpr', 0.001)
         # rankclf_thresh = res.get_pos_threshes(fpr=0.01)
 
         # Load or create the deploy classifiers
@@ -206,6 +207,8 @@ class GraphExpt(DBInputs):
         infr1.params['refresh.window'] = 20
         infr1.params['refresh.thresh'] = 0.052
         infr1.params['refresh.patience'] = 72
+        infr1.params['redun.enforce_pos'] = True
+        infr1.params['redun.enforce_neg'] = True
 
         infr1.init_simulation(classifiers=classifiers, **dials1)
         infr1.init_test_mode()
@@ -509,8 +512,6 @@ class GraphExpt(DBInputs):
             )
 
         def neg_redun_plot(xdata, xlabel):
-            n_aids = sim_results['graph']['graph'].number_of_nodes()
-
             n_pred = len(sim_results['graph']['pred_ccs'])
             z = (n_pred * (n_pred - 1)) / 2
 
