@@ -2186,7 +2186,6 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
         test_gid_set.append(gid)
         label_list.append(label)
 
-    depc.delete_property('classifier', test_gid_set, config=kwargs)
     prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
     confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
     confidence_list = [
