@@ -87,11 +87,26 @@ def _rectify_border_mode(border_mode, default=cv2.BORDER_CONSTANT):
 
 
 def _rectify_interpolation(interp, default=cv2.INTER_LANCZOS4):
-    """ Converts argument to cv2 style """
+    """
+    Converts interpolation into flags suitable cv2 functions
+
+    Args:
+        interp (int or str): string or cv2-style interpolation type
+        default (int): cv2 interpolation flag to use if `interp` is None
+
+    Returns:
+        int: flag specifying interpolation type that can be passed to
+           functions like cv2.resize, cv2.warpAffine, etc...
+    """
     if interp is None:
         return default
     elif isinstance(interp, six.text_type):
-        return CV2_INTERPOLATION_TYPES[interp]
+        try:
+            return CV2_INTERPOLATION_TYPES[interp]
+        except KeyError:
+            print('Valid values for interpolation are {}'.format(
+                list(CV2_INTERPOLATION_TYPES.keys())))
+            raise
     else:
         return interp
 
