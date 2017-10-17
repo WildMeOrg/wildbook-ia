@@ -342,15 +342,15 @@ class GraphExpt(DBInputs):
     def draw_graphsim2(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw_simulation2 --db PZ_MTEST --show
-            python -m ibeis Chap5.draw_simulation2 --db GZ_Master1 --show
-            python -m ibeis Chap5.draw_simulation2 --db PZ_Master1 --show
+            python -m ibeis GraphExpt.draw graphsim2 --db PZ_MTEST --show
+            python -m ibeis GraphExpt.draw graphsim2 --db GZ_Master1 --show
+            python -m ibeis GraphExpt.draw graphsim2 PZ_Master1 --show
 
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> self = Chap5(dbname)
-            >>> self.draw_simulation2()
+            >>> self = GraphExpt(dbname)
+            >>> self.draw_graphsim2()
             >>> ut.show_if_requested()
         """
         mpl.rcParams.update(TMP_RC)
@@ -577,6 +577,14 @@ class GraphExpt(DBInputs):
         #     pt.figure(fnum=fnum, pnum=(2, 2, 4))
         #     overlay_actions(ymax=1)
         pt.set_figtitle(self.dbname)
+
+        fig = pt.gcf()  # NOQA
+        fig.set_size_inches([W, H * .75])
+        pt.adjust_subplots(wspace=.25, fig=fig)
+        fpath = join(self.dpath, 'graphsim2.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
 
 
 def draw_match_states():
