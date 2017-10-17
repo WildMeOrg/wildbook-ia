@@ -60,13 +60,14 @@ def clf():
 
 
 def get_fig(fnum=None):
-    #printDBG('[df2] get_fig(fnum=%r)' % fnum)
+    """
+    DEPRICATE use ensure_fig
+    """
     fig_kwargs = dict(figsize=custom_constants.FIGSIZE, dpi=custom_constants.DPI)
     if fnum is None:
         try:
             fig = gcf()
         except Exception as ex:
-            #printDBG('[df2] get_fig(): ex=%r' % ex)
             ut.printex(ex, '1 in get_fig', iswarning=True)
             fig = plt.figure(**fig_kwargs)
         fnum = fig.number
@@ -74,9 +75,21 @@ def get_fig(fnum=None):
         try:
             fig = plt.figure(fnum, **fig_kwargs)
         except Exception as ex:
-            #print(repr(ex))
             ut.printex(ex, '2 in get_fig', iswarning=True)
-            #warnings.warn(repr(ex))
+            fig = gcf()
+    return fig
+
+
+def ensure_fig(fnum=None):
+    if fnum is None:
+        try:
+            fig = gcf()
+        except Exception as ex:
+            fig = plt.figure()
+    else:
+        try:
+            fig = plt.figure(fnum)
+        except Exception as ex:
             fig = gcf()
     return fig
 
@@ -156,7 +169,7 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         >>> ut.show_if_requested()
     """
     #mpl.pyplot.xkcd()
-    fig = get_fig(fnum)
+    fig = ensure_fig(fnum)
     axes_list = fig.get_axes()
     # Ensure my customized settings
     customize_figure(fig, docla)

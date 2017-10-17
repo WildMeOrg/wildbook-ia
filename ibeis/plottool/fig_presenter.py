@@ -3,7 +3,7 @@ import sys
 import time
 import utool as ut
 import matplotlib as mpl
-from plottool.custom_figure import get_fig
+from plottool import custom_figure
 
 #from .custom_constants import golden_wh
 
@@ -37,13 +37,13 @@ def register_qt4_win(win):
 # ---- GENERAL FIGURE COMMANDS ----
 
 def set_geometry(fnum, x, y, w, h):
-    fig = get_fig(fnum)
+    fig = custom_figure.ensure_fig(fnum)
     qtwin = get_figure_window(fig)
     qtwin.setGeometry(x, y, w, h)
 
 
 def get_geometry(fnum):
-    fig = get_fig(fnum)
+    fig = custom_figure.ensure_fig(fnum)
     qtwin = get_figure_window(fig)
     (x1, y1, x2, y2) = qtwin.geometry().getCoords()
     (x, y, w, h) = (x1, y1, x2 - x1, y2 - y1)
