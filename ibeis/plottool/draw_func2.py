@@ -2614,7 +2614,7 @@ def reverse_colormap(cmap):
         return cmap_reversed
 
 
-def interpolated_colormap(color_frac_list, resolution=64):
+def interpolated_colormap(color_frac_list, resolution=64, space='lch-ab'):
     """
     http://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
 
@@ -2639,8 +2639,34 @@ def interpolated_colormap(color_frac_list, resolution=64):
         >>>     (pt.TRUE_BLUE, .7),
         >>>     (pt.PURPLE, 1.0),
         >>> ]
-        >>> resolution = 16 + 1
-        >>> cmap = interpolated_colormap(color_frac_list, resolution)
+        >>> color_frac_list = [
+        >>>     (pt.RED,      0/6),
+        >>>     (pt.YELLOW,   1/6),
+        >>>     (pt.GREEN,    2/6),
+        >>>     (pt.CYAN,     3/6),
+        >>>     (pt.BLUE,     4/6),  # FIXME doesn't go in correct direction
+        >>>     (pt.MAGENTA,  5/6),
+        >>>     (pt.RED,      6/6),
+        >>> ]
+        >>> color_frac_list = [
+        >>>     ((1, 0, 0, 0),  0/6),
+        >>>     ((1, 0, .001/255, 0),  6/6), # hack
+        >>> ]
+        >>> space = 'hsv'
+        >>> color_frac_list = [
+        >>>     (pt.BLUE,   0.0),
+        >>>     (pt.GRAY,   0.5),
+        >>>     (pt.YELLOW, 1.0),
+        >>> ]
+        >>> color_frac_list = [
+        >>>     (pt.GREEN,  0.0),
+        >>>     (pt.GRAY,   0.5),
+        >>>     (pt.RED,    1.0),
+        >>> ]
+        >>> space = 'lab'
+        >>> #resolution = 16 + 1
+        >>> resolution = 256 + 1
+        >>> cmap = interpolated_colormap(color_frac_list, resolution, space)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> a = np.linspace(0, 1, resolution).reshape(1, -1)
@@ -2729,6 +2755,7 @@ def interpolated_colormap(color_frac_list, resolution=64):
     from_rgb, to_rgb = conversions['xyz']
     from_rgb, to_rgb = conversions['lch-uv']
     from_rgb, to_rgb = conversions['lch-ab']
+    from_rgb, to_rgb = conversions[space]
     # from_rgb, to_rgb = conversions['lch']
     # from_rgb, to_rgb = conversions['lab']
     # from_rgb, to_rgb = conversions['lch-uv']
@@ -3314,7 +3341,8 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
            data_colorbar=False, darken=DARKEN, update=False,
-           xlabel=None, redraw_image=True, ax=None, alpha=None, **kwargs):
+           xlabel=None, redraw_image=True, ax=None, alpha=None,
+           norm=None, **kwargs):
     r"""
     Args:
         img (ndarray): image data
@@ -3390,9 +3418,12 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     if alpha is not None:
         plt_imshow_kwargs['alpha'] = alpha
 
-    if cmap is None and not heatmap and not nospecial:
-        plt_imshow_kwargs['vmin'] = 0
-        plt_imshow_kwargs['vmax'] = 255
+    if norm is not None:
+        plt_imshow_kwargs['norm'] = norm
+    else:
+        if cmap is None and not heatmap and not nospecial:
+            plt_imshow_kwargs['vmin'] = 0
+            plt_imshow_kwargs['vmax'] = 255
     if heatmap:
         cmap = 'hot'
     try:
