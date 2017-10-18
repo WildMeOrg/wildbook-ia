@@ -342,9 +342,9 @@ class GraphExpt(DBInputs):
     def draw_graphsim2(self):
         """
         CommandLine:
-            python -m ibeis GraphExpt.draw graphsim2 --db PZ_MTEST --show
-            python -m ibeis GraphExpt.draw graphsim2 --db GZ_Master1 --show
-            python -m ibeis GraphExpt.draw graphsim2 PZ_Master1 --show
+            python -m ibeis GraphExpt.draw graphsim2 --db PZ_MTEST --diskshow
+            python -m ibeis GraphExpt.draw graphsim2 GZ_Master1 --diskshow
+            python -m ibeis GraphExpt.draw graphsim2 PZ_Master1 --diskshow
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -579,10 +579,12 @@ class GraphExpt(DBInputs):
         pt.set_figtitle(self.dbname)
 
         fig = pt.gcf()  # NOQA
-        fig.set_size_inches([W, H * .75])
-        pt.adjust_subplots(wspace=.25, fig=fig)
+        fig.set_size_inches([W * 2, H * 2.5])
+        fig.suptitle(self.dbname)
+        pt.adjust_subplots(hspace=.25, wspace=.25, fig=fig)
         fpath = join(self.dpath, 'graphsim2.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        fig.savefig(fpath, dpi=DPI)
+        # vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
             ut.startfile(fpath)
 

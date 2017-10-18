@@ -346,6 +346,8 @@ class InfrLoops(object):
 
         only_auto = infr.params['redun.neg.only_auto']
 
+        # TODO: outer loop that re-iterates until negative redundancy is
+        # accomplished.
         needs_neg_redun = infr.find_neg_redun_candidate_edges()
         chunksize = 500
         for new_edges in ub.chunks(needs_neg_redun, chunksize):
