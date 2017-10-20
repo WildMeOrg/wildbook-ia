@@ -3732,7 +3732,41 @@ class Sampler(object):
     @staticmethod
     def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc,
                     viewpoint_aware=False):
-        """ This cannot be used for cross validation """
+        """
+        This cannot be used for cross validation
+
+        Notes:
+
+            (a) single encounter experiments are structured somewhat like this:
+                (of course this script is more general than this)
+
+                * For each name with more than one encounter
+
+                * Choose a random encounter, and select the highest quality
+                annotation as the single query annotation.
+
+                * For each other encounter the best annotation that is comparable
+                (close to the same viewpoint) to the query. If no other encounter
+                satisfies this then skip this name (dont add a query or database
+                annotation).
+
+                * Of the remaining encounters choose a random annotation to belong
+                to the database.
+
+                * For each other name, that was not selected to form a
+                query/database pair, add all annotations to the database as
+                distractors.
+
+            (b) with multiple exemplars in the database:
+
+                * Follow the same steps above, but now if there are not at
+                least N valid database encounters, we ignore the query/database
+                pair.
+
+                * Multiple sets of daids are generated (each with a different
+                number of exempars per query), but the query set remains the
+                same and consistent across different runs of this experiment.
+        """
         # Group annotations by encounter
         # from ibeis.other import ibsfuncs
         # primary_view = ibsfuncs.get_primary_species_viewpoint(ibs.get_primary_database_species())
