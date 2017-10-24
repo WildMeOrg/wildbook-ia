@@ -426,8 +426,10 @@ def get_annotation_special_megan(**kwargs):
     for path, gid in zip(path_list, gid_list):
         path = path.replace('/home/zebra/Desktop/MEGAN/', '')
         path = path.split('/')
-        path = path[0]
-        path = path.split('_')
+        base = path[0]
+        if base == 'SIDE1_3-22-2016-5-11-2016':  # HACK
+            base = 'SIDE1_3-22-2016_5-11-2016'
+        path = base.split('_')
         try:
             assert len(path) >= 3
             if len(path) > 3:
@@ -445,7 +447,7 @@ def get_annotation_special_megan(**kwargs):
             date2_list.append(date2)
             note_list.append(note)
         except AssertionError:
-            print('ERROR PROCESSING: %r' % (path, ))
+            print('ERROR PROCESSING: %r' % (base, ))
 
     zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list, note_list)
     combined_list = [
