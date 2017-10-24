@@ -422,12 +422,20 @@ def get_annotation_special_megan(**kwargs):
     tag_list = []
     date1_list = []
     date2_list = []
+    note_list = []
     for path, gid in zip(path_list, gid_list):
         path = path.replace('/home/zebra/Desktop/MEGAN/', '')
         path = path.split('/')
         path = path[0]
         print(path)
         path = path.split('_')
+        assert len(path) >= 3
+        if len(path) > 3:
+            note = path[3:]
+            note = ';'.join(note)
+            path = path[:3]
+        else:
+            note = ''
         assert len(path) == 3
         tag, date1, date2 = path
         date1 = date1.replace('-', '/')
@@ -435,14 +443,15 @@ def get_annotation_special_megan(**kwargs):
         tag_list.append(tag)
         date1_list.append(date1)
         date2_list.append(date2)
+        note_list.append(note)
 
-    zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list)
+    zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list, note_list)
     combined_list = [
         ','.join( map(str, value_list) )
         for value_list in zipped
     ]
     combined_str = '\n'.join(combined_list)
-    combined_str = 'GID,FILENAME,LOCATION,DATE1,DATE2\n' + combined_str
+    combined_str = 'GID,FILENAME,LOCATION,DATE1,DATE2,NOTE\n' + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
