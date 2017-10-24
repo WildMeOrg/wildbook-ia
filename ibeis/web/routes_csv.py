@@ -427,23 +427,25 @@ def get_annotation_special_megan(**kwargs):
         path = path.replace('/home/zebra/Desktop/MEGAN/', '')
         path = path.split('/')
         path = path[0]
-        print(path)
         path = path.split('_')
-        assert len(path) >= 3
-        if len(path) > 3:
-            note = path[3:]
-            note = ';'.join(note)
-            path = path[:3]
-        else:
-            note = ''
-        assert len(path) == 3
-        tag, date1, date2 = path
-        date1 = date1.replace('-', '/')
-        date2 = date2.replace('-', '/')
-        tag_list.append(tag)
-        date1_list.append(date1)
-        date2_list.append(date2)
-        note_list.append(note)
+        try:
+            assert len(path) >= 3
+            if len(path) > 3:
+                note = path[3:]
+                note = ';'.join(note)
+                path = path[:3]
+            else:
+                note = ''
+            assert len(path) == 3
+            tag, date1, date2 = path
+            date1 = date1.replace('-', '/')
+            date2 = date2.replace('-', '/')
+            tag_list.append(tag)
+            date1_list.append(date1)
+            date2_list.append(date2)
+            note_list.append(note)
+        except AssertionError:
+            print('ERROR PROCESSING: %r' % (path, ))
 
     zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list, note_list)
     combined_list = [
