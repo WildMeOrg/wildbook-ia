@@ -426,6 +426,7 @@ def get_annotation_special_megan(**kwargs):
         path = path.replace('/home/zebra/Desktop/MEGAN/', '')
         path = path.split('/')
         path = path[0]
+        print(path)
         path = path.replace('-', '_')
         path = path.split('_')
         assert len(path) == 3
