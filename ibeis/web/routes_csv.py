@@ -216,10 +216,10 @@ def get_demographic_info(**kwargs):
     return appf.send_csv_file(combined_str, filename)
 
 
-@register_route('/csv/princeton/special/', methods=['GET'])
-def get_annotation_special_info(target_species=None, **kwargs):
+@register_route('/csv/princeton/special/monica-laurel-max/', methods=['GET'])
+def get_annotation_special_monica_laurel_max(target_species=None, **kwargs):
     ibs = current_app.ibs
-    filename = 'special.csv'
+    filename = 'special.monica-laurel-max.csv'
 
     def _process_annot_name_uuids_dict(ibs, filepath):
         import uuid
@@ -407,6 +407,40 @@ def get_annotation_special_info(target_species=None, **kwargs):
 
     combined_str = '\n'.join(line_list)
     combined_str = 'DB,Annotation UUID,AID,NID,Name,Name Changed,Cross-Database Match,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    return appf.send_csv_file(combined_str, filename)
+
+
+@register_route('/csv/princeton/special/megan/', methods=['GET'])
+def get_annotation_special_megan(**kwargs):
+    ibs = current_app.ibs
+    filename = 'special.megan.csv'
+
+    gid_list = ibs.get_valid_gids()
+    uri_list = ibs.get_image_uris(gid_list)
+    path_list = ibs.get_image_uris_original(gid_list)
+
+    tag_list = []
+    date1_list = []
+    date2_list = []
+    for path, gid in zip(path_list, gid_list):
+        path = path.replace('/home/zebra/Desktop/MEGAN/', '')
+        path = path.split('/')
+        path = path[0]
+        path = path.replace('-', '_')
+        path = path.split('_')
+        assert len(path) == 3
+        tag, date1, date2 = path
+        tag_list.append(tag)
+        date1_list.append(date1)
+        date2_list.append(date2)
+
+    zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list)
+    combined_list = [
+        ','.join( map(str, value_list) )
+        for value_list in zipped
+    ]
+    combined_str = '\n'.join(combined_list)
+    combined_str = 'GID,FILENAME,LOCATION,DATE1,DATE2\n' + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
