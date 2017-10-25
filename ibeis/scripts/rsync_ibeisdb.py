@@ -78,9 +78,10 @@ def rsync_ibsdb_main():
 
     user = ut.get_argval('--user', type_=str, default=default_user)
     port = ut.get_argval('--port', type_=int, default=22)
-    dbname = ut.get_argval(('--db', '--dbname'), type_=str,
-                           default=default_db)
-    workdir = ut.get_argval(('--workdir', '--dbname'), type_=str,
+    dbnames = ut.get_argval(('--db', '--dbs', '--dbname'), type_=str,
+                            default=default_db)
+    dbnames = ut.smart_cast(dbnames, list)
+    workdir = ut.get_argval(('--workdir'), type_=str,
                             default=None, help_='local work dir override')
     dry_run = ut.get_argflag(('--dryrun', '--dry-run', '--dry'))
 
@@ -103,6 +104,9 @@ def rsync_ibsdb_main():
         remote_key_, remote_workdir = remote_key.split(':')
     else:
         remote_key_ = remote_key
+        if remote_key not in remote_workdir_map:
+            import warnings
+            warnings.warn('Workdir not specified for remote')
         remote_workdir = remote_workdir_map.get(remote_key, '')
 
     remote = remote_map.get(remote_key_, remote_key_)
@@ -115,8 +119,10 @@ def rsync_ibsdb_main():
         print('REMOTE LS -- TODO need to get only ibeis dirs')
         print('\n'.join(remote_paths))
     elif mode in ['push', 'pull']:
-        ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
-        sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
+        print('dbnames = {!r}'.format(dbnames))
+        for dbname in ut.ProgIter(dbnames, label='sync db'):
+            ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
+            sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
 
 
 if __name__ == '__main__':
@@ -144,6 +150,8 @@ if __name__ == '__main__':
         ibeis rsync push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
 
         ibeis rsync pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
+
+        ibeis rsync push --db RotanTurtles,GZ_Master1,humpbacks_fb,PZ_Master1,PZ_MTEST --user jon.crall --remote aretha:data/ibeis
 
         ibeis rsync push --db PZ_Master1 --user joncrall --remote lev
         ibeis rsync push --db GZ_Master1 --user joncrall --remote lev
