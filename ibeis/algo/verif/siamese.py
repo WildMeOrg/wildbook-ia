@@ -317,7 +317,7 @@ class FitHarness(object):
         pred_pos_flags = torch.ByteTensor()
         torch.le(l21_tensor, margin, out=pred_pos_flags)  # y==1's idx
 
-        cur_score = torch.LongTensor(label.size(0))
+        cur_score = torch.FloatTensor(label.size(0))
         cur_score.fill_(NEG_LABEL)
         cur_score[pred_pos_flags] = POS_LABEL
 
