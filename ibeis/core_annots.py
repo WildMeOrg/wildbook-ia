@@ -237,7 +237,7 @@ class ChipConfig(dtool.Config):
             valid_values=['area', 'width', 'height', 'diag', 'maxwh', 'wh'],
             hideif=lambda cfg: cfg['dim_size'] is None),
         ut.ParamInfo('dim_tol', 0, 'tol', hideif=0),
-        ut.ParamInfo('preserve_aspect', True, hideif=True),
+        # ut.ParamInfo('preserve_aspect', True, hideif=True),
         # ---
         ut.ParamInfo('histeq', False, hideif=False),
         # ---

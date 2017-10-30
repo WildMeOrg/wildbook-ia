@@ -407,6 +407,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             ibeis_rman.add_repos([
                 'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
             ])
+        # NEW CNN Dependencies
+        tpl_rman.add_repos([
+            'https://github.com/pytorch/pytorch.git',
+        ])
         # if GET_ARGFLAG('--libgpuarray'):
         tpl_rman.add_repos([
             'https://github.com/Theano/libgpuarray.git',
@@ -935,6 +939,15 @@ def execute_commands(tpl_rman, ibeis_rman):
         script.exec_()
         script = ibeis_rman['flann'].get_script('install')
         script.exec_()
+
+    if GET_ARGFLAG('--dcnn'):
+        # Theano and lasange code should be moved to pytorch
+        tpl_rman['pytorch'].clone(recursive=True)
+        tpl_rman['pytorch'].issue('git submodule update --init')
+        tpl_rman['pytorch'].issue('python setup install')
+        tpl_rman['pytorch'].issue('pip install torchvision')
+        # tpl_rman['pytorch'].issue('NO_CUDNN=TRUE && python setup install')
+        # tpl_rman['pytorch'].issue('pip install -e .')
 
     if GET_ARGFLAG('--libgpuarray') or GET_ARGFLAG('--dcnn'):
         tpl_rman['libgpuarray'].clone()
