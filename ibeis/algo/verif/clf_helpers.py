@@ -1246,6 +1246,37 @@ class MultiTaskSamples(ut.NiceRepr):
             skf_list = list(splitter.split(X=X, y=y))
         return skf_list
 
+    def subsplit_indices(samples, subset_idx, **xval_kw):
+        """ split an existing set """
+        from sklearn import model_selection
+
+        X = np.empty((len(subset_idx), 0))
+        y = samples.encoded_1d().values[subset_idx]
+        groups = samples.group_ids[subset_idx]
+
+        xval_kw_ = xval_kw.copy()
+        if 'n_splits' not in xval_kw_:
+            xval_kw_['n_splits'] = 3
+        type_ = xval_kw_.pop('type', 'StratifiedGroupKFold')
+        if type_ == 'StratifiedGroupKFold':
+            assert groups is not None
+            # FIXME: The StratifiedGroupKFold could be implemented better.
+            splitter = sklearn_utils.StratifiedGroupKFold(**xval_kw_)
+            rel_skf_list = list(splitter.split(X=X, y=y, groups=groups))
+        elif type_ == 'StratifiedKFold':
+            splitter = model_selection.StratifiedKFold(**xval_kw_)
+            rel_skf_list = list(splitter.split(X=X, y=y))
+
+        # map back into original coords
+        skf_list = [(subset_idx[rel_idx1], subset_idx[rel_idx2])
+                    for rel_idx1, rel_idx2 in rel_skf_list]
+
+        for idx1, idx2 in skf_list:
+            assert len(np.intersect1d(subset_idx, idx1)) == len(idx1)
+            assert len(np.intersect1d(subset_idx, idx2)) == len(idx2)
+            # assert
+        return skf_list
+
 
 @ut.reloadable_class
 class MultiClassLabels(ut.NiceRepr):
