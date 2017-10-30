@@ -115,8 +115,8 @@ class FitHarness(object):
         # harn.model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda()
         harn.config = {
             'maxIterations': 10000,
-            'displayInterval': 10000,
-            'vail_displayInterval': 10000,
+            'displayInterval': 1,
+            'vail_displayInterval': 1,
             'model_dir': '.',
             'margin': 1.0,
         }
@@ -173,6 +173,7 @@ class FitHarness(object):
                 data0, data1, target = data0.cuda(), data1.cuda(), target.cuda()
             data0, data1, target = Variable(data0), Variable(data1), Variable(target)
             input_batch = (data0, data1, target)
+            print('Begin batch {}'.format(batch_idx))
             t_cur_metrics = harn.train_batch(input_batch)
 
             for k, v in t_cur_metrics.items():
@@ -214,6 +215,7 @@ class FitHarness(object):
             t_data0, t_data1, t_target = Variable(t_data0), Variable(t_data1), Variable(t_target)
 
             input_batch = (t_data0, t_data1, t_target)
+            print('Begin batch {}'.format(vali_idx))
             v_cur_metrics = harn.validation_batch(input_batch)
 
             for k, v in v_cur_metrics.items():
