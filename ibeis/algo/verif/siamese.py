@@ -168,6 +168,7 @@ class FitHarness(object):
 
         # train batch
         for batch_idx, (data0, data1, target) in enumerate(harn.train_loader):
+            target = target.type(torch.FloatTensor)
             if harn.use_cuda:
                 data0, data1, target = data0.cuda(), data1.cuda(), target.cuda()
             data0, data1, target = Variable(data0), Variable(data1), Variable(target)
@@ -207,6 +208,7 @@ class FitHarness(object):
         final_metrics = ave_metrics.copy()
 
         for vali_idx, (t_data0, t_data1, t_target) in enumerate(harn.vali_loader):
+            t_target = t_target.type(torch.FloatTensor)
             if harn.use_cuda:
                 t_data0, t_data1, t_target = t_data0.cuda(), t_data1.cuda(), t_target.cuda()
             t_data0, t_data1, t_target = Variable(t_data0), Variable(t_data1), Variable(t_target)
@@ -372,9 +374,9 @@ class ContrastiveLoss(torch.nn.Module):
         dist_sq = torch.sum(torch.pow(diff, 2), 1)
         dist_l2 = torch.sqrt(dist_sq)
 
-        mdist = self.margin - dist_l2
-        dist = torch.clamp(mdist, min=0.0)
-        loss2x = labels * dist_sq + (1 - labels) * torch.pow(dist, 2)
+        loss2x_genuine  = (1 - labels) * torch.pow(torch.clamp(self.margin - dist_l2, min=0.0), 2)
+        loss2x_imposter = labels * dist_sq
+        loss2x = loss2x_genuine + loss2x_imposter
         ave_loss = torch.sum(loss2x) / 2.0 / vecs1.size()[0]
         return ave_loss
 
