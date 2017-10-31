@@ -695,7 +695,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         export CONFIG="$CONFIG -DCUDA=$CMAKE_CUDA"
         echo "CONFIG = $CONFIG"
 
-        cmake $CONFIG -G 'Unix Makefiles' ..
+        cmake $CONFIG -G 'Unix Makefiles' {source_dpath}
         #################################
         echo 'Building with make'
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
