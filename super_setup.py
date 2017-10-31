@@ -693,7 +693,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             export CONFIG="-DCMAKE_BUILD_TYPE='Release' -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
         fi
         export CONFIG="$CONFIG -DCUDA=$CMAKE_CUDA"
-        echo "$CONFIG"
+        echo "CONFIG = $CONFIG"
 
         cmake $CONFIG -G 'Unix Makefiles' ..
         #################################
@@ -702,15 +702,16 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         make -j$NCPUS -w
         #################################
 
+        export MAKE_EXITCODE=$?
+        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
+
         # Move the compiled library into the source folder
         if [[ $MAKE_EXITCODE == 0 ]]; then
             echo 'Moving the shared library'
-            cp -v lib* ../pydarknet
-            # cp -v lib{libext} {source_dpath}/pydarknet/libhesaff{plat_spec}{libext}
+            # cp -v lib* ../pydarknet
+            cp -v lib*{libext} {source_dpath}/pydarknet
+            # cp -v libdarknet{libext} {source_dpath}/pydarknet/libdarknet{plat_spec}{libext}
         fi
-
-        export MAKE_EXITCODE=$?
-        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
 
         # ENDBLOCK
         ''').format(**script_fmtdict))
