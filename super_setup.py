@@ -1016,6 +1016,10 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = ibeis_rman['hesaff'].get_script('build')
         script.exec_()
 
+    if GET_ARGFLAG('--pydarknet'):
+        script = ibeis_rman['pydarknet'].get_script('build')
+        script.exec_()
+
     if GET_ARGFLAG('--flann'):
         script = ibeis_rman['flann'].get_script('build')
         script.exec_()
