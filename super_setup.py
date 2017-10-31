@@ -151,7 +151,9 @@ the pull command will update the packages as well.
          python super_setup.py --hesaff
          python super_setup.py --flann
          python super_setup.py --dcnn
+         python super_setup.py --pydarknet
          python super_setup.py --pyqt
+         python super_setup.py --pyrf
 
 ****
 # Step 4 - Build C++ components.
@@ -717,6 +719,55 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         ''').format(**script_fmtdict))
 
     #===================
+    # PYRF
+    #===================
+
+    ibeis_rman['pyrf'].add_script('build', ut.codeblock(
+        r'''
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd $CODE_DIR/pyrf
+
+        mkdir -p {build_dname}
+        cd {build_dname}
+
+        # only specify an explicit opencv directory if we know one exists
+        if [ -d "$LOCAL_PREFIX/share/OpenCV" ]; then
+            OPENCV_ARGS="-DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV"
+        else
+            OPENCV_ARGS=""
+        fi
+
+        echo 'Configuring with cmake'
+        if [[ '$OSTYPE' == 'darwin'* ]]; then
+            export CONFIG="-DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_C_COMPILER=clang2 -DCMAKE_CXX_COMPILER=clang2++ -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        else
+            export CONFIG="-DCMAKE_BUILD_TYPE='Release' -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        fi
+        echo "CONFIG = $CONFIG"
+
+        cmake $CONFIG -G 'Unix Makefiles' {source_dpath}
+        #################################
+        echo 'Building with make'
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS -w
+        #################################
+
+        export MAKE_EXITCODE=$?
+        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
+
+        # Move the compiled library into the source folder
+        if [[ $MAKE_EXITCODE == 0 ]]; then
+            echo 'Moving the shared library'
+            # cp -v lib* ../pyrf
+            cp -v lib*{libext} {source_dpath}/pyrf
+            # cp -v libpyrf{libext} {source_dpath}/pyrf/libpyrf{plat_spec}{libext}
+        fi
+
+        # ENDBLOCK
+        ''').format(**script_fmtdict))
+
+    #===================
     # OPENCV SETUP SCRIPTS
     #===================
     """
@@ -1009,6 +1060,12 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = cv_repo.get_script('install')
         script.exec_()
 
+    if GET_ARGFLAG('--flann'):
+        script = ibeis_rman['flann'].get_script('build')
+        script.exec_()
+        script = ibeis_rman['flann'].get_script('install')
+        script.exec_()
+
     if GET_ARGFLAG('--pyqt'):
         script = tpl_rman['PyQt'].get_script('system_to_venv')
         script.exec_()
@@ -1021,13 +1078,11 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = ibeis_rman['pydarknet'].get_script('build')
         script.exec_()
 
-    if GET_ARGFLAG('--flann'):
-        script = ibeis_rman['flann'].get_script('build')
-        script.exec_()
-        script = ibeis_rman['flann'].get_script('install')
+    if GET_ARGFLAG('--pyrf'):
+        script = ibeis_rman['pyrf'].get_script('build')
         script.exec_()
 
-    if GET_ARGFLAG('--dcnn'):
+    if GET_ARGFLAG('--torch'):
         # Theano and lasange code should be moved to pytorch
         tpl_rman['pytorch'].clone(recursive=True)
         tpl_rman['pytorch'].issue('git submodule update --init')
