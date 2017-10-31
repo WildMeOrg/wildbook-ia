@@ -956,6 +956,10 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = tpl_rman['PyQt'].get_script('system_to_venv')
         script.exec_()
 
+    if GET_ARGFLAG('--hesaff'):
+        script = ibeis_rman['hesaff'].get_script('build')
+        script.exec_()
+
     if GET_ARGFLAG('--flann'):
         script = ibeis_rman['flann'].get_script('build')
         script.exec_()
