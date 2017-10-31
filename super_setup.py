@@ -148,8 +148,9 @@ the pull command will update the packages as well.
 # Step 3.5 - Grab and Build Extern libraries with scripts
 
          python super_setup.py --opencv
-         python super_setup.py --dcnn
+         python super_setup.py --hesaff
          python super_setup.py --flann
+         python super_setup.py --dcnn
          python super_setup.py --pyqt
 
 ****
@@ -655,6 +656,61 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             #make VERBOSE=1
             cp -v libhesaff{libext} {source_dpath}/pyhesaff/libhesaff{plat_spec}{libext}
         fi
+
+        # ENDBLOCK
+        ''').format(**script_fmtdict))
+
+    #===================
+    # PYDARKNET
+    #===================
+
+    ibeis_rman['pydarknet'].add_script('build', ut.codeblock(
+        r'''
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd $CODE_DIR/pydarknet
+
+        mkdir -p {build_dname}
+        cd {build_dname}
+
+        if [[ "$(which nvcc)" == "" ]]; then
+            export CMAKE_CUDA=Off
+        else
+            export CMAKE_CUDA=On
+        fi
+
+        # only specify an explicit opencv directory if we know one exists
+        if [ -d "$LOCAL_PREFIX/share/OpenCV" ]; then
+            OPENCV_ARGS="-DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV"
+        else
+            OPENCV_ARGS=""
+        fi
+
+        echo 'Configuring with cmake'
+        if [[ '$OSTYPE' == 'darwin'* ]]; then
+            export CONFIG="-DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_C_COMPILER=clang2 -DCMAKE_CXX_COMPILER=clang2++ -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        else
+            export CONFIG="-DCMAKE_BUILD_TYPE='Release' -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        fi
+        export CONFIG="$CONFIG -DCUDA=$CMAKE_CUDA"
+        echo "$CONFIG"
+
+        cmake $CONFIG -G 'Unix Makefiles' ..
+        #################################
+        echo 'Building with make'
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS -w
+        #################################
+
+        # Move the compiled library into the source folder
+        if [[ $MAKE_EXITCODE == 0 ]]; then
+            echo 'Moving the shared library'
+            cp -v lib* ../pydarknet
+            # cp -v lib{libext} {source_dpath}/pydarknet/libhesaff{plat_spec}{libext}
+        fi
+
+        export MAKE_EXITCODE=$?
+        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
 
         # ENDBLOCK
         ''').format(**script_fmtdict))
