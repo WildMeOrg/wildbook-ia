@@ -40,7 +40,7 @@ def testdata_siam_desc(num_data=128, desc_dim=8):
     return vecs1, vecs2, labels
 
 
-class LRSchedulers(object):
+class LRSchedule(object):
     @staticmethod
     def exp(optimizer, epoch, init_lr=0.001, lr_decay_epoch=2):
         """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
@@ -110,7 +110,7 @@ class FitHarness(object):
         harn.test_loader = test_loader
         harn.criterion = ContrastiveLoss(margin=1.0)
         harn.model = Siamese()
-        harn.lr_scheduler = LRSchedulers.exp
+        harn.lr_scheduler = LRSchedule.exp
         harn.use_cuda = False
         # harn.model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda()
         harn.config = {
