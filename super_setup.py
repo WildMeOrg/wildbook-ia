@@ -148,9 +148,12 @@ the pull command will update the packages as well.
 # Step 3.5 - Grab and Build Extern libraries with scripts
 
          python super_setup.py --opencv
-         python super_setup.py --dcnn
+         python super_setup.py --hesaff
          python super_setup.py --flann
+         python super_setup.py --dcnn
+         python super_setup.py --pydarknet
          python super_setup.py --pyqt
+         python super_setup.py --pyrf
 
 ****
 # Step 4 - Build C++ components.
@@ -502,6 +505,21 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         'libext'            : ut.get_lib_ext(),
     }
 
+    if os.environ.get('VIRTUAL_ENV', '') == '':
+        if sys.platform.startswith('darwin'):
+            local_prefix = '/opt/local'
+        else:
+            local_prefix = '/usr/local'
+    else:
+        local_prefix = os.environ['VIRTUAL_ENV']
+
+    opencv_dir = os.path.join(local_prefix, '/share/OpenCV')
+    if not os.path.exists(opencv_dir):
+        if not ut.get_argflag('--opencv'):
+            opencv_dir = ''
+            print('OpenCV is not installed in the expected location: {}'.format(opencv_dir))
+            print('Running this script with --opencv will build and install it there')
+
     # define bash variables for different combinations of python distros and
     # virtual environments
     python_bash_setup = ut.codeblock(
@@ -599,12 +617,19 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     #===================
 
     ibeis_rman['hesaff'].add_script('build', ut.codeblock(
-        r"""
+        r'''
         # STARTBLOCK bash
         {python_bash_setup}
         cd $CODE_DIR/hesaff
         mkdir -p {build_dname}
         cd {build_dname}
+
+        # only specify an explicit opencv directory if we know one exists
+        if [ -d "$LOCAL_PREFIX/share/OpenCV" ]; then
+            OPENCV_ARGS="-DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV"
+        else
+            OPENCV_ARGS=""
+        fi
 
         echo 'Configuring with cmake'
         if [[ '$OSTYPE' == 'darwin'* ]]; then
@@ -613,12 +638,12 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
                 -DCMAKE_C_COMPILER=clang2 \
                 -DCMAKE_CXX_COMPILER=clang2++ \
                 -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-                -DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV \
+                $OPENCV_ARGS \
                 {source_dpath}
         else
             cmake -G "Unix Makefiles" \
                 -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-                -DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV \
+                $OPENCV_ARGS \
                 {source_dpath}
         fi
 
@@ -635,7 +660,112 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         fi
 
         # ENDBLOCK
-        """).format(**script_fmtdict))
+        ''').format(**script_fmtdict))
+
+    #===================
+    # PYDARKNET
+    #===================
+
+    ibeis_rman['pydarknet'].add_script('build', ut.codeblock(
+        r'''
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd $CODE_DIR/pydarknet
+
+        mkdir -p {build_dname}
+        cd {build_dname}
+
+        if [[ "$(which nvcc)" == "" ]]; then
+            export CMAKE_CUDA=Off
+        else
+            export CMAKE_CUDA=On
+        fi
+
+        # only specify an explicit opencv directory if we know one exists
+        if [ -d "$LOCAL_PREFIX/share/OpenCV" ]; then
+            OPENCV_ARGS="-DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV"
+        else
+            OPENCV_ARGS=""
+        fi
+
+        echo 'Configuring with cmake'
+        if [[ '$OSTYPE' == 'darwin'* ]]; then
+            export CONFIG="-DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_C_COMPILER=clang2 -DCMAKE_CXX_COMPILER=clang2++ -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        else
+            export CONFIG="-DCMAKE_BUILD_TYPE='Release' -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        fi
+        export CONFIG="$CONFIG -DCUDA=$CMAKE_CUDA"
+        echo "CONFIG = $CONFIG"
+
+        cmake $CONFIG -G 'Unix Makefiles' {source_dpath}
+        #################################
+        echo 'Building with make'
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS -w
+        #################################
+
+        export MAKE_EXITCODE=$?
+        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
+
+        # Move the compiled library into the source folder
+        if [[ $MAKE_EXITCODE == 0 ]]; then
+            echo 'Moving the shared library'
+            # cp -v lib* ../pydarknet
+            cp -v lib*{libext} {source_dpath}/pydarknet
+            # cp -v libdarknet{libext} {source_dpath}/pydarknet/libdarknet{plat_spec}{libext}
+        fi
+
+        # ENDBLOCK
+        ''').format(**script_fmtdict))
+
+    #===================
+    # PYRF
+    #===================
+
+    ibeis_rman['pyrf'].add_script('build', ut.codeblock(
+        r'''
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd $CODE_DIR/pyrf
+
+        mkdir -p {build_dname}
+        cd {build_dname}
+
+        # only specify an explicit opencv directory if we know one exists
+        if [ -d "$LOCAL_PREFIX/share/OpenCV" ]; then
+            OPENCV_ARGS="-DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV"
+        else
+            OPENCV_ARGS=""
+        fi
+
+        echo 'Configuring with cmake'
+        if [[ '$OSTYPE' == 'darwin'* ]]; then
+            export CONFIG="-DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_C_COMPILER=clang2 -DCMAKE_CXX_COMPILER=clang2++ -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        else
+            export CONFIG="-DCMAKE_BUILD_TYPE='Release' -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX $OPENCV_ARGS"
+        fi
+        echo "CONFIG = $CONFIG"
+
+        cmake $CONFIG -G 'Unix Makefiles' {source_dpath}
+        #################################
+        echo 'Building with make'
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS -w
+        #################################
+
+        export MAKE_EXITCODE=$?
+        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
+
+        # Move the compiled library into the source folder
+        if [[ $MAKE_EXITCODE == 0 ]]; then
+            echo 'Moving the shared library'
+            # cp -v lib* ../pyrf
+            cp -v lib*{libext} {source_dpath}/pyrf
+            # cp -v libpyrf{libext} {source_dpath}/pyrf/libpyrf{plat_spec}{libext}
+        fi
+
+        # ENDBLOCK
+        ''').format(**script_fmtdict))
 
     #===================
     # OPENCV SETUP SCRIPTS
@@ -644,7 +774,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     ./super_setup.py --dump-scripts
     """
     tpl_rman['cv2'].add_script('build', ut.codeblock(
-        r"""
+        r'''
         # STARTBLOCK bash
         {python_bash_setup}
         # Checkout opencv core
@@ -693,11 +823,11 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
         make -j$NCPUS
         # ENDBLOCK
-        """).format(repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath),
+        ''').format(repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath),
                     **script_fmtdict))
 
     tpl_rman['cv2'].add_script('install', ut.codeblock(
-        r"""
+        r'''
         # STARTBLOCK bash
         {python_bash_setup}
 
@@ -717,11 +847,11 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # Check if we have contrib modules
         python -c "import cv2; print(cv2.xfeatures2d)"
         # ENDBLOCK
-        """).format(**script_fmtdict))
+        ''').format(**script_fmtdict))
 
     # if GET_ARGFLAG('--libgpuarray'):
     tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
-        r"""
+        r'''
         # STARTBLOCK bash
 
         # Ensure the repo was checked out
@@ -760,7 +890,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
 
         # pip uninstall pygpu
         # ENDBLOCK
-        """).format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
+        ''').format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
                     **script_fmtdict))
 
     #===================
@@ -930,17 +1060,29 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = cv_repo.get_script('install')
         script.exec_()
 
-    if GET_ARGFLAG('--pyqt'):
-        script = tpl_rman['PyQt'].get_script('system_to_venv')
-        script.exec_()
-
     if GET_ARGFLAG('--flann'):
         script = ibeis_rman['flann'].get_script('build')
         script.exec_()
         script = ibeis_rman['flann'].get_script('install')
         script.exec_()
 
-    if GET_ARGFLAG('--dcnn'):
+    if GET_ARGFLAG('--pyqt'):
+        script = tpl_rman['PyQt'].get_script('system_to_venv')
+        script.exec_()
+
+    if GET_ARGFLAG('--hesaff'):
+        script = ibeis_rman['hesaff'].get_script('build')
+        script.exec_()
+
+    if GET_ARGFLAG('--pydarknet'):
+        script = ibeis_rman['pydarknet'].get_script('build')
+        script.exec_()
+
+    if GET_ARGFLAG('--pyrf'):
+        script = ibeis_rman['pyrf'].get_script('build')
+        script.exec_()
+
+    if GET_ARGFLAG('--torch'):
         # Theano and lasange code should be moved to pytorch
         tpl_rman['pytorch'].clone(recursive=True)
         tpl_rman['pytorch'].issue('git submodule update --init')

@@ -183,6 +183,7 @@ def make_table_declarations(ibs):
             'imageset_start_datetime',
             # 'imageset_end_datetime',
             'imageset_duration',
+            'imageset_notes',
         ])
 
     if ibs.cfg.other_cfg.show_shipped_imagesets:
@@ -294,6 +295,7 @@ def make_table_declarations(ibs):
         ('imageset_start_datetime',         (str,      'Start Time')),
         ('imageset_end_datetime',           (str,      'End Time')),
         ('imageset_duration',               (str,      'Duration')),
+        ('imageset_notes',                  (str,      'Notes')),
         ('party_tag',                       (str,      'Party')),
         ('contributor_tag',                 (str,      'Contributor')),
         ('percent_imgs_reviewed_str',       (str,      '%Imgs Reviewed')),
@@ -381,6 +383,7 @@ def make_ibeis_headers_dict(ibs):
         'imageset_start_time_posix' : ibs.get_imageset_start_time_posix,
         'imageset_end_time_posix'   : ibs.get_imageset_end_time_posix,
         'imageset_duration'         : ibs.get_imageset_duration,
+        'imageset_notes'            : ibs.get_imageset_note,
     }
     infer_unspecified_getters(IMAGESET_TABLE, 'imageset')
     setters[IMAGESET_TABLE] = {
