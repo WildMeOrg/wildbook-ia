@@ -53,7 +53,7 @@ def siam_vsone_train():
         labels = pblm.samples['match_state'].y_enc[subset_idx]
 
         # train only on positive-vs-negative (ignore incomparable)
-        labels = (labels == 1)
+        labels = (labels == 1).astype(np.int64)
 
         chip_config = {'resize_dim': 'wh', 'dim_size': (224, 224)}
         img1_fpaths = ibs.depc_annot.get('chips', aids1, read_extern=False, colnames='img', config=chip_config)

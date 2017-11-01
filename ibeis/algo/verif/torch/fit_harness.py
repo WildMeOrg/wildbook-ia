@@ -110,7 +110,7 @@ class FitHarness(object):
         for batch_idx, input_batch in enumerate(harn.train_loader):
             input_batch = harn._to_xpu(*input_batch)
 
-            print('Begin batch {}'.format(batch_idx))
+            # print('Begin batch {}'.format(batch_idx))
             t_cur_metrics = harn.train_batch(input_batch)
 
             for k, v in t_cur_metrics.items():
@@ -143,7 +143,7 @@ class FitHarness(object):
         for vali_idx, input_batch in enumerate(harn.vali_loader):
             input_batch = harn._to_xpu(*input_batch)
 
-            print('Begin batch {}'.format(vali_idx))
+            # print('Begin batch {}'.format(vali_idx))
             v_cur_metrics = harn.validation_batch(input_batch)
 
             for k, v in v_cur_metrics.items():
