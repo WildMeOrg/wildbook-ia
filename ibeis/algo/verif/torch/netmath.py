@@ -189,33 +189,34 @@ class Optimizers(NetMathParams):
 
 class Metrics(NetMathParams):
 
-    def tpr(outputs, label):
+    @staticmethod
+    def tpr(output, label):
         """ true positive rate """
-        pred = outputs.data.max(dim=1)[1].cpu().numpy()
+        pred = output.data.max(dim=1)[1].cpu().numpy()
         true = label.data.cpu().numpy()
 
         is_tp = pred == true
         tpr = is_tp.sum() / is_tp.size
         return tpr
 
-    def _siamese_metrics(harn, output, label, margin=1):
-        l21 = output
+    @staticmethod
+    def _siamese_metrics(output, label, margin=1):
 
+        l2_dist_tensor = torch.from_numpy(output.data.cpu().numpy())
         label_tensor = torch.from_numpy(label.data.cpu().numpy())
-        l21_tensor = torch.from_numpy(l21.data.cpu().numpy())
 
         # Distance
         is_pos = torch.ByteTensor()
         POS_LABEL = 1
         NEG_LABEL = 0
         torch.eq(label_tensor, POS_LABEL, out=is_pos)  # y==1
-        pos_dist = 0 if len(l21_tensor[is_pos]) == 0 else l21_tensor[is_pos].mean()
-        neg_dist = 0 if len(l21_tensor[~is_pos]) == 0 else l21_tensor[~is_pos].mean()
-        # print('same dis : diff dis  {} : {}'.format(l21_tensor[is_pos == 0].mean(), l21_tensor[is_pos].mean()))
+        pos_dist = 0 if len(l2_dist_tensor[is_pos]) == 0 else l2_dist_tensor[is_pos].mean()
+        neg_dist = 0 if len(l2_dist_tensor[~is_pos]) == 0 else l2_dist_tensor[~is_pos].mean()
+        # print('same dis : diff dis  {} : {}'.format(l2_dist_tensor[is_pos == 0].mean(), l2_dist_tensor[is_pos].mean()))
 
         # accuracy
         pred_pos_flags = torch.ByteTensor()
-        torch.le(l21_tensor, margin, out=pred_pos_flags)  # y==1's idx
+        torch.le(l2_dist_tensor, margin, out=pred_pos_flags)  # y==1's idx
 
         cur_score = torch.FloatTensor(label.size(0))
         cur_score.fill_(NEG_LABEL)
