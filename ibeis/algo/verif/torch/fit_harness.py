@@ -3,6 +3,7 @@ from collections import defaultdict
 from os.path import join
 from torch.autograd import Variable
 from ibeis.algo.verif.torch import netmath
+import tensorboard_logger
 # from ibeis.algo.verif.torch import gpu_util
 
 
@@ -49,14 +50,8 @@ class FitHarness(object):
     def log_value(harn, key, value, n_iter):
         if False:
             print('{}={} @ {}'.format(key, value, n_iter))
-        # TODO: use a graph visualization tool like tensorboard
-
-    def load_snapshot(harn, load_path):
-        snapshot = torch.load(load_path)
-        # loadModelState(model, snapshot)
-        harn.model.load_state_dict(snapshot['state_dict'])
-        harn.epoch = snapshot['epoch'] + 1
-        harn.log('Model loaded from {}'.format(load_path))
+        if tensorboard_logger:
+            tensorboard_logger.log_value(key, value, n_iter)
 
     def _to_xpu(harn, *args):
         """ Puts data on the GPU if available """
@@ -83,7 +78,8 @@ class FitHarness(object):
         harn.optimizer = harn.optimizer_cls(harn.model.parameters(), lr=lr)
 
         # train loop
-        # configure("runs/afrl", flush_secs=2)
+        if tensorboard_logger:
+            tensorboard_logger.configure("runs/ibeis", flush_secs=2)
 
         while not harn.check_termination():
             harn.train_epoch()
@@ -177,10 +173,20 @@ class FitHarness(object):
     # def display_metrics():
     #     pass
 
+    def load_snapshot(harn, load_path):
+        snapshot = torch.load(load_path)
+        harn.model.load_state_dict(snapshot['model_state_dict'])
+        harn.epoch = snapshot['epoch']
+        harn.log('Model loaded from {}'.format(load_path))
+
     def save_snapshot(harn):
         # save snapshot
         save_path = join(harn.config['model_dir'], 'snapshot_epoch_{}.pt'.format(harn.epoch))
-        # torch.save(checkpoint(model, harn.epoch), save_path)
+        snapshot = {
+            'epoch': harn.epoch,
+            'model_state_dict': harn.model.state_dict(),
+        }
+        torch.save(snapshot, save_path)
         harn.log('Snapshot saved to {}'.format(save_path))
 
     def train_batch(harn, input_batch):

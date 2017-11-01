@@ -80,11 +80,11 @@ def siam_vsone_train():
     data_kw = {}
     if use_cuda:
         data_kw = {'num_workers': 6, 'pin_memory': True}
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32,
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=48,
                                                shuffle=True, **data_kw)
-    vali_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32,
+    vali_loader = torch.utils.data.DataLoader(train_dataset, batch_size=48,
                                               shuffle=True, **data_kw)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32,
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=48,
                                               shuffle=False, **data_kw)
 
     from ibeis.algo.verif.torch import fit_harness
