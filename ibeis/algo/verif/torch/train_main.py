@@ -28,7 +28,16 @@ class LRSchedule(object):
         return optimizer, lr
 
 
-def siam_vsone_problem():
+def siam_vsone_train():
+    r"""
+    CommandLine:
+        python -m ibeis.algo.verif.torch.train_main siam_vsone_train
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.verif.torch.train_main import *  # NOQA
+        >>> siam_vsone_train()
+    """
     # wrapper around the RF vsone problem
     from ibeis.algo.verif import vsone
     pblm = vsone.OneVsOneProblem.from_empty('PZ_MTEST')
@@ -169,3 +178,12 @@ class LabeledPairDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.img1_fpaths)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.verif.torch.train_main
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
