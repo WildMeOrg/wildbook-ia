@@ -94,6 +94,10 @@ class ContrastiveLoss(torch.nn.Module):
 
         loss2x_genuine  = (1 - label_) * torch.pow(torch.clamp(self.margin - dist_l2, min=0.0), 2)
         loss2x_imposter = label_ * dist_sq
+        if weight is not None:
+            loss2x_imposter = loss2x_imposter * weight[0]
+            loss2x_genuine = loss2x_genuine * weight[1]
+
         loss2x = loss2x_genuine + loss2x_imposter
         ave_loss = torch.sum(loss2x) / 2.0 / label.size()[0]
         loss = ave_loss

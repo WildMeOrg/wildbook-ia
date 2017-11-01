@@ -240,7 +240,7 @@ class FitHarness(object):
         return v_metrics
 
     def _measure_metrics(harn, output, label):
-        metrics = netmath.Metrics._siamese_metrics()
+        metrics = netmath.Metrics._siamese_metrics(output, label)
         # metrics = {
         #     'tpr': netmath.Metrics.tpr(output, label)
         # }
