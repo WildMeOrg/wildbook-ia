@@ -65,6 +65,17 @@ class FitHarness(object):
     def run(harn):
         harn.log('Begin training')
 
+        if False:
+            # TODO: can we run this as a subprocess that dies when we die?
+            # or do we need to run externally?
+            # tensorboard --logdir runs
+            # http://aretha:6006
+            pass
+
+        if tensorboard_logger:
+            harn.log('Initializing tensorboard')
+            tensorboard_logger.configure("runs/ibeis", flush_secs=2)
+
         if harn.use_cuda:
             harn.log('Fitting model on GPU({})'.format(harn.gpu_num))
             harn.model.cuda(harn.gpu_num)
@@ -78,8 +89,6 @@ class FitHarness(object):
         harn.optimizer = harn.optimizer_cls(harn.model.parameters(), lr=lr)
 
         # train loop
-        if tensorboard_logger:
-            tensorboard_logger.configure("runs/ibeis", flush_secs=2)
 
         while not harn.check_termination():
             harn.train_epoch()
@@ -199,29 +208,17 @@ class FitHarness(object):
         # Forward prop through the model
         output = harn.model(*inputs)
 
-        # Measure train accuracy and such...
-        t_metrics = harn._measure_metrics(output, label)
-
         # Compute the loss
         loss = harn.criterion(output, label, weight=harn.class_weights)
+
+        # Measure train accuracy and other informative metrics
+        t_metrics = harn._measure_metrics(output, label, loss)
 
         # Backprop and learn
         harn.optimizer.zero_grad()
         loss.backward()
         harn.optimizer.step()
 
-        # loss = loss / input1.size()[0]
-
-        loss_sum = loss.data.sum()
-
-        inf = float("inf")
-        if loss_sum == inf or loss_sum == -inf:
-            harn.log("WARNING: received an inf loss, setting loss value to 0")
-            loss_value = 0
-        else:
-            loss_value = loss.data[0]
-
-        t_metrics['loss'] = loss_value
         return t_metrics
 
     def validation_batch(harn, input_batch):
@@ -229,14 +226,20 @@ class FitHarness(object):
         *inputs, label = input_batch
 
         output = harn.model(*inputs)
-        v_metrics = harn._measure_metrics(output, label)
 
-        # loss = harn.criterion(output, label)
         loss = harn.criterion(output, label, weight=harn.class_weights)
 
-        # loss = loss / input1.size()[0]
-        loss_sum = loss.data.sum()
+        # Measure validation accuracy and other informative metrics
+        v_metrics = harn._measure_metrics(output, label, loss)
 
+        return v_metrics
+
+    def _measure_metrics(harn, output, label, loss):
+        metrics = netmath.Metrics._siamese_metrics(output, label, margin=harn.criterion.margin)
+
+        assert 'loss' not in metrics, 'cannot compute loss as an extra metric'
+
+        loss_sum = loss.data.sum()
         inf = float("inf")
         if loss_sum == inf or loss_sum == -inf:
             harn.log("WARNING: received an inf loss, setting loss value to 0")
@@ -244,11 +247,7 @@ class FitHarness(object):
         else:
             loss_value = loss.data[0]
 
-        v_metrics['loss'] = loss_value
-        return v_metrics
-
-    def _measure_metrics(harn, output, label):
-        metrics = netmath.Metrics._siamese_metrics(output, label, margin=harn.criterion.margin)
+        metrics['loss'] = loss_value
         # metrics = {
         #     'tpr': netmath.Metrics.tpr(output, label)
         # }

@@ -40,7 +40,8 @@ def siam_vsone_train():
     """
     # wrapper around the RF vsone problem
     from ibeis.algo.verif import vsone
-    pblm = vsone.OneVsOneProblem.from_empty('PZ_MTEST')
+    # pblm = vsone.OneVsOneProblem.from_empty('PZ_MTEST')
+    pblm = vsone.OneVsOneProblem.from_empty('GZ_Master1')
     ibs = pblm.infr.ibs
     pblm.load_samples()
     samples = pblm.samples
@@ -80,11 +81,15 @@ def siam_vsone_train():
     data_kw = {}
     if use_cuda:
         data_kw = {'num_workers': 6, 'pin_memory': True}
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=48,
+    batch_size = 64
+    train_loader = torch.utils.data.DataLoader(train_dataset,
+                                               batch_size=batch_size,
                                                shuffle=True, **data_kw)
-    vali_loader = torch.utils.data.DataLoader(train_dataset, batch_size=48,
+    vali_loader = torch.utils.data.DataLoader(train_dataset,
+                                              batch_size=batch_size,
                                               shuffle=True, **data_kw)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=48,
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                              batch_size=batch_size,
                                               shuffle=False, **data_kw)
 
     from ibeis.algo.verif.torch import fit_harness
