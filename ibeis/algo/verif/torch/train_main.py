@@ -98,6 +98,8 @@ def siam_vsone_train():
     lr_scheduler = lr_schedule.Exponential()
     optimizer_cls = netmath.Optimizers.Adam
 
+    class_weights = train_dataset.class_weights()
+
     harn = fit_harness.FitHarness(
         model=model,
         criterion=criterion,
@@ -106,6 +108,7 @@ def siam_vsone_train():
         vali_loader=vali_loader,
         test_loader=test_loader,
         optimizer_cls=optimizer_cls,
+        class_weights=class_weights,
         gpu_num=gpu_num,
     )
     harn.run()
@@ -132,6 +135,7 @@ class LabeledPairDataset(torch.utils.data.Dataset):
         >>> train_idx, test_idx = skf_list[0]
         >>> aids1, aids2 = pblm.samples.aid_pairs[train_idx].T
         >>> labels = pblm.samples['match_state'].y_enc[train_idx]
+        >>> labels = (labels == 1).astype(np.int64)
         >>> chip_config = {'resize_dim': 'wh', 'dim_size': (224, 224)}
         >>> img1_fpaths = ibs.depc_annot.get('chips', aids1, read_extern=False, colnames='img', config=chip_config)
         >>> img2_fpaths = ibs.depc_annot.get('chips', aids2, read_extern=False, colnames='img', config=chip_config)
@@ -152,6 +156,12 @@ class LabeledPairDataset(torch.utils.data.Dataset):
                                                  [0.225, 0.225, 0.225]),
             ])
         self.transform = transform
+
+    def class_weights(self):
+        import pandas as pd
+        label_freq = pd.value_counts(self.labels)
+        class_weights = label_freq.median() / label_freq
+        return class_weights
 
     def __getitem__(self, index):
         """

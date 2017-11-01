@@ -47,7 +47,9 @@ class FitHarness(object):
         print(msg)
 
     def log_value(harn, key, value, n_iter):
-        print('{}={} @ {}'.format(key, value, n_iter))
+        if False:
+            print('{}={} @ {}'.format(key, value, n_iter))
+        # TODO: use a graph visualization tool like tensorboard
 
     def load_snapshot(harn, load_path):
         snapshot = torch.load(load_path)
