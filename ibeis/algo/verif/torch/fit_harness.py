@@ -218,9 +218,9 @@ class FitHarness(object):
 
     def validation_batch(harn, input_batch):
         harn.model.train(False)
-        inputs, label = input_batch
+        *inputs, label = input_batch
 
-        output = harn.model(inputs)
+        output = harn.model(*inputs)
         v_metrics = harn._measure_metrics(output, label)
 
         # loss = harn.criterion(output, label)
