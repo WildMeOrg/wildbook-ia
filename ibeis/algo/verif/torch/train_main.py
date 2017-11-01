@@ -163,8 +163,7 @@ class LabeledPairDataset(torch.utils.data.Dataset):
         label_freq = pd.value_counts(self.labels)
         class_weights = label_freq.median() / label_freq
         class_weights = class_weights.sort_index().values
-        class_weights = torch.from_numpy(class_weights)
-
+        class_weights = torch.from_numpy(class_weights.astype(np.float32))
         return class_weights
 
     def __getitem__(self, index):
