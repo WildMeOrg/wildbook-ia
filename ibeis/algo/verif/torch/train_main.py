@@ -77,12 +77,12 @@ def siam_vsone_problem():
     from ibeis.algo.verif.torch import fit_harness
     from ibeis.algo.verif.torch import models
     from ibeis.algo.verif.torch import netmath
-    from ibeis.algo.verif.torch import lr_scheduler
+    from ibeis.algo.verif.torch import lr_schedule
 
     model = models.Siamese()
 
     criterion = netmath.Criterions.ContrastiveLoss(margin=1)
-    lr_scheduler = lr_scheduler.Exponential()
+    lr_scheduler = lr_schedule.Exponential()
     optimizer_cls = netmath.Optimizers.Adam
 
     harn = fit_harness.FitHarness(
