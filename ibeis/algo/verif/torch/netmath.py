@@ -3,6 +3,7 @@ import numpy as np
 import vtool as vt
 import six
 import torch
+from torch.autograd import Variable
 print, rrr, profile = ut.inject2(__name__)
 
 # from pysseg import getLogger
@@ -31,11 +32,11 @@ def testdata_siam_desc(num_data=128, desc_dim=8):
         return dist
     #l2dist = vt.L2(vecs1, vecs2)
     true_dist = true_dist_metric(vecs1, vecs2)
-    labels = (true_dist > 0).astype(np.float32)
+    label = (true_dist > 0).astype(np.float32)
     vecs1 = torch.from_numpy(vecs1)
     vecs2 = torch.from_numpy(vecs2)
-    labels = torch.from_numpy(labels)
-    return vecs1, vecs2, labels
+    label = torch.from_numpy(label)
+    return vecs1, vecs2, label
 
 
 class ContrastiveLoss(torch.nn.Module):
@@ -50,18 +51,19 @@ class ContrastiveLoss(torch.nn.Module):
 
     Example:
         >>> from ibeis.algo.verif.siamese import *
-        >>> vecs1, vecs2, labels = testdata_siam_desc()
+        >>> vecs1, vecs2, label = testdata_siam_desc()
         >>> self = ContrastiveLoss()
         >>> ut.exec_func_src(self.forward, globals())
         >>> func = self.forward
+        >>> output = torch.nn.PairwiseDistance(p=2)(vecs1, vecs2)
         >>> loss2x, dist_l2 = ut.exec_func_src(self.forward, globals(), globals(), keys=['loss2x', 'dist_l2'])
         >>> ut.quit_if_noshow()
-        >>> loss2x, dist_l2, labels = map(np.array, [loss, dist_l2, labels])
-        >>> labels = labels.astype(np.bool)
-        >>> dist0_l2 = dist_l2[labels]
-        >>> dist1_l2 = dist_l2[~labels]
-        >>> loss0 = loss2x[labels] / 2
-        >>> loss1 = loss2x[~labels] / 2
+        >>> loss2x, dist_l2, label = map(np.array, [loss, dist_l2, label])
+        >>> label = label.astype(np.bool)
+        >>> dist0_l2 = dist_l2[label]
+        >>> dist1_l2 = dist_l2[~label]
+        >>> loss0 = loss2x[label] / 2
+        >>> loss1 = loss2x[~label] / 2
         >>> import plottool as pt
         >>> pt.plot2(dist0_l2, loss0, 'x', color=pt.TRUE_BLUE, label='imposter_loss', y_label='loss')
         >>> pt.plot2(dist1_l2, loss1, 'x', color=pt.FALSE_RED, label='genuine_loss', y_label='loss')
@@ -74,17 +76,28 @@ class ContrastiveLoss(torch.nn.Module):
         ut.super2(ContrastiveLoss, self).__init__()
         self.margin = margin
 
-    def forward(self, vecs1, vecs2, labels):
+    def forward(self, output, label, weight=None):
         # euclidian distance
-        diff = vecs1 - vecs2
-        dist_sq = torch.sum(torch.pow(diff, 2), 1)
-        dist_l2 = torch.sqrt(dist_sq)
+        # diff = vecs1 - vecs2
+        # dist_sq = torch.sum(torch.pow(diff, 2), 1)
+        # dist_l2 = torch.sqrt(dist_sq)
 
-        loss2x_genuine  = (1 - labels) * torch.pow(torch.clamp(self.margin - dist_l2, min=0.0), 2)
-        loss2x_imposter = labels * dist_sq
+        # p1 = torch.nn.PairwiseDistance(p=1)(vecs1, vecs2)
+        # dist_l2 = torch.nn.PairwiseDistance(p=2)(vecs1, vecs2)
+        dist_l2 = output
+        dist_sq = torch.pow(dist_l2 , 2)
+
+        if label.is_cuda:
+            label_ = label.type(torch.FloatTensor).cuda(label.get_device())
+        else:
+            label_ = label.type(torch.FloatTensor)
+
+        loss2x_genuine  = (1 - label_) * torch.pow(torch.clamp(self.margin - dist_l2, min=0.0), 2)
+        loss2x_imposter = label_ * dist_sq
         loss2x = loss2x_genuine + loss2x_imposter
-        ave_loss = torch.sum(loss2x) / 2.0 / vecs1.size()[0]
-        return ave_loss
+        ave_loss = torch.sum(loss2x) / 2.0 / label.size()[0]
+        loss = ave_loss
+        return loss
 
 
 class NetMathParams(object):
@@ -181,9 +194,8 @@ class Metrics(NetMathParams):
         tpr = is_tp.sum() / is_tp.size
         return tpr
 
-    def _siamese_metrics(harn, output0, output1, label, margin):
-        diff = torch.abs(output0 - output1)
-        l21 = torch.sqrt(torch.pow(diff, 2).sum(dim=1))
+    def _siamese_metrics(harn, output, label, margin=1):
+        l21 = output
 
         label_tensor = torch.from_numpy(label.data.cpu().numpy())
         l21_tensor = torch.from_numpy(l21.data.cpu().numpy())
@@ -205,12 +217,12 @@ class Metrics(NetMathParams):
         cur_score.fill_(NEG_LABEL)
         cur_score[pred_pos_flags] = POS_LABEL
 
-        accuracy = torch.eq(cur_score, label_tensor).sum() / label_tensor.size(0)
+        label_tensor_ = label_tensor.type(torch.FloatTensor)
+        accuracy = torch.eq(cur_score, label_tensor_).sum() / label_tensor.size(0)
 
         metrics = {
             'accuracy': accuracy,
             'pos_dist': pos_dist,
             'neg_dist': neg_dist,
         }
-
         return metrics

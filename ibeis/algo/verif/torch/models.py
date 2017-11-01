@@ -17,7 +17,7 @@ class Siamese(torch.nn.Module):
         self.num_fcin = self.resnet.fc.in_features
         # replace the last layer of resnet
         self.resnet.fc = torch.nn.Linear(self.num_fcin, 500)
-        self.pdist = torch.nn.PairwiseDistance(1)
+        self.pdist = torch.nn.PairwiseDistance(p=2)
 
     def forward(self, input1, input2):
         output1 = self.resnet(input1)

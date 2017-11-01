@@ -93,6 +93,7 @@ def siam_vsone_problem():
         vali_loader=vali_loader,
         test_loader=test_loader,
         optimizer_cls=optimizer_cls,
+        gpu_num=gpu_num,
     )
     harn.run()
 

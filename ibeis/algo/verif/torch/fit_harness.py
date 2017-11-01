@@ -69,15 +69,16 @@ class FitHarness(object):
         harn.log('Begin training')
 
         if harn.use_cuda:
-            harn.log('Model will run on GPU({})'.format(harn.gpu_num))
+            harn.log('Fitting model on GPU({})'.format(harn.gpu_num))
             harn.model.cuda(harn.gpu_num)
         else:
-            harn.log('Model will run on the CPU')
+            harn.log('Fitting model on the CPU')
 
         if harn.class_weights is not None:
             harn.class_weights, = harn._to_xpu(harn.class_weights)
 
-        harn.optimizer = harn.optimizer_cls(harn.model.parameters(), lr=harn.lr)
+        lr = harn.lr_scheduler(harn.epoch)
+        harn.optimizer = harn.optimizer_cls(harn.model.parameters(), lr=lr)
 
         # train loop
         # configure("runs/afrl", flush_secs=2)
@@ -103,7 +104,7 @@ class FitHarness(object):
         ave_metrics = defaultdict(lambda: 0)
 
         # change learning rate (modified optimizer inplace)
-        harn.lr = harn.lr_scheduler(harn.epoch, harn.optimizer)
+        lr = harn.lr_scheduler(harn.epoch, harn.optimizer)
 
         # train batch
         for batch_idx, input_batch in enumerate(harn.train_loader):
@@ -122,7 +123,7 @@ class FitHarness(object):
 
                 n_train = len(harn.train_loader)
                 harn.log('Epoch {0}: {1} / {2} | lr:{3} - tloss:{4:.5f} acc:{5:.2f} | sdis:{6:.3f} ddis:{7:.3f}'.format(
-                    harn.epoch, batch_idx, n_train, harn.lr,
+                    harn.epoch, batch_idx, n_train, lr,
                     ave_metrics['loss'], ave_metrics['accuracy'],
                     ave_metrics['pos_dist'], ave_metrics['neg_dist']))
 
@@ -185,10 +186,10 @@ class FitHarness(object):
         https://github.com/meetshah1995/pytorch-semseg/blob/master/train.py
         """
         harn.model.train(True)
-        inputs, label = input_batch
+        *inputs, label = input_batch
 
         # Forward prop through the model
-        output = harn.model(inputs)
+        output = harn.model(*inputs)
 
         # Measure train accuracy and such...
         t_metrics = harn._measure_metrics(output, label)
