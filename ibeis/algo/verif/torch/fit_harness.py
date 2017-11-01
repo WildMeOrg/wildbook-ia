@@ -103,8 +103,7 @@ class FitHarness(object):
         ave_metrics = defaultdict(lambda: 0)
 
         # change learning rate (modified optimizer inplace)
-        harn.lr = harn.lr_scheduler(harn.optimizer, harn.epoch, harn.lr,
-                                    lr_decay_epoch=2)
+        harn.lr = harn.lr_scheduler(harn.epoch, harn.optimizer)
 
         # train batch
         for batch_idx, input_batch in enumerate(harn.train_loader):
