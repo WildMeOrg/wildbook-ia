@@ -99,6 +99,7 @@ def siam_vsone_train():
     optimizer_cls = netmath.Optimizers.Adam
 
     class_weights = train_dataset.class_weights()
+    print('class_weights = {!r}'.format(class_weights))
 
     harn = fit_harness.FitHarness(
         model=model,
