@@ -20,11 +20,15 @@ class Siamese(torch.nn.Module):
         self.pdist = torch.nn.PairwiseDistance(p=2)
 
     def forward(self, input1, input2):
+        """
+        Compute a resnet50 vector for each input and look at the L2 distance
+        between the vectors.
+        """
         output1 = self.resnet(input1)
         output2 = self.resnet(input2)
         output = self.pdist(output1, output2)
 
-        return output1, output2, output
+        return output
 
 
 def visualize():
