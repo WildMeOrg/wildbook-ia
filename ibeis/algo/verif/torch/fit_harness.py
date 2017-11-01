@@ -3,13 +3,14 @@ from collections import defaultdict
 from os.path import join
 from torch.autograd import Variable
 from ibeis.algo.verif.torch import netmath
-from ibeis.algo.verif.torch import gpu_util
+# from ibeis.algo.verif.torch import gpu_util
 
 
 class FitHarness(object):
-    def __init__(harn, model, criterion, train_loader, vali_loader=None,
-                 test_loader=None, lr_scheduler='exp', optimizer='Adam',
-                 class_weights=None, workdir=None):
+    def __init__(harn, model, train_loader, vali_loader=None, test_loader=None,
+                 criterion='cross_entropy', lr_scheduler='exp',
+                 optimizer_cls='Adam', class_weights=None, gpu_num=None,
+                 workdir=None):
 
         harn.workdir = workdir
 
@@ -19,13 +20,16 @@ class FitHarness(object):
 
         harn.model = model
 
-        harn.optimizer_cls = netmath.Optimizers.lookup(optimizer)
-        harn.criterion     = netmath.Criterions.lookup(criterion)
-        harn.lr_scheduler  = netmath.LRSchedules.lookup(lr_scheduler)
+        harn.optimizer_cls = optimizer_cls
+        harn.criterion     = criterion
+        harn.lr_scheduler  = lr_scheduler
+        # netmath.Optimizers.lookup(optimizer_cls)
+        # netmath.Criterions.lookup(criterion)
+        # netmath.LRSchedules.lookup(lr_scheduler)
 
         harn.class_weights = class_weights
 
-        harn.gpu_num = gpu_util.find_unused_gpu(min_memory=6000)
+        harn.gpu_num = gpu_num
         harn.use_cuda = harn.gpu_num is not None
 
         # harn.model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda()
@@ -36,7 +40,7 @@ class FitHarness(object):
             'model_dir': '.',
             'margin': 1.0,
         }
-        harn.lr = 0.001
+        harn.lr = harn.lr_scheduler.init_lr
         harn.epoch = 0
 
     def log(harn, msg):
@@ -52,7 +56,7 @@ class FitHarness(object):
         harn.epoch = snapshot['epoch'] + 1
         harn.log('Model loaded from {}'.format(load_path))
 
-    def _toxpu(harn, *args):
+    def _to_xpu(harn, *args):
         """ Puts data on the GPU if available """
         if harn.use_cuda:
             args = [Variable(item.cuda(harn.gpu_num)) for item in args]
@@ -71,7 +75,7 @@ class FitHarness(object):
             harn.log('Model will run on the CPU')
 
         if harn.class_weights is not None:
-            harn.class_weights, = harn._toxpu(harn.class_weights)
+            harn.class_weights, = harn._to_xpu(harn.class_weights)
 
         harn.optimizer = harn.optimizer_cls(harn.model.parameters(), lr=harn.lr)
 
@@ -104,7 +108,7 @@ class FitHarness(object):
 
         # train batch
         for batch_idx, input_batch in enumerate(harn.train_loader):
-            input_batch = harn._toxpu(*input_batch)
+            input_batch = harn._to_xpu(*input_batch)
 
             print('Begin batch {}'.format(batch_idx))
             t_cur_metrics = harn.train_batch(input_batch)
@@ -137,7 +141,7 @@ class FitHarness(object):
         final_metrics = ave_metrics.copy()
 
         for vali_idx, input_batch in enumerate(harn.vali_loader):
-            input_batch = harn._toxpu(*input_batch)
+            input_batch = harn._to_xpu(*input_batch)
 
             print('Begin batch {}'.format(vali_idx))
             v_cur_metrics = harn.validation_batch(input_batch)

@@ -60,8 +60,13 @@ def siam_vsone_problem():
     print('* len(vali_dataset) = {}'.format(len(vali_dataset)))
     print('* len(test_dataset) = {}'.format(len(test_dataset)))
 
-    use_cuda = False
-    data_kw = {'num_workers': 6, 'pin_memory': True} if use_cuda else {}
+    from ibeis.algo.verif.torch import gpu_util
+    gpu_num = gpu_util.find_unused_gpu(min_memory=6000)
+
+    use_cuda = gpu_num is not None
+    data_kw = {}
+    if use_cuda:
+        data_kw = {'num_workers': 6, 'pin_memory': True}
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32,
                                                shuffle=True, **data_kw)
     vali_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32,
@@ -72,12 +77,13 @@ def siam_vsone_problem():
     from ibeis.algo.verif.torch import fit_harness
     from ibeis.algo.verif.torch import models
     from ibeis.algo.verif.torch import netmath
+    from ibeis.algo.verif.torch import lr_scheduler
 
     model = models.Siamese()
 
-    criterion = netmath.Criterions.cross_entropy2d
-    lr_scheduler = netmath.LRSchedules.exp
-    optimizer = netmath.Optimizers.Adam
+    criterion = netmath.Criterions.ContrastiveLoss(margin=1)
+    lr_scheduler = lr_scheduler.Exponential()
+    optimizer_cls = netmath.Optimizers.Adam
 
     harn = fit_harness.FitHarness(
         model=model,
@@ -86,7 +92,7 @@ def siam_vsone_problem():
         train_loader=train_loader,
         vali_loader=vali_loader,
         test_loader=test_loader,
-        optimizer=optimizer,
+        optimizer_cls=optimizer_cls,
     )
     harn.run()
 
@@ -100,7 +106,7 @@ class LabeledPairDataset(torch.utils.data.Dataset):
                    ]
 
     Ignore:
-        >>> from ibeis.algo.verif.siamese import *
+        >>> from ibeis.algo.verif.torch.train_main import *
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> ibs = pblm.infr.ibs
