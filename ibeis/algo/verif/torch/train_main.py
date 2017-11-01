@@ -70,8 +70,24 @@ def siam_vsone_problem():
                                               shuffle=False, **data_kw)
 
     from ibeis.algo.verif.torch import fit_harness
+    from ibeis.algo.verif.torch import models
+    from ibeis.algo.verif.torch import netmath
 
-    harn = fit_harness.FitHarness(train_loader, vali_loader, test_loader)
+    model = models.Siamese()
+
+    criterion = netmath.Criterions.cross_entropy2d
+    lr_scheduler = netmath.LRSchedules.exp
+    optimizer = netmath.Optimizers.Adam
+
+    harn = fit_harness.FitHarness(
+        model=model,
+        criterion=criterion,
+        lr_scheduler=lr_scheduler,
+        train_loader=train_loader,
+        vali_loader=vali_loader,
+        test_loader=test_loader,
+        optimizer=optimizer,
+    )
     harn.run()
 
 

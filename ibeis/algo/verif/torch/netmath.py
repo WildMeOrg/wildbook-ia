@@ -180,3 +180,37 @@ class Metrics(NetMathParams):
         is_tp = pred == true
         tpr = is_tp.sum() / is_tp.size
         return tpr
+
+    def _siamese_metrics(harn, output0, output1, label, margin):
+        diff = torch.abs(output0 - output1)
+        l21 = torch.sqrt(torch.pow(diff, 2).sum(dim=1))
+
+        label_tensor = torch.from_numpy(label.data.cpu().numpy())
+        l21_tensor = torch.from_numpy(l21.data.cpu().numpy())
+
+        # Distance
+        is_pos = torch.ByteTensor()
+        POS_LABEL = 1
+        NEG_LABEL = 0
+        torch.eq(label_tensor, POS_LABEL, out=is_pos)  # y==1
+        pos_dist = 0 if len(l21_tensor[is_pos]) == 0 else l21_tensor[is_pos].mean()
+        neg_dist = 0 if len(l21_tensor[~is_pos]) == 0 else l21_tensor[~is_pos].mean()
+        # print('same dis : diff dis  {} : {}'.format(l21_tensor[is_pos == 0].mean(), l21_tensor[is_pos].mean()))
+
+        # accuracy
+        pred_pos_flags = torch.ByteTensor()
+        torch.le(l21_tensor, margin, out=pred_pos_flags)  # y==1's idx
+
+        cur_score = torch.FloatTensor(label.size(0))
+        cur_score.fill_(NEG_LABEL)
+        cur_score[pred_pos_flags] = POS_LABEL
+
+        accuracy = torch.eq(cur_score, label_tensor).sum() / label_tensor.size(0)
+
+        metrics = {
+            'accuracy': accuracy,
+            'pos_dist': pos_dist,
+            'neg_dist': neg_dist,
+        }
+
+        return metrics
