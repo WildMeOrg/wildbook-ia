@@ -962,6 +962,7 @@ def move_wildme(ibeis_rman, fmt):
     wildme_user = 'WildbookOrg'
     wildme_remote = 'wildme'
     for repo in ibeis_rman.repos:
+
         try:
             gitrepo = repo.as_gitpython()
         except Exception:
