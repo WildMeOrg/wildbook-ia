@@ -144,6 +144,9 @@ the pull command will update the packages as well.
 
     python super_setup.py pull
 
+Note: if you have wildme credientials you can run this to setup git
+    python super_setup.py pull --move-wildme-ssh
+
 ****
 # Step 3.5 - Grab and Build Extern libraries with scripts
 
@@ -984,6 +987,9 @@ def move_wildme(ibeis_rman, fmt):
                     gitorigin.set_url(wildme_url)
             except:
                 print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
+
+        repo.change_url_format(fmt)
+
 
 
 def execute_commands(tpl_rman, ibeis_rman):
