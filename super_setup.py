@@ -962,7 +962,13 @@ def move_wildme(ibeis_rman, fmt):
     wildme_user = 'WildbookOrg'
     wildme_remote = 'wildme'
     for repo in ibeis_rman.repos:
-        gitrepo = repo.as_gitpython()
+        try:
+            gitrepo = repo.as_gitpython()
+        except Exception:
+            repo.change_url_format(fmt)
+            print('repo {!r} does not exist yet'.format(repo))
+            continue
+
         wildme_url = repo._new_remote_url(host='github.com', user=wildme_user, fmt=fmt)
         remotes = repo.remotes
         message = 'Checking %s for move to wildme' % (repo,)
@@ -989,7 +995,6 @@ def move_wildme(ibeis_rman, fmt):
                 print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
 
         repo.change_url_format(fmt)
-
 
 
 def execute_commands(tpl_rman, ibeis_rman):
