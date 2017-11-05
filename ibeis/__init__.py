@@ -74,7 +74,10 @@ try:
     from ibeis import core_annots
     from ibeis import core_images
 
-    from ibeis.scripts import postdoc
+    try:
+        from ibeis.scripts import postdoc
+    except ImportError:
+        pass
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise
