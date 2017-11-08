@@ -3419,6 +3419,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         plt_imshow_kwargs['alpha'] = alpha
 
     if norm is not None:
+        if norm is True:
+            norm = mpl.colors.Normalize()
         plt_imshow_kwargs['norm'] = norm
     else:
         if cmap is None and not heatmap and not nospecial:
