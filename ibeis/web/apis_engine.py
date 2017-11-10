@@ -424,11 +424,11 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/test/engine/detect/cnn/yolo/', methods=['POST'])
+@register_api('/test/engine/detect/cnn/yolo/', methods=['GET'])
 def start_detect_image_test(ibs):
     from random import shuffle  # NOQA
     gid_list = ibs.get_valid_gids()
-    # shuffle(gid_list)
+    shuffle(gid_list)
     gid_list = gid_list[:3]
     image_uuid_list = ibs.get_image_uuids(gid_list)
     jobid = ibs.start_detect_image(image_uuid_list)
