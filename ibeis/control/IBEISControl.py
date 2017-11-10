@@ -262,9 +262,10 @@ class IBEISController(BASE_CLASS):
         # HACK
         try:
             from ibeis_flukematch import plugin  # NOQA
-        except ImportError as ex:
-            ut.printex(ex, 'flukematch disabled', iswarning=True)
-            print('[ibeis] plugin hack')
+        except Exception as ex:
+            msg = ('Cannot import the flukematch plugin. '
+                   'It does not exist or has not been built.')
+            ut.printex(ex, msg, iswarning=True)
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
