@@ -1078,7 +1078,7 @@ class AnnotInference(ut.NiceRepr,
         # setup logging
         infr.logger = None
         do_logging = ut.get_argflag(('--loginfr', '--log-infr'))
-        do_logging = True
+        # do_logging = True
         if do_logging:
             if ibs is not None:
                 from os.path import join
