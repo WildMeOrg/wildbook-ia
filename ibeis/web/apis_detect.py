@@ -113,7 +113,7 @@ def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
 def detection_yolo_test(ibs):
     from random import shuffle  # NOQA
     gid_list = ibs.get_valid_gids()
-    # shuffle(gid_list)
+    shuffle(gid_list)
     gid_list = gid_list[:3]
     results_dict = ibs.detect_cnn_yolo_json(gid_list)
     return results_dict

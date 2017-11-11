@@ -853,12 +853,17 @@ class VerifierExpt(DBInputs):
             n_splits=10,
         )
 
-        data_key = pblm.default_data_key
+        data_key = 'learn(sum)'  # tests without global features
+        # data_key = 'learn(sum,glob)'  # tests with global features
+        # data_key = pblm.default_data_key  # same as learn(sum,glob)
+
         clf_key = pblm.default_clf_key
 
         pblm.eval_task_keys = ['match_state']
 
-        pblm.eval_data_keys = [data_key]
+        # test with and without globals
+        pblm.eval_data_keys = ['learn(sum)', 'learn(sum,glob)']
+        # pblm.eval_data_keys = [data_key]
         pblm.eval_clf_keys = [clf_key]
 
         ibs = pblm.infr.ibs
