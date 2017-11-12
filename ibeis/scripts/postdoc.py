@@ -886,6 +886,7 @@ class VerifierExpt(DBInputs):
             return
 
         pblm.setup_evaluation(with_simple=True)
+        pblm.report_evaluation()
         self.eval_task_keys = pblm.eval_task_keys
 
         cfg_prefix = '{}'.format(len(pblm.samples))
@@ -1727,6 +1728,7 @@ class VerifierExpt(DBInputs):
         r"""
         CommandLine:
             python -m ibeis VerifierExpt.measure all GZ_Master1,MantaMatcher,RotanTurtles,LF_ALL
+            python -m ibeis VerifierExpt.measure all GZ_Master1
 
         Ignore:
             from ibeis.scripts.postdoc import *
