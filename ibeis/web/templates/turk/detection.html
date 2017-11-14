@@ -519,6 +519,60 @@
                 <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 10</div>
 
                 This final example shows how complex a mother and foal pair of annotations scenario can present itself.  In this example, there are two foals and two corresponding mothers.  The two foals can be marked as AoIs and the two mother annotations should therefore be marked as well.
+
+                <div style="width: 100%; font-size: 20px; text-align: center; margin-bottom: 5px; margin-top: 15px;">
+                    <b>P.S.</b>
+                </div>
+
+                We have special instructions for sea turtles.  We relax the occlusion percentages from 25% to 50%.
+
+                <ul style="padding-right:30px;">
+                    <li>Is significantly (greater than 50%) occluded by other animals or objects</li>
+                    <li>Is significantly (greater than 50%) off the edge of the frame of the image</li>
+                </ul>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest11.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 11</div>
+
+                <img src="{{ url_for('static', filename='images/example-interest12.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 12</div>
+
+                Examples 11 and 12 shows an AoI of sea turtles.  The image of example 11 shows a clearly visible turtle and is not occluded where example 12 shows a turtle that is only partially occluded.  Since we can see at least 50% of either animal, we consider both to be AoIs.
+                <br/>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest13.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 13</div>
+
+                The next image, example 13, shows a whale fluke that is too occluded to be considered an AoI as it only shows the head of the turtle.  The occlusion threshold for whale flukes should be relaxed to 50% compared to 25%.
+
+                <div style="width: 100%; font-size: 20px; text-align: center; margin-bottom: 5px; margin-top: 15px;">
+                    <b>P.S.S.</b>
+                </div>
+
+                We also have special instructions for whale flukes.  We relax the occlusion percentages from 25% to 50%.
+
+                <ul style="padding-right:30px;">
+                    <li>Is significantly (greater than 50%) occluded by other animals or objects</li>
+                    <li>Is significantly (greater than 50%) off the edge of the frame of the image</li>
+                </ul>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest14.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 14</div>
+
+                Example 14 shows an AoI of a whale fluke, where the body of the whale is completely occluded by the water but the fluke is not occluded and clearly visible.
+                <br/>
+                <br/>
+
+                <img src="{{ url_for('static', filename='images/example-interest15.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 15</div>
+
+                The next image, example 15, shows a whale fluke that is too occluded to be considered an AoI.  The occlusion threshold for whale flukes should be relaxed to 50% compared to 25%.  We consider the starting point of the whale fluke to be where the forward part of the fin meets the main tail body.
+
+
+
               </p>
             </div>
             <div class="col-lg-1"></div>
