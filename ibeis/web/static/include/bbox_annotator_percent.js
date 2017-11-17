@@ -1823,24 +1823,28 @@ TODO
                     holder = ''
                 }
                 if(entry.highlighted) {
-                    var species_strs = [];
-                    species_strs['giraffe_masai']       = 'Masai Giraffe'
-                    species_strs['giraffe_reticulated'] = 'Reticulated Giraffe'
-                    species_strs['turtle_sea']          = 'Sea Turtle'
-                    species_strs['turtle_hawksbill']    = 'Sea Turtle'
-                    species_strs['turtle_green']        = 'Sea Turtle'
-                    species_strs['whale_fluke']         = 'Whale Fluke'
-                    species_strs['zebra_grevys']        = 'Grevy\'s Zebra'
-                    species_strs['zebra_plains']        = 'Plains Zebra'
+                    // var species_strs = [];
+                    // species_strs['giraffe_masai']       = 'Masai Giraffe'
+                    // species_strs['giraffe_reticulated'] = 'Reticulated Giraffe'
+                    // species_strs['turtle_sea']          = 'Sea Turtle'
+                    // species_strs['turtle_hawksbill']    = 'Sea Turtle'
+                    // species_strs['turtle_green']        = 'Sea Turtle'
+                    // species_strs['whale_fluke']         = 'Whale Fluke'
+                    // species_strs['zebra_grevys']        = 'Grevy\'s Zebra'
+                    // species_strs['zebra_plains']        = 'Plains Zebra'
 
-                    value1 = entry['metadata']['viewpoint1']
-                    value2 = entry['metadata']['viewpoint2']
-                    value3 = entry['metadata']['viewpoint3']
-                    species = entry['metadata']['species']
-                    tag = normalize_viewpoint(value1, value2, value3)
-                    holder = species_strs[species] + ' (' + tag + ')'
-                    element.label.html(holder)
+                    // value1 = entry['metadata']['viewpoint1']
+                    // value2 = entry['metadata']['viewpoint2']
+                    // value3 = entry['metadata']['viewpoint3']
+                    // species = entry['metadata']['species']
+                    // tag = normalize_viewpoint(value1, value2, value3)
+                    // holder = species_strs[species] + ' (' + tag + ')'
+                    // element.label.html(holder)
+
                     // holder = holder + "*"
+                    // element.label.html(holder)
+
+                    holder = "*"
                     element.label.html(holder)
                 } else {
                     holder = ''
