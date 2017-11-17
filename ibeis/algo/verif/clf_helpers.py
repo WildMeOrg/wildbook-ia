@@ -231,6 +231,27 @@ class ClfProblem(ut.NiceRepr):
             res_list.append(res)
         return clf_list, res_list
 
+    def _external_classifier_result(pblm, clf, task_key, data_key,
+                                    feat_dims=None, test_idx=None):
+        """
+        Given an external classifier (ensure its trained on disjoint data)
+        evaluate all data on it.
+
+        Args:
+            test_idx (list): subset of this classifier to test on
+                (defaults to all if None)
+        """
+        X_df = pblm.samples.X_dict[data_key]
+        if test_idx is None:
+            test_idx = np.arange(len(X_df))
+
+        labels = pblm.samples.subtasks[task_key]
+
+        res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key,
+                                    feat_dims=feat_dims)
+
+        return res
+
     def learn_deploy_classifiers(pblm, task_keys=None, clf_key=None,
                                  data_key=None):
         """
@@ -1129,6 +1150,21 @@ class MultiTaskSamples(ut.NiceRepr):
                 yield task_key
 
     def apply_indicators(samples, tasks_to_indicators):
+        """
+        Adds labels for a specific task
+
+        Args:
+            tasks_to_indicators (dict): takes the form:
+                {
+                   `my_task_name1' {
+                       'class1': [list of bools indicating class membership]
+                       ...
+                       'classN': [list of bools indicating class membership]
+                   }
+                   ...
+                   `my_task_nameN': ...
+               }
+        """
         n_samples = None
         samples.n_tasks = len(tasks_to_indicators)
         for task_name, indicator in tasks_to_indicators.items():
@@ -1140,6 +1176,24 @@ class MultiTaskSamples(ut.NiceRepr):
             elif n_samples != labels.n_samples:
                 raise ValueError('numer of samples is different')
         samples.n_samples = n_samples
+
+    def apply_encoded_labels(samples, y_enc, class_names, task_name):
+        """
+        Adds labels for a specific task. Alternative to `apply_indicators`
+
+        Args:
+            y_enc (list): integer label indicating the class for each sample
+            class_names (list): list of strings indicating the class-domain
+            task_name (str): key for denoting this specific task
+        """
+        # convert to indicator structure and use that
+        tasks_to_indicators = ut.odict([
+            (task_name, ut.odict([
+                (name, np.array(y_enc) == i)
+                for i, name in enumerate(class_names)
+            ]))
+        ])
+        samples.apply_indicators(tasks_to_indicators)
 
     # @ut.memoize
     def encoded_2d(samples):

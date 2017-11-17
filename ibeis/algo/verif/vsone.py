@@ -252,11 +252,46 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None, **params):
+        """
+        Constructs a OneVsOneProblem from a subset of aids.
+        Use `pblm.load_samples` to sample a set of pairs
+        """
         import ibeis
         infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         infr.reset_feedback('staging', apply=True)
         infr.ensure_mst()
         pblm = OneVsOneProblem(infr=infr, **params)
+        return pblm
+
+    @classmethod
+    def from_labeled_aidpairs(OneVsOneProblem, ibs, labeled_aid_pairs,
+                              class_names, task_name, **params):
+        r"""
+        Build a OneVsOneProblem directly from a set of aid pairs.
+        It is not necessary to call `pblm.load_samples`.
+
+        Args:
+            ibs (IBEISController):
+            labeled_aid_pairs (list): tuples of (aid1, aid2, int_label)
+            class_names (list): list of names corresponding to integer labels
+            task_name (str): identifier for the task (e.g. custom_match_state)
+        """
+        aid_pairs = [t[0:2] for t in labeled_aid_pairs]
+        y_enc = [t[2] for t in labeled_aid_pairs]
+        aids = sorted(set(ut.flatten(aid_pairs)))
+        import ibeis
+        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        infr.reset_feedback('staging', apply=True)
+        infr.ensure_mst()
+        pblm = OneVsOneProblem(infr=infr, **params)
+        pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
+
+        if pblm.verbose > 0:
+            ut.cprint('[pblm] apply custom task labels', color='blue')
+        # custom multioutput-multiclass / multi-task
+        pblm.samples.apply_encoded_labels(y_enc, class_names=class_names,
+                                          task_name=task_name)
+        # pblm.samples.apply_multi_task_multi_label()
         return pblm
 
     @classmethod
@@ -509,6 +544,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Get a set of training pairs
         if pblm.verbose > 0:
             ut.cprint('[pblm] load_samples', color='blue')
+        if pblm.samples is not None:
+            ut.cprint('[pblm] WARNING CLOBBERING OLD SAMPLES', color='yellow')
+
         aid_pairs = pblm.make_training_pairs()
         pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
         if pblm.verbose > 0:
@@ -1441,7 +1479,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
 
 @ut.reloadable_class
-class AnnotPairSamples(clf_helpers.MultiTaskSamples):
+class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     """
     Manages the different ways to assign samples (i.e. feat-label pairs) to
     1-v-1 classification
@@ -1480,6 +1518,9 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         if apply:
             samples.apply_multi_task_multi_label()
         # samples.apply_multi_task_binary_label()
+
+    def __nice__(self):
+        return len(self.aid_pairs)
 
     @profile
     def edge_set_hashid(samples):
