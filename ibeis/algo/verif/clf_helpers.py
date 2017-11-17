@@ -244,7 +244,6 @@ class ClfProblem(ut.NiceRepr):
         X_df = pblm.samples.X_dict[data_key]
         if test_idx is None:
             test_idx = np.arange(len(X_df))
-
         labels = pblm.samples.subtasks[task_key]
 
         res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key,
