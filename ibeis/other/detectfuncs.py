@@ -92,13 +92,51 @@ def simple_code(label):
 @register_ibs_method
 def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
-                  use_existing_train_test=True, **kwargs):
+                  use_existing_train_test=True, include_parts=False, **kwargs):
     """
     Creates training XML for training models
     """
     import random
     from datetime import date
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+
+    def _add_annotation(bbox, theta, species_name, viewpoint, part_name=None):
+        if species_name is not None:
+            if species_name not in species_list:
+                return
+        # Transformation matrix
+        R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+        # Get verticies of the annotation polygon
+        verts = vt.verts_from_bbox(bbox, close=True)
+        # Rotate and transform vertices
+        xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+        trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        x_points = [pt[0] for pt in new_verts]
+        y_points = [pt[1] for pt in new_verts]
+        xmin = int(min(x_points) * decrease)
+        xmax = int(max(x_points) * decrease)
+        ymin = int(min(y_points) * decrease)
+        ymax = int(max(y_points) * decrease)
+        # Bounds check
+        xmin = max(xmin, 0)
+        ymin = max(ymin, 0)
+        xmax = min(xmax, width - 1)
+        ymax = min(ymax, height - 1)
+        # Get info
+        info = {}
+
+        if viewpoint != -1 and viewpoint is not None:
+            info['pose'] = viewpoint
+
+        if part_name is not None:
+            species_name = '%s+%s' % (species_name, part_name, )
+
+        annotation.add_object(
+            species_name,
+            (xmax, xmin, ymax, ymin),
+            **info
+        )
 
     current_year = int(date.today().year)
     information = {
@@ -137,7 +175,6 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
-        viewpointed = True
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
@@ -173,43 +210,21 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
                                                      **information)
             bbox_list = ibs.get_annot_bboxes(aid_list)
             theta_list = ibs.get_annot_thetas(aid_list)
-            for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
-                species_name = ibs.get_annot_species_texts(aid)
-                if species_list is not None:
-                    if species_name not in species_list:
-                        continue
-                # Transformation matrix
-                R = vt.rotation_around_bbox_mat3x3(theta, bbox)
-                # Get verticies of the annotation polygon
-                verts = vt.verts_from_bbox(bbox, close=True)
-                # Rotate and transform vertices
-                xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
-                trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
-                x_points = [pt[0] for pt in new_verts]
-                y_points = [pt[1] for pt in new_verts]
-                xmin = int(min(x_points) * decrease)
-                xmax = int(max(x_points) * decrease)
-                ymin = int(min(y_points) * decrease)
-                ymax = int(max(y_points) * decrease)
-                # Bounds check
-                xmin = max(xmin, 0)
-                ymin = max(ymin, 0)
-                xmax = min(xmax, width - 1)
-                ymax = min(ymax, height - 1)
-                # Get info
-                info = {}
-                viewpoint = ibs.get_annot_viewpoints(aid)
-                if viewpoint != -1 and viewpoint is not None:
-                    info['pose'] = viewpoint
-                else:
-                    viewpointed = False
-                    print("UNVIEWPOINTED: %d " % gid)
-                annotation.add_object(
-                    species_name,
-                    (xmax, xmin, ymax, ymin),
-                    **info
-                )
+            species_name_list = ibs.get_annot_species_texts(aid_list)
+            viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+            part_rowids_list = ibs.get_annot_part_rowids(aid)
+            zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, part_rowids_list)
+            for bbox, theta, species_name, viewpoint, part_rowid_list in zipped:
+                _add_annotation(bbox, theta, species_name, viewpoint)
+                if include_parts and len(part_rowid_list) > 0:
+                    part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
+                    part_theta_list = ibs.get_part_thetas(part_rowid_list)
+                    part_name_list = ibs.get_part_tag_text(part_rowid_list)
+                    part_zipped = zip(part_bbox_list, part_theta_list, part_name_list)
+                    for part_bbox, part_theta, part_name in part_zipped:
+                        _add_annotation(part_bbox, part_theta, species_name, viewpoint,
+                                        part_name=part_name)
+
             dst_annot = annotdir + out_name  + '.xml'
 
             if gid in test_gid_set:
@@ -226,18 +241,17 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
                 raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
 
             # Write XML
-            if True or not enforce_viewpoint or viewpointed:
-                print("Copying:\n%r\n%r\n%r\n\n" % (
-                    image_path, dst_img, (width, height), ))
-                xml_data = open(dst_annot, 'w')
-                xml_data.write(annotation.xml())
-                xml_data.close()
-                while exists(dst_annot):
-                    index += 1
-                    if offset != 'auto':
-                        break
-                    out_name = "%d_%06d" % (current_year, index, )
-                    dst_annot = annotdir + out_name  + '.xml'
+            print("Copying:\n%r\n%r\n%r\n\n" % (
+                image_path, dst_img, (width, height), ))
+            xml_data = open(dst_annot, 'w')
+            xml_data.write(annotation.xml())
+            xml_data.close()
+            while exists(dst_annot):
+                index += 1
+                if offset != 'auto':
+                    break
+                out_name = "%d_%06d" % (current_year, index, )
+                dst_annot = annotdir + out_name  + '.xml'
         else:
             print("Skipping:\n%r\n\n" % (image_path, ))
 
