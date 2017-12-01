@@ -996,7 +996,7 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
 
 
 @register_api('/api/review/query/graph/v2/', methods=['GET'])
-def review_graph_match_html_v2(ibs, graph_uuid, callback_url,
+def review_graph_match_html_v2(ibs, graph_uuid, callback_url=None,
                                callback_method='POST',
                                view_orientation='vertical',
                                include_jquery=False):
