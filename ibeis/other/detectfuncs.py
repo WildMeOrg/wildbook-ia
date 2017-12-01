@@ -100,7 +100,8 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
     from datetime import date
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 
-    def _add_annotation(bbox, theta, species_name, viewpoint, part_name=None):
+    def _add_annotation(bbox, theta, species_name, viewpoint, decrease,
+                        part_name=None):
         if species_name is not None:
             if species_name not in species_list:
                 return
@@ -218,15 +219,15 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
             part_rowids_list = ibs.get_annot_part_rowids(aid_list)
             zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, part_rowids_list)
             for bbox, theta, species_name, viewpoint, part_rowid_list in zipped:
-                _add_annotation(bbox, theta, species_name, viewpoint)
+                _add_annotation(bbox, theta, species_name, viewpoint, decrease)
                 if include_parts and len(part_rowid_list) > 0:
                     part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
                     part_theta_list = ibs.get_part_thetas(part_rowid_list)
                     part_name_list = ibs.get_part_tag_text(part_rowid_list)
                     part_zipped = zip(part_bbox_list, part_theta_list, part_name_list)
                     for part_bbox, part_theta, part_name in part_zipped:
-                        _add_annotation(part_bbox, part_theta, species_name, viewpoint,
-                                        part_name=part_name)
+                        _add_annotation(part_bbox, part_theta, species_name,
+                                        viewpoint, decrease, part_name=part_name)
 
             dst_annot = annotdir + out_name  + '.xml'
 
