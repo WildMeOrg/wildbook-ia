@@ -132,6 +132,9 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
         if part_name is not None:
             species_name = '%s+%s' % (species_name, part_name, )
 
+        area = (xmax - xmin) * (ymax - ymin)
+        print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
+
         annotation.add_object(
             species_name,
             (xmax, xmin, ymax, ymin),
