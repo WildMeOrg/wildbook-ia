@@ -91,7 +91,7 @@ def simple_code(label):
 
 @register_ibs_method
 def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
-                  target_size=900, purge=False, use_maximum_linear_dimension=True,
+                  target_size=900, purge=True, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, **kwargs):
     """
     Creates training XML for training models
@@ -212,7 +212,7 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
             theta_list = ibs.get_annot_thetas(aid_list)
             species_name_list = ibs.get_annot_species_texts(aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-            part_rowids_list = ibs.get_annot_part_rowids(aid)
+            part_rowids_list = ibs.get_annot_part_rowids(aid_list)
             zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, part_rowids_list)
             for bbox, theta, species_name, viewpoint, part_rowid_list in zipped:
                 _add_annotation(bbox, theta, species_name, viewpoint)
