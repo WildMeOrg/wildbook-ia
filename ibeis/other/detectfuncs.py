@@ -91,7 +91,7 @@ def simple_code(label):
 
 @register_ibs_method
 def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
-                  target_size=900, purge=True, use_maximum_linear_dimension=True,
+                  target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, **kwargs):
     """
     Creates training XML for training models
