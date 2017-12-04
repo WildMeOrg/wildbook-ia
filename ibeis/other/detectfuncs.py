@@ -819,6 +819,7 @@ def general_parse_gt(ibs, test_gid_list=None, include_parts=False, **kwargs):
     uuid_list = ibs.get_image_uuids(test_gid_list)
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
 
+    species_set = set([])
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
         width, height = ibs.get_image_sizes(gid)
@@ -843,10 +844,11 @@ def general_parse_gt(ibs, test_gid_list=None, include_parts=False, **kwargs):
                 'interest'   : interest,
                 'confidence' : 1.0,
             }
+            species_set.add(temp['class'])
             gt_list.append(temp)
 
             part_rowid_list = ibs.get_annot_part_rowids(aid)
-            if include_parts and len(part_rowid_list) > 0:
+            if include_parts:
                 for part_rowid in part_rowid_list:
                     bbox = ibs.get_part_bboxes(part_rowid)
                     theta = ibs.get_part_thetas(part_rowid)
@@ -891,9 +893,12 @@ def general_parse_gt(ibs, test_gid_list=None, include_parts=False, **kwargs):
                         'interest'   : interest,
                         'confidence' : 1.0,
                     }
+                    species_set.add(temp['class'])
                     gt_list.append(temp)
 
         gt_dict[uuid] = gt_list
+
+    print('General Parse GT species_set = %r' % (species_set, ))
     return gt_dict
 
 
@@ -1337,7 +1342,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True},
+        {'label': 'Green',             'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green'])},
+        {'label': 'Hawksbill',         'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill'])},
+        {'label': 'Green (Head)',      'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green+head'])},
+        {'label': 'Hawksbill (Head)',  'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill+head'])},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
@@ -1930,29 +1938,29 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
 
-    ######################################################################################
+    # ######################################################################################
 
-    best_color = color_list[0]
-    best_config = config_list[0]
-    best_conf = conf_list[0]
-    print('BEST OPERATING POINT %0.04f' % (best_conf, ))
-    # best_config['interest'] = True
-    best_config['interest'] = False
-    best_config['labels'] = False
-    # best_config['labeler_weight_filepath'] = 'candidacy'
-    best_config['VERIFY'] = False
-    global GLOBAL_CORRECT, GLOBAL_SEEN
-    GLOBAL_CORRECT = [0, 0]
-    GLOBAL_SEEN = 0
-    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
-                                                           min_overlap=min_overlap,
-                                                           write_images=write_images,
-                                                           fig_=fig_, axes_=axes_,
-                                                           **best_config)
-    ut.embed()
-    print('BEST CORRECT RATE: %0.04f' % (correct_rate, ))
+    # best_color = color_list[0]
+    # best_config = config_list[0]
+    # best_conf = conf_list[0]
+    # print('BEST OPERATING POINT %0.04f' % (best_conf, ))
+    # # best_config['interest'] = True
+    # best_config['interest'] = False
+    # best_config['labels'] = False
+    # # best_config['labeler_weight_filepath'] = 'candidacy'
+    # best_config['VERIFY'] = False
+    # global GLOBAL_CORRECT, GLOBAL_SEEN
+    # GLOBAL_CORRECT = [0, 0]
+    # GLOBAL_SEEN = 0
+    # correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
+    #                                                        min_overlap=min_overlap,
+    #                                                        write_images=write_images,
+    #                                                        fig_=fig_, axes_=axes_,
+    #                                                        **best_config)
+    # ut.embed()
+    # print('BEST CORRECT RATE: %0.04f' % (correct_rate, ))
 
-    ######################################################################################
+    # ######################################################################################
 
     index = np.argmax(area_list)
     # index = 0
@@ -1979,15 +1987,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
                                                            **best_config)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    # args = (best_area, best_label, best_conf, )
-    # plt.title('Confusion Matrix for Highest AP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    args = (best_area, best_label, best_conf, )
+    plt.title('Confusion Matrix for Highest AP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # area_list_ = area_list[1:]
     # mAP = sum(area_list_) / len(area_list_)
     # args = (mAP * 100.0, )
     # plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.26)
 
-    plt.title('Confusion Matrix', y=1.26)
+    # plt.title('Confusion Matrix', y=1.26)
 
     # # Show best that is greater than the best_pr
     # best_index = None
