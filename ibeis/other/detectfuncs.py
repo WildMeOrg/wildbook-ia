@@ -1250,19 +1250,19 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     # species_set = set(['elephant'])
     # species_set = None
 
-    species_set = [
-        'giraffe_masai',
-        'giraffe_reticulated',
-        'turtle_sea',
-        'whale_fluke',
-        'zebra_grevys',
-        'zebra_plains',
-    ]
+    # species_set = [
+    #     'giraffe_masai',
+    #     'giraffe_reticulated',
+    #     'turtle_sea',
+    #     'whale_fluke',
+    #     'zebra_grevys',
+    #     'zebra_plains',
+    # ]
 
     config_list = [
 
 
-        {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : species_set},
+        # {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : species_set},
         # {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
         # {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
         # {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
@@ -1283,6 +1283,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'V3',                 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
+
+        {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle'},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
