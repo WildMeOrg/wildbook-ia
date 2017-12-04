@@ -813,7 +813,7 @@ def general_get_imageset_gids(ibs, imageset_text, species_set=None,
     return test_gid_list
 
 
-def general_parse_gt(ibs, test_gid_list=None, **kwargs):
+def general_parse_gt(ibs, test_gid_list=None, include_parts=False, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
@@ -826,20 +826,73 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
         gt_list = []
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
+            species = ibs.get_annot_species_texts(aid)
+            viewpoint = ibs.get_annot_viewpoints(aid)
+            interest = ibs.get_annot_interest(aid)
             temp = {
                 'gid'        : gid,
+                'aid'        : aid,
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
                 'xbr'        : (bbox[0] + bbox[2]) / width,
                 'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
-                'class'      : ibs.get_annot_species_texts(aid),
-                'viewpoint'  : ibs.get_annot_viewpoints(aid),
-                'interest'   : ibs.get_annot_interest(aid),
+                'class'      : species,
+                'viewpoint'  : viewpoint,
+                'interest'   : interest,
                 'confidence' : 1.0,
             }
             gt_list.append(temp)
+
+            part_rowid_list = ibs.get_annot_part_rowids(aid)
+            if include_parts and len(part_rowid_list) > 0:
+                for part_rowid in part_rowid_list:
+                    bbox = ibs.get_part_bboxes(part_rowid)
+                    theta = ibs.get_part_thetas(part_rowid)
+
+                    # Transformation matrix
+                    R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+                    # Get verticies of the annotation polygon
+                    verts = vt.verts_from_bbox(bbox, close=True)
+                    # Rotate and transform vertices
+                    xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+                    trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+                    new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+                    x_points = [pt[0] for pt in new_verts]
+                    y_points = [pt[1] for pt in new_verts]
+                    xtl = int(min(x_points))
+                    xbr = int(max(x_points))
+                    ytl = int(min(y_points))
+                    ybr = int(max(y_points))
+                    width = xbr - xtl
+                    height = ybr - ytl
+                    bbox = (xtl, ytl, width, height)
+
+                    tag = ibs.get_part_tag_text(part_rowid)
+
+                    if tag is None:
+                        tag = species
+                    else:
+                        tag = '%s+%s' % (species, tag, )
+
+                    temp = {
+                        'gid'        : gid,
+                        'aid'        : aid,
+                        'part_id'    : part_rowid,
+                        'xtl'        : bbox[0] / width,
+                        'ytl'        : bbox[1] / height,
+                        'xbr'        : (bbox[0] + bbox[2]) / width,
+                        'ybr'        : (bbox[1] + bbox[3]) / height,
+                        'width'      : bbox[2] / width,
+                        'height'     : bbox[3] / height,
+                        'class'      : tag,
+                        'viewpoint'  : viewpoint,
+                        'interest'   : interest,
+                        'confidence' : 1.0,
+                    }
+                    gt_list.append(temp)
+
         gt_dict[uuid] = gt_list
     return gt_dict
 
@@ -1284,7 +1337,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle'},
+        {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
