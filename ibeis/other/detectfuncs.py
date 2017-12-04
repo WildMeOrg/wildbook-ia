@@ -1342,10 +1342,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
 
-        {'label': 'Green',             'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green'])},
-        {'label': 'Hawksbill',         'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill'])},
-        {'label': 'Green (Head)',      'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green+head'])},
-        {'label': 'Hawksbill (Head)',  'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill+head'])},
+        {'label': 'Green',             'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green']), 'check_species': False},
+        {'label': 'Hawksbill',         'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill']), 'check_species': False},
+        {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green', 'turtle_hawksbill']), 'check_species': False},
+        {'label': 'Green (Head)',      'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green+head']), 'check_species': False},
+        {'label': 'Hawksbill (Head)',  'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill+head']), 'check_species': False},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
