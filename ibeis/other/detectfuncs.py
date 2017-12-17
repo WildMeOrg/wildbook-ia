@@ -1351,8 +1351,12 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
 
-        {'label': 'Hammerhead',        'grid' : False, 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
-        {'label': 'Hammerhead (Grid)', 'grid' : True,  'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
+        # {'label': 'Hammerhead',        'grid' : False, 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
+        # {'label': 'Hammerhead (Grid)', 'grid' : True,  'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
+
+        {'label': 'Sea Turtle',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_general'])},
+        {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
+        {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
 
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
