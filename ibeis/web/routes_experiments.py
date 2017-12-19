@@ -400,14 +400,21 @@ def experiments_voting_variance(ibs, team_index, **kwargs):
     ibs, team_list = experiments_voting_initialize()
     team = team_list[team_index]
 
-    different = 0
+    incorrect = 0
+    total = 0
     for annot_uuid in aoi_dict:
         aid = team.get_annot_aids_from_uuid(annot_uuid)
         interest = team.get_annot_interest(aid)
         if interest != aoi_dict[annot_uuid]:
-            different += 1
+            incorrect += 1
+        total += 1
 
-    return team_index, different
+    if total == 0:
+        accuracy_str = 'Undefined'
+    else:
+        correct = total - incorrect
+        accuracy_str = '%0.02f' % (100.0 * (correct / total), )
+    return team_index, incorrect, accuracy_str
 
 
 def _normalize_image(image):
