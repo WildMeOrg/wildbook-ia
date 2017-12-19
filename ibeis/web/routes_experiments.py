@@ -17,8 +17,8 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-# DBDIR_PREFIX = '/Datasets'
-DBDIR_PREFIX = '/media/hdd/work'
+DBDIR_PREFIX = '/Datasets'
+# DBDIR_PREFIX = '/media/hdd/work'
 
 
 DB_DICT = {}
@@ -349,7 +349,7 @@ def experiments_voting_counts(ibs, **kwargs):
     else:
         total_str = '%0.2f' % (100.0 * float(count) / total, )
 
-    stage1_count_list = [count, total_str]
+    stage1_count_list = [count, total_str, total]
 
     # Image Totals
     ibs, team_list = experiments_voting_initialize()
@@ -369,19 +369,24 @@ def experiments_voting_counts(ibs, **kwargs):
     for gid in gid_dict:
         count = gid_dict[gid][0]
         total = gid_dict[gid][1]
-        precentage = count / float(total)
+        precentage = float(count) / float(total)
         count_list.append(count)
         precentage_list.append(precentage)
 
     total = len(count_list)
     if total == 0:
         count_str = 'Undefined'
+        deviation_str = 'Undefined'
         percentage_str = 'Undefined'
     else:
-        count_str = '%0.2f' % (sum(count_list) / total, )
+        count_list = np.array(count_list)
+        avg = np.mean(count_list)
+        std = np.std(count_list)
+        count_str = '%0.2f' % (avg, )
+        deviation_str = '%0.2f' % (std, )
         percentage_str = '%0.2f' % (100.0 * sum(precentage_list) / total, )
 
-    stage2_count_list = [count_str, percentage_str]
+    stage2_count_list = [count_str, deviation_str, percentage_str]
 
     return stage1_count_list, stage2_count_list
 
@@ -417,15 +422,15 @@ def _normalize_image(image):
     return image
 
 
-@register_route('/experiments/ajax/voting/center/src/', methods=['GET'])
-def experiments_voting_center_src(aoi=False, **kwargs):
+@register_api('/experiments/ajax/voting/center/src/', methods=['GET'], __api_plural_check__=False)
+def experiments_voting_center_src(ibs, aoi=False, **kwargs):
     aoi_dict = voting_data(**kwargs)
     ibs, team_list = experiments_voting_initialize()
 
     image = np.zeros((100, 100, 1), dtype=np.float32)
     for annot_uuid in aoi_dict:
         if aoi and not aoi_dict[annot_uuid]:
-                continue
+            continue
         aid = ibs.get_annot_aids_from_uuid(annot_uuid)
         gid = ibs.get_annot_gids(aid)
         width, height = ibs.get_image_sizes(gid)
@@ -444,18 +449,18 @@ def experiments_voting_center_src(aoi=False, **kwargs):
     image = _normalize_image(image)
 
     # Load image
-    return appf.embed_image_html(image, target_width=None)
+    return maximum, appf.embed_image_html(image, target_width=None)
 
 
-@register_route('/experiments/ajax/voting/area/src/', methods=['GET'])
-def experiments_voting_area_src(aoi=False, **kwargs):
+@register_api('/experiments/ajax/voting/area/src/', methods=['GET'], __api_plural_check__=False)
+def experiments_voting_area_src(ibs, aoi=False, **kwargs):
     aoi_dict = voting_data(**kwargs)
     ibs, team_list = experiments_voting_initialize()
 
     image = np.zeros((100, 100, 1), dtype=np.float32)
     for annot_uuid in aoi_dict:
         if aoi and not aoi_dict[annot_uuid]:
-                continue
+            continue
         aid = ibs.get_annot_aids_from_uuid(annot_uuid)
         gid = ibs.get_annot_gids(aid)
         width, height = ibs.get_image_sizes(gid)
@@ -483,7 +488,7 @@ def experiments_voting_area_src(aoi=False, **kwargs):
     image = _normalize_image(image)
 
     # Load image
-    return appf.embed_image_html(image, target_width=None)
+    return maximum, appf.embed_image_html(image, target_width=None)
 
 
 @register_api('/experiments/ajax/voting/bbox/metrics/', methods=['GET'], __api_plural_check__=False)

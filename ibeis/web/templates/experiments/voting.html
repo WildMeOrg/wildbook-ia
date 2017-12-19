@@ -112,11 +112,11 @@
   <div class="row"">
     <div class="col-lg-6" style="text-align: center;">
       <div id='voting-count'></div>
-      Total AoIs<br/>(<span id='voting-percentage'></span>%)
+      Total AoIs<br/>(<span id='voting-percentage'></span>)
     </div>
     <div class="col-lg-6" style="text-align: center;">
       <div id='voting-image-count'></div>
-      AoIs per Image<br/>(<span id='voting-image-percentage'></span>%)
+      AoIs per Image<br/>(<span id='voting-image-percentage'></span>)
     </div>
   </div>
 
@@ -158,13 +158,13 @@
     <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
       <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="centers-all" />
       <br/>
-      All Bounding Box Centers
+      All Bounding Box Centers<br/>(Maximum: <span id="centers-all-maximum"></span>)
     </div>
 
     <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
       <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="centers-aoi" />
       <br/>
-      AoI Bounding Box Centers
+      AoI Bounding Box Centers<br/>(Maximum: <span id="centers-aoi-maximum"></span>)
     </div>
 
   </div>
@@ -173,13 +173,13 @@
     <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
       <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="area-all" />
       <br/>
-      All Bounding Box Area
+      All Bounding Box Area<br/>(Maximum: <span id="area-all-maximum"></span>)
     </div>
 
     <div class="col-lg-6 col-md-6 col-sm-6" style="text-align: center;">
       <img class="data" src="{{ url_for('static', filename='images/loading2.gif') }}" id="area-aoi" />
       <br/>
-      AoI Bounding Box Area
+      AoI Bounding Box Area<br/>(Maximum: <span id="area-aoi-maximum"></span>)
     </div>
   </div>
 
@@ -256,12 +256,12 @@
 
   function update_count(response) {
     $('#voting-count').html(response[0]);
-    $('#voting-percentage').html(response[1]);
+    $('#voting-percentage').html(response[1] + "% out of " + response[2] + " Annotations");
   }
 
   function update_image_count(response) {
-    $('#voting-image-count').html(response[0]);
-    $('#voting-image-percentage').html(response[1]);
+    $('#voting-image-count').html(response[0] + " &plusmn; " + response[1]);
+    $('#voting-image-percentage').html(response[2] + "% of Annotations per Image");
   }
 
   function update_variance(response) {
@@ -345,7 +345,9 @@
     // centers (all)
     request = $.ajax(get_configuration_url("/experiments/ajax/voting/center/src/") + "&aoi=false")
     .done(function(response) {
-      $('img#centers-all').attr('src', response);
+      response = parse_response(response);
+      $('span#centers-all-maximum').html(response[0]);
+      $('img#centers-all').attr('src', response[1]);
       $('img#centers-all').removeClass('loading');
       enable_configuration(target);
     }).fail(function(response) {
@@ -355,7 +357,9 @@
     // centers (aoi)
     request = $.ajax(get_configuration_url("/experiments/ajax/voting/center/src/") + "&aoi=true")
     .done(function(response) {
-      $('img#centers-aoi').attr('src', response);
+      response = parse_response(response);
+      $('span#centers-aoi-maximum').html(response[0]);
+      $('img#centers-aoi').attr('src', response[1]);
       $('img#centers-aoi').removeClass('loading');
       enable_configuration(target);
     }).fail(function(response) {
@@ -365,7 +369,9 @@
     // area (all)
     request = $.ajax(get_configuration_url("/experiments/ajax/voting/area/src/") + "&aoi=false")
     .done(function(response) {
-      $('img#area-all').attr('src', response);
+      response = parse_response(response);
+      $('span#area-all-maximum').html(response[0]);
+      $('img#area-all').attr('src', response[1]);
       $('img#area-all').removeClass('loading');
       enable_configuration(target);
     }).fail(function(response) {
@@ -375,7 +381,9 @@
     // area (aoi)
     request = $.ajax(get_configuration_url("/experiments/ajax/voting/area/src/") + "&aoi=true")
     .done(function(response) {
-      $('img#area-aoi').attr('src', response);
+      response = parse_response(response);
+      $('span#area-aoi-maximum').html(response[0]);
+      $('img#area-aoi').attr('src', response[1]);
       $('img#area-aoi').removeClass('loading');
       enable_configuration(target);
     }).fail(function(response) {
@@ -434,6 +442,11 @@
     $('#voting-image-count').html('...');
     $('#voting-image-percentage').html('...');
     $('.voting-variance').html('...');
+
+    $('#centers-all-maximum').html('...');
+    $('#centers-aoi-maximum').html('...');
+    $('#area-all-maximum').html('...');
+    $('#area-aoi-maximum').html('...');
 
     $('img.data').attr('src', '{{ url_for('static', filename='images/loading2.gif') }}');
     $('img.data').addClass('loading');
