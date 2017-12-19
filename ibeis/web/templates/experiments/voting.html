@@ -276,7 +276,7 @@
 
   function update_variance(response) {
     $('#voting-variance-' + response[0]).html(response[1]);
-    $('#voting-accuracy-' + response[0]).html(response[2]);
+    $('#voting-accuracy-' + response[0]).html(response[2] + "%");
   }
 
   function disable_configuration() {
