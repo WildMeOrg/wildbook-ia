@@ -728,6 +728,12 @@ def save_parts(fig, fpath, grouped_axes=None, dpi=None):
     return subpaths
 
 
+def quit_if_noshow():
+    saverequest = ut.get_argval('--save', default=None)
+    if not (saverequest or ut.get_argflag(('--show', '--save')) or ut.inIPython()):
+        raise ExitTestException('This should be caught gracefully by ut.run_test')
+
+
 def show_if_requested(N=1):
     """
     Used at the end of tests. Handles command line arguments for saving figures
