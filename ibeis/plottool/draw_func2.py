@@ -3472,9 +3472,12 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 cmap = plt.get_cmap('gray')
             if isinstance(cmap, six.string_types):
                 cmap = plt.get_cmap(cmap)
-            # for some reason gray floats aren't working right
-            if imgGRAY.max() <= 1.01 and imgGRAY.min() >= -1E-9:
-                imgGRAY = (imgGRAY * 255).astype(np.uint8)
+
+            if not plt_imshow_kwargs.get('norm'):
+                # for some reason gray floats aren't working right
+                if imgGRAY.max() <= 1.01 and imgGRAY.min() >= -1E-9:
+                    imgGRAY = (imgGRAY * 255).astype(np.uint8)
+
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
             raise AssertionError(
