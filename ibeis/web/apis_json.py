@@ -103,12 +103,16 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         **kwargs : key-value pairs passed to the ibs.add_images() function.
 
     CommandLine:
-        python -m ibeis.web.app --test-add_images_json
+        python -m ibeis.web.apis_json --test-add_images_json
+
+
+        ,"bucket":"flukebook-prod-asset-store","key":""
 
     Example:
         >>> # WEB_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
+        >>> import uuid
         >>> web_instance = ibeis.opendb(db='testdb1')
         >>> _payload = {
         >>>     'image_uri_list': [
@@ -117,18 +121,25 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>             'bucket'          : 'test-asset-store',
         >>>             'key'             : 'caribwhale/20130903-JAC-0002.JPG',
         >>>         },
+        >>>         {
+        >>>             'bucket'          : 'flukebook-prod-asset-store',
+        >>>             'key'             : '3/a/3a76b0e8-1c64-403d-ace1-679cf2f081c0/f2.jpg',
+        >>>         },
         >>>     ],
         >>>     'image_uuid_list': [
-        >>>         uuid.UUID('7fea8101-7dec-44e3-bf5d-b8287fd231e2'),
-        >>>         uuid.UUID('c081119a-e08e-4863-a710-3210171d27d6'),
+        >>>         uuid.uuid4(),
+        >>>         uuid.uuid4(),
+        >>>         uuid.uuid4(),
         >>>     ],
         >>>     'image_width_list': [
         >>>         1992,
         >>>         1194,
+        >>>         500,
         >>>     ],
         >>>     'image_height_list': [
         >>>         1328,
         >>>         401,
+        >>>         500,
         >>>     ],
         >>> }
         >>> gid_list = ibeis.web.apis_json.add_images_json(web_instance, **_payload)
