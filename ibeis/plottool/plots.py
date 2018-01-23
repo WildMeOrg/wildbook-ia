@@ -58,7 +58,8 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         matplotlib.org/examples/api/barchart_demo.html
 
     CommandLine:
-        python -m plottool.plots --exec-multi_plot --show
+        python -m plottool.plots multi_plot:0 --show
+        python -m plottool.plots multi_plot:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -69,7 +70,15 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         >>> #fig = multi_plot(xdata, ydata_list, title='$\phi_1(\\vec{x})$', xlabel='\nfds', **kwargs)
         >>> fig = multi_plot(xdata, ydata_list, title='ΣΣΣµµµ', xlabel='\nfdsΣΣΣµµµ', **kwargs)
         >>> result = ('fig = %s' % (str(fig),))
+        >>> fig2 = multi_plot([1, 2, 3], [4, 5, 6], fnum=4)
+        >>> result = ('fig = %s' % (str(fig),))
         >>> print(result)
+        >>> ut.show_if_requested()
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> fig = multi_plot([1, 2, 3], [4, 5, 6])
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -86,17 +95,36 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         # Normalize input
         ydata_list = ut.take(ydata_list, ykeys)
         kwargs['label_list'] = kwargs.get('label_list', ykeys)
+
+    def is_listlike(data):
+        flag = isinstance(data, (list, np.ndarray, tuple))
+        flag &= hasattr(data, '__getitem__') and hasattr(data, '__len__')
+        return flag
+
+    def is_list_of_scalars(data):
+        if is_listlike(data):
+            if len(data) > 0 and not is_listlike(data[0]):
+                return True
+        return False
+
+    def is_list_of_lists(data):
+        if is_listlike(data):
+            if len(data) > 0 and is_listlike(data[0]):
+                return True
+        return False
+
+    # allow ydata_list to be passed without a container
+    if is_list_of_scalars(ydata_list):
+        ydata_list = [np.array(ydata_list)]
+
     if xdata is None:
         xdata = list(range(len(ydata_list[0])))
 
     num_lines = len(ydata_list)
 
     # Transform xdata into xdata_list
-    if isinstance(xdata, list):
-        if len(xdata) > 0 and isinstance(xdata[0], (list, np.ndarray)):
-            xdata_list = [np.array(xd, copy=True) for xd in xdata]
-        else:
-            xdata_list = [np.array(xdata, copy=True)] * num_lines
+    if is_list_of_lists(xdata):
+        xdata_list = [np.array(xd, copy=True) for xd in xdata]
     else:
         xdata_list = [np.array(xdata, copy=True)] * num_lines
 
