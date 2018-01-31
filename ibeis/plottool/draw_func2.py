@@ -731,7 +731,8 @@ def save_parts(fig, fpath, grouped_axes=None, dpi=None):
 def quit_if_noshow():
     saverequest = ut.get_argval('--save', default=None)
     if not (saverequest or ut.get_argflag(('--show', '--save')) or ut.inIPython()):
-        raise ExitTestException('This should be caught gracefully by ut.run_test')
+        import utool as ut
+        raise ut.ExitTestException('This should be caught gracefully by ut.run_test')
 
 
 def show_if_requested(N=1):
@@ -3527,7 +3528,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True,
         python -m plottool.draw_func2 draw_vector_field --show --fname=zebra.png --fx=121 --stride=3
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> import plottool as pt
         >>> import utool as ut
         >>> import vtool as vt
@@ -4548,6 +4549,31 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
     fnum = pt.ensure_fnum(fnum)
     pt.multi_plot(xdata, ydatas, label_list=labels, marker='', fnum=fnum,
                   pnum=pnum)  # yscale='log')
+
+
+def test_save():
+    """
+    CommandLine:
+        python -m plottool.draw_func2 test_save --show
+        python -m plottool.draw_func2 test_save
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *
+        >>> fpath = test_save()
+        >>> ut.quit_if_noshow()
+        >>> ut.startfile(fpath)
+    """
+    import plottool as pt
+    import utool as ut
+    from os.path import join
+    fig = pt.figure(fnum=1)
+    ax = pt.plt.gca()
+    ax.plot([1, 2, 3], [4, 5, 7])
+    dpath = ut.ensure_app_cache_dir('plottool')
+    fpath = join(dpath, 'test.png')
+    fig.savefig(fpath)
+    return fpath
 
 
 if __name__ == '__main__':
