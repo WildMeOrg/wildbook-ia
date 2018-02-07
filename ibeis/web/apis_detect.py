@@ -432,7 +432,7 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
         [
             {
                 'id'         : aid,
-                'uuid'       : ibs.get_annot_uuids(aid)[0],
+                'uuid'       : ibs.get_annot_uuids(aid),
                 'xtl'        : ibs.get_annot_bboxes(aid)[0],
                 'ytl'        : ibs.get_annot_bboxes(aid)[1],
                 'left'       : ibs.get_annot_bboxes(aid)[0],
@@ -777,6 +777,7 @@ def get_working_species(ibs):
     else:
         working_species_tups = species_tup_list
     return working_species_tups
+
 
 @register_ibs_method
 @accessor_decors.default_decorator
