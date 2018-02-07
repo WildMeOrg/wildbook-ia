@@ -432,6 +432,7 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
         [
             {
                 'id'         : aid,
+                'uuid'       : ibs.get_annot_uuids(aid)[0],
                 'xtl'        : ibs.get_annot_bboxes(aid)[0],
                 'ytl'        : ibs.get_annot_bboxes(aid)[1],
                 'left'       : ibs.get_annot_bboxes(aid)[0],
