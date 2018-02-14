@@ -38,7 +38,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
         >>> from vtool.coverage_kpts import *  # NOQA
         >>> import vtool as vt
         >>> import pyhesaff
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
         >>> chip = vt.imread(img_fpath)
         >>> kpts = kpts[0:100]
@@ -155,7 +155,7 @@ def make_kpts_coverage_mask(
         >>> import plottool as pt
         >>> import pyhesaff
         >>> #img_fpath = ut.grab_test_imgpath('carl.jpg')
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
         >>> kpts = kpts[::10]
         >>> chip = vt.imread(img_fpath)
