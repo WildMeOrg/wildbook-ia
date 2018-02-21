@@ -1616,6 +1616,14 @@ def post_1_7_0(db, ibs=None):
         ibs.update_annot_visual_uuids(ibs.get_valid_aids())
 
 
+def update_1_7_1(db, ibs=None):
+    db.modify_table(
+        const.PART_TABLE, [],
+        dependsmap={
+            ANNOT_ROWID         : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_UUID,)),
+        },
+    )
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1671,6 +1679,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.8',    (None,                 update_1_6_8,       None                )),
     ('1.6.9',    (None,                 update_1_6_9,       None                )),
     ('1.7.0',    (None,                 update_1_7_0,       post_1_7_0          )),
+    ('1.7.1',    (None,                 update_1_7_1,       None                )),
 ])
 """
 SeeAlso:
