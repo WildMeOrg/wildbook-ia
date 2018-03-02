@@ -1,36 +1,36 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 TODO: Look at this file
     http://www.lfd.uci.edu/~gohlke/code/transformations.py.html
 
-Sympy:
-    >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-    >>> import vtool as vt
-    >>> import sympy
-    >>> from sympy.abc import theta
-    >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
-    >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
-    >>> vt.evalprint('R')
-    >>> #evalprint('R.inv()')
-    >>> vt.evalprint('sympy.simplify(R.inv())')
-    >>> #evalprint('sympy.simplify(R.inv().subs(theta, 4))')
-    >>> #print('-------')
-    >>> #invR = sympy_mat(vt.rotation_mat3x3(-theta, sin=sympy.sin, cos=sympy.cos))
-    >>> #evalprint('invR')
-    >>> #evalprint('invR.inv()')
-    >>> #evalprint('sympy.simplify(invR)')
-    >>> #evalprint('sympy.simplify(invR.subs(theta, 4))')
-    >>> print('-------')
-    >>> T = vt.sympy_mat(vt.translation_mat3x3(x, y, None))
-    >>> vt.evalprint('T')
-    >>> vt.evalprint('T.inv()')
-    >>> print('-------')
-    >>> S = vt.sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
-    >>> vt.evalprint('S')
-    >>> vt.evalprint('S.inv()')
-    >>> print('-------')
-    >>> print('LaTeX')
-    >>> print(ut.align('\\\\\n'.join(sympy.latex(R).split(r'\\')).replace('{matrix}', '{matrix}\n'), '&')
+# Sympy:
+#     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+#     >>> import vtool as vt
+#     >>> import sympy
+#     >>> from sympy.abc import theta
+#     >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
+#     >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
+#     >>> vt.evalprint('R')
+#     >>> #evalprint('R.inv()')
+#     >>> vt.evalprint('sympy.simplify(R.inv())')
+#     >>> #evalprint('sympy.simplify(R.inv().subs(theta, 4))')
+#     >>> #print('-------')
+#     >>> #invR = sympy_mat(vt.rotation_mat3x3(-theta, sin=sympy.sin, cos=sympy.cos))
+#     >>> #evalprint('invR')
+#     >>> #evalprint('invR.inv()')
+#     >>> #evalprint('sympy.simplify(invR)')
+#     >>> #evalprint('sympy.simplify(invR.subs(theta, 4))')
+#     >>> print('-------')
+#     >>> T = vt.sympy_mat(vt.translation_mat3x3(x, y, None))
+#     >>> vt.evalprint('T')
+#     >>> vt.evalprint('T.inv()')
+#     >>> print('-------')
+#     >>> S = vt.sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
+#     >>> vt.evalprint('S')
+#     >>> vt.evalprint('S.inv()')
+#     >>> print('-------')
+#     >>> print('LaTeX')
+#     >>> print(ut.align('\\\\\n'.join(sympy.latex(R).split(r'\\')).replace('{matrix}', '{matrix}\n'), '&')
 
 """
 from __future__ import absolute_import, division, print_function

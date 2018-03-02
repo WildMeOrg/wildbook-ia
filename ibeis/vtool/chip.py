@@ -243,6 +243,7 @@ class ScaleStrat(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> import utool as ut
             >>> ut.assert_eq(ScaleStrat.maxwh(800, (190, 220)), (691, 800))
             >>> ut.assert_eq(ScaleStrat.maxwh(800, (220, 190)), (800, 691))
         """
@@ -268,6 +269,7 @@ class ScaleStrat(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> import utool as ut
             >>> ut.assert_eq(ScaleStrat.width(800, (190, 220)), (800, 926))
             >>> ut.assert_eq(ScaleStrat.width(800, (220, 190)), (800, 691))
         """
@@ -292,6 +294,7 @@ class ScaleStrat(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> import utool as ut
             >>> ut.assert_eq(ScaleStrat.area(800 ** 2, (190, 220)), (743, 861))
             >>> ut.assert_eq(ScaleStrat.area(800 ** 2, (220, 190)), (861, 743))
         """

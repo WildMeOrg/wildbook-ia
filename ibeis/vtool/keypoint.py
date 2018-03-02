@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 python -c "import vtool, doctest; print(doctest.testmod(vtool.keypoint))"
 
 Keypoints are stored in the invA format by default.
@@ -31,6 +31,8 @@ Representation:
          into an ellipse.
 
 Sympy:
+    >>> # DISABLE_DOCTEST
+    >>> # xdoctest: +SKIP
     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
     >>> from vtool.patch import *  # NOQA
     >>> import sympy
@@ -51,14 +53,14 @@ Sympy:
     >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
     >>> invVR = invV.multiply(R)
     >>> trans = sympy.Matrix([
-    >>>        [   1,  0.0,   x],
-    >>>        [   0,    1,   y],
+    >>>        [  1,  0.0,   x],
+    >>>        [  0,    1,   y],
     >>>        [ 0.0,  0.0, 1.0]])
     >>> #
     >>> Hypoth = sympy.Matrix([
-    >>>        [     sx,    w1,   tx],
-    >>>        [     w2,    sy,   ty],
-    >>>        [      0,     0,    1],
+    >>>        [    sx,    w1,   tx],
+    >>>        [    w2,    sy,   ty],
+    >>>        [     0,     0,    1],
     >>>        ])
     >>> #
     >>> xyz = sympy.Matrix([[x], [y], [1]])
@@ -104,18 +106,19 @@ Sympy:
     >>> sympy.trigsimp(sympy.simplify(sympy.trigsimp(z)))
 
     #_oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
+    >>> # xdoctest: +SKIP
     >>> # OLD STUFF
     >>> #
     >>> print(ut.hz_str('V = ', repr(V)))
     V = Matrix([
-        [           1/iv11,      0,                 -1.0*x/iv11],
+        [          1/iv11,     0,                -1.0*x/iv11],
         [-iv21/(iv11*iv22), 1/iv22, -1.0*(y - iv21*x/iv11)/iv22],
-        [                0,      0,                         1.0]])
+        [               0,     0,                        1.0]])
     >>> print(ut.hz_str('V = ', repr(sympy.simplify(invV.inv()))))
     V = Matrix([
-        [           1/iv11,      0,                        -1.0*x/iv11],
+        [          1/iv11,     0,                       -1.0*x/iv11],
         [-iv21/(iv11*iv22), 1/iv22, 1.0*(-iv11*y + iv21*x)/(iv11*iv22)],
-        [                0,      0,                                1.0]])
+        [               0,     0,                               1.0]])
 
 
 
@@ -271,7 +274,7 @@ def get_sqrd_scales(kpts):
         >>> _scales_sqrd = get_sqrd_scales(kpts)
         >>> result = (ut.repr2(_scales_sqrd, precision=2))
         >>> print(result)
-        np.array([ 125.98,   56.88,  128.62,  188.37,  188.38])
+        np.array([125.98,  56.88, 128.62, 188.37, 188.38])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -358,10 +361,10 @@ def get_invV_mats2x2(kpts):
         >>> # verify results
         >>> result = kpts_repr(invV_mats2x2)
         >>> print(result)
-        array([[[ 1.,  0.],
-                [ 2.,  3.]],
-               [[ 1.,  0.],
-                [ 2.,  3.]]])
+        array([[[1., 0.],
+                [2., 3.]],
+               [[1., 0.],
+                [2., 3.]]])
     """
     nKpts = len(kpts)
     #try:
@@ -444,7 +447,7 @@ def augment_2x2_with_translation(kpts, _mat2x2):
     _ones = np.ones(nKpts)
     _arrs3x3 =  np.array([[_11s, _12s, _13s],
                           [_21s, _22s, _23s],
-                          [_zeros, _zeros,  _ones]])  # R x C x N
+                          [_zeros, _zeros, _ones]])  # R x C x N
     _mats3x3 = np.rollaxis(_arrs3x3, 2)  # N x R x C
     return _mats3x3
 
@@ -479,12 +482,12 @@ def get_invV_mats3x3(kpts):
         >>> # verify results
         >>> result = kpts_repr(invV_arrs3x3)
         >>> print(result)
-        array([[[ 1.,  0.,  0.],
-                [ 2.,  3.,  0.],
-                [ 0.,  0.,  1.]],
-               [[ 1.,  0.,  0.],
-                [ 2.,  3.,  0.],
-                [ 0.,  0.,  1.]]])
+        array([[[1., 0., 0.],
+                [2., 3., 0.],
+                [0., 0., 1.]],
+               [[1., 0., 0.],
+                [2., 3., 0.],
+                [0., 0., 1.]]])
     """
     #nKpts = len(kpts)
     invV_mats2x2 = get_invV_mats2x2(kpts)
@@ -501,7 +504,7 @@ def get_invV_mats3x3(kpts):
     #_ones = np.ones(nKpts)
     #invV_arrs3x3 =  np.array([[_iv11s, _iv12s, _iv13s],
     #                          [_iv21s, _iv22s, _iv23s],
-    #                          [_zeros, _zeros,  _ones]])  # R x C x N
+    #                          [_zeros, _zeros, _ones]])  # R x C x N
     #invV_mats3x3 = np.rollaxis(invV_arrs3x3, 2)  # N x R x C
     return invV_mats3x3
 
@@ -513,11 +516,11 @@ def get_RV_mats_3x3(kpts):
 
     Ignore:
         >>> from vtool.keypoint import *
-        >>> kpts = np.array([[  3.20e+01,   2.72e+01,   1.81e+01,   1.04e+00,   1.60e+01, 6.18e+00],
-        >>>                  [  6.10e+01,   2.29e+01,   1.76e+01,   5.12e-01,   2.42e+01, 6.14e+00],
-        >>>                  [  9.31e+01,   2.36e+01,   2.04e+01,   1.33e-01,   2.48e+01, 6.24e+00],
-        >>>                  [  1.20e+02,   2.95e+01,   1.73e+01,  -3.05e+00,   2.21e+01, 3.50e-01],
-        >>>                  [  1.47e+02,   4.20e+01,   2.27e+01,   1.91e+00,   1.35e+01, 5.28e-01]])
+        >>> kpts = np.array([[ 3.20e+01,  2.72e+01,  1.81e+01,  1.04e+00,  1.60e+01, 6.18e+00],
+        >>>                  [ 6.10e+01,  2.29e+01,  1.76e+01,  5.12e-01,  2.42e+01, 6.14e+00],
+        >>>                  [ 9.31e+01,  2.36e+01,  2.04e+01,  1.33e-01,  2.48e+01, 6.24e+00],
+        >>>                  [ 1.20e+02,  2.95e+01,  1.73e+01, -3.05e+00,  2.21e+01, 3.50e-01],
+        >>>                  [ 1.47e+02,  4.20e+01,  2.27e+01,  1.91e+00,  1.35e+01, 5.28e-01]])
         >>> ut.hash_data(kpts)
         niwuyadbqlexzcsyxtkewgdzazqubdwo
         >>> ut.exec_func_src(get_RV_mats_3x3, update=True)
@@ -563,12 +566,12 @@ def get_invVR_mats3x3(kpts):
         >>> # verify results
         >>> result = kpts_repr(invVR_mats3x3)
         >>> print(result)
-        array([[[  1.,   0.,  10.],
-                [  2.,   3.,  20.],
-                [  0.,   0.,   1.]],
-               [[  0.,  -1.,  30.],
-                [  3.,  -2.,  40.],
-                [  0.,   0.,   1.]]])
+        array([[[ 1.,  0., 10.],
+                [ 2.,  3., 20.],
+                [ 0.,  0.,  1.]],
+               [[ 0., -1., 30.],
+                [ 3., -2., 40.],
+                [ 0.,  0.,  1.]]])
     """
     #nKpts = len(kpts)
     invVR_mats2x2 = get_invVR_mats2x2(kpts)
@@ -585,7 +588,7 @@ def get_invVR_mats3x3(kpts):
     #_ones = np.ones(nKpts)
     #invVR_arrs =  np.array([[_iv11s, _iv12s, _iv13s],
     #                        [_iv21s, _iv22s, _iv23s],
-    #                        [_zeros, _zeros,  _ones]])  # R x C x N
+    #                        [_zeros, _zeros, _ones]])  # R x C x N
     #invVR_mats = np.rollaxis(invVR_arrs, 2)  # N x R x C
     return invVR_mats3x3
 
@@ -610,9 +613,9 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
         >>> innVR_mats = get_invV_mats(kpts, with_trans, with_ori, ashomog, ascontiguous)
         >>> result = kpts_repr(innVR_mats)
         >>> print(result)
-        array([[[  1.,   0.,  10.],
-                [  2.,   3.,  20.],
-                [  0.,   0.,   1.]]])
+        array([[[ 1.,  0., 10.],
+                [ 2.,  3., 20.],
+                [ 0.,  0.,  1.]]])
     """
     nKpts = len(kpts)
     if with_ori:
@@ -638,7 +641,7 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
             _iv13s = _iv23s = _zeros
         invV_arrs =  np.array([[_iv11s, _iv12s, _iv13s],
                                [_iv21s, _iv22s, _iv23s],
-                               [_zeros, _zeros,  _ones]])  # R x C x N
+                               [_zeros, _zeros, _ones]])  # R x C x N
         invV_mats = np.rollaxis(invV_arrs, 2)  # N x R x C
     if ascontiguous:
         invV_mats = np.ascontiguousarray(invV_mats)
@@ -648,7 +651,7 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
 
 
 def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
-    """
+    r"""
     Given some patch (like a gaussian patch) transforms a patch to be overlayed
     on top of each keypoint in the image (adjusted for a scale factor)
 
@@ -674,21 +677,21 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         >>> # verify results
         >>> result = kpts_repr(M_list)
         >>> print(result)
-        array([[[  1.49,   0.  ,  15.53],
-                [ -1.46,   6.9 ,   8.68],
-                [  0.  ,   0.  ,   1.  ]],
-               [[  0.67,   0.  ,  26.98],
-                [ -1.46,   6.9 ,   8.68],
-                [  0.  ,   0.  ,   1.  ]],
-               [[  3.49,   0.  ,  19.53],
-                [  3.43,   3.01,  10.67],
-                [  0.  ,   0.  ,   1.  ]],
-               [[  3.82,   0.  ,  19.55],
-                [  5.04,   4.03,   1.8 ],
-                [  0.  ,   0.  ,   1.  ]],
-               [[  4.59,   0.  ,  18.24],
-                [  0.97,   3.35,  18.02],
-                [  0.  ,   0.  ,   1.  ]]])
+        array([[[ 1.49,  0.  , 15.53],
+                [-1.46,  6.9 ,  8.68],
+                [ 0.  ,  0.  ,  1.  ]],
+               [[ 0.67,  0.  , 26.98],
+                [-1.46,  6.9 ,  8.68],
+                [ 0.  ,  0.  ,  1.  ]],
+               [[ 3.49,  0.  , 19.53],
+                [ 3.43,  3.01, 10.67],
+                [ 0.  ,  0.  ,  1.  ]],
+               [[ 3.82,  0.  , 19.55],
+                [ 5.04,  4.03,  1.8 ],
+                [ 0.  ,  0.  ,  1.  ]],
+               [[ 4.59,  0.  , 18.24],
+                [ 0.97,  3.35, 18.02],
+                [ 0.  ,  0.  ,  1.  ]]])
 
     Ignore:
         >>> from vtool.coverage_kpts import *  # NOQA
@@ -829,7 +832,7 @@ def get_kpts_eccentricity(kpts):
         >>> pt.dark_background()
         >>> pt.colorbar(ecc, colors)
         >>> ut.show_if_requested()
-        ecc = np.array([ 0.96,  0.99,  0.87,  0.91,  0.55,  0.  ])
+        ecc = np.array([ 0.96, 0.99, 0.87, 0.91, 0.55, 0.  ])
     """
     RV_mats2x2 = get_RV_mats2x2(kpts)
     Z_mats2x2 = get_Z_mats(RV_mats2x2)
@@ -882,16 +885,16 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> pt.set_axis_extent(extent)
         >>> pt.dark_background()
         >>> ut.show_if_requested()
-        np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
-                  [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
-                  [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
-                  [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
-                  [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float64),
-        np.array([[ 30.  ,  12.5 ,   7.82,  -2.56,  12.07,   0.  ],
-                  [ 43.5 ,  12.5 ,   3.53,  -2.56,  12.07,   0.  ],
-                  [ 45.  ,  15.  ,  18.32,   6.01,   5.26,   0.  ],
-                  [ 46.5 ,  14.5 ,  20.03,   8.82,   7.05,   0.  ],
-                  [ 48.  ,  15.5 ,  24.08,   1.7 ,   5.87,   0.  ]], dtype=np.float64),
+        np.array([[20.  , 25.  ,  5.22, -5.11, 24.15,  0.  ],
+                  [29.  , 25.  ,  2.36, -5.11, 24.15,  0.  ],
+                  [30.  , 30.  , 12.22, 12.02, 10.53,  0.  ],
+                  [31.  , 29.  , 13.36, 17.63, 14.1 ,  0.  ],
+                  [32.  , 31.  , 16.05,  3.41, 11.74,  0.  ]], dtype=np.float64),
+        np.array([[30.  , 12.5 ,  7.82, -2.56, 12.07,  0.  ],
+                  [43.5 , 12.5 ,  3.53, -2.56, 12.07,  0.  ],
+                  [45.  , 15.  , 18.32,  6.01,  5.26,  0.  ],
+                  [46.5 , 14.5 , 20.03,  8.82,  7.05,  0.  ],
+                  [48.  , 15.5 , 24.08,  1.7 ,  5.87,  0.  ]], dtype=np.float64),
     """
     if (np.all(offset == (0.0, 0.0)) and
         (np.all(scale_factor == 1.0) or
@@ -937,11 +940,11 @@ def transform_kpts(kpts, M):
         >>> # verify results
         >>> result = ut.repr2(kpts, precision=3, with_dtype=True).replace('-0. ', ' 0. ')
         >>> print(result)
-        np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,    0.   ],
-                  [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,    0.   ],
-                  [ 300.   ,  600.   ,  122.166,  242.357,  105.287,    0.   ],
-                  [ 310.   ,  600.   ,  133.556,  309.899,  141.041,    0.   ],
-                  [ 320.   ,  630.   ,  160.527,  194.6  ,  117.354,    0.   ]], dtype=np.float64)
+        np.array([[200.   , 450.   ,  52.166,   1.056, 241.499,   0.   ],
+                  [290.   , 540.   ,  23.551, -27.559, 241.499,   0.   ],
+                  [300.   , 600.   , 122.166, 242.357, 105.287,   0.   ],
+                  [310.   , 600.   , 133.556, 309.899, 141.041,   0.   ],
+                  [320.   , 630.   , 160.527, 194.6  , 117.354,   0.   ]], dtype=np.float64)
 
     IGNORE:
         >>> # HOW DO WE KEEP SHAPE AFTER HOMOGRAPHY?
@@ -949,9 +952,9 @@ def transform_kpts(kpts, M):
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> M = np.array([[  3.,   3.,   5.],
-        ...               [  2.,   3.,   6.],
-        ...               [  1.,   1.,   2.]])
+        >>> M = np.array([[ 3.,  3.,  5.],
+        ...               [ 2.,  3.,  6.],
+        ...               [ 1.,  1.,  2.]])
         >>> invVR_mats3x3 = get_invVR_mats3x3(kpts)
         >>> MinvVR_mats3x3 = matrix_multiply(M, invVR_mats3x3)
         >>> MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
@@ -1021,15 +1024,16 @@ def transform_kpts_xys(H, kpts):
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> H = np.array([[  3.,   3.,   5.],
-        ...               [  2.,   3.,   6.],
-        ...               [  1.,   1.,   2.]])
+        >>> H = np.array([[ 3.,  3.,  5.],
+        ...               [ 2.,  3.,  6.],
+        ...               [ 1.,  1.,  2.]])
         >>> xy_t = transform_kpts_xys(H, kpts)
         >>> # verify results
+        >>> # xdoctest: +IGNORE_WHITESPACE
         >>> result = ut.repr2(xy_t, precision=3, with_dtype=True)
         >>> print(result)
-        np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
-                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]], dtype=np.float64)
+        np.array([[ 2.979, 2.982, 2.984, 2.984, 2.985],
+                  [ 2.574, 2.482, 2.516, 2.5  , 2.508]], dtype=np.float64)
 
     Ignore::
         %pylab qt4
@@ -1066,7 +1070,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
         >>> det_arr = get_invVR_mats_sqrd_scale(invVR_mats)
         >>> result = ut.repr2(det_arr, precision=2, with_dtype=True)
         >>> print(result)
-        np.array([-0.16, -0.09, -0.34,  0.59, -0.2 ,  0.18,  0.06], dtype=np.float64)
+        np.array([-0.16, -0.09, -0.34, 0.59, -0.2 , 0.18, 0.06], dtype=np.float64)
     """
     det_arr = npl.det(invVR_mats[:, 0:2, 0:2])
     return det_arr
@@ -1117,6 +1121,7 @@ def get_invVR_mats_xys(invVR_mats):
         ndarray: the xy location
 
     Timeit:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> setup = ut.codeblock(
         ...     '''
@@ -1133,7 +1138,6 @@ def get_invVR_mats_xys(invVR_mats):
                 '''
         ... ).split('\n')
         >>> ut.util_dev.timeit_compare(stmt_list, setup, int(1E5))
-        #>>> ut.util_dev.rrr()
 
     Example:
         >>> from vtool.keypoint import *  # NOQA
@@ -1163,9 +1167,10 @@ def get_invVR_mats_oris(invVR_mats):
         >>> invVR_mats = np.random.rand(7, 2, 2).astype(np.float64)
         >>> output = get_invVR_mats_oris(invVR_mats)
         >>> result = ut.repr2(output, precision=2, with_dtype=True)
-        np.array([ 5.37,  5.29,  5.9 ,  5.26,  4.74,  5.6 ,  4.9 ], dtype=np.float64)
+        np.array([5.37, 5.29, 5.9 , 5.26, 4.74, 5.6 , 4.9 ], dtype=np.float64)
 
     Sympy:
+        >>> # DISABLE_DOCTEST
         >>> # BEST PROOF SO FAR OF EXTRACTION FROM ARBITRARY COMPOMENTS
         >>> from vtool.keypoint import *
         >>> import vtool as vt
@@ -1181,19 +1186,19 @@ def get_invVR_mats_oris(invVR_mats):
         >>> keypoint_terms = [x, y, v11, v21, v22, theta]
         >>> # Ell to ucircle
         >>> V = vt.sympy_mat([
-        >>>         [v11,  0.0,   0],
-        >>>         [v21,  v22,   0],
-        >>>         [0.0,  0.0, 1.0]])
+        >>>         [v11, 0.0,  0],
+        >>>         [v21, v22,  0],
+        >>>         [0.0, 0.0, 1.0]])
         >>> # Backwards rotation
         >>> R = vt.sympy_mat([
         >>>         [sympy.cos(-theta), -sympy.sin(-theta), 0],
-        >>>         [sympy.sin(-theta),  sympy.cos(-theta), 0],
-        >>>         [                0,                  0, 1]])
+        >>>         [sympy.sin(-theta), sympy.cos(-theta), 0],
+        >>>         [               0,                 0, 1]])
         >>> # Backwards translation
         >>> T = vt.sympy_mat([
-        >>>        [   1,  0.0,   -x],
-        >>>        [   0,    1,   -y],
-        >>>        [ 0.0,  0.0, 1.0]])
+        >>>        [  1, 0.0,  -x],
+        >>>        [  0,   1,  -y],
+        >>>        [ 0.0, 0.0, 1.0]])
         >>> # Scale is the inverse square root determinant of the shape matrix.
         >>> scale = 1 / sympy.sqrt(sympy.det(V))
         >>> # Inverse of components
@@ -1212,9 +1217,9 @@ def get_invVR_mats_oris(invVR_mats):
         >>> iv11, iv12, iv13, iv21, iv22, iv23 = sympy.symbols('iv11, iv12, iv13, iv21, iv22, iv23', **symkw)
         >>> arb_symbols = [iv11, iv12, iv13, iv21, iv22, iv23]
         >>> invVR_arb = vt.sympy_mat([
-        >>>        [   iv11, iv12, iv13],
-        >>>        [   iv21, iv22, iv23],
-        >>>        [    0.0,  0.0, 1.0]])
+        >>>        [  iv11, iv12, iv13],
+        >>>        [  iv21, iv22, iv23],
+        >>>        [   0.0, 0.0, 1.0]])
         >>> # Set set terms equal to the construction from the inverse
         >>> arb_expr1 = sympy.Eq(invVR_arb, invTVR_full)
         >>> arb_assign = sympy.solve(arb_expr1, arb_symbols)
@@ -1326,7 +1331,7 @@ def get_invVR_mats_oris(invVR_mats):
 
         >>> # NUMPY CHECKS
 
-        >>> nptheta_special = [ np.arccos(0), -np.arccos(0), -np.arcsin(0),  np.arcsin(0) ]
+        >>> nptheta_special = [ np.arccos(0), -np.arccos(0), -np.arcsin(0), np.arcsin(0) ]
         >>> nptheta = np.array(np.linspace(0, 2 * np.pi, 64, endpoint=False).tolist() + nptheta_special)
         >>> # Case 1
         >>> #\modfn{\paren{-\atan{\tan{(-\theta)}}} }{\TAU}           &\text{if } \cos{(-\theta )} > 0 \\
@@ -1352,14 +1357,14 @@ def get_invVR_mats_oris(invVR_mats):
         >>> # Case 4
         >>> #\modfn{\paren{-\frac{\pi}{2} }}{\TAU}                &\text{if } \cos{(-\theta )} = 0 \AND \sin{(-\theta )} > 0 \\
         >>> # There are 2 locations with cos(-theta) = 0 and sing(-theta) > 0
-        >>> # case4_theta = [ 3 * TAU / 4,    -TAU / 4]
+        >>> # case4_theta = [ 3 * TAU / 4,   -TAU / 4]
         >>> cosine0_theta = np.array([TAU / 4, TAU * 3 / 4, -TAU / 4, -TAU * 3 / 4]) # positions with cosine = 0
         >>> flags = (np.isclose(np.cos(-cosine0_theta), 0) * (np.sin(-cosine0_theta) > 0))
         >>> case4_theta =  cosine0_theta.compress(flags)
         >>> print('case4_theta = %r =? %r' % (case4_theta, (-TAU / 4) % TAU))
         >>> # Case 5
         >>> # There are 2 locations with cos(-theta) = 0 and sing(-theta) < 0
-        >>> # case4_theta = [ -3 * TAU / 4,    TAU / 4]
+        >>> # case4_theta = [ -3 * TAU / 4,   TAU / 4]
         >>> #\modfn{\paren{\frac{\pi}{2} }}{\TAU}                &\text{if } \cos{(-\theta )} = 0 \AND \sin{(-\theta )} < 0 \\
         >>> flags = (np.isclose(np.cos(-cosine0_theta), 0) * (np.sin(-cosine0_theta) < 0))
         >>> case5_theta =  cosine0_theta.compress(flags)
@@ -1440,17 +1445,17 @@ def get_invVR_mats_oris(invVR_mats):
         >>> # Forward rotation
         >>> invR = vt.sympy_mat([
         >>>         [sympy.cos(theta), -sympy.sin(theta), 0],
-        >>>         [sympy.sin(theta),  sympy.cos(theta), 0],
-        >>>         [               0,           0,       1]])
+        >>>         [sympy.sin(theta), sympy.cos(theta), 0],
+        >>>         [              0,          0,      1]])
         >>> # Warps a unit circle at (0, 0) onto an ellipse at (x, y)
         >>> invV = vt.sympy_mat([
-        >>>         [iv11,  0.0,   x],
-        >>>         [iv21, iv22,   y],
-        >>>         [ 0.0,  0.0, 1.0]])
+        >>>         [iv11, 0.0,  x],
+        >>>         [iv21, iv22,  y],
+        >>>         [ 0.0, 0.0, 1.0]])
         >>> V = vt.sympy_mat([
-        >>>         [v11,  0.0,  vx],
-        >>>         [v21,  v22,  vy],
-        >>>         [0.0,  0.0, 1.0]])
+        >>>         [v11, 0.0, vx],
+        >>>         [v21, v22, vy],
+        >>>         [0.0, 0.0, 1.0]])
         veq = sympy.Eq(invVR, VR.inv())
         print('iv11 = ' + str(sympy.solve(veq, iv11)))
         print('iv21 = ' + str(sympy.solve(veq, iv21)))
@@ -1488,17 +1493,17 @@ def get_invVR_mats_oris(invVR_mats):
         >>> # Forward rotation
         >>> invR = vt.sympy_mat([
         >>>         [sympy.cos(theta), -sympy.sin(theta), 0],
-        >>>         [sympy.sin(theta),  sympy.cos(theta), 0],
-        >>>         [               0,           0,       1]])
+        >>>         [sympy.sin(theta), sympy.cos(theta), 0],
+        >>>         [              0,          0,      1]])
         >>> # Warps a unit circle at (0, 0) onto an ellipse at (x, y)
         >>> invV = vt.sympy_mat([
-        >>>         [iv11,  0.0,   x],
-        >>>         [iv21, iv22,   y],
-        >>>         [ 0.0,  0.0, 1.0]])
+        >>>         [iv11, 0.0,  x],
+        >>>         [iv21, iv22,  y],
+        >>>         [ 0.0, 0.0, 1.0]])
         >>> V = vt.sympy_mat([
-        >>>         [v11,  0.0,  vx],
-        >>>         [v21,  v22,  vy],
-        >>>         [0.0,  0.0, 1.0]])
+        >>>         [v11, 0.0, vx],
+        >>>         [v21, v22, vy],
+        >>>         [0.0, 0.0, 1.0]])
         veq = sympy.Eq(invVR, VR.inv())
         print('iv11 = ' + str(sympy.solve(veq, iv11)))
         print('iv21 = ' + str(sympy.solve(veq, iv21)))
@@ -1522,9 +1527,9 @@ def get_invVR_mats_oris(invVR_mats):
         >>> print(expr1_repr)
         >>> ut.copy_text_to_clipboard(expr1_repr)
         Matrix([
-        [                  iv11*cos(theta),                   -iv11*sin(theta),   x],
-        [iv21*cos(theta) + iv22*sin(theta), -iv21*sin(theta) + iv22*cos(theta),   y],
-        [                                0,                                  0, 1.0]])
+        [                 iv11*cos(theta),                  -iv11*sin(theta),  x],
+        [iv21*cos(theta) + iv22*sin(theta), -iv21*sin(theta) + iv22*cos(theta),  y],
+        [                               0,                                 0, 1.0]])
         >>> print(sympy.latex(invVR))
         >>> # Now extract the orientation from any invVR formated matrix
         >>> [[ivr11, ivr12, ivr13], [ivr21, ivr22, ivr23], [ivr31, ivr32, ivr33],] = invVR.tolist()
@@ -1784,12 +1789,12 @@ def decompose_Z_to_RV_mats2x2(Z_mats2x2):
         print(A*(x-X) ** 2 + 2*B*(x-X)*(y-Y) + C*(y-Y) ** 2)
 
     Z_mats2x2 = np.array([
-        [[  .016682,  .001693],
-        [  .001693,  .014927]],
-        [[  .01662,  .001693],
-        [  .001693,  .014927]],
-        [[  .016682,  .00193],
-        [  .00193,  .01492]],
+        [[ .016682, .001693],
+        [ .001693, .014927]],
+        [[ .01662, .001693],
+        [ .001693, .014927]],
+        [[ .016682, .00193],
+        [ .00193, .01492]],
         ])
 
     import scipy.linalg
@@ -1825,32 +1830,32 @@ def invert_invV_mats(invV_mats):
     CommandLine:
         python -m vtool.keypoint --test-invert_invV_mats
 
-    Ignore:
-        >>> from vtool.keypoint import *
-        >>> invV_mats  = np.array([[[  18.00372824,    1.86434161,   32.        ],
-        >>>                         [  -0.61356842,   16.02202028,   27.2       ],
-        >>>                         [   0.        ,    0.        ,    1.        ]],
-        >>> #
-        >>>                         [[  17.41989015,    2.51145917,   61.        ],
-        >>>                         [  -2.94649591,   24.02540959,   22.9       ],
-        >>>                         [   0.        ,    0.        ,    1.        ]],
-        >>> #
-        >>>                         [[  20.38098025,    0.88070646,   93.1       ],
-        >>>                         [  -0.93778675,   24.78261982,   23.6       ],
-        >>>                         [   0.        ,    0.        ,    1.        ]],
-        >>> #
-        >>>                         [[  16.25114793,   -5.93213207,  120.        ],
-        >>>                         [   4.71295477,   21.80597527,   29.5       ],
-        >>>                         [   0.        ,    0.        ,    1.        ]],
-        >>> #
-        >>>                         [[  19.60863253,  -11.43641248,  147.        ],
-        >>>                         [   8.45128003,   10.69925072,   42.        ],
-        >>>                         [   0.        ,    0.        ,    1.        ]]])
-        >>> ut.hash_data(invV_mats)
-        hcnoknyxgeecfyfrygblbvdeezmiulws
-        >>> V_mats = npl.inv(invV_mats)
-        >>> ut.hash_data(V_mats)
-        yooneahjgcifojzpovddeyhtkkyypldd
+    # Ignore:
+    #     >>> from vtool.keypoint import *
+    #     >>> invV_mats  = np.array([[[ 18.00372824,   1.86434161,  32.        ],
+    #     >>>                         [ -0.61356842,  16.02202028,  27.2       ],
+    #     >>>                         [  0.        ,   0.        ,   1.        ]],
+    #     >>> #
+    #     >>>                         [[ 17.41989015,   2.51145917,  61.        ],
+    #     >>>                         [ -2.94649591,  24.02540959,  22.9       ],
+    #     >>>                         [  0.        ,   0.        ,   1.        ]],
+    #     >>> #
+    #     >>>                         [[ 20.38098025,   0.88070646,  93.1       ],
+    #     >>>                         [ -0.93778675,  24.78261982,  23.6       ],
+    #     >>>                         [  0.        ,   0.        ,   1.        ]],
+    #     >>> #
+    #     >>>                         [[ 16.25114793,  -5.93213207, 120.        ],
+    #     >>>                         [  4.71295477,  21.80597527,  29.5       ],
+    #     >>>                         [  0.        ,   0.        ,   1.        ]],
+    #     >>> #
+    #     >>>                         [[ 19.60863253, -11.43641248, 147.        ],
+    #     >>>                         [  8.45128003,  10.69925072,  42.        ],
+    #     >>>                         [  0.        ,   0.        ,   1.        ]]])
+    #     >>> ut.hash_data(invV_mats)
+    #     hcnoknyxgeecfyfrygblbvdeezmiulws
+    #     >>> V_mats = npl.inv(invV_mats)
+    #     >>> ut.hash_data(V_mats)
+    #     yooneahjgcifojzpovddeyhtkkyypldd
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1956,18 +1961,18 @@ def get_kpts_wh(kpts, outer=True):
         >>> pt.draw_line_segments2(horiz_pts1, horiz_pts2, color='g')
         >>> pt.draw_line_segments2(vert_pts1, vert_pts2, color='b')
         >>> ut.show_if_requested()
-        np.array([[ 10.43315411,  58.5216589 ],
-                  [  4.71017647,  58.5216589 ],
-                  [ 24.43314171,  45.09558868],
-                  [ 26.71114159,  63.47679138],
-                  [ 32.10540009,  30.28536987]])
+        np.array([[10.43315411, 58.5216589 ],
+                  [ 4.71017647, 58.5216589 ],
+                  [24.43314171, 45.09558868],
+                  [26.71114159, 63.47679138],
+                  [32.10540009, 30.28536987]])
     """
     if outer:
         # Either use bbox or elliptical points
         invV_mats2x2 = get_invVR_mats2x2(kpts)
         corners = np.array([
-            [-1,  1, 1, -1],
-            [-1, -1, 1,  1],
+            [-1, 1, 1, -1],
+            [-1, -1, 1, 1],
         ])
         warped_corners = np.array([invV.dot(corners)
                                    for invV in invV_mats2x2])
@@ -2042,7 +2047,7 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
         >>> ax = pt.gca()
         >>> pt.set_axis_extent(extent, ax)
         >>> ut.show_if_requested()
-        np.array([ 14.78,  48.05,   0.32,  51.58])
+        np.array([ 14.78, 48.05,  0.32, 51.58])
     """
     if len(kpts) == 0:
         return (np.nan, np.nan, np.nan, np.nan)
@@ -2125,7 +2130,7 @@ def get_xy_strs(kpts):
 def get_shape_strs(kpts):
     """ strings debugging and output """
     invVs = get_invVs(kpts)
-    shape_strs  = [(('[(%3.1f,  0.00),\n' +
+    shape_strs  = [(('[(%3.1f, 0.00),\n' +
                      ' (%3.1f, %3.1f)]') % (iv11, iv21, iv22,))
                    for iv11, iv21, iv22 in zip(*invVs)]
     shape_strs = ['invV=\n' +  _str for _str in shape_strs]
@@ -2228,21 +2233,21 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> kpts1 = np.array([[ 129.83,   46.97,   15.84,    4.66,    7.24,    0.  ],
-        ...                   [ 137.88,   49.87,   20.09,    5.76,    6.2 ,    0.  ],
-        ...                   [ 115.95,   53.13,   12.96,    1.73,    8.77,    0.  ],
-        ...                   [ 324.88,  172.58,  127.69,   41.29,   50.5 ,    0.  ],
-        ...                   [ 285.44,  254.61,  136.06,   -4.77,   76.69,    0.  ],
-        ...                   [ 367.72,  140.81,  172.13,   12.99,   96.15,    0.  ]], dtype=np.float64)
-        >>> kpts2 = np.array([[ 318.93,   11.98,   12.11,    0.38,    8.04,    0.  ],
-        ...                   [ 509.47,   12.53,   22.4 ,    1.31,    5.04,    0.  ],
-        ...                   [ 514.03,   13.04,   19.25,    1.74,    4.72,    0.  ],
-        ...                   [ 490.19,  185.49,   95.67,   -4.84,   88.23,    0.  ],
-        ...                   [ 316.97,  206.07,   90.87,    0.07,   80.45,    0.  ],
-        ...                   [ 366.07,  140.05,  161.27,  -47.01,   85.62,    0.  ]], dtype=np.float64)
-        >>> H = np.array([[ -0.70098,   0.12273,   5.18734],
-        >>>               [  0.12444,  -0.63474,  14.13995],
-        >>>               [  0.00004,   0.00025,  -0.64873]])
+        >>> kpts1 = np.array([[ 129.83,  46.97,  15.84,   4.66,   7.24,   0.  ],
+        ...                   [ 137.88,  49.87,  20.09,   5.76,   6.2 ,   0.  ],
+        ...                   [ 115.95,  53.13,  12.96,   1.73,   8.77,   0.  ],
+        ...                   [ 324.88, 172.58, 127.69,  41.29,  50.5 ,   0.  ],
+        ...                   [ 285.44, 254.61, 136.06,  -4.77,  76.69,   0.  ],
+        ...                   [ 367.72, 140.81, 172.13,  12.99,  96.15,   0.  ]], dtype=np.float64)
+        >>> kpts2 = np.array([[ 318.93,  11.98,  12.11,   0.38,   8.04,   0.  ],
+        ...                   [ 509.47,  12.53,  22.4 ,   1.31,   5.04,   0.  ],
+        ...                   [ 514.03,  13.04,  19.25,   1.74,   4.72,   0.  ],
+        ...                   [ 490.19, 185.49,  95.67,  -4.84,  88.23,   0.  ],
+        ...                   [ 316.97, 206.07,  90.87,   0.07,  80.45,   0.  ],
+        ...                   [ 366.07, 140.05, 161.27, -47.01,  85.62,   0.  ]], dtype=np.float64)
+        >>> H = np.array([[ -0.70098,  0.12273,  5.18734],
+        >>>               [ 0.12444, -0.63474, 14.13995],
+        >>>               [ 0.00004,  0.00025, -0.64873]])
         >>> fx2_to_fx1 = np.array([[5, 4, 1, 0],
         >>>                        [0, 1, 5, 4],
         >>>                        [0, 1, 5, 4],
@@ -2254,25 +2259,26 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> # verify results
         >>> result = ut.repr2(fx2_to_xyerr, precision=3)
         >>> print(result)
-        np.array([[  82.848,  186.238,  183.979,  192.639],
-                  [ 382.988,  374.356,  122.179,  289.16 ],
-                  [ 387.563,  378.93 ,  126.389,  292.391],
-                  [ 419.246,  176.668,  400.175,  167.411],
-                  [ 174.269,  274.289,  281.03 ,   33.521],
-                  [  54.083,  269.645,   94.711,  277.706]])
+        np.array([[ 82.848, 186.238, 183.979, 192.639],
+                  [382.988, 374.356, 122.179, 289.16 ],
+                  [387.563, 378.93 , 126.389, 292.391],
+                  [419.246, 176.668, 400.175, 167.411],
+                  [174.269, 274.289, 281.03 ,  33.521],
+                  [ 54.083, 269.645,  94.711, 277.706]])
+
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> kpts1 = np.array([[  6.,   4.,   15.84,    4.66,    7.24,    0.  ],
-        ...                   [  9.,   3.,   20.09,    5.76,    6.2 ,    0.  ],
-        ...                   [  1.,   1.,   12.96,    1.73,    8.77,    0.  ],])
-        >>> kpts2 = np.array([[  2.,   1.,   12.11,    0.38,    8.04,    0.  ],
-        ...                   [  5.,   1.,   22.4 ,    1.31,    5.04,    0.  ],
-        ...                   [  6.,   1.,   19.25,    1.74,    4.72,    0.  ],])
-        >>> H = np.array([[ 2,  0, 0],
-        >>>               [ 0,  1, 0],
-        >>>               [ 0,  0, 1]])
+        >>> kpts1 = np.array([[ 6.,  4.,  15.84,   4.66,   7.24,   0.  ],
+        ...                   [ 9.,  3.,  20.09,   5.76,   6.2 ,   0.  ],
+        ...                   [ 1.,  1.,  12.96,   1.73,   8.77,   0.  ],])
+        >>> kpts2 = np.array([[ 2.,  1.,  12.11,   0.38,   8.04,   0.  ],
+        ...                   [ 5.,  1.,  22.4 ,   1.31,   5.04,   0.  ],
+        ...                   [ 6.,  1.,  19.25,   1.74,   4.72,   0.  ],])
+        >>> H = np.array([[ 2, 0, 0],
+        >>>               [ 0, 1, 0],
+        >>>               [ 0, 0, 1]])
         >>> fx2_to_fx1 = np.array([[2, 1, 0],
         >>>                        [0, 1, 2],
         >>>                        [2, 1, 0]], dtype=np.int32)
@@ -2281,9 +2287,9 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> # verify results
         >>> result = ut.repr2(fx2_to_xyerr, precision=3)
         >>> print(result)
-        np.array([[  0.   ,  16.125,  10.44 ],
-                  [  7.616,  13.153,   3.   ],
-                  [  4.   ,  12.166,   6.708]])
+        np.array([[ 0.   , 16.125, 10.44 ],
+                  [ 7.616, 13.153,  3.   ],
+                  [ 4.   , 12.166,  6.708]])
     """
     DEBUG = True
     if DEBUG:
@@ -2379,6 +2385,7 @@ def get_even_point_sample(kpts):
 if __name__ == '__main__':
     """
     CommandLine:
+        python -m xdoctest vtool.keypoint list
         python -m vtool.keypoint
         python -m vtool.keypoint --allexamples
         python -m vtool.keypoint --allexamples --noface --nosrc

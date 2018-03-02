@@ -172,7 +172,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> (keys, groupxs) = group_indices(idx2_groupid)
         >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
         >>> print(result)
-        np.array([False,  True], dtype=bool),
+        np.array([False,  True], dtype=np.bool),
         [
             np.array([2, 4, 5], dtype=np.int64),
             np.array([0, 1, 3, 6], dtype=np.int64),
