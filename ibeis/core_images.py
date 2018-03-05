@@ -1624,9 +1624,12 @@ def compute_detections(depc, gid_list, config=None):
 
     if not USE_LOCALIZATIONS:
         # depc.delete_property('labeler', gid_list_, config=localizer_config)
-        specieses_list     = depc.get_property('labeler', gid_list_, 'species',   config=localizer_config)
-        viewpoints_list    = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
-        scores_list        = depc.get_property('labeler', gid_list_, 'score',     config=localizer_config)
+        labeler_config = {
+            'labeler_weight_filepath' : config['labeler_weight_filepath'],
+        }
+        specieses_list     = depc.get_property('localizations_labeler', gid_list_, 'species',   config=labeler_config)
+        viewpoints_list    = depc.get_property('localizations_labeler', gid_list_, 'viewpoint', config=labeler_config)
+        scores_list        = depc.get_property('localizations_labeler', gid_list_, 'score',     config=labeler_config)
     else:
         specieses_list     = depc.get_property('localizations', gid_list_, 'classes',   config=localizer_config)
         viewpoints_list    = [

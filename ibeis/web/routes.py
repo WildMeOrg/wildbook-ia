@@ -3214,7 +3214,7 @@ def turk_demographics(**kwargs):
         value_sex += 2
     else:
         value_sex = None
-    value_age_min, value_age_max = ibs.get_annot_age_months_est([aid])[0]
+    value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
     value_age = None
     if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
         value_age = 1
@@ -3256,7 +3256,7 @@ def turk_demographics(**kwargs):
             quality_text_list,
             viewpoint_list,
         ))
-        name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
+        # name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
     else:
         name_aid_combined_list = []
 
