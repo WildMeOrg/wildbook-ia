@@ -1531,7 +1531,7 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
 class DetectorConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', 'v3_zebra'),
-        ut.ParamInfo('classifier_sensitivity',     0.79),
+        ut.ParamInfo('classifier_sensitivity',     0.10),
         #
         ut.ParamInfo('localizer_algo',             'yolo'),
         ut.ParamInfo('localizer_config_filepath',  'v3'),
@@ -1546,7 +1546,6 @@ class DetectorConfig(dtool.Config):
         ThumbnailConfig,
         LocalizerConfig,
     ]
-
 
 @register_preproc(
     tablename='detections', parents=['images'],
@@ -1593,7 +1592,6 @@ def compute_detections(depc, gid_list, config=None):
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
 
-    ut.embed()
     if USE_LOCALIZATIONS:
         gid_list_ = list(gid_list)
     else:
@@ -1636,6 +1634,7 @@ def compute_detections(depc, gid_list, config=None):
         labeler_config = {
             'labeler_weight_filepath' : config['labeler_weight_filepath'],
         }
+        # depc.delete_property('localizations_labeler', gid_list_, config=labeler_config)
         specieses_list     = depc.get_property('localizations_labeler', gid_list_, 'species',   config=labeler_config)
         viewpoints_list    = depc.get_property('localizations_labeler', gid_list_, 'viewpoint', config=labeler_config)
         scores_list        = depc.get_property('localizations_labeler', gid_list_, 'score',     config=labeler_config)
@@ -1660,15 +1659,14 @@ def compute_detections(depc, gid_list, config=None):
         score_list = scores_list[index]
         zipped = list(zip(bbox_list, theta_list, species_list, viewpoint_list,
                           conf_list, score_list))
-        zipped = [
-            [bbox, theta, species, viewpoint, conf * score]
-            for bbox, theta, species, viewpoint, conf, score in zipped
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and max(bbox[2], bbox[3]) / min(bbox[2], bbox[3]) < 20.0
-        ]
-        if len(zipped) == 0:
+        zipped_ = []
+        for bbox, theta, species, viewpoint, conf, score in zipped:
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and max(bbox[2], bbox[3]) / min(bbox[2], bbox[3]) < 20.0:
+                zipped_.append([bbox, theta, species, viewpoint, conf * score])
+        if len(zipped_) == 0:
             detect_list = list(empty_list)
         else:
-            detect_list = [0.0] + [np.array(_) for _ in zip(*zipped)]
+            detect_list = [0.0] + [np.array(_) for _ in zip(*zipped_)]
         detect_dict[gid] = detect_list
 
     # Filter the annotations by the localizer operating point
