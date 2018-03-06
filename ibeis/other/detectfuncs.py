@@ -2373,16 +2373,17 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
     config_list = [
-        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
-        # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
-        # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
+        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
+        {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
+        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
+        {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan2.4'},
 
-        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
-        {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
-        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
-        {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
-        {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
-        {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan1.6'},
+        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
+        # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
+        # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
+        # {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
+        # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
+        # {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan1.6'},
     ]
     color_list = pt.distinct_colors(len(config_list), randomize=False)
 
