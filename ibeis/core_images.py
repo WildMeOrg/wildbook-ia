@@ -1531,16 +1531,15 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
 class DetectorConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', 'v3_zebra'),
+        ut.ParamInfo('classifier_sensitivity',     0.79),
         #
-        ut.ParamInfo('localizer_algo',             None),
+        ut.ParamInfo('localizer_algo',             'yolo'),
         ut.ParamInfo('localizer_config_filepath',  'v3'),
         ut.ParamInfo('localizer_weight_filepath',  'v3'),
         ut.ParamInfo('localizer_grid',             False),
+        ut.ParamInfo('localizer_sensitivity',      0.10),
         #
         ut.ParamInfo('labeler_weight_filepath',    'v3'),
-        #
-        ut.ParamInfo('classifier_sensitivity',     0.79),
-        ut.ParamInfo('localizer_sensitivity',      0.10),
         ut.ParamInfo('labeler_sensitivity',        0.10),
     ]
     _sub_config_list = [
@@ -1594,10 +1593,16 @@ def compute_detections(depc, gid_list, config=None):
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
 
-    if not USE_LOCALIZATIONS:
+    ut.embed()
+    if USE_LOCALIZATIONS:
+        gid_list_ = list(gid_list)
+    else:
+        classifier_config = {
+            'classifier_weight_filepath': config['classifier_weight_filepath'],
+        }
         # Filter the gids by annotations
-        prediction_list = depc.get_property('classifier', gid_list, 'class')
-        confidence_list = depc.get_property('classifier', gid_list, 'score')
+        prediction_list = depc.get_property('classifier', gid_list, 'class', config=classifier_config)
+        confidence_list = depc.get_property('classifier', gid_list, 'score', config=classifier_config)
         confidence_list = [
             confidence if prediction == 'positive' else 1.0 - confidence
             for prediction, confidence  in zip(prediction_list, confidence_list)
@@ -1607,8 +1612,6 @@ def compute_detections(depc, gid_list, config=None):
             for gid, confidence in zip(gid_list, confidence_list)
             if confidence >= config['classifier_sensitivity']
         ]
-    else:
-        gid_list_ = list(gid_list)
 
     gid_set_ = set(gid_list_)
     # Get the localizations for the good gids and add formal annotations
@@ -1618,25 +1621,24 @@ def compute_detections(depc, gid_list, config=None):
         'weight_filepath' : config['localizer_weight_filepath'],
         'grid'            : config['localizer_grid'],
     }
-    bboxes_list  = depc.get_property('localizations', gid_list_, 'bboxes',    config=localizer_config)
-    thetas_list  = depc.get_property('localizations', gid_list_, 'thetas',    config=localizer_config)
-    confses_list = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
+    bboxes_list  = depc.get_property('localizations', gid_list_, 'bboxes', config=localizer_config)
+    thetas_list  = depc.get_property('localizations', gid_list_, 'thetas', config=localizer_config)
+    confses_list = depc.get_property('localizations', gid_list_, 'confs',  config=localizer_config)
 
-    if not USE_LOCALIZATIONS:
-        # depc.delete_property('labeler', gid_list_, config=localizer_config)
-        labeler_config = {
-            'labeler_weight_filepath' : config['labeler_weight_filepath'],
-        }
-        specieses_list     = depc.get_property('localizations_labeler', gid_list_, 'species',   config=labeler_config)
-        viewpoints_list    = depc.get_property('localizations_labeler', gid_list_, 'viewpoint', config=labeler_config)
-        scores_list        = depc.get_property('localizations_labeler', gid_list_, 'score',     config=labeler_config)
-    else:
+    if USE_LOCALIZATIONS:
         specieses_list     = depc.get_property('localizations', gid_list_, 'classes',   config=localizer_config)
         viewpoints_list    = [
             [-1] * len(bbox_list)
             for bbox_list in bboxes_list
         ]
         scores_list        = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
+    else:
+        labeler_config = {
+            'labeler_weight_filepath' : config['labeler_weight_filepath'],
+        }
+        specieses_list     = depc.get_property('localizations_labeler', gid_list_, 'species',   config=labeler_config)
+        viewpoints_list    = depc.get_property('localizations_labeler', gid_list_, 'viewpoint', config=labeler_config)
+        scores_list        = depc.get_property('localizations_labeler', gid_list_, 'score',     config=labeler_config)
 
     # Collect the detections, filtering by the localization confidence
     empty_list = [0.0, np.array([]), np.array([]), np.array([]), np.array([]), np.array([])]

@@ -13,7 +13,8 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
 from ibeis.scripts import labelShark
 
-USE_LOCALIZATIONS = True
+
+USE_LOCALIZATIONS = False
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
