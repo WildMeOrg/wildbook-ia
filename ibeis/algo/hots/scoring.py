@@ -16,6 +16,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
 
     Example0:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # (IMPORTANT)
         >>> from ibeis.algo.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()

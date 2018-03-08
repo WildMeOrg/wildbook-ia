@@ -39,6 +39,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
 
     Examples:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> import ibeis
         >>> qaid_list = [1]
@@ -121,6 +122,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
 
     Example0:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
@@ -131,6 +133,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
 
     Example1:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
@@ -141,6 +144,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
 
     Example1:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # TEST SAVE
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> import ibeis
@@ -153,6 +157,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
 
     Example2:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # TEST LOAD
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> import ibeis

@@ -1237,6 +1237,7 @@ class QueryRequest(ut.NiceRepr):
 
         Example:
             >>> # SLOW_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> qreq_ = ibeis.testdata_qreq_()
