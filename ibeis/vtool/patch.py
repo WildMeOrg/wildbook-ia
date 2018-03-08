@@ -1437,14 +1437,21 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     return hist, centers
 
 
+# if __name__ == '__main__':
+#     """
+#     CommandLine:
+#         python -m vtool.patch
+#         python -m vtool.patch --allexamples
+#         python -m vtool.patch --allexamples --noface --nosrc
+#     """
+#     import multiprocessing
+#     multiprocessing.freeze_support()  # for win32
+#     import utool as ut  # NOQA
+#     ut.doctest_funcs()
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m vtool.patch
-        python -m vtool.patch --allexamples
-        python -m vtool.patch --allexamples --noface --nosrc
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

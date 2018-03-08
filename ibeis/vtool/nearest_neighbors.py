@@ -647,6 +647,7 @@ def flann_index_time_experiment():
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> result = flann_index_time_experiment()
         >>> print(result)

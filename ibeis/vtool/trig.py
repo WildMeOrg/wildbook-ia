@@ -17,14 +17,15 @@ def atan2(y, x):
     """ does atan2 but returns from 0 to TAU
     >>> from vtool.trig import *  # NOQA
     >>> import utool
-    >>> np.random.seed(0)
-    >>> y = np.random.rand(1000).astype(np.float64)
-    >>> x = np.random.rand(1000).astype(np.float64)
+    >>> rng = np.random.RandomState(0)
+    >>> y = rng.rand(1000).astype(np.float64)
+    >>> x = rng.rand(1000).astype(np.float64)
     >>> theta = atan2(y, x)
     >>> assert np.all(theta >= 0)
     >>> assert np.all(theta < 2 * np.pi)
-    >>> print(utool.hashstr(theta))
-    go!su97%eo4qoyq7
+    >>> import ubelt as ub
+    >>> print(ub.hash_data(theta))
+    cvgubxhxkihkqxpgugqakwfineevokxaubikkopxjvkewbeudwmkuhdaobnpbommjwqizkciqcsnknkhjxbzegmktfvhhlqgcrixzutvhwvse
 
     #CYTH_INLINE
     #if CYTH

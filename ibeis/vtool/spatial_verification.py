@@ -134,6 +134,7 @@ def try_svd(M):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> rng = np.random.RandomState(42)
@@ -147,6 +148,7 @@ def try_svd(M):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> num = np.ceil(np.sqrt(2000))

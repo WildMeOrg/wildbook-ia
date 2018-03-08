@@ -1982,6 +1982,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
@@ -2244,6 +2245,7 @@ def greedy_setcover(universe, subsets, weights=None):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> universe = set([1,2,3,4])

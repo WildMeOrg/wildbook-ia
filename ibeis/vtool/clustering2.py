@@ -179,6 +179,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         ],
 
     Time:
+        >>> # xdoctest: +SKIP
         >>> import vtool as vt
         >>> import utool as ut
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
@@ -197,6 +198,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> stmt_list = [x for x in stmt_list if not x.startswith('#')]
         >>> passed, times, outputs = ut.timeit_compare(stmt_list, setup, iterations=10000)
 
+        >>> # xdoctest: +SKIP
         >>> stmt_list = ut.codeblock(
                 '''
                 np.diff(groupids_sorted)

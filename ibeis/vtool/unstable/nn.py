@@ -304,6 +304,7 @@ def akmeans_plusplus_init(data, K, num_samples=None, flann_params=None,
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.clustering2 import *  # NOQA
         >>> import utool as ut
         >>> import numpy as np
@@ -318,6 +319,7 @@ def akmeans_plusplus_init(data, K, num_samples=None, flann_params=None,
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.clustering2 import *  # NOQA
         >>> import sklearn.cluster
         >>> from sklearn.cluster import *
@@ -344,6 +346,7 @@ def akmeans_plusplus_init(data, K, num_samples=None, flann_params=None,
 
     Example2:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.clustering2 import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')

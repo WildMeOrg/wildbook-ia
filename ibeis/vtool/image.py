@@ -121,6 +121,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.image import *  # NOQA
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
@@ -141,6 +142,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> import random
         >>> from os.path import join, expanduser, abspath

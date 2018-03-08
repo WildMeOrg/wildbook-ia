@@ -85,6 +85,7 @@ def signed_ori_distance(ori1, ori2):
         >>> ori2 = np.array([3,  4, 0, 0, np.pi, np.pi - .1])
         >>> ori_dist = signed_ori_distance(ori1, ori2)
         >>> result = ('ori_dist = %s' % (ut.repr2(ori_dist, precision=3),))
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         ori_dist = np.array([ 3.   , -2.283, -3.   ,  2.283, -3.142,  3.042])
     """
@@ -101,6 +102,8 @@ def ori_distance(ori1, ori2, out=None):
         http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
 
     Timeit:
+        >>> #xdoctest: +SKIP
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> import utool as ut
         >>> setup = ut.codeblock(
         >>>     r'''
@@ -145,6 +148,7 @@ def ori_distance(ori1, ori2, out=None):
         >>> result = ut.repr2(ori1, precision=1)
         >>> result += '\n' + ut.repr2(ori2, precision=1)
         >>> result += '\n' + ut.repr2(dist_, precision=1)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 0.3,  1.4,  0.6,  0.3, -0.5,  0.9, -0.4,  2.5,  2.9, -0.7])
         np.array([ 1.8,  0.2,  0.4,  2.7, -2.7, -2.6, -3. ,  2.1,  1.7,  2.3])
@@ -157,6 +161,7 @@ def ori_distance(ori1, ori2, out=None):
         >>> ori2 = np.array([ 6.8, -1.0,  0.0, -3.1], dtype=np.float64)
         >>> dist_ = ori_distance(ori1, ori2)
         >>> result = ut.repr2(dist_, precision=2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 0.22,  1.72,  0.  ,  0.08])
 
@@ -220,6 +225,7 @@ def cyclic_distance(arr1, arr2, modulo, out=None):
         >>> arr2 = arr1[:, None]
         >>> arr_dist = cyclic_distance(arr1, arr2, modulo, out)
         >>> result = ('arr_dist =\n%s' % (ut.repr2(arr_dist),))
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         arr_dist =
         np.array([[  0.,   1.,   2.,   3.,   4.,   3.,   2.,   1.,  nan],
@@ -285,6 +291,7 @@ def det_distance(det1, det2):
         >>> det2 = rng.rand(5)
         >>> scaledist = det_distance(det1, det2)
         >>> result = ut.repr2(scaledist, precision=2, threshold=2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 1.58,  1.47,  1.72,  1.36,  1.68])
     """
@@ -319,6 +326,7 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         >>> hist2 = rng.rand(5, 2)
         >>> l2dist = L2_sqrd(hist1, hist2)
         >>> result = ut.repr2(l2dist, precision=2, threshold=2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 0.6 ,  0.17,  0.05,  0.01,  0.1 ])
 
@@ -548,6 +556,7 @@ def bar_L2_sift(hist1, hist2):
         >>> hist1, hist2 = testdata_hist()
         >>> barl2_dist = bar_L2_sift(hist1, hist2)
         >>> result = ut.repr2(barl2_dist, precision=2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 0.55,  0.51,  0.49,  0.51,  0.49,  0.52,  0.48,  0.48,  0.51,  0.45])
     """
@@ -580,6 +589,7 @@ def L2_sift(hist1, hist2):
         >>> max_dist = L2_sift(sift4, sift5)
         >>> assert np.isclose(max_dist, 1.0)
         >>> result = ut.repr2(l2_dist, precision=2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 0.45,  0.49,  0.51,  0.49,  0.51,  0.48,  0.52,  0.52,  0.49,  0.55])
     """
@@ -655,6 +665,7 @@ def cos_sift(hist1, hist2):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> l2_dist = cos_sift(hist1, hist2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> result = ut.repr2(l2_dist, precision=2)
         >>> print(result)
         np.array([ 0.77,  0.74,  0.72,  0.74,  0.72,  0.75,  0.71,  0.72,  0.74,  0.68])
@@ -706,6 +717,7 @@ def emd(hist1, hist2, cost_matrix='sift'):
         >>> hist1, hist2 = testdata_hist()
         >>> emd_dists = emd(hist1, hist2)
         >>> result = ut.repr2(emd_dists, precision=2)
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
         np.array([ 2063.99,  2078.02,  2109.03,  2011.99,  2130.99,  2089.01,
                    2030.99,  2294.98,  2026.02,  2426.01])
@@ -908,6 +920,7 @@ def haversine(latlon1, latlon2):
         >>> haversin_pdist = functools.partial(spdist.pdist, metric=vt.haversine)
         >>> dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
         >>> dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
+        >>> #xdoctest: +IGNORE_WHITESPACE
         >>> result = ('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2, with_dtype=True),))
         >>> print(result)
         dist_matrix_list = [
@@ -1000,14 +1013,21 @@ def pdist_argsort(x):
     return sortx_2d
 
 
+# if __name__ == '__main__':
+#     """
+#     CommandLine:
+#         python -m vtool.distance
+#         python -m vtool.distance --allexamples
+#         python -m vtool.distance --allexamples --noface --nosrc
+#     """
+#     import multiprocessing
+#     multiprocessing.freeze_support()  # for win32
+#     import utool as ut  # NOQA
+#     ut.doctest_funcs()
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
-        python -m vtool.distance
-        python -m vtool.distance --allexamples
-        python -m vtool.distance --allexamples --noface --nosrc
+        python -m vtool.distance all
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
