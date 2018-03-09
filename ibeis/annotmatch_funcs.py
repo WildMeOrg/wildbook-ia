@@ -286,7 +286,7 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         >>> timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2)
         >>> result = ut.repr2(timedelta_list, precision=1)
         >>> print(result)
-        np.array([  7.6e+07,   7.6e+07,   2.4e+06,   2.0e+08,   9.7e+07])
+        np.array([7.6e+07, 7.6e+07, 2.4e+06, 2.0e+08, 9.7e+07])
     """
     unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
     unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)

@@ -2770,7 +2770,7 @@ class MainWindowBackend(GUIBACK_BASE):
                  'not been named') % (imgsetid, unnamed_ok_aid_list, ))
 
             if not dry:
-                back.start_web_server_parallel(browser=False)
+                # back.start_web_server_parallel(browser=False)
                 #gid_list = ibs.get_imageset_gids(imgsetid)
                 back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
                 # Set imageset to be processed

@@ -221,7 +221,8 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])
             >>> ccs = list(self.connected_components())
-            >>> print('ccs = {}'.format(ut.repr2(ccs, nl=0)))
+            >>> result = 'ccs = {}'.format(ut.repr2(ccs, nl=0))
+            >>> print(result)
             ccs = [{1, 2, 3}, {4, 5}, {6, 7}]
         """
         for cc in self._ccs.values():

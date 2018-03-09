@@ -426,11 +426,11 @@ def lnbnn_fn(vdist, ndist):
         >>> out = lnbnn_fn(vdist, ndist)
         >>> result = ut.hz_str('lnbnn  = ', ut.repr2(out, precision=2))
         >>> print(result)
-        lnbnn  = np.array([[ 0.62,  0.22,  0.03],
-                           [ 0.35,  0.22,  0.01],
-                           [ 0.87,  0.58,  0.27],
-                           [ 0.67,  0.42,  0.25],
-                           [ 0.59,  0.3 ,  0.27]])
+        lnbnn  = np.array([[0.62, 0.22, 0.03],
+                           [0.35, 0.22, 0.01],
+                           [0.87, 0.58, 0.27],
+                           [0.67, 0.42, 0.25],
+                           [0.59, 0.3 , 0.27]])
     """
     return (ndist - vdist)
 
@@ -452,11 +452,11 @@ def ratio_fn(vdist, ndist):
         >>> out = ratio_fn(vdist, ndist)
         >>> result = ut.hz_str('ratio = ', ut.repr2(out, precision=2))
         >>> print(result)
-        ratio = np.array([[ 0.  ,  0.65,  0.95],
-                          [ 0.33,  0.58,  0.98],
-                          [ 0.13,  0.42,  0.73],
-                          [ 0.15,  0.47,  0.68],
-                          [ 0.23,  0.61,  0.65]])
+        ratio = np.array([[0.  , 0.65, 0.95],
+                          [0.33, 0.58, 0.98],
+                          [0.13, 0.42, 0.73],
+                          [0.15, 0.47, 0.68],
+                          [0.23, 0.61, 0.65]])
     """
     return np.divide(vdist, ndist)
 
@@ -476,11 +476,11 @@ def bar_l2_fn(vdist, ndist):
         >>> out = bar_l2_fn(vdist, ndist)
         >>> result = ut.hz_str('barl2  = ', ut.repr2(out, precision=2))
         >>> print(result)
-        barl2  = np.array([[ 1.  ,  0.6 ,  0.41],
-                           [ 0.83,  0.7 ,  0.49],
-                           [ 0.87,  0.58,  0.27],
-                           [ 0.88,  0.63,  0.46],
-                           [ 0.82,  0.53,  0.5 ]])
+        barl2  = np.array([[1.  , 0.6 , 0.41],
+                           [0.83, 0.7 , 0.49],
+                           [0.87, 0.58, 0.27],
+                           [0.88, 0.63, 0.46],
+                           [0.82, 0.53, 0.5 ]])
     """
     return 1.0 - vdist
 
@@ -500,11 +500,11 @@ def loglnbnn_fn(vdist, ndist):
         >>> out = loglnbnn_fn(vdist, ndist)
         >>> result = ut.hz_str('loglnbnn  = ', ut.repr2(out, precision=2))
         >>> print(result)
-        loglnbnn  = np.array([[ 0.48,  0.2 ,  0.03],
-                              [ 0.3 ,  0.2 ,  0.01],
-                              [ 0.63,  0.46,  0.24],
-                              [ 0.51,  0.35,  0.22],
-                              [ 0.46,  0.26,  0.24]])
+        loglnbnn  = np.array([[0.48, 0.2 , 0.03],
+                              [0.3 , 0.2 , 0.01],
+                              [0.63, 0.46, 0.24],
+                              [0.51, 0.35, 0.22],
+                              [0.46, 0.26, 0.24]])
     """
     return np.log(ndist - vdist + 1.0)
 
@@ -519,11 +519,11 @@ def logratio_fn(vdist, ndist):
         >>> out = normonly_fn(vdist, ndist)
         >>> result = ut.repr2(out)
         >>> print(result)
-        np.array([[ 0.62,  0.62,  0.62],
-                  [ 0.52,  0.52,  0.52],
-                  [ 1.  ,  1.  ,  1.  ],
-                  [ 0.79,  0.79,  0.79],
-                  [ 0.77,  0.77,  0.77]])
+        np.array([[0.62, 0.62, 0.62],
+                  [0.52, 0.52, 0.52],
+                  [1.  , 1.  , 1.  ],
+                  [0.79, 0.79, 0.79],
+                  [0.77, 0.77, 0.77]])
     """
     return np.log(np.divide(ndist, vdist + EPS) + 1.0)
 
@@ -538,11 +538,11 @@ def normonly_fn(vdist, ndist):
         >>> out = normonly_fn(vdist, ndist)
         >>> result = ut.repr2(out)
         >>> print(result)
-        np.array([[ 0.62,  0.62,  0.62],
-                  [ 0.52,  0.52,  0.52],
-                  [ 1.  ,  1.  ,  1.  ],
-                  [ 0.79,  0.79,  0.79],
-                  [ 0.77,  0.77,  0.77]])
+        np.array([[0.62, 0.62, 0.62],
+                  [0.52, 0.52, 0.52],
+                  [1.  , 1.  , 1.  ],
+                  [0.79, 0.79, 0.79],
+                  [0.77, 0.77, 0.77]])
     """
     return np.tile(ndist[:, 0:1], (1, vdist.shape[1]))
     #return ndist[None, 0:1]
@@ -561,16 +561,16 @@ def testdata_vn_dists(nfeats=5, K=3):
         >>> vdist, ndist = testdata_vn_dists()
         >>> result = (ut.hz_str('vdist = ', ut.repr2(vdist))) + '\n'
         >>> result += (ut.hz_str('ndist = ', ut.repr2(ndist)))
-        vdist = np.array([[ 0.  ,  0.4 ,  0.59],
-                          [ 0.17,  0.3 ,  0.51],
-                          [ 0.13,  0.42,  0.73],
-                          [ 0.12,  0.37,  0.54],
-                          [ 0.18,  0.47,  0.5 ]])
-        ndist = np.array([[ 0.62],
-                          [ 0.52],
-                          [ 1.  ],
-                          [ 0.79],
-                          [ 0.77]])
+        vdist = np.array([[0.  , 0.4 , 0.59],
+                          [0.17, 0.3 , 0.51],
+                          [0.13, 0.42, 0.73],
+                          [0.12, 0.37, 0.54],
+                          [0.18, 0.47, 0.5 ]])
+        ndist = np.array([[0.62],
+                          [0.52],
+                          [1.  ],
+                          [0.79],
+                          [0.77]])
     """
     def make_precise(dist):
         prec = 100
