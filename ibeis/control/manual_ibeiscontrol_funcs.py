@@ -51,6 +51,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
         >>> from ibeis.algo.hots import distinctiveness_normalizer
         >>> import ibeis

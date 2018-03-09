@@ -544,6 +544,7 @@ def query_chips_test(ibs, **kwargs):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
@@ -678,6 +679,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_()
@@ -690,6 +692,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
@@ -703,6 +706,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
 
     Example1:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]

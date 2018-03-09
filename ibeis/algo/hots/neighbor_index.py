@@ -321,6 +321,7 @@ class NeighborIndex(object):
 
         Example:
             >>> # SLOW_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> # (IMPORTANT)
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = testdata_nnindexer(use_memcache=False)

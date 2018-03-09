@@ -1572,6 +1572,7 @@ def compute_detections(depc, gid_list, config=None):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'

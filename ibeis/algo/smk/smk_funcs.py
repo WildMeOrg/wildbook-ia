@@ -493,6 +493,7 @@ def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> idx_to_vec = depc.d.get_feat_vecs(aid_list)[0][0::300]
         >>> idx_to_vec = np.vstack((idx_to_vec, vocab.wx_to_word[0]))
         >>> nAssign = 2

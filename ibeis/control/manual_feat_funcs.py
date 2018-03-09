@@ -113,6 +113,7 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> import vtool as vt
         >>> import numpy as np
