@@ -54,10 +54,12 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
         for lib_fname in lib_fname_list:
             for lib_dpath in get_lib_dpath_list(root_dir):
                 lib_fpath = normpath(join(lib_dpath, lib_fname))
+                if verbose:
+                    print('\tChecking %r' % (lib_fpath, ))
                 if exists(lib_fpath):
                     if verbose:
                         print('\n[c] Checked: '.join(tried_fpaths))
-                    if __VERBOSE__ and not __QUIET__:
+                    if (verbose or __VERBOSE__) and not __QUIET__:
                         print('using: %r' % lib_fpath)
                     return lib_fpath
                 else:
@@ -75,8 +77,9 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
     msg = ('\n[C!] load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
            (libname, root_dir, recurse_down, verbose) +
            '\n[c!] Cannot FIND dynamic library')
-    print(msg)
-    print('\n[c!] Checked: '.join(tried_fpaths))
+    if verbose:
+        print(msg)
+        print('\n[c!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
 
 
