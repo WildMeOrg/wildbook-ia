@@ -359,6 +359,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     WITH_GUI = not ut.get_argflag('--no-gui')
     WITH_CUSTOM_TPL = True
     WITH_FLUKEMATCH = True
+    WITH_CURVERANK = True
     #-----------
     # IBEIS project repos
     #-----------
@@ -412,6 +413,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         if WITH_FLUKEMATCH:
             ibeis_rman.add_repos([
                 'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
+            ])
+        if WITH_FLUKEMATCH:
+            ibeis_rman.add_repos([
+                'https://github.com/WildbookOrg/ibeis-curverank-module.git'
             ])
         # NEW CNN Dependencies
         tpl_rman.add_repos([
