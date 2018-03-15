@@ -114,6 +114,32 @@ def ensure_base01(color):
     return color01
 
 
+def convert_255_to_hex(color255):
+    """
+        >>> color255 = [255, 51, 0]
+
+        target_rgb01 = pt.FALSE_RED[0:3]
+        target_rgb = np.array([[target_rgb01]]).astype(np.float32) / 25
+        target_lab = vt.convert_colorspace(target_rgb, 'lab', 'rgb')
+
+        # Find closest CSS color in LAB space
+        dist_lab = {}
+        dist_rgb = {}
+        css_colors = ub.map_vals(convert_hex_to_255, mcolors.CSS4_COLORS)
+        for k, c in css_colors.items():
+            rgb = np.array([[c]]).astype(np.float32) / 255
+            lab = vt.convert_colorspace(rgb, 'lab', 'rgb')
+            dist_lab[k] = np.sqrt(((target_lab - lab) ** 2).sum())
+            dist_rgb[k] = np.sqrt(((target_rgb - rgb) ** 2).sum())
+
+        best_keys = ub.argsort(dist_lab)
+        ub.odict(zip(best_keys, ub.take(dist_lab, best_keys)))
+
+    """
+    colorhex = '0x' + ''.join(['%02x' % c for c in color255])
+    return colorhex
+
+
 def convert_hex_to_255(hex_color):
     """
     hex_color = '#6A5AFFAF'
