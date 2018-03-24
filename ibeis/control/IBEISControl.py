@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+a -*- coding: utf-8 -*-
 """
 This module contains the definition of IBEISController. This object
 allows access to a single database. Construction of this object should be
@@ -96,7 +96,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
-    (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
+    #(('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     #'ibeis.web.apis_engine',
 ]
 
