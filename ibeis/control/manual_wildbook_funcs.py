@@ -429,6 +429,9 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     # Call Wildbook url to signal update
     print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
         imgsetid_list, ))
+    imageset_uuid_list = ibs.get_imageset_uuid(imgsetid_list)
+    print('[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook' % (
+        imageset_uuid_list, ))
 
     url = wb_url + '/ia'
     dbname = ibs.db.get_db_init_uuid()
@@ -437,8 +440,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
 
     # Check and push 'done' imagesets
     status_list = []
-    for imgsetid in imgsetid_list:
-        imageset_uuid = ibs.get_imageset_uuid(imgsetid)
+    for imgsetid, imageset_uuid in zip(imgsetid_list, imageset_uuid_list):
         print('[_send] URL=%r' % (url, ))
         json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid) }}
         if dryrun:

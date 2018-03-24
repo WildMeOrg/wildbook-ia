@@ -414,10 +414,6 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             ibeis_rman.add_repos([
                 'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
             ])
-        if WITH_FLUKEMATCH:
-            ibeis_rman.add_repos([
-                'https://github.com/WildbookOrg/ibeis-curverank-module.git'
-            ])
         # NEW CNN Dependencies
         tpl_rman.add_repos([
             'https://github.com/pytorch/pytorch.git',

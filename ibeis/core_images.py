@@ -428,9 +428,9 @@ def compute_features(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'yolo2', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
         ut.ParamInfo('sensitivity', 0.0),
-        ut.ParamInfo('species', 'zebra_plains'),
+        ut.ParamInfo('species', None),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
         ut.ParamInfo('class_filepath', None),
@@ -497,6 +497,10 @@ def compute_localizations(depc, gid_list, config=None):
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
         >>> config = {'algo': 'yolo'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'yolo2'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
@@ -630,12 +634,17 @@ def compute_localizations(depc, gid_list, config=None):
         ######################################################################################
         if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
             from ibeis.algo.detect import yolo
-            print('[ibs] detecting using PyDarknet CNN YOLO')
+            print('[ibs] detecting using PyDarknet CNN YOLO v1')
             detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
+        elif config['algo'] in ['yolo2']:
+            from ibeis.algo.detect import yolo2
+            print('[ibs] detecting using PyTorch CNN YOLO v2')
+            detect_gen = yolo2.detect_gid_list(ibs, gid_list, **config)
         ######################################################################################
         elif config['algo'] in ['rf']:
             from ibeis.algo.detect import randomforest
             print('[ibs] detecting using Random Forests')
+            assert config['species'] is not None
             base_key_list[6] = (config['species'], )  # class == species
             detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
         ######################################################################################
@@ -1156,7 +1165,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             yield ret_tuple
     elif config['classifier_algo'] in ['svm']:
         from ibeis.algo.detect.svm import classify
-        # From localizations get gids
+        # from localizations get gids
         config_ = {
             'algo': '_COMBINED',
             'feature2_algo': 'resnet',
@@ -1530,17 +1539,17 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
 
 class DetectorConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_weight_filepath', 'v3_zebra'),
-        ut.ParamInfo('classifier_sensitivity',     0.10),
+        ut.ParamInfo('classifier_weight_filepath', 'candidacy'),
+        ut.ParamInfo('classifier_sensitivity',     0.0),
         #
         ut.ParamInfo('localizer_algo',             'yolo'),
-        ut.ParamInfo('localizer_config_filepath',  'v3'),
-        ut.ParamInfo('localizer_weight_filepath',  'v3'),
+        ut.ParamInfo('localizer_config_filepath',  'candidacy'),
+        ut.ParamInfo('localizer_weight_filepath',  'candidacy'),
         ut.ParamInfo('localizer_grid',             False),
-        ut.ParamInfo('localizer_sensitivity',      0.10),
+        ut.ParamInfo('localizer_sensitivity',      0.0),
         #
-        ut.ParamInfo('labeler_weight_filepath',    'v3'),
-        ut.ParamInfo('labeler_sensitivity',        0.10),
+        ut.ParamInfo('labeler_weight_filepath',    'candidacy'),
+        ut.ParamInfo('labeler_sensitivity',        0.0),
     ]
     _sub_config_list = [
         ThumbnailConfig,
@@ -1593,9 +1602,12 @@ def compute_detections(depc, gid_list, config=None):
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
 
+    USE_LOCALIZATIONS = False  # NOQA
+    USE_CLASSIFIER = False
+
     if USE_LOCALIZATIONS:
         gid_list_ = list(gid_list)
-    else:
+    elif USE_CLASSIFIER:
         classifier_config = {
             'classifier_weight_filepath': config['classifier_weight_filepath'],
         }
@@ -1610,6 +1622,17 @@ def compute_detections(depc, gid_list, config=None):
             gid
             for gid, confidence in zip(gid_list, confidence_list)
             if confidence >= config['classifier_sensitivity']
+        ]
+    else:
+        classifier_config = {
+            'classifier_two_weight_filepath': config['classifier_weight_filepath'],
+        }
+        # Filter the gids by annotations
+        predictions_list = depc.get_property('classifier_two', gid_list, 'classes', config=classifier_config)
+        gid_list_ = [
+            gid
+            for gid, prediction_list in zip(gid_list, predictions_list)
+            if len(prediction_list) > 0
         ]
 
     gid_set_ = set(gid_list_)
@@ -1664,6 +1687,9 @@ def compute_detections(depc, gid_list, config=None):
         for bbox, theta, species, viewpoint, conf, score in zipped:
             if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and max(bbox[2], bbox[3]) / min(bbox[2], bbox[3]) < 20.0:
                 zipped_.append([bbox, theta, species, viewpoint, conf * score])
+            else:
+                print('Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'],))
+                print('Labeler   %0.02f %0.02f' % (conf, config['labeler_sensitivity'],))
         if len(zipped_) == 0:
             detect_list = list(empty_list)
         else:
