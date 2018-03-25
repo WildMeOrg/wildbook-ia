@@ -1,4 +1,4 @@
-a -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 This module contains the definition of IBEISController. This object
 allows access to a single database. Construction of this object should be
