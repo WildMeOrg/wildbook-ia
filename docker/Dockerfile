@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     libeigen3-dev=3.3~beta1-2 \
     libfreetype6-dev=2.6.1-0.1ubuntu2.3 \
     libgdal-dev=1.11.3+dfsg-3build2 \
+    libgl1-mesa-glx=17.2.8-0ubuntu0~16.04.1 \
     libgoogle-glog-dev=0.3.4-0.1 \
     libharfbuzz-dev=1.0.1-1ubuntu0.1 \
     libhdf5-dev=1.8.16+docs-4ubuntu1 \
@@ -167,6 +168,9 @@ RUN    cd /ibeis/opencv \
     && cd .. \
     && rm -rf /ibeis/opencv/build
 
+RUN /virtualenv/env3/bin/pip install \
+    cython==0.28.1
+
 # Install libgpuarray (pygpu)
 RUN    cd /ibeis/libgpuarray \
     && git checkout 04c2892 \
@@ -182,7 +186,6 @@ RUN    cd /ibeis/libgpuarray \
 
 # Install basic Python3 dependencies (and ones that were missing in IBEIS install)
 RUN /virtualenv/env3/bin/pip install \
-    cython==0.28.1 \
     ipython==6.2.1 \
     pyqt5==5.10.1 \
     futures_actors==0.0.5 \
@@ -193,7 +196,10 @@ RUN    /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Fla
     && /virtualenv/env3/bin/pip install git+https://github.com/pwaller/pyfiglet.git@6dabdb0e720b5a61d81ff819faf0ad86127275fc \
     && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
-RUN cd /ibeis/Theano \
+# Checkout specific versions of each repository
+RUN    cd /ibeis/ibeis \
+    && /virtualenv/env3/bin/python super_setup.py --pull \
+    && cd /ibeis/Theano \
     && git checkout 61b514a \
     && cd /ibeis/Lasagne \
     && git checkout 37ca134 \
@@ -226,7 +232,7 @@ RUN cd /ibeis/Theano \
     && cd /ibeis/pyrf \
     && git checkout 8802d3a \
     && cd /ibeis/ibeis \
-    && git checkout 1ad90501
+    && git checkout 2e203d07
 
 # Build Python repositories with external codebases
 RUN . /virtualenv/env3/bin/activate \
@@ -285,6 +291,8 @@ COPY --from=com.wildme.wildbook-image-curation.build /ibeis /ibeis
 RUN    ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
     && ln -s /virtualenv/env3/lib/libgpuarray.so.3   /usr/lib/libgpuarray.so.3 \
     && ln -s /virtualenv/env3/lib/libgpuarray.so.3.0 /usr/lib/libgpuarray.so.3.0
+
+ENV LD_LIBRARY_PATH "/usr/lib:${LD_LIBRARY_PATH}"
 
 RUN echo """ \
 [global]\n\
