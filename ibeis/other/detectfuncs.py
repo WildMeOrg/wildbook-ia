@@ -1354,13 +1354,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Hammerhead',        'grid' : False, 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
         # {'label': 'Hammerhead (Grid)', 'grid' : True,  'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead'},
 
-        {'label': 'Sea Turtle',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_general'])},
-        {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
-        {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
+        # {'label': 'Sea Turtle',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_general'])},
+        # {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
+        # {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
 
-        {'label': 'Sea Turtle',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_general'])},
-        {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
-        {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
+        {'label': 'Hammerhead',       'algo': 'yolo2', 'grid' : False, 'nms': True, 'nms_thresh': 0.25, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_hammerhead'])},
+        {'label': 'Sandtiger',        'algo': 'yolo2', 'grid' : False, 'nms': True, 'nms_thresh': 0.25, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_sandtiger'])},
+        {'label': 'Sea Turtle',       'algo': 'yolo2', 'grid' : False, 'nms': True, 'nms_thresh': 0.25, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_sea'])},
+        {'label': 'Whale FLuke',      'algo': 'yolo2', 'grid' : False, 'nms': True, 'nms_thresh': 0.25, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whale_fluke'])},
+        {'label': 'Humpback Whale',   'algo': 'yolo2', 'grid' : False, 'nms': True, 'nms_thresh': 0.25, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whale_humpback'])},
+        {'label': 'Whale Shark',      'algo': 'yolo2', 'grid' : False, 'nms': True, 'nms_thresh': 0.25, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whale_shark'])},
 
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},

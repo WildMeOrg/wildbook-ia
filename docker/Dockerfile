@@ -209,8 +209,9 @@ RUN    cd /ibeis/ibeis \
     && /virtualenv/env3/bin/python super_setup.py --pull \
     # Double pull is important because super_setup.py could have just been updated as well
     && /virtualenv/env3/bin/python super_setup.py --pull \
-    # Checkout specific version of ibeis and all other repos
-    && git checkout 3faf520d \
+    # Checkout specific version of ibeis
+    && git checkout 2cfb0ac4 \
+    # Checkout specific version of all other repos
     && cd /ibeis/Theano \
     && git checkout 61b514a \
     && cd /ibeis/Lasagne \
@@ -338,6 +339,15 @@ ldflags = -llapack -lblas\n\
 RUN mkdir /data
 
 RUN /virtualenv/env3/bin/python /ibeis/ibeis/dev.py --set-workdir /data
+
+##########################################################################################
+FROM com.wildme.wildbook-image-curation.install as com.wildme.wildbook-image-curation.test
+
+RUN /virtualenv/env3/bin/python /ibeis/ibeis/reset_dbs.py --reset-all
+
+VOLUME /data
+
+ENTRYPOINT ["/virtualenv/env3/bin/python", "/ibeis/ibeis/run_tests.py"]
 
 ##########################################################################################
 FROM com.wildme.wildbook-image-curation.install as com.wildme.wildbook-image-curation.deploy
