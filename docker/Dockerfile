@@ -205,7 +205,12 @@ RUN    /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Fla
 
 # Checkout specific versions of each repository
 RUN    cd /ibeis/ibeis \
+    && git checkout next \
     && /virtualenv/env3/bin/python super_setup.py --pull \
+    # Double pull is important because super_setup.py could have just been updated as well
+    && /virtualenv/env3/bin/python super_setup.py --pull \
+    # Checkout specific version of ibeis and all other repos
+    && git checkout 65124e94 \
     && cd /ibeis/Theano \
     && git checkout 61b514a \
     && cd /ibeis/Lasagne \
@@ -237,11 +242,17 @@ RUN    cd /ibeis/ibeis \
     && cd /ibeis/ibeis-flukematch-module \
     && git checkout fd1e028 \
     && cd /ibeis/ibeis-curvrank-module \
-    && git checkout 13f057b \
+    && git checkout 99b6115 \
     && cd /ibeis/pyrf \
-    && git checkout 8802d3a \
-    && cd /ibeis/ibeis \
-    && git checkout 2e203d07
+    && git checkout 8802d3a
+
+# Install Python dependencies
+RUN    cd /ibeis/Theano \
+    && /virtualenv/env3/bin/pip install -e . \
+    && cd /ibeis/Lasagne \
+    && /virtualenv/env3/bin/pip install -e . \
+    && cd /ibeis/networkx \
+    && /virtualenv/env3/bin/pip install -e .
 
 # Build Python repositories with external codebases
 RUN . /virtualenv/env3/bin/activate \
@@ -260,14 +271,8 @@ RUN . /virtualenv/env3/bin/activate \
     && cd /ibeis/vtool \
     && /bin/bash unix_build.sh
 
-# Install Python packages
-RUN    cd /ibeis/Theano \
-    && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/Lasagne \
-    && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/networkx \
-    && /virtualenv/env3/bin/pip install -e . \
-    && cd /ibeis/detecttools \
+# Install Python repositories
+RUN    cd /ibeis/detecttools \
     && /virtualenv/env3/bin/pip install -e . \
     && cd /ibeis/dtool \
     && /virtualenv/env3/bin/pip install -e . \
