@@ -183,11 +183,11 @@ RUN    cd /ibeis/libgpuarray \
     && git checkout 04c2892 \
     && mkdir -p /ibeis/libgpuarray/build \
     && cd /ibeis/libgpuarray/build \
-    && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/virtualenv \
+    && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/virtualenv/env3 \
     && make -j4 \
     && make install \
     && cd .. \
-    && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/lib -I /virtualenv/include \
+    && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/env3/lib -I /virtualenv/env3/include \
     && /virtualenv/env3/bin/pip install -e . \
     && rm -rf /ibeis/libgpuarray/build
 
@@ -210,7 +210,7 @@ RUN    cd /ibeis/ibeis \
     # Double pull is important because super_setup.py could have just been updated as well
     && /virtualenv/env3/bin/python super_setup.py --pull \
     # Checkout specific version of ibeis and all other repos
-    && git checkout 65124e94 \
+    && git checkout 3faf520d \
     && cd /ibeis/Theano \
     && git checkout 61b514a \
     && cd /ibeis/Lasagne \
@@ -310,8 +310,6 @@ RUN    ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
     && ln -s /virtualenv/env3/lib/libgpuarray.so.3   /usr/lib/libgpuarray.so.3 \
     && ln -s /virtualenv/env3/lib/libgpuarray.so.3.0 /usr/lib/libgpuarray.so.3.0
 
-ENV LD_LIBRARY_PATH "/usr/lib:${LD_LIBRARY_PATH}"
-
 RUN echo """ \
 [global]\n\
 floatX = float32\n\
@@ -341,22 +339,25 @@ RUN mkdir /data
 
 RUN /virtualenv/env3/bin/python /ibeis/ibeis/dev.py --set-workdir /data
 
-VOLUME /data
-
-##########################################################################################
-FROM com.wildme.wildbook-image-curation.install as com.wildme.wildbook-image-curation.test
-
-RUN /virtualenv/env3/bin/python /ibeis/ibeis/reset_dbs.py --reset-all
-
-RUN /virtualenv/env3/bin/python /ibeis/ibeis/run_tests.py
-
 ##########################################################################################
 FROM com.wildme.wildbook-image-curation.install as com.wildme.wildbook-image-curation.deploy
 
 ENTRYPOINT ["/virtualenv/env3/bin/python", "/ibeis/ibeis/dev.py"]
 
-CMD ["--web", "--port", "5000"]
+CMD ["--dbdir", "/data/container", "--web", "--port", "5000", "--web-deterministic-ports"]
 
+# Ports for the frontend web server
 EXPOSE 5000
+
+# Ports for the backend job engine
+EXPOSE 51381
+
+EXPOSE 51382
+
+EXPOSE 51383
+
+EXPOSE 51384
+
+EXPOSE 51385
 
 STOPSIGNAL SIGTERM

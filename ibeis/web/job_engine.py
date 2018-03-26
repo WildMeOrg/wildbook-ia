@@ -141,10 +141,15 @@ def initialize_job_manager(ibs):
     """
     ibs.job_manager = ut.DynStruct()
 
+    use_static_ports = False
+
+    if ut.get_argflag('--web-deterministic-ports'):
+        use_static_ports = True
+
     if ut.get_argflag('--fg'):
         ibs.job_manager.reciever = JobBackend(use_static_ports=True)
     else:
-        ibs.job_manager.reciever = JobBackend()
+        ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
         ibs.job_manager.reciever.initialize_background_processes(dbdir=ibs.get_dbdir())
 
     ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict)
