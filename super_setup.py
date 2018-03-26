@@ -359,7 +359,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     WITH_GUI = not ut.get_argflag('--no-gui')
     WITH_CUSTOM_TPL = True
     WITH_FLUKEMATCH = True
-    WITH_CURVERANK = True
+    WITH_CURVRANK = True
     #-----------
     # IBEIS project repos
     #-----------
@@ -410,10 +410,6 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/WildbookOrg/ibeis_cnn.git',
             'https://github.com/WildbookOrg/pydarknet.git',
         ])
-        if WITH_FLUKEMATCH:
-            ibeis_rman.add_repos([
-                'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
-            ])
         # NEW CNN Dependencies
         tpl_rman.add_repos([
             'https://github.com/pytorch/pytorch.git',
@@ -427,6 +423,16 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/Theano/Theano.git',
             # 'https://github.com/lisa-lab/pylearn2.git',
             'https://github.com/Lasagne/Lasagne.git',
+        ])
+
+    if WITH_FLUKEMATCH:
+        ibeis_rman.add_repos([
+            'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
+        ])
+
+    if WITH_CURVRANK:
+        ibeis_rman.add_repos([
+            'https://github.com/WildbookOrg/ibeis-curvrank-module.git'
         ])
 
     if WITH_PYRF:

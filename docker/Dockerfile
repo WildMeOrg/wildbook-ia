@@ -76,6 +76,8 @@ ADD dev/keys/deploy-ibeis_cnn /root/.ssh/deploy-ibeis_cnn
 
 ADD dev/keys/deploy-ibeis-flukematch-module /root/.ssh/deploy-ibeis-flukematch-module
 
+ADD dev/keys/deploy-ibeis-curvrank-module /root/.ssh/deploy-ibeis-curvrank-module
+
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 RUN echo """\n\
@@ -90,6 +92,10 @@ User git\n\n\
 Host ibeis-flukematch-module.github.com\n\
 HostName github.com\n\
 IdentityFile /root/.ssh/deploy-ibeis-flukematch-module\n\
+User git\n\n\
+Host ibeis-curvrank-module.github.com\n\
+HostName github.com\n\
+IdentityFile /root/.ssh/deploy-ibeis-curvrank-module\n\
 User git\
 """ >> /root/.ssh/config
 
@@ -107,7 +113,8 @@ RUN    git clone https://github.com/opencv/opencv.git               /ibeis/openc
 
 RUN    git clone git@ibeis.github.com:WildbookOrg/ibeis.git         /ibeis/ibeis \
     && git clone git@ibeis_cnn.github.com:WildbookOrg/ibeis_cnn.git /ibeis/ibeis_cnn \
-    && git clone git@ibeis-flukematch-module.github.com:WildbookOrg/ibeis-flukematch-module.git /ibeis/ibeis-flukematch-module
+    && git clone git@ibeis-flukematch-module.github.com:WildbookOrg/ibeis-flukematch-module.git /ibeis/ibeis-flukematch-module \
+    && git clone git@ibeis-curvrank-module.github.com:WildbookOrg/ibeis-curvrank-module.git /ibeis/ibeis-curvrank-module
 
 # Build and install utool and ubelt
 RUN cd /ibeis/utool \
@@ -229,6 +236,8 @@ RUN    cd /ibeis/ibeis \
     && git checkout f36e935 \
     && cd /ibeis/ibeis-flukematch-module \
     && git checkout fd1e028 \
+    && cd /ibeis/ibeis-curvrank-module \
+    && git checkout 13f057b \
     && cd /ibeis/pyrf \
     && git checkout 8802d3a \
     && cd /ibeis/ibeis \
@@ -241,6 +250,8 @@ RUN . /virtualenv/env3/bin/activate \
     && cd /ibeis/hesaff \
     && /bin/bash unix_build.sh \
     && cd /ibeis/ibeis-flukematch-module \
+    && /bin/bash unix_build.sh \
+    && cd /ibeis/ibeis-curvrank-module \
     && /bin/bash unix_build.sh \
     && cd /ibeis/pydarknet \
     && /bin/bash unix_build.sh \
@@ -267,6 +278,8 @@ RUN    cd /ibeis/Theano \
     && cd /ibeis/hesaff \
     && /virtualenv/env3/bin/pip install -e . \
     && cd /ibeis/ibeis-flukematch-module \
+    && /virtualenv/env3/bin/pip install -e . \
+    && cd /ibeis/ibeis-curvrank-module \
     && /virtualenv/env3/bin/pip install -e . \
     && cd /ibeis/plottool \
     && /virtualenv/env3/bin/pip install -e . \
