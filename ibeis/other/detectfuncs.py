@@ -12,7 +12,7 @@ TODO: need to split up into sub modules:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-from os.path import exists, expanduser, join, abspath
+from os.path import exists, expanduser, join, abspath, splitext
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -146,7 +146,9 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
     information = {
         'database_name' : ibs.get_dbname()
     }
-    datadir = ibs.get_cachedir() + '/LearningData/'
+    import datetime
+    now = datetime.datetime.now()
+    datadir = ibs.get_cachedir() + 'VOCdevkit/VOC%d/' % (now.year, )
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
@@ -5355,7 +5357,7 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
 
 
 @register_ibs_method
-def detect_write_detection_all(ibs):
+def visuzlize_all_detections(ibs):
     test_gid_list = ibs.get_valid_gids()
     test_image_list = ibs.get_image_imgdata(test_gid_list)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
@@ -5528,6 +5530,57 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
         gid_list = list(set(gid_list))
         ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
         ibs.update_reviewed_unreviewed_image_special_imageset()
+
+
+@register_ibs_method
+def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=5, randomize=True,
+                                 write=True, write_path=None):
+    r"""
+    Args:
+        ibs (IBEISController):
+        dataset_path (str): the dataset path in the PASCAL VOC format
+        num_examples (int, optional): the number of examples to draw
+        randomize (bool, optional): if to randomize the visualization
+        write (bool, optional): if to display or write the files
+
+    CommandLine:
+        python -m ibeis.other.detectfuncs --test-visualize_pascal_voc_dataset
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.detectfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> dataset_path = '/Users/jason.parham/Downloads/VOC2007/'
+        >>> dataset_path = '/Users/jason.parham/Downloads/LearningData/'
+        >>> ibs.visualize_pascal_voc_dataset(dataset_path)
+    """
+    from detecttools.ibeisdata import IBEIS_Data
+    import random
+
+    num_examples = int(num_examples)
+    assert num_examples > 0
+
+    dataset = IBEIS_Data(dataset_path)
+    dataset.print_distribution()
+
+    image_list = dataset.images
+
+    num_examples = min(num_examples, len(image_list))
+
+    if randomize:
+        random.shuffle(image_list)
+
+    if write_path is None:
+        write_path = abspath(expanduser(join('~', 'Desktop')))
+
+    for image in image_list[:num_examples]:
+        if write:
+            write_filepath = join(write_path, image.filename)
+            image = image.show(display=False)
+            cv2.imwrite(write_filepath, image)
+        else:
+            image.show()
 
 
 if __name__ == '__main__':
