@@ -428,7 +428,7 @@ def compute_features(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'yolo2', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', None),
         ut.ParamInfo('config_filepath', None),
@@ -497,10 +497,6 @@ def compute_localizations(depc, gid_list, config=None):
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
         >>> config = {'algo': 'yolo'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'yolo2'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
@@ -636,10 +632,6 @@ def compute_localizations(depc, gid_list, config=None):
             from ibeis.algo.detect import yolo
             print('[ibs] detecting using PyDarknet CNN YOLO v1')
             detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
-        elif config['algo'] in ['yolo2']:
-            from ibeis.algo.detect import yolo2
-            print('[ibs] detecting using PyTorch CNN YOLO v2')
-            detect_gen = yolo2.detect_gid_list(ibs, gid_list, **config)
         ######################################################################################
         elif config['algo'] in ['rf']:
             from ibeis.algo.detect import randomforest

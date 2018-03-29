@@ -1598,7 +1598,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
 
     key = 'viewpoint_code'
     if kwargs.get(key, default):
-        vals_list += [ibs.get_annot_yaw_texts(aid_list)]
+        vals_list += [ibs.get_annot_viewpoints(aid_list)]
         key_list += [key]
 
     key = 'time'
@@ -2630,7 +2630,7 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
     aid_list = ut.compress(aid_list, flags_list)
     #print('print subset info')
-    #print(ut.dict_hist(ibs.get_annot_yaw_texts(aid_list)))
+    #print(ut.dict_hist(ibs.get_annot_viewpoints(aid_list)))
     #print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
     singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list)
     # process multitons
@@ -3244,7 +3244,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
             new_flag_list.extend([False] * len(aids_))
         else:
             # subgroup the names by viewpoints
-            yawtexts  = ibs.get_annot_yaw_texts(aids_)
+            yawtexts  = ibs.get_annot_viewpoints(aids_)
             yawtext2_aids = ut.group_items(aids_, yawtexts)
             for yawtext, aids in six.iteritems(yawtext2_aids):
                 flags = get_chosen_flags(aids)
@@ -3343,7 +3343,7 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     width_list     = [ bbox[2] for bbox in bbox_list ]
     height_list    = [ bbox[3] for bbox in bbox_list ]
     species_list   = ibs.get_annot_species_texts(aid_list)
-    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     quality_list   = ibs.get_annot_quality_texts(aid_list)
     contributor_list   = ibs.get_image_contributor_tag(gid_list)
     car_list       = [ _split_car_contributor_tag(contributor_tag) for contributor_tag in contributor_list ]
@@ -3511,16 +3511,16 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs = ibeis.opendb(defaultdb='Spotted_Dolfin_Master')
         >>> aid_list = ibs.get_valid_aids()[0:20]
-        >>> valid_yaws = None
+        >>> valid_yaws = ['left']
         >>> unknown_ok = False
         >>> yaw_flags = list(get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok))
         >>> result = ('yaw_flags = %s' % (str(yaw_flags),))
         >>> print(result)
     """
     assert valid_yaws is None or isinstance(valid_yaws, (set, list, tuple)), 'valid_yaws is not a container'
-    yaw_list = ibs.get_annot_yaw_texts(aid_list, assume_unique=assume_unique)
+    yaw_list = ibs.get_annot_viewpoints(aid_list, assume_unique=assume_unique)
     if unknown_ok:
         yaw_flags  = (yaw is None or (valid_yaws is None or yaw in valid_yaws)
                       for yaw in yaw_list)
@@ -3536,7 +3536,7 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
     qual_flags = get_quality_filterflags(ibs, aid_list, minqual)
     yaw_flags = get_viewpoint_filterflags(ibs, aid_list, valid_yaws)
     #qual_list = ibs.get_annot_qualities(aid_list)
-    #yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    #yaw_list = ibs.get_annot_viewpoints(aid_list)
     #qual_flags = (qual is None or qual > minqual for qual in qual_list)
     #yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
     flags_list = list(ut.and_iters(qual_flags, yaw_flags))
@@ -4371,7 +4371,7 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
     from random import shuffle
 
     aid_list = ibs.get_valid_aids()
-    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    yaw_list = ibs.get_annot_viewpoints(aid_list)
     qua_list = ibs.get_annot_quality_texts(aid_list)
     sex_list = ibs.get_annot_sex_texts(aid_list)
     age_list = ibs.get_annot_age_months_est(aid_list)
@@ -4408,13 +4408,13 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
     negative_list = sorted(negative_list[:10])
 
     if verbose:
-        pos_yaw_list = ibs.get_annot_yaw_texts(positive_list)
+        pos_yaw_list = ibs.get_annot_viewpoints(positive_list)
         pos_qua_list = ibs.get_annot_quality_texts(positive_list)
         pos_sex_list = ibs.get_annot_sex_texts(positive_list)
         pos_age_list = ibs.get_annot_age_months_est(positive_list)
         pos_chip_list = ibs.get_annot_chip_fpath(positive_list)
 
-        neg_yaw_list = ibs.get_annot_yaw_texts(negative_list)
+        neg_yaw_list = ibs.get_annot_viewpoints(negative_list)
         neg_qua_list = ibs.get_annot_quality_texts(negative_list)
         neg_sex_list = ibs.get_annot_sex_texts(negative_list)
         neg_age_list = ibs.get_annot_age_months_est(negative_list)
@@ -4475,7 +4475,7 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> aids = available_aids
     """
-    getter_func = ibs.get_annot_yaw_texts
+    getter_func = ibs.get_annot_viewpoints
     prop_basis = list(const.VIEW.CODE_TO_INT.keys())
 
     group_annots_by_view_and_name = functools.partial(
@@ -4541,11 +4541,11 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids(is_known=True)
-        >>> #getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_yaw_texts]
+        >>> #getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_viewpoints]
         >>> props = ut.get_argval('--props', type_=list, default=['viewpoint_code', 'name_rowids'])
         >>> getter_list = [getattr(ibs, 'get_annot_' + prop) for prop in props]
         >>> print('getter_list = %r' % (getter_list,))
-        >>> #getter_list = [ibs.get_annot_yaw_texts, ibs.get_annot_name_rowids]
+        >>> #getter_list = [ibs.get_annot_viewpoints, ibs.get_annot_name_rowids]
         >>> multiprop2_aids = group_annots_by_multi_prop(ibs, aids, getter_list)
         >>> get_dict_values = lambda x: list(x.values())
         >>> # a bit convoluted
@@ -4570,7 +4570,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
 def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     """
     from ibeis.other.ibsfuncs import *  # NOQA
-    getter_func = ibs.get_annot_yaw_texts
+    getter_func = ibs.get_annot_viewpoints
     prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
     size = 2
     wrap = True
@@ -5239,7 +5239,7 @@ def find_unlabeled_name_members(ibs, **kwargs):
     return selected_aids
 
     #ibs.unflat_map(ibs.get_annot_quality_texts, aids_list)
-    #ibs.unflat_map(ibs.get_annot_yaw_texts, aids_list)
+    #ibs.unflat_map(ibs.get_annot_viewpoints, aids_list)
 
 
 @register_ibs_method
