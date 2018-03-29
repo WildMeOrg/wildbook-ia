@@ -148,7 +148,7 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
     }
     import datetime
     now = datetime.datetime.now()
-    datadir = ibs.get_cachedir() + 'VOCdevkit/VOC%d/' % (now.year, )
+    datadir = ibs.get_cachedir() + '/VOCdevkit/VOC%d/' % (now.year, )
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
