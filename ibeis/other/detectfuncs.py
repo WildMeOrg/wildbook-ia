@@ -148,7 +148,8 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
     }
     import datetime
     now = datetime.datetime.now()
-    datadir = ibs.get_cachedir() + '/VOCdevkit/VOC%d/' % (now.year, )
+    folder = 'VOC%d' % (now.year, )
+    datadir = ibs.get_cachedir() + '/VOCdevkit/' + folder + '/'
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
@@ -190,7 +191,6 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
             extension = filename.split('.')[-1]  # NOQA
             out_name = "%d_%06d" % (current_year, index, )
             out_img = out_name + ".jpg"
-            folder = "IBEIS"
 
             _image = ibs.get_image_imgdata(gid)
             height, width, channels = _image.shape
