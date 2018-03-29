@@ -23,8 +23,10 @@ class Directory(object):
         _kwargs(kwargs, 'exclude_file_extensions', [])
         _kwargs(kwargs, 'recursive', False)
         _kwargs(kwargs, 'absolute', True)
+        _kwargs(kwargs, 'image', None)
+        _kwargs(kwargs, 'images', None)
 
-        if(kwargs['include_file_extensions'] == 'images'):
+        if kwargs['include_file_extensions'] == 'images' or True in [kwargs['image'], kwargs['images']]:
             kwargs['include_file_extensions'] = ['jpg', 'jpeg', 'png', 'tiff']
 
         if kwargs['absolute']:

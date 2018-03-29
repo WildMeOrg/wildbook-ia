@@ -5,22 +5,28 @@ import os
 from detecttools.directory import Directory
 from detecttools.ibeisdata import common as com
 from detecttools.ibeisdata.ibeis_image import IBEIS_Image
+from tqdm import tqdm
 
 
-class IBEIS_Data(object):
+class IBEIS_Data(object):  # NOQA
 
     def __init__(ibsd, dataset_path, **kwargs):
-        com._kwargs(kwargs, 'object_min_width',        32)
-        com._kwargs(kwargs, 'object_min_height',       32)
-        com._kwargs(kwargs, 'mine_negatives',          True)
-        com._kwargs(kwargs, 'mine_width_min',          50)
-        com._kwargs(kwargs, 'mine_width_max',          400)
-        com._kwargs(kwargs, 'mine_height_min',         50)
-        com._kwargs(kwargs, 'mine_height_max',         400)
-        com._kwargs(kwargs, 'mine_max_attempts',       100)
-        com._kwargs(kwargs, 'mine_max_keep',           10)
-        com._kwargs(kwargs, 'mine_overlap_margin',     0.25)
-        com._kwargs(kwargs, 'mine_exclude_categories', [])
+        com._kwargs(kwargs, 'object_min_width',            1)
+        com._kwargs(kwargs, 'object_min_height',           1)
+        com._kwargs(kwargs, 'mine_negatives',              False)
+        com._kwargs(kwargs, 'mine_width_min',              50)
+        com._kwargs(kwargs, 'mine_width_max',              400)
+        com._kwargs(kwargs, 'mine_height_min',             50)
+        com._kwargs(kwargs, 'mine_height_max',             400)
+        com._kwargs(kwargs, 'mine_max_attempts',           100)
+        com._kwargs(kwargs, 'mine_max_keep',               10)
+        com._kwargs(kwargs, 'mine_overlap_margin',         0.25)
+        com._kwargs(kwargs, 'mine_exclude_categories',     [])
+        com._kwargs(kwargs, 'mine_patches',                False)
+        com._kwargs(kwargs, 'mine_patch_width',            32)
+        com._kwargs(kwargs, 'mine_patch_height',           32)
+        com._kwargs(kwargs, 'mine_patch_stride_suggested', 16)
+        com._kwargs(kwargs, 'mine_patch_overlap_margin',   0.5)
 
         ibsd.dataset_path = dataset_path
         ibsd.absolute_dataset_path = os.path.realpath(dataset_path)
@@ -29,10 +35,7 @@ class IBEIS_Data(object):
         ibsd.images = []
         files = direct.files()
         print("Loading Database")
-        for i, filename in enumerate(files):
-            if len(files) > 10:
-                if i % (len(files) / 10) == 0:
-                    print("%0.2f" % (float(i) / len(files)))
+        for i, filename in tqdm(list(enumerate(files))):
             ibsd.images.append(IBEIS_Image(filename, ibsd.absolute_dataset_path, **kwargs))
         print("    ...Loaded")
 
@@ -79,7 +82,9 @@ class IBEIS_Data(object):
             print("%s%s\t%s" % (category + " " * (spacing - len(category)),
                                 images, rois))
 
-        _max = max([ len(category) for category in ibsd.distribution_rois.keys() + ['TOTAL', 'CATEGORY'] ]) + 3
+        key_list = list(ibsd.distribution_rois.keys())
+        key_list += ['TOTAL', 'CATEGORY']
+        _max = max([ len(category) for category in key_list ]) + 3
 
         _print_line("CATEGORY", _max, "IMGs", "ROIs")
         if "BACKGROUND" in ibsd.distribution_images:

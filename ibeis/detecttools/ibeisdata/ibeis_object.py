@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import math
 from . import common as com
 from .ibeis_part import IBEIS_Part
+import six
 
 
 BINS = ['left', 'front_left', 'front', 'front_right', 'right', 'back_right', 'back', 'back_left']
@@ -36,8 +37,11 @@ class IBEIS_Object(object):
             ibso.ymin = max(0,      int(_xml['ymin']))
 
             ibso.parts = []
+
         # Pose
-        if ibso.pose < 0 or ibso.pose == []:
+        if isinstance(ibso.pose, six.string_types):
+            ibso.pose_str = ibso.pose
+        elif ibso.pose < 0 or ibso.pose == []:
             ibso.pose_str = 'Unspecified'
         else:
             bin_size = 2.0 * math.pi / len(BINS)

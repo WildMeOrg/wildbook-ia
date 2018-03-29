@@ -10,7 +10,7 @@ from . import common as com
 from .ibeis_object import IBEIS_Object
 
 
-class IBEIS_Image(object):
+class IBEIS_Image(object):  # NOQA
 
     def __init__(ibsi, filename_xml, absolute_dataset_path, **kwargs):
         with open(filename_xml, 'r') as _xml:
@@ -233,8 +233,8 @@ class IBEIS_Image(object):
             width, height = cv2.getTextSize(annotation, font, scale, -1)[0]
             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, stroke)
             if top:
-                cv2.rectangle(img, (xmin, ymin - height), (xmin + width, ymin), color, -1)
-                cv2.putText(img, annotation, (xmin + 5, ymin), font, 0.4, (255, 255, 255))
+                cv2.rectangle(img, (xmin, ymin), (xmin + width, ymin + height), color, -1)
+                cv2.putText(img, annotation, (xmin + 5, ymin + height), font, 0.4, (255, 255, 255))
             else:
                 cv2.rectangle(img, (xmin, ymax - height), (xmin + width, ymax), color, -1)
                 cv2.putText(img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255))
@@ -302,8 +302,7 @@ class IBEIS_Image(object):
 
         if display:
             cv2.imshow(ibsi.filename + " with Bounding Boxes", original)
-            cont = raw_input()
+            cv2.waitKey(0)
             cv2.destroyAllWindows()
-            return cont == ""
         else:
             return original
