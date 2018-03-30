@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-developer convenience functions for ibs
+"""Developer convenience functions for ibs (detections).
 
 TODO: need to split up into sub modules:
     consistency_checks
@@ -12,7 +11,7 @@ TODO: need to split up into sub modules:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-from os.path import exists, expanduser, join, abspath, splitext
+from os.path import exists, expanduser, join, abspath
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -93,9 +92,7 @@ def simple_code(label):
 def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, **kwargs):
-    """
-    Creates training XML for training models
-    """
+    """Create training XML for training models."""
     import random
     from datetime import date
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
@@ -1344,11 +1341,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Whale Fluke V1',     'grid' : False, 'config_filepath' : 'whalefluke', 'weight_filepath' : 'whalefluke', 'species_set' : set(['whale_fluke'])},
         # {'label': 'Whale Fluke V2',     'grid' : False, 'config_filepath' : 'whalefluke_v2', 'weight_filepath' : 'whalefluke_v2', 'species_set' : set(['whale_fluke'])},
 
-        ##### {'label': 'Green',             'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green']), 'check_species': False},
-        ##### {'label': 'Hawksbill',         'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill']), 'check_species': False},
-        ##### {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green', 'turtle_hawksbill']), 'check_species': False},
-        ##### {'label': 'Green (Head)',      'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green+head']), 'check_species': False},
-        ##### {'label': 'Hawksbill (Head)',  'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill+head']), 'check_species': False},
+        # {'label': 'Green',             'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green']), 'check_species': False},
+        # {'label': 'Hawksbill',         'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill']), 'check_species': False},
+        # {'label': 'Sea Turtle',        'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green', 'turtle_hawksbill']), 'check_species': False},
+        # {'label': 'Green (Head)',      'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_green+head']), 'check_species': False},
+        # {'label': 'Hawksbill (Head)',  'grid' : False, 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'species_set' : set(['turtle_hawksbill+head']), 'check_species': False},
 
         # {'label': 'Sand Tiger',        'grid' : False, 'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
         # {'label': 'Sand Tiger (Grid)', 'grid' : True,  'config_filepath' : 'sandtiger', 'weight_filepath' : 'sandtiger'},
@@ -1359,6 +1356,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Sea Turtle',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['turtle_general'])},
         # {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
         # {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
+
+        {'label': 'Sea Turtle (Green)',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.25, 'species_set' : set(['turtle_green'])},
+        {'label': 'Sea Turtle (Hawksbill)',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.25, 'species_set' : set(['turtle_hawksbill'])},
+        {'label': 'Sea Turtle',               'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.25, 'species_set' : set(['turtle_green', 'turtle_green'])},
 
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
@@ -5384,7 +5385,8 @@ def visuzlize_all_detections(ibs):
 
 @register_ibs_method
 def redownload_detection_models(ibs):
-    r"""
+    r"""Re-download detection models.
+
     Args:
         ibs (IBEISController):
 
@@ -5535,7 +5537,8 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
 @register_ibs_method
 def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=5, randomize=True,
                                  write=True, write_path=None):
-    r"""
+    r"""Visualize the PASCAL VOC dataset.
+
     Args:
         ibs (IBEISController):
         dataset_path (str): the dataset path in the PASCAL VOC format
@@ -5553,6 +5556,7 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=5, randomize=Tr
         >>> ibs = ibeis.opendb('testdb1')
         >>> dataset_path = '/Users/jason.parham/Downloads/VOC2007/'
         >>> dataset_path = '/Users/jason.parham/Downloads/LearningData/'
+        >>> dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
         >>> ibs.visualize_pascal_voc_dataset(dataset_path)
     """
     from detecttools.ibeisdata import IBEIS_Data
