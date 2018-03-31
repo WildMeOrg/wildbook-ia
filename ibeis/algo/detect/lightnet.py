@@ -27,6 +27,8 @@ VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 WEIGHT_URL_DICT = {
     'seaturtle'     : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
+    'hammerhead'     : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.shark_hammerhead.weights',
+
     None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
 }
 
