@@ -35,7 +35,7 @@ if not ut.get_argflag('--no-faster-rcnn'):
         ut.reload_module(caffe)
         from fast_rcnn.config import cfg
         from fast_rcnn.test import im_detect
-        from fast_rcnn.nms_wrapper import nms
+        # from fast_rcnn.nms_wrapper import nms
     except AssertionError as ex:
         print('WARNING Failed to find py-faster-rcnn. '
               'Faster R-CNN is unavailable')
@@ -168,7 +168,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
 
 
 def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0, nms_sensitivity=0.2,
+           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0,
            **kwargs):
     """
     Args:
@@ -242,9 +242,9 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
                 class_scores[:, np.newaxis])
             )
             dets_list = dets_list.astype(np.float32)
-            # Perform NMS
-            keep_list = nms(dets_list, nms_sensitivity)
-            dets_list = dets_list[keep_list, :]
+            # # Perform NMS
+            # keep_list = nms(dets_list, nms_sensitivity)
+            # dets_list = dets_list[keep_list, :]
             # Perform sensitivity check
             keep_list = np.where(dets_list[:, -1] >= sensitivity)[0]
             dets_list = dets_list[keep_list, :]

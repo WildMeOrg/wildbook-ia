@@ -527,7 +527,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
     # label = '%s [OP = %0.02f]' % (label, best_conf, )
     if interpolate:
-        label = '%s [AP = %0.02f]' % (label, ap * 100.0, )
+        label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
     else:
         label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
     linestyle = '--' if kwargs.get('line_dotted', False) else '-'
@@ -535,7 +535,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     if plot_point:
         plt.plot(best_x_list, best_y_list, color=color, marker='o')
     if len(best_conf_list) > 1:
-        print('WARNING: %r' % (best_conf_list, ))
+        print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
     return ap, best_conf, tup
 
 
@@ -912,6 +912,9 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
     size_list = ibs.get_image_sizes(test_gid_list)
+    # Unsure, but we need to call this multiple times?  Lazy loading bug?
+    bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
+    # Get actual data
     bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
     thetas_list = depc.get_property('localizations', test_gid_list, 'thetas',  config=kwargs)
     confss_list = depc.get_property('localizations', test_gid_list, 'confs',   config=kwargs)
@@ -963,41 +966,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         # depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
         confss_list = depc.get_property('localizations_classifier', test_gid_list,
                                         'score', config=kwargs)
-
-    # Apply NMS
-    if kwargs.get('nms', False):
-        nms_thresh = kwargs.get('nms_thresh', 0.2)
-        print('Filtering with nms_thresh = %0.02f' % (nms_thresh, ))
-        count_old_list = []
-        count_new_list = []
-        keeps_list = []
-        for bbox_list, confs_list in zip(bboxes_list, confss_list):
-            # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
-            coord_list = []
-            for xtl, ytl, width, height in bbox_list:
-                xbr = xtl + width
-                ybr = ytl + height
-                coord_list.append([xtl, ytl, xbr, ybr])
-            coord_list = np.vstack(coord_list)
-            # Perform NMS
-            keep_indices_list = nms(coord_list, confs_list, nms_thresh)
-            # Analytics
-            count_old_list.append(len(coord_list))
-            count_new_list.append(len(keep_indices_list))
-            keep_indices_set = set(keep_indices_list)
-            # Keep track of which indices to keep
-            keep_list = [ index in keep_indices_set for index in range(len(coord_list)) ]
-            keeps_list.append(keep_list)
-        # Print analytics
-        count_old = sum(count_old_list)
-        count_old_avg = count_old / len(count_old_list)
-        count_new = sum(count_new_list)
-        count_new_avg = count_new / len(count_new_list)
-        count_diff = count_old - count_new
-        args = (count_old, count_new, count_diff, 100.0 * count_diff / count_old, )
-        print('[nms] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
-        args = (count_old_avg, count_new_avg, )
-        print('[nms] %0.02f old avg. -> %0.02f new avg.' % args)
 
     # Filter by confidence or index
     if kwargs.get('thresh', False):
@@ -1357,9 +1325,24 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Shark',            'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['shark_general'])},
         # {'label': 'Whaleshark',       'grid' : False, 'config_filepath' : 'sea', 'weight_filepath' : 'sea', 'species_set' : set(['whaleshark'])},
 
-        {'label': 'Sea Turtle (Green)',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.25, 'species_set' : set(['turtle_green'])},
-        {'label': 'Sea Turtle (Hawksbill)',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.25, 'species_set' : set(['turtle_hawksbill'])},
-        {'label': 'Sea Turtle',               'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.25, 'species_set' : set(['turtle_green', 'turtle_green'])},
+        {'label': 'Sea Turtle (Green)',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_green'])},
+        {'label': 'Sea Turtle (Hawksbill)',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill'])},
+        {'label': 'Sea Turtle 00%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        {'label': 'Sea Turtle 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        {'label': 'Sea Turtle 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        {'label': 'Sea Turtle 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        {'label': 'Sea Turtle 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        {'label': 'Sea Turtle 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80},
+        # {'label': 'Hammerhead Shark',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90},
 
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},

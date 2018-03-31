@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-IBEIS CORE
+"""IBEIS CORE IMAGE.
+
 Defines the core dependency cache supported by the image analysis api
 
 Extracts detection results from images and applies additional processing
@@ -65,8 +65,7 @@ class ThumbnailConfig(dtool.Config):
     chunksize=256,
 )
 def compute_thumbnails(depc, gid_list, config=None):
-    r"""
-    Computers the thumbnail for a given input image
+    r"""Compute the thumbnail for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -94,7 +93,6 @@ def compute_thumbnails(depc, gid_list, config=None):
         >>> iteract_obj.start()
         >>> pt.show_if_requested()
     """
-
     ibs = depc.controller
     draw_annots = config['draw_annots']
     thumbsize = config['thumbsize']
@@ -176,8 +174,7 @@ class ClassifierConfig(dtool.Config):
     chunksize=1024,
 )
 def compute_classifications(depc, gid_list, config=None):
-    r"""
-    Extracts the detections for a given input image
+    r"""Extract the detections for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -258,8 +255,7 @@ class Classifier2Config(dtool.Config):
     chunksize=1024,
 )
 def compute_classifications2(depc, gid_list, config=None):
-    r"""
-    Extracts the multi-class classifications for a given input image
+    r"""Extract the multi-class classifications for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -332,9 +328,7 @@ class FeatureConfig(dtool.Config):
     chunksize=256,
 )
 def compute_features(depc, gid_list, config=None):
-    r"""
-    Computes features on images using pre-trained state-of-the-art models in
-    Keras
+    r"""Compute features on images using pre-trained state-of-the-art models in Keras.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -435,6 +429,8 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('weight_filepath', None),
         ut.ParamInfo('class_filepath', None),
         ut.ParamInfo('grid', False),
+        ut.ParamInfo('nms', False),
+        ut.ParamInfo('nms_thresh', 0.2),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -450,8 +446,7 @@ class LocalizerConfig(dtool.Config):
     chunksize=256,
 )
 def compute_localizations(depc, gid_list, config=None):
-    r"""
-    Extracts the localizations for a given input image
+    r"""Extract the localizations for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -691,8 +686,44 @@ def compute_localizations(depc, gid_list, config=None):
             raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 
         # yield detections
+        verbose = False
         for gid, gpath, result_list in detect_gen:
             score = 0.0
+
+            # Apply NMS
+            if config['nms']:
+                from ibeis.other import detectfuncs
+                count_old = len(result_list)
+                if count_old > 0:
+                    coord_list = []
+                    confs_list = []
+                    for result in result_list:
+                        xtl = result['xtl']
+                        ytl = result['ytl']
+                        width = result['width']
+                        height = result['height']
+                        conf = result['confidence']
+                        xbr = xtl + width
+                        ybr = ytl + height
+                        coord_list.append([xtl, ytl, xbr, ybr])
+                        confs_list.append(conf)
+                    coord_list = np.vstack(coord_list)
+                    confs_list = np.array(confs_list)
+
+                    keep_indices_list = detectfuncs.nms(coord_list, confs_list, config['nms_thresh'])
+                    keep_indices_set = set(keep_indices_list)
+                    # Keep track of which indices to keep
+                    keep_list = [ index in keep_indices_set for index in range(len(coord_list)) ]
+
+                    result_list = [
+                        result
+                        for result, keep in zip(result_list, keep_list)
+                        if keep
+                    ]
+                    count_new = len(result_list)
+                    if verbose:
+                        print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
+
             yield package_to_numpy(base_key_list, result_list, score)
 
 
@@ -963,8 +994,7 @@ class Chip2Config(dtool.Config):
     chunksize=128,
 )
 def compute_localizations_chips(depc, loc_id_list, config=None):
-    r"""
-    Extracts the detections for a given input image
+    r"""Extract the detections for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -1057,8 +1087,7 @@ class ClassifierLocalizationsConfig(dtool.Config):
     chunksize=8,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
-    r"""
-    Extracts the detections for a given input image
+    r"""Extract the detections for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -1256,9 +1285,7 @@ class Feature2Config(dtool.Config):
     chunksize=4,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
-    r"""
-    Computes features on images using pre-trained state-of-the-art models in
-    Keras
+    r"""Compute features on images using pre-trained state-of-the-art models in Keras.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -1402,8 +1429,7 @@ class LabelerConfig(dtool.Config):
     chunksize=128,
 )
 def compute_localizations_labels(depc, loc_id_list, config=None):
-    r"""
-    Extracts the detections for a given input image
+    r"""Extract the detections for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -1482,8 +1508,7 @@ class AoIConfig(dtool.Config):
     chunksize=256,
 )
 def compute_localizations_interest(depc, loc_id_list, config=None):
-    r"""
-    Extracts the detections for a given input image
+    r"""Extract the detections for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
@@ -1563,6 +1588,7 @@ class DetectorConfig(dtool.Config):
         LocalizerConfig,
     ]
 
+
 @register_preproc(
     tablename='detections', parents=['images'],
     colnames=['score', 'bboxes', 'thetas', 'species', 'viewpoints', 'confs'],
@@ -1572,8 +1598,7 @@ class DetectorConfig(dtool.Config):
     chunksize=1024,
 )
 def compute_detections(depc, gid_list, config=None):
-    r"""
-    Extracts the detections for a given input image
+    r"""Extract the detections for a given input image.
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):

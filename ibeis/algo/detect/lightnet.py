@@ -6,6 +6,7 @@ from six.moves import zip
 import numpy as np
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import cv2
+from tqdm import tqdm
 (print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
 
 
@@ -123,7 +124,7 @@ def _detect(net, img_path, network_size):
 
 
 def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_LN, nms_thresh=0.0, **kwargs):
+           verbose=VERBOSE_LN, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:
@@ -160,13 +161,14 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     class_list = _parse_class_list(class_filepath)
 
     network_size = (416, 416)
-    nms_thresh_ = 1.0 - nms_thresh
-    network = _create_network(weight_filepath, class_list, sensitivity,
-                              nms_thresh_, network_size)
+    conf_thresh = sensitivity
+    nms_thresh = 1.0  # Turn off NMS
+    network = _create_network(weight_filepath, class_list, conf_thresh,
+                              nms_thresh, network_size)
 
     # Execute detector for each image
     results_list_ = []
-    for gpath in gpath_list:
+    for gpath in tqdm(gpath_list):
         image, output_list = _detect(network, gpath, network_size)
         output_list = output_list[0]
 
