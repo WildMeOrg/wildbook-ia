@@ -420,17 +420,14 @@ def compute_features(depc, gid_list, config=None):
         yield (features, )
 
 
-class LocalizerConfig(dtool.Config):
+class LocalizerOriginalConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
-        ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', None),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
         ut.ParamInfo('class_filepath', None),
         ut.ParamInfo('grid', False),
-        ut.ParamInfo('nms', False),
-        ut.ParamInfo('nms_thresh', 0.2),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -438,14 +435,287 @@ class LocalizerConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='localizations', parents=['images'],
+    tablename='localizations_original', parents=['images'],
+    colnames=['score', 'bboxes', 'thetas', 'confs', 'classes'],
+    coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
+    configclass=LocalizerOriginalConfig,
+    fname='localizationscache',
+    chunksize=256,
+)
+def compute_localizations_original(depc, gid_list, config=None):
+    r"""Extract the localizations for a given input image.
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
+
+    CommandLine:
+        ibeis compute_localizations_original
+
+    CommandLine:
+        python -m ibeis.core_images compute_localizations_original --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> print(depc.get_tablenames())
+        >>> gid_list = ibs.get_valid_gids()[:16]
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-large-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-large-coco'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-coco'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'yolo'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'lightnet'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'rf'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'selective-search'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'selective-search-rcnn'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-ilsvrc'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-ilsvrc'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-coco'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-coco'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-ilsvrc'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-500-ilsvrc'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': '_COMBINED'}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+    """
+    def _package_to_numpy(key_list, result_list, score):
+        temp = [
+            [
+                key[0] if isinstance(key, tuple) else result[key]
+                for key in key_list
+            ]
+            for result in result_list
+        ]
+        return (
+            score,
+            np.array([ _[0:4] for _ in temp ]),
+            np.array([ _[4]   for _ in temp ]),
+            np.array([ _[5]   for _ in temp ]),
+            np.array([ _[6]   for _ in temp ]),
+        )
+
+    def _combined(gid_list, config_dict_list):
+        # Combined list of algorithm configs
+        colname_list = ['score', 'bboxes', 'thetas', 'confs', 'classes']
+        for gid in gid_list:
+            accum_list = []
+            for colname in colname_list:
+                if colname == 'score':
+                    accum_value = 0.0
+                else:
+                    len_list = []
+                    temp_list = []
+                    for config_dict_ in config_dict_list:
+                        temp = depc.get_property('localizations_original', gid, colname, config=config_dict_)
+                        len_list.append(len(temp))
+                        temp_list.append(temp)
+                    if colname == 'bboxes':
+                        accum_value = np.vstack(temp_list)
+                    else:
+                        accum_value = np.hstack(temp_list)
+                    assert len(accum_value) == sum(len_list)
+                accum_list.append(accum_value)
+            yield tuple(accum_list)
+
+    print('[ibs] Preprocess Localizations')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    ibs.assert_valid_gids(gid_list)
+
+    config = dict(config)
+    config['sensitivity'] = 0.0
+
+    # Normal computations
+    base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
+    # Temporary for all detectors
+    base_key_list[4] = (0.0, )  # Theta
+
+    ######################################################################################
+    if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
+        from ibeis.algo.detect import yolo
+        print('[ibs] detecting using PyDarknet CNN YOLO v1')
+        detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['lightnet']:
+        from ibeis.algo.detect import lightnet
+        print('[ibs] detecting using Lightnet CNN YOLO v2')
+        if 'config_filepath' in config:
+            if 'weight_filepath' in config:
+                args = (config['weight_filepath'], config['config_filepath'], )
+                print('Overwriting weight_filepath %r with %r' % args)
+            config['weight_filepath'] = config['config_filepath']
+        config['config_filepath'] = None
+        detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['rf']:
+        from ibeis.algo.detect import randomforest
+        print('[ibs] detecting using Random Forests')
+        assert config['species'] is not None
+        base_key_list[6] = (config['species'], )  # class == species
+        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['selective-search']:
+        from ibeis.algo.detect import selectivesearch
+        print('[ibs] detecting using Selective Search')
+        matlab_command = 'selective_search'
+        detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
+    ######################################################################################
+    elif config['algo'] in ['selective-search-rcnn']:
+        from ibeis.algo.detect import selectivesearch
+        print('[ibs] detecting using Selective Search (R-CNN)')
+        matlab_command = 'selective_search_rcnn'
+        detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
+    ######################################################################################
+    # elif config['algo'] in ['fast-rcnn']:
+    #     from ibeis.algo.detect import fasterrcnn
+    #     print('[ibs] detecting using CNN Fast R-CNN')
+    #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['faster-rcnn']:
+        from ibeis.algo.detect import fasterrcnn
+        print('[ibs] detecting using CNN Faster R-CNN')
+        detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['darknet']:
+        from ibeis.algo.detect import darknet
+        print('[ibs] detecting using Darknet CNN YOLO')
+        detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['ssd']:
+        from ibeis.algo.detect import ssd
+        print('[ibs] detecting using CNN SSD')
+        detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
+    # ######################################################################################
+    elif config['algo'] in ['_COMBINED']:
+        # Combined computations
+        config_dict_list = [
+            # {'algo': 'selective-search', 'config_filepath': None},                          # SS1
+            {'algo': 'darknet',          'config_filepath': 'pretrained-tiny-pascal'},      # YOLO1
+            {'algo': 'darknet',          'config_filepath': 'pretrained-v2-pascal'},        # YOLO2
+            {'algo': 'faster-rcnn',      'config_filepath': 'pretrained-zf-pascal'},        # FRCNN1
+            {'algo': 'faster-rcnn',      'config_filepath': 'pretrained-vgg-pascal'},       # FRCNN2
+            {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal'},       # SSD1
+            {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal'},       # SSD1
+            {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal-plus'},  # SSD
+            {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal-plus'},  # SSD4
+        ]
+        detect_gen = _combined(gid_list, config_dict_list)
+    else:
+        raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
+
+    # yield detections
+    for detect in detect_gen:
+        if len(detect) == 3:
+            gid, gpath, result_list = detect
+            score = 0.0
+            result = _package_to_numpy(base_key_list, result_list, score)
+        else:
+            result = detect
+        yield result
+
+
+class LocalizerConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('sensitivity', 0.0),
+        ut.ParamInfo('nms', True),
+        ut.ParamInfo('nms_thresh', 0.2),
+        ut.ParamInfo('combined', False),
+    ]
+
+
+@register_preproc(
+    tablename='localizations', parents=['localizations_original'],
     colnames=['score', 'bboxes', 'thetas', 'confs', 'classes'],
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerConfig,
     fname='detectcache',
     chunksize=256,
 )
-def compute_localizations(depc, gid_list, config=None):
+def compute_localizations(depc, loc_orig_id_list, config=None):
     r"""Extract the localizations for a given input image.
 
     Args:
@@ -471,260 +741,81 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> config = {'algo': 'lightnet', 'nms': True}
+        >>> # depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-large-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-large-coco'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-coco'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'yolo'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'lightnet'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'rf'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'selective-search'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'selective-search-rcnn'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-ilsvrc'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-ilsvrc'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-coco'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-coco'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-ilsvrc'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-500-ilsvrc'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': '_COMBINED'}
+        >>> config = {'combined': True}
         >>> # depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
     """
-    def package_to_numpy(key_list, result_list, score):
-        temp = [
-            [
-                key[0] if isinstance(key, tuple) else result[key]
-                for key in key_list
-            ]
-            for result in result_list
-        ]
-        return (
-            score,
-            np.array([ _[0:4] for _ in temp ]),
-            np.array([ _[4]   for _ in temp ]),
-            np.array([ _[5]   for _ in temp ]),
-            np.array([ _[6]   for _ in temp ]),
-        )
-
     print('[ibs] Preprocess Localizations')
     print('config = %r' % (config,))
-    # Get controller
-    ibs = depc.controller
-    ibs.assert_valid_gids(gid_list)
 
-    if config['algo'] in ['_COMBINED']:
-        # Combined list of algorithm configs
-        config_dict_list = [
-            # {'algo': 'selective-search', 'config_filepath': None},                          # SS1
-            {'algo': 'darknet',          'config_filepath': 'pretrained-tiny-pascal'},      # YOLO1
-            {'algo': 'darknet',          'config_filepath': 'pretrained-v2-pascal'},        # YOLO2
-            {'algo': 'faster-rcnn',      'config_filepath': 'pretrained-zf-pascal'},        # FRCNN1
-            {'algo': 'faster-rcnn',      'config_filepath': 'pretrained-vgg-pascal'},       # FRCNN2
-            {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal'},       # SSD1
-            {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal'},       # SSD1
-            {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal-plus'},  # SSD
-            {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal-plus'},  # SSD4
-        ]
+    VERBOSE = False
 
-        colname_list = ['score', 'bboxes', 'thetas', 'confs', 'classes']
-        for gid in gid_list:
-            accum_list = []
-            for colname in colname_list:
-                if colname == 'score':
-                    accum_value = 0.0
+    for detect in zip(depc.get_native('localizations_original', loc_orig_id_list, None)):
+        score, bboxes, thetas, confs, classes = detect[0]
+
+        # Apply Threshold
+        if config['sensitivity'] > 0.0:
+            count_old = len(bboxes)
+            if count_old > 0:
+                keep_list = np.array([
+                    index
+                    for index, conf in enumerate(confs)
+                    if conf >= config['sensitivity']
+                ])
+
+                if len(keep_list) == 0:
+                    bboxes  = np.array([])
+                    thetas  = np.array([])
+                    confs   = np.array([])
+                    classes = np.array([])
                 else:
-                    len_list = []
-                    temp_list = []
-                    for config_dict in config_dict_list:
-                        temp = depc.get_property('localizations', gid, colname, config=config_dict)
-                        len_list.append(len(temp))
-                        temp_list.append(temp)
-                    if colname == 'bboxes':
-                        accum_value = np.vstack(temp_list)
-                    else:
-                        accum_value = np.hstack(temp_list)
-                    assert len(accum_value) == sum(len_list)
-                accum_list.append(accum_value)
-            yield tuple(accum_list)
-    else:
-        # Normal computations
-        base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
-        # Temporary for all detectors
-        base_key_list[4] = (0.0, )  # Theta
+                    bboxes  = bboxes[keep_list]
+                    thetas  = thetas[keep_list]
+                    confs   = confs[keep_list]
+                    classes = classes[keep_list]
 
-        ######################################################################################
-        if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
-            from ibeis.algo.detect import yolo
-            print('[ibs] detecting using PyDarknet CNN YOLO v1')
-            detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
-        ######################################################################################
-        elif config['algo'] in ['lightnet']:
-            from ibeis.algo.detect import lightnet
-            print('[ibs] detecting using Lightnet CNN YOLO v2')
-            if 'config_filepath' in config:
-                if 'weight_filepath' in config:
-                    args = (config['weight_filepath'], config['config_filepath'], )
-                    print('Overwriting weight_filepath %r with %r' % args)
-                config['weight_filepath'] = config['config_filepath']
-            config['config_filepath'] = None
-            detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
-        ######################################################################################
-        elif config['algo'] in ['rf']:
-            from ibeis.algo.detect import randomforest
-            print('[ibs] detecting using Random Forests')
-            assert config['species'] is not None
-            base_key_list[6] = (config['species'], )  # class == species
-            detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
-        ######################################################################################
-        elif config['algo'] in ['selective-search']:
-            from ibeis.algo.detect import selectivesearch
-            print('[ibs] detecting using Selective Search')
-            matlab_command = 'selective_search'
-            detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
-        ######################################################################################
-        elif config['algo'] in ['selective-search-rcnn']:
-            from ibeis.algo.detect import selectivesearch
-            print('[ibs] detecting using Selective Search (R-CNN)')
-            matlab_command = 'selective_search_rcnn'
-            detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
-        ######################################################################################
-        # elif config['algo'] in ['fast-rcnn']:
-        #     from ibeis.algo.detect import fasterrcnn
-        #     print('[ibs] detecting using CNN Fast R-CNN')
-        #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
-        ######################################################################################
-        elif config['algo'] in ['faster-rcnn']:
-            from ibeis.algo.detect import fasterrcnn
-            print('[ibs] detecting using CNN Faster R-CNN')
-            detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
-        ######################################################################################
-        elif config['algo'] in ['darknet']:
-            from ibeis.algo.detect import darknet
-            print('[ibs] detecting using Darknet CNN YOLO')
-            detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
-        ######################################################################################
-        elif config['algo'] in ['ssd']:
-            from ibeis.algo.detect import ssd
-            print('[ibs] detecting using CNN SSD')
-            detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
-        # ######################################################################################
-        else:
-            raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
+                count_new = len(bboxes)
+                if VERBOSE:
+                    print('Filtered with sensitivity = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
 
-        # yield detections
-        verbose = False
-        for gid, gpath, result_list in detect_gen:
-            score = 0.0
+        # Apply NMS
+        if config['nms']:
+            from ibeis.other import detectfuncs
+            count_old = len(bboxes)
+            if count_old > 0:
+                coord_list = []
+                confs_list = []
+                for (xtl, ytl, width, height) in bboxes:
+                    xbr = xtl + width
+                    ybr = ytl + height
+                    coord_list.append([xtl, ytl, xbr, ybr])
+                coord_list = np.vstack(coord_list)
+                confs_list = np.array(confs)
 
-            # Apply NMS
-            if config['nms']:
-                from ibeis.other import detectfuncs
-                count_old = len(result_list)
-                if count_old > 0:
-                    coord_list = []
-                    confs_list = []
-                    for result in result_list:
-                        xtl = result['xtl']
-                        ytl = result['ytl']
-                        width = result['width']
-                        height = result['height']
-                        conf = result['confidence']
-                        xbr = xtl + width
-                        ybr = ytl + height
-                        coord_list.append([xtl, ytl, xbr, ybr])
-                        confs_list.append(conf)
-                    coord_list = np.vstack(coord_list)
-                    confs_list = np.array(confs_list)
+                keep_indices_list = detectfuncs.nms(coord_list, confs_list, config['nms_thresh'])
+                keep_list = np.array(keep_indices_list)
 
-                    keep_indices_list = detectfuncs.nms(coord_list, confs_list, config['nms_thresh'])
-                    keep_indices_set = set(keep_indices_list)
-                    # Keep track of which indices to keep
-                    keep_list = [ index in keep_indices_set for index in range(len(coord_list)) ]
+                if len(keep_list) == 0:
+                    bboxes  = np.array([])
+                    thetas  = np.array([])
+                    confs   = np.array([])
+                    classes = np.array([])
+                else:
+                    bboxes  = bboxes[keep_list]
+                    thetas  = thetas[keep_list]
+                    confs   = confs[keep_list]
+                    classes = classes[keep_list]
 
-                    result_list = [
-                        result
-                        for result, keep in zip(result_list, keep_list)
-                        if keep
-                    ]
-                    count_new = len(result_list)
-                    if verbose:
-                        print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
+                count_new = len(bboxes)
+                if VERBOSE:
+                    print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
 
-            yield package_to_numpy(base_key_list, result_list, score)
+        yield (score, bboxes, thetas, confs, classes, )
 
 
 def get_localization_chips_worker(gid, img, bbox_list, theta_list,
@@ -1015,11 +1106,11 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
-        >>> config = {'algo': '_COMBINED', 'localization_chip_masking': True}
+        >>> config = {'combined': True, 'localization_chip_masking': True}
         >>> # depc.delete_property('localizations_chips', gid_list, config=config)
         >>> results = depc.get_property('localizations_chips', gid_list, None, config=config)
         >>> print(results)
-        >>> config = {'algo': '_COMBINED', 'localization_chip_masking': False}
+        >>> config = {'combined': True, 'localization_chip_masking': False}
         >>> # depc.delete_property('localizations_chips', gid_list, config=config)
         >>> results = depc.get_property('localizations_chips', gid_list, None, config=config)
         >>> print(results)
@@ -1119,21 +1210,21 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>>
         >>> depc = ibs.depc_image
         >>> gid_list = list(set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))))
-        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': None}
+        >>> config = {'combined': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': None}
         >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
-        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
+        >>> config = {'combined': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
         >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
-        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'}
+        >>> config = {'combined': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'}
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
-        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'}
+        >>> config = {'combined': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'}
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
     """
@@ -1203,7 +1294,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         from ibeis.algo.detect.svm import classify
         # from localizations get gids
         config_ = {
-            'algo': '_COMBINED',
+            'combined': True,
             'feature2_algo': 'resnet',
             'feature2_chip_masking': masking,
         }
@@ -1310,19 +1401,19 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'feature2_algo': 'vgg16', 'algo': '_COMBINED'}
+        >>> config = {'feature2_algo': 'vgg16', 'combined': True}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'feature2_algo': 'vgg19', 'algo': '_COMBINED'}
+        >>> config = {'feature2_algo': 'vgg19', 'combined': True}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'feature2_algo': 'resnet', 'algo': '_COMBINED'}
+        >>> config = {'feature2_algo': 'resnet', 'combined': True}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'feature2_algo': 'inception', 'algo': '_COMBINED'}
+        >>> config = {'feature2_algo': 'inception', 'combined': True}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
