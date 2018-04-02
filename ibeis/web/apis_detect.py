@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Dependencies: flask, tornado
-"""
+"""Dependencies: flask, tornado."""
 from __future__ import absolute_import, division, print_function
 from ibeis.control import accessor_decors, controller_inject
 from ibeis import constants as const
@@ -28,9 +26,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 @accessor_decors.getter_1to1
 @register_api('/api/detect/randomforest/', methods=['PUT', 'GET'])
 def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
-    """
-    Runs animal detection in each image. Adds annotations to the database
-    as they are found.
+    """Run animal detection in each image. Adds annotations to the database as they are found.
 
     Args:
         gid_list (list): list of image ids to run detection on
@@ -120,11 +116,21 @@ def detection_yolo_test(ibs):
     return results_dict
 
 
+@register_ibs_method
+@register_api('/test/detect/cnn/lightnet/', methods=['GET'])
+def detection_lightnet_test(ibs, config={}):
+    from random import shuffle  # NOQA
+    gid_list = ibs.get_valid_gids()
+    shuffle(gid_list)
+    gid_list = gid_list[:3]
+    results_dict = ibs.detect_cnn_lightnet_json(gid_list)
+    return results_dict
+
+
 @register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
 def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST', include_jquery=False, config=None):
     """
-    Returns the detection review interface for a particular image UUID and a list of
-    results for that image.
+    Return the detection review interface for a particular image UUID and a list of results for that image.
 
     Args:
         image_uuid (UUID): the UUID of the image you want to review detections for
@@ -317,8 +323,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
 @register_api('/api/review/detect/cnn/yolo/', methods=['POST'])
 def process_detection_html(ibs, **kwargs):
     """
-    Processes the return from the detection review interface.  Pass the POST
-    result from the detection review form directly to this function unmodified
+    Process the return from the detection review interface.  Pass the POST result from the detection review form directly to this function unmodified.
 
     Returns:
         detection results (dict): Same format as `func:start_detect_image`
@@ -379,32 +384,10 @@ def process_detection_html(ibs, **kwargs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/cnn/yolo/json/', methods=['POST'])
-def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
-    """
-    REST:
-        Method: GET
-        URL: /api/detect/cnn/yolo/json/
-
-    Args:
-        image_uuid_list (list) : list of image uuids to detect on.
-    """
-    from ibeis.web.apis_engine import ensure_uuid_list
-
-    # Check UUIDs
-    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
-    image_uuid_list = ensure_uuid_list(image_uuid_list)
-    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.detect_cnn_yolo_json(gid_list, **kwargs)
-
-
-@register_ibs_method
-@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
+def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
     """
-    Runs animal detection in each image and returns json-ready formatted
-        results, does not return annotations
+    Run animal detection in each image and returns json-ready formatted results, does not return annotations.
 
     Args:
         gid_list (list): list of image ids to run detection on
@@ -428,7 +411,7 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
     image_uuid_list = ibs.get_image_uuids(gid_list)
     ibs.assert_valid_gids(gid_list)
     # Get detections from depc
-    aids_list = ibs.detect_cnn_yolo(gid_list, **config)
+    aids_list = detect_func(gid_list, **config)
     results_list = [
         [
             {
@@ -465,13 +448,50 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
+def detect_cnn_json_wrapper(ibs, image_uuid_list, detect_func, **kwargs):
+    """
+    Detect with CNN (general).
+
+    REST:
+        Method: GET
+        URL: /api/detect/cnn/yolo/json/
+
+    Args:
+        image_uuid_list (list) : list of image uuids to detect on.
+    """
+    from ibeis.web.apis_engine import ensure_uuid_list
+
+    # Check UUIDs
+    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+    image_uuid_list = ensure_uuid_list(image_uuid_list)
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return detect_func(gid_list, **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/detect/cnn/yolo/json/', methods=['POST'])
+def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
+    return detect_cnn_json_wrapper(ibs, image_uuid_list, ibs.detect_cnn_yolo_json,
+                                   **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1to1
+def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
+    return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_yolo,
+                           config=config, **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
 def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
                     **kwargs):
     """
-    Runs animal detection in each image. Adds annotations to the database
-    as they are found.
+    Run animal detection in each image. Adds annotations to the database as they are found.
 
     Args:
         gid_list (list): list of image ids to run detection on
@@ -543,7 +563,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
 @register_api('/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False)
 def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
     """
-    Checks to see if a detection has been completed.
+    Check to see if a detection has been completed.
 
     Args:
         gid_list (list): list of image ids to run detection on
@@ -588,6 +608,83 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
         score_list = depc.get_property('detections', gid_list, 'score', ensure=False, config=config)
     flag_list = [ score is not None for score in score_list ]
     return flag_list
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/detect/cnn/lightnet/json/', methods=['POST'])
+def detect_cnn_lightnet_json_wrapper(ibs, image_uuid_list, **kwargs):
+    return detect_cnn_json_wrapper(ibs, image_uuid_list, ibs.detect_cnn_lightnet_json,
+                                   **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1to1
+def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
+    return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_lightnet,
+                           config=config, **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1toM
+@register_api('/api/detect/cnn/lightnet/', methods=['PUT', 'GET', 'POST'])
+def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=None,
+                        **kwargs):
+    """
+    Run animal detection in each image. Adds annotations to the database as they are found.
+
+    Args:
+        gid_list (list): list of image ids to run detection on
+
+    Returns:
+        aids_list (list): list of lists of annotation ids detected in each
+            image
+
+    CommandLine:
+        python -m ibeis.web.apis_detect --test-detect_cnn_lightnet --show
+
+    RESTful:
+        Method: PUT, GET
+        URL:    /api/detect/cnn/lightnet/
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.apis_detect import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> gid_list = ibs.get_valid_gids()[:5]
+        >>> aids_list = ibs.detect_cnn_lightnet(gid_list)
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     from ibeis.viz import viz_image
+        >>>     for fnum, gid in enumerate(gid_list):
+        >>>         viz_image.show_image(ibs, gid, fnum=fnum)
+        >>>     pt.show_if_requested()
+        >>> # Remove newly detected annotations
+        >>> ibs.delete_annots(ut.flatten(aids_list))
+    """
+    # TODO: Return confidence here as well
+    depc = ibs.depc_image
+    config = {
+        'algo'        : 'lightnet',
+        'sensitivity' : 0.75,
+        'nms'         : True,
+        'nms_thresh'  : 0.4,
+    }
+    if model_tag is not None:
+        config['weight_filepath'] = model_tag
+    config_str_list = ['weight_filepath']
+    for config_str in config_str_list:
+        if config_str in kwargs:
+            config[config_str] = kwargs[config_str]
+    if testing:
+        depc.delete_property('localizations', gid_list, config=config)
+    results_list = depc.get_property('localizations', gid_list, None, config=config)
+    if commit:
+        aids_list = ibs.commit_localization_results(gid_list, results_list, note='cnnlightnetdetect')
+        return aids_list
 
 
 @register_ibs_method
@@ -732,7 +829,7 @@ def log_detections(ibs, aid_list):
 @register_api('/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False)
 def has_species_detector(ibs, species_text):
     """
-    TODO: extend to use non-constant species
+    TODO: extend to use non-constant species.
 
     RESTful:
         Method: GET
@@ -747,6 +844,8 @@ def has_species_detector(ibs, species_text):
 @register_api('/api/detect/species/', methods=['GET'], __api_plural_check__=False)
 def get_species_with_detectors(ibs):
     """
+    Get valid species for detection.
+
     RESTful:
         Method: GET
         URL:    /api/detect/species/
@@ -760,6 +859,8 @@ def get_species_with_detectors(ibs):
 @register_api('/api/detect/species/working/', methods=['GET'], __api_plural_check__=False)
 def get_working_species(ibs):
     """
+    Get working species for detection.
+
     RESTful:
         Method: GET
         URL:    /api/detect/species/working/
@@ -785,7 +886,7 @@ def get_working_species(ibs):
 @register_api('/api/detect/whaleSharkInjury/', methods=['PUT', 'GET'])
 def detect_ws_injury(ibs, gid_list):
     """
-    Classifies if a whale shark is injured
+    Classify if a whale shark is injured.
 
     Args:
         gid_list (list): list of image ids to run classification on
