@@ -394,7 +394,7 @@ def start_identify_annots_query(ibs,
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
-def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
+def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
     """
     REST:
         Method: GET
@@ -425,13 +425,57 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/test/engine/detect/cnn/yolo/', methods=['GET'])
-def start_detect_image_test(ibs):
+def start_detect_image_test_yolo(ibs):
     from random import shuffle  # NOQA
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
     image_uuid_list = ibs.get_image_uuids(gid_list)
-    jobid = ibs.start_detect_image(image_uuid_list)
+    jobid = ibs.start_detect_image_yolo(image_uuid_list)
+    return jobid
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/detect/cnn/lightnet/', methods=['POST'])
+def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
+    """
+    REST:
+        Method: GET
+        URL: /api/engine/detect/cnn/lightnet/
+
+    Args:
+        image_uuid_list (list) : list of image uuids to detect on.
+        callback_url (url) : url that will be called when detection succeeds or fails
+    """
+    # Check UUIDs
+    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+
+    #import ibeis
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
+    image_uuid_list = ensure_uuid_list(image_uuid_list)
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    args = (gid_list, kwargs, )
+    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_lightnet_json', callback_url, callback_method, *args)
+
+    #if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/test/engine/detect/cnn/lightnet/', methods=['GET'])
+def start_detect_image_test_lightnet(ibs):
+    from random import shuffle  # NOQA
+    gid_list = ibs.get_valid_gids()
+    shuffle(gid_list)
+    gid_list = gid_list[:3]
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    jobid = ibs.start_detect_image_lightnet(image_uuid_list)
     return jobid
 
 
