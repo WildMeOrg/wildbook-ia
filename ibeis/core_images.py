@@ -797,7 +797,8 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 coord_list = np.vstack(coord_list)
                 confs_list = np.array(confs)
 
-                keep_indices_list = detectfuncs.nms(coord_list, confs_list, config['nms_thresh'])
+                nms_thresh = 1.0 - config['nms_thresh']
+                keep_indices_list = detectfuncs.nms(coord_list, confs_list, nms_thresh)
                 keep_list = np.array(keep_indices_list)
 
                 if len(keep_list) == 0:
@@ -813,7 +814,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 count_new = len(bboxes)
                 if VERBOSE:
-                    print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (config['nms_thresh'], count_old, count_new, ))
+                    print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (nms_thresh, count_old, count_new, ))
 
         yield (score, bboxes, thetas, confs, classes, )
 
