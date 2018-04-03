@@ -1260,7 +1260,7 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf_, label=None, min_over
         assert seen > 0
         accuracy = correct / seen
 
-        if accuracy > best_accuracy:
+        if best_accuracy is None or accuracy > best_accuracy:
             print('\tFound better accuracy = %0.02f (conf = %0.02f' % (accuracy * 100.0, conf, ))
             best_conf = conf
             best_accuracy = accuracy
