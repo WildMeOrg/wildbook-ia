@@ -789,7 +789,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap,
 
 
 def general_get_imageset_gids(ibs, imageset_text, species_set=None,
-                              filter_images=True, unique=False,
+                              filter_images=False, unique=False,
                               **kwargs):
     imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_text)
     test_gid_list = ibs.get_imageset_gids(imageset_id)
@@ -1261,7 +1261,7 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf_, label=None, min_over
         accuracy = correct / seen
 
         if best_accuracy is None or accuracy > best_accuracy:
-            # print('\tFound better accuracy = %0.02f (conf = %0.02f' % (accuracy * 100.0, conf, ))
+            # print('\tFound better accuracy = %0.02f (conf = %0.02f)' % (accuracy * 100.0, conf, ))
             best_conf = conf
             best_accuracy = accuracy
             best_label_list = label_list
