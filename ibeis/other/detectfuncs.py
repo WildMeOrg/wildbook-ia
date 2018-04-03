@@ -683,7 +683,8 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate2(localizer_precision_recall_algo_worker, arg_iter,
                              nTasks=len(conf_list), ordered=True,
-                             chunksize=CHUNK_SIZE, force_serial=force_serial)
+                             chunksize=CHUNK_SIZE, force_serial=force_serial,
+                             verbose=False)
 
     conf_list_ = [-1.0, -1.0]
     pr_list = [1.0, 0.0]
