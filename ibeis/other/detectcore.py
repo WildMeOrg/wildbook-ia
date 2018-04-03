@@ -20,6 +20,7 @@ import ibeis.constants as const
 from ibeis.control import controller_inject
 from ibeis.other.detectfuncs import (general_parse_gt, general_get_imageset_gids,
                                      localizer_parse_pred, _resize, general_overlap)
+import random
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectcore]')
@@ -129,7 +130,7 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
     ut.ensuredir(mainsetsdir)
 
     # Get all gids and process them
-    gid_list = ibs.get_valid_gids()
+    gid_list = sorted(ibs.get_valid_gids())
     sets_dict = {
         'test'     : [],
         'train'    : [],
@@ -646,6 +647,46 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
 
     return mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list
 
+
+@register_ibs_method
+def visualize_localizations(ibs, config, gid_list=None, randomize=False,
+                            num_images=10, min_conf=0.5, output_path=None):
+    if gid_list is None:
+        gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **config)
+
+    if randomize:
+        random.shuffle(gid_list)
+
+    if num_images not in [-1, None]:
+        num_images = min(num_images, len(gid_list))
+        gid_list = gid_list[:num_images]
+
+    uuid_list = ibs.get_image_uuids(gid_list)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=gid_list, **config)
+
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'visualize')))
+        ut.ensuredir(output_path)
+
+    for gid, image_uuid in zip(gid_list, uuid_list):
+        image = ibs.get_image_imgdata(gid)
+        image = _resize(image, t_width=500)
+        h, w, c = image.shape
+
+        pred_list = pred_dict[image_uuid]
+
+        for pred in pred_list:
+            xbr = int(np.around(pred['xbr'] * w))
+            ybr = int(np.around(pred['ybr'] * h))
+            xtl = int(np.around(pred['xtl'] * w))
+            ytl = int(np.around(pred['ytl'] * h))
+            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
+
+        write_filepath = join(output_path, 'detections_%d.png' % (gid, ))
+        print(write_filepath)
+        cv2.imwrite(write_filepath, image)
 
 if __name__ == '__main__':
     """
