@@ -1155,10 +1155,8 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overlap=0.5,
-                                         write_images=False, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
-
+def localizer_confusion_matrix_algo_plot(ibs, color, conf_, label=None, min_overlap=0.5,
+                                         write_images=False, samples=SAMPLES, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -1168,88 +1166,117 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    # species_set = kwargs.get('species_set', None)
-    # if filter_annots and species_set is not None:
-    #     dict_list = [
-    #         (gt_dict, 'Ground-Truth'),
-    #         # (pred_dict, 'Predictions'),
-    #     ]
-    #     for dict_, dict_tag in dict_list:
-    #         total = 0
-    #         survived = 0
-    #         for image_uuid in dict_:
-    #             annot_list = dict_[image_uuid]
-    #             total += len(annot_list)
-    #             annot_list = [
-    #                 annot
-    #                 for annot in annot_list
-    #                 if annot.get('class', None) in species_set
-    #             ]
-    #             survived += len(annot_list)
-    #             dict_[image_uuid] = annot_list
-    #         args = (dict_tag, total, species_set)
-    #         print('Filtering %s AIDs (%d) on species set: %r' % args)
-    #         print('    %d AIDs survived' % (survived , ))
+    species_set = kwargs.get('species_set', None)
+    if species_set is not None:
+        dict_list = [
+            (gt_dict, 'Ground-Truth'),
+            # (pred_dict, 'Predictions'),
+        ]
+        for dict_, dict_tag in dict_list:
+            total = 0
+            survived = 0
+            for image_uuid in dict_:
+                annot_list = dict_[image_uuid]
+                total += len(annot_list)
+                annot_list = [
+                    annot
+                    for annot in annot_list
+                    if annot.get('class', None) in species_set
+                ]
+                survived += len(annot_list)
+                dict_[image_uuid] = annot_list
+            args = (dict_tag, total, species_set)
+            print('Filtering %s AIDs (%d) on species set: %r' % args)
+            print('    %d AIDs survived' % (survived , ))
 
     if write_images:
         output_folder = 'localizer-precision-recall-%0.2f-images' % (min_overlap, )
         output_path = abspath(expanduser(join('~', 'Desktop', output_folder)))
         ut.ensuredir(output_path)
 
-    label_list = []
-    prediction_list = []
-    for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
-        if test_uuid in pred_dict:
-            gt_list = gt_dict[test_uuid]
-            pred_list = [
-                pred
-                for pred in pred_dict[test_uuid]
-                if pred['confidence'] >= conf
-            ]
-            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
-                                          **kwargs)
-            for _ in range(int(tp)):
-                label_list.append('positive')
-                prediction_list.append('positive')
-            for _ in range(int(fp)):
-                label_list.append('negative')
-                prediction_list.append('positive')
-            for _ in range(int(fn)):
-                label_list.append('positive')
-                prediction_list.append('negative')
+    best_conf = None
+    best_accuracy = None
+    best_label_list = None
+    best_prediction_list = None
 
-            if write_images:
-                test_image = ibs.get_image_imgdata(test_gid)
-                test_image = _resize(test_image, t_width=600, verbose=False)
-                height_, width_, channels_ = test_image.shape
+    print('Searching for conf and best accuracy...')
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    for conf in conf_list:
+        correct = 0.0
+        seen = 0.0
+        label_list = []
+        prediction_list = []
+        for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
+            if test_uuid in pred_dict:
+                gt_list = gt_dict[test_uuid]
+                pred_list = [
+                    pred
+                    for pred in pred_dict[test_uuid]
+                    if pred['confidence'] >= conf
+                ]
+                tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
+                                              **kwargs)
 
-                for gt in gt_list:
-                    xtl = int(gt['xtl'] * width_)
-                    ytl = int(gt['ytl'] * height_)
-                    xbr = int(gt['xbr'] * width_)
-                    ybr = int(gt['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+                correct += tp
+                seen += tp + fp + fn
 
-                for pred in pred_list:
-                    xtl = int(pred['xtl'] * width_)
-                    ytl = int(pred['ytl'] * height_)
-                    xbr = int(pred['xbr'] * width_)
-                    ybr = int(pred['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+                for _ in range(int(tp)):
+                    label_list.append('positive')
+                    prediction_list.append('positive')
 
-                status_str = 'success' if (fp + fn) == 0 else 'failure'
-                status_val = tp - fp - fn
-                args = (status_str, status_val, test_gid, tp, fp, fn, )
-                output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
-                output_filepath = join(output_path, output_filename)
-                cv2.imwrite(output_filepath, test_image)
+                for _ in range(int(fp)):
+                    label_list.append('negative')
+                    prediction_list.append('positive')
+                for _ in range(int(fn)):
+                    label_list.append('positive')
+                    prediction_list.append('negative')
+
+                if write_images:
+                    test_image = ibs.get_image_imgdata(test_gid)
+                    test_image = _resize(test_image, t_width=600, verbose=False)
+                    height_, width_, channels_ = test_image.shape
+
+                    for gt in gt_list:
+                        xtl = int(gt['xtl'] * width_)
+                        ytl = int(gt['ytl'] * height_)
+                        xbr = int(gt['xbr'] * width_)
+                        ybr = int(gt['ybr'] * height_)
+                        cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+
+                    for pred in pred_list:
+                        xtl = int(pred['xtl'] * width_)
+                        ytl = int(pred['ytl'] * height_)
+                        xbr = int(pred['xbr'] * width_)
+                        ybr = int(pred['ybr'] * height_)
+                        cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+
+                    status_str = 'success' if (fp + fn) == 0 else 'failure'
+                    status_val = tp - fp - fn
+                    args = (status_str, status_val, test_gid, tp, fp, fn, )
+                    output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
+                    output_filepath = join(output_path, output_filename)
+                    cv2.imwrite(output_filepath, test_image)
+
+        assert seen > 0
+        accuracy = correct / seen
+
+        if accuracy > best_accuracy:
+            print('\tFound better accuracy = %0.02f (conf = %0.02f' % (accuracy * 100.0, conf, ))
+            best_conf = conf
+            best_accuracy = accuracy
+            best_label_list = label_list
+            best_prediction_list = prediction_list
+
+    assert None not in [best_conf, best_accuracy, best_label_list, best_prediction_list]
+
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f, Suggested = %0.02f)' % (label, best_conf, conf_, ))
 
     category_list = ['positive', 'negative']
     category_mapping = {
         'positive': 0,
         'negative': 1,
     }
-    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+    return general_confusion_matrix_algo(best_label_list, best_prediction_list, category_list,
                                          category_mapping, size=20, **kwargs)
 
 
@@ -1287,13 +1314,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     config_list = [
 
 
-        # {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : species_set},
-        # {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[0] ]},
-        # {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[1] ]},
-        # {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[2] ]},
-        # {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[3] ]},
-        # {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[4] ]},
-        # {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'filter_annots' : True, 'species_set' : [ species_set[5] ]},
+        # {'label': 'All Species',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : species_set},
+        # {'label': 'Masai Giraffe',       'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[0] ]},
+        # {'label': 'Reticulated Giraffe', 'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[1] ]},
+        # {'label': 'Sea Turtle',          'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[2] ]},
+        # {'label': 'Whale Fluke',         'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[3] ]},
+        # {'label': 'Grevy\'s Zebra',      'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[4] ]},
+        # {'label': 'Plains Zebra',        'grid' : False, 'config_filepath' : 'candidacy', 'weight_filepath' : 'candidacy', 'species_set' : [ species_set[5] ]},
 
 
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
