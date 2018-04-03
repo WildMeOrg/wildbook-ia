@@ -785,7 +785,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
         # Apply NMS
         if config['nms']:
-            from ibeis.other import detectfuncs
+            from ibeis.other import detectcore
             count_old = len(bboxes)
             if count_old > 0:
                 coord_list = []
@@ -798,7 +798,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 confs_list = np.array(confs)
 
                 nms_thresh = 1.0 - config['nms_thresh']
-                keep_indices_list = detectfuncs.nms(coord_list, confs_list, nms_thresh)
+                keep_indices_list = detectcore.nms(coord_list, confs_list, nms_thresh)
                 keep_list = np.array(keep_indices_list)
 
                 if len(keep_list) == 0:
