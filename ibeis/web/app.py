@@ -69,7 +69,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         try:
             import newrelic
             wsgi_container = newrelic.agent.WSGIApplicationWrapper(wsgi_container)
-        except ImportError:
+        except (ImportError, AttributeError):
             pass
 
         http_server = tornado.httpserver.HTTPServer(wsgi_container)
