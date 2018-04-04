@@ -673,9 +673,9 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     values = localizer_tp_fp(uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
 
-    conf_list_ = []
-    pr_list = []
-    re_list = []
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
     for conf, tp, fp in zip(conf_list, tp_list, fp_list):
         try:
             pr = tp / (tp + fp)
