@@ -908,8 +908,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    ut.embed()
-
     area_list = [ ret[0] for ret in ret_list ]
     # index = np.argmax(area_list)
     index = 0
