@@ -156,16 +156,15 @@ def general_interpolate_precision_recall(conf_list, re_list, pr_list):
     conf_list_, re_list_, pr_list_ = [], [], []
     zipped = zip(re_list, conf_list, pr_list)
     zipped = sorted(zipped, reverse=True)
-    max_pr = None
+    max_pr = -1.0
+    last_conf = None
     for re, conf, pr in zipped:
-        if max_pr is None or pr > max_pr:
-            if max_pr is not None:
-                conf_list_.append(np.nan)
-                re_list_.append(re)
-                pr_list_.append(max_pr)
+        if pr >= max_pr:
             max_pr = pr
-        if pr < max_pr:
+            last_conf = conf
+        else:
             pr = max_pr
+            conf = last_conf
         conf_list_.append(conf)
         re_list_.append(re)
         pr_list_.append(pr)
@@ -242,7 +241,9 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
 
     if len(best_conf_list) > 1:
         print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
-    best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
+
+    assert len(best_conf_list) > 0
+    best_conf = best_conf_list[0]
 
     if interpolate:
         # label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
@@ -982,6 +983,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
     area_list = [ ret[0] for ret in ret_list ]
     tup2_list = [ ret[3] for ret in ret_list ]
+
+    ut.embed()
 
     best_index = 0
     # best_index = None
