@@ -349,16 +349,20 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
 
 
 def general_intersection_over_union(bbox1, bbox2):
-    x_overlap = max(
-        0.0,
-        min(bbox1['xbr'], bbox2['xbr']) - max(bbox1['xtl'], bbox2['xtl'])
-    )
-    y_overlap = max(
-        0.0,
-        min(bbox1['ybr'], bbox2['ybr']) - max(bbox1['ytl'], bbox2['ytl'])
-    )
-    intersection = float(x_overlap * y_overlap)
+    intersection_xtl = max(bbox1['xtl'], bbox2['xtl'])
+    intersection_ytl = max(bbox1['ytl'], bbox2['ytl'])
+    intersection_xbr = min(bbox1['xbr'], bbox2['xbr'])
+    intersection_ybr = min(bbox1['ybr'], bbox2['ybr'])
+
+    intersection_w = intersection_xbr - intersection_xtl
+    intersection_h = intersection_ybr - intersection_ytl
+
+    if intersection_w <= 0 or intersection_h <= 0:
+        return 0.0
+
+    intersection = intersection_w * intersection_h
     union = (bbox1['width'] * bbox1['height']) + (bbox2['width'] * bbox2['height']) - intersection
+
     return intersection / union
 
 
@@ -659,73 +663,89 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
             (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
-            total = 0.0
-            final = 0.0
             for image_uuid in dict_:
-                total += len(dict_[image_uuid])
                 dict_[image_uuid] = [
                     val
                     for val in dict_[image_uuid]
                     if val.get('class', None) in species_set
                 ]
-                final += len(dict_[image_uuid])
-            label = kwargs.get('species_set', None)
-            print('Filtered %r: %d %d %d on %r' % (label, total, final, total - final, dict_tag, ))
 
-    print('\tGenerate Curves...')
-    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-    conf_list = sorted(conf_list, reverse=True)
+    values = localizer_tp_fp(uuid_list, gt_dict, pred_dict, kwargs)
+    conf_list, tp_list, fp_list, total = values
 
-    uuid_list_list = [ uuid_list for _ in conf_list ]
-    gt_dict_list   = [ gt_dict   for _ in conf_list ]
-    pred_dict_list = [ pred_dict for _ in conf_list ]
-    kwargs_list    = [ kwargs    for _ in conf_list ]
-    arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
-    pr_re_gen = ut.generate2(localizer_precision_recall_algo_worker, arg_iter,
-                             nTasks=len(conf_list), ordered=True,
-                             chunksize=CHUNK_SIZE, force_serial=force_serial,
-                             verbose=False)
-
-    conf_list_ = [-1.0, -1.0]
-    pr_list = [1.0, 0.0]
-    re_list = [0.0, 1.0]
-    # conf_list_ = []
-    # pr_list = []
-    # re_list = []
-    for values in pr_re_gen:
-        if values is None:
+    conf_list_ = []
+    pr_list = []
+    re_list = []
+    for conf, tp, fp in zip(conf_list, tp_list, fp_list):
+        try:
+            pr = tp / (tp + fp)
+            re = tp / total
+        except ZeroDivisionError:
             continue
-        conf, pr, re = values
         conf_list_.append(conf)
         pr_list.append(pr)
         re_list.append(re)
 
-    print('...complete')
     return conf_list_, pr_list, re_list
 
 
-def localizer_precision_recall_algo_worker(conf, uuid_list, gt_dict, pred_dict,
-                                           kwargs):
-    # print('Started %s' % (conf, ))
-    tp, fp, fn = 0.0, 0.0, 0.0
-    for index, uuid_ in enumerate(uuid_list):
-        if uuid_ in pred_dict:
-            gt_list = gt_dict[uuid_]
-            pred_list = [
-                pred
-                for pred in pred_dict[uuid_]
-                if conf <= pred['confidence']
+def localizer_assign(gt_list, pred, min_overlap):
+    best_overlap = min_overlap
+    best_index = None
+    for index, gt in enumerate(gt_list):
+        if gt['class'] != pred['class']:
+            continue
+
+        overlap = general_intersection_over_union(gt, pred)
+        if overlap < best_overlap:
+            continue
+
+        best_overlap = overlap
+        best_index = index
+
+    return best_index
+
+
+def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap, **kwargs):
+    total = 0.0
+
+    match_list = []
+    for image_uuid in uuid_list:
+        gt_list = gt_dict[image_uuid].copy()
+        pred_list = pred_dict[image_uuid]
+        total += len(gt_list)
+
+        # Match predictions
+        pred_list = sorted(pred_list, key=lambda pred: pred['confidence'], reverse=True)
+        for pred in pred_dict:
+            flag = False
+            match_index = localizer_assign(gt_list, pred, min_overlap)
+            if match_index is not None:
+                flag = True
+                del gt_list[match_index]
+            match_list += [
+                (pred['confidence'], flag)
             ]
-            tp_, fp_, fn_ = general_tp_fp_fn(gt_list, pred_list, **kwargs)
-            tp += tp_
-            fp += fp_
-            fn += fn_
-    try:
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-    except ZeroDivisionError:
-        return None
-    return (conf, pr, re)
+
+    # sort matches by confidence from high to low
+    match_list = sorted(match_list, key=lambda match: match[0], reverse=True)
+
+    conf_list = []
+    tp_list = []
+    fp_list = []
+
+    tp_counter = 0
+    fp_counter = 0
+    for conf, flag in match_list:
+        if flag:
+            tp_counter += 1
+        else:
+            fp_counter += 1
+        conf_list.append(conf)
+        tp_list.append(tp_counter)
+        fp_list.append(fp_counter)
+
+    return conf_list, tp_list, fp_list, total
 
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
@@ -735,129 +755,129 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, color, conf_, label=None, min_overlap=0.5,
-                                         write_images=False, samples=SAMPLES, **kwargs):
-    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
-    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+# def localizer_confusion_matrix_algo_plot(ibs, color, conf_, label=None, min_overlap=0.5,
+#                                          write_images=False, samples=SAMPLES, **kwargs):
+#     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+#     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    print('\tGather Ground-Truth')
-    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
+#     print('\tGather Ground-Truth')
+#     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    print('\tGather Predictions')
-    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
+#     print('\tGather Predictions')
+#     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    species_set = kwargs.get('species_set', None)
-    if species_set is not None:
-        dict_list = [
-            (gt_dict, 'Ground-Truth'),
-            # (pred_dict, 'Predictions'),
-        ]
-        for dict_, dict_tag in dict_list:
-            total = 0
-            survived = 0
-            for image_uuid in dict_:
-                annot_list = dict_[image_uuid]
-                total += len(annot_list)
-                annot_list = [
-                    annot
-                    for annot in annot_list
-                    if annot.get('class', None) in species_set
-                ]
-                survived += len(annot_list)
-                dict_[image_uuid] = annot_list
-            args = (dict_tag, total, species_set)
-            print('Filtering %s AIDs (%d) on species set: %r' % args)
-            print('    %d AIDs survived' % (survived , ))
+#     species_set = kwargs.get('species_set', None)
+#     if species_set is not None:
+#         dict_list = [
+#             (gt_dict, 'Ground-Truth'),
+#             # (pred_dict, 'Predictions'),
+#         ]
+#         for dict_, dict_tag in dict_list:
+#             total = 0
+#             survived = 0
+#             for image_uuid in dict_:
+#                 annot_list = dict_[image_uuid]
+#                 total += len(annot_list)
+#                 annot_list = [
+#                     annot
+#                     for annot in annot_list
+#                     if annot.get('class', None) in species_set
+#                 ]
+#                 survived += len(annot_list)
+#                 dict_[image_uuid] = annot_list
+#             args = (dict_tag, total, species_set)
+#             print('Filtering %s AIDs (%d) on species set: %r' % args)
+#             print('    %d AIDs survived' % (survived , ))
 
-    if write_images:
-        output_folder = 'localizer-precision-recall-%0.2f-images' % (min_overlap, )
-        output_path = abspath(expanduser(join('~', 'Desktop', output_folder)))
-        ut.ensuredir(output_path)
+#     if write_images:
+#         output_folder = 'localizer-precision-recall-%0.2f-images' % (min_overlap, )
+#         output_path = abspath(expanduser(join('~', 'Desktop', output_folder)))
+#         ut.ensuredir(output_path)
 
-    best_conf = None
-    best_accuracy = None
-    best_label_list = None
-    best_prediction_list = None
+#     best_conf = None
+#     best_accuracy = None
+#     best_label_list = None
+#     best_prediction_list = None
 
-    # print('Searching for conf and best accuracy...')
-    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-    for conf in conf_list:
-        correct = 0.0
-        seen = 0.0
-        label_list = []
-        prediction_list = []
-        for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
-            if test_uuid in pred_dict:
-                gt_list = gt_dict[test_uuid]
-                pred_list = [
-                    pred
-                    for pred in pred_dict[test_uuid]
-                    if pred['confidence'] >= conf
-                ]
-                tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
-                                              **kwargs)
+#     # print('Searching for conf and best accuracy...')
+#     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+#     for conf in conf_list:
+#         correct = 0.0
+#         seen = 0.0
+#         label_list = []
+#         prediction_list = []
+#         for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
+#             if test_uuid in pred_dict:
+#                 gt_list = gt_dict[test_uuid]
+#                 pred_list = [
+#                     pred
+#                     for pred in pred_dict[test_uuid]
+#                     if pred['confidence'] >= conf
+#                 ]
+#                 tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
+#                                               **kwargs)
 
-                correct += tp
-                seen += tp + fp + fn
+#                 correct += tp
+#                 seen += tp + fp + fn
 
-                for _ in range(int(tp)):
-                    label_list.append('positive')
-                    prediction_list.append('positive')
+#                 for _ in range(int(tp)):
+#                     label_list.append('positive')
+#                     prediction_list.append('positive')
 
-                for _ in range(int(fp)):
-                    label_list.append('negative')
-                    prediction_list.append('positive')
-                for _ in range(int(fn)):
-                    label_list.append('positive')
-                    prediction_list.append('negative')
+#                 for _ in range(int(fp)):
+#                     label_list.append('negative')
+#                     prediction_list.append('positive')
+#                 for _ in range(int(fn)):
+#                     label_list.append('positive')
+#                     prediction_list.append('negative')
 
-                if write_images:
-                    test_image = ibs.get_image_imgdata(test_gid)
-                    test_image = _resize(test_image, t_width=600, verbose=False)
-                    height_, width_, channels_ = test_image.shape
+#                 if write_images:
+#                     test_image = ibs.get_image_imgdata(test_gid)
+#                     test_image = _resize(test_image, t_width=600, verbose=False)
+#                     height_, width_, channels_ = test_image.shape
 
-                    for gt in gt_list:
-                        xtl = int(gt['xtl'] * width_)
-                        ytl = int(gt['ytl'] * height_)
-                        xbr = int(gt['xbr'] * width_)
-                        ybr = int(gt['ybr'] * height_)
-                        cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+#                     for gt in gt_list:
+#                         xtl = int(gt['xtl'] * width_)
+#                         ytl = int(gt['ytl'] * height_)
+#                         xbr = int(gt['xbr'] * width_)
+#                         ybr = int(gt['ybr'] * height_)
+#                         cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
 
-                    for pred in pred_list:
-                        xtl = int(pred['xtl'] * width_)
-                        ytl = int(pred['ytl'] * height_)
-                        xbr = int(pred['xbr'] * width_)
-                        ybr = int(pred['ybr'] * height_)
-                        cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+#                     for pred in pred_list:
+#                         xtl = int(pred['xtl'] * width_)
+#                         ytl = int(pred['ytl'] * height_)
+#                         xbr = int(pred['xbr'] * width_)
+#                         ybr = int(pred['ybr'] * height_)
+#                         cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
 
-                    status_str = 'success' if (fp + fn) == 0 else 'failure'
-                    status_val = tp - fp - fn
-                    args = (status_str, status_val, test_gid, tp, fp, fn, )
-                    output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
-                    output_filepath = join(output_path, output_filename)
-                    cv2.imwrite(output_filepath, test_image)
+#                     status_str = 'success' if (fp + fn) == 0 else 'failure'
+#                     status_val = tp - fp - fn
+#                     args = (status_str, status_val, test_gid, tp, fp, fn, )
+#                     output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
+#                     output_filepath = join(output_path, output_filename)
+#                     cv2.imwrite(output_filepath, test_image)
 
-        assert seen > 0
-        accuracy = correct / seen
+#         assert seen > 0
+#         accuracy = correct / seen
 
-        if best_accuracy is None or accuracy > best_accuracy:
-            # print('\tFound better accuracy = %0.02f (conf = %0.02f)' % (accuracy * 100.0, conf, ))
-            best_conf = conf
-            best_accuracy = accuracy
-            best_label_list = label_list
-            best_prediction_list = prediction_list
+#         if best_accuracy is None or accuracy > best_accuracy:
+#             # print('\tFound better accuracy = %0.02f (conf = %0.02f)' % (accuracy * 100.0, conf, ))
+#             best_conf = conf
+#             best_accuracy = accuracy
+#             best_label_list = label_list
+#             best_prediction_list = prediction_list
 
-    assert None not in [best_conf, best_accuracy, best_label_list, best_prediction_list]
+#     assert None not in [best_conf, best_accuracy, best_label_list, best_prediction_list]
 
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f, Suggested = %0.02f)' % (label, best_conf, conf_, ))
+#     print('Processing Confusion Matrix for: %r (Conf = %0.02f, Suggested = %0.02f)' % (label, best_conf, conf_, ))
 
-    category_list = ['positive', 'negative']
-    category_mapping = {
-        'positive': 0,
-        'negative': 1,
-    }
-    return general_confusion_matrix_algo(best_label_list, best_prediction_list, category_list,
-                                         category_mapping, size=20, **kwargs)
+#     category_list = ['positive', 'negative']
+#     category_mapping = {
+#         'positive': 0,
+#         'negative': 1,
+#     }
+#     return general_confusion_matrix_algo(best_label_list, best_prediction_list, category_list,
+#                                          category_mapping, size=20, **kwargs)
 
 
 @register_ibs_method
@@ -956,33 +976,33 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
     # ######################################################################################
 
-    index = np.argmax(area_list)
-    # index = 0
-    best_label = config_list[index]['label']  # NOQA
-    best_color = color_list[index]
-    best_config = config_list[index]
-    best_area = area_list[index]  # NOQA
-    best_conf = conf_list[index]
-    # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
-    plt.title('Precision-Recall Curves', y=1.19)
+    # index = np.argmax(area_list)
+    # # index = 0
+    # best_label = config_list[index]['label']  # NOQA
+    # best_color = color_list[index]
+    # best_config = config_list[index]
+    # best_area = area_list[index]  # NOQA
+    # best_conf = conf_list[index]
+    # # plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.13)
+    # plt.title('Precision-Recall Curves', y=1.19)
 
-    # Display graph of the overall highest area
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    # # Display graph of the overall highest area
+    # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+    #            borderaxespad=0.0)
 
-    axes_ = plt.subplot(132)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
-                                                           min_overlap=min_overlap,
-                                                           write_images=write_images,
-                                                           fig_=fig_, axes_=axes_,
-                                                           **best_config)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    args = (best_area, best_label, best_conf, )
-    plt.title('Confusion Matrix for Highest AP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    # axes_ = plt.subplot(132)
+    # axes_.set_aspect(1)
+    # gca_ = plt.gca()
+    # gca_.grid(False)
+    # correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
+    #                                                        min_overlap=min_overlap,
+    #                                                        write_images=write_images,
+    #                                                        fig_=fig_, axes_=axes_,
+    #                                                        **best_config)
+    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    # axes_.set_ylabel('Ground-Truth')
+    # args = (best_area, best_label, best_conf, )
+    # plt.title('Confusion Matrix for Highest AP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # area_list_ = area_list[1:]
     # mAP = sum(area_list_) / len(area_list_)
