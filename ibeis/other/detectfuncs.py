@@ -670,7 +670,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
                     if val.get('class', None) in species_set
                 ]
 
-    values = localizer_tp_fp(uuid_list, gt_dict, pred_dict, kwargs)
+    values = localizer_tp_fp(uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
 
     conf_list_ = []
@@ -706,7 +706,7 @@ def localizer_assign(gt_list, pred, min_overlap):
     return best_index
 
 
-def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap, **kwargs):
+def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
     total = 0.0
 
     match_list = []
