@@ -980,7 +980,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
         reply['jobid'] = jobid
     elif action == 'job_id_list':
         reply['status'] = 'ok'
-        reply['jobid_list'] = collecter_data.keys()
+        reply['jobid_list'] = list(collecter_data.keys())
     elif action == 'job_result':
         # From a Client
         jobid = collect_request['jobid']
