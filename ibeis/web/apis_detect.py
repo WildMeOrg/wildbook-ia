@@ -781,47 +781,56 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
 
 
 @register_ibs_method
-def log_detections(ibs, aid_list):
+def log_detections(ibs, aid_list, fallback=True):
     import time
     import os
     json_log_path = ibs.get_logdir_local()
     json_log_filename = 'detections.json'
     json_log_filepath = os.path.join(json_log_path, json_log_filename)
     print('Logging detections added to: %r' % (json_log_filepath, ))
-    # Log has never been made, create one
-    if not os.path.exists(json_log_filepath):
-        json_dict = {
-            'updates': [],
-        }
+
+    try:
+        # Log has never been made, create one
+        if not os.path.exists(json_log_filepath):
+            json_dict = {
+                'updates': [],
+            }
+            json_str = ut.to_json(json_dict, pretty=True)
+            with open(json_log_filepath, 'w') as json_log_file:
+                json_log_file.write(json_str)
+        # Get current log state
+        with open(json_log_filepath, 'r') as json_log_file:
+            json_str = json_log_file.read()
+        json_dict = ut.from_json(json_str)
+        # Get values
+        db_name = ibs.get_db_name()
+        db_init_uuid = ibs.get_db_init_uuid()
+        # Zip all the updates together and write to updates list in dictionary
+        gid_list = ibs.get_annot_gids(aid_list)
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        theta_list = ibs.get_annot_thetas(aid_list)
+        zipped = list(zip(aid_list, gid_list, bbox_list, theta_list))
+        for aid, gid, bbox, theta in zipped:
+            json_dict['updates'].append({
+                'time_unixtime': time.time(),
+                'db_name': db_name,
+                'db_init_uuid': db_init_uuid,
+                'image_rowid': gid,
+                'annot_rowid': aid,
+                'annot_bbox': bbox,
+                'annot_theta': theta,
+            })
+        # Write new log state
         json_str = ut.to_json(json_dict, pretty=True)
         with open(json_log_filepath, 'w') as json_log_file:
             json_log_file.write(json_str)
-    # Get current log state
-    with open(json_log_filepath, 'r') as json_log_file:
-        json_str = json_log_file.read()
-    json_dict = ut.from_json(json_str)
-    # Get values
-    db_name = ibs.get_db_name()
-    db_init_uuid = ibs.get_db_init_uuid()
-    # Zip all the updates together and write to updates list in dictionary
-    gid_list = ibs.get_annot_gids(aid_list)
-    bbox_list = ibs.get_annot_bboxes(aid_list)
-    theta_list = ibs.get_annot_thetas(aid_list)
-    zipped = list(zip(aid_list, gid_list, bbox_list, theta_list))
-    for aid, gid, bbox, theta in zipped:
-        json_dict['updates'].append({
-            'time_unixtime': time.time(),
-            'db_name': db_name,
-            'db_init_uuid': db_init_uuid,
-            'image_rowid': gid,
-            'annot_rowid': aid,
-            'annot_bbox': bbox,
-            'annot_theta': theta,
-        })
-    # Write new log state
-    json_str = ut.to_json(json_dict, pretty=True)
-    with open(json_log_filepath, 'w') as json_log_file:
-        json_log_file.write(json_str)
+    except:
+        if fallback:
+            print('WRITE DETECTION.JSON FAILED - ATTEMPTING FALLBACK')
+            ut.delete(json_log_filepath)
+            ibs.log_detections(aid_list, fallback=False)
+        else:
+            print('WRITE DETECTION.JSON FAILED - FALLBACK FAILED')
 
 
 @register_ibs_method
