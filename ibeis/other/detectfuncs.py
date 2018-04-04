@@ -668,8 +668,6 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    ut.embed()
-
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
         # filter out any prefix ! to denote interest only
@@ -686,6 +684,8 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
                     for val in dict_[image_uuid]
                     if val.get('class', None) in species_set_
                 ]
+
+    ut.embed()
 
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
