@@ -156,15 +156,16 @@ def general_interpolate_precision_recall(conf_list, re_list, pr_list):
     conf_list_, re_list_, pr_list_ = [], [], []
     zipped = zip(re_list, conf_list, pr_list)
     zipped = sorted(zipped, reverse=True)
-    max_pr = -1.0
-    last_conf = None
+    max_pr = None
     for re, conf, pr in zipped:
-        if pr >= max_pr:
+        if max_pr is None or pr > max_pr:
+            if max_pr is not None:
+                conf_list_.append(np.nan)
+                re_list_.append(re)
+                pr_list_.append(max_pr)
             max_pr = pr
-            last_conf = conf
-        else:
+        if pr < max_pr:
             pr = max_pr
-            conf = last_conf
         conf_list_.append(conf)
         re_list_.append(re)
         pr_list_.append(pr)
@@ -235,7 +236,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     tup2 = None
     if target_recall is not None:
         for x, y, conf in sorted(zip(x_list, y_list, conf_list)):
-            if target_recall <= x:
+            if target_recall <= x and conf != np.nan:
                 tup2 = [conf], [x], [y], None
                 break
 
