@@ -668,6 +668,8 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
+    ut.embed()
+
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
         dict_list = [
@@ -811,8 +813,6 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, **kwargs):
 
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
-
-    ut.embed()
 
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
