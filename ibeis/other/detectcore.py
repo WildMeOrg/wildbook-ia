@@ -371,11 +371,11 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=5, randomize=Tr
         write (bool, optional): if to display or write the files
 
     CommandLine:
-        python -m ibeis.other.detectfuncs --test-visualize_pascal_voc_dataset
+        python -m ibeis.other.detectcore --test-visualize_pascal_voc_dataset
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.detectfuncs import *  # NOQA
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.detectcore import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> dataset_path = '/Users/jason.parham/Downloads/VOC2007/'
@@ -559,13 +559,13 @@ def redownload_detection_models(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.detectfuncs import *  # NOQA
+        >>> from ibeis.other.detectcore import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = redownload_detection_models(ibs)
         >>> print(result)
     """
-    print('[other.detectfuncs] redownload_detection_models')
+    print('[other.detectcore] redownload_detection_models')
     from ibeis.algo.detect import grabmodels
     modeldir = ibs.get_detect_modeldir()
     grabmodels.redownload_models(modeldir=modeldir)
@@ -573,7 +573,7 @@ def redownload_detection_models(ibs):
 
 @register_ibs_method
 def view_model_dir(ibs):
-    print('[other.detectfuncs] redownload_detection_models')
+    print('[other.detectcore] redownload_detection_models')
     modeldir = ibs.get_detect_modeldir()
     ut.view_directory(modeldir)
     #grabmodels.redownload_models(modeldir=modeldir)
@@ -691,9 +691,9 @@ def visualize_localizations(ibs, config, gid_list=None, randomize=False,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detectfuncs
-        python -m ibeis.other.detectfuncs --allexamples
-        python -m ibeis.other.detectfuncs --allexamples --noface --nosrc
+        python -m ibeis.other.detectcore
+        python -m ibeis.other.detectcore --allexamples
+        python -m ibeis.other.detectcore --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -951,9 +951,12 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                 else:
                     raise ValueError('callback_method %r unsupported' %
                                      (callback_method, ))
-
-                args = (callback_url, callback_method, data_dict, response, )
-                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %s' % args)
+                try:
+                    text = response.text
+                except:
+                    text = None
+                args = (callback_url, callback_method, data_dict, response, text, )
+                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
             except Exception as ex:
                 msg = (('ERROR in collector. '
                         'Tried to call callback_url=%r with callback_method=%r')

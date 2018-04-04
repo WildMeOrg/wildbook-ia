@@ -2039,9 +2039,9 @@ config_list = [
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.other.detectfuncs
-        python -m ibeis.other.detectfuncs --allexamples
-        python -m ibeis.other.detectfuncs --allexamples --noface --nosrc
+        python -m ibeis.other.detectgrave
+        python -m ibeis.other.detectgrave --allexamples
+        python -m ibeis.other.detectgrave --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
