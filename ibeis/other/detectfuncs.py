@@ -721,6 +721,8 @@ def localizer_assign(gt_list, pred, min_overlap):
 def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
     total = 0.0
 
+    ut.embed()
+
     interest_species_set = set([])
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
@@ -809,6 +811,8 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, **kwargs):
 
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    ut.embed()
 
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
