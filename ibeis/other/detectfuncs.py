@@ -172,15 +172,13 @@ def general_interpolate_precision_recall(conf_list, re_list, pr_list):
     return conf_list_, re_list_, pr_list_
 
 
-def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0), min_conf=0.0):
+def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0)):
     best_length = np.inf
     best_conf_list = []
     best_x_list = []
     best_y_list = []
     tx, ty = target
-    for conf, x, y in zip(conf_list, x_list, y_list):
-        if conf < min_conf:
-            continue
+    for conf, x, y in sorted(zip(conf_list, x_list, y_list)):
         x_ = x
         y_ = y
         x_ = (x_ - tx)
@@ -207,7 +205,7 @@ def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0
 
 def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
                            marker='o', plot_point=True, interpolate=True,
-                           target=(1.0, 1.0), check_min_conf=None, **kwargs):
+                           target=(1.0, 1.0), target_recall=None, **kwargs):
     import matplotlib.pyplot as plt
     zipped = list(sorted(zip(x_list, y_list, conf_list)))
     x_list = [_[0] for _ in zipped]
@@ -235,10 +233,11 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     tup1 = general_identify_operating_point(conf_list, x_list, y_list, target=target)
     best_conf_list, best_x_list, best_y_list, best_length = tup1
 
-    if check_min_conf is not None:
-        tup2 = general_identify_operating_point(conf_list, x_list, y_list, target=target, min_conf=check_min_conf)
-    else:
-        tup2 = None
+    tup2 = None
+    if target_recall is not None:
+        for x, y, conf in sorted(zip(x_list, y_list, conf_list)):
+            if target_recall <= x:
+                tup2 = [conf], [x], [y], None
 
     if len(best_conf_list) > 1:
         print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
@@ -883,7 +882,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, min_conf=0.0, **kwargs
 
 @register_ibs_method
 def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9),
-                                            write_images=False, min_recall=0.9,
+                                            write_images=False, target_recall=0.9,
                                             plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -951,7 +950,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Hammerhead Shark ! 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
     ]
 
-    check_min_conf = 0.8
+    target_recall = 0.8
 
     # color_list = pt.distinct_colors(len(config_list), randomize=False)
 
@@ -972,19 +971,27 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     ret_list = [
         localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
                                              plot_point=plot_point,
-                                             check_min_conf=check_min_conf, **config)
+                                             target_recall=target_recall, **config)
         for color, config in zip(color_list, config_list)
     ]
 
     area_list = [ ret[0] for ret in ret_list ]
     tup2_list = [ ret[3] for ret in ret_list ]
 
-    best_index = None
-    best_length = np.inf
-    for index, tup2 in enumerate(tup2_list):
-        conf_list, x_list, y_list, length = tup2
-        if length < best_length:
-            best_index = index
+    best_index = 0
+    # best_index = None
+
+    if best_index is None:
+        best_y = 0.0
+        for index, tup2 in enumerate(tup2_list):
+            if tup2 is None:
+                continue
+
+            conf_list, x_list, y_list, length = tup2
+            y = max(y_list)
+            if best_y < y:
+                best_index = index
+                best_y = y
 
     if best_index is not None:
         best_conf_list, best_x_list, best_y_list, best_length = tup2_list[best_index]
@@ -1009,13 +1016,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
         values = localizer_confusion_matrix_algo_plot(ibs, min_overlap=min_overlap,
                                                       fig_=fig_, axes_=axes_,
-                                                      min_conf=check_min_conf,
+                                                      min_conf=target_recall,
                                                       **best_config)
         best_conf, (correct_rate, _) = values
 
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
-        args = (check_min_conf, best_label, best_area, best_conf, )
+        args = (target_recall, best_label, best_area, best_conf, )
         plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
 
     ######################################################################################
@@ -1024,8 +1031,9 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     gca_ = plt.gca()
     gca_.grid(False)
 
-    best_index = np.argmax(area_list)
-    # best_index = 0
+    best_index = 0
+    # best_index = np.argmax(area_list)
+
     best_config = config_list[best_index]
     best_label = config_list[best_index]['label']
     best_area = area_list[best_index]
@@ -1201,7 +1209,7 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
 #                                                             min_overlap=0.25,
 #                                                             figsize=(24, 7),
 #                                                             write_images=False,
-#                                                             min_recall=0.9,
+#                                                             target_recall=0.9,
 #                                                             plot_point=True,
 #                                                             masking=False,
 #                                                             **kwargs):
