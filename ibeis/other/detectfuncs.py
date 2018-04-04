@@ -172,18 +172,17 @@ def general_interpolate_precision_recall(conf_list, re_list, pr_list):
     return conf_list_, re_list_, pr_list_
 
 
-def general_identify_operating_point(conf_list, x_list, y_list, x_norm=None,
-                                     target=(1.0, 1.0)):
+def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0), min_conf=0.0):
     best_length = np.inf
     best_conf_list = []
     best_x_list = []
     best_y_list = []
     tx, ty = target
     for conf, x, y in zip(conf_list, x_list, y_list):
+        if conf < min_conf:
+            continue
         x_ = x
         y_ = y
-        if x_norm is not None:
-            x_ /= x_norm
         x_ = (x_ - tx)
         y_ = (y_ - ty)
         length = np.sqrt(x_ * x_ + y_ * y_)
@@ -203,12 +202,12 @@ def general_identify_operating_point(conf_list, x_list, y_list, x_norm=None,
             best_x_list.append(x)
             best_y_list.append(y)
 
-    return best_conf_list, best_x_list, best_y_list
+    return best_conf_list, best_x_list, best_y_list, best_length
 
 
 def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
-                           plot_point=True, interpolate=True, target=(1.0, 1.0),
-                           version=1, **kwargs):
+                           marker='o', plot_point=True, interpolate=True,
+                           target=(1.0, 1.0), check_min_conf=None, **kwargs):
     import matplotlib.pyplot as plt
     zipped = list(sorted(zip(x_list, y_list, conf_list)))
     x_list = [_[0] for _ in zipped]
@@ -231,26 +230,33 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                     break
         ap = sum(ap_list) / len(ap_list)
     else:
-        # y_list = y_list[::-1]
-        # x_list = x_list[::-1]
         ap = np.trapz(y_list, x=x_list)
-    tup = general_identify_operating_point(conf_list, x_list, y_list, target=target)
-    best_conf_list, best_x_list, best_y_list = tup
-    best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
-    # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
-    # label = '%s [OP = %s]' % (label, best_conf_list_, )
-    # label = '%s [OP = %0.02f]' % (label, best_conf, )
-    if interpolate:
-        label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
+
+    tup1 = general_identify_operating_point(conf_list, x_list, y_list, target=target)
+    best_conf_list, best_x_list, best_y_list, best_length = tup1
+
+    if check_min_conf is not None:
+        tup2 = general_identify_operating_point(conf_list, x_list, y_list, target=target, min_conf=check_min_conf)
     else:
-        label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
-    linestyle = '--' if kwargs.get('line_dotted', False) else '-'
-    plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
-    if plot_point:
-        plt.plot(best_x_list, best_y_list, color=color, marker='o')
+        tup2 = None
+
     if len(best_conf_list) > 1:
         print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
-    return ap, best_conf, tup
+    best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
+
+    if interpolate:
+        # label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
+        label = '%s [AP = %0.02f]' % (label, ap * 100.0)
+    else:
+        label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
+
+    linestyle = '--' if kwargs.get('line_dotted', False) else '-'
+    plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
+
+    if plot_point:
+        plt.plot(best_x_list, best_y_list, color=color, marker=marker)
+
+    return ap, best_conf, tup1, tup2
 
 
 def general_confusion_matrix_algo(label_correct_list, label_predict_list,
@@ -803,7 +809,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label=None, **kwargs):
+def localizer_confusion_matrix_algo_plot(ibs, label=None, min_conf=None, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -837,6 +843,9 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, **kwargs):
     best_accuracy = None
     best_args = None
     for conf, tp, fp in zip(conf_list, tp_list, fp_list):
+        if conf < min_conf:
+            continue
+
         fn = total - tp
         accuracy = tp / (tp + fp + fn)
 
@@ -890,12 +899,19 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     axes_.set_ylim([0.0, 1.01])
 
     config_list = [
-        # {'label': 'Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
-        # {'label': 'Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head', 'turtle_hawksbill+head'])},
-        # {'label': 'Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
-        # {'label': 'Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
-        # {'label': 'Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
-        # {'label': 'Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
+        {'label': 'Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        {'label': 'Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head', 'turtle_hawksbill+head'])},
+        {'label': 'Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
+        {'label': 'Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
+        {'label': 'Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
+        {'label': 'Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
+
+        # {'label': '! Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green', '!turtle_hawksbill'])},
+        # {'label': '! Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head', '!turtle_hawksbill+head'])},
+        # {'label': '! Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green'])},
+        # {'label': '! Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head'])},
+        # {'label': '! Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill'])},
+        # {'label': '! Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill+head'])},
 
         # {'label': 'Hawksbill NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
         # {'label': 'Hawksbill NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill'])},
@@ -921,19 +937,23 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Hawksbill Head NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill+head'])},
         # {'label': 'Hawksbill Head NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill+head'])},
 
-        {'label': 'Hammerhead Shark 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 00%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
-        {'label': 'Hammerhead Shark ! 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 00%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
+        # {'label': 'Hammerhead Shark ! 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
     ]
+
+    ut.embed()
+
+    check_min_conf = 0.8
 
     # color_list = pt.distinct_colors(len(config_list), randomize=False)
 
@@ -941,8 +961,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     # color_list += [(0.2, 0.2, 0.2)]
     # color_list += [(0.2, 0.2, 0.2)]
 
-    # color_list_ = []
-    color_list_ = [(0.2, 0.2, 0.2)]
+    color_list_ = []
+    # color_list_ = [(0.2, 0.2, 0.2)]
     # color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)]
 
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
@@ -953,24 +973,65 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
     ret_list = [
         localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
-                                             plot_point=plot_point, **config)
+                                             plot_point=plot_point,
+                                             check_min_conf=check_min_conf, **config)
         for color, config in zip(color_list, config_list)
     ]
+
+    area_list = [ ret[0] for ret in ret_list ]
+    tup2_list = [ ret[3] for ret in ret_list ]
+
+    best_index = None
+    best_length = np.inf
+    for index, tup2 in enumerate(tup2_list):
+        conf_list, x_list, y_list, length = tup2
+        if length < best_length:
+            best_index = index
+
+    if best_index is not None:
+        best_conf_list, best_x_list, best_y_list, best_length = tup2_list[best_index]
+        color = 'xkcd:gold'
+        marker = 'D'
+        plt.plot(best_x_list, best_y_list, color=color, marker=marker)
+
     plt.title('Precision-Recall Curves', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    area_list = [ ret[0] for ret in ret_list ]
-    index = np.argmax(area_list)
-    # index = 0
-    best_config = config_list[index]
-    best_label = config_list[index]['label']
-    best_area = area_list[index]
+    ######################################################################################
+    if best_index is not None:
+        axes_ = plt.subplot(133)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
 
+        best_config = config_list[best_index]
+        best_label = config_list[best_index]['label']
+        best_area = area_list[best_index]
+
+        values = localizer_confusion_matrix_algo_plot(ibs, min_overlap=min_overlap,
+                                                      fig_=fig_, axes_=axes_,
+                                                      min_conf=check_min_conf,
+                                                      **best_config)
+        best_conf, (correct_rate, _) = values
+
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        args = (check_min_conf, best_label, best_area, best_conf, )
+        plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
+
+    ######################################################################################
     axes_ = plt.subplot(132)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
+
+    best_index = np.argmax(area_list)
+    # best_index = 0
+    best_config = config_list[best_index]
+    best_label = config_list[best_index]['label']
+    best_area = area_list[best_index]
+
     values = localizer_confusion_matrix_algo_plot(ibs, min_overlap=min_overlap,
                                                   fig_=fig_, axes_=axes_,
                                                   **best_config)
@@ -981,6 +1042,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     args = (best_label, best_area, best_conf, )
     plt.title('Confusion Matrix\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
 
+    ######################################################################################
     fig_filename = 'localizer-precision-recall-%0.2f.png' % (min_overlap, )
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
