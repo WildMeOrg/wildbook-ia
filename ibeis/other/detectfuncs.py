@@ -672,6 +672,9 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
 
     species_set = kwargs.get('species_set', None)
     if species_set is not None:
+        # filter out any prefix ! to denote interest only
+        species_set_ = set([ species.lstrip('!') for species in species_set ])
+
         dict_list = [
             (gt_dict, 'Ground-Truth'),
             (pred_dict, 'Predictions'),
@@ -681,7 +684,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
                 dict_[image_uuid] = [
                     val
                     for val in dict_[image_uuid]
-                    if val.get('class', None) in species_set
+                    if val.get('class', None) in species_set_
                 ]
 
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
