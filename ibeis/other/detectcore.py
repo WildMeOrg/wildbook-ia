@@ -412,32 +412,6 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=5, randomize=Tr
 
 
 @register_ibs_method
-def visuzlize_all_detections(ibs):
-    test_gid_list = ibs.get_valid_gids()
-    test_image_list = ibs.get_image_imgdata(test_gid_list)
-    test_uuid_list = ibs.get_image_uuids(test_gid_list)
-
-    write_path = abspath(expanduser(join('~', 'Desktop')))
-    # gt_dict = detect_parse_gt(ibs_, test_gid_list=test_gid_list)
-    for index, (test_gid, test_uuid, test_image) in enumerate(zip(test_gid_list, test_uuid_list, test_image_list)):
-        height_old, width_old, channels_old = test_image.shape
-        test_image = _resize(test_image, t_width=600)
-        height_, width_, channels_ = test_image.shape
-        rescale = width_ / width_old
-        aid_list = ibs.get_image_aids(test_gid)
-        annot_list = ibs.get_annot_bboxes(aid_list)
-        for xtl, ytl, width, height in annot_list:
-            xbr = int((xtl + width) * rescale)
-            ybr = int((ytl + height) * rescale)
-            xtl = int(xtl * rescale)
-            ytl = int(ytl * rescale)
-            cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
-        write_filepath = join(write_path, '%d.jpg' % (index, ))
-        print(write_filepath)
-        cv2.imwrite(write_filepath, test_image)
-
-
-@register_ibs_method
 def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
                                                 species_list=['zebra'], scheme=2,
                                                 output_path=None, values=None,
@@ -649,8 +623,17 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
 
 
 @register_ibs_method
-def visualize_localizations(ibs, config, gid_list=None, randomize=False,
-                            num_images=10, min_conf=0.5, output_path=None):
+def visualize_ground_truth(ibs, config, **kwargs):
+    visualize_bounding_boxes(ibs, config, 'ground_truth', **kwargs)
+
+
+@register_ibs_method
+def visualize_predictions(ibs, config, **kwargs):
+    visualize_bounding_boxes(ibs, config, 'prediction', **kwargs)
+
+
+def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=False,
+                             num_images=10, min_conf=0.5, output_path=None):
     if gid_list is None:
         gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **config)
 
@@ -663,11 +646,17 @@ def visualize_localizations(ibs, config, gid_list=None, randomize=False,
 
     uuid_list = ibs.get_image_uuids(gid_list)
 
-    print('\tGather Predictions')
-    pred_dict = localizer_parse_pred(ibs, test_gid_list=gid_list, **config)
+    assert version is not None
+    version = version.lower()
+    if version == 'prediction':
+        print('\tGather Predictions')
+        val_dict = localizer_parse_pred(ibs, test_gid_list=gid_list, **config)
+    elif version == 'ground_truth':
+        print('\tGather Ground-Truth')
+        val_dict = general_parse_gt(ibs, test_gid_list=gid_list, **config)
 
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'Desktop', 'visualize')))
+        output_path = abspath(expanduser(join('~', 'Desktop', 'bboxes')))
         ut.ensuredir(output_path)
 
     for gid, image_uuid in zip(gid_list, uuid_list):
@@ -675,16 +664,17 @@ def visualize_localizations(ibs, config, gid_list=None, randomize=False,
         image = _resize(image, t_width=500)
         h, w, c = image.shape
 
-        pred_list = pred_dict[image_uuid]
+        val_list = val_dict[image_uuid]
 
-        for pred in pred_list:
-            xbr = int(np.around(pred['xbr'] * w))
-            ybr = int(np.around(pred['ybr'] * h))
-            xtl = int(np.around(pred['xtl'] * w))
-            ytl = int(np.around(pred['ytl'] * h))
+        for val in val_list:
+            xbr = int(np.around(val['xbr'] * w))
+            ybr = int(np.around(val['ybr'] * h))
+            xtl = int(np.around(val['xtl'] * w))
+            ytl = int(np.around(val['ytl'] * h))
             cv2.rectangle(image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
 
-        write_filepath = join(output_path, 'detections_%d.png' % (gid, ))
+        write_filename = 'bboxes_%d_%s.png' % (gid, version, )
+        write_filepath = join(output_path, write_filename)
         print(write_filepath)
         cv2.imwrite(write_filepath, image)
 
