@@ -1719,19 +1719,15 @@ def compute_detections(depc, gid_list, config=None):
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
-    from ibeis.web.apis_detect import USE_LOCALIZATIONS
     print('[ibs] Preprocess Detections')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
 
-    USE_LOCALIZATIONS = False  # NOQA
     USE_CLASSIFIER = False
 
-    if USE_LOCALIZATIONS:
-        gid_list_ = list(gid_list)
-    elif USE_CLASSIFIER:
+    if USE_CLASSIFIER:
         classifier_config = {
             'classifier_weight_filepath': config['classifier_weight_filepath'],
         }
@@ -1771,21 +1767,14 @@ def compute_detections(depc, gid_list, config=None):
     thetas_list  = depc.get_property('localizations', gid_list_, 'thetas', config=localizer_config)
     confses_list = depc.get_property('localizations', gid_list_, 'confs',  config=localizer_config)
 
-    if USE_LOCALIZATIONS:
-        specieses_list     = depc.get_property('localizations', gid_list_, 'classes',   config=localizer_config)
-        viewpoints_list    = [
-            [-1] * len(bbox_list)
-            for bbox_list in bboxes_list
-        ]
-        scores_list        = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
-    else:
-        labeler_config = {
-            'labeler_weight_filepath' : config['labeler_weight_filepath'],
-        }
-        # depc.delete_property('localizations_labeler', gid_list_, config=labeler_config)
-        specieses_list     = depc.get_property('localizations_labeler', gid_list_, 'species',   config=labeler_config)
-        viewpoints_list    = depc.get_property('localizations_labeler', gid_list_, 'viewpoint', config=labeler_config)
-        scores_list        = depc.get_property('localizations_labeler', gid_list_, 'score',     config=labeler_config)
+    # Get the corrected species and viewpoints
+    labeler_config = {
+        'labeler_weight_filepath' : config['labeler_weight_filepath'],
+    }
+    # depc.delete_property('localizations_labeler', gid_list_, config=labeler_config)
+    specieses_list     = depc.get_property('localizations_labeler', gid_list_, 'species',   config=labeler_config)
+    viewpoints_list    = depc.get_property('localizations_labeler', gid_list_, 'viewpoint', config=labeler_config)
+    scores_list        = depc.get_property('localizations_labeler', gid_list_, 'score',     config=labeler_config)
 
     # Collect the detections, filtering by the localization confidence
     empty_list = [0.0, np.array([]), np.array([]), np.array([]), np.array([]), np.array([])]

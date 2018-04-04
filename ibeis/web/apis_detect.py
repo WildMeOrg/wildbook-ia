@@ -12,7 +12,7 @@ from ibeis.web import appfuncs as appf
 from ibeis.scripts import labelShark
 
 
-USE_LOCALIZATIONS = False
+USE_LOCALIZATIONS = True
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
