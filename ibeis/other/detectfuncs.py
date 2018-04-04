@@ -808,7 +808,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label=None, min_conf=0.0, **kwargs):
+def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -841,17 +841,21 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, min_conf=0.0, **kwargs
     best_conf = None
     best_accuracy = None
     best_args = None
-    for conf, tp, fp in zip(conf_list, tp_list, fp_list):
-        if conf < min_conf:
-            continue
-
+    for conf, tp, fp in sorted(zip(conf_list, tp_list, fp_list)):
         fn = total - tp
         accuracy = tp / (tp + fp + fn)
 
-        if best_accuracy is None or accuracy > best_accuracy:
-            best_conf = conf
-            best_accuracy = accuracy
-            best_args = (tp, fp, fn)
+        if target_conf is None:
+            if best_accuracy is None or accuracy > best_accuracy:
+                best_conf = conf
+                best_accuracy = accuracy
+                best_args = (tp, fp, fn)
+        else:
+            if target_conf <= conf:
+                best_conf = conf
+                best_accuracy = accuracy
+                best_args = (tp, fp, fn)
+                break
 
     assert None not in [best_conf, best_accuracy, best_args]
 
@@ -1010,13 +1014,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         gca_ = plt.gca()
         gca_.grid(False)
 
+        target_conf = best_conf_list[0]
         best_config = config_list[best_index]
         best_label = config_list[best_index]['label']
         best_area = area_list[best_index]
 
         values = localizer_confusion_matrix_algo_plot(ibs, min_overlap=min_overlap,
                                                       fig_=fig_, axes_=axes_,
-                                                      min_conf=target_recall,
+                                                      target_conf=target_conf,
                                                       **best_config)
         best_conf, (correct_rate, _) = values
 
