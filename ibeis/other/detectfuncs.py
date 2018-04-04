@@ -685,8 +685,6 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
                     if val.get('class', None) in species_set_
                 ]
 
-    ut.embed()
-
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
 
@@ -725,8 +723,6 @@ def localizer_assign(gt_list, pred, min_overlap):
 
 def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
     total = 0.0
-
-    ut.embed()
 
     interest_species_set = set([])
     species_set = kwargs.get('species_set', None)
@@ -925,18 +921,18 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Hawksbill Head NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill+head'])},
         # {'label': 'Hawksbill Head NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill+head'])},
 
-        # {'label': 'Hammerhead Shark 00%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['shark_hammerhead'])},
         {'label': 'Hammerhead Shark 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 00%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
         {'label': 'Hammerhead Shark ! 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['shark_hammerhead'])},
-        # {'label': 'Hammerhead Shark 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
+        {'label': 'Hammerhead Shark ! 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
     ]
 
     # color_list = pt.distinct_colors(len(config_list), randomize=False)
@@ -945,8 +941,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     # color_list += [(0.2, 0.2, 0.2)]
     # color_list += [(0.2, 0.2, 0.2)]
 
-    color_list_ = []
-    # color_list_ = [(0.2, 0.2, 0.2)]
+    # color_list_ = []
+    color_list_ = [(0.2, 0.2, 0.2)]
     # color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)]
 
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
