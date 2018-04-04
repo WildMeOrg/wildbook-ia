@@ -739,6 +739,14 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
         tp_list.append(tp_counter)
         fp_list.append(fp_counter)
 
+    print('\t tps  [:10]     : %r' % (tp_list[:10], ))
+    print('\t fps  [:10]     : %r' % (fp_list[:10], ))
+    print('\t con  [:10]     : %r' % (conf_list[:10], ))
+    print('\t tps [-10:]     : %r' % (tp_list[-10:], ))
+    print('\t fps [-10:]     : %r' % (fp_list[-10:], ))
+    print('\t con [-10:]     : %r' % (conf_list[-10:], ))
+    print('\t num_annotations: %r' % (total, ))
+
     return conf_list, tp_list, fp_list, total
 
 
