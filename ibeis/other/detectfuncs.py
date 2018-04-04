@@ -238,6 +238,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
         for x, y, conf in sorted(zip(x_list, y_list, conf_list)):
             if target_recall <= x:
                 tup2 = [conf], [x], [y], None
+                break
 
     if len(best_conf_list) > 1:
         print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
@@ -992,7 +993,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
                 continue
 
             conf_list, x_list, y_list, length = tup2
-            y = max(y_list)
+            y = y_list[0]
             if best_y < y:
                 best_index = index
                 best_y = y
