@@ -490,9 +490,7 @@ def general_parse_gt(ibs, test_gid_list=None, include_parts=True, **kwargs):
                     xbr = int(max(x_points))
                     ytl = int(min(y_points))
                     ybr = int(max(y_points))
-                    width = xbr - xtl
-                    height = ybr - ytl
-                    bbox = (xtl, ytl, width, height)
+                    bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
 
                     tag = ibs.get_part_tag_text(part_rowid)
 
@@ -906,11 +904,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     axes_.set_ylim([0.0, 1.01])
 
     config_list = [
+        {'label': 'ALL',                    'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_green+head', 'turtle_hawksbill', 'turtle_hawksbill+head'])},
         {'label': 'turtle_green',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
         {'label': 'turtle_green+head',      'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
         {'label': 'turtle_hawksbill',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
         {'label': 'turtle_hawksbill+head',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
-        {'label': 'ALL',                    'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_green+head', 'turtle_hawksbill', 'turtle_hawksbill+head'])},
 
         # {'label': 'Hawksbill 00',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
         # {'label': 'Hawksbill 10',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill'])},
