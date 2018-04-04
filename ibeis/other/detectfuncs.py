@@ -809,7 +809,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label=None, min_conf=None, **kwargs):
+def localizer_confusion_matrix_algo_plot(ibs, label=None, min_conf=0.0, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -950,8 +950,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
         # {'label': 'Hammerhead Shark ! 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
         # {'label': 'Hammerhead Shark ! 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'sensitivity': 0.00, 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
     ]
-
-    ut.embed()
 
     check_min_conf = 0.8
 
