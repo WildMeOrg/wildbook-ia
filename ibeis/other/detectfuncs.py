@@ -904,19 +904,19 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
     axes_.set_ylim([0.0, 1.01])
 
     config_list = [
-        {'label': 'Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
-        {'label': 'Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head', 'turtle_hawksbill+head'])},
-        {'label': 'Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
-        {'label': 'Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
-        {'label': 'Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
-        {'label': 'Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
+        # {'label': 'Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+        # {'label': 'Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head', 'turtle_hawksbill+head'])},
+        # {'label': 'Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
+        # {'label': 'Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
+        # {'label': 'Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
+        # {'label': 'Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
 
-        # {'label': '! Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green', '!turtle_hawksbill'])},
-        # {'label': '! Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head', '!turtle_hawksbill+head'])},
-        # {'label': '! Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green'])},
-        # {'label': '! Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head'])},
-        # {'label': '! Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill'])},
-        # {'label': '! Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill+head'])},
+        {'label': '! Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green', '!turtle_hawksbill'])},
+        {'label': '! Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head', '!turtle_hawksbill+head'])},
+        {'label': '! Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green'])},
+        {'label': '! Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head'])},
+        {'label': '! Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill'])},
+        {'label': '! Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill+head'])},
 
         # {'label': 'Hawksbill NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
         # {'label': 'Hawksbill NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill'])},
@@ -983,8 +983,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(30, 9
 
     area_list = [ ret[0] for ret in ret_list ]
     tup2_list = [ ret[3] for ret in ret_list ]
-
-    ut.embed()
 
     best_index = 0
     # best_index = None
