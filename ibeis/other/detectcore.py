@@ -359,7 +359,7 @@ def visualize_distributions(distro_dict, threshold=10):
 
 
 @register_ibs_method
-def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=5, randomize=True,
+def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=False,
                                  write=True, write_path=None):
     r"""Visualize the PASCAL VOC dataset.
 

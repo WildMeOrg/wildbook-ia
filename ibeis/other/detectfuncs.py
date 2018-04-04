@@ -447,6 +447,24 @@ def general_parse_gt(ibs, test_gid_list=None, include_parts=True, **kwargs):
         gt_list = []
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
+            theta = ibs.get_annot_thetas(aid)
+
+            # Transformation matrix
+            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+            # Get verticies of the annotation polygon
+            verts = vt.verts_from_bbox(bbox, close=True)
+            # Rotate and transform vertices
+            xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+            trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            x_points = [pt[0] for pt in new_verts]
+            y_points = [pt[1] for pt in new_verts]
+            xtl = int(min(x_points))
+            xbr = int(max(x_points))
+            ytl = int(min(y_points))
+            ybr = int(max(y_points))
+            bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
             species = ibs.get_annot_species_texts(aid)
             viewpoint = ibs.get_annot_viewpoints(aid)
             interest = ibs.get_annot_interest(aid)
