@@ -717,7 +717,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap, **kwargs):
 
         # Match predictions
         pred_list = sorted(pred_list, key=lambda pred: pred['confidence'], reverse=True)
-        for pred in pred_dict:
+        for pred in pred_list:
             flag = False
             match_index = localizer_assign(gt_list, pred, min_overlap)
             if match_index is not None:
