@@ -1029,17 +1029,26 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
 
     best_index = None if BEST_INDEX is None else BEST_INDEX  # Match formatting of below, this is a silly conditional
 
-    if best_index is None:
-        best_y = 0.0
-        for index, tup2 in enumerate(tup2_list):
-            if tup2 is None:
-                continue
+    best_y = 0.0
+    best_index_ = None
+    valid_best_index = []
+    for index, tup2 in enumerate(tup2_list):
+        if tup2 is None:
+            continue
 
-            conf_list, x_list, y_list, length = tup2
-            y = y_list[0]
-            if best_y < y:
-                best_index = index
-                best_y = y
+        conf_list, x_list, y_list, length = tup2
+        y = y_list[0]
+        if best_y < y:
+            valid_best_index.append(index)
+            best_index_ = index
+            best_y = y
+
+    # If user defined best_index is invalid, don't use it
+    if best_index is None:
+        best_index = best_index_
+    else:
+        if best_index not in valid_best_index:
+            best_index = None
 
     if best_index is not None:
         best_conf_list, best_x_list, best_y_list, best_length = tup2_list[best_index]
