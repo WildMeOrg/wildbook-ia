@@ -236,7 +236,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     tup2 = None
     if target_recall is not None:
         for x, y, conf in sorted(zip(x_list, y_list, conf_list)):
-            if target_recall <= x and conf != np.nan:
+            if target_recall <= x and not np.isnan(conf):
                 tup2 = [conf], [x], [y], None
                 break
 
