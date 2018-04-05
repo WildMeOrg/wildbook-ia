@@ -67,7 +67,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     computer_name = ut.get_computer_name()
 
-    princeton = computer_name in ['maasai', 'quagga']
+    princeton = computer_name in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']
     if princeton:
         hostname = 'quagga.princeton.edu'
         wb_target = 'wildbook'
