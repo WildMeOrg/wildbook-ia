@@ -55,7 +55,7 @@ class Ingestable(object):
     """
     def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
                  adjust_percent=0.0, postingest_func=None, zipfile=None,
-                 species=None, images_as_annots=True):
+                 species=None, images_as_annots=False):
         self.dbname          = dbname
         self.img_dir         = img_dir
         self.ingest_type     = ingest_type
@@ -104,7 +104,7 @@ class Ingestable2(object):
         class IngestConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo(
-                    'images_as_annots', True),
+                    'images_as_annots', False),
                 ut.ParamInfo(
                     'ingest_type', 'unknown', valid_values=['unknown',
                                                             'named_folders',
