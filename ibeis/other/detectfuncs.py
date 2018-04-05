@@ -860,7 +860,11 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None, **kw
                 best_args = (tp, fp, fn)
                 break
 
-    assert None not in [best_conf, best_accuracy, best_args]
+    try:
+        assert None not in [best_conf, best_accuracy, best_args]
+    except AssertionError:
+        ut.embed()
+        return np.nan, (np.nan, None)
 
     print('Processing Confusion Matrix for: %r (Conf = %0.02f, Accuracy = %0.02f)' % (label, best_conf, best_accuracy, ))
     tp, fp, fn = best_args
