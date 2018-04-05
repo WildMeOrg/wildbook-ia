@@ -417,10 +417,16 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
     #qdlg = QtWidgets.QFileDialog()
     qdlg = newFileDialog(directory, other_sidebar_dpaths=[], use_sidebar_cwd=True)
+    kwargs = {
+        'caption'  : caption,
+        'directory': directory,
+        'filter'   : name_filter,
+    }
     if single_file:
-        qfile_list = [qdlg.getOpenFileName(caption=caption, directory=directory, filter=name_filter)]
+        response = qdlg.getOpenFileName(**kwargs)
     else:
-        qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
+        response = qdlg.getOpenFileNames(**kwargs)
+    qfile_list = response[0]
     file_list = list(map(str, qfile_list))
     print('[gt] Selected %d files' % len(file_list))
     _guitool_cache_write(SELDIR_CACHEID, directory)
