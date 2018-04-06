@@ -2143,10 +2143,8 @@ def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
     import ibeis
     wildbook_existing_name_list = []
     if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
-        try:
-            wildbook_existing_name_list = ibs.wildbook_get_existing_names()
-        except IOError:
-            print('Wildbook signals are turned off')
+        wildbook_existing_name_list = ibs.wildbook_get_existing_names()
+        if wildbook_existing_name_list is None:
             wildbook_existing_name_list = []
     else:
         wildbook_existing_name_list = []
