@@ -675,7 +675,7 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
     }
     if model_tag is not None:
         config['weight_filepath'] = model_tag
-    config_str_list = ['weight_filepath']
+    config_str_list = ['weight_filepath'] + list(config.keys())
     for config_str in config_str_list:
         if config_str in kwargs:
             config[config_str] = kwargs[config_str]

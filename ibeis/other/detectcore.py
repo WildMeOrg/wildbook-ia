@@ -392,7 +392,7 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
     dataset = IBEIS_Data(dataset_path)
     dataset.print_distribution()
 
-    image_list = dataset.images
+    image_list = sorted(dataset.images)
 
     num_examples = min(num_examples, len(image_list))
 
@@ -633,7 +633,7 @@ def visualize_predictions(ibs, config, **kwargs):
 
 
 def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=False,
-                             num_images=10, min_conf=0.5, output_path=None):
+                             num_images=10, output_path=None):
     if gid_list is None:
         gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **config)
 
