@@ -68,7 +68,9 @@ if ut.get_computer_name() == 'hyrule':
 @register_ibs_method
 def get_wildbook_base_url(ibs, wb_target=None):
     if DISABLE_WILDBOOK_SIGNAL:
-        raise IOError('Wildbook signals are turned off via the command line')
+        message = 'Wildbook signals are turned off via the command line'
+        print(message)
+        raise IOError(message)
 
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     computer_name = ut.get_computer_name()
