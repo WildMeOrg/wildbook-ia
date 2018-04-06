@@ -667,6 +667,7 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
+    ut.embed()
     config = {
         'algo'        : 'lightnet',
         'sensitivity' : 0.75,
