@@ -546,9 +546,8 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
             depc.delete_property('localizations', gid_list, config=config)
         results_list = depc.get_property('localizations', gid_list, None, config=config)
         if commit:
-            labeler_config = {
-                'labeler_weight_filepath' : 'candidacy',
-            }
+            labeler_config = config.copy()
+            labeler_config['labeler_weight_filepath'] = 'candidacy'
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
             aids_list = ibs.commit_localization_results(gid_list, results_list, viewpoints_list=viewpoints_list, note='cnnyolodetect')
             return aids_list
@@ -687,9 +686,8 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
         depc.delete_property('localizations', gid_list, config=config)
     results_list = depc.get_property('localizations', gid_list, None, config=config)
     if commit:
-        labeler_config = {
-            'labeler_weight_filepath' : 'candidacy',
-        }
+        labeler_config = config.copy()
+        labeler_config['labeler_weight_filepath'] = 'candidacy'
         viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
         aids_list = ibs.commit_localization_results(gid_list, results_list, viewpoints_list=viewpoints_list, note='cnnlightnetdetect')
         return aids_list
@@ -698,7 +696,6 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
 @register_ibs_method
 def commit_localization_results(ibs, gid_list, results_list, viewpoints_list=None, note=None,
                                 update_json_log=True):
-    ut.embed()
     if viewpoints_list is None:
         viewpoints_list = [None] * len(gid_list)
 
