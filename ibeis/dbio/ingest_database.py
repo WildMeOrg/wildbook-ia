@@ -265,8 +265,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>>     ibsfuncs.delete_ibeis_database(dbdir)
         >>> ibs = IBEISControl.request_IBEISController(dbdir)
         >>> localize = False
-        >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
-        >>> result = ('aid_list = %s' % (str(aid_list),))
+        >>> gid_list = ingest_rawdata(ibs, ingestable, localize)
+        >>> result = ('gid_list = %s' % (str(gid_list),))
         >>> print(result)
     """
     print('[ingest_rawdata] Ingestable' + str(ingestable))
