@@ -437,12 +437,12 @@ def start_detect_image_test_yolo(ibs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/engine/detect/cnn/lightnet/', methods=['POST'])
+@register_api('/api/engine/detect/cnn/lightnet/', methods=['POST', 'GET'])
 def start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
     """
     REST:
-        Method: GET
-        URL: /api/engine/detect/cnn/lightnet/
+        Method: GET/api/engine/detect/cnn/lightnet/
+        URL:
 
     Args:
         image_uuid_list (list) : list of image uuids to detect on.
