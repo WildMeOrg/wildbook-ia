@@ -1034,6 +1034,8 @@ class MainWindowBackend(GUIBACK_BASE):
                 # TODO: probably need to remove verboseity as well
                 if back.wb_server_running:
                     back.ibs.wildbook_signal_annot_name_changes()
+            except IOError:
+                print('Wildbook signals are turned off')
             except Exception as ex:
                 ut.printex(ex, 'Wildbook call did not work. Maybe not connected?')
             back.front.update_tables()
@@ -2775,7 +2777,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
                 # Set imageset to be processed
                 back.ibs.set_imageset_processed_flags([imgsetid], [1])
-                back.ibs.wildbook_signal_imgsetid_list([imgsetid])
+                try:
+                    back.ibs.wildbook_signal_imgsetid_list([imgsetid])
+                except IOError:
+                    print('Wildbook signals are turned off')
                 back.front.imageset_tabwgt._close_tab_with_imgsetid(imgsetid)
             if refresh:
                 back.front.update_tables([gh.IMAGESET_TABLE])
@@ -2785,7 +2790,10 @@ class MainWindowBackend(GUIBACK_BASE):
         processed_set = set(back.ibs.get_valid_imgsetids(processed=True))
         shipped_set = set(back.ibs.get_valid_imgsetids(shipped=True))
         imgsetid_list = list(processed_set - shipped_set)
-        back.ibs.wildbook_signal_imgsetid_list(imgsetid_list)
+        try:
+            back.ibs.wildbook_signal_imgsetid_list(imgsetid_list)
+        except IOError:
+            print('Wildbook signals are turned off')
 
     #--------------------------------------------------------------------------
     # Option menu slots
@@ -3729,7 +3737,10 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def force_wildbook_namechange(back):
-        back.ibs.wildbook_signal_annot_name_changes()
+        try:
+            back.ibs.wildbook_signal_annot_name_changes()
+        except IOError:
+            print('Wildbook signals are turned off')
 
     @slot_()
     def set_workdir(back):

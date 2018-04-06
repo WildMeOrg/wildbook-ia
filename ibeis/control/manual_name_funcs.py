@@ -1179,13 +1179,16 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
     if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
         print('[ibs] notifying WildBook of name text changes')
-        status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
-        if assert_wildbook:
-            assert status_list, 'The request to WB failed'
-            failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
-            args = (len(failed_nid_list), failed_nid_list, )
-            msg = 'Failed to update %d WB names, nid_list = %r' % args
-            assert len(failed_nid_list) == 0, msg
+        try:
+            status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
+            if assert_wildbook:
+                assert status_list, 'The request to WB failed'
+                failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
+                args = (len(failed_nid_list), failed_nid_list, )
+                msg = 'Failed to update %d WB names, nid_list = %r' % args
+                assert len(failed_nid_list) == 0, msg
+        except IOError:
+            print('Wildbook signals are turned off')
     ibsfuncs.assert_valid_names(name_text_list)
     old_name_text_list = ibs.get_name_texts(name_rowid_list)
     #sanitize_name_texts(ibs, name_text_list):

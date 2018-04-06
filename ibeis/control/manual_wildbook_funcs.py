@@ -49,6 +49,9 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
+DISABLE_WILDBOOK_SIGNAL = ut.get_argflag('--no-wb-signal')
+
+
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
@@ -64,6 +67,9 @@ if ut.get_computer_name() == 'hyrule':
 
 @register_ibs_method
 def get_wildbook_base_url(ibs, wb_target=None):
+    if DISABLE_WILDBOOK_SIGNAL:
+        raise IOError('Wildbook signals are turned off via the command line')
+
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     computer_name = ut.get_computer_name()
 
