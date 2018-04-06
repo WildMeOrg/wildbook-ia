@@ -249,11 +249,14 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>> ingest_type = ut.get_argval('--ingest-type', type_=str, default='unknown')
         >>> fmtkey = ut.get_argval('--fmtkey', type_=str, default=None)
         >>> species = ut.get_argval('--species', type_=str, default=None)
+        >>> images_as_annots = ut.get_argval('--images-as-annots', type_=bool, default=None)
+        >>> if images_as_annots is None:
+        >>>     images_as_annots = ingest_type != 'unknown'
         >>> assert img_dir is not None, 'specify img dir'
         >>> assert dbname is not None, 'specify dbname'
         >>> ingestable = Ingestable(
         >>>     dbname, img_dir=img_dir, ingest_type=ingest_type,
-        >>>     fmtkey=fmtkey, species=species, images_as_annots=ingest_type != 'unknown',
+        >>>     fmtkey=fmtkey, species=species, images_as_annots=images_as_annots,
         >>>     adjust_percent=0.00)
         >>> from ibeis.control import IBEISControl
         >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True)
