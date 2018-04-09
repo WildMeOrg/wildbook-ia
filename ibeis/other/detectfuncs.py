@@ -101,55 +101,55 @@ def simple_code(label):
 ##########################################################################################
 
 
-# def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
-#     def errors(zipped, conf):
-#         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
-#         for index, (label, confidence) in enumerate(zipped):
-#             if label == category:
-#                 if conf <= confidence:
-#                     tp += 1
-#                 else:
-#                     fn += 1
-#             else:
-#                 if conf <= confidence:
-#                     fp += 1
-#                 else:
-#                     tn += 1
-#         return tp, tn, fp, fn
+def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
+    def errors(zipped, conf):
+        tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
+        for index, (label, confidence) in enumerate(zipped):
+            if label == category:
+                if conf <= confidence:
+                    tp += 1
+                else:
+                    fn += 1
+            else:
+                if conf <= confidence:
+                    fp += 1
+                else:
+                    tn += 1
+        return tp, tn, fp, fn
 
-#     zipped = list(zip(label_list, confidence_list))
-#     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-#     conf_dict = {}
-#     for conf in conf_list:
-#         conf_dict[conf] = errors(zipped, conf)
+    zipped = list(zip(label_list, confidence_list))
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    conf_dict = {}
+    for conf in conf_list:
+        conf_dict[conf] = errors(zipped, conf)
 
-#     conf_list_ = [-1.0, -1.0]
-#     pr_list = [1.0, 0.0]
-#     re_list = [0.0, 1.0]
-#     tpr_list = [0.0, 1.0]
-#     fpr_list = [0.0, 1.0]
-#     # conf_list_ = []
-#     # pr_list = []
-#     # re_list = []
-#     # tpr_list = []
-#     # fpr_list = []
-#     for conf in sorted(conf_dict.keys(), reverse=True):
-#         error_list = conf_dict[conf]
-#         tp, tn, fp, fn = error_list
-#         try:
-#             pr = tp / (tp + fp)
-#             re = tp / (tp + fn)
-#             tpr = tp / (tp + fn)
-#             fpr = fp / (fp + tn)
-#             conf_list_.append(conf)
-#             pr_list.append(pr)
-#             re_list.append(re)
-#             tpr_list.append(tpr)
-#             fpr_list.append(fpr)
-#         except ZeroDivisionError:
-#             print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
+    tpr_list = [0.0, 1.0]
+    fpr_list = [0.0, 1.0]
+    # conf_list_ = []
+    # pr_list = []
+    # re_list = []
+    # tpr_list = []
+    # fpr_list = []
+    for conf in sorted(conf_dict.keys(), reverse=True):
+        error_list = conf_dict[conf]
+        tp, tn, fp, fn = error_list
+        try:
+            pr = tp / (tp + fp)
+            re = tp / (tp + fn)
+            tpr = tp / (tp + fn)
+            fpr = fp / (fp + tn)
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
+        except ZeroDivisionError:
+            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
-#     return conf_list_, pr_list, re_list, tpr_list, fpr_list
+    return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
 
 def general_interpolate_precision_recall(conf_list, re_list, pr_list):
@@ -1320,221 +1320,222 @@ def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
 #         ibs.localizer_classifications_confusion_matrix_algo_display(conf, **kwargs)
 
 
-# def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
-#     depc = ibs.depc_image
-#     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set_ = list(test_gid_set_)
+def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+    depc = ibs.depc_image
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set_ = list(test_gid_set_)
 
-#     positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
-#     negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
+    positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
+    negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
 
-#     test_gid_set = []
-#     label_list = []
-#     for gid in test_gid_set_:
-#         if gid in positive_gid_set:
-#             label = 'positive'
-#         elif gid in negative_gid_set:
-#             label = 'negative'
-#         else:
-#             # label = 'unknown'
-#             continue
-#         test_gid_set.append(gid)
-#         label_list.append(label)
+    test_gid_set = []
+    label_list = []
+    for gid in test_gid_set_:
+        if gid in positive_gid_set:
+            label = 'positive'
+        elif gid in negative_gid_set:
+            label = 'negative'
+        else:
+            # label = 'unknown'
+            continue
+        test_gid_set.append(gid)
+        label_list.append(label)
 
-#     prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
-#     confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
-#     confidence_list = [
-#         confidence if prediction == 'positive' else 1.0 - confidence
-#         for prediction, confidence in zip(prediction_list, confidence_list)
-#     ]
-#     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
-
-
-# def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     print('Processing Precision-Recall for: %r' % (label, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
-# def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     print('Processing ROC for: %r' % (label, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-#                                   target=(0.0, 1.0), **kwargs)
+def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-# def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
-#     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
-#     depc = ibs.depc_image
-#     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set_ = list(test_gid_set_)
-
-#     positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
-#     negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
-
-#     test_gid_set = []
-#     label_list = []
-#     for gid in test_gid_set_:
-#         if gid in positive_gid_set:
-#             label = 'positive'
-#         elif gid in negative_gid_set:
-#             label = 'negative'
-#         else:
-#             # label = 'unknown'
-#             continue
-#         test_gid_set.append(gid)
-#         label_list.append(label)
-
-#     prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
-#     confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
-#     confidence_list = [
-#         confidence if prediction == 'positive' else 1.0 - confidence
-#         for prediction, confidence  in zip(prediction_list, confidence_list)
-#     ]
-#     prediction_list = [
-#         'positive' if confidence >= conf else 'negative'
-#         for confidence in confidence_list
-#     ]
-
-#     if output_cases:
-#         output_path = 'cameratrap-confusion-incorrect'
-#         output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
-#         positive_path = join(output_path, 'positive')
-#         negative_path = join(output_path, 'negative')
-#         ut.ensuredir(output_path)
-#         ut.ensuredir(positive_path)
-#         ut.ensuredir(negative_path)
-
-#         interpolation = cv2.INTER_LANCZOS4
-#         warpkw = dict(interpolation=interpolation)
-#         for gid, label, prediction in zip(test_gid_set, label_list, prediction_list):
-#             if label == prediction:
-#                 continue
-#             image = ibs.get_images(gid)
-#             image = cv2.resize(image, (192, 192), **warpkw)
-#             # Get path
-#             image_path = positive_path if label == 'positive' else negative_path
-#             image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (gid, prediction, )
-#             image_filepath = join(image_path, image_filename)
-#             # Save path
-#             cv2.imwrite(image_filepath, image)
-
-#     category_list = ['positive', 'negative']
-#     category_mapping = {
-#         'positive': 0,
-#         'negative': 1,
-#     }
-#     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-#                                          category_mapping, **kwargs)
+def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
 
-# @register_ibs_method
-# def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(20, 20)):
-#     import matplotlib.pyplot as plt
-#     import plottool as pt
+def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    depc = ibs.depc_image
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set_ = list(test_gid_set_)
 
-#     fig_ = plt.figure(figsize=figsize, dpi=400)
+    positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
+    negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
 
-#     config_list = [
-#         {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
-#         {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
-#         {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
-#         {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan2.4'},
+    test_gid_set = []
+    label_list = []
+    for gid in test_gid_set_:
+        if gid in positive_gid_set:
+            label = 'positive'
+        elif gid in negative_gid_set:
+            label = 'negative'
+        else:
+            # label = 'unknown'
+            continue
+        test_gid_set.append(gid)
+        label_list.append(label)
 
-#         # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
-#         # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
-#         # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
-#         # {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
-#         # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
-#         # {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan1.6'},
-#     ]
-#     color_list = pt.distinct_colors(len(config_list), randomize=False)
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
 
-#     axes_ = plt.subplot(221)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('Recall')
-#     axes_.set_ylabel('Precision')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-#     ret_list = [
-#         classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
-#                                                          positive_imageset_id=positive_imageset_id,
-#                                                          negative_imageset_id=negative_imageset_id,
-#                                                          **config)
-#         for color, config in zip(color_list, config_list)
-#     ]
-#     area_list = [ ret[0] for ret in ret_list ]
-#     conf_list = [ ret[1] for ret in ret_list ]
-#     index = np.argmax(area_list)
-#     # index = 0
-#     best_label1 = config_list[index]['label']
-#     best_config1 = config_list[index]
-#     best_color1 = color_list[index]
-#     best_area1 = area_list[index]
-#     best_conf1 = conf_list[index]
-#     plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
+    if output_cases:
+        output_path = 'cameratrap-confusion-incorrect'
+        output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
+        positive_path = join(output_path, 'positive')
+        negative_path = join(output_path, 'negative')
+        ut.ensuredir(output_path)
+        ut.ensuredir(positive_path)
+        ut.ensuredir(negative_path)
 
-#     axes_ = plt.subplot(222)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('False-Positive Rate')
-#     axes_.set_ylabel('True-Positive Rate')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-#     ret_list = [
-#         classifier_cameratrap_roc_algo_plot(ibs, color=color,
-#                                             positive_imageset_id=positive_imageset_id,
-#                                             negative_imageset_id=negative_imageset_id,
-#                                             **config)
-#         for color, config in zip(color_list, config_list)
-#     ]
-#     area_list = [ ret[0] for ret in ret_list ]
-#     conf_list = [ ret[1] for ret in ret_list ]
-#     index = np.argmax(area_list)
-#     # index = 0
-#     best_label2 = config_list[index]['label']
-#     best_config2 = config_list[index]
-#     best_color2 = color_list[index]
-#     best_area2 = area_list[index]
-#     best_conf2 = conf_list[index]
-#     plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
+        for gid, label, prediction in zip(test_gid_set, label_list, prediction_list):
+            if label == prediction:
+                continue
+            image = ibs.get_images(gid)
+            image = cv2.resize(image, (192, 192), **warpkw)
+            # Get path
+            image_path = positive_path if label == 'positive' else negative_path
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (gid, prediction, )
+            image_filepath = join(image_path, image_filename)
+            # Save path
+            cv2.imwrite(image_filepath, image)
 
-#     axes_ = plt.subplot(223)
-#     axes_.set_aspect(1)
-#     gca_ = plt.gca()
-#     gca_.grid(False)
-#     correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
-#                                                                        conf=best_conf1, fig_=fig_, axes_=axes_,
-#                                                                        positive_imageset_id=positive_imageset_id,
-#                                                                        negative_imageset_id=negative_imageset_id,
-#                                                                        output_cases=True, **best_config1)
-#     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-#     axes_.set_ylabel('Ground-Truth')
-#     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
 
-#     axes_ = plt.subplot(224)
-#     axes_.set_aspect(1)
-#     gca_ = plt.gca()
-#     gca_.grid(False)
-#     correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
-#                                                                        conf=best_conf2, fig_=fig_, axes_=axes_,
-#                                                                        positive_imageset_id=positive_imageset_id,
-#                                                                        negative_imageset_id=negative_imageset_id,
-#                                                                        **best_config2)
-#     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-#     axes_.set_ylabel('Ground-Truth')
-#     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
 
-#     fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
-#     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
-#     plt.savefig(fig_path, bbox_inches='tight')
+@register_ibs_method
+def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(20, 20)):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=figsize, dpi=400)
+
+    config_list = [
+        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
+        {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
+        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
+        {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan2.4'},
+        {'label': 'Retrained Model (4%)', 'classifier_weight_filepath': 'megan2.5'},
+
+        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
+        # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
+        # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan1.3'},
+        # {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan1.4'},
+        # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
+        # {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan1.6'},
+    ]
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
+
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
+                                                         positive_imageset_id=positive_imageset_id,
+                                                         negative_imageset_id=negative_imageset_id,
+                                                         **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    index = np.argmax(area_list)
+    # index = 0
+    best_label1 = config_list[index]['label']
+    best_config1 = config_list[index]
+    best_color1 = color_list[index]
+    best_area1 = area_list[index]
+    best_conf1 = conf_list[index]
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        classifier_cameratrap_roc_algo_plot(ibs, color=color,
+                                            positive_imageset_id=positive_imageset_id,
+                                            negative_imageset_id=negative_imageset_id,
+                                            **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    index = np.argmax(area_list)
+    # index = 0
+    best_label2 = config_list[index]['label']
+    best_config2 = config_list[index]
+    best_color2 = color_list[index]
+    best_area2 = area_list[index]
+    best_conf2 = conf_list[index]
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(223)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
+                                                                       conf=best_conf1, fig_=fig_, axes_=axes_,
+                                                                       positive_imageset_id=positive_imageset_id,
+                                                                       negative_imageset_id=negative_imageset_id,
+                                                                       output_cases=True, **best_config1)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
+                                                                       conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                                       positive_imageset_id=positive_imageset_id,
+                                                                       negative_imageset_id=negative_imageset_id,
+                                                                       **best_config2)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+
+    fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
 
 
 # def classifier_binary_precision_recall_algo(ibs, category_set, **kwargs):
