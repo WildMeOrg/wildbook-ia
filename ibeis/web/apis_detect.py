@@ -537,7 +537,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
     if model_tag is not None:
         config['config_filepath'] = model_tag
         config['weight_filepath'] = model_tag
-    config_str_list = ['config_filepath', 'weight_filepath']
+    config_str_list = ['config_filepath', 'weight_filepath'] + list(config.keys())
     for config_str in config_str_list:
         if config_str in kwargs:
             config[config_str] = kwargs[config_str]
