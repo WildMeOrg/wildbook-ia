@@ -69,7 +69,7 @@ class Directory(object):
         for filename in self.files():
             yield filename
 
-    def _fix_recursive(recursive):
+    def _fix_recursive(self, recursive):
         if isinstance(recursive, bool):
             recursive = 10 ** 9 if recursive else -1
         else:
