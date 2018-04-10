@@ -93,6 +93,7 @@ TODO
             options.limits.bounds.y     !== undefined || (options.limits.bounds.y = {})
             options.limits.bounds.y.min !== undefined || (options.limits.bounds.y.min = 0)
             options.limits.bounds.y.max !== undefined || (options.limits.bounds.y.max = 0)
+            options.modes               !== undefined || (options.modes = ["rectangle", "diagonal", "diagonal2"])
             options.mode                !== undefined || (options.mode = "rectangle")
             options.debug               !== undefined || (options.debug = false)
 
@@ -168,7 +169,11 @@ TODO
                 case "rectangle":
                 case "diagonal":
                 case "diagonal2":
-                    this.options.mode = proposed_mode
+                    if (this.options.modes.indexOf(proposed_mode) == -1) {
+                        console.log("[BBoxSelector] User disabled selection mode provided: " + proposed_mode)
+                    } else {
+                        this.options.mode = proposed_mode
+                    }
                     break
                 default:
                     console.log("[BBoxSelector] Invalid selection mode provided: " + proposed_mode)
@@ -600,6 +605,7 @@ TODO
             options.callbacks.onhover            !== undefined || (options.callbacks.onhover = null)
             options.callbacks.onfocus            !== undefined || (options.callbacks.onfocus = null)
             options.callbacks.ondelete           !== undefined || (options.callbacks.ondelete = null)
+            options.modes                        !== undefined || (options.modes = ["rectangle", "diagonal", "diagonal2"])
             options.mode                         !== undefined || (options.mode = "rectangle")
             options.debug                        !== undefined || (options.debug = false)
 

@@ -100,6 +100,16 @@ function update_metadata_panel(state) {
         hidden_ids.push("#ia-metadata-panel-part-type")
     }
 
+    if( single_mode ) {
+        hidden_ids.push("#ia-detection-setting-toggle-wrapper")
+        hidden_ids.push("#ia-detection-setting-orientation-wrapper")
+    }
+
+    if ( ! config_label) {
+        hidden_ids.push("#ia-metadata-badge-annotation")
+        hidden_ids.push("#ia-metadata-badge-part")
+    }
+
     if ( ! config_quickhelp) {
         hidden_ids.push("#ia-metadata-panel-annotation-quickhelp")
         hidden_ids.push("#ia-metadata-panel-annotation-quickhelp-fallback")
@@ -406,7 +416,7 @@ $(window).keydown(function(event) {
         if (key == 17) {
             // Ctrl pressed
             $('.ia-detection-hotkey').show();
-        } else if (key == 84) {
+        } else if (key == 84 && ! single_mode) {
             // T pressed
             var element = $('#ia-detection-setting-toggle')
             element.prop('checked', !element.is(':checked')).trigger('change');

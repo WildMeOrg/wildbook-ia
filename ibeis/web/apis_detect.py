@@ -154,17 +154,21 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         return 'INVALID IMAGE UUID'
 
     default_config = {
-        'autointerest': False,
-        'interest_bypass': False,
-        'metadata': True,
-        'metadata_viewpoint': False,
-        'metadata_quality': False,
-        'metadata_flags': True,
-        'metadata_flags_aoi': True,
-        'metadata_flags_multiple': False,
-        'metadata_species': True,
-        'metadata_quickhelp': True,
-        'parts': False,
+        'autointerest'            : False,
+        'interest_bypass'         : False,
+        'metadata'                : True,
+        'metadata_viewpoint'      : False,
+        'metadata_quality'        : False,
+        'metadata_flags'          : True,
+        'metadata_flags_aoi'      : True,
+        'metadata_flags_multiple' : False,
+        'metadata_species'        : True,
+        'metadata_label'          : True,
+        'metadata_quickhelp'      : True,
+        'parts'                   : False,
+        'modes_rectangle'         : True,
+        'modes_diagonal'          : True,
+        'modes_diagonal2'         : True,
     }
 
     if config is not None:
