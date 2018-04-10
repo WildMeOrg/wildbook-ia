@@ -37,7 +37,9 @@ class Directory(object):
 
         self.directory_path = directory_path
         self.absolute_directory_path = os.path.abspath(directory_path)
-        self.recursive = kwargs['recursive']
+
+        self.recursive = self._fix_recursive(kwargs['recursive'])
+        kwargs['recursive'] = self.recursive
 
         self.file_list = []
         self.directory_list = []
@@ -51,9 +53,11 @@ class Directory(object):
                (line_extension not in kwargs['exclude_file_extensions']):
                     self.file_list.append(line_path)
             elif os.path.isdir(line_path) and \
-                 kwargs['recursive'] and \
+                 kwargs['recursive'] >= 0 and \
                  (kwargs['include_hidden'] or line[0] != '.'):
-                    self.directory_list.append(Directory(line_path, **kwargs))
+                    kwargs_ = kwargs.copy()
+                    kwargs_['recursive'] -= 1
+                    self.directory_list.append(Directory(line_path, **kwargs_))
 
     def __str__(self):
         return '<Directory Object | %s | %d files | %d directories>' % (self.absolute_directory_path, len(self.file_list), len(self.directory_list))
@@ -65,6 +69,15 @@ class Directory(object):
         for filename in self.files():
             yield filename
 
+    def _fix_recursive(recursive):
+        if isinstance(recursive, bool):
+            recursive = 10 ** 9 if recursive else -1
+        else:
+            recursive = int(recursive)
+
+        assert isinstance(recursive, int)
+        return recursive
+
     def base(self):
         return os.path.basename(self.absolute_directory_path)
 
@@ -72,8 +85,10 @@ class Directory(object):
         _kwargs(kwargs, 'recursive', self.recursive)
         _kwargs(kwargs, 'absolute',  False)
 
+        kwargs['recursive'] = self._fix_recursive(kwargs['recursive'])
+
         directory_files = []
-        if kwargs['recursive']:
+        if kwargs['recursive'] >= 0:
             for directory in self.directory_list:
                 directory_files += directory.files(**kwargs)
 
@@ -85,8 +100,10 @@ class Directory(object):
     def directories(self, **kwargs):
         _kwargs(kwargs, 'recursive', self.recursive)
 
+        kwargs['recursive'] = self._fix_recursive(kwargs['recursive'])
+
         directory_dirs = []
-        if kwargs['recursive']:
+        if kwargs['recursive'] >= 0:
             for directory in self.directory_list:
                 directory_dirs += directory.directories(**kwargs)
 
@@ -95,9 +112,11 @@ class Directory(object):
     def num_files(self, **kwargs):
         _kwargs(kwargs, 'recursive', self.recursive)
 
+        kwargs['recursive'] = self._fix_recursive(kwargs['recursive'])
+
         directories_num_files = 0
 
-        if kwargs['recursive']:
+        if kwargs['recursive'] >= 0:
             for directory in self.directory_list:
                 directories_num_files += directory.num_files(**kwargs)
 
@@ -106,9 +125,11 @@ class Directory(object):
     def num_directories(self, **kwargs):
         _kwargs(kwargs, 'recursive', self.recursive)
 
+        kwargs['recursive'] = self._fix_recursive(kwargs['recursive'])
+
         directories_num_directories = 0
 
-        if kwargs['recursive']:
+        if kwargs['recursive'] >= 0:
             for directory in self.directory_list:
                 directories_num_directories += directory.num_directories(**kwargs)
 
