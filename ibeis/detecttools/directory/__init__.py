@@ -69,6 +69,13 @@ class Directory(object):
         for filename in self.files():
             yield filename
 
+    def __lt__(direct1, direct2):
+        if direct.absolute_directory_path < direct2.absolute_directory_path:
+            return -1
+        if direct.absolute_directory_path > direct2.absolute_directory_path:
+            return 1
+        return 0
+
     def _fix_recursive(self, recursive):
         if isinstance(recursive, bool):
             recursive = 10 ** 9 if recursive else -1
@@ -95,7 +102,7 @@ class Directory(object):
         file_list = self.file_list
         if kwargs['absolute']:
             file_list = map(os.path.basename, file_list)
-        return file_list + directory_files
+        return sorted(file_list + directory_files)
 
     def directories(self, **kwargs):
         _kwargs(kwargs, 'recursive', self.recursive)
@@ -107,7 +114,7 @@ class Directory(object):
             for directory in self.directory_list:
                 directory_dirs += directory.directories(**kwargs)
 
-        return self.directory_list + directory_dirs
+        return sorted(self.directory_list + directory_dirs)
 
     def num_files(self, **kwargs):
         _kwargs(kwargs, 'recursive', self.recursive)
