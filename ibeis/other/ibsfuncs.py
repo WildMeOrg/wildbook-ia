@@ -6067,6 +6067,46 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
 
 
 @register_ibs_method
+def search_ggr_qr_codes(ibs, imageset_rowid_list):
+    r"""
+    Search for QR codes in each imageset
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        imageset_rowid_list (list):  imageset rowid list
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs search_ggr_qr_codes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> imageset_rowid_list = ibs.get_valid_imagesetids()
+        >>> ibs.search_ggr_qr_codes(imageset_rowid_list)
+    """
+    ut.embed()
+
+    import pyzbar.pyzbar as pyzbar
+    import cv2
+
+    for filepath in filepath_list:
+        img = cv2.imread(filepath, 0)
+        decoded_list = pyzbar.decode(img, [pyzbar.ZBarSymbol.QRCODE])
+
+        print('%s: found %s' % (filepath, len(decoded_list), ))
+
+        # Print results
+        for decoded in decoded_list:
+            print(decoded)
+            print('\tType : ', decoded.type)
+            print('\tData : ', decoded.data, '\n')
+
+
+@register_ibs_method
 def compute_ggr_fix_gps_contributors(ibs, min_diff=1800, individual=True):
     # Get all aids
     aid_list = ibs.get_valid_aids()
