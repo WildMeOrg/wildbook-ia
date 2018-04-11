@@ -6085,7 +6085,7 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list):
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ibs = ibeis.opendb(dbdir=dbdir)
-        >>> imageset_rowid_list = ibs.get_valid_imagesetids()
+        >>> imageset_rowid_list = ibs.get_valid_imgsetids()
         >>> ibs.search_ggr_qr_codes(imageset_rowid_list)
     """
     ut.embed()
