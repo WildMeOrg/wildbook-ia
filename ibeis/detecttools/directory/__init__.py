@@ -70,9 +70,9 @@ class Directory(object):
             yield filename
 
     def __lt__(direct1, direct2):
-        if direct.absolute_directory_path < direct2.absolute_directory_path:
+        if direct1.absolute_directory_path < direct2.absolute_directory_path:
             return -1
-        if direct.absolute_directory_path > direct2.absolute_directory_path:
+        if direct1.absolute_directory_path > direct2.absolute_directory_path:
             return 1
         return 0
 
