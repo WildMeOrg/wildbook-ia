@@ -141,9 +141,7 @@ def filter_junk_annotations(ibs, aid_list):
 
 @register_ibs_method
 def compute_all_chips(ibs, aid_list=None, **kwargs):
-    """
-    Executes lazy evaluation of all chips
-    """
+    """ Executes lazy evaluation of all chips """
     print('[ibs] compute_all_chips')
     if aid_list is None:
         aid_list = ibs.get_valid_aids(**kwargs)
@@ -462,8 +460,7 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
 
 
 def assert_valid_names(name_list):
-    """ Asserts that user specified names do not conflict with
-    the standard unknown name """
+    """ Asserts that user specified names do not conflict with the standard unknown name """
     if ut.NO_ASSERTS:
         return
     def isconflict(name, other):
@@ -635,10 +632,9 @@ def check_image_corruption(ibs, gid_list):
     import imghdr
     images = ibs.images(gid_list)
 
-    whats = [imghdr.what(p) for p in ut.ProgIter(images.paths, label='checking types')]
-
     for gx in ut.ProgIter(range(len(images)), label='check uuids'):
         image = images[gx]
+        uuid = image.uuid
         gpath = image.paths
         print(imghdr.what(gpath))
         param_tup = preproc_image.parse_imageinfo(gpath)
@@ -763,9 +759,7 @@ def check_name_consistency(ibs, nid_list):
 
 @register_ibs_method
 def check_name_mapping_consistency(ibs, nx2_aids):
-    """
-    checks that all the aids grouped in a name ahave the same name
-    """
+    """ checks that all the aids grouped in a name ahave the same name """
     # DEBUGGING CODE
     try:
         from ibeis import ibsfuncs
@@ -1219,9 +1213,7 @@ def fix_unknown_exemplars(ibs):
 
 @register_ibs_method
 def delete_all_recomputable_data(ibs):
-    """
-    Delete all cached data including chips and imagesets
-    """
+    """ Delete all cached data including chips and imagesets """
     print('[ibs] delete_all_recomputable_data')
     ibs.delete_cachedir()
     ibs.delete_all_chips()
@@ -1477,9 +1469,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
 
 
 def _make_unflat_getter_func(flat_getter):
-    """
-    makes an unflat version of an ibeis getter
-    """
+    """ makes an unflat version of an ibeis getter """
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
         func = ut.get_method_func(flat_getter)
@@ -1855,8 +1845,8 @@ def update_special_imagesets(ibs, use_more_special_imagesets=False):
 
 def _get_unreviewed_gids(ibs):
     """
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+    >>> import ibeis  # NOQA
+    >>> ibs = ibeis.opendb('testdb1')
     """
     # hack
     gid_list = ibs.get_valid_gids()
@@ -2130,9 +2120,7 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
 
 @register_ibs_method
 def is_aid_unknown(ibs, aid_list):
-    """
-    Returns if an annotation has been given a name (even if that name is temporary)
-    """
+    """ Returns if an annotation has been given a name (even if that name is temporary) """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
@@ -3027,9 +3015,7 @@ def merge_names(ibs, merge_name, other_names):
 
 
 def inspect_nonzero_yaws(ibs):
-    """
-    python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show
-    """
+    """ python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show """
     from ibeis.viz import viz_chip
     import plottool as pt
     aids = ibs.get_valid_aids()
@@ -3889,9 +3875,7 @@ def make_next_imageset_text(ibs):
 
 @register_ibs_method
 def add_next_imageset(ibs):
-    """
-    Adds a new imageset to the database
-    """
+    """ Adds a new imageset to the database """
     new_imagesettext = ibs.make_next_imageset_text()
     (new_imgsetid,) = ibs.add_imagesets([new_imagesettext])
     return new_imgsetid
@@ -4074,7 +4058,6 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
 
     valid_yaws = ['primary', 'primary1', 'primary-1']
     """
-
     def rectify_view_category(view):
         @ut.memoize
         def _primary_species():
@@ -4278,9 +4261,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
 
 @register_ibs_method
 def partition_annots_into_singleton_multiton(ibs, aid_list):
-    """
-    aid_list = aid_list_
-    """
+    """ aid_list = aid_list_ """
     aids_list = ibs.group_annots_by_name(aid_list)[0]
     singletons = [aids for aids in aids_list if len(aids) == 1]
     multitons = [aids for aids in aids_list if len(aids) > 1]
@@ -4474,8 +4455,8 @@ def group_annots_by_prop(ibs, aids, getter_func):
 @register_ibs_method
 def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     """
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> aids = available_aids
+    >>> from ibeis.other.ibsfuncs import *  # NOQA
+    >>> aids = available_aids
     """
     getter_func = ibs.get_annot_viewpoints
     prop_basis = list(const.VIEW.CODE_TO_INT.keys())
@@ -5148,9 +5129,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
 
 @register_ibs_method
 def get_dbname_alias(ibs):
-    """
-    convinience for plots
-    """
+    """ convinience for plots """
     dbname = ibs.get_dbname()
 
     return const.DBNAME_ALIAS.get(dbname, dbname)
@@ -5706,9 +5685,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
 
 @register_ibs_method
 def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
-    """
-    Function to load and process a SMART patrol XML file
-    """
+    """ Function to load and process a SMART patrol XML file """
     # Get file and copy to ibeis database folder
     xml_dir, xml_name = split(smart_xml_fpath)
     dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
@@ -6067,7 +6044,7 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
 
 
 @register_ibs_method
-def search_ggr_qr_codes(ibs, imageset_rowid_list, timeout=20):
+def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
     r"""
     Search for QR codes in each imageset.
 
@@ -6085,11 +6062,13 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list, timeout=20):
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ibs = ibeis.opendb(dbdir=dbdir)
-        >>> imageset_rowid_list = ibs.get_valid_imgsetids(is_special=False)
-        >>> ibs.search_ggr_qr_codes(imageset_rowid_list)
+        >>> ibs.search_ggr_qr_codes()
     """
     import pyzbar.pyzbar as pyzbar
     import cv2
+
+    if imageset_rowid_list is None:
+        imageset_rowid_list = ibs.get_valid_imgsetids(is_special=False)
 
     imageset_dict = {}
     for imageset_rowid in imageset_rowid_list:
@@ -6162,9 +6141,40 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list, timeout=20):
             imageset_dict[imageset_rowid] = []
 
     assert len(list(imageset_dict.keys())) == len(imageset_rowid_list)
+    return imageset_dict
+
+
+@register_ibs_method
+def inspect_ggr_qr_codes(ibs, *args, **kwargs):
+    r"""
+    Inspect QR codes in each imageset.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        imageset_rowid_list (list):  imageset rowid list
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs inspect_ggr_qr_codes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs.inspect_ggr_qr_codes()
+    """
+    filename_qr_json = join(ibs.dbdir, 'imageset_qr_dict.json')
+
+    if not exists(filename_qr_json):
+        imageset_dict = ibs.search_ggr_qr_codes(*args, **kwargs)
+        assert not exists(filename_qr_json)
+        ut.save_json(filename_qr_json, imageset_dict)
+
+    imageset_qr_dict = ut.load_json(filename_qr_json)
 
     ut.embed()
-    return imageset_dict
 
 
 @register_ibs_method
