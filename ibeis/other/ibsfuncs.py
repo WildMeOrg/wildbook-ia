@@ -6044,6 +6044,34 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
 
 
 @register_ibs_method
+def parse_ggr_name(ibs, imageset_text, verbose=False):
+    imageset_text = imageset_text.strip()
+
+    if verbose:
+        print('Processing %r' % (imageset_text, ))
+
+    imageset_text_ = imageset_text.split(',')
+
+    if len(imageset_text_) != 3:
+        return None
+
+    dataset, number, letter = imageset_text_
+    if dataset != 'GGR2':
+        return None
+
+    number = int(number)
+    if letter not in ['A', 'B', 'C', 'D', 'E', 'F']:
+        return None
+
+    if verbose:
+        print('\tDataset: %r' % (dataset, ))
+        print('\tLetter : %r' % (letter, ))
+        print('\tNumber : %r' % (number, ))
+
+    return dataset, letter, number
+
+
+@register_ibs_method
 def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
     r"""
     Search for QR codes in each imageset.
@@ -6054,6 +6082,28 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
 
     CommandLine:
         python -m ibeis.other.ibsfuncs search_ggr_qr_codes
+
+    Reference:
+        https://www.learnopencv.com/barcode-and-qr-code-scanner-using-zbar-and-opencv/
+
+        macOS:
+            brew install zbar
+
+            or
+
+            curl -O https://ayera.dl.sourceforge.net/project/zbar/zbar/0.10/zbar-0.10.tar.bz2
+            tar -xvjf zbar-0.10.tar.bz2
+            cd zbar-0.10/
+            CPPFLAGS="-I/opt/local/include" LDFLAGS="-L/opt/local/lib" ./configure --disable-video --without-qt --without-python --without-gtk --with-libiconv-prefix=/opt/local --with-jpeg=yes --prefix=$VIRTUAL_ENV
+            make
+            make install
+            sudo ln $VIRTUAL_ENV/lib/libzbar.dylib /opt/local/lib/libzbar.dylib
+            sudo ln $VIRTUAL_ENV/include/zbar.h /opt/local/include/zbar.h
+
+        Ubuntu:
+            sudo apt-get install libzbar-dev libzbar0
+
+        pip install pyzbar
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -6072,24 +6122,10 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
 
     imageset_dict = {}
     for imageset_rowid in imageset_rowid_list:
-        imageset_text = ibs.get_imageset_text(imageset_rowid).strip()
-
-        print('Processing %r' % (imageset_text, ))
-        imageset_text_ = imageset_text.split(',')
-
-        if len(imageset_text_) != 3:
-            continue
-
-        dataset, number, letter = imageset_text_
-        if dataset != 'GGR2':
-            continue
-
-        number = int(number)
-        assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
-
-        print('\tDataset: %r' % (dataset, ))
-        print('\tLetter : %r' % (letter, ))
-        print('\tNumber : %r' % (number, ))
+        imageset_text = ibs.get_imageset_text(imageset_rowid)
+        values = ibs.parse_ggr_name(imageset_text)
+        assert values is not None
+        dataset, letter, number = values
 
         gid_list = sorted(ibs.get_imageset_gids(imageset_rowid))
         filepath_list = ibs.get_image_paths(gid_list)
@@ -6173,6 +6209,73 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         ut.save_json(filename_qr_json, imageset_dict)
 
     imageset_qr_dict = ut.load_json(filename_qr_json)
+
+    for key in list(imageset_qr_dict.keys()):
+        imageset_qr_dict[int(key)] = imageset_qr_dict.pop(key)
+
+    ggr_qr_dict = {}
+    for imageset_rowid in imageset_qr_dict:
+        imageset_text = ibs.get_imageset_text(imageset_rowid)
+        values = ibs.parse_ggr_name(imageset_text)
+        assert values is not None
+        dataset, letter, number = values
+
+        if number not in ggr_qr_dict:
+            ggr_qr_dict[number] = {}
+
+        assert letter not in ggr_qr_dict[number]
+        ggr_qr_dict[number][letter] = (
+            imageset_rowid,
+            imageset_qr_dict[imageset_rowid],
+        )
+
+    # Hard-code QR code failures
+    sync_dict = {
+    }
+
+    # Find all others and run checks
+    for number in sorted(list(ggr_qr_dict.keys())):
+        qr_dict = ggr_qr_dict[number]
+        letter_list = sorted(list(qr_dict.keys()))
+        num_letters = len(letter_list)
+        if num_letters == 0:
+            print('Empty car: %r' % (number, ))
+            break
+        else:
+            type_str = 'Individual' if num_letters == 1 else 'Group'
+
+            failed_list = []
+            missing_list = []
+            for letter in letter_list:
+                imageset_rowid, qr_list = qr_dict[letter]
+                match_gid = None
+
+                if imageset_rowid in sync_dict:
+                    if sync_dict[imageset_rowid] is not None:
+                        continue
+
+                if len(qr_list) == 0:
+                    missing_list.append((letter, imageset_rowid))
+                else:
+                    for qr in qr_list:
+                        if qr[2]:
+                            match_gid = qr[1]
+                            break
+
+                    if match_gid is None:
+                        failed_list.append((letter, imageset_rowid))
+
+                sync_dict[imageset_rowid] = match_gid
+
+            if len(missing_list) > 0:
+                print('%s car missing QR: %r (%r)' % (type_str, number, letter_list, ))
+                for missing, imageset_rowid in missing_list:
+                    print('\tNo QR for %r %r (imageset_rowid = %r)' % (number, missing, imageset_rowid, ))
+
+            if len(failed_list) > 0:
+                print('%s car incorrect QR: %r (%r)' % (type_str, number, letter_list, ))
+                for failed, imageset_rowid in failed_list:
+                    print('\tBad QR for %r %r (imageset_rowid = %r)' % (number, failed, imageset_rowid, ))
 
     ut.embed()
 
