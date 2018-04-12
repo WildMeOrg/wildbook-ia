@@ -6067,9 +6067,9 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
 
 
 @register_ibs_method
-def search_ggr_qr_codes(ibs, imageset_rowid_list):
+def search_ggr_qr_codes(ibs, imageset_rowid_list, timeout=20):
     r"""
-    Search for QR codes in each imageset
+    Search for QR codes in each imageset.
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -6085,25 +6085,86 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list):
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ibs = ibeis.opendb(dbdir=dbdir)
-        >>> imageset_rowid_list = ibs.get_valid_imgsetids()
+        >>> imageset_rowid_list = ibs.get_valid_imgsetids(is_special=False)
         >>> ibs.search_ggr_qr_codes(imageset_rowid_list)
     """
-    ut.embed()
-
     import pyzbar.pyzbar as pyzbar
     import cv2
 
-    for filepath in filepath_list:
-        img = cv2.imread(filepath, 0)
-        decoded_list = pyzbar.decode(img, [pyzbar.ZBarSymbol.QRCODE])
+    imageset_dict = {}
+    for imageset_rowid in imageset_rowid_list:
+        imageset_text = ibs.get_imageset_text(imageset_rowid).strip()
 
-        print('%s: found %s' % (filepath, len(decoded_list), ))
+        print('Processing %r' % (imageset_text, ))
+        imageset_text_ = imageset_text.split(',')
 
-        # Print results
-        for decoded in decoded_list:
-            print(decoded)
-            print('\tType : ', decoded.type)
-            print('\tData : ', decoded.data, '\n')
+        if len(imageset_text_) != 3:
+            continue
+
+        dataset, number, letter = imageset_text_
+        if dataset != 'GGR2':
+            continue
+
+        number = int(number)
+        assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
+
+        print('\tDataset: %r' % (dataset, ))
+        print('\tLetter : %r' % (letter, ))
+        print('\tNumber : %r' % (number, ))
+
+        gid_list = sorted(ibs.get_imageset_gids(imageset_rowid))
+        filepath_list = ibs.get_image_paths(gid_list)
+
+        match = False
+        for index, (gid, filepath) in enumerate(zip(gid_list, filepath_list)):
+            note = ibs.get_image_notes(gid)
+            if index > timeout:
+                print('\tTimeout exceeded')
+                break
+
+            if match:
+                print('\tMatch was found')
+                break
+
+            print('\tProcessing %r (%s)' % (filepath, note, ))
+
+            image = cv2.imread(filepath, 0)
+            qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
+
+            if len(qr_list) > 0:
+                print('\t\tFound...')
+                qr = qr_list[0]
+                data = qr.data.decode('utf-8')
+
+                try:
+                    data = data.split('/')[-1].strip('?')
+                    data = data.split('&')
+                    data = sorted(data)
+                    print('\t\t%r' % (data, ))
+
+                    assert data[0] == 'car=%d' % (number, )
+                    assert data[1] == 'event=ggr2018'
+                    assert data[2] == 'person=%s' % (letter.lower(), )
+
+                    match = True
+                    print('\t\tPassed!')
+                except:
+                    pass
+                    print('\t\tFailed!')
+
+                if imageset_rowid not in imageset_dict:
+                    imageset_dict[imageset_rowid] = []
+                imageset_dict[imageset_rowid].append(
+                    (imageset_text, gid, match, data, )
+                )
+
+        if imageset_rowid not in imageset_dict:
+            imageset_dict[imageset_rowid] = []
+
+    assert len(list(imageset_dict.keys())) == len(imageset_rowid_list)
+
+    ut.embed()
+    return imageset_dict
 
 
 @register_ibs_method

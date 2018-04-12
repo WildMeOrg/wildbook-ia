@@ -333,7 +333,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
 
                     imageset_text = 'GGR2,%d,%s' % (number, letter, )
                     note_list = [
-                        '%s,%05d' % (imageset_text, index)
+                        '%s,%05d' % (imageset_text, index + 1)
                         for index, gid in enumerate(gid_list)
                     ]
                     ibs.set_image_notes(gid_list, note_list)
