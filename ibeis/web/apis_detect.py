@@ -11,7 +11,6 @@ from os.path import join, dirname, abspath
 from flask import url_for, request, current_app
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
-from ibeis.scripts import labelShark
 
 
 USE_LOCALIZATIONS = False
@@ -795,6 +794,7 @@ def detect_ws_injury(ibs, gid_list):
             confidences is a list of floats of correspoinding cofidence to the prediction
 
     """
+    from ibeis.scripts import labelShark
     labels = labelShark.classifyShark(ibs, gid_list)
     return labels
 
