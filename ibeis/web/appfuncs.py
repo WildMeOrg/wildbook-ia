@@ -140,6 +140,10 @@ def encode_refer_url(url):
 def decode_refer_url(encode):
     if len(encode) == 0:
         return encode
+    if six.PY3:
+        if encode.startswith("b'"):
+            encode = encode[2:]
+            encode = encode[:-1]
     return base64.urlsafe_b64decode(str(encode))
 
 

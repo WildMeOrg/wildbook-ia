@@ -141,10 +141,15 @@ def initialize_job_manager(ibs):
     """
     ibs.job_manager = ut.DynStruct()
 
+    use_static_ports = False
+
+    if ut.get_argflag('--web-deterministic-ports'):
+        use_static_ports = True
+
     if ut.get_argflag('--fg'):
         ibs.job_manager.reciever = JobBackend(use_static_ports=True)
     else:
-        ibs.job_manager.reciever = JobBackend()
+        ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
         ibs.job_manager.reciever.initialize_background_processes(dbdir=ibs.get_dbdir())
 
     ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict)
@@ -936,15 +941,22 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                 print('calling callback_url using callback_method')
             try:
                 # requests.get(callback_url)
+                data_dict = {'jobid': jobid}
                 if callback_method == 'post':
-                    requests.post(callback_url, data={'jobid': jobid})
+                    response = requests.post(callback_url, data=data_dict)
                 elif callback_method == 'get':
-                    requests.get(callback_url, params={'jobid': jobid})
+                    response = requests.get(callback_url, params=data_dict)
                 elif callback_method == 'put':
-                    requests.put(callback_url, data={'jobid': jobid})
+                    response = requests.put(callback_url, data=data_dict)
                 else:
                     raise ValueError('callback_method %r unsupported' %
                                      (callback_method, ))
+                try:
+                    text = response.text
+                except:
+                    text = None
+                args = (callback_url, callback_method, data_dict, response, text, )
+                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
             except Exception as ex:
                 msg = (('ERROR in collector. '
                         'Tried to call callback_url=%r with callback_method=%r')
@@ -968,7 +980,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
         reply['jobid'] = jobid
     elif action == 'job_id_list':
         reply['status'] = 'ok'
-        reply['jobid_list'] = collecter_data.keys()
+        reply['jobid_list'] = list(collecter_data.keys())
     elif action == 'job_result':
         # From a Client
         jobid = collect_request['jobid']

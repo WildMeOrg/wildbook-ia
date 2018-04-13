@@ -1180,7 +1180,9 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
     if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
         print('[ibs] notifying WildBook of name text changes')
         status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
-        if assert_wildbook:
+
+        wb_signaled = status_list is not None
+        if assert_wildbook and wb_signaled:
             assert status_list, 'The request to WB failed'
             failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
             args = (len(failed_nid_list), failed_nid_list, )

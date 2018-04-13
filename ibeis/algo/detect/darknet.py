@@ -151,8 +151,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
 
 
 def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0, nms_sensitivity=0.2,
-           **kwargs):
+           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0, **kwargs):
     """
     Args:
         gpath_list (list of str): the list of image paths that need proposal candidates

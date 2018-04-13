@@ -55,7 +55,7 @@ class Ingestable(object):
     """
     def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
                  adjust_percent=0.0, postingest_func=None, zipfile=None,
-                 species=None, images_as_annots=True):
+                 species=None, images_as_annots=False):
         self.dbname          = dbname
         self.img_dir         = img_dir
         self.ingest_type     = ingest_type
@@ -104,7 +104,7 @@ class Ingestable2(object):
         class IngestConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo(
-                    'images_as_annots', True),
+                    'images_as_annots', False),
                 ut.ParamInfo(
                     'ingest_type', 'unknown', valid_values=['unknown',
                                                             'named_folders',
@@ -249,11 +249,14 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>> ingest_type = ut.get_argval('--ingest-type', type_=str, default='unknown')
         >>> fmtkey = ut.get_argval('--fmtkey', type_=str, default=None)
         >>> species = ut.get_argval('--species', type_=str, default=None)
+        >>> images_as_annots = ut.get_argval('--images-as-annots', type_=bool, default=None)
+        >>> if images_as_annots is None:
+        >>>     images_as_annots = ingest_type != 'unknown'
         >>> assert img_dir is not None, 'specify img dir'
         >>> assert dbname is not None, 'specify dbname'
         >>> ingestable = Ingestable(
         >>>     dbname, img_dir=img_dir, ingest_type=ingest_type,
-        >>>     fmtkey=fmtkey, species=species, images_as_annots=ingest_type != 'unknown',
+        >>>     fmtkey=fmtkey, species=species, images_as_annots=images_as_annots,
         >>>     adjust_percent=0.00)
         >>> from ibeis.control import IBEISControl
         >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True)
@@ -262,8 +265,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>>     ibsfuncs.delete_ibeis_database(dbdir)
         >>> ibs = IBEISControl.request_IBEISController(dbdir)
         >>> localize = False
-        >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
-        >>> result = ('aid_list = %s' % (str(aid_list),))
+        >>> gid_list = ingest_rawdata(ibs, ingestable, localize)
+        >>> result = ('gid_list = %s' % (str(gid_list),))
         >>> print(result)
     """
     print('[ingest_rawdata] Ingestable' + str(ingestable))

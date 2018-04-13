@@ -59,6 +59,9 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.images',
     'ibeis.other.ibsfuncs',
     'ibeis.other.detectfuncs',
+    'ibeis.other.detectcore',
+    'ibeis.other.detectgrave',
+    'ibeis.other.detecttrain',
     'ibeis.init.filter_annots',
     'ibeis.control.manual_featweight_funcs',
     'ibeis.control._autogen_party_funcs',
@@ -96,6 +99,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
+    # (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     #'ibeis.web.apis_engine',
 ]
 

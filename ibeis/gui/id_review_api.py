@@ -652,7 +652,11 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
 
         def nosql_draw2(check_func, match):
             from matplotlib.backends.backend_agg import FigureCanvas
-            from matplotlib.backends.backend_agg import Figure
+            try:
+                from matplotlib.backends.backend_agg import Figure
+            except ImportError:
+                from matplotlib.figure import Figure
+
             was_interactive = mpl.is_interactive()
             if was_interactive:
                 mpl.interactive(False)
@@ -719,7 +723,10 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
         #from matplotlib.backends.backend_svg import FigureCanvas
         #from matplotlib.backends.backend_svg import Figure
         from matplotlib.backends.backend_agg import FigureCanvas
-        from matplotlib.backends.backend_agg import Figure
+        try:
+            from matplotlib.backends.backend_agg import Figure
+        except ImportError:
+            from matplotlib.figure import Figure
 
         kpts1_ = vt.offset_kpts(kpts1, (0, 0), (resize_factor, resize_factor))
         kpts2_ = vt.offset_kpts(kpts2, (0, 0), (resize_factor, resize_factor))

@@ -63,8 +63,16 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
         # WSGI is Python standard described in detail in PEP 3333
-        http_server = tornado.httpserver.HTTPServer(
-            tornado.wsgi.WSGIContainer(app))
+        wsgi_container = tornado.wsgi.WSGIContainer(app)
+
+        # # Try wrapping with newrelic performance monitoring
+        # try:
+        #     import newrelic
+        #     wsgi_container = newrelic.agent.WSGIApplicationWrapper(wsgi_container)
+        # except (ImportError, AttributeError):
+        #     pass
+
+        http_server = tornado.httpserver.HTTPServer(wsgi_container)
         try:
             http_server.listen(app.server_port)
         except socket.error:

@@ -49,6 +49,9 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
 
+DISABLE_WILDBOOK_SIGNAL = ut.get_argflag('--no-wb-signal')
+
+
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
@@ -64,10 +67,15 @@ if ut.get_computer_name() == 'hyrule':
 
 @register_ibs_method
 def get_wildbook_base_url(ibs, wb_target=None):
+    if DISABLE_WILDBOOK_SIGNAL:
+        message = 'Wildbook signals are turned off via the command line'
+        print(message)
+        raise IOError(message)
+
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     computer_name = ut.get_computer_name()
 
-    princeton = computer_name in ['maasai', 'quagga']
+    princeton = computer_name in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']
     if princeton:
         hostname = 'quagga.princeton.edu'
         wb_target = 'wildbook'
@@ -85,6 +93,14 @@ def assert_ia_available_for_wb(ibs, wb_target=None):
     # Test if we have a server alive
     try:
         ia_url = ibs.get_wildbook_ia_url(wb_target)
+
+        if ia_url is None:
+            message = 'Wildbook signals are turned off via the command line'
+            print(message)
+            raise IOError(message)
+    except IOError:
+        print('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
+        return None
     except Exception as ex:
         ut.printex(ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True)
     else:
@@ -118,7 +134,12 @@ def get_wildbook_ia_url(ibs, wb_target=None):
         >>> print('ia_url = %r' % (ia_url,))
     """
     import requests
-    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        wb_url = ibs.get_wildbook_base_url(wb_target)
+    except IOError:
+        print('[ibs.get_wildbook_ia_url] Caught IOError, returning None')
+        return None
+
     response = requests.get(wb_url + '/ia?status')
     status = response.status_code == 200
     if not status:
@@ -198,7 +219,12 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)
     """
     print('[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook')
-    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        wb_url = ibs.get_wildbook_base_url(wb_target)
+    except IOError:
+        print('[ibs.wildbook_signal_annot_name_changes] Caught IOError, returning None')
+        return None
+
     try:
         ibs.assert_ia_available_for_wb(wb_target)
     except Exception:
@@ -254,7 +280,12 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         >>> dryrun = ut.get_argflag('--dryrun')
     """
     print('[ibs.wildbook_signal_name_changes] signaling name changes to wildbook')
-    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        wb_url = ibs.get_wildbook_base_url(wb_target)
+    except IOError:
+        print('[ibs.wildbook_signal_name_changes] Caught IOError, returning None')
+        return None
+
     try:
         ibs.assert_ia_available_for_wb(wb_target)
     except Exception:
@@ -295,7 +326,12 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
 @register_ibs_method
 def wildbook_get_existing_names(ibs, wb_target=None):
     print('[ibs.wildbook_get_existing_names] getting existing names out of wildbook')
-    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        wb_url = ibs.get_wildbook_base_url(wb_target)
+    except IOError:
+        print('[ibs.wildbook_get_existing_names] Caught IOError, returning None')
+        return None
+
     try:
         ibs.assert_ia_available_for_wb(wb_target)
     except Exception:
@@ -399,7 +435,12 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         >>>     web_ibs.terminate2()
 
     """
-    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        wb_url = ibs.get_wildbook_base_url(wb_target)
+    except IOError:
+        print('[ibs.wildbook_signal_imgsetid_list] Caught IOError, returning None')
+        return None
+
     try:
         ibs.assert_ia_available_for_wb(wb_target)
     except Exception:
@@ -429,6 +470,9 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     # Call Wildbook url to signal update
     print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
         imgsetid_list, ))
+    imageset_uuid_list = ibs.get_imageset_uuid(imgsetid_list)
+    print('[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook' % (
+        imageset_uuid_list, ))
 
     url = wb_url + '/ia'
     dbname = ibs.db.get_db_init_uuid()
@@ -437,8 +481,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
 
     # Check and push 'done' imagesets
     status_list = []
-    for imgsetid in imgsetid_list:
-        imageset_uuid = ibs.get_imageset_uuid(imgsetid)
+    for imgsetid, imageset_uuid in zip(imgsetid_list, imageset_uuid_list):
         print('[_send] URL=%r' % (url, ))
         json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid) }}
         if dryrun:

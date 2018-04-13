@@ -8,8 +8,10 @@
 
     <div class="col-lg-4 col-md-4 col-sm-4">
         <div style="text-align: left; margin-top: 8px;">
-          <input type="checkbox" id="ia-detection-setting-orientation" {% if settings['ia-detection-setting-orientation'] %}checked{% endif %}>
-          <i> Axis-to-Axis Mid-line <span class="ia-detection-hotkey">(M)</span></i>
+          <div id="ia-detection-setting-orientation-wrapper">
+            <input type="checkbox" id="ia-detection-setting-orientation" {% if settings['ia-detection-setting-orientation'] %}checked{% endif %}>
+            <i> Axis-to-Axis Mid-line <span class="ia-detection-hotkey">(M)</span></i>
+          </div>
           <br/>
           <span class="ia-detection-parts-toggle">
             <input type="checkbox" id="ia-detection-setting-parts-assignments" {% if settings['ia-detection-setting-parts-assignments'] %}checked{% endif %}>
@@ -18,7 +20,7 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-4 col-sm-4">
-        <div style="text-align: center; margin-top: 10px; margin-bottom: 2px;">
+        <div id="ia-detection-setting-toggle-wrapper" style="text-align: center; margin-top: 10px; margin-bottom: 2px;">
           <!-- <input type="checkbox" id="ia-detection-setting-toggle" checked> -->
           <input type="checkbox" id="ia-detection-setting-toggle" data-width="150" {% if settings['ia-detection-setting-toggle-annotations'] %}checked{% endif %}>
           <br/>
@@ -294,8 +296,12 @@
     config_flags_aoi       = {% if config['metadata_flags_aoi']      %}true{% else %}false{% endif %}
     config_flags_multiple  = {% if config['metadata_flags_multiple'] %}true{% else %}false{% endif %}
     config_species         = {% if config['metadata_species']        %}true{% else %}false{% endif %}
+    config_label           = {% if config['metadata_label']          %}true{% else %}false{% endif %}
     config_quickhelp       = {% if config['metadata_quickhelp']      %}true{% else %}false{% endif %}
     config_parts           = {% if config['parts']                   %}true{% else %}false{% endif %}
+    config_modes_rectangle = {% if config['modes_rectangle']         %}true{% else %}false{% endif %}
+    config_modes_diagonal  = {% if config['modes_diagonal']          %}true{% else %}false{% endif %}
+    config_modes_diagonal2 = {% if config['modes_diagonal2']         %}true{% else %}false{% endif %}
 
     hotkeys_disabled = true
     hotkeys_global_disabled = false
@@ -307,6 +313,22 @@
       parts: {% if settings['ia-detection-setting-toggle-parts'] %}true{% else %}false{% endif %},
       active: null,
     }
+
+    modes = []
+    if(config_modes_diagonal) {
+      modes.push('diagonal')
+    }
+    if(config_modes_diagonal2) {
+      modes.push('diagonal2')
+    }
+    if(config_modes_rectangle) {
+      modes.push('rectangle')
+    }
+    if(modes.length == 0) {
+      console.log('[Detection] All modes are turned off, using rectangle as default')
+      modes.push('rectangle')
+    }
+    single_mode = modes.length == 1
 
     $(document).ready(function() {
 
@@ -325,9 +347,15 @@
       visible = {% if settings['ia-detection-setting-parts-show'] %}true{% else %}{% if settings['ia-detection-setting-parts-hide'] %}false{% else %}null{% endif %}{% endif %}
       assignments = {% if settings['ia-detection-setting-parts-assignments'] %}true{% else %}false{% endif %}
 
+      if(single_mode) {
+        mode = modes[0]
+        console.log('[Detection] Overriding all mode options, always using: ' + mode)
+      }
+
       // Initialize the bounding-box annotator.
       bba = new BBoxAnnotator("{{ image_src }}", {
         prefix: "ia-",
+        modes: modes,
         mode: mode,
         colors: {
           // anchor: "#FFFFFF",
@@ -466,6 +494,11 @@
       {% endif %}
 
       $("#ia-detection-setting-toggle,#ia-detection-setting-orientation").change(function() {
+
+        if(single_mode) {
+          return true;
+        }
+
         var checked_mode, diagonal_mode, checked_tag;
         checked_mode = $("#ia-detection-setting-toggle").prop("checked");
         diagonal_mode = $("#ia-detection-setting-orientation").prop("checked");

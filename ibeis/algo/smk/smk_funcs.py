@@ -553,9 +553,9 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
             4: np.array([0], dtype=np.int32),
         }
         wx_to_maws = {
-            0: np.array([ 0.5,  0.5], dtype=np.float32),
-            2: np.array([ 1. ,  0.5], dtype=np.float32),
-            4: np.array([ 0.5], dtype=np.float32),
+            0: np.array([0.5, 0.5], dtype=np.float32),
+            2: np.array([1. , 0.5], dtype=np.float32),
+            4: np.array([0.5], dtype=np.float32),
         }
     """
     # Invert mapping -- Group by word indexes
@@ -603,9 +603,9 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
             4: np.array([0], dtype=np.int32),
         }
         wx_to_maws = {
-            0: np.array([ 0.5,  0.5], dtype=np.float32),
-            2: np.array([ 1. ,  0.5], dtype=np.float32),
-            4: np.array([ 1.], dtype=np.float32),
+            0: np.array([0.5, 0.5], dtype=np.float32),
+            2: np.array([1. , 0.5], dtype=np.float32),
+            4: np.array([1.], dtype=np.float32),
         }
     """
     assert isinstance(idx_to_wxs, np.ma.masked_array)
@@ -682,7 +682,7 @@ def inv_doc_freq(ndocs_total, ndocs_per_word):
         >>> idf_per_word = inv_doc_freq(ndocs_total, ndocs_per_word)
         >>> result = '%s' % (ut.repr2(idf_per_word, precision=2),)
         >>> print(result)
-        np.array([ 0.  ,  0.  ,  0.05,  2.35,  0.34,  0.97,  0.56,  3.04,  2.35])
+        np.array([0.  , 0.  , 0.05, 2.35, 0.34, 0.97, 0.56, 3.04, 2.35])
     """
     # We add epsilon to numer and denom to ensure recep is a probability
     out = np.empty(len(ndocs_per_word), dtype=np.float32)
@@ -731,7 +731,7 @@ def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
         >>> score_list = match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh)
         >>> result = 'score_list = ' + ut.repr2(score_list, precision=4)
         >>> print(result)
-        score_list = np.array([ 1.    ,  0.0018,  0.    ,  1.    ,  0.868 ])
+        score_list = np.array([1.    , 0.0018, 0.    , 1.    , 0.868 ])
     """
     # Can speedup aggregate with one vector per word assumption.
     # Take dot product between correponding VLAD vectors

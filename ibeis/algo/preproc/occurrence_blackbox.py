@@ -61,7 +61,7 @@ def haversine(latlon1, latlon2):
         >>> kilometers = haversine(latlon1, latlon2)
         >>> result = ('kilometers = %s' % (kilometers,))
         >>> print(result)
-        kilometers = 11930.9093642
+        kilometers = 11930.909364189827
     """
     # convert decimal degrees to radians
     lat1, lon1 = np.radians(latlon1)

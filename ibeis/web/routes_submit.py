@@ -291,8 +291,12 @@ def submit_detection(**kwargs):
         'metadata_flags_aoi',
         'metadata_flags_multiple',
         'metadata_species',
+        'metadata_label',
         'metadata_quickhelp',
         'parts',
+        'modes_rectangle',
+        'modes_diagonal',
+        'modes_diagonal2',
     ]
     config = {
         default: kwargs[default]
