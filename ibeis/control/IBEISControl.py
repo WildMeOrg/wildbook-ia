@@ -603,6 +603,7 @@ class IBEISController(BASE_CLASS):
                 ibs.db_version_expected,
                 DB_SCHEMA,
                 verbose=ut.VERBOSE,
+                dobackup=not ibs.readonly
             )
         #import sys
         #sys.exit(1)
