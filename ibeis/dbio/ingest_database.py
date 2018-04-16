@@ -640,6 +640,8 @@ def ingest_testdb1(dbname):
         from ibeis import constants as const
         print('postingest_tesdb1_func')
         # Adjust data as we see fit
+
+        # gid_list = np.array(ibs.images()._rowids)
         gid_list = np.array(ibs.get_valid_gids())
         # Set image unixtimes
         unixtimes_even = (gid_list[0::2] + 100).tolist()
@@ -739,6 +741,7 @@ def ingest_testdb1(dbname):
                       fmtkey=FMT_KEYS.name_fmt,
                       img_dir=grabdata.get_testdata_dir(),
                       adjust_percent=0.00,
+                      images_as_annots=True,
                       postingest_func=postingest_tesdb1_func)
 
 

@@ -246,10 +246,11 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     # Clean species
     if not skip_cleaning:
         species_mapping_dict = ibs._clean_species()
-        species_rowid_list = [
-            species_mapping_dict.get(species_rowid, species_rowid)
-            for species_rowid in species_rowid_list
-        ]
+        if species_mapping_dict is not None:
+            species_rowid_list = [
+                species_mapping_dict.get(species_rowid, species_rowid)
+                for species_rowid in species_rowid_list
+            ]
 
     return species_rowid_list
     #value_list = ibs.sanitize_species_texts(species_text_list)
