@@ -196,7 +196,9 @@ RUN /virtualenv/env3/bin/pip install \
     ipython==6.2.1 \
     pyqt5==5.10.1 \
     futures_actors==0.0.5 \
-    scikit-image==0.13.1
+    scikit-image==0.13.1 \
+    mako \
+    boto
 
 # Install other PyPI dependencies
 RUN    /virtualenv/env3/bin/pip install git+https://github.com/cameronbwhite/Flask-CAS.git@10ee70466ac9e71cec3602c1cd46f0566618f67e \

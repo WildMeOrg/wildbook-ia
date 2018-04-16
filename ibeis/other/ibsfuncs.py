@@ -6231,6 +6231,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
 
     # Hard-code QR code failures
     sync_dict = {
+        # IMAGESET_ID: [['GGR2,NUMBER,LETTER', GID, MATCH BOOL, ['car=NUMBER', 'event=ggr2018', 'person=LETTER']]],
     }
 
     # Find all others and run checks
@@ -6241,9 +6242,30 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         if num_letters == 0:
             print('Empty car: %r' % (number, ))
             break
-        else:
-            type_str = 'Individual' if num_letters == 1 else 'Group'
+        elif num_letters == 1:
+            letter = letter_list[0]
+            imageset_rowid, qr_list = qr_dict[letter]
 
+            match_gid = -1
+
+            if letter != 'A':
+                print('Individual car missing A: %r (%r)' % (number, letter, ))
+                match_gid = None
+
+            if len(qr_list) == 0:
+                print('Individual car missing QR: %r %r (imageset_rowid = %r)' % (number, letter, imageset_rowid, ))
+            else:
+                for qr in qr_list:
+                    if qr[2]:
+                        match_gid = qr[1]
+                        break
+
+                if match_gid in [None, -1]:
+                    print('Individual car incorrect QR: %r %r (imageset_rowid = %r)' % (number, letter, imageset_rowid, ))
+                    print('\t%r' % (qr_list, ))
+
+            sync_dict[imageset_rowid] = match_gid
+        else:
             failed_list = []
             missing_list = []
             for letter in letter_list:
@@ -6268,12 +6290,12 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                 sync_dict[imageset_rowid] = match_gid
 
             if len(missing_list) > 0:
-                print('%s car missing QR: %r (%r)' % (type_str, number, letter_list, ))
+                print('Group car missing QR: %r (%r)' % (number, letter_list, ))
                 for missing, imageset_rowid in missing_list:
                     print('\tNo QR for %r %r (imageset_rowid = %r)' % (number, missing, imageset_rowid, ))
 
             if len(failed_list) > 0:
-                print('%s car incorrect QR: %r (%r)' % (type_str, number, letter_list, ))
+                print('Group car incorrect QR: %r (%r)' % (number, letter_list, ))
                 for failed, imageset_rowid in failed_list:
                     print('\tBad QR for %r %r (imageset_rowid = %r)' % (number, failed, imageset_rowid, ))
 

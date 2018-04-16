@@ -1670,12 +1670,12 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         ('metadata_flags_aoi',      True),
         ('metadata_flags_multiple', True),
         ('metadata_species',        True),
-        ('metadata_label',          False),
+        ('metadata_label',          True),
         ('metadata_quickhelp',      True),
         ('parts',                   True),
         ('modes_rectangle',         True),
-        ('modes_diagonal',          False),
-        ('modes_diagonal2',         False),
+        ('modes_diagonal',          True),
+        ('modes_diagonal2',         True),
     ]
 
     config_kwargs = kwargs.get('config', {})
