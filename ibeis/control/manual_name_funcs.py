@@ -288,7 +288,7 @@ def delete_empty_nids(ibs):
 @accessor_decors.getter_1toM
 @register_api('/api/name/annot/rowid/', methods=['GET'])
 @profile
-def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
+def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     r"""
     # TODO: Rename to get_anot_rowids_from_name_rowid
 
@@ -544,6 +544,10 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
                      for nid, aids in zip(nid_list, aids_list)]
         #aids_list = [[-nid] if nid < 0 else aids
         #             for nid, aids in zip(nid_list, aids_list)]
+    aids_list = [
+        ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
+        for aid_list_ in aids_list
+    ]
     return aids_list
 
 

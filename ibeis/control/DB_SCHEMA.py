@@ -36,10 +36,12 @@ NAME_TABLE_v130     = const.NAME_TABLE_v130
 ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
 ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_UUID          = 'annot_uuid'
+ANNOT_STAGED_UUID   = 'annot_staged_uuid'
 ANNOT_YAW           = 'annot_yaw'
 ANNOT_VIEWPOINT     = 'annot_viewpoint'
 PART_ROWID          = 'part_rowid'
 PART_UUID           = 'part_uuid'
+PART_STAGED_UUID    = 'part_staged_uuid'
 NAME_ROWID          = 'name_rowid'
 SPECIES_ROWID       = 'species_rowid'
 IMAGE_ROWID         = 'image_rowid'
@@ -260,7 +262,7 @@ def post_1_2_0(db, ibs=None):
         """
         import utool as ut
 
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         #ibs.get_annot_name_rowids(aid_list)
         #
         #ANNOT_ROWID             = 'annot_rowid'
@@ -480,7 +482,7 @@ def pre_1_3_1(db, ibs=None):
         import six
         ibs._init_rowid_constants()
         ibs._init_config()
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         def pre_1_3_1_update_visual_uuids(ibs, aid_list):
             def pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list):
                 image_uuid_list = ibs.get_annot_image_uuids(aid_list)
@@ -516,7 +518,7 @@ def pre_1_3_1(db, ibs=None):
             pass
         pre_1_3_1_update_visual_uuids(ibs, aid_list)
         #ibsfuncs.fix_remove_visual_dupliate_annotations(ibs)
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
         ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
         dupaids_list = []
@@ -528,7 +530,7 @@ def pre_1_3_1(db, ibs=None):
             print('About to delete toremove_aids=%r' % (toremove_aids,))
             ibs.db.delete_rowids(const.ANNOTATION_TABLE, toremove_aids)
 
-            aid_list = ibs.get_valid_aids()
+            aid_list = ibs.get_valid_aids(is_staged=None)
             visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
             ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
             assert len(ibs_dup_annots) == 0
@@ -860,7 +862,7 @@ def update_1_3_5(db, ibs=None):
     """ expand datasets to use new quality measures """
     if ibs is not None:
         # Adds a few different degrees of quality
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
         qual_list = ibs.get_annot_qualities(aid_list)
         flags = [q is not None for q in qual_list]
         qual_list = ut.compress(qual_list, flags)
@@ -1524,7 +1526,7 @@ def update_1_6_4(db, ibs=None):
 def post_1_6_4(db, ibs=None):
     if ibs is not None:
         from ibeis.other import ibsfuncs
-        aids = ibs.get_valid_aids()
+        aids = ibs.get_valid_aids(is_staged=None)
         # Get old yaw values
         yaws = db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aids)
         yaws = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaws]
@@ -1613,7 +1615,7 @@ def post_1_7_0(db, ibs=None):
                    view_ints, id_iter=aids)
 
         # Moved here from 1.3.4 because the way it is calculated changed
-        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+        ibs.update_annot_visual_uuids(ibs.get_valid_aids(is_staged=None))
 
 
 def update_1_7_1(db, ibs=None):
@@ -1623,6 +1625,28 @@ def update_1_7_1(db, ibs=None):
             ANNOT_ROWID         : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_UUID,)),
         },
     )
+
+
+def update_1_8_0(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (None, 'annot_staged_flag',          'INTEGER DEFAULT 0', None),
+        (None, 'annot_staged_uuid',          'UUID',              None),
+        (None, 'annot_staged_user_identity', 'TEXT',              None),
+        (None, 'annot_staged_metadata_json', 'TEXT',              None),
+    ),
+        superkeys=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID, ANNOT_STAGED_UUID,)],
+        primary_superkey=(ANNOT_UUID,),
+    )
+
+    db.modify_table(const.PART_TABLE, (
+        (None, 'part_staged_flag',           'INTEGER DEFAULT 0', None),
+        (None, 'part_staged_uuid',           'UUID',              None),
+        (None, 'part_staged_user_identity',  'TEXT',              None),
+        (None, 'part_staged_metadata_json',  'TEXT',              None),
+    ),
+        superkeys=[(PART_UUID,)]
+    )
+
 
 # ========================
 # Valid Versions & Mapping
@@ -1680,6 +1704,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.9',    (None,                 update_1_6_9,       None                )),
     ('1.7.0',    (None,                 update_1_7_0,       post_1_7_0          )),
     ('1.7.1',    (None,                 update_1_7_1,       None                )),
+    ('1.8.0',    (None,                 update_1_8_0,       None                )),
 ])
 """
 SeeAlso:

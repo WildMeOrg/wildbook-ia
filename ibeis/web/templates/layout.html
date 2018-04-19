@@ -39,14 +39,21 @@
                 <a href="{{ url_for(link) }}">{{ nice }}</a>
               </li>
             {% endfor %}
+
+            {% if user %}
               <li>
-                <a class="pull-left" data-toggle="modal" data-target="#set-userid">ID</a>
+                <a class="pull-right" data-toggle="modal" data-target="#logout-confirm">Logout</a>
               </li>
+            {% else %}
+              <li {% if __login__ %}class="active"{% endif %}>
+                <a href="{{ url_for('login') }}">Login</a>
+              </li>
+            {% endif %}
           </ul>
           <h3 class="text-muted">IBEIS Web Interface</h3>
             <br/>
             <div class="pull-right" style="color: #aaa; margin-top: -15px;">
-              User: <span id="userid-container">{% if __have_userid__ %}{{ __userid__ }}{% else %}NULL{% endif %}</span>
+              {% if user %}User: <span id="userid-container">{{ user.username }}</span>{% endif %}
             </div>
         </div>
       {% endif %}
@@ -62,49 +69,20 @@
       {% endif %}
     </div> <!-- /container -->
 
-      <div class="modal fade" id="set-userid" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-              <h4 class="modal-title" id="myModalLabel">User ID</h4>
-            </div>
-            <div class="modal-body">
-                <input type="text" name="set-userid" class="form-control" placeholder="Enter your user ID">
-                <br/>
-                <i>A user ID is a self-specified value to identify yourself for any experiments.  If you are unsure of what to put, you can simply use your first name or contact the owner of the database</i>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="set_userid();">Save</button>
-            </div>
+    <div class="modal fade" id="logout-confirm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Are you sure you want to logout?</h4>
+          </div>
+          <div class="modal-footer">
+            <a href="{{ url_for('logout') }}" type="button" class="btn btn-primary">Logout</a>
           </div>
         </div>
       </div>
+    </div>
 
     {% block content_custom_javascript %}{% endblock %}
-
-    <script type="text/javascript" ia-dependency="javascript">
-      $('#set-userid').on('shown.bs.modal', function() {
-        $('input[name="set-userid"]').val('')
-        hotkeys_global_disabled = true;
-
-        if(bba !== undefined) {
-          bba.options.hotkeys.enabled = false
-        }
-      });
-
-      $('#species-add').on('hidden.bs.modal', function() {
-        hotkeys_global_disabled = false;
-        if(bba !== undefined) {
-          bba.options.hotkeys.enabled = true
-        }
-      });
-
-      {% if not __have_userid__ %}
-        $(document).ready(function() {
-          $('#set-userid').modal('show');
-        });
-      {% endif %}
-    </script>
   </body>
 </html>

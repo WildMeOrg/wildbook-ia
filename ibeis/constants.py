@@ -253,8 +253,8 @@ PARTY_CONTRIB_RELATION_TABLE = 'party_contrib_relation'
 PARTY_TABLE                  = 'party'
 #################################################################
 # STAGING DATABASE
-REVIEW_TABLE         = 'reviews'
-TEST_TABLE           = 'tests'
+REVIEW_TABLE          = 'reviews'
+TEST_TABLE            = 'tests'
 #################################################################
 
 

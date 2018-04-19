@@ -23,7 +23,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/<rowid>/', methods=['GET'], __api_prefix_check__=False)
+@register_route('/api/image/src/<rowid>/', methods=['GET'], __route_prefix_check__=False)
 def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the image file of image <gid>
@@ -72,7 +72,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/json/<uuid>/', methods=['GET'], __api_prefix_check__=False)
+@register_route('/api/image/src/json/<uuid>/', methods=['GET'], __route_prefix_check__=False)
 def image_src_api_json(uuid=None, **kwargs):
     r"""
     Returns the image file of image <gid>

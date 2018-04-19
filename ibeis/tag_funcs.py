@@ -271,7 +271,7 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
         >>> ut.show_if_requested()
     """
     if aid_list is None:
-        aid_list = ibs._get_all_aids()
+        aid_list = ibs.get_valid_aids()
     tags_list = ibs.get_annot_all_tags(aid_list)
     flags = filterflags_general_tags(tags_list, **kwargs)
     aid_list = ut.compress(aid_list, flags)

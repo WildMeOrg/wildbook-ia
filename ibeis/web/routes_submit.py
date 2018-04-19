@@ -10,9 +10,38 @@ from ibeis import constants as const
 from ibeis.constants import PI, TAU
 import utool as ut
 import numpy as np
+import uuid
 
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
+
+
+@register_route('/submit/login/', methods=['POST'], __route_authenticate__=False)
+def submit_login(name, organization, refer=None, *args, **kwargs):
+    # Return HTML
+    if refer is None:
+        refer = url_for('root')
+    else:
+        refer = appf.decode_refer_url(refer)
+
+    if name == '_new_':
+        first = kwargs['new_name_first']
+        last = kwargs['new_name_last']
+        name = '%s.%s' % (first, last, )
+        name = name.replace(' ', '')
+
+    if organization == '_new_':
+        organization = kwargs['new_organization']
+        organization = organization.replace(' ', '')
+
+    name = name.lower()
+    organization = organization.lower()
+
+    username = '%s@%s' % (name, organization, )
+    controller_inject.authenticate(username=username, name=name,
+                                   organization=organization)
+
+    return redirect(refer)
 
 
 @register_route('/submit/cameratrap/', methods=['POST'])
@@ -89,7 +118,7 @@ def submit_detection(**kwargs):
             'poor_boxes'    : poor_boxes,
         }]
         test_result_list = [test_truth == poor_boxes]
-        test_user_id_list = [appf.get_userid()]
+        test_user_id_list = [None]
         ibs.add_test(test_challenge_list, test_response_list,
                      test_result_list=test_result_list,
                      test_user_identity_list=test_user_id_list)
@@ -109,12 +138,6 @@ def submit_detection(**kwargs):
                     part_list.append(data)
 
             ##################################################################################
-            # Process annotations
-            survived_aid_list = [
-                None if annot['label'] in [None, 'None'] else int(annot['label'])
-                for annot in annotation_list
-            ]
-
             # Get primatives
             bbox_list = [
                 (
@@ -174,6 +197,11 @@ def submit_detection(**kwargs):
                 for annot in annotation_list
             ]
 
+            # Process annotations
+            survived_aid_list = [
+                None if annot['label'] in [None, 'None'] else int(annot['label'])
+                for annot in annotation_list
+            ]
             # Delete annotations that didn't survive
             kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
             ibs.delete_annots(kill_aid_list)
@@ -196,6 +224,15 @@ def submit_detection(**kwargs):
             ibs.set_annot_multiple(aid_list, multiple_list)
             ibs.set_annot_interest(aid_list, interest_list)
             ibs.set_annot_species(aid_list, species_list)
+
+            staged_uuid = uuid.uuid4()
+
+            user = controller_inject.get_user()
+            user_id = user.get('username', None)
+            user_id_list = [user_id] * len(aid_list)
+            ibs.set_annot_staged_user_ids(aid_list, user_id_list)
+            uuid_list = [staged_uuid] * len(aid_list)
+            ibs.set_annot_staged_uuids(aid_list, uuid_list)
 
             # Set the mapping dict to use aids now
             mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
@@ -276,6 +313,13 @@ def submit_detection(**kwargs):
             ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
             ibs.set_part_qualities(part_rowid_list, quality_list)
             ibs.set_part_types(part_rowid_list, type_list)
+
+            user = controller_inject.get_user()
+            user_id = user.get('username', None)
+            user_id_list = [user_id] * len(aid_list)
+            ibs.set_part_staged_user_ids(aid_list, user_id_list)
+            uuid_list = [staged_uuid] * len(aid_list)
+            ibs.set_part_staged_uuids(aid_list, uuid_list)
 
             # Set image reviewed flag
             ibs.set_image_reviewed([gid], [1])

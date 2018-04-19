@@ -94,7 +94,6 @@ def update_1_0_3(db, ibs=None):
     ))
 
 
-@profile
 def update_1_1_0(db, ibs=None):
     db.add_table(const.TEST_TABLE, (
         ('test_rowid',                   'INTEGER PRIMARY KEY'),
@@ -109,6 +108,7 @@ def update_1_1_0(db, ibs=None):
         docstr='''
         Used to store tests given to the user, their responses, and their results
         ''')
+
 
 # ========================
 # Valid Versions & Mapping

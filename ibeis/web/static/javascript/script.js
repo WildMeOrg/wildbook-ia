@@ -104,10 +104,3 @@ function add_part() {
     $('.ia-detection-form-part-value').trigger('change');
 }
 
-function set_userid() {
-    userid = $('input[name="set-userid"]').val()
-    submit_cookie('ibeis-ia-userid', userid);
-    $('#userid-container').html(userid)
-    hotkeys_global_disabled = false
-}
-

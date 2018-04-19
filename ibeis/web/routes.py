@@ -52,7 +52,7 @@ GLOBAL_FEEDBACK_CONFIG_DICT = {
 }
 
 
-@register_route('/', methods=['GET'])
+@register_route('/', methods=['GET'], __route_authenticate__=False)
 def root(**kwargs):
     ibs = current_app.ibs
 
@@ -61,6 +61,74 @@ def root(**kwargs):
 
     embedded = dict(globals(), **locals())
     return appf.template(None, **embedded)
+
+
+@register_route('/login/', methods=['GET'], __route_authenticate__=False)
+def login(refer=None, *args, **kwargs):
+    # Default refer
+    if refer is None:
+        refer = url_for('root')
+    else:
+        refer = appf.decode_refer_url(refer)
+
+    # Prevent loops
+    if refer.split('?')[0].strip('/') == url_for('login').strip('/'):
+        refer = url_for('root')
+
+    if controller_inject.authenticated():
+        return redirect(refer)
+
+    refer = appf.encode_refer_url(refer)
+
+    organization_dict = {
+        'rpi': (
+            'RPI',
+            [
+                # 'jason.parham',
+                'chuck.stewart',
+                'hendrik.weideman',
+            ]
+        ),
+        'uic': (
+            'UIC',
+            [
+                'tanya.berger-wolf',
+            ]
+        ),
+        'princeton': (
+            'Princeton',
+            [
+                'dan.rubenstein',
+                'kaia.tombak',
+            ],
+        ),
+        'wildme': (
+            'Wild Me',
+            [
+                'jason.holmberg',
+                'jason.parham',
+                'jon.vanoast',
+                'colin.kingen',
+                'drew.blount',
+            ],
+        ),
+        'kitware': (
+            'Kitware',
+            [
+                'jon.crall',
+            ],
+        ),
+    }
+    organization_dict_json = json.dumps(organization_dict)
+
+    embedded = dict(globals(), **locals())
+    return appf.template(None, 'login', **embedded)
+
+
+@register_route('/logout/', methods=['GET'], __route_authenticate__=False)
+def logout(**kwargs):
+    controller_inject.deauthenticate()
+    return redirect(url_for('root'))
 
 
 @register_route('/view/', methods=['GET'])
@@ -1511,7 +1579,7 @@ def view_names(**kwargs):
     nid_list = nid_list[page_start:page_end]
     print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(nid_list), page_previous, page_next, ))
     aids_list = ibs.get_name_aids(nid_list)
-    annotations_list = [ zip(
+    annotations_list = [ list(zip(
         aid_list_,
         ibs.get_annot_gids(aid_list_),
         [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list_) ],
@@ -1524,7 +1592,7 @@ def view_names(**kwargs):
         ibs.get_annot_sex_texts(aid_list_),
         ibs.get_annot_age_months_est(aid_list_),
         [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list_), appf.imageset_annot_quality_processed(ibs, aid_list_))) ],
-    ) for aid_list_ in aids_list ]
+    )) for aid_list_ in aids_list ]
     name_list = list(zip(
         nid_list,
         annotations_list
@@ -1799,12 +1867,23 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             species = appf.default_species(ibs)
         else:
             species = KEY_DEFAULTS[SPECIES_KEY]
+
+        staged_aid_list = ibs.get_image_aids(gid, is_staged=True)
+
     else:
         gpath = None
         species = None
         image_src = None
         annotation_list = []
         part_list = []
+        staged_aid_list = []
+
+    staged_uuid_list = ibs.get_annot_staged_uuids(staged_aid_list)
+    staged_user_id_list = ibs.get_annot_staged_user_ids(staged_aid_list)
+
+    num_staged_aids = len(staged_aid_list)
+    num_staged_sessions = len(set(staged_uuid_list))
+    num_staged_users = len(set(staged_user_id_list))
 
     THROW_TEST_AOI_TURKING_MANIFEST = []
     THROW_TEST_AOI_TURKING_AVAILABLE = False
@@ -1997,7 +2076,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
-                         __check_userid__=False,
                          imgsetid=imgsetid,
                          gid=gid,
                          config_str=config_str,
@@ -2020,6 +2098,9 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          settings=settings,
                          THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
                          THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
+                         num_staged_aids=num_staged_aids,
+                         num_staged_sessions=num_staged_sessions,
+                         num_staged_users=num_staged_users,
                          callback_url=callback_url,
                          callback_method='POST',
                          EMBEDDED=True,
@@ -3336,7 +3417,7 @@ def sightings(html_encode=True):
     return sightings
 
 
-@register_route('/api/', methods=['GET'], __api_prefix_check__=False)
+@register_route('/api/', methods=['GET'], __route_prefix_check__=False)
 def api_root(**kwargs):
     rules = current_app.url_map.iter_rules()
     rule_dict = {}
@@ -3428,12 +3509,12 @@ def wb_counts(**kwargs):
     return counts_str
 
 
-@register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+@register_route('/test/counts.jsp', methods=['GET'], __route_postfix_check__=False)
 def wb_counts_alias1(**kwargs):
     return wb_counts()
 
 
-@register_route('/gzgc/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+@register_route('/gzgc/counts.jsp', methods=['GET'], __route_postfix_check__=False)
 def wb_counts_alias2(**kwargs):
     return wb_counts()
 

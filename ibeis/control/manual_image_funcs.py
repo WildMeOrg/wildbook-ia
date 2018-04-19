@@ -1744,7 +1744,7 @@ def get_image_imagesettext(ibs, gid_list):
 #@profile
 @register_api('/api/image/annot/rowid/', methods=['GET'])
 @profile
-def get_image_aids(ibs, gid_list):
+def get_image_aids(ibs, gid_list, is_staged=False):
     r"""
     Returns:
         list_ (list): a list of aids for each image by gid
@@ -1893,6 +1893,11 @@ def get_image_aids(ibs, gid_list):
         %timeit [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
         """
     #print('aids_list = %r' % (aids_list,))
+
+    aids_list = [
+        ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
+        for aid_list_ in aids_list
+    ]
     return aids_list
 
 

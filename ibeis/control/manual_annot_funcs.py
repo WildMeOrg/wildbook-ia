@@ -51,6 +51,8 @@ ANNOT_QUALITY            = 'annot_quality'
 ANNOT_ROWIDS             = 'annot_rowids'
 GAR_ROWID                = 'gar_rowid'
 PART_ROWID               = 'part_rowid'
+ANNOT_STAGED_FLAG        = 'annot_staged_flag'
+ANNOT_STAGED_USER_ID     = 'annot_staged_user_identity'
 
 
 # ==========
@@ -71,7 +73,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 multiple_list=None, interest_list=None,
                 detect_confidence_list=None, notes_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
-                species_rowid_list=None, quiet_delete_thumbs=False,
+                species_rowid_list=None, staged_uuid_list=None,
+                staged_user_id_list=None, quiet_delete_thumbs=False,
                 prevent_visual_duplicates=True, skip_cleaning=False, **kwargs):
     r"""
     Adds an annotation to images
@@ -295,6 +298,15 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
             semantic_infotup = ut.take(props, VISUAL_TUP_PROPS + SEMANTIC_TUP_PROPS)
             annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
 
+    if staged_uuid_list is None:
+        staged_uuid_list = [None] * len(gid_list)
+    is_staged_list = [
+        staged_uuid is not None
+        for staged_uuid in staged_uuid_list
+    ]
+    if staged_user_id_list is None:
+        staged_user_id_list = [None] * len(gid_list)
+
     # Define arguments to insert
     props = ut.odict([
         ('annot_uuid', annot_uuid_list),
@@ -317,6 +329,9 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         ('annot_viewpoint_int', viewpoint_ints),
         ('annot_visual_uuid', annot_visual_uuid_list),
         ('annot_semantic_uuid', annot_semantic_uuid_list),
+        ('annot_staged_flag', is_staged_list),
+        ('annot_staged_uuid', staged_uuid_list),
+        ('annot_staged_user_identity', staged_user_id_list),
     ])
 
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in annot_uuid_list]
@@ -540,9 +555,11 @@ def get_num_annotations(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/annot/', methods=['GET'])
-def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
+def get_valid_aids(ibs, imgsetid=None,
+                   include_only_gid_list=None,
                    yaw='no-filter',
                    is_exemplar=None,
+                   is_staged=False,
                    species=None,
                    is_known=None,
                    hasgt=None,
@@ -635,33 +652,20 @@ def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
         _ = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
 
     """
-    # getting imageset aid
+    # exemplar "imageset" (image group)
     if imgsetid is None:
-        if is_exemplar is not None:
-            # Optimization Hack
-            aid_list = ibs.db.get_all_rowids_where(
-                const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
-        else:
-            aid_list = ibs._get_all_aids()
+        aid_list = ibs._get_all_aids()
     else:
-        # HACK: Check to see if you want the
-        # exemplar "imageset" (image group)
         imagesettext = ibs.get_imageset_text(imgsetid)
         if imagesettext == const.EXEMPLAR_IMAGESETTEXT:
             is_exemplar = True
         aid_list = ibs.get_imageset_aids(imgsetid)
-        if is_exemplar is True:
-            # corresponding unoptimized hack for is_exemplar
-            flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.compress(aid_list, flag_list)
-        elif is_exemplar is False:
-            flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.filterfalse_items(aid_list, flag_list)
-    aid_list = filter_annotation_set(
-        ibs, aid_list, include_only_gid_list=include_only_gid_list, yaw=yaw,
-        is_exemplar=is_exemplar, species=species, is_known=is_known,
-        hasgt=hasgt, minqual=minqual, has_timestamp=has_timestamp,
-        min_timedelta=min_timedelta)
+
+    aid_list = ibs.filter_annotation_set(
+        aid_list, include_only_gid_list=include_only_gid_list, yaw=yaw,
+        is_exemplar=is_exemplar, is_staged=is_staged, species=species,
+        is_known=is_known, hasgt=hasgt, minqual=minqual,
+        has_timestamp=has_timestamp, min_timedelta=min_timedelta)
     return aid_list
 
 
@@ -678,11 +682,30 @@ def annotation_src_api(rowid=None):
     return routes_ajax.annotation_src(rowid)
 
 
+@register_ibs_method
 def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
-                          yaw='no-filter', is_exemplar=None, species=None,
-                          is_known=None, hasgt=None, minqual=None,
+                          yaw='no-filter', is_exemplar=None, is_staged=False,
+                          species=None, is_known=None, hasgt=None, minqual=None,
                           has_timestamp=None, min_timedelta=None):
     # -- valid aid filtering --
+    # filter by is_exemplar
+    if is_exemplar is True:
+        # corresponding unoptimized hack for is_exemplar
+        flag_list = ibs.get_annot_exemplar_flags(aid_list)
+        aid_list  = ut.compress(aid_list, flag_list)
+    elif is_exemplar is False:
+        flag_list = ibs.get_annot_exemplar_flags(aid_list)
+        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+
+    # filter by is_staged
+    if is_staged is True:
+        # corresponding unoptimized hack for is_staged
+        flag_list = ibs.get_annot_staged_flags(aid_list)
+        aid_list  = ut.compress(aid_list, flag_list)
+    elif is_staged is False:
+        flag_list = ibs.get_annot_staged_flags(aid_list)
+        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+
     if include_only_gid_list is not None:
         gid_list     = ibs.get_annot_gids(aid_list)
         is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
@@ -1817,6 +1840,117 @@ def get_annot_viewpoint_int(ibs, aids, assume_unique=False):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/staged/', methods=['GET'])
+def get_annot_staged_flags(ibs, aid_list):
+    r"""
+    returns if an annotation is staged
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: annot_staged_flag_list - True if annotation is staged
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_staged_flags
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/staged/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> gid_list = get_annot_staged_flags(ibs, aid_list)
+        >>> result = str(gid_list)
+        >>> print(result)
+    """
+    annot_staged_flag_list = ibs.db.get(const.ANNOTATION_TABLE,
+                                          (ANNOT_STAGED_FLAG,), aid_list)
+    return annot_staged_flag_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/staged/uuid/', methods=['GET'])
+def get_annot_staged_uuids(ibs, aid_list):
+    r"""
+    Returns:
+        list: annot_uuid_list a list of image uuids by aid
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/staged/uuid/
+    """
+    annot_uuid_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_staged_uuid',), aid_list)
+    return annot_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/staged/user/', methods=['GET'])
+def get_annot_staged_user_ids(ibs, aid_list):
+    r"""
+    returns if an annotation is staged
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: annot_staged_user_id_list - True if annotation is staged
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_staged_user_ids
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/staged/user/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> gid_list = get_annot_staged_user_ids(ibs, aid_list)
+        >>> result = str(gid_list)
+        >>> print(result)
+    """
+    annot_staged_user_id_list = ibs.db.get(const.ANNOTATION_TABLE,
+                                           (ANNOT_STAGED_USER_ID,), aid_list)
+    return annot_staged_user_id_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/staged/metadata/', methods=['GET'])
+def get_annot_staged_metadata(ibs, aid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): annot metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/staged/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_staged_metadata_json',), aid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
 def set_annot_viewpoint_int(ibs, aids, view_ints, _code_update=True):
     view_ints = list(view_ints)
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint_int',), view_ints,
@@ -1958,7 +2092,7 @@ def get_annot_notes(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot/metadata/', methods=['GET'])
-def get_annot_metadata(ibs, gid_list, return_raw=False):
+def get_annot_metadata(ibs, aid_list, return_raw=False):
     r"""
     Returns:
         list_ (list): annot metadata dictionary
@@ -1967,7 +2101,7 @@ def get_annot_metadata(ibs, gid_list, return_raw=False):
         Method: GET
         URL:    /api/annot/metadata/
     """
-    metadata_str_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_metadata_json',), gid_list)
+    metadata_str_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_metadata_json',), aid_list)
     metadata_list = []
     for metadata_str in metadata_str_list:
         if metadata_str in [None, '']:
@@ -2294,7 +2428,6 @@ def get_annot_species_rowids(ibs, aid_list):
         Method: GET
         URL:    /api/annot/species/rowid/
     """
-
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     species_rowid_list = ibs.db.get(
@@ -3716,6 +3849,104 @@ def set_annot_static_encounter(ibs, aids, vals):
 @register_api('/api/annot/encounter/static/', methods=['GET'])
 def get_annot_static_encounter(ibs, aids):
     return ibs.db.get(const.ANNOTATION_TABLE, ('annot_static_encounter',), aids)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_STAGED_FLAG], rowidx=0)
+@register_api('/api/annot/staged/', methods=['PUT'])
+def _set_annot_staged_flags(ibs, aid_list, flag_list):
+    r"""
+    Sets if an annotation is staged
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/staged/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_iter = ((flag,) for flag in flag_list)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_STAGED_FLAG,), val_iter, id_iter)
+
+
+@register_ibs_method
+@register_api('/api/annot/staged/uuid/', methods=['PUT'])
+def set_annot_staged_uuids(ibs, aid_list, annot_uuid_list):
+    r"""
+    Returns:
+        list_ (list): all nids of known animals
+        (does not include unknown names)
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_iter = ((annot_uuid,) for annot_uuid in annot_uuid_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_staged_uuid',), val_iter, id_iter)
+    flag_list = [
+        annot_uuid is not None
+        for annot_uuid in annot_uuid_list
+    ]
+    ibs._set_annot_staged_flags(aid_list, flag_list)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_STAGED_USER_ID], rowidx=0)
+@register_api('/api/annot/staged/user/', methods=['PUT'])
+def set_annot_staged_user_ids(ibs, aid_list, user_id_list):
+    r"""
+    Sets the staged annotation user id
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/staged/user/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_iter = ((user_id,) for user_id in user_id_list)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_STAGED_USER_ID,), val_iter, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/staged/metadata/', methods=['PUT'])
+def set_annot_staged_metadata(ibs, aid_list, metadata_dict_list):
+    r"""
+    Sets the annot's staged metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/staged/metadata/
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-set_annot_metadata
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> metadata_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.repr2(metadata_dict_list))
+        >>> ibs.set_annot_metadata(aid_list, metadata_dict_list)
+        >>> # verify results
+        >>> metadata_dict_list_ = ibs.get_annot_metadata(aid_list)
+        >>> print(ut.repr2(metadata_dict_list_))
+        >>> assert metadata_dict_list == metadata_dict_list_
+        >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
+        >>> print(ut.repr2(metadata_str_list))
+        >>> metadata_str_list_ = ibs.get_annot_metadata(aid_list, return_raw=True)
+        >>> print(ut.repr2(metadata_str_list_))
+        >>> assert metadata_str_list == metadata_str_list_
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_staged_metadata_json',), val_list, id_iter)
 
 
 #==========

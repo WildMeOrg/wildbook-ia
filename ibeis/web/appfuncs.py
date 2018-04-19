@@ -129,40 +129,41 @@ def check_valid_function_name(string):
     return all([ char.isalpha() or char == '_' or char.isalnum() for char in string])
 
 
-def encode_refer_url(url):
+def encode_refer_url(decoded):
     if six.PY2:
-        url = str(url)
+        decoded = str(decoded)
     else:
-        url = url.encode()
-    return base64.urlsafe_b64encode(url)
+        decoded = decoded.encode()
+    encoded = base64.urlsafe_b64encode(decoded)
+    encoded = encoded.decode('utf-8')
+    return encoded
 
 
-def decode_refer_url(encode):
-    if len(encode) == 0:
-        return encode
+def decode_refer_url(encoded):
+    if len(encoded) == 0:
+        return encoded
     if six.PY3:
-        if encode.startswith("b'"):
-            encode = encode[2:]
-            encode = encode[:-1]
-    return base64.urlsafe_b64decode(str(encode))
+        if encoded.startswith("b'"):
+            encoded = encoded[2:]
+            encoded = encoded[:-1]
+    encoded = str(encoded)
+    decoded = base64.urlsafe_b64decode(encoded)
+    decoded = decoded.decode('utf-8')
+    return decoded
 
 
-def get_userid(default=None):
-    return request.cookies.get('ibeis-ia-userid', default)
-
-
-def template(template_directory=None, template_filename=None, __check_userid__=True,
-             **kwargs):
+def template(template_directory=None, template_filename=None, **kwargs):
+    from ibeis.control import controller_inject
     global_args = {
-        'NAVBAR': NavbarClass(),
-        'YEAR':   date.today().year,
-        'URL':    flask.request.url,
-        'REFER_SRC_STR':  flask.request.url.replace(flask.request.url_root, ''),
-        '__wrapper__' : True,
+        'NAVBAR'             : NavbarClass(),
+        'YEAR'               : date.today().year,
+        'URL'                : flask.request.url,
+        'REFER_SRC_STR'      : flask.request.url.replace(flask.request.url_root, ''),
+        '__login__'          : flask.request.url_rule.rule == url_for('login'),
+        '__wrapper__'        : True,
         '__wrapper_header__' : True,
         '__wrapper_footer__' : True,
-        '__userid__': get_userid(),
-        '__have_userid__': not __check_userid__ or get_userid() is not None,
+        'user'               : controller_inject.get_user(),
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():
@@ -181,7 +182,6 @@ def template(template_directory=None, template_filename=None, __check_userid__=T
     _global_args = dict(global_args)
     _global_args.update(kwargs)
     print('[appfuncs] template()')
-    from ibeis.control import controller_inject
     app = controller_inject.get_flask_app()
     # flask hates windows apparently
     template_ = template_.replace('\\', '/')

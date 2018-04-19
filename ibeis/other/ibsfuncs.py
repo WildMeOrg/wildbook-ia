@@ -2371,12 +2371,12 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
     while len(next_name_list) < num_:
         base_index += 1
         if str_format == 1:
-            userid = ut.get_user_name()
+            user_id = ut.get_user_name()
             timestamp = ut.get_timestamp('tag')
             #timestamp_suffix = '_TMP_'
             timestamp_suffix = '_'
             timestamp_prefix = ''
-            name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
+            name_prefix = timestamp_prefix + timestamp + timestamp_suffix + user_id + '_'
         elif str_format == 2:
             species_rowid = ibs.get_species_rowids_from_text(species_text)
             species_code = ibs.get_species_codes(species_rowid)
@@ -2876,7 +2876,7 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
         elif ibs.get_dbname().startswith('GZ_'):
             return 'zebra_grevys'
     if aid_list is None:
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_staged=None)
     species_list = ibs.get_annot_species_texts(aid_list)
     species_hist = ut.dict_hist(species_list)
     if len(species_hist) == 0:
@@ -6106,7 +6106,7 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
         pip install pyzbar
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
@@ -6193,7 +6193,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         python -m ibeis.other.ibsfuncs inspect_ggr_qr_codes
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')

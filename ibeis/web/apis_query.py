@@ -1089,7 +1089,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
     edge = (aid1, aid2, )
-    userid = appf.get_userid('web')
+    user_id = controller_inject.get_user()
     now = datetime.utcnow()
     payload = {
         'action'            : 'add_feedback',
@@ -1101,7 +1101,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         # it to null.
         'meta_decision'     : 'null',
         'tags'              : [] if len(tags) == 0 else tags.split(';'),
-        'user_id'           : 'user:web:%s' % (userid, ),
+        'user_id'           : 'user:web:%s' % (user_id, ),
         'confidence'        : confidence,
         'timestamp_s1'      : user_times['server_time_start'],
         'timestamp_c1'      : user_times['client_time_start'],

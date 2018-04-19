@@ -35,11 +35,13 @@ import base64
 # TODO: allow optional flask import
 try:
     import flask
-    from flask import request
+    from flask import session, request
     HAS_FLASK = True
 except Exception as ex:
     HAS_FLASK = False
-    ut.printex(ex, 'Missing flask', iswarning=True)
+    msg = ('Missing flask and/or Flask-session.\n'
+           'pip install Flask')
+    ut.printex(ex, msg, iswarning=True)
     if ut.STRICT:
         raise
 
@@ -56,13 +58,14 @@ except Exception as ex:
 
 try:
     from flask_cas import CAS
-    from flask_cas import login_required
+    from flask_cas import login_required as login_required_cas
     #from flask.ext.cas import CAS
     #from flask.ext.cas import login_required
-    HAS_FLASK_CAS = True
+    # HAS_FLASK_CAS = True
+    HAS_FLASK_CAS = False
 except Exception as ex:
     HAS_FLASK_CAS = False
-    login_required = ut.identity
+    login_required_cas = ut.identity
     msg = ('Missing flask.ext.cas.\n'
            'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
     ut.printex(ex, msg, iswarning=True)
@@ -81,7 +84,7 @@ UTOOL_AUTOGEN_SPHINX_RUNNING = not (
 GLOBAL_APP_ENABLED = (not UTOOL_AUTOGEN_SPHINX_RUNNING and
                       not ut.get_argflag('--no-flask') and HAS_FLASK)
 GLOBAL_APP_NAME = 'IBEIS'
-GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
+GLOBAL_APP_SECRET = os.urandom(64)
 
 GLOBAL_APP = None
 GLOBAL_CORS = None
@@ -121,6 +124,11 @@ def get_flask_app(templates_auto_reload=True):
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME,
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
+
+        if ut.VERBOSE:
+            print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET, ))
+        GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
+
         if templates_auto_reload:
             GLOBAL_APP.config['TEMPLATES_AUTO_RELOAD'] = True
         GLOBAL_APP.QUERY_OBJECT = None
@@ -394,9 +402,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
 
 
 def authentication_challenge():
-    """
-    Sends a 401 response that enables basic auth
-    """
+    """Sends a 401 response that enables basic auth."""
     rawreturn = ''
     success = False
     code = 401
@@ -440,7 +446,9 @@ def create_key():
 
 def get_signature(key, message):
     def encode(x):
-        return bytes(x, 'utf-8')
+        if not isinstance(x, bytes):
+            x = bytes(x, 'utf-8')
+        return x
 
     def decode(x):
         return x.decode('utf-8')
@@ -580,9 +588,7 @@ API_SEEN_SET = set([])
 
 
 def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
-    """
-    For function calls that resolve to api calls and return json.
-    """
+    """For function calls that resolve to api calls and return json."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
@@ -745,20 +751,70 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
         return ut.dummy_args_decor
 
 
+def authenticated():
+    return get_user(username=None) is not None
+
+
+def authenticate(username, **kwargs):
+    get_user(username=username, **kwargs)
+
+
+def deauthenticate():
+    get_user(username=False)
+
+
+def get_user(username=None, name=None, organization=None):
+    USER_KEY = '_USER_'
+
+    if USER_KEY not in session:
+        session[USER_KEY] = None
+
+    if username is not None:
+        if username in [False]:
+            # De-authenticate
+            session[USER_KEY] = None
+        else:
+            # Authenticate
+            assert isinstance(username, six.string_types), 'user must be a string'
+            username = username.lower()
+            session[USER_KEY] = {
+                'username'     : username,
+                'name'         : name,
+                'organization' : organization,
+            }
+
+    return session[USER_KEY]
+
+
+def login_required_session(function):
+    @wraps(function)
+    def wrap(*args, **kwargs):
+        if not authenticated():
+            from ibeis.web import appfuncs as appf
+            refer = flask.request.url.replace(flask.request.url_root, '')
+            refer = appf.encode_refer_url(refer)
+            return flask.redirect(flask.url_for('login', refer=refer))
+        else:
+            return function(*args, **kwargs)
+    return wrap
+
+
 def get_ibeis_flask_route(__name__):
-    """
-    For function calls that resolve to webpages and return html
-    """
+    """For function calls that resolve to webpages and return html."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_route(rule, __api_prefix_check__=True,
-                           __api_postfix_check__=True, **options):
-            if __api_prefix_check__:
+        def register_route(rule,
+                           __route_prefix_check__=True,
+                           __route_postfix_check__=True,
+                           __route_authenticate__=True,
+                           **options):
+            if __route_prefix_check__:
                 assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
-            if __api_postfix_check__:
+            if __route_postfix_check__:
                 assert rule.endswith('/'), 'A route should always end in a forward-slash'
             assert 'methods' in options, 'A route should always have a specified methods list'
+
             # if '_' in rule:
             #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
             # accpet args to flask.route
@@ -766,10 +822,16 @@ def get_ibeis_flask_route(__name__):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
+
+                login_required = login_required_cas if HAS_FLASK_CAS else login_required_session
+
+                if not __route_authenticate__:
+                    login_required = ut.identity
+
                 @app.route(rule, **options)
                 # @crossdomain(origin='*')
                 # @authentication_user_only
-                # @login_required  # FLASK CAS Authentication
+                @login_required
                 @wraps(func)
                 def translated_call(**kwargs):
                     #debug = {'kwargs': kwargs}
@@ -923,9 +985,7 @@ def dev_autogen_explicit_injects():
 
 
 def make_ibs_register_decorator(modname):
-    """
-    builds variables and functions that controller injectable modules need
-    """
+    """builds variables and functions that controller injectable modules need."""
     if __name__ == '__main__':
         print('WARNING: cannot register controller functions as main')
     CLASS_INJECT_KEY = (CONTROLLER_CLASSNAME, modname)

@@ -32,6 +32,8 @@ PART_THETA              = 'part_theta'
 PART_VERTS              = 'part_verts'
 PART_UUID               = 'part_uuid'
 PART_QUALITY            = 'part_quality'
+PART_STAGED_FLAG        = 'part_staged_flag'
+PART_STAGED_USER_ID     = 'part_staged_user_identity'
 
 
 # ==========
@@ -57,8 +59,14 @@ def _get_all_part_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/part/', methods=['GET'])
-def get_valid_part_rowids(ibs):
-    return ibs._get_all_part_rowids()
+def get_valid_part_rowids(ibs, include_only_aid_list=None,
+                          is_staged=False, viewpoint='no-filter', minqual=None):
+    part_rowid_list = ibs._get_all_part_rowids()
+
+    part_rowid_list = ibs.filter_part_set(
+        part_rowid_list, include_only_aid_list=include_only_aid_list,
+        is_staged=is_staged, viewpoint=viewpoint, minqual=minqual)
+    return part_rowid_list
 
 
 @register_ibs_method
@@ -83,9 +91,20 @@ def part_src_api(rowid=None):
     return routes_ajax.part_src(rowid)
 
 
+@register_ibs_method
 def filter_part_set(ibs, part_rowid_list, include_only_aid_list=None,
-                          viewpoint='no-filter', minqual=None):
+                    is_staged=False, viewpoint='no-filter', minqual=None):
     # -- valid part_rowid filtering --
+
+    # filter by is_staged
+    if is_staged is True:
+        # corresponding unoptimized hack for is_staged
+        flag_list = ibs.get_part_staged_flags(part_rowid_list)
+        part_rowid_list  = ut.compress(part_rowid_list, flag_list)
+    elif is_staged is False:
+        flag_list = ibs.get_part_staged_flags(part_rowid_list)
+        part_rowid_list  = ut.filterfalse_items(part_rowid_list, flag_list)
+
     if include_only_aid_list is not None:
         gid_list     = ibs.get_part_gids(part_rowid_list)
         is_valid_gid = [gid in include_only_aid_list for gid in gid_list]
@@ -111,7 +130,8 @@ def filter_part_set(ibs, part_rowid_list, include_only_aid_list=None,
 def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
                 detect_confidence_list=None, notes_list=None,
                 vert_list=None, part_uuid_list=None, viewpoint_list=None,
-                quality_list=None, type_list=None, **kwargs):
+                quality_list=None, type_list=None, staged_uuid_list=None,
+                staged_user_id_list=None, **kwargs):
     r"""
     Adds an part to annotations
 
@@ -191,11 +211,21 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     if part_uuid_list is None:
         part_uuid_list = [uuid.uuid4() for _ in range(len(aid_list))]
 
+    if staged_uuid_list is None:
+        staged_uuid_list = [None] * len(aid_list)
+    is_staged_list = [
+        staged_uuid is not None
+        for staged_uuid in staged_uuid_list
+    ]
+    if staged_user_id_list is None:
+        staged_user_id_list = [None] * len(aid_list)
+
     # Define arguments to insert
     colnames = ('part_uuid', 'annot_rowid', 'part_xtl', 'part_ytl',
                 'part_width', 'part_height', 'part_theta', 'part_num_verts',
                 'part_verts', 'part_viewpoint', 'part_detect_confidence',
-                'part_note', 'part_type')
+                'part_note', 'part_type', 'part_staged_flag', 'part_staged_uuid',
+                'part_staged_user_identity')
 
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in part_uuid_list]
     if any(check_uuid_flags):
@@ -205,7 +235,8 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     params_iter = list(zip(part_uuid_list, aid_list, xtl_list, ytl_list,
                             width_list, height_list, theta_list, nVert_list,
                             vertstr_list, viewpoint_list, detect_confidence_list,
-                            notes_list, type_list))
+                            notes_list, type_list, is_staged_list, staged_uuid_list,
+                            staged_user_id_list))
 
     # Execute add PARTs SQL
     superkey_paramx = (0,)
@@ -659,6 +690,117 @@ def get_part_tag_text(ibs, part_rowid_list, eager=True, nInput=None):
     return part_tags_list
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/part/staged/', methods=['GET'])
+def get_part_staged_flags(ibs, part_rowid_list):
+    r"""
+    returns if an part is staged
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        part_rowid_list (int):  list of part ids
+
+    Returns:
+        list: part_staged_flag_list - True if part is staged
+
+    CommandLine:
+        python -m ibeis.control.manual_part_funcs --test-get_part_staged_flags
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/staged/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> part_rowid_list = ibs.get_valid_part_rowids()
+        >>> gid_list = get_part_staged_flags(ibs, part_rowid_list)
+        >>> result = str(gid_list)
+        >>> print(result)
+    """
+    part_staged_flag_list = ibs.db.get(const.PART_TABLE,
+                                          (PART_STAGED_FLAG,), part_rowid_list)
+    return part_staged_flag_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/part/staged/uuid/', methods=['GET'])
+def get_part_staged_uuids(ibs, aid_list):
+    r"""
+    Returns:
+        list: part_uuid_list a list of image uuids by aid
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/staged/uuid/
+    """
+    part_uuid_list = ibs.db.get(const.PART_TABLE, ('part_staged_uuid',), aid_list)
+    return part_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/part/staged/user/', methods=['GET'])
+def get_part_staged_user_ids(ibs, part_rowid_list):
+    r"""
+    returns if an part is staged
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        part_rowid_list (int):  list of part ids
+
+    Returns:
+        list: part_staged_user_id_list - True if part is staged
+
+    CommandLine:
+        python -m ibeis.control.manual_part_funcs --test-get_part_staged_user_ids
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/staged/user/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> part_rowid_list = ibs.get_valid_part_rowids()
+        >>> gid_list = get_part_staged_user_ids(ibs, part_rowid_list)
+        >>> result = str(gid_list)
+        >>> print(result)
+    """
+    part_staged_user_id_list = ibs.db.get(const.PART_TABLE,
+                                           (PART_STAGED_USER_ID,), part_rowid_list)
+    return part_staged_user_id_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/part/staged/metadata/', methods=['GET'])
+def get_part_staged_metadata(ibs, part_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): part metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/staged/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.PART_TABLE, ('part_staged_metadata_json',), part_rowid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
 #### SETTERS ####  # NOQA
 
 
@@ -896,6 +1038,106 @@ def set_part_reviewed(ibs, part_rowid_list, reviewed_list):
     id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
     val_list = ((reviewed,) for reviewed in reviewed_list)
     ibs.db.set(const.PART_TABLE, ('part_toggle_reviewed',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@accessor_decors.cache_invalidator(const.PART_TABLE, [PART_STAGED_FLAG], rowidx=0)
+@register_api('/api/part/staged/', methods=['PUT'])
+def _set_part_staged_flags(ibs, part_rowid_list, flag_list):
+    r"""
+    Sets if an part is staged
+
+    RESTful:
+        Method: PUT
+        URL:    /api/part/staged/
+    """
+    id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
+    val_iter = ((flag,) for flag in flag_list)
+    ibs.db.set(const.PART_TABLE, (PART_STAGED_FLAG,), val_iter, id_iter)
+
+
+@register_ibs_method
+@register_api('/api/part/staged/uuid/', methods=['PUT'])
+def set_part_staged_uuids(ibs, aid_list, part_uuid_list):
+    r"""
+    Returns:
+        list_ (list): all nids of known animals
+        (does not include unknown names)
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_iter = ((part_uuid,) for part_uuid in part_uuid_list)
+    ibs.db.set(const.PART_TABLE, ('part_staged_uuid',), val_iter, id_iter)
+    flag_list = [
+        part_uuid is not None
+        for part_uuid in part_uuid_list
+    ]
+    ibs._set_part_staged_flags(aid_list, flag_list)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@accessor_decors.cache_invalidator(const.PART_TABLE, [PART_STAGED_USER_ID], rowidx=0)
+@register_api('/api/part/staged/user/', methods=['PUT'])
+def set_part_staged_user_ids(ibs, part_rowid_list, user_id_list):
+    r"""
+    Sets the staged part user id
+
+    RESTful:
+        Method: PUT
+        URL:    /api/part/staged/user/
+    """
+    id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
+    val_iter = ((user_id,) for user_id in user_id_list)
+    ibs.db.set(const.PART_TABLE, (PART_STAGED_USER_ID,), val_iter, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/part/staged/metadata/', methods=['PUT'])
+def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
+    r"""
+    Sets the part's staged metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/part/staged/metadata/
+
+    CommandLine:
+        python -m ibeis.control.manual_part_funcs --test-set_part_staged_metadata
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
+        >>> part_rowid_list = add_parts(ibs, aid_list, bbox_list=bbox_list)
+        >>> metadata_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ] * len(part_rowid_list)
+        >>> print(ut.repr2(metadata_dict_list))
+        >>> ibs.set_part_staged_metadata(part_rowid_list, metadata_dict_list)
+        >>> # verify results
+        >>> metadata_dict_list_ = ibs.get_part_staged_metadata(part_rowid_list)
+        >>> print(ut.repr2(metadata_dict_list_))
+        >>> assert metadata_dict_list == metadata_dict_list_
+        >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
+        >>> print(ut.repr2(metadata_str_list))
+        >>> metadata_str_list_ = ibs.get_part_staged_metadata(part_rowid_list, return_raw=True)
+        >>> print(ut.repr2(metadata_str_list_))
+        >>> assert metadata_str_list == metadata_str_list_
+    """
+    id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.PART_TABLE, ('part_staged_metadata_json',), val_list, id_iter)
 
 
 #==========

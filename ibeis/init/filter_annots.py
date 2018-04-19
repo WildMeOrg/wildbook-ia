@@ -310,6 +310,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=None):
                            align=True),))
         print('+---------------------')
     avail_aids = ibs._get_all_aids()
+    avail_aids = ibs.filter_annotation_set(avail_aids, is_staged=False)
     avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg, verbose=verbose)
     avail_aids = filter_annots_intragroup(ibs, avail_aids, aidcfg, verbose=verbose)
     avail_aids = sample_annots(ibs, avail_aids, aidcfg, verbose=verbose)
@@ -1091,6 +1092,8 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
     # Hack: Make hierarchical filters to supersede this
     if initial_aids is None:
         initial_aids = ibs._get_all_aids()
+
+    initial_aids = ibs.filter_annotation_set(initial_aids, is_staged=False)
 
     verbflags  = dict(verbose=verbose)
     qfiltflags = dict(prefix='q', **verbflags)
