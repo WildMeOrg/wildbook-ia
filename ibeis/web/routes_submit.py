@@ -65,7 +65,7 @@ def submit_cameratrap(**kwargs):
 
 
 @register_route('/submit/detection/', methods=['POST'])
-def submit_detection(**kwargs):
+def submit_detection(is_staged=False, **kwargs):
     ibs = current_app.ibs
     method = request.form.get('detection-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -226,13 +226,14 @@ def submit_detection(**kwargs):
             ibs.set_annot_species(aid_list, species_list)
 
             staged_uuid = uuid.uuid4()
-
             user = controller_inject.get_user()
             user_id = user.get('username', None)
-            user_id_list = [user_id] * len(aid_list)
-            ibs.set_annot_staged_user_ids(aid_list, user_id_list)
-            uuid_list = [staged_uuid] * len(aid_list)
-            ibs.set_annot_staged_uuids(aid_list, uuid_list)
+
+            if is_staged:
+                user_id_list = [user_id] * len(aid_list)
+                ibs.set_annot_staged_user_ids(aid_list, user_id_list)
+                uuid_list = [staged_uuid] * len(aid_list)
+                ibs.set_annot_staged_uuids(aid_list, uuid_list)
 
             # Set the mapping dict to use aids now
             mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
@@ -314,12 +315,11 @@ def submit_detection(**kwargs):
             ibs.set_part_qualities(part_rowid_list, quality_list)
             ibs.set_part_types(part_rowid_list, type_list)
 
-            user = controller_inject.get_user()
-            user_id = user.get('username', None)
-            user_id_list = [user_id] * len(aid_list)
-            ibs.set_part_staged_user_ids(aid_list, user_id_list)
-            uuid_list = [staged_uuid] * len(aid_list)
-            ibs.set_part_staged_uuids(aid_list, uuid_list)
+            if is_staged:
+                user_id_list = [user_id] * len(aid_list)
+                ibs.set_part_staged_user_ids(aid_list, user_id_list)
+                uuid_list = [staged_uuid] * len(aid_list)
+                ibs.set_part_staged_uuids(aid_list, uuid_list)
 
             # Set image reviewed flag
             ibs.set_image_reviewed([gid], [1])
