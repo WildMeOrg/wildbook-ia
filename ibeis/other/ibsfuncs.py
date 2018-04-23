@@ -6183,30 +6183,6 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
 @register_ibs_method
 def fix_ggr_rq_codes(ibs, imageset_qr_dict):
 
-    qr_move_list = [
-        # No conflicts
-        ('5A',   '5B'),
-        ('14A',  '14B'),
-        ('118A', '192A'),
-        ('119A', '189A'),
-        ('120A', '190A'),
-        ('138C', '169C'),
-
-        # Conflicts - Move first
-        ('115A', '191A'),
-        ('148A', '1489-temp'),
-
-        # Conflicts - Move second
-        ('117A', '115A'),
-        ('149A', '148A'),
-
-        # Conflicts - Move third
-        ('149A-temp', '149A'),
-
-        # Conflicts - Merge
-        ('57A', '25A')
-    ]
-
     qr_fix_dict = {
         '5B'   : 1179,
         '6A'   : 1359,
@@ -6287,6 +6263,14 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
         '225A' : 55968,
         '226A' : 56005,
     }
+
+    for ggr_name in qr_fix_dict:
+        number = ggr_name[:-1]
+        letter = ggr_name[-1]
+        qr_gid = qr_fix_dict[ggr_name]
+
+        number = int(numberx)
+        assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
 
     ut.embed()
 

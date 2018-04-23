@@ -239,6 +239,107 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
         ut.rsync(filename, dst_uri)
     ut.delete(src_uri)
 
+    # Errors found by QR codes
+
+    ut.embed()
+
+    # No conflicts
+    src_uri = join(ggr_path, '5', '5A/')
+    dst_uri = join(ggr_path, '5', '5B/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    src_uri = join(ggr_path, '14', '14A/')
+    dst_uri = join(ggr_path, '14', '14B/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    src_uri = join(ggr_path, '118', '118A/')
+    dst_uri = join(ggr_path, '192', '192A/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    src_uri = join(ggr_path, '118', '118A/')
+    dst_uri = join(ggr_path, '192')
+    ut.ensuredir(dst_uri)
+    dst_uri = join(dst_uri, '192A/')
+    ut.rsync(src_uri, dst_uri)
+    src_uri = src_uri.replace('\\', '')
+    src_uri = '/'.join(src_uri.split('/')[:-1])
+    ut.delete(src_uri)
+
+    src_uri = join(ggr_path, '119', '119A/')
+    dst_uri = join(ggr_path, '189')
+    ut.ensuredir(dst_uri)
+    dst_uri = join(dst_uri, '189A/')
+    ut.rsync(src_uri, dst_uri)
+    src_uri = src_uri.replace('\\', '')
+    src_uri = '/'.join(src_uri.split('/')[:-1])
+    ut.delete(src_uri)
+
+    src_uri = join(ggr_path, '120', '120A/')
+    dst_uri = join(ggr_path, '190')
+    ut.ensuredir(dst_uri)
+    dst_uri = join(dst_uri, '190A/')
+    ut.rsync(src_uri, dst_uri)
+    src_uri = src_uri.replace('\\', '')
+    src_uri = '/'.join(src_uri.split('/')[:-1])
+    ut.delete(src_uri)
+
+    src_uri = join(ggr_path, '138', '138C/')
+    dst_uri = join(ggr_path, '169', '169C/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri)
+
+    src_uri = join(ggr_path, '138', '138C/')
+    dst_uri = join(ggr_path, '169', '169C/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri)
+
+    # Conflicts - Move first
+
+    src_uri = join(ggr_path, '115', '115A/')
+    dst_uri = join(ggr_path, '191')
+    ut.ensuredir(dst_uri)
+    dst_uri = join(dst_uri, '191A/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    src_uri = join(ggr_path, '148', '148A/')
+    dst_uri = join(ggr_path, '149', '149A-temp/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    # Conflicts - Move second
+
+    src_uri = join(ggr_path, '117', '117A/')
+    dst_uri = join(ggr_path, '115', '115A')
+    ut.rsync(src_uri, dst_uri)
+    src_uri = src_uri.replace('\\', '')
+    src_uri = '/'.join(src_uri.split('/')[:-1])
+    ut.delete(src_uri)
+
+    # Conflicts - Move third
+
+    src_uri = join(ggr_path, '149', '149A/')
+    dst_uri = join(ggr_path, '148', '148A/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    src_uri = join(ggr_path, '149', '149A-temp/')
+    dst_uri = join(ggr_path, '149', '149A/')
+    ut.rsync(src_uri, dst_uri)
+    ut.delete(src_uri.replace('\\', ''))
+
+    # Conflicts - Merge third
+
+    src_uri = join(ggr_path, '57', '57A/')
+    dst_uri = join(ggr_path, '25', '25A')
+    ut.rsync(src_uri, dst_uri)
+    src_uri = src_uri.replace('\\', '')
+    src_uri = '/'.join(src_uri.split('/')[:-1])
+    ut.delete(src_uri)
+
     ################################################################################
 
     blacklist_filepath_set = set([
