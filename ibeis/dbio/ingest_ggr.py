@@ -322,7 +322,8 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     ################################################################################
 
-    _fix_ggr2018_directory_structure(ggr_path)
+    if apply_updates:
+        _fix_ggr2018_directory_structure(ggr_path)
 
     ################################################################################
 
