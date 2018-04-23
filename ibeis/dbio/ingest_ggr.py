@@ -257,17 +257,12 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     ut.delete(src_uri.replace('\\', ''))
 
     src_uri = join(ggr_path, '118', '118A/')
-    dst_uri = join(ggr_path, '192', '192A/')
-    ut.rsync(src_uri, dst_uri)
-    ut.delete(src_uri.replace('\\', ''))
-
-    src_uri = join(ggr_path, '118', '118A/')
     dst_uri = join(ggr_path, '192')
     ut.ensuredir(dst_uri)
     dst_uri = join(dst_uri, '192A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
-    src_uri = '/'.join(src_uri.split('/')[:-1])
+    src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
     src_uri = join(ggr_path, '119', '119A/')
@@ -276,7 +271,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     dst_uri = join(dst_uri, '189A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
-    src_uri = '/'.join(src_uri.split('/')[:-1])
+    src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
     src_uri = join(ggr_path, '120', '120A/')
@@ -285,12 +280,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     dst_uri = join(dst_uri, '190A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
-    src_uri = '/'.join(src_uri.split('/')[:-1])
-    ut.delete(src_uri)
-
-    src_uri = join(ggr_path, '138', '138C/')
-    dst_uri = join(ggr_path, '169', '169C/')
-    ut.rsync(src_uri, dst_uri)
+    src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
     src_uri = join(ggr_path, '138', '138C/')
@@ -314,11 +304,11 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     # Conflicts - Move second
 
-    src_uri = join(ggr_path, '117', '117A/')
-    dst_uri = join(ggr_path, '115', '115A')
+    src_uri = join(ggr_path, '117', '115A/')
+    dst_uri = join(ggr_path, '115', '115A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
-    src_uri = '/'.join(src_uri.split('/')[:-1])
+    src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
     # Conflicts - Move third
@@ -336,10 +326,10 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     # Conflicts - Merge third
 
     src_uri = join(ggr_path, '57', '57A/')
-    dst_uri = join(ggr_path, '25', '25A')
+    dst_uri = join(ggr_path, '25', '25A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
-    src_uri = '/'.join(src_uri.split('/')[:-1])
+    src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
     ################################################################################

@@ -6264,15 +6264,43 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
         '226A' : 56005,
     }
 
+    ut.embed()
+
     for ggr_name in qr_fix_dict:
         number = ggr_name[:-1]
         letter = ggr_name[-1]
         qr_gid = qr_fix_dict[ggr_name]
 
-        number = int(numberx)
+        number = int(number)
         assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
 
-    ut.embed()
+        imageset_name = 'GGR2,%d' % (number, )
+        imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_name)
+
+        assert imageset_id in imageset_qr_dict
+        imageset_list = imageset_qr_dict[imageset_id]
+
+        tag = 'GGR2,%d,%s' % (number, letter)
+        imageset_list_ = []
+        for imageset in imageset_list:
+            if tag == imageset[0]:
+                continue
+            imageset_list_.append(imageset)
+
+        imageset_list_.append([
+            'GGR2,%d,%s' % (number, letter, ),
+            qr_gid,
+            True,
+            [
+                'car=%s', (number, ),
+                'event=ggr2018',
+                'person=%s' % (letter.lower(), ),
+            ],
+        ])
+
+        imageset_qr_dict[imageset_id] = imageset_list_
+
+    return imageset_qr_dict
 
 
 @register_ibs_method
