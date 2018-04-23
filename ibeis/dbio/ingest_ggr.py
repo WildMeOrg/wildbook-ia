@@ -8,31 +8,7 @@ import utool as ut
 import ibeis
 
 
-def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
-                             **kwargs):
-    r"""Convert the raw GGR2 (2018) data to an ibeis database.
-
-    Args
-        ggr_path (str): Directory to folder *containing* raw GGR 2018 data
-        dbdir (str): Output directory
-
-    CommandLine:
-        python -m ibeis convert_ggr2018_to_ibeis
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_ggr import *  # NOQA
-        >>> default_ggr_path = join('/', 'data', 'ibeis', 'GGR2', 'GGR2018data')
-        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
-        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> ggr_path = ut.get_argval('--ggr', type_=str, default=default_ggr_path)
-        >>> result = convert_ggr2018_to_ibeis(ggr_path, dbdir=dbdir)
-        >>> print(result)
-    """
-    ALLOWED_NUMBERS = list(range(1, 250))
-    ALLOWED_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
-
-    ################################################################################
+def _fix_ggr2018_directory_structure(ggr_path):
 
     # Manual fixes for bad directories
 
@@ -232,8 +208,6 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     # Errors found by QR codes
 
-    ut.embed()
-
     # No conflicts
     src_uri = join(ggr_path, '5', '5A/')
     dst_uri = join(ggr_path, '5', '5B/')
@@ -300,12 +274,12 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
-    # Conflicts - Move third
-
     src_uri = join(ggr_path, '149', '149A/')
     dst_uri = join(ggr_path, '148', '148A/')
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
+
+    # Conflicts - Move third
 
     src_uri = join(ggr_path, '149', '149A-temp/')
     dst_uri = join(ggr_path, '149', '149A/')
@@ -321,6 +295,35 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     src_uri = '/'.join(src_uri.split('/')[:-2])
     ut.delete(src_uri)
 
+
+def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
+                             apply_updates=True, **kwargs):
+    r"""Convert the raw GGR2 (2018) data to an ibeis database.
+
+    Args
+        ggr_path (str): Directory to folder *containing* raw GGR 2018 data
+        dbdir (str): Output directory
+
+    CommandLine:
+        python -m ibeis convert_ggr2018_to_ibeis
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.dbio.ingest_ggr import *  # NOQA
+        >>> default_ggr_path = join('/', 'data', 'ibeis', 'GGR2', 'GGR2018data')
+        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ggr_path = ut.get_argval('--ggr', type_=str, default=default_ggr_path)
+        >>> result = convert_ggr2018_to_ibeis(ggr_path, dbdir=dbdir, dry_run=True, apply_updates=False)
+        >>> print(result)
+    """
+    ALLOWED_NUMBERS = list(range(1, 250))
+    ALLOWED_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
+
+    ################################################################################
+
+    _fix_ggr2018_directory_structure(ggr_path)
+
     ################################################################################
 
     blacklist_filepath_set = set([
@@ -331,6 +334,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     ])
 
     # Check root files
+    direct = Directory(ggr_path)
     for filepath in direct.files(recursive=False):
         try:
             assert filepath in blacklist_filepath_set
@@ -353,7 +357,8 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     direct1_list = direct.directories()
     direct1_list.sort(key=lambda x: int(x.base()), reverse=False)
     for direct1 in direct1_list:
-        print('Processing directory: %r' % (direct1, ))
+        if not dry_run:
+            print('Processing directory: %r' % (direct1, ))
         base1 = direct1.base()
 
         try:
