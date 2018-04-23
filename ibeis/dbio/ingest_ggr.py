@@ -222,22 +222,24 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     ut.delete(src_uri)
 
     src_uri = join(ggr_path, '160', '160E', '104DUSIT')
-    direct = Directory(src_uri, recursive=False)
-    filename_list = direct.files()
-    for filename in sorted(filename_list):
-        dst_uri = filename.replace('104DUSIT/', '').replace('.JPG', '_.JPG')
-        if not exists(dst_uri):
+    if exists(src_uri):
+        direct = Directory(src_uri, recursive=False)
+        filename_list = direct.files()
+        for filename in sorted(filename_list):
+            dst_uri = filename.replace('104DUSIT/', '').replace('.JPG', '_.JPG')
+            assert not exists(dst_uri)
             ut.rsync(filename, dst_uri)
-    ut.delete(src_uri)
+        ut.delete(src_uri)
 
     src_uri = join(ggr_path, '222', '222B', '102DUSIT')
-    direct = Directory(src_uri, recursive=False)
-    filename_list = direct.files()
-    for filename in sorted(filename_list):
-        dst_uri = filename.replace('102DUSIT/', '').replace('.JPG', '_.JPG')
-        if not exists(dst_uri):
+    if exists(src_uri):
+        direct = Directory(src_uri, recursive=False)
+        filename_list = direct.files()
+        for filename in sorted(filename_list):
+            dst_uri = filename.replace('102DUSIT/', '').replace('.JPG', '_.JPG')
+            assert not exists(dst_uri)
             ut.rsync(filename, dst_uri)
-    ut.delete(src_uri)
+        ut.delete(src_uri)
 
     # Errors found by QR codes
 
