@@ -24,7 +24,6 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
         >>> from ibeis.dbio.ingest_ggr import *  # NOQA
         >>> default_ggr_path = join('/', 'data', 'ibeis', 'GGR2', 'GGR2018data')
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
-
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ggr_path = ut.get_argval('--ggr', type_=str, default=default_ggr_path)
         >>> result = convert_ggr2018_to_ibeis(ggr_path, dbdir=dbdir)
@@ -197,16 +196,6 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
     ut.rsync(src_uri, dst_uri)
     ut.delete(src_uri.replace('\\', ''))
 
-    src_uri = join(ggr_path, '85', '85A/')
-    ut.delete(src_uri.replace('\\', ''))
-
-    src_uri = join(ggr_path, '73/85A/')
-    dst_uri = join(ggr_path, '85/85A/')
-    ut.rsync(src_uri, dst_uri)
-    src_uri = src_uri.replace('\\', '')
-    src_uri = '/'.join(src_uri.split('/')[:-2])
-    ut.delete(src_uri)
-
     src_uri = join(ggr_path, '230', '230A', 'El\ Karama/*.*')
     dst_uri = join(ggr_path, '230', '230A/')
     ut.rsync(src_uri, dst_uri)
@@ -304,7 +293,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
 
     # Conflicts - Move second
 
-    src_uri = join(ggr_path, '117', '115A/')
+    src_uri = join(ggr_path, '117', '117A/')
     dst_uri = join(ggr_path, '115', '115A/')
     ut.rsync(src_uri, dst_uri)
     src_uri = src_uri.replace('\\', '')
