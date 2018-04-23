@@ -168,6 +168,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         'modes_rectangle'         : True,
         'modes_diagonal'          : True,
         'modes_diagonal2'         : True,
+        'staged'                  : False,
     }
 
     if config is not None:

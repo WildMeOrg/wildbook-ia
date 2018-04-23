@@ -65,7 +65,9 @@ def submit_cameratrap(**kwargs):
 
 
 @register_route('/submit/detection/', methods=['POST'])
-def submit_detection(is_staged=False, **kwargs):
+def submit_detection(**kwargs):
+    is_staged = kwargs.get('staged', False)
+
     ibs = current_app.ibs
     method = request.form.get('detection-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -202,6 +204,9 @@ def submit_detection(is_staged=False, **kwargs):
                 None if annot['label'] in [None, 'None'] else int(annot['label'])
                 for annot in annotation_list
             ]
+
+            ut.embed()
+
             # Delete annotations that didn't survive
             kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
             ibs.delete_annots(kill_aid_list)
@@ -229,9 +234,10 @@ def submit_detection(is_staged=False, **kwargs):
             user = controller_inject.get_user()
             user_id = user.get('username', None)
 
+            user_id_list = [user_id] * len(aid_list)
+            ibs.set_annot_staged_user_ids(aid_list, user_id_list)
+
             if is_staged:
-                user_id_list = [user_id] * len(aid_list)
-                ibs.set_annot_staged_user_ids(aid_list, user_id_list)
                 uuid_list = [staged_uuid] * len(aid_list)
                 ibs.set_annot_staged_uuids(aid_list, uuid_list)
 
@@ -315,9 +321,10 @@ def submit_detection(is_staged=False, **kwargs):
             ibs.set_part_qualities(part_rowid_list, quality_list)
             ibs.set_part_types(part_rowid_list, type_list)
 
+            user_id_list = [user_id] * len(aid_list)
+            ibs.set_part_staged_user_ids(aid_list, user_id_list)
+
             if is_staged:
-                user_id_list = [user_id] * len(aid_list)
-                ibs.set_part_staged_user_ids(aid_list, user_id_list)
                 uuid_list = [staged_uuid] * len(aid_list)
                 ibs.set_part_staged_uuids(aid_list, uuid_list)
 
@@ -341,6 +348,7 @@ def submit_detection(is_staged=False, **kwargs):
         'modes_rectangle',
         'modes_diagonal',
         'modes_diagonal2',
+        'staged',
     ]
     config = {
         default: kwargs[default]

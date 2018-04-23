@@ -1744,6 +1744,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         ('modes_rectangle',         True),
         ('modes_diagonal',          True),
         ('modes_diagonal2',         True),
+        ('staged',                  False),
     ]
 
     config_kwargs = kwargs.get('config', {})
@@ -2074,6 +2075,8 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         for (settings_key, settings_default) in settings_key_list
     }
 
+    is_staged = config.get('staged')
+
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
@@ -2098,6 +2101,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          settings=settings,
                          THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
                          THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
+                         is_staged=is_staged,
                          num_staged_aids=num_staged_aids,
                          num_staged_sessions=num_staged_sessions,
                          num_staged_users=num_staged_users,

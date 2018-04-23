@@ -107,6 +107,8 @@
           value = existing[org]
           names = value[1]
 
+          names.sort()
+
           console.log(names)
           for(var index in names) {
             name = names[index]
@@ -142,7 +144,10 @@
             text: "Select Organization",
         }));
 
-        for(var org in existing) {
+        orgs = existing.keys();
+        orgs.sort();
+
+        for(var org in orgs) {
           var value = existing[org]
           var nice = value[0]
           var names = value[1]
