@@ -6180,6 +6180,116 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
     return imageset_dict
 
 
+def fix_ggr_rq_codes(ibs, imageset_qr_dict):
+
+    qr_move_list = [
+        # No conflicts
+        ('5A',   '5B'),
+        ('14A',  '14B'),
+        ('118A', '192A'),
+        ('119A', '189A'),
+        ('120A', '190A'),
+        ('138C', '169C'),
+
+        # Conflicts - Move first
+        ('115A', '191A'),
+        ('148A', '1489-temp'),
+
+        # Conflicts - Move second
+        ('117A', '115A'),
+        ('149A', '148A'),
+
+        # Conflicts - Move third
+        ('149A-temp', '149A'),
+
+        # Conflicts - Merge
+        ('57A', '25A')
+    ]
+
+    qr_fix_dict = {
+        '5B'   : 1179,
+        '6A'   : 1359,
+        '8B'   : 2886,
+        '8C'   : 3072,
+        '8D'   : 3843,
+        '9A'   : 4128,
+        '14B'  : 4599,
+        '21A'  : 5027,
+        '21B'  : 5228,
+        '25A'  : 18074,  # Yes, this is correct, merged from 57A (originally 6012)
+        '26A'  : 6191,
+        '26B'  : 6366,
+        '33B'  : 9892,
+        '40A'  : 10913,
+        '42A'  : 13074,
+        '45B'  : 14062,
+        '45D'  : 14394,
+        '45E'  : 14941,
+        '49A'  : 16207,
+        '54A'  : 16539,
+        '54B'  : 17742,
+        '56A'  : 17930,
+        '59A'  : 18369,
+        '63B'  : 19465,
+        '76A'  : 21859,
+        '76B'  : 22233,
+        '76C'  : 22410,
+        '78A'  : 22734,
+        '82D'  : 24683,
+        '85B'  : 25746,
+        '87A'  : 26274,
+        '90A'  : 27221,
+        '91A'  : 27287,
+        '92C'  : 28700,
+        '92D'  : 29216,
+        '94A'  : 29632,
+        '94B'  : 30659,
+        '95A'  : 31961,
+        '100A' : 32224,
+        '100B' : 32615,
+        '100C' : 33034,
+        '100E' : 33688,
+        '108B' : 34524,
+        '114A' : 24963,
+        '115A' : 35295,
+        '116A' : 35186,
+        '122A' : 36786,
+        '122B' : 37183,
+        '126B' : 38382,
+        '126D' : 38840,
+        '130A' : 38926,
+        '133A' : 39162,
+        '136A' : 39233,
+        '136B' : 39511,
+        '137A' : 39595,
+        '137B' : 39627,
+        '137C' : 39860,
+        '138A' : 39968,
+        '138B' : 40173,
+        '155A' : 43530,
+        '159A' : 44773,
+        '160E' : 47933,
+        '160F' : 48467,
+        '163B' : 50872,
+        '163C' : 51188,
+        '164A' : 51374,
+        '169C' : 40968,
+        '189A' : 36062,
+        '190A' : 36483,
+        '191A' : 34969,
+        '192A' : 35895,
+        '201E' : 52494,
+        '202B' : 52525,
+        '222A' : 52907,
+        '222B' : 54182,
+        '223B' : 55114,
+        '225A' : 55968,
+        '226A' : 56005,
+    }
+
+    ut.embed()
+
+
 @register_ibs_method
 def inspect_ggr_qr_codes(ibs, *args, **kwargs):
     r"""
@@ -6213,6 +6323,8 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
     for key in list(imageset_qr_dict.keys()):
         imageset_qr_dict[int(key)] = imageset_qr_dict.pop(key)
 
+    imageset_qr_dict = fix_ggr_rq_codes(imageset_qr_dict)
+
     ggr_qr_dict = {}
     for imageset_rowid in imageset_qr_dict:
         imageset_text = ibs.get_imageset_text(imageset_rowid)
@@ -6229,10 +6341,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             imageset_qr_dict[imageset_rowid],
         )
 
-    # Hard-code QR code failures
-    sync_dict = {
-        # IMAGESET_ID: [['GGR2,NUMBER,LETTER', GID, MATCH BOOL, ['car=NUMBER', 'event=ggr2018', 'person=LETTER']]],
-    }
+    sync_dict = {}
 
     # Find all others and run checks
     for number in sorted(list(ggr_qr_dict.keys())):
