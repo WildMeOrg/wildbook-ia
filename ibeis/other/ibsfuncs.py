@@ -6180,6 +6180,7 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
     return imageset_dict
 
 
+@register_ibs_method
 def fix_ggr_rq_codes(ibs, imageset_qr_dict):
 
     qr_move_list = [
@@ -6323,7 +6324,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
     for key in list(imageset_qr_dict.keys()):
         imageset_qr_dict[int(key)] = imageset_qr_dict.pop(key)
 
-    imageset_qr_dict = fix_ggr_rq_codes(imageset_qr_dict)
+    imageset_qr_dict = ibs.fix_ggr_rq_codes(imageset_qr_dict)
 
     ggr_qr_dict = {}
     for imageset_rowid in imageset_qr_dict:
