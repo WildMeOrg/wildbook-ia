@@ -60,6 +60,14 @@ ORIENTATION_DICT_INVERSE = {
 }
 
 
+GPSLATITUDE_CODE     = GPS_TAG_TO_GPSID['GPSLatitude']
+GPSLATITUDEREF_CODE  = GPS_TAG_TO_GPSID['GPSLatitudeRef']
+GPSLONGITUDE_CODE    = GPS_TAG_TO_GPSID['GPSLongitude']
+GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
+GPSDATE_CODE         = GPS_TAG_TO_GPSID['GPSDateStamp']
+GPSTIME_CODE         = GPS_TAG_TO_GPSID['GPSTimeStamp']
+
+
 def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     if default_list is None:
         default_list = [None for _ in range(len(exif_tagid_list))]
@@ -196,10 +204,27 @@ def convert_degrees(value):
     return degrees_float
 
 
-GPSLATITUDE_CODE     = GPS_TAG_TO_GPSID['GPSLatitude']
-GPSLATITUDEREF_CODE  = GPS_TAG_TO_GPSID['GPSLatitudeRef']
-GPSLONGITUDE_CODE    = GPS_TAG_TO_GPSID['GPSLongitude']
-GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
+def get_unixtime_gps(exif_dict, default=-1):
+    if GPSINFO_CODE in exif_dict:
+        gps_info = exif_dict[GPSINFO_CODE]
+
+        if (GPSDATE_CODE in gps_info and
+             GPSTIME_CODE in gps_info):
+            gps_date = gps_info[GPSDATE_CODE]
+            gps_time = gps_info[GPSTIME_CODE]
+
+            try:
+                hour = gps_time[0][0]
+                minute = gps_time[1][0]
+                second = gps_time[2][0] / 1000.0
+                exiftime = '%s %02d:%02d:%02d' % (gps_date, hour, minute, second)
+
+                unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+                return unixtime
+            except:
+                pass
+
+    return default
 
 
 def get_lat_lon(exif_dict, default=(-1, -1)):
@@ -409,6 +434,13 @@ def parse_exif_unixtime(image_fpath):
     pil_img = image_shared.open_pil_image(image_fpath)
     exif_dict = get_exif_dict(pil_img)
     unixtime = get_unixtime(exif_dict)
+    return unixtime
+
+
+def parse_exif_unixtime_gps(image_fpath):
+    pil_img = image_shared.open_pil_image(image_fpath)
+    exif_dict = get_exif_dict(pil_img)
+    unixtime = get_unixtime_gps(exif_dict)
     return unixtime
 
 
