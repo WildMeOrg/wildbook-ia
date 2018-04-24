@@ -6470,6 +6470,51 @@ def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
         >>> ibs.sync_ggr_with_qr_codes()
     """
     sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
+    imageset_rowid_list = sorted(sync_dict.keys())
+
+    car_dict = {}
+    for imageset_rowid in imageset_rowid_list:
+        imageset_text = ibs.get_imageset_text(imageset_rowid)
+        values = ibs.parse_ggr_name(imageset_text)
+        assert values is not None
+        dataset, letter, number = values
+
+        qr_gid = sync_dict[imageset_rowid]
+        if letter == 'A':
+            if qr_gid is not None:
+                car_dict[number] = qr_gid
+
+    for imageset_rowid in imageset_rowid_list:
+        imageset_text = ibs.get_imageset_text(imageset_rowid)
+        values = ibs.parse_ggr_name(imageset_text)
+        assert values is not None
+        dataset, letter, number = values
+
+        qr_gid = sync_dict[imageset_rowid]
+        gid_list = ibs.get_imageset_gids(imageset_rowid)
+
+        if letter == 'A':
+            continue
+
+        if qr_gid is None:
+            print('Skipping None QR %r' % (values, ))
+            continue
+
+        assert qr_gid in gid_list
+
+        anchor_gid = car_dict.get(number, None)
+
+        if anchor_gid is None:
+            print('Skipping None Anchor %r' % (values, ))
+            continue
+
+        qr_time = ibs.get_image_unixtime(qr_gid)
+        anchor_time = ibs.get_image_unixtime(anchor_gid)
+        offset = anchor_time - qr_time
+
+        if number == 82:
+            break
+        # ibs.set_image_timedelta_posix(gid_list, [offset] * len(gid_list))
 
     ut.embed()
 

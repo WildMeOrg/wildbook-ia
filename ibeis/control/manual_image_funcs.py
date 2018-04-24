@@ -93,7 +93,7 @@ def _get_all_image_rowids(ibs):
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
 def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
-                   require_gps=None, reviewed=None):
+                   require_gps=None, reviewed=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -134,7 +134,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
         gid_list = ibs.get_imageset_gids(imgsetid)
     if require_unixtime:
         # Remove images without timestamps
-        unixtime_list = ibs.get_image_unixtime(gid_list)
+        unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
         isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
         gid_list = ut.compress(gid_list, isvalid_list)
     if require_gps:
@@ -1320,7 +1320,7 @@ def get_image_heights(ibs, gid_list):
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/image/unixtime/', methods=['GET'])
-def get_image_unixtime(ibs, gid_list):
+def get_image_unixtime(ibs, gid_list, timedelta_correction=True):
     r"""
     Returns:
         list_ (list): a list of times that the images were taken by gid.
@@ -1332,13 +1332,20 @@ def get_image_unixtime(ibs, gid_list):
         Method: GET
         URL:    /api/image/unixtime/
     """
-    return ibs.db.get(const.IMAGE_TABLE, ('image_time_posix',), gid_list)
+    unixtime_list = ibs.db.get(const.IMAGE_TABLE, ('image_time_posix',), gid_list)
+    if timedelta_correction:
+        timedelta_list = ibs.get_image_timedelta_posix(gid_list)
+        unixtime_list = [
+            unixtime + timedelta
+            for unixtime, timedelta in zip(unixtime_list, timedelta_list)
+        ]
+    return unixtime_list
 
 
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-def get_image_unixtime_asfloat(ibs, gid_list):
+def get_image_unixtime_asfloat(ibs, gid_list, **kwargs):
     r"""
     Returns:
         list_ (list): a list of times that the images were taken by gid.
@@ -1346,7 +1353,7 @@ def get_image_unixtime_asfloat(ibs, gid_list):
     Returns:
         list_ (list): np.nan if no timedata exists for a given gid
     """
-    unixtime_list = ibs.get_image_unixtime(gid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
     unixtime_list = np.array(unixtime_list, dtype=np.float)
     # Fix problem in sql and make -1 be nans or nulls
     unixtime_list[unixtime_list == -1] = np.nan
@@ -1357,24 +1364,24 @@ def get_image_unixtime_asfloat(ibs, gid_list):
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/image/unixtime2/', methods=['GET'])
-def get_image_unixtime2(ibs, gid_list):
+def get_image_unixtime2(ibs, gid_list, **kwargs):
     """ alias for get_image_unixtime_asfloat """
-    return ibs.get_image_unixtime_asfloat(gid_list)
+    return ibs.get_image_unixtime_asfloat(gid_list, **kwargs)
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_image_datetime_str(ibs, gid_list):
-    unixtime_list = ibs.get_image_unixtime(gid_list)
+def get_image_datetime_str(ibs, gid_list, **kwargs):
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
     datestr_list = list(map(ut.unixtime_to_datetimestr, unixtime_list))
     return datestr_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_image_datetime(ibs, gid_list):
+def get_image_datetime(ibs, gid_list, **kwargs):
     import datetime
-    unixtime_list = ibs.get_image_unixtime(gid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
     datetime_list = [None if ts is None or ts == -1 else
                      datetime.datetime.fromtimestamp(ts) for ts in unixtime_list]
     return datetime_list

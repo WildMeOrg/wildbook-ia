@@ -841,7 +841,7 @@ def get_imageset_gps_lats(ibs, imageset_rowid_list):
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/imageset/info/', methods=['PUT'])
-def update_imageset_info(ibs, imageset_rowid_list):
+def update_imageset_info(ibs, imageset_rowid_list, **kwargs):
     r"""
     sets start and end time for imagesets
 
@@ -859,7 +859,10 @@ def update_imageset_info(ibs, imageset_rowid_list):
     hasgids_list = [len(gids) > 0 for gids in gids_list_]
     gids_list = ut.compress(gids_list_, hasgids_list)
     imgsetid_list = ut.compress(imageset_rowid_list, hasgids_list)
-    unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, gids_list)
+    unixtimes_list = [
+        ibs.get_image_unixtime(gid_list, **kwargs)
+        for gid_list in gids_list
+    ]
     # TODO: replace -1's with nans and do nanmin
     imageset_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
     imageset_end_time_posix_list = [max(unixtimes) for unixtimes in unixtimes_list]

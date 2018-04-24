@@ -2480,7 +2480,7 @@ def get_annot_image_names(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot/image/unixtime/', methods=['GET'])
-def get_annot_image_unixtimes(ibs, aid_list):
+def get_annot_image_unixtimes(ibs, aid_list, **kwargs):
     r"""
     Args:
         aid_list (list):
@@ -2493,7 +2493,7 @@ def get_annot_image_unixtimes(ibs, aid_list):
         URL:    /api/annot/image/unixtime/
     """
     gid_list = ibs.get_annot_gids(aid_list)
-    unixtime_list = ibs.get_image_unixtime(gid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
     return unixtime_list
 
 
