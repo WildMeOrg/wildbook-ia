@@ -6450,7 +6450,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
 
 
 @register_ibs_method
-def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, delete=True, *args, **kwargs):
+def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, delete=False, *args, **kwargs):
     r"""
     Sync image time offsets using QR codes sync data
 
