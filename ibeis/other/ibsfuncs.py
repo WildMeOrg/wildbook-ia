@@ -6301,7 +6301,6 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
                 'person=%s' % (letter.lower(), ),
             ],
         ]
-        print(imageset)
         imageset_list_.append(imageset)
 
         imageset_qr_dict[imageset_id] = imageset_list_
@@ -6471,7 +6470,6 @@ def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
         >>> ibs.sync_ggr_with_qr_codes()
     """
     sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
-    print(sync_dict)
 
     ut.embed()
 

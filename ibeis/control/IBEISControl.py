@@ -758,6 +758,8 @@ class IBEISController(BASE_CLASS):
         from ibeis.control import _sql_helpers
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname,
                                      ibs.backupdir)
+        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqlstaging_fname,
+                                     ibs.backupdir)
 
     def _send_wildbook_request(ibs, wbaddr, payload=None):
         import requests
