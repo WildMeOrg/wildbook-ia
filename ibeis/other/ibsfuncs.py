@@ -6458,7 +6458,7 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs overwrite_unixtimes_from_gps
+        python -m ibeis.other.ibsfuncs overwrite_ggr_unixtimes_from_gps
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -6467,7 +6467,7 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ibs = ibeis.opendb(dbdir=dbdir)
-        >>> ibs.overwrite_unixtimes_from_gps()
+        >>> ibs.overwrite_ggr_unixtimes_from_gps()
     """
     from vtool.exif import parse_exif_unixtime_gps
 
