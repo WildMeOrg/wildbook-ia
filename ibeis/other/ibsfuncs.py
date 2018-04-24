@@ -6450,7 +6450,70 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
 
 
 @register_ibs_method
-def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, delete=False, *args, **kwargs):
+def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
+    r"""
+    Sync image time offsets using QR codes sync data
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs overwrite_unixtimes_from_gps
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs.overwrite_unixtimes_from_gps()
+    """
+    from vtool.exif import parse_exif_unixtime_gps
+
+    sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
+    imageset_rowid_list = sorted(sync_dict.keys())
+
+    ut.embed()
+
+    car_dict = {}
+    for imageset_rowid in imageset_rowid_list:
+        imageset_text = ibs.get_imageset_text(imageset_rowid)
+        if imageset_text is None:
+            continue
+        values = ibs.parse_ggr_name(imageset_text)
+        assert values is not None
+        dataset, letter, number = values
+
+        qr_gid = sync_dict[imageset_rowid]
+        if letter == 'A':
+            if qr_gid is not None:
+                car_dict[number] = qr_gid
+
+        gid_list = ibs.get_imageset_gids(imageset_rowid)
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+
+        # Check for GPS dates and use if available
+        count = 0
+        path_list = ibs.get_image_paths(gid_list)
+        for gid, path, unixtime in zip(gid_list, path_list, unixtime_list):
+            unixtime_gps = parse_exif_unixtime_gps(path)
+            if unixtime_gps != -1:
+                unixtime_gps += gmt_offset * 60 * 60
+
+                offset = unixtime_gps - unixtime
+                if offset != 0:
+                    current_offset = ibs.get_image_timedelta_posix([gid])[0]
+                    offset += current_offset
+                    ibs.set_image_timedelta_posix([gid], [offset])
+                    count += 1
+
+        if count > 0:
+            print('Overwrote %d image unixtimes from GPS for %r' % (count, values))
+
+
+@register_ibs_method
+def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, *args, **kwargs):
     r"""
     Sync image time offsets using QR codes sync data
 
@@ -6470,6 +6533,7 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, delete=Fals
         >>> ibs.sync_ggr_with_qr_codes()
     """
     import datetime
+
     lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 24)))
     upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 2, 1)))
 
@@ -6508,7 +6572,7 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, delete=Fals
                 count += 1
 
         if count > 0:
-            print('Found %d images to delete from %r' % (count, values))
+            print('Found %d images to delete for %r' % (count, values))
 
     cleared_imageset_rowid_list = [
         187,  # Images from GGR2 but from 2015 with valid GPS coordinates
@@ -6575,10 +6639,14 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, delete=Fals
         if count > 0:
             print('Found %d images to delete from %r' % (count, values))
 
-    if delete:
-        print('Deleting %d gids' % (len(delete_gid_list), ))
-        ibs.delete_images(delete_gid_list)
+    return delete_gid_list
 
+
+@register_ibs_method
+def purge_ggr_unixtime_out_of_bounds(ibs, *args, **kwargs):
+    delete_gid_list = ibs.sync_ggr_with_qr_codes(ibs, *args, **kwargs)
+    print('Deleting %d gids' % (len(delete_gid_list), ))
+    ibs.delete_images(delete_gid_list)
     ibs.delete_empty_imgsetids()
 
 
