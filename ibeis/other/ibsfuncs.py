@@ -6118,12 +6118,15 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
     import cv2
 
     if imageset_rowid_list is None:
+        ibs.delete_empty_imgsetids()
         imageset_rowid_list = ibs.get_valid_imgsetids(is_special=False)
 
     imageset_dict = {}
     for imageset_rowid in imageset_rowid_list:
         imageset_text = ibs.get_imageset_text(imageset_rowid)
         values = ibs.parse_ggr_name(imageset_text)
+        if values is None:
+            print(imageset_text)
         assert values is not None
         dataset, letter, number = values
 
@@ -6193,22 +6196,22 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
         '14B'  : 4599,
         '21A'  : 5027,
         '21B'  : 5228,
-        '25A'  : 18074,  # Yes, this is correct, merged from 57A (originally 6012)
-        '26A'  : 6191,
-        '26B'  : 6366,
-        '33B'  : 9892,
-        '40A'  : 10913,
-        '42A'  : 13074,
-        '45B'  : 14062,
-        '45D'  : 14394,
-        '45E'  : 14941,
-        '49A'  : 16207,
-        '54A'  : 16539,
-        '54B'  : 17742,
-        '56A'  : 17930,
+        '25A'  : 6291,
+        '26A'  : 6467,
+        '26B'  : 6655,
+        '33B'  : 10168,
+        '40A'  : 11189,
+        '42A'  : 13350,
+        '45B'  : 14338,
+        '45D'  : 14670,
+        '45E'  : 15217,
+        '49A'  : 16483,
+        '54A'  : 16815,
+        '54B'  : 18018,
+        '56A'  : 18204,
         '59A'  : 18369,
         '63B'  : 19465,
-        '76A'  : 21859,
+        '76A'  : 21858,
         '76B'  : 22233,
         '76C'  : 22410,
         '78A'  : 22734,
@@ -6227,34 +6230,35 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
         '100C' : 33034,
         '100E' : 33688,
         '108B' : 34524,
-        '114A' : 24963,
-        '115A' : 35295,
-        '116A' : 35186,
-        '122A' : 36786,
-        '122B' : 37183,
-        '126B' : 38382,
-        '126D' : 38840,
-        '130A' : 38926,
-        '133A' : 39162,
-        '136A' : 39233,
-        '136B' : 39511,
-        '137A' : 39595,
-        '137B' : 39627,
-        '137C' : 39860,
-        '138A' : 39968,
-        '138B' : 40173,
-        '155A' : 43530,
-        '159A' : 44773,
-        '160E' : 47933,
-        '160F' : 48467,
-        '163B' : 50872,
-        '163C' : 51188,
-        '164A' : 51374,
-        '169C' : 40968,
-        '189A' : 36062,
-        '190A' : 36483,
-        '191A' : 34969,
-        '192A' : 35895,
+        '114A' : 34963,
+        '115A' : 34969,
+        '116A' : 35569,
+        '122A' : 35737,
+        '122B' : 36134,
+        '126B' : 37333,
+        '126D' : 37791,
+        '130A' : 37877,
+        '133A' : 38113,
+        '136A' : 38184,
+        '136B' : 38462,
+        '137A' : 38548,
+        '137B' : 38559,
+        '137C' : 38831,
+        '138A' : 38919,
+        '138B' : 39124,
+        '149A' : 41079,
+        '155A' : 41886,
+        '159A' : 43129,
+        '160E' : 46284,
+        '160F' : 46823,
+        '163B' : 49228,
+        '163C' : 49544,
+        '164A' : 49730,
+        '169C' : 50387,
+        '189A' : 50961,
+        '190A' : 51382,
+        '191A' : 51626,
+        '192A' : 51843,
         '201E' : 52494,
         '202B' : 52525,
         '222A' : 52907,
@@ -6264,18 +6268,18 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
         '226A' : 56005,
     }
 
-    ut.embed()
-
     for ggr_name in qr_fix_dict:
         number = ggr_name[:-1]
-        letter = ggr_name[-1]
+        letter = ggr_name[-1].upper()
         qr_gid = qr_fix_dict[ggr_name]
 
         number = int(number)
         assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
 
-        imageset_name = 'GGR2,%d' % (number, )
+        imageset_name = 'GGR2,%d,%s' % (number, letter, )
         imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_name)
+        gid_list = ibs.get_imageset_gids(imageset_id)
+        assert qr_gid in gid_list
 
         assert imageset_id in imageset_qr_dict
         imageset_list = imageset_qr_dict[imageset_id]
@@ -6287,16 +6291,18 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
                 continue
             imageset_list_.append(imageset)
 
-        imageset_list_.append([
-            'GGR2,%d,%s' % (number, letter, ),
+        imageset = [
+            imageset_name,
             qr_gid,
             True,
             [
-                'car=%s', (number, ),
+                'car=%s' % (number, ),
                 'event=ggr2018',
                 'person=%s' % (letter.lower(), ),
             ],
-        ])
+        ]
+        print(imageset)
+        imageset_list_.append(imageset)
 
         imageset_qr_dict[imageset_id] = imageset_list_
 
@@ -6354,6 +6360,16 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             imageset_qr_dict[imageset_rowid],
         )
 
+    cleared_imageset_rowid_list = [
+        2,    # NO QR AT ALL
+        63,   # INDIVIDUAL WITH NO QR (BUT HAS GPS)
+        77,   # INDIVIDUAL WITH NO QR (BUT HAS GPS)
+        107,  # NO QR AT ALL
+        185,  # INDIVIDUAL WITH NO QR (BUT HAS GPS)
+        216,  # NO QR AT ALL
+        217,  # NO QR AT ALL
+    ]
+
     sync_dict = {}
 
     # Find all others and run checks
@@ -6368,7 +6384,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             letter = letter_list[0]
             imageset_rowid, qr_list = qr_dict[letter]
 
-            match_gid = -1
+            match_gid = None
 
             if letter != 'A':
                 print('Individual car missing A: %r (%r)' % (number, letter, ))
@@ -6386,12 +6402,16 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                     print('Individual car incorrect QR: %r %r (imageset_rowid = %r)' % (number, letter, imageset_rowid, ))
                     print('\t%r' % (qr_list, ))
 
+            if imageset_rowid in cleared_imageset_rowid_list:
+                print('\tCleared Imageset: %d %r' % (number, letter, ))
+
             sync_dict[imageset_rowid] = match_gid
         else:
             failed_list = []
             missing_list = []
             for letter in letter_list:
                 imageset_rowid, qr_list = qr_dict[letter]
+
                 match_gid = None
 
                 if imageset_rowid in sync_dict:
@@ -6409,6 +6429,9 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                     if match_gid is None:
                         failed_list.append((letter, imageset_rowid))
 
+                if imageset_rowid in cleared_imageset_rowid_list:
+                    print('\tCleared Imageset: %d %r' % (number, letter, ))
+
                 sync_dict[imageset_rowid] = match_gid
 
             if len(missing_list) > 0:
@@ -6420,6 +6443,35 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                 print('Group car incorrect QR: %r (%r)' % (number, letter_list, ))
                 for failed, imageset_rowid in failed_list:
                     print('\tBad QR for %r %r (imageset_rowid = %r)' % (number, failed, imageset_rowid, ))
+
+    filename_qr_json = join(ibs.dbdir, 'imageset_qr_dict.final.json')
+    ut.save_json(filename_qr_json, imageset_qr_dict)
+
+    return sync_dict
+
+
+@register_ibs_method
+def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
+    r"""
+    Sync image time offsets using QR codes sync data
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs sync_ggr_with_qr_codes
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs.sync_ggr_with_qr_codes()
+    """
+    sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
+    print(sync_dict)
 
     ut.embed()
 
