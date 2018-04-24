@@ -745,6 +745,8 @@ class IBEISController(BASE_CLASS):
         ibs._close_depcache()
         ibs.db.close()
         ibs.db = None
+        ibs.staging.close()
+        ibs.staging = None
 
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
@@ -886,15 +888,12 @@ class IBEISController(BASE_CLASS):
         return ibs.dbdir
 
     def get_db_core_path(ibs):
-        """
-        Returns:
-            path (str): path of the sqlite3 core database file """
         return ibs.db.fpath
 
+    def get_db_staging_path(ibs):
+        return ibs.staging.fpath
+
     def get_db_cache_path(ibs):
-        """
-        Returns:
-            path (str): path of the sqlite3 cache database file """
         return ibs.dbcache.fpath
 
     def get_shelves_path(ibs):

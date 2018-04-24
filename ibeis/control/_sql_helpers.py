@@ -103,20 +103,38 @@ def revert_to_backup(ibs):
         >>> # SCRIPT
         >>> from ibeis.control._sql_helpers import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        >>> ibs = ibeis.opendb(defaultdb='elephants')
         >>> result = revert_to_backup(ibs)
         >>> print(result)
     """
     db_path = ibs.get_db_core_path()
+    staging_path = ibs.get_db_staging_path()
+
     ibs.disconnect_sqldatabase()
     backup_dir = ibs.backupdir
 
-    ut.move(db_path, ut.get_nonconflicting_path(db_path + 'revertfrom.%d.orig'))
-    # Carefull may invalidate the cache
+    # Core database
     fname, ext = splitext(db_path)
-    path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
+    db_path_ = '%s_revert.sqlite3' % (fname, )
+    ut.move(db_path, db_path_)
+    fpath, fname = split(fname)
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext, )))
+    assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, db_path)
+
+    # Staging database
+    fname, ext = splitext(staging_path)
+    staging_path_ = '%s_revert.sqlite3' % (fname, )
+    ut.move(staging_path, staging_path_)
+    fpath, fname = split(fname)
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext, )))
+    assert len(path_list) > 0
+    previous_backup = path_list[-1]
+    copy_database(previous_backup, staging_path)
+
+    # Delete the cache
+    ut.delete(ibs.cachedir)
 
 
 def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP):
@@ -166,12 +184,11 @@ def copy_database(src_fpath, dst_fpath):
 
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
     """
-        >>> db_dir = ibs.get_ibsdir()
-        >>> db_fname = ibs.sqldb_fname
-        >>> backup_dir = ibs.backupdir
-        >>> max_keep = MAX_KEEP
-        >>> manual = False
-
+    >>> db_dir = ibs.get_ibsdir()
+    >>> db_fname = ibs.sqldb_fname
+    >>> backup_dir = ibs.backupdir
+    >>> max_keep = MAX_KEEP
+    >>> manual = False
     """
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
