@@ -6450,7 +6450,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
 
 
 @register_ibs_method
-def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
+def sync_ggr_with_qr_codes(ibs, gmt_offset=3.0, delete=True, *args, **kwargs):
     r"""
     Sync image time offsets using QR codes sync data
 
@@ -6469,6 +6469,13 @@ def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
         >>> ibs = ibeis.opendb(dbdir=dbdir)
         >>> ibs.sync_ggr_with_qr_codes()
     """
+    import datetime
+    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 24)))
+    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 2, 1)))
+
+    lower_posix -= gmt_offset * 60 * 60
+    upper_posix -= gmt_offset * 60 * 60
+
     sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
     imageset_rowid_list = sorted(sync_dict.keys())
 
@@ -6484,6 +6491,12 @@ def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
             if qr_gid is not None:
                 car_dict[number] = qr_gid
 
+    cleared_imageset_rowid_list = [
+        187,  # Images from GGR2 but from 2015 with valid GPS coordinates
+        188,  # Images from GGR2 but from 2015 with valid GPS coordinates
+        189,  # Images from GGR2 but from 2015 with valid GPS coordinates
+    ]
+    delete_gid_list = []
     for imageset_rowid in imageset_rowid_list:
         imageset_text = ibs.get_imageset_text(imageset_rowid)
         values = ibs.parse_ggr_name(imageset_text)
@@ -6503,6 +6516,7 @@ def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
         assert qr_gid in gid_list
 
         anchor_gid = car_dict.get(number, None)
+        assert anchor_gid != qr_gid
 
         if anchor_gid is None:
             print('Skipping None Anchor %r' % (values, ))
@@ -6511,12 +6525,40 @@ def sync_ggr_with_qr_codes(ibs, *args, **kwargs):
         qr_time = ibs.get_image_unixtime(qr_gid)
         anchor_time = ibs.get_image_unixtime(anchor_gid)
         offset = anchor_time - qr_time
+        if offset != 0:
+            current_offset = ibs.get_image_timedelta_posix([qr_gid])[0]
+            offset += current_offset
+            ibs.set_image_timedelta_posix(gid_list, [offset] * len(gid_list))
+            print('Correcting offset for %r: %d' % (values, offset, ))
 
-        if number == 82:
-            break
-        # ibs.set_image_timedelta_posix(gid_list, [offset] * len(gid_list))
+        try:
+            qr_time = ibs.get_image_unixtime(qr_gid)
+            anchor_time = ibs.get_image_unixtime(anchor_gid)
+            offset = anchor_time - qr_time
+            assert offset == 0
+        except AssertionError:
+            print('\tFailed to correct offset for %r: %d ' % (values, offset, ))
+
+        if imageset_rowid not in cleared_imageset_rowid_list:
+            assert lower_posix <= qr_time and qr_time <= upper_posix
+            assert lower_posix <= anchor_time and anchor_time <= upper_posix
+
+        count = 0
+        unixtime_list = ibs.get_image_timedelta_posix(gid_list)
+        for gid, unixtime in zip(gid_list, unixtime_list):
+            if unixtime is None or unixtime < lower_posix or upper_posix < unixtime:
+                delete_gid_list.append(gid)
+                count += 1
+
+        if count > 0:
+            print('Found %d images to delete from %r' % (count, values))
 
     ut.embed()
+
+    if delete:
+        print('Deleting %d gids' % (len(delete_gid_list), ))
+        ibs.delete_images(delete_gid_list)
+
 
 
 @register_ibs_method
