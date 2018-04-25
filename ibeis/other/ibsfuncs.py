@@ -6071,8 +6071,60 @@ def parse_ggr_name(ibs, imageset_text, verbose=False):
     return dataset, letter, number
 
 
+def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, filepath_list, note_list, timeout):
+    import pyzbar.pyzbar as pyzbar
+    import cv2
+
+    if values is None:
+        print(imageset_text)
+    assert values is not None
+    dataset, letter, number = values
+
+    ret_list = []
+    match = False
+    for index, (gid, filepath, note) in enumerate(zip(gid_list, filepath_list, note_list)):
+        if timeout is not None and index > timeout:
+            print('\tTimeout exceeded')
+            break
+
+        if match:
+            print('\tMatch was found')
+            break
+
+        print('\tProcessing %r (%s)' % (filepath, note, ))
+
+        image = cv2.imread(filepath, 0)
+        qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
+
+        if len(qr_list) > 0:
+            print('\t\tFound...')
+            qr = qr_list[0]
+            data = qr.data.decode('utf-8')
+
+            try:
+                data = data.split('/')[-1].strip('?')
+                data = data.split('&')
+                data = sorted(data)
+                print('\t\t%r' % (data, ))
+
+                assert data[0] == 'car=%d' % (number, )
+                assert data[1] == 'event=ggr2018'
+                assert data[2] == 'person=%s' % (letter.lower(), )
+
+                match = True
+                print('\t\tPassed!')
+            except:
+                pass
+                print('\t\tFailed!')
+
+            ret = (imageset_text, gid, match, data, )
+            ret_list.append(ret)
+
+    return imageset_rowid, ret_list
+
+
 @register_ibs_method
-def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
+def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=None, **kwargs):
     r"""
     Search for QR codes in each imageset.
 
@@ -6114,70 +6166,44 @@ def search_ggr_qr_codes(ibs, imageset_rowid_list=None, timeout=20, **kwargs):
         >>> ibs = ibeis.opendb(dbdir=dbdir)
         >>> ibs.search_ggr_qr_codes()
     """
-    import pyzbar.pyzbar as pyzbar
-    import cv2
-
     if imageset_rowid_list is None:
         ibs.delete_empty_imgsetids()
         imageset_rowid_list = ibs.get_valid_imgsetids(is_special=False)
 
+    imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
+    values_list = [
+        ibs.parse_ggr_name(imageset_text)
+        for imageset_text in imageset_text_list
+    ]
+    gids_list = [
+        sorted(ibs.get_imageset_gids(imageset_rowid))
+        for imageset_rowid in imageset_rowid_list
+    ]
+    filepaths_list = [
+        ibs.get_image_paths(gid_list)
+        for gid_list in gids_list
+    ]
+    notes_list = [
+        ibs.get_image_notes(gid_list)
+        for gid_list in gids_list
+    ]
+    timeouts_list = [timeout] * len(imageset_rowid_list)
+
+    arg_iter = list(zip(
+        imageset_rowid_list,
+        imageset_text_list,
+        values_list,
+        gids_list,
+        filepaths_list,
+        notes_list,
+        timeouts_list
+    ))
+    result_list = ut.util_parallel.generate2(search_ggr_qr_codes_worker, arg_iter)
+    result_list = list(result_list)
+
     imageset_dict = {}
-    for imageset_rowid in imageset_rowid_list:
-        imageset_text = ibs.get_imageset_text(imageset_rowid)
-        values = ibs.parse_ggr_name(imageset_text)
-        if values is None:
-            print(imageset_text)
-        assert values is not None
-        dataset, letter, number = values
-
-        gid_list = sorted(ibs.get_imageset_gids(imageset_rowid))
-        filepath_list = ibs.get_image_paths(gid_list)
-
-        match = False
-        for index, (gid, filepath) in enumerate(zip(gid_list, filepath_list)):
-            note = ibs.get_image_notes(gid)
-            if index > timeout:
-                print('\tTimeout exceeded')
-                break
-
-            if match:
-                print('\tMatch was found')
-                break
-
-            print('\tProcessing %r (%s)' % (filepath, note, ))
-
-            image = cv2.imread(filepath, 0)
-            qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
-
-            if len(qr_list) > 0:
-                print('\t\tFound...')
-                qr = qr_list[0]
-                data = qr.data.decode('utf-8')
-
-                try:
-                    data = data.split('/')[-1].strip('?')
-                    data = data.split('&')
-                    data = sorted(data)
-                    print('\t\t%r' % (data, ))
-
-                    assert data[0] == 'car=%d' % (number, )
-                    assert data[1] == 'event=ggr2018'
-                    assert data[2] == 'person=%s' % (letter.lower(), )
-
-                    match = True
-                    print('\t\tPassed!')
-                except:
-                    pass
-                    print('\t\tFailed!')
-
-                if imageset_rowid not in imageset_dict:
-                    imageset_dict[imageset_rowid] = []
-                imageset_dict[imageset_rowid].append(
-                    (imageset_text, gid, match, data, )
-                )
-
-        if imageset_rowid not in imageset_dict:
-            imageset_dict[imageset_rowid] = []
+    for imageset_rowid, qr_list in result_list:
+        imageset_dict[imageset_rowid] = qr_list
 
     assert len(list(imageset_dict.keys())) == len(imageset_rowid_list)
     return imageset_dict
@@ -6199,6 +6225,7 @@ def fix_ggr_rq_codes(ibs, imageset_qr_dict):
         '25A'  : 6291,
         '26A'  : 6467,
         '26B'  : 6655,
+        '27B'  : 8587,  # Three separate GPS records, using most prevalent
         '33B'  : 10168,
         '40A'  : 11189,
         '42A'  : 13350,
@@ -6469,12 +6496,8 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
         >>> ibs = ibeis.opendb(dbdir=dbdir)
         >>> ibs.overwrite_ggr_unixtimes_from_gps()
     """
-    from vtool.exif import parse_exif_unixtime_gps
-
     sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
     imageset_rowid_list = sorted(sync_dict.keys())
-
-    ut.embed()
 
     car_dict = {}
     for imageset_rowid in imageset_rowid_list:
@@ -6490,30 +6513,69 @@ def overwrite_ggr_unixtimes_from_gps(ibs, gmt_offset=3.0, *args, **kwargs):
             if qr_gid is not None:
                 car_dict[number] = qr_gid
 
-        gid_list = ibs.get_imageset_gids(imageset_rowid)
-        unixtime_list = ibs.get_image_unixtime(gid_list)
+            gid_list = ibs.get_imageset_gids(imageset_rowid)
+            count = overwrite_unixtimes_from_gps(ibs, gid_list, gmt_offset=gmt_offset)
 
-        # Check for GPS dates and use if available
-        count = 0
-        path_list = ibs.get_image_paths(gid_list)
-        for gid, path, unixtime in zip(gid_list, path_list, unixtime_list):
-            unixtime_gps = parse_exif_unixtime_gps(path)
-            if unixtime_gps != -1:
-                unixtime_gps += gmt_offset * 60 * 60
+            if count > 0:
+                print('Overwrote %d image unixtimes from GPS for %r' % (count, values))
 
-                offset = unixtime_gps - unixtime
-                if offset != 0:
-                    current_offset = ibs.get_image_timedelta_posix([gid])[0]
-                    offset += current_offset
-                    ibs.set_image_timedelta_posix([gid], [offset])
-                    count += 1
 
-        if count > 0:
-            print('Overwrote %d image unixtimes from GPS for %r' % (count, values))
+def overwrite_unixtimes_from_gps_worker(path):
+    from vtool.exif import parse_exif_unixtime_gps
+    unixtime_gps = parse_exif_unixtime_gps(path)
+    return unixtime_gps
 
 
 @register_ibs_method
-def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, *args, **kwargs):
+def overwrite_unixtimes_from_gps(ibs, gid_list, gmt_offset=3.0):
+    r"""
+    Sync image time offsets using QR codes sync data
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs overwrite_unixtimes_from_gps
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs.overwrite_unixtimes_from_gps()
+    """
+    # Check for GPS dates and use if available
+    path_list = ibs.get_image_paths(gid_list)
+    arg_iter = list(zip(path_list))
+    unixtime_gps_list = list(
+        ut.util_parallel.generate2(overwrite_unixtimes_from_gps_worker, arg_iter,
+                                   ordered=True)
+    )
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+
+    zipped_list = list(zip(gid_list, path_list, unixtime_list, unixtime_gps_list))
+
+    gid_list_ = []
+    offset_list = []
+    for gid, path, unixtime, unixtime_gps in zipped_list:
+        if unixtime_gps != -1:
+            unixtime_gps += gmt_offset * 60 * 60
+
+            offset = unixtime_gps - unixtime
+            if offset != 0:
+                current_offset = ibs.get_image_timedelta_posix([gid])[0]
+                offset += current_offset
+                gid_list_.append(gid)
+                offset_list.append(offset)
+
+    ibs.set_image_timedelta_posix(gid_list_, offset_list)
+    return len(gid_list_)
+
+
+@register_ibs_method
+def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwargs):
     r"""
     Sync image time offsets using QR codes sync data
 
@@ -6534,11 +6596,11 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, *args, **kw
     """
     import datetime
 
-    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 24)))
-    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 2, 1)))
+    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 27)))
+    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 29)))
 
-    lower_posix += current_offset * 60 * 60
-    upper_posix += current_offset * 60 * 60
+    lower_posix += local_offset * 60 * 60
+    upper_posix += local_offset * 60 * 60
 
     lower_posix -= gmt_offset * 60 * 60
     upper_posix -= gmt_offset * 60 * 60
@@ -6546,8 +6608,6 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, *args, **kw
     sync_dict = ibs.inspect_ggr_qr_codes(*args, **kwargs)
     imageset_rowid_list = sorted(sync_dict.keys())
     delete_gid_list = []
-
-    ut.embed()
 
     car_dict = {}
     for imageset_rowid in imageset_rowid_list:
@@ -6563,16 +6623,16 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, *args, **kw
             if qr_gid is not None:
                 car_dict[number] = qr_gid
 
-        count = 0
-        gid_list = ibs.get_imageset_gids(imageset_rowid)
-        unixtime_list = ibs.get_image_unixtime(gid_list)
-        for gid, unixtime in zip(gid_list, unixtime_list):
-            if unixtime is None or unixtime < lower_posix or upper_posix < unixtime:
-                delete_gid_list.append(gid)
-                count += 1
+            count = 0
+            gid_list = ibs.get_imageset_gids(imageset_rowid)
+            unixtime_list = ibs.get_image_unixtime(gid_list)
+            for gid, unixtime in zip(gid_list, unixtime_list):
+                if unixtime is None or unixtime < lower_posix or upper_posix < unixtime:
+                    delete_gid_list.append(gid)
+                    count += 1
 
-        if count > 0:
-            print('Found %d images to delete for %r' % (count, values))
+            if count > 0:
+                print('Found %d images to delete for %r' % (count, values))
 
     cleared_imageset_rowid_list = [
         187,  # Images from GGR2 but from 2015 with valid GPS coordinates
@@ -6639,6 +6699,7 @@ def sync_ggr_with_qr_codes(ibs, current_offset=-8.0, gmt_offset=3.0, *args, **kw
         if count > 0:
             print('Found %d images to delete from %r' % (count, values))
 
+    delete_gid_list = sorted(list(set(delete_gid_list)))
     return delete_gid_list
 
 
@@ -6647,11 +6708,95 @@ def purge_ggr_unixtime_out_of_bounds(ibs, *args, **kwargs):
     delete_gid_list = ibs.sync_ggr_with_qr_codes(ibs, *args, **kwargs)
     print('Deleting %d gids' % (len(delete_gid_list), ))
     ibs.delete_images(delete_gid_list)
-    ibs.delete_empty_imgsetids()
+    # ibs.delete_empty_imgsetids()
 
 
 @register_ibs_method
-def compute_ggr_fix_gps_contributors(ibs, min_diff=1800, individual=True):
+def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
+    # Get all gids
+    gid_list = ibs.get_valid_gids()
+    num_all = len(gid_list)
+    gps_list = ibs.get_image_gps(gid_list)
+    flag_list = [ gps == (-1, -1) for gps in gps_list ]
+    # Get bad GPS gids
+    gid_list = ut.filter_items(gid_list, flag_list)
+    num_bad = len(gid_list)
+
+    recovered_gid_list = []
+    recovered_gps_list = []
+    recovered_dist_list = []
+
+    unrecovered_gid_list = sorted(list(set(gid_list)))
+    num_unrecovered = len(unrecovered_gid_list)
+
+    gid_list = ibs.get_valid_gids()
+    note_list = ibs.get_image_notes(gid_list)
+    temp = -1 if individual else -2
+    note_list = [
+        ','.join(note.strip().split(',')[:temp])
+        for note in note_list
+    ]
+
+    not_found = set([])
+    num_found = 0
+    for gid in unrecovered_gid_list:
+        unixtime = ibs.get_image_unixtime(gid)
+        index = gid_list.index(gid)
+        note = note_list[index]
+
+        # Find siblings in the same car
+        sibling_gid_list = [
+            gid_
+            for gid_, note_ in zip(gid_list, note_list)
+            if note_ == note
+        ]
+
+        # Get valid GPS
+        gps_list = ibs.get_image_gps(sibling_gid_list)
+        flag_list = [ gps != (-1, -1) for gps in gps_list ]
+        gid_list_  = ut.compress(sibling_gid_list, flag_list)
+
+        # If found, get closest image
+        if len(gid_list_) > 0:
+            gps_list_  = ibs.get_image_gps(gid_list_)
+            unixtime_list_ = ibs.get_image_unixtime(gid_list_)
+            # Find closest
+            closest_diff, closest_gps = np.inf, None
+            for unixtime_, gps_ in zip(unixtime_list_, gps_list_):
+                diff = abs(unixtime - unixtime_)
+                if diff < closest_diff and gps_ != (-1, -1):
+                    closest_diff = diff
+                    closest_gps = gps_
+            # Assign closest
+            if closest_gps is not None and closest_diff <= min_diff:
+                recovered_gid_list.append(gid)
+                recovered_gps_list.append(closest_gps)
+                recovered_dist_list.append(closest_diff)
+                num_found += 1
+                h = closest_diff // 3600
+                closest_diff %= 3600
+                m = closest_diff // 60
+                closest_diff %= 60
+                s = closest_diff
+                print('FOUND LOCATION FOR GID %d' % (gid, ))
+                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
+                print('\tNEW GPS: %s' % (closest_gps, ))
+            else:
+                not_found.add(note)
+        else:
+            not_found.add(note)
+    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    num_recovered = len(recovered_gid_list)
+    num_unrecovered = num_bad - len(recovered_gid_list)
+    print('Missing GPS: %d' % (num_bad, ))
+    print('Recovered  : %d' % (num_recovered, ))
+    print('Unrecovered: %d' % (num_unrecovered, ))
+    print('Not Found  : %r' % (not_found, ))
+    return recovered_gid_list, recovered_gps_list, recovered_dist_list
+
+
+@register_ibs_method
+def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
     # Get all aids
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
@@ -6735,9 +6880,13 @@ def compute_ggr_fix_gps_contributors(ibs, min_diff=1800, individual=True):
 
 @register_ibs_method
 def commit_ggr_fix_gps(ibs, **kwargs):
-    vals = ibs.compute_ggr_fix_gps_contributors(**kwargs)
-    recovered_aid_list, recovered_gps_list, recovered_dist_list = vals
-    recovered_gid_list = ibs.get_annot_gids(recovered_aid_list)
+    if False:
+        vals = ibs.compute_ggr_fix_gps_contributors_aids(**kwargs)
+        recovered_aid_list, recovered_gps_list, recovered_dist_list = vals
+        recovered_gid_list = ibs.get_annot_gids(recovered_aid_list)
+    else:
+        vals = ibs.compute_ggr_fix_gps_contributors_gids(**kwargs)
+        recovered_gid_list, recovered_gps_list, recovered_dist_list = vals
 
     zipped = zip(recovered_gid_list, recovered_gps_list, recovered_dist_list)
     assignment_dict = {}
@@ -6746,10 +6895,15 @@ def commit_ggr_fix_gps(ibs, **kwargs):
             assignment_dict[gid] = []
         assignment_dict[gid].append((dist, gps))
 
+    assignment_gid_list = []
+    assignment_gps_list = []
     for assignment_gid in assignment_dict:
         assignment_list = sorted(assignment_dict[assignment_gid])
         assignment_gps = assignment_list[0][1]
-        ibs.set_image_gps([assignment_gid], [assignment_gps])
+        assignment_gid_list.append(assignment_gid)
+        assignment_gps_list.append(assignment_gps)
+
+    ibs.set_image_gps(assignment_gid_list, assignment_gps_list)
 
 
 @register_ibs_method

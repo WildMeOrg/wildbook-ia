@@ -314,7 +314,7 @@ def convert_ggr2018_to_ibeis(ggr_path, dbdir=None, purge=True, dry_run=False,
         >>> default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ggr_path = ut.get_argval('--ggr', type_=str, default=default_ggr_path)
-        >>> result = convert_ggr2018_to_ibeis(ggr_path, dbdir=dbdir, purge=False, dry_run=False, apply_updates=False)
+        >>> result = convert_ggr2018_to_ibeis(ggr_path, dbdir=dbdir, purge=False, dry_run=True, apply_updates=False)
         >>> print(result)
     """
     ALLOWED_NUMBERS = list(range(1, 250))
