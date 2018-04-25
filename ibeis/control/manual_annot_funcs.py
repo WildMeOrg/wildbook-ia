@@ -2187,7 +2187,7 @@ def get_annot_parent_aid(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @register_api('/api/annot/part/rowid/', methods=['GET'])
-def get_annot_part_rowids(ibs, aid_list):
+def get_annot_part_rowids(ibs, aid_list, is_staged=False):
     r"""
     Returns:
         list_ (list): a list of part rowids for each image by aid
@@ -2210,10 +2210,14 @@ def get_annot_part_rowids(ibs, aid_list):
         CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
         ''').fetchall()
     # The index maxes the following query very efficient
-    aids_list = ibs.db.get(ibs.const.PART_TABLE, (PART_ROWID,),
-                           aid_list, id_colname=ANNOT_ROWID,
-                           unpack_scalars=False)
-    return aids_list
+    part_rowids_list = ibs.db.get(ibs.const.PART_TABLE, (PART_ROWID,),
+                                  aid_list, id_colname=ANNOT_ROWID,
+                                  unpack_scalars=False)
+    part_rowids_list = [
+        ibs.filter_part_set(part_rowid_list, is_staged=is_staged)
+        for part_rowid_list in part_rowids_list
+    ]
+    return part_rowids_list
 
 
 @register_ibs_method

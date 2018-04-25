@@ -12,7 +12,6 @@
             <input type="checkbox" id="ia-detection-setting-orientation" {% if settings['ia-detection-setting-orientation'] %}checked{% endif %}>
             <i> Axis-to-Axis Mid-line <span class="ia-detection-hotkey">(M)</span></i>
           </div>
-          <br/>
           <span class="ia-detection-parts-toggle">
             <input type="checkbox" id="ia-detection-setting-parts-assignments" {% if settings['ia-detection-setting-parts-assignments'] %}checked{% endif %}>
             <i> Show Part Assignments <span class="ia-detection-hotkey">(A)</span></i>
@@ -50,7 +49,7 @@
 
     <div class="row">
       <div class="col-lg-4 col-md-4 col-sm-4">
-        <div>Staged AIDS: {{ num_staged_aids }}</div>
+        <div>Staged Annots / Parts: {{ num_staged_aids }} / {{ num_staged_part_rowids }}</div>
         <div>Staged Sessions: {{ num_staged_sessions }}</div>
         <div>Staged Users: {{ num_staged_users }}</div>
       </div>

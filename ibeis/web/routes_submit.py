@@ -98,8 +98,34 @@ def submit_detection(**kwargs):
                 redirection = '%s?gid=%d' % (redirection, gid, )
         return redirect(redirection)
     else:
-        current_aid_list = ibs.get_image_aids(gid)
-        current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list))
+        current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
+        current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
+
+        if is_staged:
+            staged_uuid = uuid.uuid4()
+            staged_user = controller_inject.get_user()
+            staged_user_id = staged_user.get('username', None)
+
+            # Filter aids for current user
+            current_annot_user_id_list = ibs.get_annot_staged_user_ids(current_aid_list)
+            current_aid_list = [
+                current_aid
+                for current_aid, current_annot_user_id in zip(current_aid_list, current_annot_user_id_list)
+                if current_annot_user_id == staged_user_id
+            ]
+
+            # Filter part_rowids for current user
+            current_part_user_id_list = ibs.get_part_staged_user_ids(current_part_rowid_list)
+            current_part_rowid_list = [
+                current_part_rowid
+                for current_part_rowid, current_part_user_id in zip(current_part_rowid_list, current_part_user_id_list)
+                if current_part_user_id == staged_user_id
+            ]
+        else:
+            staged_uuid = None
+            staged_user = None
+            staged_user_id = None
+
         # Make new annotations
         width, height = ibs.get_image_sizes(gid)
 
@@ -205,18 +231,30 @@ def submit_detection(**kwargs):
                 for annot in annotation_list
             ]
 
-            ut.embed()
-
             # Delete annotations that didn't survive
             kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
             ibs.delete_annots(kill_aid_list)
 
+            staged_uuid_list = [staged_uuid] * len(survived_aid_list)
+            staged_user_id_list = [staged_user_id] * len(survived_aid_list)
+
             aid_list = []
-            for aid, bbox in zip(survived_aid_list, bbox_list):
+            zipped = zip(survived_aid_list, bbox_list, staged_uuid_list, staged_user_id_list)
+            for aid, bbox, staged_uuid, staged_user_id in zipped:
+                staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
+                staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
+
                 if aid is None:
-                    aid_ = ibs.add_annots([gid], [bbox])[0]
+                    aid_ = ibs.add_annots([gid], [bbox],
+                                          staged_uuid_list=staged_uuid_list_,
+                                          staged_user_id_list=staged_user_id_list_)
+                    aid_ = aid_[0]
                 else:
                     ibs.set_annot_bboxes([aid], [bbox])
+                    if staged_uuid_list_ is not None:
+                        ibs.set_annot_staged_uuids([aid], staged_uuid_list_)
+                    if staged_user_id_list_ is not None:
+                        ibs.set_annot_staged_user_ids([aid], staged_user_id_list_)
                     aid_ = aid
                 aid_list.append(aid_)
 
@@ -229,17 +267,6 @@ def submit_detection(**kwargs):
             ibs.set_annot_multiple(aid_list, multiple_list)
             ibs.set_annot_interest(aid_list, interest_list)
             ibs.set_annot_species(aid_list, species_list)
-
-            staged_uuid = uuid.uuid4()
-            user = controller_inject.get_user()
-            user_id = user.get('username', None)
-
-            user_id_list = [user_id] * len(aid_list)
-            ibs.set_annot_staged_user_ids(aid_list, user_id_list)
-
-            if is_staged:
-                uuid_list = [staged_uuid] * len(aid_list)
-                ibs.set_annot_staged_uuids(aid_list, uuid_list)
 
             # Set the mapping dict to use aids now
             mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
@@ -304,29 +331,37 @@ def submit_detection(**kwargs):
             kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
             ibs.delete_parts(kill_part_rowid_list)
 
+            staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
+            staged_user_id_list = [staged_user_id] * len(survived_part_rowid_list)
+
             part_rowid_list = []
-            for part_rowid, aid, bbox in zip(survived_part_rowid_list, aid_list, bbox_list):
+            zipped = zip(survived_part_rowid_list, aid_list, bbox_list, staged_uuid_list, staged_user_id_list)
+            for part_rowid, aid, bbox, staged_uuid, staged_user_id in zipped:
+                staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
+                staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
+
                 if part_rowid is None:
-                    part_rowid_ = ibs.add_parts([aid], [bbox])
+                    part_rowid_ = ibs.add_parts([aid], [bbox],
+                                                staged_uuid_list=staged_uuid_list_,
+                                                staged_user_id_list=staged_user_id_list_)
                     part_rowid_ = part_rowid_[0]
                 else:
                     ibs._set_part_aid([part_rowid], [aid])
                     ibs.set_part_bboxes([part_rowid], [bbox])
+                    if staged_uuid_list_ is not None:
+                        ibs.set_part_staged_uuids([part_rowid], staged_uuid_list_)
+                    if staged_user_id_list_ is not None:
+                        ibs.set_part_staged_user_ids([part_rowid], staged_user_id_list_)
+
                     part_rowid_ = part_rowid
                 part_rowid_list.append(part_rowid_)
 
-            # Set annotation metadata
+            # Set part metadata
+            print('part_rowid_list = %r' % (part_rowid_list, ))
             ibs.set_part_thetas(part_rowid_list, theta_list)
             ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
             ibs.set_part_qualities(part_rowid_list, quality_list)
             ibs.set_part_types(part_rowid_list, type_list)
-
-            user_id_list = [user_id] * len(aid_list)
-            ibs.set_part_staged_user_ids(aid_list, user_id_list)
-
-            if is_staged:
-                uuid_list = [staged_uuid] * len(aid_list)
-                ibs.set_part_staged_uuids(aid_list, uuid_list)
 
             # Set image reviewed flag
             ibs.set_image_reviewed([gid], [1])

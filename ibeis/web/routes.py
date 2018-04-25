@@ -1758,6 +1758,8 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     ]
     config_str = '&'.join(config_str_list)
 
+    is_staged = config['staged']
+
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     reviewed_list = appf.imageset_image_processed(ibs, gid_list)
@@ -1786,8 +1788,21 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         image_src = appf.embed_image_html(imgdata)
         width, height = ibs.get_image_sizes(gid)
 
+        staged_user = controller_inject.get_user()
+        staged_user_id = staged_user.get('username', None)
+
         # Get annotations
-        aid_list = ibs.get_image_aids(gid)
+        aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
+
+        if is_staged:
+            # Filter aids for current user
+            annot_user_id_list = ibs.get_annot_staged_user_ids(aid_list)
+            aid_list = [
+                aid
+                for aid, annot_user_id in zip(aid_list, annot_user_id_list)
+                if annot_user_id == staged_user_id
+            ]
+
         annot_bbox_list = ibs.get_annot_bboxes(aid_list)
         annot_theta_list = ibs.get_annot_thetas(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
@@ -1828,7 +1843,17 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             annotation_list.append(temp)
 
         # Get parts
-        part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list))
+        part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list, is_staged=is_staged))
+
+        if is_staged:
+            # Filter part_rowids for current user
+            part_user_id_list = ibs.get_part_staged_user_ids(part_rowid_list)
+            part_rowid_list = [
+                part_rowid
+                for part_rowid, part_user_id in zip(part_rowid_list, part_user_id_list)
+                if part_user_id == staged_user_id
+            ]
+
         part_aid_list = ibs.get_part_aids(part_rowid_list)
         part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
         part_theta_list = ibs.get_part_thetas(part_rowid_list)
@@ -1870,6 +1895,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             species = KEY_DEFAULTS[SPECIES_KEY]
 
         staged_aid_list = ibs.get_image_aids(gid, is_staged=True)
+        staged_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(staged_aid_list, is_staged=True))
 
     else:
         gpath = None
@@ -1878,11 +1904,13 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         annotation_list = []
         part_list = []
         staged_aid_list = []
+        staged_part_rowid_list = []
 
     staged_uuid_list = ibs.get_annot_staged_uuids(staged_aid_list)
     staged_user_id_list = ibs.get_annot_staged_user_ids(staged_aid_list)
 
     num_staged_aids = len(staged_aid_list)
+    num_staged_part_rowids = len(staged_part_rowid_list)
     num_staged_sessions = len(set(staged_uuid_list))
     num_staged_users = len(set(staged_user_id_list))
 
@@ -2103,6 +2131,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
                          is_staged=is_staged,
                          num_staged_aids=num_staged_aids,
+                         num_staged_part_rowids=num_staged_part_rowids,
                          num_staged_sessions=num_staged_sessions,
                          num_staged_users=num_staged_users,
                          callback_url=callback_url,
