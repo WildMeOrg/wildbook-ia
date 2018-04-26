@@ -1738,7 +1738,7 @@ def precompute_web_detection_thumbnails(ibs, gid_list=None, batch_size=1024):
     index = 0
     gid_list_ = []
     while True:
-        if index >= len(gid_list) or len(gid_list_) == batch_size:
+        if index >= len(gid_list) or len(gid_list_) >= batch_size:
             ibs.get_image_thumbnail(gid_list_, **config)
             gid_list_ = []
 
