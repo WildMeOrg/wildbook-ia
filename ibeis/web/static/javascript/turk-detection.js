@@ -437,17 +437,18 @@ $(window).keydown(function(event) {
             var element = $('#ia-detection-setting-parts-show')
             element.prop('checked', !element.is(':checked')).trigger('change');
         } else if (key == 72 || key == 68) {
-            // S pressed
+            // D pressed
             var element = $('#ia-detection-setting-parts-hide')
             element.prop('checked', !element.is(':checked')).trigger('change');
         } else if (key == 13) {
-            // Enter key pressed, submit form as accept
+            // Enter key pressed
             $('input#ia-turk-submit-accept').click();
         }
-        // else if (key == 32) {
-        //     // Space key pressed, submit form as delete
-        //     $('input#ia-turk-submit-clear').click();
-        // }
+        else if (key == 32) {
+            // // Space key pressed
+            // $('input#ia-turk-submit-clear').click();
+            $('input#ia-turk-submit-accept').click();
+        }
         else if (key == 80) {
             // P key pressed, follow previous link
             $('a#ia-turk-previous')[0].click();

@@ -1648,6 +1648,13 @@ def update_1_8_0(db, ibs=None):
     )
 
 
+def update_1_8_1(db, ibs=None):
+    db.modify_table(const.PART_TABLE, (
+        (None, 'part_metadata_json', 'TEXT', None),
+        (None, 'part_contour_json', 'TEXT', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1705,6 +1712,7 @@ VALID_VERSIONS = ut.odict([
     ('1.7.0',    (None,                 update_1_7_0,       post_1_7_0          )),
     ('1.7.1',    (None,                 update_1_7_1,       None                )),
     ('1.8.0',    (None,                 update_1_8_0,       None                )),
+    ('1.8.1',    (None,                 update_1_8_1,       None                )),
 ])
 """
 SeeAlso:

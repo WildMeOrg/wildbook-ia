@@ -1115,7 +1115,7 @@ def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
-        >>> part_rowid_list = add_parts(ibs, aid_list, bbox_list=bbox_list)
+        >>> part_rowid_list = ibs,add_parts(aid_list, bbox_list=bbox_list)
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
         >>> ] * len(part_rowid_list)
@@ -1130,6 +1130,7 @@ def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
         >>> metadata_str_list_ = ibs.get_part_staged_metadata(part_rowid_list, return_raw=True)
         >>> print(ut.repr2(metadata_str_list_))
         >>> assert metadata_str_list == metadata_str_list_
+        >>> ibs.delete_parts(part_rowid_list)
     """
     id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
     metadata_str_list = []
@@ -1138,6 +1139,150 @@ def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
         metadata_str_list.append(metadata_str)
     val_list = ((metadata_str,) for metadata_str in metadata_str_list)
     ibs.db.set(const.PART_TABLE, ('part_staged_metadata_json',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/part/metadata/', methods=['GET'])
+def get_part_metadata(ibs, part_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): part metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.PART_TABLE, ('part_metadata_json',), part_rowid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/part/metadata/', methods=['PUT'])
+def set_part_metadata(ibs, part_rowid_list, metadata_dict_list):
+    r"""
+    Sets the part's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/part/metadata/
+
+    CommandLine:
+        python -m ibeis.control.manual_part_funcs --test-set_part_metadata
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
+        >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
+        >>> metadata_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.repr2(metadata_dict_list))
+        >>> ibs.set_part_metadata(part_rowid_list, metadata_dict_list)
+        >>> # verify results
+        >>> metadata_dict_list_ = ibs.get_part_metadata(part_rowid_list)
+        >>> print(ut.repr2(metadata_dict_list_))
+        >>> assert metadata_dict_list == metadata_dict_list_
+        >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
+        >>> print(ut.repr2(metadata_str_list))
+        >>> metadata_str_list_ = ibs.get_part_metadata(part_rowid_list, return_raw=True)
+        >>> print(ut.repr2(metadata_str_list_))
+        >>> assert metadata_str_list == metadata_str_list_
+        >>> ibs.delete_parts(part_rowid_list)
+    """
+    id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.PART_TABLE, ('part_metadata_json',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/part/contour/', methods=['GET'])
+def get_part_contour(ibs, part_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): part contour dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/contour/
+    """
+    contour_str_list = ibs.db.get(const.PART_TABLE, ('part_contour_json',), part_rowid_list)
+    contour_list = []
+    for contour_str in contour_str_list:
+        if contour_str in [None, '']:
+            contour_dict = {}
+        else:
+            contour_dict = contour_str if return_raw else ut.from_json(contour_str)
+        contour_list.append(contour_dict)
+    return contour_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/part/contour/', methods=['PUT'])
+def set_part_contour(ibs, part_rowid_list, contour_dict_list):
+    r"""
+    Sets the part's contour using a contour dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/part/contour/
+
+    CommandLine:
+        python -m ibeis.control.manual_part_funcs --test-set_part_contour
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
+        >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
+        >>> contour_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.repr2(contour_dict_list))
+        >>> ibs.set_part_contour(part_rowid_list, contour_dict_list)
+        >>> # verify results
+        >>> contour_dict_list_ = ibs.get_part_contour(part_rowid_list)
+        >>> print(ut.repr2(contour_dict_list_))
+        >>> assert contour_dict_list == contour_dict_list_
+        >>> contour_str_list = [ut.to_json(contour_dict) for contour_dict in contour_dict_list]
+        >>> print(ut.repr2(contour_str_list))
+        >>> contour_str_list_ = ibs.get_part_contour(part_rowid_list, return_raw=True)
+        >>> print(ut.repr2(contour_str_list_))
+        >>> assert contour_str_list == contour_str_list_
+        >>> ibs.delete_parts(part_rowid_list)
+    """
+    id_iter = ((part_rowid,) for part_rowid in part_rowid_list)
+    contour_str_list = []
+    for contour_dict in contour_dict_list:
+        contour_str = ut.to_json(contour_dict)
+        contour_str_list.append(contour_str)
+    val_list = ((contour_str,) for contour_str in contour_str_list)
+    ibs.db.set(const.PART_TABLE, ('part_contour_json',), val_list, id_iter)
 
 
 #==========

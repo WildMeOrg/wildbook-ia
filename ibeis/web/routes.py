@@ -87,12 +87,29 @@ def login(refer=None, *args, **kwargs):
                 # 'jason.parham',
                 'chuck.stewart',
                 'hendrik.weideman',
+                'angela.su',
+                'joshua.beard',
             ]
         ),
         'uic': (
             'UIC',
             [
                 'tanya.berger-wolf',
+                'ivan.brugere',
+                'chainarong.amornbunchornvej',
+                'jia.li',
+                'aynaz.taheri',
+                'james.searing',
+                'lorenzo.semeria',
+                'matteo.foglio',
+                'eleonora.darnese ',
+                'guido.muscioni',
+                'riccardo.pressiani',
+                'krishna.chandu',
+                'mathew.yang',
+                'nathan.seitz',
+                'luis.love',
+                'ashley.riley',
             ]
         ),
         'princeton': (
