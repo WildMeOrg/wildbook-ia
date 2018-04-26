@@ -65,6 +65,9 @@ function update_metadata_panel(state) {
     if ( ! config_metadata) {
         hidden_ids.concat(visible_ids)
         visible_ids = []
+
+        $('#ia-detection-setting-wrapper').css('display', 'none');
+        $('form.ia-form').css('padding-top', '15px');
     }
 
     if ( ! config_viewpoint) {
