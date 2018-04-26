@@ -1723,6 +1723,32 @@ def turk_cameratrap(**kwargs):
     return appf.template('turk', 'cameratrap', **embedded)
 
 
+@register_ibs_method
+def precompute_web_detection_thumbnails(ibs, gid_list=None, batch_size=1024):
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    config = {
+        'thumbsize': max(
+            int(appf.TARGET_WIDTH),
+            int(appf.TARGET_HEIGHT),
+        ),
+    }
+
+    index = 0
+    gid_list_ = []
+    while True:
+        if index >= len(gid_list) or len(gid_list_) == batch_size:
+            ibs.get_image_thumbnail(gid_list_, **config)
+
+        if index >= len(gid_list):
+            break
+
+        gid = gid_list[index]
+        gid_list_.append(gid)
+        index += 1
+
+
 @register_route('/turk/detection/', methods=['GET'])
 def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, staged_super=False, **kwargs):
 
@@ -1783,9 +1809,16 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
     display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
     display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
-        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-        imgdata = ibs.get_image_imgdata(gid)
-        # imgdata = ibs.get_image_thumbnail(gid)
+        # gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
+        # imgdata = ibs.get_image_imgdata(gid)
+        gpath = None
+        config = {
+            'thumbsize': max(
+                int(appf.TARGET_WIDTH),
+                int(appf.TARGET_HEIGHT),
+            ),
+        }
+        imgdata = ibs.get_image_thumbnail(gid, **config)
         image_src = appf.embed_image_html(imgdata)
         width, height = ibs.get_image_sizes(gid)
 
