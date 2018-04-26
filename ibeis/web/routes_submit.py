@@ -364,7 +364,21 @@ def submit_detection(**kwargs):
             ibs.set_part_types(part_rowid_list, type_list)
 
             # Set image reviewed flag
-            ibs.set_image_reviewed([gid], [1])
+            if is_staged:
+                metadata_dict = ibs.get_image_metadata(gid)
+                if 'staged' not in metadata_dict:
+                    metadata_dict['staged'] = {
+                        'sessions': {
+                            'uuids': [],
+                            'user_ids': [],
+                        }
+                    }
+                metadata_dict['staged']['sessions']['uuids'].append(str(staged_uuid))
+                metadata_dict['staged']['sessions']['user_ids'].append(staged_user_id)
+                ibs.set_image_metadata([gid], [metadata_dict])
+            else:
+                ibs.set_image_reviewed([gid], [1])
+
             print('[web] turk_id: %s, gid: %d, annots: %d, parts: %d' % (turk_id, gid, len(annotation_list), len(part_list), ))
 
     default_list = [

@@ -500,8 +500,8 @@
         toggle.bootstrapToggle({
           on: 'Axis-to-Axis',
           off: 'Corner-to-Corner',
-          onstyle: 'primary',
-          offstyle: 'primary'
+          onstyle: {% if is_staged %}'danger'{% else %}'primary'{% endif %},
+          offstyle: {% if is_staged %}'danger'{% else %}'primary'{% endif %}
         });
       {% endif %}
 

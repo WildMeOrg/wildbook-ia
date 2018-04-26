@@ -6596,8 +6596,8 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
     """
     import datetime
 
-    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 27)))
-    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 29)))
+    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 1, 24)))
+    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(2018, 2, 1)))
 
     lower_posix += local_offset * 60 * 60
     upper_posix += local_offset * 60 * 60
@@ -6701,6 +6701,35 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
 
     delete_gid_list = sorted(list(set(delete_gid_list)))
     return delete_gid_list
+
+
+@register_ibs_method
+def query_ggr_gids_between_dates(ibs, gid_list=None, date1=(2018, 1, 27), date2=(2018, 1, 29),
+                                 local_offset=-8.0, gmt_offset=3.0):
+    import datetime
+
+    date1y, date1m, date1d = date1
+    date2y, date2m, date2d = date2
+
+    lower_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(date1y, date1m, date1d)))
+    upper_posix = ut.datetime_to_posixtime(ut.date_to_datetime(datetime.date(date2y, date2m, date2d)))
+
+    lower_posix += local_offset * 60 * 60
+    upper_posix += local_offset * 60 * 60
+
+    lower_posix -= gmt_offset * 60 * 60
+    upper_posix -= gmt_offset * 60 * 60
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    gid_list_ = []
+    for gid, unixtime in zip(gid_list, unixtime_list):
+        if unixtime is not None and lower_posix <= unixtime and unixtime <= upper_posix:
+            gid_list_.append(gid)
+
+    return gid_list_
 
 
 @register_ibs_method

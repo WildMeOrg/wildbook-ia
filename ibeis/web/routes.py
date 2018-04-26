@@ -1724,7 +1724,7 @@ def turk_cameratrap(**kwargs):
 
 
 @register_route('/turk/detection/', methods=['GET'])
-def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwargs):
+def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, staged_super=False, **kwargs):
 
     ibs = current_app.ibs
 
@@ -1762,7 +1762,8 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-    reviewed_list = appf.imageset_image_processed(ibs, gid_list)
+    reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged)
+
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
     except ZeroDivisionError:
@@ -1800,7 +1801,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             aid_list = [
                 aid
                 for aid, annot_user_id in zip(aid_list, annot_user_id_list)
-                if annot_user_id == staged_user_id
+                if staged_super or annot_user_id == staged_user_id
             ]
 
         annot_bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -1851,7 +1852,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             part_rowid_list = [
                 part_rowid
                 for part_rowid, part_user_id in zip(part_rowid_list, part_user_id_list)
-                if part_user_id == staged_user_id
+                if staged_super or part_user_id == staged_user_id
             ]
 
         part_aid_list = ibs.get_part_aids(part_rowid_list)

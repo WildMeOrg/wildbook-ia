@@ -5,6 +5,7 @@ import random
 from ibeis import constants as const
 from flask import request, current_app, url_for
 from os.path import join, dirname, abspath  # NOQA
+from ibeis.control import controller_inject
 from datetime import datetime
 from datetime import date
 import base64
@@ -153,7 +154,6 @@ def decode_refer_url(encoded):
 
 
 def template(template_directory=None, template_filename=None, **kwargs):
-    from ibeis.control import controller_inject
     global_args = {
         'NAVBAR'             : NavbarClass(),
         'YEAR'               : date.today().year,
@@ -353,8 +353,27 @@ def default_species(ibs):
     return default_species
 
 
-def imageset_image_processed(ibs, gid_list):
-    images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
+def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3):
+    if is_staged:
+        staged_user = controller_inject.get_user()
+        staged_user_id = staged_user.get('username', None)
+
+        metadata_dict_list = ibs.get_image_metadata(gid_list)
+
+        images_reviewed = []
+        for metadata_dict in metadata_dict_list:
+            staged = metadata_dict.get('staged', {})
+            sessions = staged.get('sessions', {})
+            user_ids = sessions.get('user_ids', [])
+            user_ids = list(set(user_ids))
+
+            if staged_user_id in user_ids:
+                reviewed = True
+            else:
+                reviewed = len(user_ids) >= reviews_required
+            images_reviewed.append(reviewed)
+    else:
+        images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
     return images_reviewed
 
 
