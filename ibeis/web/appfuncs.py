@@ -359,6 +359,7 @@ def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3)
         staged_user_id = staged_user.get('username', None)
 
         metadata_dict_list = ibs.get_image_metadata(gid_list)
+        update_reviewed_list = []
 
         images_reviewed = []
         for metadata_dict in metadata_dict_list:
@@ -367,11 +368,14 @@ def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3)
             user_ids = sessions.get('user_ids', [])
             user_ids = list(set(user_ids))
 
-            if staged_user_id in user_ids:
-                reviewed = True
-            else:
-                reviewed = len(user_ids) >= reviews_required
+            requirement_satisfied = len(user_ids) >= reviews_required
+            update_reviewed = 1 if requirement_satisfied else 0
+            update_reviewed_list.append(update_reviewed)
+
+            reviewed = True if staged_user_id in user_ids else requirement_satisfied
             images_reviewed.append(reviewed)
+
+        ibs.set_image_reviewed(gid_list, update_reviewed_list)
     else:
         images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
     return images_reviewed
