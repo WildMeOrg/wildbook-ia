@@ -1728,7 +1728,7 @@ def precompute_web_detection_thumbnails(ibs, gid_list=None, batch_size=1024):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
-    config = {
+    thumbnail_config = {
         'thumbsize': max(
             int(appf.TARGET_WIDTH),
             int(appf.TARGET_HEIGHT),
@@ -1739,7 +1739,7 @@ def precompute_web_detection_thumbnails(ibs, gid_list=None, batch_size=1024):
     gid_list_ = []
     while True:
         if index >= len(gid_list) or len(gid_list_) >= batch_size:
-            ibs.get_image_thumbnail(gid_list_, **config)
+            ibs.get_image_thumbnail(gid_list_, **thumbnail_config)
             gid_list_ = []
 
         if index >= len(gid_list):
@@ -1813,13 +1813,13 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
         # gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
         # imgdata = ibs.get_image_imgdata(gid)
         gpath = None
-        config = {
+        thumbnail_config = {
             'thumbsize': max(
                 int(appf.TARGET_WIDTH),
                 int(appf.TARGET_HEIGHT),
             ),
         }
-        imgdata = ibs.get_image_thumbnail(gid, **config)
+        imgdata = ibs.get_image_thumbnail(gid, **thumbnail_config)
         image_src = appf.embed_image_html(imgdata)
         width, height = ibs.get_image_sizes(gid)
 
@@ -2137,8 +2137,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
         settings_key: request.cookies.get(settings_key, settings_default) == '1'
         for (settings_key, settings_default) in settings_key_list
     }
-
-    is_staged = config.get('staged')
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
