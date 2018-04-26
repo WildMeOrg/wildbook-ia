@@ -117,6 +117,12 @@ def login(refer=None, *args, **kwargs):
             [
                 'dan.rubenstein',
                 'kaia.tombak',
+                'andrew.gersick',
+                'ryan.herbert',
+                'joe.bakcoleman',
+                'lisa.pbryan',
+                'jackie.kariithi',
+                'megan.mcsherry',
             ],
         ),
         'wildme': (
