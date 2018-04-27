@@ -1811,15 +1811,27 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
     config_str = '&'.join(config_str_list)
 
     is_staged = config['staged']
+    staged_reviews_required = 3
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-    reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged)
+    reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
+                                                  reviews_required=staged_reviews_required)
 
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
     except ZeroDivisionError:
         progress = '100.0'
+
+    if is_staged:
+        staged_progress = appf.imageset_image_staged_progress(
+            ibs,
+            gid_list,
+            reviews_required=staged_reviews_required
+        )
+        staged_progress = '%0.2f' % (100.0 * staged_progress, )
+    else:
+        staged_progress = None
 
     imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
     if gid is None:
@@ -2177,6 +2189,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
                          previous=previous,
                          imagesettext=imagesettext,
                          progress=progress,
+                         staged_progress=staged_progress,
                          finished=finished,
                          species_list=species_list,
                          species_part_dict_json=species_part_dict_json,

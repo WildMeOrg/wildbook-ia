@@ -381,6 +381,21 @@ def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3)
     return images_reviewed
 
 
+def imageset_image_staged_progress(ibs, gid_list, reviews_required=3):
+    metadata_dict_list = ibs.get_image_metadata(gid_list)
+
+    total = 0
+    for metadata_dict in metadata_dict_list:
+        staged = metadata_dict.get('staged', {})
+        sessions = staged.get('sessions', {})
+        user_ids = sessions.get('user_ids', [])
+        user_ids = list(set(user_ids))
+        total += len(user_ids)
+
+    staged_progress = total / (reviews_required * len(gid_list))
+    return staged_progress
+
+
 def imageset_image_cameratrap_processed(ibs, gid_list):
     images_reviewed = [ flag is not None for flag in ibs.get_image_cameratrap(gid_list) ]
     return images_reviewed

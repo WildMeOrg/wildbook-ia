@@ -31,9 +31,16 @@
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: left;">
           {% if imgsetid %}
             <!-- Imageset ID: {{ imgsetid }} -->
-            Imageset: {{ imagesettext }}
+            <div style="margin-right: 10px; display: inline;">
+              Imageset: {{ imagesettext }}
+            </div>
           {% endif %}
-          </div>
+<!--           {% if is_staged %}
+            <div style="color: #aaa; display: inline;">
+              (Staged: {{ staged_progress }}%)
+            </div>
+          {% endif %}
+ -->          </div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center; {% if is_staged %}font-weight: bold; color: #ac2925;"{% endif %}">
             Image ID{% if THROW_TEST_AOI_TURKING_AVAILABLE %}*{% endif %} (GID): {{ gid }}
