@@ -1756,6 +1756,7 @@ def precompute_web_detection_thumbnails(ibs, gid_list=None, batch_size=1024):
             int(appf.TARGET_WIDTH),
             int(appf.TARGET_HEIGHT),
         ),
+        'draw_annots': False,
     }
 
     index = 0
@@ -1841,6 +1842,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
                 int(appf.TARGET_WIDTH),
                 int(appf.TARGET_HEIGHT),
             ),
+            'draw_annots': False,
         }
         imgdata = ibs.get_image_thumbnail(gid, **thumbnail_config)
         image_src = appf.embed_image_html(imgdata)
@@ -2387,6 +2389,89 @@ def turk_annotation_dynamic(**kwargs):
                          EMBEDDED_JAVASCRIPT=None,
                          review=review,
                          __wrapper__=False)
+
+
+@register_route('/turk/contour/', methods=['GET'])
+def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
+    ibs = current_app.ibs
+
+    default_list = [
+        ('temp',            True),
+    ]
+
+    config_kwargs = kwargs.get('config', {})
+    config = {
+        key: kwargs.get(key, config_kwargs.get(key, default))
+        for key, default in default_list
+    }
+    config_str_list = [
+        '%s=%s' % (key, 'true' if config[key] else 'false', )
+        for key in config.keys()
+    ]
+    config_str = '&'.join(config_str_list)
+
+    imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list))
+    part_rowid_list = list(set(part_rowid_list))
+
+    reviewed_list = appf.imageset_part_contour_processed(ibs, part_rowid_list)
+
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
+    except ZeroDivisionError:
+        progress = '100.0'
+
+    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
+
+    if part_rowid is None:
+        part_rowid_list_ = ut.filterfalse_items(part_rowid_list, reviewed_list)
+        if len(part_rowid_list_) == 0:
+            part_rowid = None
+        else:
+            part_rowid = random.choice(part_rowid_list_)
+
+    finished = part_rowid is None
+    display_instructions = request.cookies.get('ia-contour_instructions_seen', 1) == 1
+
+    if not finished:
+        chip_config = {
+            'dim_size': max(
+                int(appf.TARGET_WIDTH),
+                int(appf.TARGET_HEIGHT),
+            ),
+        }
+        imgdata = ibs.get_part_chips(part_rowid, config2_=chip_config)
+        image_src = appf.embed_image_html(imgdata)
+
+        # Get contours from part
+        existing_contour_dict = ibs.get_part_contour(part_rowid)
+        existing_contour_list = existing_contour_dict.get('contour', [])
+
+        contour_list = []
+        for contour in existing_contour_list:
+            # Unpack
+            contour_list.append(contour)
+    else:
+        image_src = None
+        contour_list = []
+
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid, )
+    return appf.template('turk', 'contour',
+                         imgsetid=imgsetid,
+                         part_rowid=part_rowid,
+                         config_str=config_str,
+                         config=config,
+                         image_src=image_src,
+                         previous=previous,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         contour_list=contour_list,
+                         callback_url=callback_url,
+                         callback_method='POST')
 
 
 @register_route('/turk/species/', methods=['GET'])

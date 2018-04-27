@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, contour turking is completed.  Thank you!
+  </div>
+  {% else %}
+    <div class="row">
+      <div class="col-lg-1"></div>
+
+      <div class="col-lg-10">
+        {% if not REFER_DST_ENCODED %}
+          <div class="progress">
+            <div class="progress-bar {% if is_staged %}progress-bar-danger{% endif %}" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+              {{ progress }}%
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row" style="margin-bottom: 15px;">
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: left;">
+          {% if imgsetid %}
+            <!-- Imageset ID: {{ imgsetid }} -->
+            Imageset: {{ imagesettext }}
+          {% endif %}
+          </div>
+
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center; {% if is_staged %}font-weight: bold; color: #ac2925;"{% endif %}">
+            Part ID: {{ part_rowid }}
+          </div>
+
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px; margin-left: 8px;"></span>
+            <span class="pull-right" style="color: #aaa;"><i>Hold <b>Ctrl</b> for hotkeys</i></span>
+          </div>
+        </div>
+
+        {% include 'turk/contour_insert.html' %}
+      </div>
+
+      <div class="col-lg-1"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Part Contour Turking Instructions</h4>
+          </div>
+          <div class="modal-body">
+            Put instructions here
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('ia-contour_instructions_seen', '1');">Got it!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% endif %}
+
+{% endblock %}
+{% block content_custom_css %}
+  <style>
+    .container
+    {
+      /*width: 1500px !important;*/
+    }
+
+    .label-text-box
+    {
+      visibility: hidden !important;
+    }
+  </style>
+{% endblock %}
+{% block content_custom_javascript %}
+{% endblock %}

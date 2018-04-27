@@ -1,0 +1,81 @@
+<div class="ia-container">
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}&{{ config_str }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-contour-form">
+    <div id="ia-contour-annotator-container"></div>
+
+    <div class="row">
+      <div class="col-lg-4 col-md-4 col-sm-4"></div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <div id="ia-metadata-panel-annotation-quickhelp" style="text-align: center; color: #aaa;">
+          <a tabindex="0" id="ia-contour-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='' style="margin-top: 10px;">Quick Help</a>
+        </div>
+        <br/>
+      </div>
+      <div class="col-lg-4 col-md-4 col-sm-4"></div>
+    </div>
+
+    <input type="text" name="contour-part-rowid" value="{{ part_rowid }}" style="display: none;" readonly>
+    <input type="text" name="contour-part-uuid" value="{{ part_uuid }}" style="display: none;" readonly>
+
+    <div class="row" style="margin-top: 20px;">
+      <div class="col-lg-12" style="text-align: center;">
+        <div style="margin-top: -27px;">
+          {% if previous %}
+            <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_contour') }}?imgsetid={{ imgsetid }}&part_rowid={{ previous }}&{{ config_str }}">Previous {{ previous }}</a>
+          {% endif %}
+        </div>
+
+        <div style="margin-top: -27px;">
+          <input type="submit" name="contour-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        </div>
+      </div>
+    </div>
+
+    <textarea id="ia-contour-data" name="ia-contour-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-contour-form"></textarea>
+  </form>
+
+  <script src="{{ url_for('static', filename='javascript/turk-contour.js') }}" ia-dependency="javascript"></script>
+  <script src="{{ url_for('static', filename='include/contour_annotator_percent.js') }}" ia-dependency="javascript"></script>
+
+  <script type="text/javascript" ia-dependency="javascript">
+    var cta, hotkeys_global_disabled
+
+    config_temp = {% if config['temp'] %}true{% else %}false{% endif %}
+
+    hotkeys_global_disabled = false
+
+    $(document).ready(function() {
+      // Initialize the contour annotator.
+      cta = new ContourAnnotator("{{ image_src }}", {
+        prefix: "ia-",
+        callbacks: {
+          onchange: function(entries) {
+            $('#ia-contour-data').text(JSON.stringify(entries, null, "  "));
+          }
+        }
+      });
+
+      // Add pre-existing annotations as entries
+      {% for contour in contour_list %}
+        cta.add_entry({
+          label:  '{{ contour['id'] }}',
+          points: {{ contour }}
+        });
+      {% endfor %}
+
+      var quickhelp_instructions = `<ul>
+        <li><b>Hotkey</b>: action description</li>
+      </ul>`
+
+      $('#ia-contour-quickhelp').popover({
+        html: true,
+      }).attr('data-content', quickhelp_instructions);
+
+      // Update metadata labels for form inputs
+      $('.ia-contour-hotkey').hide();
+
+      {% if display_instructions %}
+        $('#turk-instructions').modal('show');
+      {% endif %}
+    });
+  </script>
+</div>

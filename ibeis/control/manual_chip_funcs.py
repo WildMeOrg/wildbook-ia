@@ -300,6 +300,52 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
     return
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+# @register_api('/api/pchip/', methods=['GET'])
+def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=False, eager=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        part_rowid_list (int):  list of part ids
+        ensure (bool):  eager evaluation if True
+        config2_ (QueryRequest):  query request object with hyper-parameters
+
+    Returns:
+        list: chip_list
+
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs get_part_chips
+
+    RESTful:
+        Method: GET
+        URL:    /api/pchip/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = aid_list[:10]
+        >>> bbox_list = ibs.get_annot_bboxes(aid_list)
+        >>> bbox_list = [
+        >>>     (xtl + 100, ytl + 100, w - 100, h - 100)
+        >>>     for xtl, ytl, w, h in bbox_list
+        >>> ]
+        >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
+        >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
+        >>> chip_list = get_part_chips(ibs, part_rowid_list, config2_)
+        >>> chip_sum_list = [chip.sum() for chip in chip_list]
+        >>> target = [86763970, 62020065, 61333964, 111418156, 63593594, 51404427, 139395045, 84060806, 41257586, 89658838]
+        >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
+        >>> print(chip_sum_list)
+    """
+    return ibs.depc_part.get('pchips', part_rowid_list, 'img', config=config2_,
+                              ensure=ensure)
+
+
 def testdata_ibs():
     r"""
     """

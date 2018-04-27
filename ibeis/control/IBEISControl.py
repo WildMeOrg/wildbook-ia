@@ -92,8 +92,9 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.web.apis_query',
     'ibeis.web.apis_sync',
     'ibeis.web.apis',
-    'ibeis.core_annots',
     'ibeis.core_images',
+    'ibeis.core_annots',
+    'ibeis.core_parts',
     'ibeis.algo.smk.vocab_indexer',
     'ibeis.algo.smk.smk_pipeline',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
@@ -274,8 +275,9 @@ class IBEISController(BASE_CLASS):
         # an dict to hack in temporary state
         ibs.const = const
         ibs.readonly = None
-        ibs.depc_annot = None
         ibs.depc_image = None
+        ibs.depc_annot = None
+        ibs.depc_part = None
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         if force_serial is None:
@@ -692,6 +694,18 @@ class IBEISController(BASE_CLASS):
 
     @profile
     def _init_depcache(ibs):
+        # Initialize dependency cache for images
+        image_root_getters = {}
+        ibs.depc_image = dtool.DependencyCache(
+            root_tablename=const.IMAGE_TABLE,
+            default_fname=const.IMAGE_TABLE + '_depcache',
+            cache_dpath=ibs.get_cachedir(),
+            controller=ibs,
+            get_root_uuid=ibs.get_image_uuids,
+            root_getters=image_root_getters,
+        )
+        ibs.depc_image.initialize()
+
         """ Need to reinit this sometimes if cache is ever deleted """
         # Initialize dependency cache for annotations
         annot_root_getters = {
@@ -722,23 +736,25 @@ class IBEISController(BASE_CLASS):
         # requested computation.
         ibs.depc_annot.initialize()
 
-        # Initialize dependency cache for images
-        image_root_getters = {}
-        ibs.depc_image = dtool.DependencyCache(
-            root_tablename=const.IMAGE_TABLE,
-            default_fname=const.IMAGE_TABLE + '_depcache',
+        # Initialize dependency cache for parts
+        part_root_getters = {}
+        ibs.depc_part = dtool.DependencyCache(
+            root_tablename=const.PART_TABLE,
+            default_fname=const.PART_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
             controller=ibs,
-            get_root_uuid=ibs.get_image_uuids,
-            root_getters=image_root_getters,
+            get_root_uuid=ibs.get_part_uuids,
+            root_getters=part_root_getters,
         )
-        ibs.depc_image.initialize()
+        ibs.depc_part.initialize()
 
     def _close_depcache(ibs):
-        ibs.depc_annot.close()
-        ibs.depc_annot = None
         ibs.depc_image.close()
         ibs.depc_image = None
+        ibs.depc_annot.close()
+        ibs.depc_annot = None
+        ibs.depc_part.close()
+        ibs.depc_part = None
 
     def disconnect_sqldatabase(ibs):
         print('disconnecting from sql database')
@@ -968,7 +984,8 @@ class IBEISController(BASE_CLASS):
     def get_qres_cachedir(ibs):
         """
         Returns:
-            qresdir (str): database directory where query results are stored """
+            qresdir (str): database directory where query results are stored
+        """
         return ibs.qresdir
 
     def get_neighbor_cachedir(ibs):

@@ -318,32 +318,36 @@ def compute_chip(depc, aid_list, config=None):
         >>> import plottool as pt
         >>> pt.imshow(vt.stack_image_recurse(chips))
         >>> pt.show_if_requested()
-
     """
     print('Preprocess Chips')
     print('config = %r' % (config,))
 
     ibs = depc.controller
+
+    gid_list = ibs.get_annot_gids(aid_list)
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    theta_list = ibs.get_annot_thetas(aid_list)
+
+    result_list = gen_chip_configure_and_compute(ibs, gid_list, aid_list,
+                                                 bbox_list, theta_list, config)
+    for result in result_list:
+        yield result
+    print('Done Preprocessing Chips')
+
+
+def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_list, config):
     #ext = config['ext']
     pad = config['pad']
     dim_size = config['dim_size']
     dim_tol = config['dim_tol']
     resize_dim = config['resize_dim']
-
     #cfghashid = config.get_hashid()
-    #avuuid_list = ibs.get_annot_visual_uuids(aid_list)
-
-    #gfpath_list = ibs.get_annot_image_paths(aid_list)
-    gid_list = ibs.get_annot_gids(aid_list)
-    # TODO: use verts instead
-    bbox_list = ibs.get_annot_bboxes(aid_list)
-    theta_list = ibs.get_annot_thetas(aid_list)
-    bbox_size_list = ut.take_column(bbox_list, [2, 3])
 
     # Checks
+    bbox_size_list = ut.take_column(bbox_list, [2, 3])
     invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
-    invalid_aids = ut.compress(aid_list, invalid_flags)
-    assert len(invalid_aids) == 0, 'invalid aids=%r' % (invalid_aids,)
+    invalid_rowids = ut.compress(rowid_list, invalid_flags)
+    assert len(invalid_rowids) == 0, 'invalid rowids=%r' % (invalid_rowids,)
 
     if resize_dim == 'wh':
         assert isinstance(dim_size, tuple), (
@@ -412,7 +416,7 @@ def compute_chip(depc, aid_list, config=None):
         args_gen = zip(gpath_list, M_list, newsize_list)
 
         gen_kw = {'filter_list': filter_list, 'warpkw': warpkw}
-        gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(aid_list),
+        gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(gpath_list),
                            force_serial=ibs.force_serial)
         for chipBGR, width, height, M in gen:
             yield chipBGR, width, height, M
@@ -438,7 +442,6 @@ def compute_chip(depc, aid_list, config=None):
                 chipBGR = ipreproc.preprocess(chipBGR, filter_list)
             width, height = vt.get_size(chipBGR)
             yield (chipBGR, width, height, M)
-    print('Done Preprocessing Chips')
 
 
 def gen_chip_worker(gpath, M, new_size, filter_list, warpkw):
@@ -825,7 +828,6 @@ def make_hog_block_image(hog, config=None):
     References:
         https://github.com/scikit-image/scikit-image/blob/master/skimage/feature/_hog.py
     """
-
     from skimage import draw
 
     if config is None:
@@ -914,6 +916,7 @@ class FeatConfig(dtool.Config):
         >>> print(result)
         <FeatConfig(hesaff+sift)>
     """
+
     # TODO: FIXME
     #_parents = [ChipConfig]
 
@@ -1260,6 +1263,7 @@ class VsOneConfig(dtool.Config):
         >>> result = str(cfg)
         >>> print(result)
     """
+
     _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG + [
         ut.ParamInfo('version', 8),
         ut.ParamInfo('query_rotation_heuristic', False),
@@ -1424,6 +1428,7 @@ class IndexerConfig(dtool.Config):
         >>> result = str(cfg)
         >>> print(result)
     """
+
     _param_info_list = [
         ut.ParamInfo('algorithm', 'kdtree', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),

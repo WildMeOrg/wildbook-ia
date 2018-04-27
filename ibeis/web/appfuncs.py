@@ -401,6 +401,19 @@ def imageset_annot_quality_processed(ibs, aid_list):
     return annots_reviewed
 
 
+def imageset_part_contour_processed(ibs, part_rowid_list):
+    contour_dict_list = ibs.get_part_contour(part_rowid_list)
+
+    parts_reviewed = []
+    for contour_dict in contour_dict_list:
+        contour = contour_dict.get('contour', [])
+
+        reviewed = len(contour) > 0
+        parts_reviewed.append(reviewed)
+
+    return parts_reviewed
+
+
 def imageset_annot_demographics_processed(ibs, aid_list, nid_list):
     sex_list = ibs.get_annot_sex(aid_list)
     age_list = ibs.get_annot_age_months_est(aid_list)

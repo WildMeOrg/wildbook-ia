@@ -987,6 +987,53 @@ def group_review_submit(**kwargs):
     return redirect(url_for(mode, src_ag=src_ag, dst_ag=dst_ag))
 
 
+@register_route('/submit/contour/', methods=['POST'])
+def submit_contour(**kwargs):
+    ibs = current_app.ibs
+    method = request.form.get('contour-submit', '')
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    part_rowid = int(request.form['contour-part-rowid'])
+
+    if method.lower() == 'accept':
+        data_list = ut.from_json(request.form['ia-contour-data'])
+
+        num_contours = 0
+        num_points = 0
+        contour_dict = ibs.get_part_contour(part_rowid)
+        for data in data_list:
+            num_contours += 1
+
+            if 'contour' not in contour_dict:
+                contour_dict['contour'] = []
+
+            for point in data:
+                contour_dict['contour'].append(point)
+                num_points += 1
+
+        ibs.set_part_contour([part_rowid], [contour_dict])
+        ibs.set_part_reviewed([part_rowid], [1])
+
+        print('[web] part_rowid: %d, contours: %d, points: %d' % (part_rowid, num_contours, num_points, ))
+
+    default_list = [
+        'temp'
+    ]
+    config = {
+        default: kwargs[default]
+        for default in default_list
+        if default in kwargs
+    }
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_contour', imgsetid=imgsetid, previous=part_rowid, **config))
+
+
 if __name__ == '__main__':
     """
     CommandLine:

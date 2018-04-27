@@ -6,6 +6,9 @@ function hide_viewpoint_2_axis_panel(index) {
 }
 
 function check_form() {
+    // Recalculate current values and update form data field before submitting
+    bba.resize();
+
     if(config_interest_bypass) {
         return true
     }
