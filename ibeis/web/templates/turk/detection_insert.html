@@ -298,8 +298,8 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20180427') }}" ia-dependency="javascript"></script>
-    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20180427') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20180427-0') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20180427-0') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
@@ -632,6 +632,7 @@
           </ul>
         <li><b>Hover+Left-drag</b>: move the highlighted box
         <li><b>Hover+Right-drag</b>: resize the highlighted box<br/>using the closest handle <span style="color: #EB2A18; opacity: 0.75"><b>(red)</b>
+        <li><b>Shift</b>: toggle zoom</li>
         <li><b>Esc</b>: cancel any action and unfocus</li>
         <li><b>Delete</b> or <b>k</b>: delete a highlighted box</li>
         <li><b>Delete+Shift</b> delete all parts of a highlighted box</li>

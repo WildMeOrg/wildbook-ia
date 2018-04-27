@@ -33,28 +33,39 @@
     <div class="container">
       {% if __wrapper__ and __wrapper_header__ %}
         <div class="header">
-          <ul class="nav nav-pills pull-right">
-            {% for active, link, nice in NAVBAR %}
-              <li {% if active %}class="active"{% endif %}>
-                <a href="{{ url_for(link) }}">{{ nice }}</a>
-              </li>
-            {% endfor %}
-
-            {% if user %}
-              <li>
-                <a class="pull-right" data-toggle="modal" data-target="#logout-confirm">Logout</a>
-              </li>
-            {% else %}
-              <li {% if __login__ %}class="active"{% endif %}>
-                <a href="{{ url_for('login') }}">Login</a>
-              </li>
-            {% endif %}
-          </ul>
-          <h3 class="text-muted">IBEIS Web Interface</h3>
-            <br/>
-            <div class="pull-right" style="color: #aaa; margin-top: -15px;">
-              {% if user %}User: <span id="userid-container">{{ user.username }}</span>{% endif %}
+          <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-4">
+              <h3 class="text-muted">IBEIS Web</h3>
             </div>
+            <div class="col-lg-8 col-md-8 col-sm-8">
+              <div class="row">
+                <div class="col-lg-12">
+                  <ul class="nav nav-pills pull-right" style="margin-top: 10px;">
+                    {% for active, link, nice in NAVBAR %}
+                      <li {% if active %}class="active"{% endif %}>
+                        <a href="{{ url_for(link) }}">{{ nice }}</a>
+                      </li>
+                    {% endfor %}
+
+                    {% if user %}
+                      <li>
+                        <a class="pull-right" data-toggle="modal" data-target="#logout-confirm">Logout</a>
+                      </li>
+                    {% else %}
+                      <li {% if __login__ %}class="active"{% endif %}>
+                        <a href="{{ url_for('login') }}">Login</a>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-lg-12" style="text-align: right">
+                  <div style="color: #aaa;">
+                    {% if user %}User: <span id="userid-container">{{ user.username }}</span>{% endif %}
+                  </div>
+                </div>
+            </div>
+          </div>
         </div>
       {% endif %}
 

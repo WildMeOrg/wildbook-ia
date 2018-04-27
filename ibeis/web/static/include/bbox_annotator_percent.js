@@ -58,18 +58,18 @@ TODO
     $.fn.swapWith = function(that) {
         // http://stackoverflow.com/a/38515050/1413865
 
-        var $this = this;
-        var $that = $(that);
+        var $this = this
+        var $that = $(that)
 
         // create temporary placeholder
-        var $temp = $("<div>");
+        var $temp = $("<div>")
 
         // 3-step swap
-        $this.before($temp);
-        $that.before($this);
-        $temp.after($that).remove();
+        $this.before($temp)
+        $that.before($this)
+        $temp.after($that).remove()
 
-        return $this;
+        return $this
     }
 
     BBoxSelector = (function() {
@@ -553,6 +553,7 @@ TODO
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
             options.hotkeys.delete               !== undefined || (options.hotkeys.delete           = [75, 8])
             options.hotkeys.exit                 !== undefined || (options.hotkeys.exit             = [27])
+            options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom             = [16])
             options.hotkeys.background           !== undefined || (options.hotkeys.background       = [66])
             options.hotkeys.focus                !== undefined || (options.hotkeys.focus            = [70])
             options.hotkeys.counterclockwise     !== undefined || (options.hotkeys.counterclockwise = [76])
@@ -629,6 +630,7 @@ TODO
                 drag:     false,
                 which:    null,
                 inside:   false,
+                zoom:     false,
                 anchors:  {},
             }
 
@@ -776,6 +778,17 @@ TODO
                 var key, hotkeys_movement
 
                 key = event.which
+
+                // Shift key to zoom (un-zoom even if hotkeys are disabled)
+                if (bba.options.hotkeys.zoom.indexOf(key) != -1) {
+                    if (bba.state.zoom) {
+                        bba.zoom_finish()
+                    } else {
+                        if (bba.options.hotkeys.enabled) {
+                            bba.zoom_start()
+                        }
+                    }
+                }
 
                 if (bba.options.hotkeys.enabled) {
 
@@ -1087,22 +1100,41 @@ TODO
         }
 
         BBoxAnnotator.prototype.resize = function() {
-            var w1, h1, w2, h2
+            var w1, h1, w2, h2, offset, left, margin
+
+            zoom = this.state.zoom
+            margin = 5
 
             // Get the proportions of the image and
             w1 = this.elements.image.width
             h1 = this.elements.image.height
 
-            w2 = this.elements.container.width()
+            if (zoom) {
+                w2 = $(window).width() - 2 * margin
+            } else {
+                w2 = this.elements.container.width()
+                limit1 = this.options.limits.frame.width
+                limit2 = (this.options.limits.frame.height / h1) * w1
+                w2 = Math.min(w2, this.options.limits.frame.width, limit2)
+            }
 
-            limit1 = this.options.limits.frame.width
-            limit2 = (this.options.limits.frame.height / h1) * w1
-            w2 = Math.min(w2, this.options.limits.frame.width, limit2)
+            console.log('Using w2: ' + w2)
+
             h2 = (w2 / w1) * h1
+
+            if (zoom) {
+                offset = this.elements.container.offset()
+                left = -1.0 * offset.left
+                left += margin
+                left = left + "px"
+            } else {
+                left = ""
+            }
 
             this.elements.frame.css({
                 "width": w2 + "px",
                 "height": h2 + "px",
+                "left": left
             })
             this.elements.container.css({
                 "height": h2 + "px",
@@ -1119,6 +1151,18 @@ TODO
 
             // Update console
             this.refresh()
+        }
+
+        BBoxAnnotator.prototype.zoom_start = function() {
+            console.log('ZOOM START')
+            this.state.zoom = true
+            this.resize()
+        }
+
+        BBoxAnnotator.prototype.zoom_finish = function() {
+            console.log('ZOOM END')
+            this.state.zoom = false
+            this.resize()
         }
 
         BBoxAnnotator.prototype.update_mode = function(proposed_mode) {
@@ -1829,7 +1873,7 @@ TODO
                     holder = ''
                 }
                 if(entry.highlighted) {
-                    // var species_strs = [];
+                    // var species_strs = []
                     // species_strs['giraffe_masai']       = 'Masai Giraffe'
                     // species_strs['giraffe_reticulated'] = 'Reticulated Giraffe'
                     // species_strs['turtle_sea']          = 'Sea Turtle'
