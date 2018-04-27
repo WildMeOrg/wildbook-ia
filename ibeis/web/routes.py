@@ -95,6 +95,7 @@ def login(refer=None, *args, **kwargs):
             'UIC',
             [
                 'tanya.berger-wolf',
+                'mosheh.berger-wolf',
                 'ivan.brugere',
                 'chainarong.amornbunchornvej',
                 'jia.li',
