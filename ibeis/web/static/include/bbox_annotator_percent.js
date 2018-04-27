@@ -2801,6 +2801,10 @@ TODO
                 data = this.bbs.finish(event)
 
                 invalid = false
+                invalid = invalid || (isNaN(data.pixels.left))
+                invalid = invalid || (isNaN(data.pixels.top))
+                invalid = invalid || (isNaN(data.pixels.width))
+                invalid = invalid || (isNaN(data.pixels.height))
                 invalid = invalid || (data.pixels.width * data.pixels.height <= this.options.limits.entry.area)
                 invalid = invalid || (data.pixels.width <= this.options.limits.entry.width)
                 invalid = invalid || (data.pixels.height <= this.options.limits.entry.height)

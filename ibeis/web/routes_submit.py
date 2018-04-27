@@ -156,6 +156,15 @@ def submit_detection(**kwargs):
             part_list = []
             mapping_dict = {}
             for outer_index, data in enumerate(data_list):
+                # Check for invalid NaN boxes, filter them out
+                try:
+                    assert data['percent']['left']   is not None
+                    assert data['percent']['top']    is not None
+                    assert data['percent']['width']  is not None
+                    assert data['percent']['height'] is not None
+                except:
+                    continue
+
                 parent_index = data['parent']
                 if parent_index is None:
                     inner_index = len(annotation_list)
