@@ -453,6 +453,8 @@ $(window).keydown(function(event) {
             // // Space key pressed
             // $('input#ia-turk-submit-clear').click();
             $('input#ia-turk-submit-accept').click();
+            event.preventDefault();
+            return false;
         }
         else if (key == 80) {
             // P key pressed, follow previous link
