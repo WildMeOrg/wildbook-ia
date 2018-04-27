@@ -298,7 +298,7 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-detection.js') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20180427') }}" ia-dependency="javascript"></script>
     <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20180427') }}" ia-dependency="javascript"></script>
   {% endif %}
 
