@@ -149,12 +149,16 @@ def transform_around(M, x, y):
     return M_
 
 
-def rotation_around_mat3x3(theta, x, y):
+def rotation_around_mat3x3(theta, x0, y0, x1=None, y1=None):
+    if x1 is None:
+        x1 = x0
+    if y1 is None:
+        y1 = y0
     # rot = rotation_mat3x3(theta)
     # return transform_around(rot, x, y)
-    tr1_ = translation_mat3x3(-x, -y)
+    tr1_ = translation_mat3x3(-x0, -y0)
     rot_ = rotation_mat3x3(theta)
-    tr2_ = translation_mat3x3(x, y)
+    tr2_ = translation_mat3x3(x1, y1)
     rot = tr2_.dot(rot_).dot(tr1_)
     return rot
 
@@ -164,11 +168,18 @@ def scale_around_mat3x3(sx, sy, x, y):
     return transform_around(scale_, x, y)
 
 
-def rotation_around_bbox_mat3x3(theta, bbox):
-    x, y, w, h = bbox
-    centerx = x + (w / 2)
-    centery = y + (h / 2)
-    return rotation_around_mat3x3(theta, centerx, centery)
+def rotation_around_bbox_mat3x3(theta, bbox0, bbox1=None):
+    x, y, w, h = bbox0
+    centerx0 = x + (w / 2)
+    centery0 = y + (h / 2)
+    if bbox1 is None:
+        centerx1 = None
+        centery1 = None
+    else:
+        x, y, w, h = bbox1
+        centerx1 = x + (w / 2)
+        centery1 = y + (h / 2)
+    return rotation_around_mat3x3(theta, centerx0, centery0, x1=centerx1, y1=centery1)
 
 
 def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):

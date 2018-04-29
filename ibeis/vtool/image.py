@@ -154,7 +154,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>>     print(i)
         >>>     try:
         >>>         gid = random.choice(gid_list0)
-        >>>         image = ibs.get_image_imgdata(gid)
+        >>>         image = ibs.get_images(gid)
         >>>         image = resize_to_maxdims(image, (512, 512))
         >>>         img_list.append(image)
         >>>     except Exception:
@@ -491,18 +491,25 @@ def _fix_orientation(imgBGR, orient, fallback=True):
     orient_ = exif.ORIENTATION_DICT[orient]
     if orient_ == exif.ORIENTATION_000:
         return imgBGR
+
+    dsize_h, dsize_w = imgBGR.shape[:2]
+    if orient_ in [exif.ORIENTATION_090, exif.ORIENTATION_270]:
+        dsize = (dsize_h, dsize_w, )
+    else:
+        dsize = (dsize_w, dsize_h, )
+
     # FIXME; rotation changes the shape of the images
     # rotate_image does not do this, it must incorrectly clip areas.
     # TODO 90 degree optimizations
-    elif orient_ == exif.ORIENTATION_090:
+    if orient_ == exif.ORIENTATION_090:
         #return np.rot90(imgBGR, k=1)
-        return rotate_image(imgBGR, TAU * 0.25)
+        return rotate_image(imgBGR, TAU * 0.25, dsize=dsize)
     elif orient_ == exif.ORIENTATION_180:
         #return np.rot90(imgBGR, k=2)
-        return rotate_image(imgBGR, TAU * 0.50)
+        return rotate_image(imgBGR, TAU * 0.50, dsize=dsize)
     elif orient_ == exif.ORIENTATION_270:
         #return np.rot90(imgBGR, k=3)
-        return rotate_image(imgBGR, TAU * 0.75)
+        return rotate_image(imgBGR, TAU * 0.75, dsize=dsize)
     elif fallback:
         return imgBGR
     else:
@@ -1104,7 +1111,7 @@ def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
     return out_fpath_
 
 
-def rotate_image(img, theta, border_mode=None, interpolation=None):
+def rotate_image(img, theta, border_mode=None, interpolation=None, dsize=None):
     r"""
     Rotates an image around its center
 
@@ -1133,9 +1140,13 @@ def rotate_image(img, theta, border_mode=None, interpolation=None):
     from vtool import linalg as ltool
     border_mode = _rectify_border_mode(border_mode)
     interpolation = _rectify_interpolation(interpolation)
-    dsize = [img.shape[1], img.shape[0]]
-    bbox = [0, 0, img.shape[1], img.shape[0]]
-    R = ltool.rotation_around_bbox_mat3x3(theta, bbox)
+    bbox0 = [0, 0, img.shape[1], img.shape[0]]
+    if dsize is None:
+        dsize = [img.shape[1], img.shape[0]]
+        bbox1 = bbox0
+    else:
+        bbox1 = [0, 0, dsize[0], dsize[1]]
+    R = ltool.rotation_around_bbox_mat3x3(theta, bbox0, bbox1=bbox1)
     imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), borderMode=border_mode,
                           flags=interpolation)
     return imgR
