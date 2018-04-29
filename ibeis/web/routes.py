@@ -13,7 +13,6 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
 from ibeis.web import routes_ajax
 import utool as ut
-import vtool as vt
 import numpy as np
 
 
@@ -1733,9 +1732,7 @@ def turk_cameratrap(**kwargs):
 
     finished = gid is None
     if not finished:
-        image     = ibs.get_images(gid)
-        # image     = ibs.get_image_thumbnail(gid)
-        image_src = appf.embed_image_html(image)
+        image_src = routes_ajax.image_src(gid, resize=False)
         positive  = ibs.get_image_cameratrap(gid) not in [False, None]
     else:
         image_src = None
@@ -1752,27 +1749,8 @@ def precompute_web_detection_thumbnails(ibs, gid_list=None, batch_size=1024):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
-    thumbnail_config = {
-        'thumbsize': max(
-            int(appf.TARGET_WIDTH),
-            int(appf.TARGET_HEIGHT),
-        ),
-        'draw_annots': False,
-    }
-
-    index = 0
-    gid_list_ = []
-    while True:
-        if index >= len(gid_list) or len(gid_list_) >= batch_size:
-            ibs.get_image_thumbnail(gid_list_, **thumbnail_config)
-            gid_list_ = []
-
-        if index >= len(gid_list):
-            break
-
-        gid = gid_list[index]
-        gid_list_.append(gid)
-        index += 1
+    for gid in gid_list:
+        routes_ajax.image_src(gid, resize=False)
 
 
 @register_route('/turk/detection/', methods=['GET'])
@@ -1847,23 +1825,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
     display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
     display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
-        gpath = None
-        try:
-            thumbnail_config = {
-                'thumbsize': max(
-                    int(appf.TARGET_WIDTH),
-                    int(appf.TARGET_HEIGHT),
-                ),
-                'draw_annots': False,
-            }
-            imgdata = ibs.get_image_thumbnail(gid, **thumbnail_config)
-            h, w = imgdata.shape[:2]
-            assert h > 1, 'Invalid image thumbnail'
-            assert w > 1, 'Invalid image thumbnail'
-        except AssertionError:
-            imgdata = ibs.get_images(gid)
-
-        image_src = appf.embed_image_html(imgdata)
+        image_src = routes_ajax.image_src(gid, resize=False)
         width, height = ibs.get_image_sizes(gid)
 
         staged_user = controller_inject.get_user()
@@ -1976,7 +1938,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
         staged_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(staged_aid_list, is_staged=True))
 
     else:
-        gpath = None
         species = None
         image_src = None
         annotation_list = []
@@ -2189,7 +2150,6 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
                          config=config,
                          refer_aid=refer_aid,
                          species=species,
-                         image_path=gpath,
                          image_src=image_src,
                          previous=previous,
                          imagesettext=imagesettext,
@@ -2224,10 +2184,7 @@ def turk_detection_dynamic(**kwargs):
     ibs = current_app.ibs
     gid = request.args.get('gid', None)
 
-    gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-    image = ibs.get_images(gid)
-    # image = ibs.get_image_thumbnail(gid)
-    image_src = appf.embed_image_html(image)
+    image_src = routes_ajax.image_src(gid)
     # Get annotations
     width, height = ibs.get_image_sizes(gid)
     aid_list = ibs.get_image_aids(gid)
@@ -2258,7 +2215,6 @@ def turk_detection_dynamic(**kwargs):
                          gid=gid,
                          refer_aid=None,
                          species=species,
-                         image_path=gpath,
                          image_src=image_src,
                          annotation_list=annotation_list,
                          callback_url=callback_url,
@@ -2292,10 +2248,7 @@ def turk_annotation(**kwargs):
     display_instructions = request.cookies.get('ia-annotation_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
-        # image_src = routes_ajax.annotation_src(aid)
+        image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
         viewpoint_text = ibs.get_annot_viewpoints(aid)
         viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
@@ -2314,7 +2267,6 @@ def turk_annotation(**kwargs):
         except:
             pass
         gid       = None
-        gpath     = None
         image_src = None
         species   = None
         viewpoint_value = -1
@@ -2345,7 +2297,6 @@ def turk_annotation(**kwargs):
                          viewpoint_value=viewpoint_value,
                          quality_value=quality_value,
                          multiple_value=multiple_value,
-                         image_path=gpath,
                          image_src=image_src,
                          previous=previous,
                          species_list=species_list,
@@ -2368,9 +2319,7 @@ def turk_annotation_dynamic(**kwargs):
 
     review = 'review' in request.args.keys()
     gid       = ibs.get_annot_gids(aid)
-    gpath     = ibs.get_annot_chip_fpath(aid)
-    image     = vt.imread(gpath)
-    image_src = appf.embed_image_html(image)
+    image_src = routes_ajax.annotation_src(aid)
     species   = ibs.get_annot_species_texts(aid)
     viewpoint_text = ibs.get_annot_viewpoints(aid)
     viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
@@ -2399,7 +2348,6 @@ def turk_annotation_dynamic(**kwargs):
                          aid=aid,
                          viewpoint_value=viewpoint_value,
                          quality_value=quality_value,
-                         image_path=gpath,
                          image_src=image_src,
                          species_list=species_list,
                          callback_url=callback_url,
@@ -2455,14 +2403,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     display_instructions = request.cookies.get('ia-contour_instructions_seen', 1) == 1
 
     if not finished:
-        chip_config = {
-            'dim_size': max(
-                int(appf.TARGET_WIDTH),
-                int(appf.TARGET_HEIGHT),
-            ),
-        }
-        imgdata = ibs.get_part_chips(part_rowid, config2_=chip_config)
-        image_src = appf.embed_image_html(imgdata)
+        image_src = routes_ajax.part_src(part_rowid, **kwargs)
 
         # Get contours from part
         existing_contour_dict = ibs.get_part_contour(part_rowid)
@@ -2504,10 +2445,7 @@ def turk_species(**kwargs):
     display_instructions = request.cookies.get('ia-species_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
-        # image_src = routes_ajax.annotation_src(aid)
+        image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
     else:
         try:
@@ -2516,7 +2454,6 @@ def turk_species(**kwargs):
         except:
             pass
         gid       = None
-        gpath     = None
         image_src = None
         species   = None
 
@@ -2541,7 +2478,6 @@ def turk_species(**kwargs):
                          dst_ag=dst_ag,
                          gid=gid,
                          aid=aid,
-                         image_path=gpath,
                          image_src=image_src,
                          previous=previous,
                          species_list=species_list,
@@ -2582,13 +2518,10 @@ def turk_viewpoint(**kwargs):
     display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
+        image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
     else:
         gid       = None
-        gpath     = None
         image_src = None
         species   = None
 
@@ -2613,7 +2546,6 @@ def turk_viewpoint(**kwargs):
                          gid=gid,
                          aid=aid,
                          value=value,
-                         image_path=gpath,
                          image_src=image_src,
                          previous=previous,
                          species_list=species_list,
@@ -2651,13 +2583,10 @@ def turk_viewpoint2(**kwargs):
     display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
+        image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
     else:
         gid       = None
-        gpath     = None
         image_src = None
         species   = None
 
@@ -2684,7 +2613,6 @@ def turk_viewpoint2(**kwargs):
                          viewpoint1=viewpoint1,
                          viewpoint2=viewpoint2,
                          viewpoint3=viewpoint3,
-                         image_path=gpath,
                          image_src=image_src,
                          previous=previous,
                          species_list=species_list,
@@ -3435,12 +3363,9 @@ def turk_quality(**kwargs):
     display_instructions = request.cookies.get('ia-quality_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
+        image_src = routes_ajax.annotation_src(aid)
     else:
         gid       = None
-        gpath     = None
         image_src = None
     imagesettext = ibs.get_imageset_text(imgsetid)
     return appf.template('turk', 'quality',
@@ -3450,7 +3375,6 @@ def turk_quality(**kwargs):
                          gid=gid,
                          aid=aid,
                          value=value,
-                         image_path=gpath,
                          image_src=image_src,
                          previous=previous,
                          imagesettext=imagesettext,
@@ -3514,12 +3438,9 @@ def turk_demographics(**kwargs):
     display_instructions = request.cookies.get('ia-demographics_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
+        image_src = routes_ajax.annotation_src(aid)
     else:
         gid       = None
-        gpath     = None
         image_src = None
     name_aid_list = None
     nid = ibs.get_annot_name_rowids(aid)
@@ -3558,7 +3479,6 @@ def turk_demographics(**kwargs):
                          region_str=region_str,
                          value_sex=value_sex,
                          value_age=value_age,
-                         image_path=gpath,
                          name_aid_combined_list=name_aid_combined_list,
                          image_src=image_src,
                          previous=previous,

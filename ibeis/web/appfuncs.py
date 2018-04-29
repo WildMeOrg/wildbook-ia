@@ -107,7 +107,7 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEI
     from PIL import Image
     if target_width is not None:
         imgBGR = _resize(imgBGR, t_width=target_width)
-    elif target_width is not None:
+    elif target_height is not None:
         imgBGR = _resize(imgBGR, t_height=target_height)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)

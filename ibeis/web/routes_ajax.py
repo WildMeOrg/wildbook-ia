@@ -7,7 +7,6 @@ from flask import request, make_response, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
-import vtool as vt
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -20,33 +19,78 @@ def set_cookie(**kwargs):
     return response
 
 
+def _resize_src(image, resize=False, **kwargs):
+    # Load image
+    if resize is None:
+        image_src = appf.embed_image_html(image, target_width=None, target_height=None)
+    elif resize:
+        image = appf.resize_via_web_parameters(image)
+        image_src = appf.embed_image_html(image, target_width=None, target_height=None)
+    else:
+        image_src = appf.embed_image_html(image)
+
+    return image_src
+
+
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
-def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
-    thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
+def image_src(gid=None, thumbnail=False, **kwargs):
     ibs = current_app.ibs
     gid = int(gid)
-    if thumbnail:
-        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
-        fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
-        if fresh:
-            import os
-            os.remove(gpath)
-            gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
-    else:
-        gpath = ibs.get_image_paths(gid)
+    image = None
 
-    # Load image
-    image = vt.imread(gpath, orient='auto')
-    image = appf.resize_via_web_parameters(image)
-    return appf.embed_image_html(image, target_width=None)
+    if thumbnail:
+        try:
+            thumbnail_config = {
+                'thumbsize': max(
+                    int(appf.TARGET_WIDTH),
+                    int(appf.TARGET_HEIGHT),
+                ),
+                'draw_annots': False,
+            }
+            image = ibs.get_image_thumbnail(gid, **thumbnail_config)
+            h, w = image.shape[:2]
+            assert h > 0, 'Invalid image thumbnail'
+            assert w > 0, 'Invalid image thumbnail'
+        except AssertionError:
+            image = None
+
+    if image is None:
+        image = ibs.get_images(gid)
+
+    image_src = _resize_src(image, **kwargs)
+    return image_src
 
 
 @register_route('/ajax/annot/src/<aid>/', methods=['GET'])
 def annotation_src(aid=None, **kwargs):
     ibs = current_app.ibs
-    gpath = ibs.get_annot_chip_fpath(aid)
-    image = vt.imread(gpath)
-    image_src = appf.embed_image_html(image, target_width=None, target_height=300)
+
+    chip_config = {
+        'dim_size': max(
+            int(appf.TARGET_WIDTH),
+            int(appf.TARGET_HEIGHT),
+        ),
+    }
+    image = ibs.get_annot_chips(aid, config2_=chip_config)
+
+    # image_src = _resize_src(image, **kwargs)
+    image_src = appf.embed_image_html(image, target_height=300)
+    return image_src
+
+
+@register_route('/ajax/part/src/<part_rowid>/', methods=['GET'])
+def part_src(part_rowid, **kwargs):
+    ibs = current_app.ibs
+    chip_config = {
+        'dim_size': max(
+            int(appf.TARGET_WIDTH),
+            int(appf.TARGET_HEIGHT),
+        ),
+    }
+    image = ibs.get_part_chips(part_rowid, config2_=chip_config)
+
+    # image_src = _resize_src(image, **kwargs)
+    image_src = appf.embed_image_html(image, target_height=300)
     return image_src
 
 

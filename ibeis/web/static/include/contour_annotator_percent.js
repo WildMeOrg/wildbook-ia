@@ -183,6 +183,7 @@
             options.hotkeys                      !== undefined || (options.hotkeys = {})
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
             options.hotkeys.delete               !== undefined || (options.hotkeys.delete = [75, 8])
+            options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom   = [90])
             options.limits                       !== undefined || (options.limits = {})
             options.limits.frame                 !== undefined || (options.limits.frame = {})
             options.limits.frame.width           !== undefined || (options.limits.frame.width =1000)
@@ -219,6 +220,7 @@
                 mode:     "free",
                 inside:   false,
                 which:    null,
+                zoom:     false,
                 anchors:  {},
             }
 
@@ -314,6 +316,17 @@
 
                 key = event.which
 
+                // Shift key to zoom (un-zoom even if hotkeys are disabled)
+                if (cta.options.hotkeys.zoom.indexOf(key) != -1) {
+                    if (cta.state.zoom) {
+                        cta.zoom_finish()
+                    } else {
+                        if (cta.options.hotkeys.enabled) {
+                            cta.zoom_start()
+                        }
+                    }
+                }
+
                 if (cta.options.hotkeys.enabled) {
 
                     // Delete key pressed
@@ -367,6 +380,68 @@
 
                 cta.state.inside = false
             })
+        }
+
+        ContourAnnotator.prototype.resize = function() {
+            var w1, h1, w2, h2, offset, left, margin
+
+            zoom = this.state.zoom
+            margin = 5
+
+            // Get the proportions of the image and
+            w1 = this.elements.image.width
+            h1 = this.elements.image.height
+
+            if (zoom) {
+                w2 = $(window).width() - 2 * margin
+            } else {
+                w2 = this.elements.container.width()
+                limit1 = this.options.limits.frame.width
+                limit2 = (this.options.limits.frame.height / h1) * w1
+                w2 = Math.min(w2, this.options.limits.frame.width, limit2)
+            }
+
+            h2 = (w2 / w1) * h1
+
+            if (zoom) {
+                offset = this.elements.container.offset()
+                left = -1.0 * offset.left
+                left += margin
+                left = left + "px"
+            } else {
+                left = ""
+            }
+
+            this.elements.frame.css({
+                "width": w2 + "px",
+                "height": h2 + "px",
+                "left": left
+            })
+            this.elements.container.css({
+                "height": h2 + "px",
+            })
+
+            // Update the assignments, not based on percentages
+            for (var index = 0; index < this.entries.length; index++) {
+                entry = this.entries[index]
+                // We only need to update the assignments for parents, which will update all of their sub-entries
+                if(entry.parent == null) {
+                    this.assignment_entry(index)
+                }
+            }
+
+            // Update console
+            this.refresh()
+        }
+
+        ContourAnnotator.prototype.zoom_start = function() {
+            this.state.zoom = true
+            this.resize()
+        }
+
+        ContourAnnotator.prototype.zoom_finish = function() {
+            this.state.zoom = false
+            this.resize()
         }
 
         ContourAnnotator.prototype.refresh = function() {
