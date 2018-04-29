@@ -1396,8 +1396,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
         print('[db_update (1.5.2)] Parsing Exif orientations for %d / %d images (skipping %d)' % args)
         gpath_list_ = ibs.get_image_paths(gid_list_)
         orient_list_ = [ _parse_orient(gpath) for gpath in gpath_list_ ]
-        ibs.set_image_orientation(gid_list_, orient_list_)
-
+        ibs._set_image_orientation(gid_list_, orient_list_)
         faoi.fix_annotation_orientation(ibs)
 
 

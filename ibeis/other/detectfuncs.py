@@ -1221,7 +1221,7 @@ def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
 #                 prediction_list.append('negative')
 
 #             if write_images:
-#                 test_image = ibs.get_image_imgdata(test_gid)
+#                 test_image = ibs.get_images(test_gid)
 #                 test_image = _resize(test_image, t_width=600, verbose=False)
 #                 height_, width_, channels_ = test_image.shape
 

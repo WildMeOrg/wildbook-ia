@@ -115,6 +115,7 @@ def compute_thumbnails(depc, gid_list, config=None):
     # Execute all tasks in parallel
     args_list = list(zip(thumbsize_list, gpath_list, orient_list, bboxes_list,
                          thetas_list, interests_list))
+
     genkw = {
         'ordered': True,
         'chunksize': 256,
@@ -130,8 +131,7 @@ def compute_thumbnails(depc, gid_list, config=None):
 
 def draw_thumb_helper(thumbsize, gpath, orient, bbox_list, theta_list, interest_list):
     # time consuming
-    # img = vt.imread(gpath, orient=orient)
-    img = vt.imread(gpath)
+    img = vt.imread(gpath, orient=orient)
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
     if isinstance(thumbsize, int):
@@ -926,7 +926,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         for tup in ut.ProgIter(arg_list, lbl='computing localization chips', bs=True):
             gid, new_size, M = tup
             if gid != last_gid:
-                img = ibs.get_image_imgdata(gid)
+                img = ibs.get_images(gid)
                 last_gid = gid
             chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
             # cv2.imshow('', chip)
@@ -936,7 +936,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
             chip_list.append(chip)
     else:
         target_size_list = [target_size] * len(bboxes_list)
-        img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
+        img_list = [ibs.get_images(gid) for gid in gid_list_]
         arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
                             target_size_list))
         result_list = ut.util_parallel.generate2(get_localization_chips_worker,
@@ -998,7 +998,7 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
         for tup in ut.ProgIter(arg_list, lbl='computing localization masks', bs=True):
             gid, new_size, vert_list = tup
             if gid != last_gid:
-                img = ibs.get_image_imgdata(gid)
+                img = ibs.get_images(gid)
                 last_gid = gid
 
             # Copy the image, mask out the patch
@@ -1015,7 +1015,7 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
             mask_list.append(mask)
     else:
         target_size_list = [target_size] * len(bboxes_list)
-        img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
+        img_list = [ibs.get_images(gid) for gid in gid_list_]
         arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
                             target_size_list))
         result_list = ut.util_parallel.generate2(get_localization_masks_worker,
@@ -1136,7 +1136,7 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
     args = (len(loc_id_list), min(len_list), avg, max(len_list), sum(len_list), )
 
     # Create image iterator
-    img_list = (ibs.get_image_imgdata(gid) for gid in gid_list_)
+    img_list = (ibs.get_images(gid) for gid in gid_list_)
 
     if masking:
         print('Extracting %d localization masks (min: %d, avg: %0.02f, max: %d, total: %d)' % args)
@@ -1820,7 +1820,7 @@ def compute_detections(depc, gid_list, config=None):
         # print(result)
         # raw_input()
         # print('')
-        # image = ibs.get_image_imgdata(gid)
+        # image = ibs.get_images(gid)
         # image = vt.resize(image, (500, 500))
         # cv2.imshow('', image)
         # cv2.waitKey(0)

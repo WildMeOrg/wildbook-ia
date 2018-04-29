@@ -553,7 +553,7 @@ TODO
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
             options.hotkeys.delete               !== undefined || (options.hotkeys.delete           = [75, 8])
             options.hotkeys.exit                 !== undefined || (options.hotkeys.exit             = [27])
-            options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom             = [16])
+            options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom             = [90])
             options.hotkeys.background           !== undefined || (options.hotkeys.background       = [66])
             options.hotkeys.focus                !== undefined || (options.hotkeys.focus            = [70])
             options.hotkeys.counterclockwise     !== undefined || (options.hotkeys.counterclockwise = [76])
@@ -945,7 +945,6 @@ TODO
                         bba.state.mode = "magnet"
                         element = bba.elements.entries[bba.state.hover]
                         entry = bba.entries[bba.state.hover]
-                        console.log('MAGNET SETTING ' + entry.closest)
                         // VERSION 1
                         resize_handle = element.resize[entry.closest]
                         bba.resize_start(resize_handle, event)
@@ -1118,8 +1117,6 @@ TODO
                 w2 = Math.min(w2, this.options.limits.frame.width, limit2)
             }
 
-            console.log('Using w2: ' + w2)
-
             h2 = (w2 / w1) * h1
 
             if (zoom) {
@@ -1154,13 +1151,11 @@ TODO
         }
 
         BBoxAnnotator.prototype.zoom_start = function() {
-            console.log('ZOOM START')
             this.state.zoom = true
             this.resize()
         }
 
         BBoxAnnotator.prototype.zoom_finish = function() {
-            console.log('ZOOM END')
             this.state.zoom = false
             this.resize()
         }

@@ -175,7 +175,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         default_config.update(config)
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-    image = ibs.get_image_imgdata(gid)
+    image = ibs.get_images(gid)
     image_src = appf.embed_image_html(image)
     width, height = ibs.get_image_sizes(gid)
 

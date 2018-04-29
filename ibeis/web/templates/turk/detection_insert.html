@@ -44,7 +44,7 @@
     </div>
   </div>
 
-  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}&{{ config_str }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}&{{ config_str }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form(this.skipcheck);" id="ia-detection-form">
     <div id="ia-bbox-annotator-container"></div>
 
     <div class="row">
@@ -92,16 +92,18 @@
         <span id="ia-metadata-badge-part" class="badge" style="border-top-left-radius: 0;border-bottom-left-radius: 0; margin-right: 114px;">Part</span>
 
         <div style="margin-top: -27px;">
-          <input type="submit" name="detection-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+          <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
           {% if not EMBEDDED_JAVASCRIPT %}
-            <!-- <input type="submit" name="detection-submit" id="ia-turk-submit-clear"  class="btn btn-warning pull-right" value="Clear" style="margin-right: 15px;"> -->
-            <!-- <input type="submit" name="detection-submit" id="ia-turk-submit-delete" class="btn btn-danger pull-right" value="Delete" style="margin-right: 15px;" onclick="return confirm('Are you sure you want to delete this image?')"> -->
+            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-clear"  class="btn btn-warning pull-right" value="Clear" style="margin-right: 15px;"> -->
+            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-delete" class="btn btn-danger pull-right" value="Delete" style="margin-right: 15px;" onclick="return confirm('Are you sure you want to delete this image?')"> -->
           {% endif %}
-          <!-- <input type="submit" name="detection-submit" id="ia-turk-submit-accept" class="btn btn-danger pull-right" value="Poor Boxes" style="margin-right: 15px;"> -->
+          <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-accept" class="btn btn-danger pull-right" value="Poor Boxes" style="margin-right: 15px;"> -->
 
-<!--           <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Right 90&#176;" style="margin-right: 15px;">
-          <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Left 90&#176;" style="margin-right: 15px;">
- -->        </div>
+          <br/>
+          <br/>
+          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-top: 10px;">
+          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-right: 15px; margin-top: 10px;">
+        </div>
       </div>
     </div>
 
@@ -298,8 +300,8 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20180427-1') }}" ia-dependency="javascript"></script>
-    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20180427-1') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20180427-3') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20180427-3') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
@@ -632,7 +634,7 @@
           </ul>
         <li><b>Hover+Left-drag</b>: move the highlighted box
         <li><b>Hover+Right-drag</b>: resize the highlighted box<br/>using the closest handle <span style="color: #EB2A18; opacity: 0.75"><b>(red)</b>
-        <li><b>Shift</b>: toggle zoom</li>
+        <li><b>Z</b>: toggle zoom</li>
         <li><b>Esc</b>: cancel any action and unfocus</li>
         <li><b>Delete</b> or <b>k</b>: delete a highlighted box</li>
         <li><b>Delete+Shift</b> delete all parts of a highlighted box</li>

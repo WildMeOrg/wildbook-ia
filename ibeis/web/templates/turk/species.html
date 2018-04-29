@@ -55,8 +55,8 @@
           <input type="text" name="ia-species-aid" value="{{ aid }}" style="display: none;" readonly>
           <br/>
           <!-- <span class="pull-left" style="margin-top: 15px;">Species:</span> -->
-          <input type="submit" name="ia-species-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Right 90&#176;" style="margin-left: 20px;">
-          <input type="submit" name="ia-species-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Left 90&#176;" style="margin-left: 20px;">
+          <input type="submit" name="ia-species-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
+          <input type="submit" name="ia-species-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
           {% if previous %}
             <a class="btn btn-default pull-right" id="ia-turk-previous" href="{{ url_for('turk_species') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
           {% endif %}

@@ -26,6 +26,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.web import routes_ajax
+import six
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -802,29 +803,99 @@ def _set_image_sizes(ibs, gid_list, width_list, height_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/image/orientation/', methods=['PUT'])
-def set_image_orientation(ibs, gid_list, orientation_list):
+def _set_image_orientation(ibs, gid_list, orientation_list):
     r"""
     RESTful:
         Method: PUT
         URL:    /api/image/orientation/
     """
-    # # FIXME: is this correct?
-    # current_list = ibs.get_image_orientation(gid_list)
-    # zipped = zip(gid_list, current_list, orientation_list)
-    # for gid, current, orientation in zipped:
-    #     if current in [1] and orientation in [6, 8]:
-    #         # Fix orientation
-    #         width, height = ibs.get_image_sizes(gid)
-    #         ibs._set_image_sizes(gid, height, width)
-    #         aid_list = ibs.get_image_aids(gid)
-    #         bbox_list = ibs.get_annot_bboxes(aid_list)
-    #         bbox_list_ = ibs.fix_horizontal_bounding_boxes_to_orient(gid, bbox_list)
-    #         ibs.set_annot_bboxes(aid_list, bbox_list_)
     colnames = ('image_orientation',)
     val_list = ((orientation,) for orientation in orientation_list)
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
     ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
+
+
+def update_image_rotate_90(ibs, gid_list, direction):
+    from vtool.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
+                            ORIENTATION_UNDEFINED, ORIENTATION_000)
+
+    def _update_bounding_boxes(gid, val):
+        full_w, full_h = ibs.get_image_sizes(gid)
+        aid_list = ibs.get_image_aids(gid)
+        if len(aid_list) == 0:
+            return
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        bbox_list_ = []
+        for bbox in bbox_list:
+            (xtl, ytl, width, height) = bbox
+            if val > 0:
+                xtl, ytl = full_w - ytl - height, xtl
+            else:
+                xtl, ytl = ytl, full_h - xtl - width
+            width, height = height, width
+            bbox_ = (xtl, ytl, width, height)
+            bbox_list_.append(bbox_)
+        ibs.set_annot_bboxes(aid_list, bbox_list_)
+
+    if isinstance(direction, six.string_types):
+        direction = direction.lower()
+
+    if direction in ['left', 'l', -1]:
+        val = -1
+    elif direction in ['right', 'r', 1]:
+        val = 1
+    else:
+        raise ValueError('Invalid direction supplied')
+
+    new_orient_list = []
+    orient_list = ibs.get_image_orientation(gid_list)
+    for orient in orient_list:
+        if orient == ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]:
+            orient = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+
+        assert orient in ORIENTATION_ORDER_LIST, 'Unrecognized orientation = %r in %r' % (orient, ORIENTATION_ORDER_LIST, )
+
+        current_index = ORIENTATION_ORDER_LIST.index(orient)
+        new_index = int((current_index + val)) % len(ORIENTATION_ORDER_LIST)
+
+        new_orient = ORIENTATION_ORDER_LIST[new_index]
+        new_orient_list.append(new_orient)
+
+    print('Rotating images %r -> %r' % (orient_list, new_orient_list, ))
+    ibs._set_image_orientation(gid_list, new_orient_list)
+
+    # We've just rotated, invert the width, height values in the database for each image
+    # IMPORTAND: DO THIS AFTER FIXING THE BBOXES
+    width_list = ibs.get_image_widths(gid_list)
+    height_list = ibs.get_image_heights(gid_list)
+    ibs._set_image_sizes(gid_list, height_list, width_list)
+
+    # Update the bounding box locations
+    for gid in gid_list:
+        _update_bounding_boxes(gid, val)
+
+    # Update the bounding box thetas
+    aids_list = ibs.get_image_aids(gid_list, is_staged=None)
+    for aid_list in aids_list:
+        if len(aid_list) == 0:
+            continue
+        if val > 0:
+            ibs.update_annot_rotate_left_90(aid_list)
+        else:
+            ibs.update_annot_rotate_right_90(aid_list)
+
+
+@register_ibs_method
+@register_api('/api/image/rotate/left/', methods=['POST'])
+def update_image_rotate_left_90(ibs, gid_list):
+    return update_image_rotate_90(ibs, gid_list, 'left')
+
+
+@register_ibs_method
+@register_api('/api/image/rotate/right/', methods=['POST'])
+def update_image_rotate_right_90(ibs, gid_list):
+    return update_image_rotate_90(ibs, gid_list, 'right')
 
 
 #
@@ -833,10 +904,8 @@ def set_image_orientation(ibs, gid_list, orientation_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_images(ibs, gid_list, force_orient=False, **kwargs):
+def get_images(ibs, gid_list, force_orient=True, **kwargs):
     r"""
-    FIXME: rename to get_image_imgdata or something
-
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
 
@@ -1005,7 +1074,7 @@ def get_image_uuids(ibs, gid_list):
             UUID('588bc218-83a5-d400-21aa-d499832632b0'),
             UUID('163a890c-36f2-981e-3529-c552b6d668a3'),
         ]
-        """
+    """
     image_uuid_list = ibs.db.get(const.IMAGE_TABLE, ('image_uuid',), gid_list)
     return image_uuid_list
 
@@ -1179,7 +1248,7 @@ def get_image_paths(ibs, gid_list):
         >>> result = str(new_gpath_list)
         >>> ibs.delete_images(gid_list)
         >>> print(result)
-        """
+    """
     #ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
     # Images should never have null uris
@@ -1748,9 +1817,7 @@ def get_image_imagesettext(ibs, gid_list):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
-#@profile
 @register_api('/api/image/annot/rowid/', methods=['GET'])
-@profile
 def get_image_aids(ibs, gid_list, is_staged=False):
     r"""
     Returns:
@@ -1794,7 +1861,6 @@ def get_image_aids(ibs, gid_list, is_staged=False):
         print('len(gidscol) = %r' % (len(gidscol),))
         print('len(unique_gids) = %r' % (len(unique_gids),))
     """
-
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS

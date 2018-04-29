@@ -1733,7 +1733,7 @@ def turk_cameratrap(**kwargs):
 
     finished = gid is None
     if not finished:
-        image     = ibs.get_image_imgdata(gid)
+        image     = ibs.get_images(gid)
         # image     = ibs.get_image_thumbnail(gid)
         image_src = appf.embed_image_html(image)
         positive  = ibs.get_image_cameratrap(gid) not in [False, None]
@@ -1847,17 +1847,22 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
     display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
     display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
-        # gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-        # imgdata = ibs.get_image_imgdata(gid)
         gpath = None
-        thumbnail_config = {
-            'thumbsize': max(
-                int(appf.TARGET_WIDTH),
-                int(appf.TARGET_HEIGHT),
-            ),
-            'draw_annots': False,
-        }
-        imgdata = ibs.get_image_thumbnail(gid, **thumbnail_config)
+        try:
+            thumbnail_config = {
+                'thumbsize': max(
+                    int(appf.TARGET_WIDTH),
+                    int(appf.TARGET_HEIGHT),
+                ),
+                'draw_annots': False,
+            }
+            imgdata = ibs.get_image_thumbnail(gid, **thumbnail_config)
+            h, w = imgdata.shape[:2]
+            assert h > 1, 'Invalid image thumbnail'
+            assert w > 1, 'Invalid image thumbnail'
+        except AssertionError:
+            imgdata = ibs.get_images(gid)
+
         image_src = appf.embed_image_html(imgdata)
         width, height = ibs.get_image_sizes(gid)
 
@@ -2220,7 +2225,7 @@ def turk_detection_dynamic(**kwargs):
     gid = request.args.get('gid', None)
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-    image = ibs.get_image_imgdata(gid)
+    image = ibs.get_images(gid)
     # image = ibs.get_image_thumbnail(gid)
     image_src = appf.embed_image_html(image)
     # Get annotations

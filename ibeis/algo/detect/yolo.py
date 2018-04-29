@@ -98,7 +98,6 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
                     result[key] = int(result[key] * downsample)
             bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
             bbox_list = [ bbox ]
-            bbox_list = ibs.fix_horizontal_bounding_boxes_to_orient(gid, bbox_list)
             bbox = bbox_list[0]
             result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)

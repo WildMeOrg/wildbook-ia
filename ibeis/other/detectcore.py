@@ -37,27 +37,6 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
-def fix_horizontal_bounding_boxes_to_orient(ibs, gid, bbox_list):
-    orient = ibs.get_image_orientation(gid)
-    bbox_list_ = []
-    for bbox in bbox_list:
-        (xtl, ytl, width, height) = bbox
-        if orient == 6:
-            full_w, full_h = ibs.get_image_sizes(gid)
-            xtl, ytl = full_w - ytl - height, xtl
-            width, height = height, width
-        elif orient == 8:
-            full_w, full_h = ibs.get_image_sizes(gid)
-            xtl, ytl = ytl, full_h - xtl - width
-            width, height = height, width
-        else:
-            pass
-        bbox_ = (xtl, ytl, width, height)
-        bbox_list_.append(bbox_)
-    return bbox_list_
-
-
-@register_ibs_method
 def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, **kwargs):
@@ -158,7 +137,7 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
             out_name = "%d_%06d" % (current_year, index, )
             out_img = out_name + ".jpg"
 
-            _image = ibs.get_image_imgdata(gid)
+            _image = ibs.get_images(gid)
             height, width, channels = _image.shape
 
             condition = width > height if use_maximum_linear_dimension else width < height
@@ -488,7 +467,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
     print('Prepare images')
     # Get images and a dictionary based on their gids
-    image_list = ibs.get_image_imgdata(mined_gid_list)
+    image_list = ibs.get_images(mined_gid_list)
     image_dict = { gid: image for gid, image in zip(mined_gid_list, image_list) }
 
     # Draw positives
@@ -660,7 +639,7 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
         ut.ensuredir(output_path)
 
     for gid, image_uuid in zip(gid_list, uuid_list):
-        image = ibs.get_image_imgdata(gid)
+        image = ibs.get_images(gid)
         image = _resize(image, t_width=500)
         h, w, c = image.shape
 

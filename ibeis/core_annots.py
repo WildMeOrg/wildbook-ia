@@ -206,7 +206,7 @@ def compute_chipthumb(depc, aid_list, config=None):
     for tup in ut.ProgIter(arg_list, lbl='computing annot chipthumb', bs=True):
         gid, new_size, M, new_verts, interest = tup
         if gid != last_gid:
-            imgBGR = ibs.get_image_imgdata(gid)
+            imgBGR = ibs.get_images(gid)
             last_gid = gid
 
         thumbBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
@@ -409,11 +409,12 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
-    _parallel_chips = getattr(ibs, '_parallel_chips', False)
+    _parallel_chips = getattr(ibs, '_parallel_chips', True)
 
     if _parallel_chips:
         gpath_list = ibs.get_image_paths(gid_list)
-        args_gen = zip(gpath_list, M_list, newsize_list)
+        orient_list = ibs.get_image_orientation(gid_list)
+        args_gen = zip(gpath_list, orient_list, M_list, newsize_list)
 
         gen_kw = {'filter_list': filter_list, 'warpkw': warpkw}
         gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(gpath_list),
@@ -433,7 +434,7 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
             # Read parent image # TODO: buffer this?
             # If the gids are sorted, no need to load the image more than once, if so
             if gid != last_gid:
-                imgBGR = ibs.get_image_imgdata(gid)
+                imgBGR = ibs.get_images(gid)
                 last_gid = gid
             # Warp chip
             chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
@@ -444,8 +445,8 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
             yield (chipBGR, width, height, M)
 
 
-def gen_chip_worker(gpath, M, new_size, filter_list, warpkw):
-    imgBGR = vt.imread(gpath)
+def gen_chip_worker(gpath, orient, M, new_size, filter_list, warpkw):
+    imgBGR = vt.imread(gpath, orient=orient)
     # Warp chip
     chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
     # Do intensity normalizations

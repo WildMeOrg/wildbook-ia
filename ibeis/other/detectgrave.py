@@ -237,7 +237,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                 neighbor_offset_list_ = [offset] + neighbor_offset_list_
 
                 neighbor_gid_set_ = list(set(neighbor_gid_list_))
-                neighbor_image_list = ibs.get_image_imgdata(neighbor_gid_set_)
+                neighbor_image_list = ibs.get_images(neighbor_gid_set_)
                 neighbor_image_dict = {
                     gid: image
                     for gid, image in zip(neighbor_gid_set_, neighbor_image_list)
@@ -256,7 +256,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
                 # Perform NMS
                 chip_list = []
-                query_image = ibs.get_image_imgdata(gid)
+                query_image = ibs.get_images(gid)
                 xbr = example['xbr']
                 ybr = example['ybr']
                 xtl = example['xtl']

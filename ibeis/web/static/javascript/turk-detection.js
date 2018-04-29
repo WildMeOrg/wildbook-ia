@@ -5,7 +5,11 @@ function hide_viewpoint_2_axis_panel(index) {
     }
 }
 
-function check_form() {
+function check_form(skipcheck) {
+    if (skipcheck) {
+        return true;
+    }
+
     // Recalculate current values and update form data field before submitting
     bba.resize();
 

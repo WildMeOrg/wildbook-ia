@@ -2685,7 +2685,7 @@ def get_annot_images(ibs, aid_list):
         [(715, 1047, 3)]
     """
     gid_list = ibs.get_annot_gids(aid_list)
-    image_list = ibs.get_image_imgdata(gid_list)
+    image_list = ibs.get_images(gid_list)
     return image_list
 
 
@@ -3021,6 +3021,55 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
         ibs.delete_annot_imgthumbs(aid_list)
     ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
+
+
+def _update_annot_rotate_fix_bbox(bbox):
+    (xtl, ytl, w, h) = bbox
+    diffx = int(round((w / 2.0) - (h / 2.0)))
+    diffy = int(round((h / 2.0) - (w / 2.0)))
+    xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+    bbox = (xtl, ytl, w, h)
+    return bbox
+
+
+def update_annot_rotate_90(ibs, aid_list, direction):
+    from ibeis.constants import PI, TAU
+
+    if isinstance(direction, six.string_types):
+        direction = direction.lower()
+
+    if direction in ['left', 'l', -1]:
+        val = 1.0
+    elif direction in ['right', 'r', 1]:
+        val = -1.0
+    else:
+        raise ValueError('Invalid direction supplied')
+
+    theta_list = ibs.get_annot_thetas(aid_list)
+    theta_list = [
+        (theta + (val * PI / 2)) % TAU
+        for theta in theta_list
+    ]
+    ibs.set_annot_thetas(aid_list, theta_list)
+
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    bbox_list = [
+        _update_annot_rotate_fix_bbox(bbox)
+        for bbox in bbox_list
+    ]
+    ibs.set_annot_bboxes(aid_list, bbox_list)
+
+
+@register_ibs_method
+@register_api('/api/annot/rotate/left/', methods=['POST'])
+def update_annot_rotate_left_90(ibs, aid_list):
+    return update_annot_rotate_90(ibs, aid_list, 'left')
+
+
+@register_ibs_method
+@register_api('/api/annot/rotate/right/', methods=['POST'])
+def update_annot_rotate_right_90(ibs, aid_list):
+    return update_annot_rotate_90(ibs, aid_list, 'right')
 
 
 @register_ibs_method

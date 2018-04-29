@@ -7,7 +7,6 @@ from flask import request, redirect, url_for, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 from ibeis import constants as const
-from ibeis.constants import PI, TAU
 import utool as ut
 import numpy as np
 import uuid
@@ -51,10 +50,10 @@ def submit_cameratrap(**kwargs):
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
     gid = int(request.form['cameratrap-gid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
     flag = request.form.get('cameratrap-toggle', 'off') == 'on'
     ibs.set_image_cameratrap([gid], [flag])
-    print('[web] turk_id: %s, gid: %d, flag: %r' % (turk_id, gid, flag, ))
+    print('[web] user_id: %s, gid: %d, flag: %r' % (user_id, gid, flag, ))
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -73,7 +72,7 @@ def submit_detection(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     gid = int(request.form['detection-gid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
 
     poor_boxes = method.lower() == 'poor boxes'
     if poor_boxes:
@@ -83,12 +82,34 @@ def submit_detection(**kwargs):
 
     if method.lower() == 'delete':
         # ibs.delete_images(gid)
-        # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+        # print('[web] (DELETED) user_id: %s, gid: %d' % (user_id, gid, ))
         pass
     elif method.lower() == 'clear':
         aid_list = ibs.get_image_aids(gid)
         ibs.delete_annots(aid_list)
-        print('[web] (CLEAERED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+        print('[web] (CLEAERED) user_id: %s, gid: %d' % (user_id, gid, ))
+        redirection = request.referrer
+        if 'gid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&gid=%d' % (redirection, gid, )
+            else:
+                redirection = '%s?gid=%d' % (redirection, gid, )
+        return redirect(redirection)
+    elif method.lower() == 'rotate left':
+        ibs.update_image_rotate_left_90([gid])
+        print('[web] (ROTATED LEFT) user_id: %s, gid: %d' % (user_id, gid, ))
+        redirection = request.referrer
+        if 'gid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&gid=%d' % (redirection, gid, )
+            else:
+                redirection = '%s?gid=%d' % (redirection, gid, )
+        return redirect(redirection)
+    elif method.lower() == 'rotate right':
+        ibs.update_image_rotate_right_90([gid])
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, gid, ))
         redirection = request.referrer
         if 'gid' not in redirection:
             # Prevent multiple clears
@@ -388,7 +409,7 @@ def submit_detection(**kwargs):
             else:
                 ibs.set_image_reviewed([gid], [1])
 
-            print('[web] turk_id: %s, gid: %d, annots: %d, parts: %d' % (turk_id, gid, len(annotation_list), len(part_list), ))
+            print('[web] user_id: %s, gid: %d, annots: %d, parts: %d' % (user_id, gid, len(annotation_list), len(part_list), ))
 
     default_list = [
         'autointerest',
@@ -435,14 +456,14 @@ def submit_viewpoint(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['viewpoint-aid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -452,15 +473,8 @@ def submit_viewpoint(**kwargs):
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
     if method.lower() == 'rotate left':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta + PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        ibs.update_annot_rotate_left_90([aid])
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -470,15 +484,8 @@ def submit_viewpoint(**kwargs):
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
     if method.lower() == 'rotate right':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta - PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        ibs.update_annot_rotate_right_90([aid])
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -496,7 +503,7 @@ def submit_viewpoint(**kwargs):
         ibs.set_annot_viewpoints([aid], [viewpoint_text])
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
-        print('[web] turk_id: %s, aid: %d, viewpoint_text: %s' % (turk_id, aid, viewpoint_text))
+        print('[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint_text))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -519,14 +526,14 @@ def submit_viewpoint2(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['viewpoint-aid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -536,15 +543,8 @@ def submit_viewpoint2(**kwargs):
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
     if method.lower() == 'rotate left':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta + PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        ibs.update_annot_rotate_left_90([aid])
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -554,15 +554,8 @@ def submit_viewpoint2(**kwargs):
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
     if method.lower() == 'rotate right':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta - PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        ibs.update_annot_rotate_right_90([aid])
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -587,7 +580,7 @@ def submit_viewpoint2(**kwargs):
         species_text = request.form['viewpoint-species']
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
-        print('[web] turk_id: %s, aid: %d, viewpoint_text: %s' % (turk_id, aid, viewpoint))
+        print('[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -610,14 +603,14 @@ def submit_annotation(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['ia-annotation-aid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -626,16 +619,9 @@ def submit_annotation(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    elif method.lower() == u'left 90\xb0':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta + PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+    elif method.lower() == u'rotate left':
+        ibs.update_annot_rotate_left_90([aid])
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -644,16 +630,9 @@ def submit_annotation(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    elif method.lower() == u'right 90\xb0':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta - PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+    elif method.lower() == u'rotate right':
+        ibs.update_annot_rotate_right_90([aid])
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -690,7 +669,7 @@ def submit_annotation(**kwargs):
         multiple = 1 if 'ia-multiple-value' in request.form else 0
         ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] turk_id: %s, aid: %d, viewpoint: %r, quality: %r, multiple: %r' % (turk_id, aid, viewpoint_text, quality, multiple))
+        print('[web] user_id: %s, aid: %d, viewpoint: %r, quality: %r, multiple: %r' % (user_id, aid, viewpoint_text, quality, multiple))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -713,21 +692,14 @@ def submit_species(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['ia-species-aid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
-    elif method.lower() == u'left 90\xb0':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta + PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+    elif method.lower() == u'rotate left':
+        ibs.update_annot_rotate_left_90([aid])
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -736,16 +708,9 @@ def submit_species(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    elif method.lower() == u'right 90\xb0':
-        theta = ibs.get_annot_thetas(aid)
-        theta = (theta - PI / 2) % TAU
-        ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+    elif method.lower() == u'rotate right':
+        ibs.update_annot_rotate_right_90([aid])
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
@@ -760,7 +725,7 @@ def submit_species(**kwargs):
         species_text = request.form['ia-species-species']
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] turk_id: %s, aid: %d, species: %r' % (turk_id, aid, species_text))
+        print('[web] user_id: %s, aid: %d, species: %r' % (user_id, aid, species_text))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -777,7 +742,7 @@ def submit_quality(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['quality-aid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
 
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
@@ -786,14 +751,14 @@ def submit_quality(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
         quality = int(request.form['quality-value'])
         ibs.set_annot_qualities([aid], [quality])
-        print('[web] turk_id: %s, aid: %d, quality: %d' % (turk_id, aid, quality))
+        print('[web] user_id: %s, aid: %d, quality: %d' % (user_id, aid, quality))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -810,11 +775,11 @@ def submit_demographics(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['demographics-aid'])
-    turk_id = request.cookies.get('ia-turk_id', -1)
+    user_id = controller_inject.get_user().get('username', None)
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     else:
         sex = int(request.form['demographics-sex-value'])
@@ -859,7 +824,7 @@ def submit_demographics(**kwargs):
         else:
             ibs.set_annot_age_months_est_min([aid], [age_min])
             ibs.set_annot_age_months_est_max([aid], [age_max])
-        print('[web] turk_id: %s, aid: %d, sex: %r, age: %r' % (turk_id, aid, sex, age))
+        print('[web] user_id: %s, aid: %d, sex: %r, age: %r' % (user_id, aid, sex, age))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
