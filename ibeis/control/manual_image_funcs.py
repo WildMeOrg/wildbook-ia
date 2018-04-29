@@ -822,7 +822,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
 
     def _update_bounding_boxes(gid, val):
         full_w, full_h = ibs.get_image_sizes(gid)
-        aid_list = ibs.get_image_aids(gid)
+        aid_list = ibs.get_image_aids(gid, is_staged=None)
         if len(aid_list) == 0:
             return
         bbox_list = ibs.get_annot_bboxes(aid_list)
