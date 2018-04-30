@@ -47,6 +47,7 @@
       // Initialize the contour annotator.
       cta = new ContourAnnotator("{{ image_src }}", {
         prefix: "ia-",
+        guiderail: {{ padding }},
         callbacks: {
           onchange: function(entries) {
             $('#ia-contour-data').text(JSON.stringify(entries, null, "  "));

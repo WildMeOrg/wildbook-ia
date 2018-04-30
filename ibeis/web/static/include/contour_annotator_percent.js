@@ -44,41 +44,47 @@
         function ContourSelector(frame, options) {
             var options
 
-            options                     !== undefined || (options = {})
-            options.prefix              !== undefined || (options.prefix = "")
-            options.ids                 !== undefined || (options.ids = {})
-            options.ids.canvas          !== undefined || (options.ids.canvas    = options.prefix + "contour-selector-canvas")
-            options.ids.begin           !== undefined || (options.ids.begin     = options.prefix + "contour-selector-begin")
-            options.ids.end             !== undefined || (options.ids.end       = options.prefix + "contour-selector-end")
-            options.ids.guideline       !== undefined || (options.ids.guideline = options.prefix + "contour-selector-guideline")
-            options.ids.warning         !== undefined || (options.ids.warning   = options.prefix + "contour-selector-warning")
-            options.classes             !== undefined || (options.classes = {})
-            options.classes.radius      !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-radius")
-            options.classes.segment     !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-point")
-            options.colors              !== undefined || (options.colors = {})
-            options.colors.begin        !== undefined || (options.colors.begin     = "#7FFF7F")
-            options.colors.radius       !== undefined || (options.colors.radius    = "#333333")
-            options.colors.segment      !== undefined || (options.colors.segment   = "#2E63FF")
-            options.colors.highlight    !== undefined || (options.colors.highlight = "#F0AD4E")
-            options.colors.end          !== undefined || (options.colors.end       = "#EB2A18")
-            options.colors.guideline    !== undefined || (options.colors.guideline = "#EB2A18")
-            options.size                !== undefined || (options.size = {})
-            options.size.radius         !== undefined || (options.size.radius = 30)
-            options.size.segment        !== undefined || (options.size.segment = 4)
-            options.transparency        !== undefined || (options.transparency = {})
-            options.transparency.radius !== undefined || (options.transparency.radius = 0.3)
-            options.transparency.radius !== undefined || (options.transparency.segment = 1.0)
-            options.warning             !== undefined || (options.warning = "GO BACK TO LAST POINT")
-            options.limits              !== undefined || (options.limits = {})
-            options.limits.speed        !== undefined || (options.limits.speed = 10)
-            options.limits.bounds       !== undefined || (options.limits.bounds = {})
-            options.limits.bounds.x     !== undefined || (options.limits.bounds.x = {})
-            options.limits.bounds.x.min !== undefined || (options.limits.bounds.x.min = 0)
-            options.limits.bounds.x.max !== undefined || (options.limits.bounds.x.max = 0)
-            options.limits.bounds.y     !== undefined || (options.limits.bounds.y = {})
-            options.limits.bounds.y.min !== undefined || (options.limits.bounds.y.min = 0)
-            options.limits.bounds.y.max !== undefined || (options.limits.bounds.y.max = 0)
-            options.debug               !== undefined || (options.debug = false)
+            options                       !== undefined || (options = {})
+            options.prefix                !== undefined || (options.prefix = "")
+            options.ids                   !== undefined || (options.ids = {})
+            options.ids.canvas            !== undefined || (options.ids.canvas     = options.prefix + "contour-selector-canvas")
+            options.ids.begin             !== undefined || (options.ids.begin      = options.prefix + "contour-selector-begin")
+            options.ids.end               !== undefined || (options.ids.end        = options.prefix + "contour-selector-end")
+            options.ids.guiderail         !== undefined || (options.ids.guiderail  = options.prefix + "contour-selector-guiderail")
+            options.ids.guideline         !== undefined || (options.ids.guideline  = options.prefix + "contour-selector-guideline")
+            options.ids.guidepoint        !== undefined || (options.ids.guidepoint = options.prefix + "contour-selector-guidepoint")
+            options.ids.warning           !== undefined || (options.ids.warning    = options.prefix + "contour-selector-warning")
+            options.classes               !== undefined || (options.classes = {})
+            options.classes.radius        !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-radius")
+            options.classes.segment       !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-point")
+            options.colors                !== undefined || (options.colors = {})
+            options.colors.begin          !== undefined || (options.colors.begin      = "#7FFF7F")
+            options.colors.radius         !== undefined || (options.colors.radius     = "#333333")
+            options.colors.segment        !== undefined || (options.colors.segment    = "#2E63FF")
+            options.colors.highlight      !== undefined || (options.colors.highlight  = "#F0AD4E")
+            options.colors.end            !== undefined || (options.colors.end        = "#EB2A18")
+            options.colors.guideline      !== undefined || (options.colors.guideline  = "#EB2A18")
+            options.colors.guidepoint     !== undefined || (options.colors.guidepoint = "#EB2A18")
+            options.colors.guiderail      !== undefined || (options.colors.guiderail  = "#333333")
+            options.guiderail             !== undefined || (options.guiderail = 0)
+            options.size                  !== undefined || (options.size = {})
+            options.size.radius           !== undefined || (options.size.radius = 30)
+            options.size.segment          !== undefined || (options.size.segment = 4)
+            options.transparency          !== undefined || (options.transparency = {})
+            options.transparency.radius   !== undefined || (options.transparency.radius = 0.3)
+            options.transparency.radius   !== undefined || (options.transparency.segment = 1.0)
+            options.warning               !== undefined || (options.warning = "TOO FAST!<br/>GO BACK TO LAST POINT")
+            options.limits                !== undefined || (options.limits = {})
+            options.limits.speed          !== undefined || (options.limits.speed = 10)
+            options.limits.bounds         !== undefined || (options.limits.bounds = {})
+            options.limits.bounds.padding !== undefined || (options.limits.bounds.padding = true)
+            options.limits.bounds.x       !== undefined || (options.limits.bounds.x = {})
+            options.limits.bounds.x.min   !== undefined || (options.limits.bounds.x.min = 0)
+            options.limits.bounds.x.max   !== undefined || (options.limits.bounds.x.max = 0)
+            options.limits.bounds.y       !== undefined || (options.limits.bounds.y = {})
+            options.limits.bounds.y.min   !== undefined || (options.limits.bounds.y.min = 0)
+            options.limits.bounds.y.max   !== undefined || (options.limits.bounds.y.max = 0)
+            options.debug                 !== undefined || (options.debug = false)
 
             // Global attributes
             this.options = options
@@ -97,7 +103,7 @@
         }
 
         ContourSelector.prototype.resize = function(frame) {
-            var width, height
+            var width, height, point
 
             width = this.elements.frame.width()
             height = this.elements.frame.height()
@@ -117,12 +123,15 @@
 
             // Clear the context
             this.ctx.clearRect(0, 0, this.elements.canvas.width(), this.elements.canvas.height());
-            // for (var index = 0; index < this.)
-
+            for (var index = 0; index < this.points.segment.length; index++) {
+                point = this.points.segment[index]
+                this.draw_segment(point, true)
+            }
         }
 
         ContourSelector.prototype.create_selector_elements = function(frame) {
-            var width, height, endpoint_style
+            var width, height, padding
+            var endpoint_style, guideline_style, guidepoint_style, warning_style
 
             // Define the image frame as an element
             this.elements.frame = frame
@@ -163,13 +172,30 @@
             this.elements.begin.hide()
 
             // End endpoint
-            this.elements.end = $('<div id="' + this.options.ids.begin + '"></div>')
+            this.elements.end = $('<div id="' + this.options.ids.end + '"></div>')
             this.elements.end.css(endpoint_style)
             this.elements.end.css({
                 "background-color": this.options.colors.end,
             })
             this.elements.frame.append(this.elements.end)
             this.elements.end.hide()
+
+            // Begin guiderail
+            this.options.padding = this.options.guiderail / (1.0 + (2.0 * this.options.guiderail))
+            guideline_style = {
+                "position": "absolute",
+                "top":    (100.0 * this.options.padding) + "%",
+                "bottom": (100.0 * this.options.padding) + "%",
+                "left":   (100.0 * this.options.padding) + "%",
+                "right":  (100.0 * this.options.padding) + "%",
+                "border": "1px solid " + this.options.colors.guiderail,
+                "color": this.options.colors.guiderail,
+                "opacity": 0.5
+            }
+
+            this.elements.guiderail = $('<div id="' + this.options.ids.guiderail + '"></div>')
+            this.elements.guiderail.css(guideline_style)
+            this.elements.frame.append(this.elements.guiderail)
 
             // Begin guideline
             guideline_style = {
@@ -184,13 +210,35 @@
             this.elements.frame.append(this.elements.guideline)
             this.elements.guideline.hide()
 
+            guidepoint_style = {
+                "top": "0",
+                "left": "0",
+                "width": "6px",
+                "height": "6px",
+                "position": "absolute",
+                "border-radius": "6px",
+                "border": "1px solid #fff",
+                "margin-top": "-4px",
+                "margin-left": "-4px",
+                "z-index": "2",
+            }
+
+            // Begin guidepoint
+            this.elements.guidepoint = $('<div id="' + this.options.ids.guidepoint + '"></div>')
+            this.elements.guidepoint.css(guidepoint_style)
+            this.elements.guidepoint.css({
+                "background-color": this.options.colors.guidepoint,
+            })
+            this.elements.frame.append(this.elements.guidepoint)
+            this.elements.guidepoint.hide()
+
             // Begin warning
             warning_style = {
                 "position": "absolute",
                 "left": "0",
                 "top": "0",
                 "width": "100%",
-                "background-color": this.options.colors.guideline,
+                "background-color": this.options.colors.guidepoint,
                 "color": "#FFFFFF",
                 "text-align": "center",
             }
@@ -202,7 +250,7 @@
         }
 
         ContourSelector.prototype.check_boundaries = function(event) {
-            var offset, point, bounds
+            var offset, point, bounds, width, height
 
             if (event == null) {
                 return null
@@ -224,6 +272,16 @@
                 },
             }
 
+            if (this.options.limits.bounds.padding) {
+                width = this.elements.frame.width()
+                height = this.elements.frame.height()
+
+                bounds.x.min -= this.options.padding * width
+                bounds.x.max -= this.options.padding * width
+                bounds.y.min -= this.options.padding * height
+                bounds.y.max -= this.options.padding * height
+            }
+
             // Check lower boundaries
             point.x = Math.max(point.x, 0 - bounds.x.min)
             point.y = Math.max(point.y, 0 - bounds.y.min)
@@ -237,6 +295,7 @@
             this.elements.end.hide()
             this.elements.begin.hide()
             this.elements.guideline.hide()
+            this.elements.guidepoint.hide()
             this.elements.warning.hide()
 
             this.ctx.clearRect(0, 0, this.elements.canvas.width(), this.elements.canvas.height());
@@ -250,22 +309,25 @@
         }
 
         ContourSelector.prototype.current_speed = function(event) {
-            var last, diff_x, diff_y, dist
+            var width, height, last, diff_x, diff_y, dist
 
             if (this.points.segment.length == 0) {
                 return -1.0
             }
 
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
+
             last = this.points.segment[this.points.segment.length - 1]
-            temp = {
+            point = {
                 "x": last.x * width,
                 "y": last.y * height,
             }
-            diff_x = this.points.cursor.x - temp.x
-            diff_y = this.points.cursor.y - temp.y
+            diff_x = this.points.cursor.x - point.x
+            diff_y = this.points.cursor.y - point.y
             dist = Math.sqrt(diff_x ** 2 + diff_y ** 2)
 
-            return dist
+            return [dist, last, point]
         }
 
         ContourSelector.prototype.start = function(event) {
@@ -324,59 +386,27 @@
             return point
         }
 
-        ContourSelector.prototype.update_cursor = function(event) {
-            var width, height, last, temp
-            var highlight, point, size, size_half
-            var segment, segment_style
+        ContourSelector.prototype.draw_segment = function(point, radius_only) {
+            var width, height, temp
 
-            console.log("UPDATE")
-
-            // Update the selector based on the current cursor location
-            this.points.cursor = this.check_boundaries(event)
+            radius_only !== undefined || (radius_only = false)
 
             width = this.elements.frame.width()
             height = this.elements.frame.height()
-            dist = this.current_speed()
-
-            if (dist > this.options.limits.speed) {
-                opacity = Math.max(0.25, Math.min(1.0, dist / 200.0))
-                this.elements.guideline.css({
-                    "top": (100.0 * temp.y) + "%",
-                    "left": (100.0 * temp.x) + "%",
-                    "width": dist + "px",
-                    "opacity": opacity,
-                })
-
-                css_theta = calculate_angle(temp, this.points.cursor)
-                css_rotate = {
-                    "transform": "rotate(" + css_theta + "rad)",
-                    "msTransform": "rotate(" + css_theta + "rad)",
-                    "-o-transform": "rotate(" + css_theta + "rad)",
-                    "-ms-transform": "rotate(" + css_theta + "rad)",
-                    "-moz-transform": "rotate(" + css_theta + "rad)",
-                    "-sand-transform": "rotate(" + css_theta + "rad)",
-                    "-webkit-transform": "rotate(" + css_theta + "rad)",
-                }
-
-                this.elements.guideline.css(css_rotate)
-                this.elements.guideline.show()
-                this.elements.warning.show()
-
-                return false
+            temp = {
+                "x": point.x * width,
+                "y": point.y * height,
             }
 
-            this.elements.guideline.hide()
-            this.elements.warning.hide()
-
-            // Add to the current segment
-            point = this.add_segment(event)
-
             // Draw radius on canvas
-            size = this.options.size.radius
             this.ctx.beginPath()
             this.ctx.fillStyle = this.options.colors.radius
-            this.ctx.ellipse(this.points.cursor.x, this.points.cursor.y, size, size, 0, 0, 2 * Math.PI)
+            this.ctx.ellipse(temp.x, temp.y, point.radius, point.radius, 0, 0, 2 * Math.PI)
             this.ctx.fill()
+
+            if (radius_only) {
+                return
+            }
 
             if (point.highlight) {
                 color = this.options.colors.highlight
@@ -407,6 +437,68 @@
             this.elements.segment.push(segment)
         }
 
+        ContourSelector.prototype.update_cursor = function(event) {
+            var width, height, point
+            var opacity, css_theta, css_rotate
+            var highlight, point, size, size_half
+            var segment, segment_style
+
+            console.log("UPDATE")
+
+            // Update the selector based on the current cursor location
+            this.points.cursor = this.check_boundaries(event)
+
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
+            values = this.current_speed()
+            speed = values[0]
+            last = values[1]
+            point = values[2]
+
+            if (speed > this.options.limits.speed) {
+                opacity = Math.max(0.25, Math.min(1.0, speed / 200.0))
+                this.elements.guideline.css({
+                    "top": (100.0 * last.y) + "%",
+                    "left": (100.0 * last.x) + "%",
+                    "width": speed + "px",
+                    "opacity": opacity,
+                })
+
+                this.elements.guidepoint.css({
+                    "top": (100.0 * last.y) + "%",
+                    "left": (100.0 * last.x) + "%",
+                    "opacity": Math.min(1.0, 2.0 * opacity),
+                })
+
+                css_theta = calculate_angle(point, this.points.cursor)
+                css_rotate = {
+                    "transform": "rotate(" + css_theta + "rad)",
+                    "msTransform": "rotate(" + css_theta + "rad)",
+                    "-o-transform": "rotate(" + css_theta + "rad)",
+                    "-ms-transform": "rotate(" + css_theta + "rad)",
+                    "-moz-transform": "rotate(" + css_theta + "rad)",
+                    "-sand-transform": "rotate(" + css_theta + "rad)",
+                    "-webkit-transform": "rotate(" + css_theta + "rad)",
+                }
+
+                this.elements.guideline.css(css_rotate)
+
+                this.elements.guideline.show()
+                this.elements.guidepoint.show()
+                this.elements.warning.show()
+
+                return false
+            }
+
+            this.elements.guideline.hide()
+            this.elements.guidepoint.hide()
+            this.elements.warning.hide()
+
+            // Add to the current segment and draw it
+            point = this.add_segment(event)
+            this.draw_segment(point)
+        }
+
         ContourSelector.prototype.finish = function(event) {
             var data, width, height
 
@@ -415,7 +507,14 @@
             this.points.end = this.check_boundaries(event)
             this.points.cursor = this.points.end
 
-            if (this.points.end == null || this.current_speed() > this.options.limits.speed) {
+            if (this.points.end == null) {
+                this.clear(event)
+                return false
+            }
+
+            values = this.current_speed()
+            speed = values[0]
+            if (speed > this.options.limits.speed) {
                 this.clear(event)
                 return false
             }
@@ -493,6 +592,7 @@
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
             options.hotkeys.delete               !== undefined || (options.hotkeys.delete = [75, 8])
             options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom   = [90])
+            options.guiderail                    !== undefined || (options.guiderail = 0)
             options.zoom                         !== undefined || (options.zoom = {})
             options.zoom.enabled                 !== undefined || (options.zoom.enabled = true)
             options.limits                       !== undefined || (options.limits = {})

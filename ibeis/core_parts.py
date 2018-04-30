@@ -15,15 +15,15 @@ derived_attribute = register_preprocs['part']
 register_subprop = register_subprops['part']
 
 
-ChipConfig  = core_annots.ChipConfig
-ChipImgType = core_annots.ChipImgType
+PartChipConfig  = core_annots.ChipConfig
+PartChipImgType = core_annots.ChipImgType
 
 
 @derived_attribute(
     tablename='pchips', parents=['parts'],
     colnames=['img', 'width', 'height', 'M'],
-    coltypes=[ChipImgType, int, int, np.ndarray],
-    configclass=ChipConfig,
+    coltypes=[PartChipImgType, int, int, np.ndarray],
+    configclass=PartChipConfig,
     fname='partchipcache4',
     rm_extern_on_delete=True,
     chunksize=256,

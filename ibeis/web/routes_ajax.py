@@ -38,16 +38,18 @@ def image_src(gid=None, thumbnail=False, **kwargs):
     gid = int(gid)
     image = None
 
+    if 'thumbsize' not in kwargs:
+        kwargs['thumbsize'] = max(
+            int(appf.TARGET_WIDTH),
+            int(appf.TARGET_HEIGHT),
+        )
+
+    if 'draw_annots' not in kwargs:
+        kwargs['draw_annots'] = False
+
     if thumbnail:
         try:
-            thumbnail_config = {
-                'thumbsize': max(
-                    int(appf.TARGET_WIDTH),
-                    int(appf.TARGET_HEIGHT),
-                ),
-                'draw_annots': False,
-            }
-            image = ibs.get_image_thumbnail(gid, **thumbnail_config)
+            image = ibs.get_image_thumbnail(gid, **kwargs)
             h, w = image.shape[:2]
             assert h > 0, 'Invalid image thumbnail'
             assert w > 0, 'Invalid image thumbnail'
@@ -65,13 +67,12 @@ def image_src(gid=None, thumbnail=False, **kwargs):
 def annotation_src(aid=None, **kwargs):
     ibs = current_app.ibs
 
-    chip_config = {
-        'dim_size': max(
+    if 'dim_size' not in kwargs:
+        kwargs['dim_size'] = max(
             int(appf.TARGET_WIDTH),
             int(appf.TARGET_HEIGHT),
-        ),
-    }
-    image = ibs.get_annot_chips(aid, config2_=chip_config)
+        )
+    image = ibs.get_annot_chips(aid, config2_=kwargs)
 
     # image_src = _resize_src(image, **kwargs)
     image_src = appf.embed_image_html(image, target_height=300)
@@ -81,15 +82,12 @@ def annotation_src(aid=None, **kwargs):
 @register_route('/ajax/part/src/<part_rowid>/', methods=['GET'])
 def part_src(part_rowid, **kwargs):
     ibs = current_app.ibs
-    chip_config = {
-        'dim_size': max(
+    if 'dim_size' not in kwargs:
+        kwargs['dim_size'] = max(
             int(appf.TARGET_WIDTH),
             int(appf.TARGET_HEIGHT),
-        ),
-    }
-    image = ibs.get_part_chips(part_rowid, config2_=chip_config)
-
-    # image_src = _resize_src(image, **kwargs)
+        )
+    image = ibs.get_part_chips(part_rowid, config2_=kwargs)
     image_src = appf.embed_image_html(image, target_height=300)
     return image_src
 

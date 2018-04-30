@@ -175,9 +175,24 @@ def compute_chipthumb(depc, aid_list, config=None):
             newsize_list = ut.take_column(newsize_scale_list, 0)
             # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
         if pad > 0:
-            halfoffset_ms = (pad, pad)
-            extras_list = [vt.get_extramargin_measures(bbox, new_size, halfoffset_ms)
-                           for bbox, new_size in zip(bbox_list, newsize_list)]
+            pad = (pad, pad)
+
+            extras_list = []
+            for bbox, new_size in zip(bbox_list, newsize_list):
+                pad_ = list(pad)
+
+                if pad_[0] < 1.0:
+                    pad_[0] *= bbox[2]
+                if pad_[1] < 1.0:
+                    pad_[1] *= bbox[3]
+
+                halfoffset_ms = (
+                    int(np.round(pad_[0])),
+                    int(np.round(pad_[1])),
+                )
+                print('Using halfoffset_ms = %r' % (halfoffset_ms, ))
+                extras = vt.get_extramargin_measures(bbox, new_size, halfoffset_ms=halfoffset_ms)
+                extras_list.append(extras)
 
             # Overwrite bbox and new size with margined versions
             bbox_list_ = ut.take_column(extras_list, 0)
@@ -250,7 +265,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('medianblur_ksize1', 3, hideif=lambda cfg: not cfg['medianblur']),
         ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
         # ---
-        ut.ParamInfo('pad', 0, hideif=0),
+        ut.ParamInfo('pad', 0, hideif=0, type_=eval),
         ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
 
@@ -372,9 +387,24 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
                             for wh in bbox_size_list]
 
     if pad > 0:
-        halfoffset_ms = (pad, pad)
-        extras_list = [vt.get_extramargin_measures(bbox, new_size, halfoffset_ms)
-                       for bbox, new_size in zip(bbox_list, newsize_list)]
+        pad = (pad, pad)
+
+        extras_list = []
+        for bbox, new_size in zip(bbox_list, newsize_list):
+            pad_ = list(pad)
+
+            if pad_[0] < 1.0:
+                pad_[0] *= bbox[2]
+            if pad_[1] < 1.0:
+                pad_[1] *= bbox[3]
+
+            halfoffset_ms = (
+                int(np.round(pad_[0])),
+                int(np.round(pad_[1])),
+            )
+            print('Using halfoffset_ms = %r' % (halfoffset_ms, ))
+            extras = vt.get_extramargin_measures(bbox, new_size, halfoffset_ms=halfoffset_ms)
+            extras_list.append(extras)
 
         # Overwrite bbox and new size with margined versions
         bbox_list = ut.take_column(extras_list, 0)

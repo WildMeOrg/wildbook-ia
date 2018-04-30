@@ -1420,7 +1420,7 @@ def image_view_api(gid=None, thumbnail=False, fresh=False, **kwargs):
         Method: GET
         URL:    /image/view/<gid>/
     """
-    encoded = routes_ajax.image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
+    encoded = routes_ajax.image_src(gid, thumbnail=thumbnail, fresh=fresh)
     return appf.template(None, 'single', encoded=encoded)
 
 
@@ -2402,8 +2402,9 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     finished = part_rowid is None
     display_instructions = request.cookies.get('ia-contour_instructions_seen', 1) == 1
 
+    padding = 0.1
     if not finished:
-        image_src = routes_ajax.part_src(part_rowid, **kwargs)
+        image_src = routes_ajax.part_src(part_rowid, pad=padding)
 
         # Get contours from part
         existing_contour_dict = ibs.get_part_contour(part_rowid)
@@ -2424,6 +2425,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
                          config_str=config_str,
                          config=config,
                          image_src=image_src,
+                         padding=padding,
                          previous=previous,
                          imagesettext=imagesettext,
                          progress=progress,
