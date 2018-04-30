@@ -795,6 +795,8 @@ TODO
 
                     // Delete key pressed
                     if (bba.options.hotkeys.delete.indexOf(key) != -1) {
+                        event.preventDefault() // For Firefox
+
                         if (bba.state.mode == "selector") {
                             bba.selector_cancel(event)
                         } else if (bba.state.mode == "drag") {
