@@ -1032,22 +1032,25 @@ TODO
                         if (bba.state.hover != null) {
                             entry = bba.entries[bba.state.hover]
                             element = bba.elements.entries[bba.state.hover]
-                            bba.label_entry(bba.state.hover, entry.label)
 
-                            if(bba.state.focus == null || bba.state.focus != bba.state.hover) {
-                                if(bba.state.focus2 == null) {
-                                    // Set the other entries to be transparent
-                                    bba.entries_style_transparent(1.0)
+                            if (entry !== undefined && element !== undefined) {
+                                bba.label_entry(bba.state.hover, entry.label)
 
-                                    if (bba.options.handles.close.enabled) {
-                                        element.close.show()
-                                    }
-                                    if (bba.options.handles.rotate.enabled) {
-                                        element.rotate.show()
-                                    }
-                                    for (var key in element.resize) {
-                                        if (bba.options.handles.resize.enabled) {
-                                            element.resize[key].show()
+                                if(bba.state.focus == null || bba.state.focus != bba.state.hover) {
+                                    if(bba.state.focus2 == null) {
+                                        // Set the other entries to be transparent
+                                        bba.entries_style_transparent(1.0)
+
+                                        if (bba.options.handles.close.enabled) {
+                                            element.close.show()
+                                        }
+                                        if (bba.options.handles.rotate.enabled) {
+                                            element.rotate.show()
+                                        }
+                                        for (var key in element.resize) {
+                                            if (bba.options.handles.resize.enabled) {
+                                                element.resize[key].show()
+                                            }
                                         }
                                     }
                                 }
@@ -1064,13 +1067,17 @@ TODO
                         if (bba.state.hover != null) {
                             entry = bba.entries[bba.state.hover]
                             element = bba.elements.entries[bba.state.hover]
-                            bba.label_entry(bba.state.hover, entry.label)
-                            if (bba.options.handles.close.enabled) {
-                                element.close.show()
-                            }
-                            for (var key in element.resize) {
-                                if (bba.options.handles.resize.enabled) {
-                                    element.resize[key].show()
+
+                            if (entry !== undefined && element !== undefined) {
+
+                                bba.label_entry(bba.state.hover, entry.label)
+                                if (bba.options.handles.close.enabled) {
+                                    element.close.show()
+                                }
+                                for (var key in element.resize) {
+                                    if (bba.options.handles.resize.enabled) {
+                                        element.resize[key].show()
+                                    }
                                 }
                             }
                         }
@@ -1144,7 +1151,7 @@ TODO
             for (var index = 0; index < this.entries.length; index++) {
                 entry = this.entries[index]
                 // We only need to update the assignments for parents, which will update all of their sub-entries
-                if(entry.parent == null) {
+                if(entry !== undefined && entry.parent == null) {
                     this.assignment_entry(index)
                 }
             }
@@ -1599,7 +1606,7 @@ TODO
             this.state.subentry = null
             if (index != null && this.state.focus == null) {
                 entry = this.entries[index]
-                if (entry.parent != null) {
+                if (entry !== undefined && entry.parent != null) {
                     this.state.subentry = index
                     index = entry.parent
                 }
@@ -1630,7 +1637,7 @@ TODO
                 } else {
                     for (var index_entry = 0; index_entry < this.elements.entries.length; index_entry++) {
                         entry = this.entries[index_entry]
-                        if(entry.parent != null && entry.parent == this.state.focus) {
+                        if(entry !== undefined && entry.parent != null && entry.parent == this.state.focus) {
                             this.entry_style_default(index_entry)
                         }
                     }
