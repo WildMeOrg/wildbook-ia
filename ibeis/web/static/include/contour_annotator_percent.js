@@ -1,6 +1,45 @@
 (function() {
     var ContourSelector
 
+    function calculate_angle(pointa, pointb) {
+        var xa, ya, xb, yb, x1, x2, y1, y2, x, y, angle
+
+        // Get the points and coordinates of extrema
+        xa = pointa.x
+        ya = pointa.y
+        xb = pointb.x
+        yb = pointb.y
+        x1 = Math.min(xa, xb)
+        x2 = Math.max(xa, xb)
+        y1 = Math.min(ya, yb)
+        y2 = Math.max(ya, yb)
+        x = x2 - x1
+        y = y2 - y1
+
+        // calculate the angle, preserving sign after arctangent
+        if (xa < xb && ya < yb) {
+            angle = Math.atan2(y, x)
+        } else if (xa < xb && ya >= yb) {
+            angle = Math.atan2(y, x)
+            angle *= -1.0
+        } else if (xa >= xb && ya < yb) {
+            angle = Math.atan2(x, y)
+            angle += 0.5 * Math.PI
+        } else if (xa >= xb && ya >= yb) {
+            angle = Math.atan2(y, x)
+            angle += Math.PI
+        }
+
+        // Normalize the angle to be between 0 and 2*PI
+        while (angle < 0) {
+            angle += 2.0 * Math.PI
+        }
+        while (angle > 2.0 * Math.PI) {
+            angle -= 2.0 * Math.PI
+        }
+        return angle
+    }
+
     ContourSelector = (function() {
         function ContourSelector(frame, options) {
             var options
@@ -8,23 +47,30 @@
             options                     !== undefined || (options = {})
             options.prefix              !== undefined || (options.prefix = "")
             options.ids                 !== undefined || (options.ids = {})
-            options.ids.canvas          !== undefined || (options.ids.canvas = options.prefix + "contour-selector-canvas")
-            options.ids.begin           !== undefined || (options.ids.begin = options.prefix + "contour-selector-begin")
-            options.ids.end             !== undefined || (options.ids.end = options.prefix + "contour-selector-end")
+            options.ids.canvas          !== undefined || (options.ids.canvas    = options.prefix + "contour-selector-canvas")
+            options.ids.begin           !== undefined || (options.ids.begin     = options.prefix + "contour-selector-begin")
+            options.ids.end             !== undefined || (options.ids.end       = options.prefix + "contour-selector-end")
+            options.ids.guideline       !== undefined || (options.ids.guideline = options.prefix + "contour-selector-guideline")
+            options.ids.warning         !== undefined || (options.ids.warning   = options.prefix + "contour-selector-warning")
             options.classes             !== undefined || (options.classes = {})
             options.classes.radius      !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-radius")
             options.classes.segment     !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-point")
             options.colors              !== undefined || (options.colors = {})
-            options.colors.begin        !== undefined || (options.colors.begin   = "#7FFF7F")
-            options.colors.radius       !== undefined || (options.colors.radius  = "#333333")
-            options.colors.segment      !== undefined || (options.colors.segment = "#2E63FF")
-            options.colors.end          !== undefined || (options.colors.end     = "#EB2A18")
+            options.colors.begin        !== undefined || (options.colors.begin     = "#7FFF7F")
+            options.colors.radius       !== undefined || (options.colors.radius    = "#333333")
+            options.colors.segment      !== undefined || (options.colors.segment   = "#2E63FF")
+            options.colors.highlight    !== undefined || (options.colors.highlight = "#F0AD4E")
+            options.colors.end          !== undefined || (options.colors.end       = "#EB2A18")
+            options.colors.guideline    !== undefined || (options.colors.guideline = "#EB2A18")
             options.size                !== undefined || (options.size = {})
             options.size.radius         !== undefined || (options.size.radius = 30)
             options.size.segment        !== undefined || (options.size.segment = 4)
             options.transparency        !== undefined || (options.transparency = {})
             options.transparency.radius !== undefined || (options.transparency.radius = 0.3)
             options.transparency.radius !== undefined || (options.transparency.segment = 1.0)
+            options.warning             !== undefined || (options.warning = "GO BACK TO LAST POINT")
+            options.limits              !== undefined || (options.limits = {})
+            options.limits.speed        !== undefined || (options.limits.speed = 10)
             options.limits.bounds       !== undefined || (options.limits.bounds = {})
             options.limits.bounds.x     !== undefined || (options.limits.bounds.x = {})
             options.limits.bounds.x.min !== undefined || (options.limits.bounds.x.min = 0)
@@ -50,6 +96,31 @@
             this.create_selector_elements(frame)
         }
 
+        ContourSelector.prototype.resize = function(frame) {
+            var width, height
+
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
+
+            // This clears the canvas, redraw canvas
+            this.elements.canvas.attr("width", width)
+            this.elements.canvas.attr("height", height)
+
+            canvas_style = {
+                "width": width + "px",
+                "height": height + "px",
+            }
+            this.elements.canvas.css(canvas_style)
+
+            // Create the context
+            this.ctx = this.elements.canvas[0].getContext('2d')
+
+            // Clear the context
+            this.ctx.clearRect(0, 0, this.elements.canvas.width(), this.elements.canvas.height());
+            // for (var index = 0; index < this.)
+
+        }
+
         ContourSelector.prototype.create_selector_elements = function(frame) {
             var width, height, endpoint_style
 
@@ -60,23 +131,18 @@
             height = this.elements.frame.height()
 
             canvas_style = {
-                "opacity": this.options.transparency.radius,
-                "width": width + "px",
-                "height": height + "px",
+                "opacity": this.options.transparency.radius
             }
-
             // Create the draw canvas
-            this.elements.canvas = $('<canvas width="' + width + '" height="' + height + '" id="' + this.options.ids.canvas + '"></canvas>')
+            this.elements.canvas = $('<canvas id="' + this.options.ids.canvas + '"></canvas>')
             this.elements.canvas.css(canvas_style)
             this.elements.frame.append(this.elements.canvas)
-
-            // Create the context
-            this.ctx = this.elements.canvas[0].getContext('2d')
+            this.resize()
 
             // Begin point
             endpoint_style = {
-                "top": "0.0px",
-                "left": "0.0px",
+                "top": "0",
+                "left": "0",
                 "width": "14px",
                 "height": "14px",
                 "position": "absolute",
@@ -104,10 +170,43 @@
             })
             this.elements.frame.append(this.elements.end)
             this.elements.end.hide()
+
+            // Begin guideline
+            guideline_style = {
+                "border": "1px solid " + this.options.colors.guideline,
+                "position": "absolute",
+                "transform-origin": "0% 0%",
+                "color": this.options.colors.guideline,
+            }
+
+            this.elements.guideline = $('<div id="' + this.options.ids.guideline + '"></div>')
+            this.elements.guideline.css(guideline_style)
+            this.elements.frame.append(this.elements.guideline)
+            this.elements.guideline.hide()
+
+            // Begin warning
+            warning_style = {
+                "position": "absolute",
+                "left": "0",
+                "top": "0",
+                "width": "100%",
+                "background-color": this.options.colors.guideline,
+                "color": "#FFFFFF",
+                "text-align": "center",
+            }
+
+            this.elements.warning = $('<div id="' + this.options.ids.warning + '"><b>' + this.options.warning + '</b></div>')
+            this.elements.warning.css(warning_style)
+            this.elements.frame.append(this.elements.warning)
+            this.elements.warning.hide()
         }
 
         ContourSelector.prototype.check_boundaries = function(event) {
             var offset, point, bounds
+
+            if (event == null) {
+                return null
+            }
 
             offset = this.elements.frame.offset()
             point = {
@@ -134,9 +233,11 @@
             return point
         }
 
-        ContourSelector.prototype.start = function(event) {
-            this.points.begin = this.check_boundaries(event)
-            this.points.cursor = this.points.begin
+        ContourSelector.prototype.clear = function(event) {
+            this.elements.end.hide()
+            this.elements.begin.hide()
+            this.elements.guideline.hide()
+            this.elements.warning.hide()
 
             this.ctx.clearRect(0, 0, this.elements.canvas.width(), this.elements.canvas.height());
 
@@ -146,17 +247,49 @@
 
             this.points.segment = []
             this.elements.segment = []
+        }
+
+        ContourSelector.prototype.current_speed = function(event) {
+            var last, diff_x, diff_y, dist
+
+            if (this.points.segment.length == 0) {
+                return -1.0
+            }
+
+            last = this.points.segment[this.points.segment.length - 1]
+            temp = {
+                "x": last.x * width,
+                "y": last.y * height,
+            }
+            diff_x = this.points.cursor.x - temp.x
+            diff_y = this.points.cursor.y - temp.y
+            dist = Math.sqrt(diff_x ** 2 + diff_y ** 2)
+
+            return dist
+        }
+
+        ContourSelector.prototype.start = function(event) {
+            var width, height
 
             console.log("STARTED")
             console.log(this.points.cursor)
 
+            this.points.begin = this.check_boundaries(event)
+            this.points.cursor = this.points.begin
+
+            this.clear()
+
+            // Add starting point to the segment
+            this.add_segment(event)
+
             // Show selectors, as needed
-            this.elements.end.hide()
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
 
             this.elements.begin.show()
             this.elements.begin.css({
-                "top": this.points.begin.y + "px",
-                "left": this.points.begin.x + "px",
+                "top": (100.0 * this.points.begin.y / height) + "%",
+                "left": (100.0 * this.points.begin.x / width) + "%",
             })
 
             // Set global cursor mode and prevent highlight selection
@@ -172,35 +305,97 @@
             // this.refresh(event)
         }
 
-        ContourSelector.prototype.update_cursor = function(event) {
-            var size, size_half, radius, radius_style, segment, segment_style
+        ContourSelector.prototype.add_segment = function(event) {
+            var width, height, highlight, point
 
-            // Update the selector based on the current cursor location
-            this.points.cursor = this.check_boundaries(event)
-            this.points.segment.push(
-                [this.points.cursor.x, this.points.cursor.y, this.options.size.radius]
-            )
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
+
+            // This functuion requires that points.cursor has already been updated
+            highlight = event.shiftKey
+            point = {
+                "x": this.points.cursor.x / width,
+                "y": this.points.cursor.y / height,
+                "radius": this.options.size.radius,
+                "highlight": highlight
+            }
+            this.points.segment.push(point)
+
+            return point
+        }
+
+        ContourSelector.prototype.update_cursor = function(event) {
+            var width, height, last, temp
+            var highlight, point, size, size_half
+            var segment, segment_style
 
             console.log("UPDATE")
 
+            // Update the selector based on the current cursor location
+            this.points.cursor = this.check_boundaries(event)
+
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
+            dist = this.current_speed()
+
+            if (dist > this.options.limits.speed) {
+                opacity = Math.max(0.25, Math.min(1.0, dist / 200.0))
+                this.elements.guideline.css({
+                    "top": (100.0 * temp.y) + "%",
+                    "left": (100.0 * temp.x) + "%",
+                    "width": dist + "px",
+                    "opacity": opacity,
+                })
+
+                css_theta = calculate_angle(temp, this.points.cursor)
+                css_rotate = {
+                    "transform": "rotate(" + css_theta + "rad)",
+                    "msTransform": "rotate(" + css_theta + "rad)",
+                    "-o-transform": "rotate(" + css_theta + "rad)",
+                    "-ms-transform": "rotate(" + css_theta + "rad)",
+                    "-moz-transform": "rotate(" + css_theta + "rad)",
+                    "-sand-transform": "rotate(" + css_theta + "rad)",
+                    "-webkit-transform": "rotate(" + css_theta + "rad)",
+                }
+
+                this.elements.guideline.css(css_rotate)
+                this.elements.guideline.show()
+                this.elements.warning.show()
+
+                return false
+            }
+
+            this.elements.guideline.hide()
+            this.elements.warning.hide()
+
+            // Add to the current segment
+            point = this.add_segment(event)
+
+            // Draw radius on canvas
             size = this.options.size.radius
             this.ctx.beginPath()
             this.ctx.fillStyle = this.options.colors.radius
             this.ctx.ellipse(this.points.cursor.x, this.points.cursor.y, size, size, 0, 0, 2 * Math.PI)
             this.ctx.fill()
 
+            if (point.highlight) {
+                color = this.options.colors.highlight
+            } else {
+                color = this.options.colors.segment
+            }
+
             size = this.options.size.segment
             size_half = Math.floor(size / 2.0)
             segment_style = {
-                "top": this.points.cursor.y + "px",
-                "left": this.points.cursor.x + "px",
+                "top": (100.0 * point.y) + "%",
+                "left": (100.0 * point.x) + "%",
                 "width": size + "px",
                 "height": size + "px",
                 "position": "absolute",
                 "border-radius": size + "px",
                 "margin-top": "-" + size_half + "px",
                 "margin-left": "-" + size_half + "px",
-                "background-color": this.options.colors.segment,
+                "background-color": color,
                 "opacity": this.options.transparency.segment,
                 "z-index": "1",
             }
@@ -213,18 +408,30 @@
         }
 
         ContourSelector.prototype.finish = function(event) {
-            var data
+            var data, width, height
+
+            console.log("FINISHED")
 
             this.points.end = this.check_boundaries(event)
             this.points.cursor = this.points.end
 
-            console.log("FINISHED")
+            if (this.points.end == null || this.current_speed() > this.options.limits.speed) {
+                this.clear(event)
+                return false
+            }
+
             console.log(this.points.cursor)
+
+            // Add ending point to the segment
+            this.add_segment(event)
+
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
 
             this.elements.end.show()
             this.elements.end.css({
-                "top": this.points.end.y + "px",
-                "left": this.points.end.x + "px",
+                "top": (100.0 * this.points.end.y / height) + "%",
+                "left": (100.0 * this.points.end.x / width) + "%",
             })
 
             // If there is a null event, don't do much
@@ -286,6 +493,8 @@
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
             options.hotkeys.delete               !== undefined || (options.hotkeys.delete = [75, 8])
             options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom   = [90])
+            options.zoom                         !== undefined || (options.zoom = {})
+            options.zoom.enabled                 !== undefined || (options.zoom.enabled = true)
             options.limits                       !== undefined || (options.limits = {})
             options.limits.frame                 !== undefined || (options.limits.frame = {})
             options.limits.frame.width           !== undefined || (options.limits.frame.width =1000)
@@ -522,16 +731,22 @@
             })
 
             // Update console
+            if(this.cts !== undefined) {
+                this.cts.resize()
+            }
+
             this.refresh()
         }
 
-        ContourAnnotator.prototype.zoom_start = function() {
-            this.state.zoom = true
+        ContourAnnotator.prototype.zoom_start = function(event) {
+            this.state.zoom = this.options.zoom.enabled
+            this.selector_cancel(event)
             this.resize()
         }
 
-        ContourAnnotator.prototype.zoom_finish = function() {
+        ContourAnnotator.prototype.zoom_finish = function(event) {
             this.state.zoom = false
+            this.selector_cancel(event)
             this.resize()
         }
 
@@ -674,7 +889,7 @@
         ContourAnnotator.prototype.selector_cancel = function(event) {
             if (this.state.mode == "selector") {
                 // Get the entry data by finishing the ContourSelector
-                this.cts.finish(event)
+                this.cts.finish(null)
 
                 // Release the mode to "free"
                 this.state.mode = "free"
@@ -689,7 +904,8 @@
                 // Get the entry data by finishing the ContourSelector
                 data = this.cts.finish(event)
 
-                invalid = true
+                invalid = false
+                invalid = invalid || (data == false)
 
                 // Add the returned entry data reported by the ContourSelector as a new entry
                 if( ! invalid) {

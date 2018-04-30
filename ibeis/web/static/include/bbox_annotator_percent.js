@@ -551,7 +551,7 @@ TODO
             options.actions.subentry.deletion    !== undefined || (options.actions.subentry.deletion = true)
             options.hotkeys                      !== undefined || (options.hotkeys = {})
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
-            options.hotkeys.delete               !== undefined || (options.hotkeys.delete           = [75, 8])
+            options.hotkeys.delete               !== undefined || (options.hotkeys.delete           = [8, 46, 75]) // 46 for Firefox
             options.hotkeys.exit                 !== undefined || (options.hotkeys.exit             = [27])
             options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom             = [90])
             options.hotkeys.background           !== undefined || (options.hotkeys.background       = [66])
@@ -726,8 +726,9 @@ TODO
             }
         }
 
-        BBoxAnnotator.prototype.delete_entry_interaction = function(index) {
+        BBoxAnnotator.prototype.delete_entry_interaction = function(event, index) {
             entry = bba.entries[index]
+
             if(event.shiftKey && entry.parent == null) {
                 if (this.options.confirm.delete) {
                     response = confirm("Are you sure you want to delete all sub-entries?")
@@ -814,10 +815,10 @@ TODO
                                     bba.subentries_style_visible(null)
                                 }
                             } else if (bba.state.hover != null) {
-                                bba.delete_entry_interaction(bba.state.hover)
+                                bba.delete_entry_interaction(event, bba.state.hover)
                             }
                         } else {
-                            bba.delete_entry_interaction(bba.state.hover)
+                            bba.delete_entry_interaction(event, bba.state.hover)
                         }
                     }
 
@@ -3221,7 +3222,7 @@ TODO
                 bba.state.mode = "close"
 
                 // Delete the entry from the annotator
-                bba.delete_entry_interaction(index)
+                bba.delete_entry_interaction(event, index)
             })
 
             // Register event for when the close button is selected for a specific bbox
