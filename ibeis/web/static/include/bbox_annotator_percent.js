@@ -1975,6 +1975,10 @@ TODO
             entry = this.entries[index]
             element = this.elements.entries[index]
 
+            if (entry === undefined || element === undefined) {
+                return
+            }
+
             // Get the furthest point
             closest_dist = Infinity
             closest_key = null
