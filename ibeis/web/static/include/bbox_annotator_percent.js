@@ -2115,6 +2115,11 @@ TODO
 
             entry = this.entries[index]
             element = this.elements.entries[index]
+
+            if (entry === undefined || element === undefined) {
+                return
+            }
+
             offset = this.elements.container.offset()
 
             offset = {
