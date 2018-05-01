@@ -76,7 +76,7 @@
             options.warning               !== undefined || (options.warning = "TOO FAST!<br/>GO BACK TO LAST POINT")
             options.limits                !== undefined || (options.limits = {})
             options.limits.distance       !== undefined || (options.limits.distance = 20)
-            options.limits.restart        !== undefined || (options.limits.restart = 5)
+            options.limits.restart        !== undefined || (options.limits.restart = 3)
             options.limits.bounds         !== undefined || (options.limits.bounds = {})
             options.limits.bounds.padding !== undefined || (options.limits.bounds.padding = true)
             options.limits.bounds.x       !== undefined || (options.limits.bounds.x = {})
