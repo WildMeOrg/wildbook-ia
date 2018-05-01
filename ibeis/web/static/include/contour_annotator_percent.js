@@ -76,6 +76,7 @@
             options.warning               !== undefined || (options.warning = "TOO FAST!<br/>GO BACK TO LAST POINT")
             options.limits                !== undefined || (options.limits = {})
             options.limits.distance       !== undefined || (options.limits.distance = 20)
+            options.limits.restart        !== undefined || (options.limits.restart = 5)
             options.limits.bounds         !== undefined || (options.limits.bounds = {})
             options.limits.bounds.padding !== undefined || (options.limits.bounds.padding = true)
             options.limits.bounds.x       !== undefined || (options.limits.bounds.x = {})
@@ -408,6 +409,13 @@
                     "x": this.points.cursor.x / width,
                     "y": this.points.cursor.y / height,
                 }
+            } else {
+                values = this.current_distance(index)
+                distance = values[0]
+                speedy = event.ctrlKey
+                if (distance > this.options.limits.restart) {
+                    return false
+                }
             }
 
             this.clear(index)
@@ -431,8 +439,7 @@
                 return false
             }
 
-            // Don't refresh until we get new coordinates from the ContourAnnotator
-            // this.refresh(event)
+            return true
         }
 
         ContourSelector.prototype.add_segment = function(event) {
@@ -1009,12 +1016,15 @@
 
         ContourAnnotator.prototype.selector_start = function(event) {
             // Start the ContourSelector
-            this.cts.start(event, this.state.hover)
-            this.state.mode = "selector"
+            started = this.cts.start(event, this.state.hover)
 
-            // notify on adding segment from selection
-            if (this.options.callbacks.onselector != null) {
-                return this.options.callbacks.onselector()
+            if (started) {
+                this.state.mode = "selector"
+
+                // notify on adding segment from selection
+                if (this.options.callbacks.onselector != null) {
+                    return this.options.callbacks.onselector()
+                }
             }
         }
 

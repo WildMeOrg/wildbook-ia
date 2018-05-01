@@ -423,6 +423,7 @@ def imageset_part_contour_processed(ibs, part_rowid_list):
     for contour_dict in contour_dict_list:
         contour = contour_dict.get('contour', None)
         reviewed = contour is not None
+        reviewed = False
         parts_reviewed.append(reviewed)
 
     return parts_reviewed

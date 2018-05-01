@@ -3,6 +3,14 @@
     <div id="ia-contour-annotator-container"></div>
 
     <div class="row">
+      <div class="col-lg-12 col-md-12 col-sm-12">
+        <div style="text-align: center; color: #aaa;">
+          <span><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_part_rowid={{ part_rowid }}" style="color: #aaa; text-decoration: underline;">Edit the part for gid: {{ gid }}</a></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
       <div class="col-lg-4 col-md-4 col-sm-4">
         <input type="range" name="radius-value" id="slider-radius" value="30" min="10" max="50" style="margin-bottom:5px; margin-top: 10px;" onchange="update_radius();" oninput="update_radius();">
         <div class="row-custom-expand">
