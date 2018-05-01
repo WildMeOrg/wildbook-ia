@@ -308,11 +308,11 @@
         }
 
         ContourSelector.prototype.draw_existing = function() {
+            this.clear()
+
             if (this.existing == null) {
                 return
             }
-
-            this.clear()
 
             this.points.begin   = this.existing.begin
             this.points.end     = this.existing.end
