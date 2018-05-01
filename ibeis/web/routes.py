@@ -2408,15 +2408,14 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
 
         # Get contours from part
         existing_contour_dict = ibs.get_part_contour(part_rowid)
-        existing_contour_list = existing_contour_dict.get('contour', [])
-
-        contour_list = []
-        for contour in existing_contour_list:
-            # Unpack
-            contour_list.append(contour)
+        existing_contour = existing_contour_dict.get('contour', None)
+        if existing_contour is None:
+            existing_contour = {}
     else:
         image_src = None
-        contour_list = []
+        existing_contour = {}
+
+    existing_contour_json = ut.to_json(existing_contour)
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid, )
     return appf.template('turk', 'contour',
@@ -2431,7 +2430,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
                          progress=progress,
                          finished=finished,
                          display_instructions=display_instructions,
-                         contour_list=contour_list,
+                         existing_contour_json=existing_contour_json,
                          callback_url=callback_url,
                          callback_method='POST')
 

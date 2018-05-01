@@ -3,7 +3,13 @@
     <div id="ia-contour-annotator-container"></div>
 
     <div class="row">
-      <div class="col-lg-4 col-md-4 col-sm-4"></div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <input type="range" name="radius-value" id="slider-radius" value="30" min="10" max="50" style="margin-bottom:5px; margin-top: 10px;" onchange="update_radius();" oninput="update_radius();">
+        <div class="row-custom-expand">
+          <div class="col-custom-span col-custom-span-2"><span class="glyphicon glyphicon-resize-small"></span></div>
+          <div class="col-custom-span col-custom-span-2"><span class="glyphicon glyphicon-resize-full" ></span></div>
+        </div>
+      </div>
       <div class="col-lg-4 col-md-4 col-sm-4">
         <div id="ia-metadata-panel-annotation-quickhelp" style="text-align: center; color: #aaa;">
           <a tabindex="0" id="ia-contour-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='' style="margin-top: 10px;">Quick Help</a>
@@ -30,7 +36,7 @@
       </div>
     </div>
 
-    <textarea id="ia-contour-data" name="ia-contour-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-contour-form"></textarea>
+    <textarea id="ia-contour-data" name="ia-contour-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px;" readonly="" form="ia-contour-form"></textarea>
   </form>
 
   <script src="{{ url_for('static', filename='javascript/turk-contour.js') }}" ia-dependency="javascript"></script>
@@ -41,22 +47,26 @@
 
     config_temp = {% if config['temp'] %}true{% else %}false{% endif %}
 
+    existing_contour = JSON.parse('{{ existing_contour_json|safe }}')
+
     hotkeys_global_disabled = false
 
     $(document).ready(function() {
       // Initialize the contour annotator.
-      cta = new ContourAnnotator("{{ image_src }}", {
+      cta = new ContourAnnotator("{{ image_src }}", existing_contour, {
         prefix: "ia-",
         guiderail: {{ padding }},
         callbacks: {
-          onchange: function(entries) {
-            $('#ia-contour-data').text(JSON.stringify(entries, null, "  "));
+          onchange: function(data) {
+            $('#ia-contour-data').text(JSON.stringify(data, null, "  "));
           }
         }
       });
 
+      update_radius()
+
       // Add pre-existing annotations as entries
-      {% for contour in contour_list %}
+      {% for contour in existing_contour %}
         cta.add_entry({
           label:  '{{ contour['id'] }}',
           points: {{ contour }}
@@ -64,7 +74,14 @@
       {% endfor %}
 
       var quickhelp_instructions = `<ul>
-        <li><b>Hotkey</b>: action description</li>
+        <li><b>Click</b>: Start or stop contour</li>
+        <li><b>Shift</b>: Highlight contour point as occluded</li>
+        <li><b>Crtl</b>: Disable all speed checks</li>
+        <li><b>Esc</b>: Cancel all drawing</li>
+        <li><b>Delete</b>: Cancel all drawing or clear contour</li>
+        <li><b>R</b>: Reset segment back to original</li>
+        <li><b>Q</b>: Increase radius</li>
+        <li><b>A</b>: Decrease radius</li>
       </ul>`
 
       $('#ia-contour-quickhelp').popover({

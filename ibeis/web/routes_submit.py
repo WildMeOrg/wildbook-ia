@@ -971,22 +971,18 @@ def submit_contour(**kwargs):
     part_rowid = int(request.form['contour-part-rowid'])
 
     if method.lower() == 'accept':
-        data_list = ut.from_json(request.form['ia-contour-data'])
+        data_dict = ut.from_json(request.form['ia-contour-data'])
 
-        num_contours = 0
-        num_points = 0
+        if data_dict is None:
+            data_dict = {}
+
         contour_dict = ibs.get_part_contour(part_rowid)
-        for data in data_list:
-            num_contours += 1
-
-            if 'contour' not in contour_dict:
-                contour_dict['contour'] = []
-
-            for point in data:
-                contour_dict['contour'].append(point)
-                num_points += 1
-
+        contour_dict['contour'] = data_dict
         ibs.set_part_contour([part_rowid], [contour_dict])
+
+        segment = data_dict.get('segment', [])
+        num_contours = 1
+        num_points = len(segment)
         ibs.set_part_reviewed([part_rowid], [1])
 
         print('[web] part_rowid: %d, contours: %d, points: %d' % (part_rowid, num_contours, num_points, ))
