@@ -5,7 +5,7 @@
     <div class="row">
       <div class="col-lg-12 col-md-12 col-sm-12">
         <div style="text-align: center; color: #aaa;">
-          <span><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_part_rowid={{ part_rowid }}" style="color: #aaa; text-decoration: underline;">Edit the part for gid: {{ gid }}</a></span>
+<!--           <span><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_part_rowid={{ part_rowid }}" style="color: #aaa; text-decoration: underline;">Edit the part for gid: {{ gid }}</a></span> -->
         </div>
       </div>
     </div>
@@ -24,7 +24,14 @@
         </div>
         <br/>
       </div>
-      <div class="col-lg-4 col-md-4 col-sm-4"></div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <div style="text-align: right; margin-top: 6px;">
+          <div id="ia-detection-setting-orientation-wrapper">
+            <i>Show Guidelines</i>
+            <input type="checkbox" id="ia-contour-setting-guiderail" {% if settings['ia-contour-setting-guiderail'] %}checked{% endif %}>
+          </div>
+        </div>
+      </div>
     </div>
 
     <input type="text" name="contour-part-rowid" value="{{ part_rowid }}" style="display: none;" readonly>
@@ -63,7 +70,10 @@
       // Initialize the contour annotator.
       cta = new ContourAnnotator("{{ image_src }}", existing_contour, {
         prefix: "ia-",
-        guiderail: {{ padding }},
+        guiderail: {
+          "enabled": {% if settings['ia-contour-setting-guiderail'] %}true{% else %}false{% endif %},
+          "percent": {{ padding }},
+        },
         callbacks: {
           onchange: function(data) {
             $('#ia-contour-data').text(JSON.stringify(data, null, "  "));
@@ -81,15 +91,21 @@
         });
       {% endfor %}
 
+      $("#ia-contour-setting-guiderail").change(function(event) {
+        update_guiderail()
+      });
+
       var quickhelp_instructions = `<ul>
-        <li><b>Click</b>: Start or stop contour</li>
-        <li><b>Shift</b>: Highlight contour point as occluded</li>
-        <li><b>Crtl</b>: Disable all speed checks</li>
+        <li><b>Left Click</b>: Start or stop contour if none exists</li>
+        <li><b>Right Click</b>: Start or stop contour anytime</li>
+        <li><b>Shift</b>: Highlight point as occluded</li>
+        <li><b>Ctrl</b>: Un-highlight point as occluded</li>
         <li><b>Esc</b>: Cancel all drawing</li>
         <li><b>Delete</b>: Cancel all drawing or clear contour</li>
         <li><b>R</b>: Reset segment back to original</li>
         <li><b>Q</b>: Increase radius</li>
         <li><b>A</b>: Decrease radius</li>
+        <li><b>G</b>: Toggle guidelines</li>
       </ul>`
 
       $('#ia-contour-quickhelp').popover({

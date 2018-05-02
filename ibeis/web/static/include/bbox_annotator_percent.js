@@ -1115,11 +1115,15 @@ TODO
             margin = 5
 
             // Get the proportions of the image and
+            width = $(window).width()
+            height = $(window).height()
             w1 = this.elements.image.width
             h1 = this.elements.image.height
 
             if (zoom) {
-                w2 = $(window).width() - 2 * margin
+                h2 = height - 2 * margin
+                w2 = (h2 / h1) * w1
+                w2 = Math.min(w2, width - 2 * margin)
             } else {
                 w2 = this.elements.container.width()
                 limit1 = this.options.limits.frame.width
@@ -1132,11 +1136,15 @@ TODO
             if (zoom) {
                 offset = this.elements.container.offset()
                 left = -1.0 * offset.left
-                left += margin
+                left += (width - w2) * 0.5
                 left = left + "px"
+                scroll = offset.top - margin
             } else {
                 left = ""
+                scroll = 0
             }
+
+            $('html, body').animate({scrollTop: scroll});
 
             this.elements.frame.css({
                 "width": w2 + "px",
@@ -1145,6 +1153,7 @@ TODO
             })
             this.elements.container.css({
                 "height": h2 + "px",
+                "width": w2 + "px",
             })
 
             // Update the assignments, not based on percentages

@@ -26,6 +26,13 @@ function update_radius_slider(delta) {
     update_radius()
 }
 
+function update_guiderail() {
+    var checked_mode
+    checked_mode = $('#ia-contour-setting-guiderail').prop("checked");
+    submit_cookie('ia-contour-setting-guiderail', checked_mode ? '1' : '0');
+    cta.refresh(checked_mode);
+}
+
 $(window).keydown(function(event) {
     key = event.which;
 
@@ -44,6 +51,10 @@ $(window).keydown(function(event) {
         } else if (key == 82) {
             // R key pressed
             cta.reset_interaction()
+        } else if (key == 71) {
+            // G key pressed
+            var element = $('#ia-contour-setting-guiderail')
+            element.prop('checked', !element.is(':checked')).trigger('change');
         } else if (key == 80) {
             // P key pressed, follow previous link
             $('a#ia-turk-previous')[0].click();

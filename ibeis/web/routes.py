@@ -2417,6 +2417,15 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
 
     existing_contour_json = ut.to_json(existing_contour)
 
+    settings_key_list = [
+        ('ia-contour-setting-guiderail', '0'),
+    ]
+
+    settings = {
+        settings_key: request.cookies.get(settings_key, settings_default) == '1'
+        for (settings_key, settings_default) in settings_key_list
+    }
+
     callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid, )
     return appf.template('turk', 'contour',
                          imgsetid=imgsetid,
@@ -2429,6 +2438,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
                          imagesettext=imagesettext,
                          progress=progress,
                          finished=finished,
+                         settings=settings,
                          display_instructions=display_instructions,
                          existing_contour_json=existing_contour_json,
                          callback_url=callback_url,
