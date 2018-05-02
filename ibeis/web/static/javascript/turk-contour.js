@@ -1,4 +1,9 @@
-function check_form() {
+function check_form(clear) {
+    if (clear) {
+        cta.delete_current()
+        return false;
+    }
+
     // Resave the current entries to the form
     data = cta.resize();
 

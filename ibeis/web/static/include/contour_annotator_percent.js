@@ -44,62 +44,98 @@
         function ContourSelector(frame, existing, options) {
             var options
 
-            options                         !== undefined || (options = {})
-            options.prefix                  !== undefined || (options.prefix = "")
-            options.ids                     !== undefined || (options.ids = {})
-            options.ids.canvas              !== undefined || (options.ids.canvas     = options.prefix + "contour-selector-canvas")
-            options.ids.begin               !== undefined || (options.ids.begin      = options.prefix + "contour-selector-begin")
-            options.ids.end                 !== undefined || (options.ids.end        = options.prefix + "contour-selector-end")
-            options.ids.guiderail           !== undefined || (options.ids.guiderail  = options.prefix + "contour-selector-guiderail")
-            options.ids.guideline           !== undefined || (options.ids.guideline  = options.prefix + "contour-selector-guideline")
-            options.ids.guidepoint          !== undefined || (options.ids.guidepoint = options.prefix + "contour-selector-guidepoint")
-            options.ids.guidearc            !== undefined || (options.ids.guidearc   = options.prefix + "contour-selector-guidearc")
-            options.ids.warning             !== undefined || (options.ids.warning    = options.prefix + "contour-selector-warning")
-            options.classes                 !== undefined || (options.classes = {})
-            options.classes.radius          !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-radius")
-            options.classes.segment         !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-point")
-            options.colors                  !== undefined || (options.colors = {})
-            options.colors.begin            !== undefined || (options.colors.begin      = "#7FFF7F")
-            options.colors.radius           !== undefined || (options.colors.radius     = "#2E63FF") // #333333
-            options.colors.segment          !== undefined || (options.colors.segment    = "#2E63FF")
-            options.colors.highlight        !== undefined || (options.colors.highlight  = "#F0AD4E")
-            options.colors.end              !== undefined || (options.colors.end        = "#EB2A18")
-            options.colors.guideline        !== undefined || (options.colors.guideline  = "#EB2A18")
-            options.colors.guidepoint       !== undefined || (options.colors.guidepoint = "#EB2A18")
-            options.colors.guidearc         !== undefined || (options.colors.guidearc   = "#EB2A18")
-            options.colors.guiderail        !== undefined || (options.colors.guiderail  = "#F0AD4E") // #333333
-            options.guiderail               !== undefined || (options.guiderail = {})
-            options.guiderail.enabled       !== undefined || (options.guiderail.enabled = true)
-            options.guiderail.percent       !== undefined || (options.guiderail.percent = 0.0)
-            options.size                    !== undefined || (options.size = {})
-            options.size.radius             !== undefined || (options.size.radius = 30)
-            options.size.segment            !== undefined || (options.size.segment = 4)
-            options.size.paint              !== undefined || (options.size.paint = 10)
-            options.transparency            !== undefined || (options.transparency = {})
-            options.transparency.radius     !== undefined || (options.transparency.radius = 0.3)
-            options.transparency.segment    !== undefined || (options.transparency.segment = 1.0)
-            options.warning                 !== undefined || (options.warning = "TOO FAST!<br/>GO BACK TO LAST POINT")
-            options.limits                  !== undefined || (options.limits = {})
-            options.limits.distance         !== undefined || (options.limits.distance = 20)
-            options.limits.arc              !== undefined || (options.limits.arc = {})
-            options.limits.arc.degrees      !== undefined || (options.limits.arc.degrees = 45)
-            options.limits.arc.radius       !== undefined || (options.limits.arc.radius = 50)
-            options.limits.restart          !== undefined || (options.limits.restart = {})
-            options.limits.restart.min      !== undefined || (options.limits.restart.min = 3)
-            options.limits.restart.max      !== undefined || (options.limits.restart.max = 10)
-            options.limits.bounds           !== undefined || (options.limits.bounds = {})
-            options.limits.bounds.guiderail !== undefined || (options.limits.bounds.guiderail = false)
-            options.limits.bounds.x         !== undefined || (options.limits.bounds.x = {})
-            options.limits.bounds.x.min     !== undefined || (options.limits.bounds.x.min = 0)
-            options.limits.bounds.x.max     !== undefined || (options.limits.bounds.x.max = 0)
-            options.limits.bounds.y         !== undefined || (options.limits.bounds.y = {})
-            options.limits.bounds.y.min     !== undefined || (options.limits.bounds.y.min = 0)
-            options.limits.bounds.y.max     !== undefined || (options.limits.bounds.y.max = 0)
-            options.debug                   !== undefined || (options.debug = false)
+            options                          !== undefined || (options = {})
+            options.prefix                   !== undefined || (options.prefix = "")
+            options.ids                      !== undefined || (options.ids = {})
+            options.ids.canvas               !== undefined || (options.ids.canvas     = options.prefix + "contour-selector-canvas")
+            options.ids.begin                !== undefined || (options.ids.begin      = options.prefix + "contour-selector-begin")
+            options.ids.end                  !== undefined || (options.ids.end        = options.prefix + "contour-selector-end")
+            options.ids.guiderail            !== undefined || (options.ids.guiderail  = options.prefix + "contour-selector-guiderail")
+            options.ids.guideline            !== undefined || (options.ids.guideline  = options.prefix + "contour-selector-guideline")
+            options.ids.guidepoint           !== undefined || (options.ids.guidepoint = options.prefix + "contour-selector-guidepoint")
+            options.ids.guidearc             !== undefined || (options.ids.guidearc   = options.prefix + "contour-selector-guidearc")
+            options.ids.warning              !== undefined || (options.ids.warning    = options.prefix + "contour-selector-warning")
+            options.classes                  !== undefined || (options.classes = {})
+            options.classes.radius           !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-radius")
+            options.classes.segment          !== undefined || (options.classes.point = options.prefix + "contour-selector-segment-point")
+            options.colors                   !== undefined || (options.colors = {})
+            options.colors.begin             !== undefined || (options.colors.begin       = "#7FFF7F")
+            options.colors.radius            !== undefined || (options.colors.radius      = "#2E63FF") // #333333
+            options.colors.segment           !== undefined || (options.colors.segment     = "#2E63FF")
+            options.colors.highlight         !== undefined || (options.colors.highlight   = "#F0AD4E")
+            options.colors.end               !== undefined || (options.colors.end         = "#EB2A18")
+            options.colors.guideline         !== undefined || (options.colors.guideline   = "#EB2A18")
+            options.colors.guidepoint        !== undefined || (options.colors.guidepoint  = "#EB2A18")
+            options.colors.guidetarget       !== undefined || (options.colors.guidetarget = "#333333")
+            options.colors.guidearc          !== undefined || (options.colors.guidearc    = "#EB2A18")
+            options.colors.guiderail         !== undefined || (options.colors.guiderail   = "#F0AD4E") // #333333
+            options.guiderail                !== undefined || (options.guiderail = {})
+            options.guiderail.enabled        !== undefined || (options.guiderail.enabled = true)
+            options.guiderail.percent        !== undefined || (options.guiderail.percent = 0.0)
+            options.size                     !== undefined || (options.size = {})
+            options.size.radius              !== undefined || (options.size.radius = 30)
+            options.size.segment             !== undefined || (options.size.segment = 4)
+            options.size.guiderail           !== undefined || (options.size.guiderail = 1)
+            options.size.paint               !== undefined || (options.size.paint = 10)
+            options.transparency             !== undefined || (options.transparency = {})
+            options.transparency.radius      !== undefined || (options.transparency.radius = 0.3)
+            options.transparency.segment     !== undefined || (options.transparency.segment = 1.0)
+            options.transparency.guiderail   !== undefined || (options.transparency.guiderail = 0.75)
+            options.transparency.guidetarget !== undefined || (options.transparency.guidetarget = 0.25)
+            options.warning                  !== undefined || (options.warning = "TOO FAST!<br/>GO BACK TO LAST POINT")
+            options.limits                   !== undefined || (options.limits = {})
+            options.limits.distance          !== undefined || (options.limits.distance = 20)
+            options.limits.arc               !== undefined || (options.limits.arc = {})
+            options.limits.arc.degrees       !== undefined || (options.limits.arc.degrees = 45)
+            options.limits.arc.radius        !== undefined || (options.limits.arc.radius = 50)
+            options.limits.restart           !== undefined || (options.limits.restart = {})
+            options.limits.restart.min       !== undefined || (options.limits.restart.min = 3)
+            options.limits.restart.max       !== undefined || (options.limits.restart.max = 10)
+            options.limits.bounds            !== undefined || (options.limits.bounds = {})
+            options.limits.bounds.guiderail  !== undefined || (options.limits.bounds.guiderail = false)
+            options.limits.bounds.x          !== undefined || (options.limits.bounds.x = {})
+            options.limits.bounds.x.min      !== undefined || (options.limits.bounds.x.min = 0)
+            options.limits.bounds.x.max      !== undefined || (options.limits.bounds.x.max = 0)
+            options.limits.bounds.y          !== undefined || (options.limits.bounds.y = {})
+            options.limits.bounds.y.min      !== undefined || (options.limits.bounds.y.min = 0)
+            options.limits.bounds.y.max      !== undefined || (options.limits.bounds.y.max = 0)
+            options.debug                    !== undefined || (options.debug = false)
+            options.mode                     !== undefined || (options.mode = "edit") // A mode from ["finish", "edit", "draw"]
+            /*
+                mode == "finish"
+                    If the user is going too fast (as dictated by options.limits.distance), then
+                    immediately stop drawing and finish the entire contour with an endpoint
+
+                    The user can recover from this mode by moving back to the completed segment
+                    and redraw with the normal editing functionality
+
+                mode == "edit" (default)
+                    If the user is going too fast, then stop drawing but do not finish the segment.
+                    In this incomplete mode, the user can only ESC to cancel the entire segment
+                    or complete the existing contour by clicking on the last point
+
+                    The user can recover from this mode by moving back to the last point (in red)
+                    and click as if in the normal editing functionality.  The segment is ended
+                    with a normal click.
+
+                mode == "draw"
+                    If the user is going too fast, then stop drawing but do not finish the segment.
+                    In this incomplete mode, the user can only ESC to cancel the entire segment
+                    or complete the existing contour by getting within a certain degree of the
+                    travel direction and within the distance specified by options.limits.restart.min
+                    and options.limits.restart.max.
+
+                    The user can recover from this mode by moving back to the last point (in red)
+                    and by placing the cursor within the prescribed arc and distance (shown on
+                    screen).  The drawing will automatically resume when the cursor is within this
+                    area, no additional clicking is required.  The segment is ended with a normal
+                    click.
+            */
 
             // Global attributes
             this.options = options
             this.speeding = false
+            this.zoom_modifier = 1.0
 
             this.points = {
                 segment: [],
@@ -201,9 +237,9 @@
                 "bottom": (100.0 * this.options.padding) + "%",
                 "left":   (100.0 * this.options.padding) + "%",
                 "right":  (100.0 * this.options.padding) + "%",
-                "border": "1px solid " + this.options.colors.guiderail,
+                "border": this.options.size.guiderail + "px solid " + this.options.colors.guiderail,
                 "color": this.options.colors.guiderail,
-                "opacity": 0.5
+                "opacity": this.options.transparency.guiderail
             }
 
             this.elements.guiderail = $('<div id="' + this.options.ids.guiderail + '"></div>')
@@ -242,6 +278,27 @@
             this.elements.guidepoint.css({
                 "background-color": this.options.colors.guidepoint,
             })
+
+            radius = this.options.size.paint
+            radius_double = Math.floor(radius * 2.0)
+            guidetarget_style = {
+                "top": "0",
+                "left": "0",
+                "width": radius_double + "px",
+                "height": radius_double + "px",
+                "position": "absolute",
+                "border-radius": radius_double + "px",
+                "border": "1px solid " + this.options.colors.guidetarget,
+                "margin-top": "-" + (radius - 2) + "px",
+                "margin-left": "-" + (radius - 2) + "px",
+                "z-index": "10",
+                "opacity": this.options.transparency.guidetarget,
+            }
+
+            // Begin guidepoint
+            this.elements.guidetarget = $('<div id="' + this.options.ids.guidepoint + '"></div>')
+            this.elements.guidetarget.css(guidetarget_style)
+            this.elements.guidepoint.append(this.elements.guidetarget)
             this.elements.frame.append(this.elements.guidepoint)
             this.elements.guidepoint.hide()
 
@@ -459,6 +516,10 @@
             }
         }
 
+        ContourSelector.prototype.hide_warning = function() {
+            this.elements.warning.hide()
+        }
+
         ContourSelector.prototype.clear = function(keep_index) {
 
             keep_index !== undefined || (keep_index = null)
@@ -473,7 +534,6 @@
             this.elements.guideline.hide()
             this.elements.guidepoint.hide()
             this.elements.guidearc.hide()
-            this.elements.warning.hide()
 
             this.ctx.clearRect(0, 0, this.elements.canvas.width(), this.elements.canvas.height());
 
@@ -660,11 +720,13 @@
             })
 
         }
-        ContourSelector.prototype.update_cursor = function(event) {
+        ContourSelector.prototype.update_cursor = function(event, skip) {
             var width, height, point
             var opacity, css_theta, css_rotate
             var highlight, point, size, size_half
-            var segment, segment_style
+            var segment, segment_style, finish
+
+            skip !== undefined || (skip = false)
 
             // Update the selector based on the current cursor location
             this.points.cursor = this.check_boundaries(event)
@@ -681,9 +743,10 @@
                 "y" : (last.y.global * height),
             }
             css_theta = calculate_angle(point, this.points.cursor)
-
             css_theta_ma = null
-            if (this.speeding) {
+
+            if (this.speeding && this.options.mode == "draw") {
+                // Calculate the Moving Average angle between the last X points
                 rate = 0.8
                 samples = 5
                 previous = null
@@ -711,29 +774,54 @@
                 }
             }
 
+            max_distance = this.options.limits.distance
+            max_distance *= this.zoom_modifier
+
             if (! this.speeding && distance > this.options.limits.distance) {
                 this.speeding = true
             } else if (this.speeding) {
-                if(this.options.limits.restart.min <= distance && distance <= this.options.limits.restart.max) {
-                    margin = Math.PI * 2.0 * (22.0 / 360.0)
-                    diff = css_theta_ma - css_theta
+                if (this.options.mode == "draw") {
+                    if(this.options.limits.restart.min <= distance && distance <= this.options.limits.restart.max) {
+                        margin = Math.PI * 2.0 * (22.0 / 360.0)
+                        diff = css_theta_ma - css_theta
 
-                    css_theta_min = Math.min(css_theta_ma, css_theta)
-                    css_theta_max = Math.max(css_theta_ma, css_theta)
-                    diff = css_theta_max - css_theta_min
+                        css_theta_min = Math.min(css_theta_ma, css_theta)
+                        css_theta_max = Math.max(css_theta_ma, css_theta)
+                        diff = css_theta_max - css_theta_min
 
-                    if (diff > Math.PI) {
-                        diff -= Math.PI
-                        diff = Math.PI - diff
+                        if (diff > Math.PI) {
+                            diff -= Math.PI
+                            diff = Math.PI - diff
+                        }
+
+                        if(diff <= margin) {
+                            this.speeding = false
+                        }
                     }
+                } else if (this.options.mode == "edit") {
 
-                    if(diff <= margin) {
-                        this.speeding = false
-                    }
                 }
             }
 
+            finish = false
+            if (this.speeding && this.options.mode == "finish") {
+                this.speeding = false
+                finish = true
+                this.elements.warning.show()
+            }
+
             if (this.speeding) {
+
+                if (distance <= this.options.limits.restart.min) {
+                    cursor_style = "cell"
+                } else {
+                    cursor_style = "crosshair"
+                }
+
+                this.elements.frame.css({
+                    "cursor": cursor_style
+                })
+
                 opacity = Math.max(0.50, Math.min(1.0, distance / 200.0))
                 this.elements.guideline.css({
                     "top": (100.0 * last.y.global) + "%",
@@ -784,19 +872,26 @@
 
                 this.elements.guideline.show()
                 this.elements.guidepoint.show()
+                this.elements.guidetarget.hide()
                 this.elements.warning.show()
+            } else {
+                // Not speeding
+                this.elements.guideline.hide()
+                this.elements.guidepoint.hide()
+                this.elements.guidetarget.hide()
+                this.elements.guidearc.hide()
+                if ( ! finish) {
+                    this.elements.warning.hide()
+                }
 
-                return false
+                // Add to the current segment and draw it
+                if ( ! skip) {
+                    point = this.add_segment(event)
+                    this.draw_segment(point)
+                }
             }
 
-            this.elements.guideline.hide()
-            this.elements.guidepoint.hide()
-            this.elements.guidearc.hide()
-            this.elements.warning.hide()
-
-            // Add to the current segment and draw it
-            point = this.add_segment(event)
-            this.draw_segment(point)
+            return finish
         }
 
         ContourSelector.prototype.update_anchor = function(event) {
@@ -862,8 +957,10 @@
                     "opacity": 1.0,
                 })
                 this.elements.guidepoint.show()
+                this.elements.guidetarget.show()
             } else {
                 this.elements.guidepoint.hide()
+                this.elements.guidetarget.show()
             }
 
             return closest_index
@@ -880,8 +977,17 @@
             this.points.cursor = this.check_boundaries(event)
 
             if (this.speeding || this.points.cursor == null) {
+
+                if(this.points.cursor != null && this.speeding && this.options.mode == "edit") {
+                    if (distance <= this.options.limits.restart.min) {
+                        this.speeding = false
+                        this.update_cursor(event, true)
+                    }
+                    return false
+                }
+
                 this.clear()
-                return
+                return true
             }
 
             width = this.elements.frame.width()
@@ -907,6 +1013,7 @@
 
             // Reset the global cursor mode and re-allow highlight selection
             document.onselectstart = null
+            return true
         }
 
         ContourSelector.prototype.get_selector_data = function() {
@@ -955,6 +1062,8 @@
             options.colors                       !== undefined || (options.colors = {})
             options.colors.default               !== undefined || (options.colors.default = "#7FFF7F")
             options.actions                      !== undefined || (options.actions = {})
+            options.actions.click                !== undefined || (options.actions.click = {})
+            options.actions.click.right          !== undefined || (options.actions.click.right = true)
             options.hotkeys                      !== undefined || (options.hotkeys = {})
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
             options.hotkeys.delete               !== undefined || (options.hotkeys.delete = [8, 46, 75])
@@ -1076,7 +1185,7 @@
                 }
             }
 
-            cta.delete_current(event)
+            cta.delete_current()
         }
 
         ContourAnnotator.prototype.reset_interaction = function(event) {
@@ -1127,6 +1236,7 @@
                         if (cta.state.mode == "selector") {
                             cta.selector_cancel(event)
                         }
+                        cta.cts.hide_warning()
                     }
                 }
             })
@@ -1165,7 +1275,7 @@
             $(window).mouseup(function(event) {
                 if (event.which == 1 || event.which == 3) {
                     if (cta.state.mode == "free" && cta.state.inside) {
-                        if (event.which == 3) {
+                        if (event.which == 3 && cta.options.actions.click.right) {
                             cta.delete_current()
                         }
                         cta.selector_start(event)
@@ -1245,12 +1355,18 @@
 
         ContourAnnotator.prototype.zoom_start = function(event) {
             this.state.zoom = this.options.zoom.enabled
+
+            w1 = this.elements.image.width
+            w2 = this.elements.frame.width()
+            this.cts.zoom_modifier = w1 / w2
+
             this.selector_cancel(null)
             this.resize()
         }
 
         ContourAnnotator.prototype.zoom_finish = function(event) {
             this.state.zoom = false
+            this.cts.zoom_modifier = 1.0
             this.selector_cancel(null)
             this.resize()
         }
@@ -1269,7 +1385,7 @@
             return data
         }
 
-        ContourAnnotator.prototype.delete_current = function(event) {
+        ContourAnnotator.prototype.delete_current = function() {
             this.cts.clear()
 
             // Refresh the display
@@ -1296,8 +1412,14 @@
         }
 
         ContourAnnotator.prototype.selector_update = function(event) {
+            var finish
+
             // Update the ContourSelector
-            this.cts.update_cursor(event)
+            finish = this.cts.update_cursor(event)
+
+            if (finish) {
+                this.selector_finish(event)
+            }
         }
 
         ContourAnnotator.prototype.selector_anchor = function(event) {
@@ -1313,11 +1435,14 @@
             // If we are in the "selector" mode, finish the ContourSelector and add the segment
             if (this.state.mode == "selector") {
                 // Get the segment data by finishing the ContourSelector
-                this.cts.finish(event)
-                // Release the mode to "free"
-                this.state.mode = "free"
-                // Update the data
-                this.refresh()
+                complete = this.cts.finish(event)
+
+                if (complete) {
+                    // Release the mode to "free"
+                    this.state.mode = "free"
+                    // Update the data
+                    this.refresh()
+                }
             }
         }
 
