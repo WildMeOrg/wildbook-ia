@@ -123,6 +123,7 @@ def login(refer=None, *args, **kwargs):
                 'lisa.pbryan',
                 'jackie.kariithi',
                 'megan.mcsherry',
+                'qing.cao',
             ],
         ),
         'wildme': (
