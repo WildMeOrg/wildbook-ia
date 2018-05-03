@@ -618,6 +618,10 @@
                 "left": (100.0 * this.points.begin.x.global) + "%",
             })
 
+            this.elements.frame.css({
+                "cursor": "crosshair"
+            })
+
             document.onselectstart = function() {
                 return false
             }
@@ -898,6 +902,10 @@
                     this.elements.warning.hide()
                 }
 
+                this.elements.frame.css({
+                    "cursor": "crosshair"
+                })
+
                 // Add to the current segment and draw it
                 if ( ! skip) {
                     point = this.add_segment(event)
@@ -936,8 +944,9 @@
                 if (event.shiftKey || event.ctrlKey) {
                     highlight = event.shiftKey
 
+                    margin = 50
                     reference = this.points.segment[closest_index]
-                    for (var index = closest_index - 10; index <= closest_index + 10; index++) {
+                    for (var index = closest_index - margin; index <= closest_index + margin; index++) {
                         if (0 <= index && index < this.points.segment.length) {
                             point = this.points.segment[index]
                             diff_x = (reference.x.global - point.x.global) * width
@@ -987,16 +996,20 @@
 
         ContourSelector.prototype.finish = function(event, update) {
             var data, width, height
+            if (event == null) {
+                this.clear()
+                return true
+            }
 
             if (update) {
                 this.points.cursor = this.check_boundaries(event)
             }
 
-            if (this.speeding || this.points.cursor == null) {
+            if (this.speeding) {
                 values = this.current_distance()
                 distance = values[0]
 
-                if(this.points.cursor != null && this.speeding && this.options.mode == "edit") {
+                if(this.speeding && this.options.mode == "edit") {
                     if (distance <= this.options.limits.restart.min) {
                         this.speeding = false
                         this.update_cursor(event, true)
