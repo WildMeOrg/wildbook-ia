@@ -18,7 +18,7 @@ function check_form(clear) {
 function update_radius() {
     radius = $('#slider-radius').val()
     radius = parseInt(radius)
-    cta.update_radius(radius)
+    // cta.update_radius(radius)
 }
 
 function update_radius_slider(delta) {
