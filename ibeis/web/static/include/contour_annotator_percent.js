@@ -407,18 +407,26 @@
             this.elements.warning.hide()
         }
 
-        ContourSelector.prototype.check_boundaries = function(event) {
+        ContourSelector.prototype.check_boundaries = function(event, point) {
             var offset, point, bounds, width, height
+
+            point !== undefined || (point = null)
+
+            width = this.elements.frame.width()
+            height = this.elements.frame.height()
 
             if (event == null) {
                 return null
             }
 
-            offset = this.elements.frame.offset()
-            point = {
-                x: event.pageX - offset.left,
-                y: event.pageY - offset.top,
+            if (point == null) {
+                offset = this.elements.frame.offset()
+                point = {
+                    x: event.pageX - offset.left,
+                    y: event.pageY - offset.top,
+                }
             }
+
             bounds = {
                 x: {
                     min: 0,
@@ -431,9 +439,6 @@
             }
 
             if (this.options.limits.bounds.guiderail) {
-                width = this.elements.frame.width()
-                height = this.elements.frame.height()
-
                 bounds.x.min -= this.options.padding * width
                 bounds.x.max -= this.options.padding * width
                 bounds.y.min -= this.options.padding * height
@@ -444,8 +449,8 @@
             point.x = Math.max(point.x, 0 - bounds.x.min)
             point.y = Math.max(point.y, 0 - bounds.y.min)
             // Check upper boundaries
-            point.x = Math.min(point.x, this.elements.frame.width() - 1 + bounds.x.max)
-            point.y = Math.min(point.y, this.elements.frame.height() - 1 + bounds.y.max)
+            point.x = Math.min(point.x, width - 1 + bounds.x.max)
+            point.y = Math.min(point.y, height - 1 + bounds.y.max)
             return point
         }
 
@@ -808,6 +813,15 @@
                 this.speeding = false
                 finish = true
                 this.elements.warning.show()
+
+                // We need to update the cursor to use the last good segment location, not the current cursor
+                index = this.points.segment.length - 1
+                point = this.points.segment[index]
+                point = {
+                    "x": point.x.global * width,
+                    "y": point.y.global * height,
+                }
+                this.points.cursor = this.check_boundaries(event, point)
             }
 
             if (this.speeding) {
@@ -971,12 +985,16 @@
             return this.options.size.radius
         }
 
-        ContourSelector.prototype.finish = function(event) {
+        ContourSelector.prototype.finish = function(event, update) {
             var data, width, height
 
-            this.points.cursor = this.check_boundaries(event)
+            if (update) {
+                this.points.cursor = this.check_boundaries(event)
+            }
 
             if (this.speeding || this.points.cursor == null) {
+                values = this.current_distance()
+                distance = values[0]
 
                 if(this.points.cursor != null && this.speeding && this.options.mode == "edit") {
                     if (distance <= this.options.limits.restart.min) {
@@ -996,10 +1014,6 @@
             // Add ending point to the segment
             point = this.add_segment(event)
             this.points.end = point
-
-            // If finish when speeding
-            values = this.current_distance()
-            distance = values[0]
 
             this.elements.end.show()
             this.elements.end.css({
@@ -1279,6 +1293,7 @@
                             cta.delete_current()
                         }
                         cta.selector_start(event)
+                        cta.cts.hide_warning()
                     } else if (cta.state.mode == "selector") {
                         cta.selector_finish(event)
                     }
@@ -1418,7 +1433,7 @@
             finish = this.cts.update_cursor(event)
 
             if (finish) {
-                this.selector_finish(event)
+                this.selector_finish(event, false)
             }
         }
 
@@ -1431,11 +1446,14 @@
             this.selector_finish(null)
         }
 
-        ContourAnnotator.prototype.selector_finish = function(event) {
+        ContourAnnotator.prototype.selector_finish = function(event, update) {
+
+            update !== undefined || (update = true)
+
             // If we are in the "selector" mode, finish the ContourSelector and add the segment
             if (this.state.mode == "selector") {
                 // Get the segment data by finishing the ContourSelector
-                complete = this.cts.finish(event)
+                complete = this.cts.finish(event, update)
 
                 if (complete) {
                     // Release the mode to "free"
