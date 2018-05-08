@@ -2090,7 +2090,7 @@ def delete_images(ibs, gid_list, trash_images=True):
         >>> assert not utool.checkpath(gthumbpath), "Thumbnail still exists"
         >>> assert not utool.checkpath(athumbpath), "ANNOTATION Thumbnail still exists"
     """
-    if ut.NOT_QUIET:
+    if ut.VERBOSE:
         print('[ibs] deleting %d images' % len(gid_list))
     # Move images to trash before deleting them. #
     # TODO: only move localized images
@@ -2153,7 +2153,7 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         >>> for path in gpath_list:
         >>>     utool.assertpath(path)
     """
-    if ut.NOT_QUIET:
+    if ut.VERBOSE:
         print('[ibs] deleting %d image thumbnails' % len(gid_list))
         if DEBUG_THUMB:
             print('{THUMB DELETE} config2_ = %r' % (config2_,))

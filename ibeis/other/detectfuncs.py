@@ -440,6 +440,103 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
     return test_gid_list
 
 
+def general_parse_gt_annots(ibs, aid_list, include_parts=True):
+    gid_list = ibs.get_annot_gids(aid_list)
+
+    species_set = set([])
+    gt_list = []
+    for gid, aid in zip(gid_list, aid_list):
+        width, height = ibs.get_image_sizes(gid)
+
+        bbox = ibs.get_annot_bboxes(aid)
+        theta = ibs.get_annot_thetas(aid)
+
+        # Transformation matrix
+        R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+        # Get verticies of the annotation polygon
+        verts = vt.verts_from_bbox(bbox, close=True)
+        # Rotate and transform vertices
+        xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+        trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        x_points = [pt[0] for pt in new_verts]
+        y_points = [pt[1] for pt in new_verts]
+        xtl = int(min(x_points))
+        xbr = int(max(x_points))
+        ytl = int(min(y_points))
+        ybr = int(max(y_points))
+        bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
+        species = ibs.get_annot_species_texts(aid)
+        viewpoint = ibs.get_annot_viewpoints(aid)
+        interest = ibs.get_annot_interest(aid)
+        temp = {
+            'gid'        : gid,
+            'aid'        : aid,
+            'xtl'        : bbox[0] / width,
+            'ytl'        : bbox[1] / height,
+            'xbr'        : (bbox[0] + bbox[2]) / width,
+            'ybr'        : (bbox[1] + bbox[3]) / height,
+            'width'      : bbox[2] / width,
+            'height'     : bbox[3] / height,
+            'class'      : species,
+            'viewpoint'  : viewpoint,
+            'interest'   : interest,
+            'confidence' : 1.0,
+        }
+        species_set.add(temp['class'])
+        gt_list.append(temp)
+
+        part_rowid_list = ibs.get_annot_part_rowids(aid)
+        if include_parts:
+            for part_rowid in part_rowid_list:
+                bbox = ibs.get_part_bboxes(part_rowid)
+                theta = ibs.get_part_thetas(part_rowid)
+
+                # Transformation matrix
+                R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+                # Get verticies of the annotation polygon
+                verts = vt.verts_from_bbox(bbox, close=True)
+                # Rotate and transform vertices
+                xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+                trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+                x_points = [pt[0] for pt in new_verts]
+                y_points = [pt[1] for pt in new_verts]
+                xtl = int(min(x_points))
+                xbr = int(max(x_points))
+                ytl = int(min(y_points))
+                ybr = int(max(y_points))
+                bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
+                tag = ibs.get_part_tag_text(part_rowid)
+
+                if tag is None:
+                    tag = species
+                else:
+                    tag = '%s+%s' % (species, tag, )
+
+                temp = {
+                    'gid'        : gid,
+                    'aid'        : aid,
+                    'part_id'    : part_rowid,
+                    'xtl'        : bbox[0] / width,
+                    'ytl'        : bbox[1] / height,
+                    'xbr'        : (bbox[0] + bbox[2]) / width,
+                    'ybr'        : (bbox[1] + bbox[3]) / height,
+                    'width'      : bbox[2] / width,
+                    'height'     : bbox[3] / height,
+                    'class'      : tag,
+                    'viewpoint'  : viewpoint,
+                    'interest'   : interest,
+                    'confidence' : 1.0,
+                }
+                species_set.add(temp['class'])
+                gt_list.append(temp)
+
+    return gt_list, species_set
+
+
 def general_parse_gt(ibs, test_gid_list=None, include_parts=True, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
@@ -450,96 +547,9 @@ def general_parse_gt(ibs, test_gid_list=None, include_parts=True, **kwargs):
     species_set = set([])
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
-        width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
-        gt_list = []
-        for aid in aid_list:
-            bbox = ibs.get_annot_bboxes(aid)
-            theta = ibs.get_annot_thetas(aid)
-
-            # Transformation matrix
-            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
-            # Get verticies of the annotation polygon
-            verts = vt.verts_from_bbox(bbox, close=True)
-            # Rotate and transform vertices
-            xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
-            trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
-            x_points = [pt[0] for pt in new_verts]
-            y_points = [pt[1] for pt in new_verts]
-            xtl = int(min(x_points))
-            xbr = int(max(x_points))
-            ytl = int(min(y_points))
-            ybr = int(max(y_points))
-            bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
-
-            species = ibs.get_annot_species_texts(aid)
-            viewpoint = ibs.get_annot_viewpoints(aid)
-            interest = ibs.get_annot_interest(aid)
-            temp = {
-                'gid'        : gid,
-                'aid'        : aid,
-                'xtl'        : bbox[0] / width,
-                'ytl'        : bbox[1] / height,
-                'xbr'        : (bbox[0] + bbox[2]) / width,
-                'ybr'        : (bbox[1] + bbox[3]) / height,
-                'width'      : bbox[2] / width,
-                'height'     : bbox[3] / height,
-                'class'      : species,
-                'viewpoint'  : viewpoint,
-                'interest'   : interest,
-                'confidence' : 1.0,
-            }
-            species_set.add(temp['class'])
-            gt_list.append(temp)
-
-            part_rowid_list = ibs.get_annot_part_rowids(aid)
-            if include_parts:
-                for part_rowid in part_rowid_list:
-                    bbox = ibs.get_part_bboxes(part_rowid)
-                    theta = ibs.get_part_thetas(part_rowid)
-
-                    # Transformation matrix
-                    R = vt.rotation_around_bbox_mat3x3(theta, bbox)
-                    # Get verticies of the annotation polygon
-                    verts = vt.verts_from_bbox(bbox, close=True)
-                    # Rotate and transform vertices
-                    xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
-                    trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-                    new_verts = np.round(trans_pts).astype(np.int).T.tolist()
-                    x_points = [pt[0] for pt in new_verts]
-                    y_points = [pt[1] for pt in new_verts]
-                    xtl = int(min(x_points))
-                    xbr = int(max(x_points))
-                    ytl = int(min(y_points))
-                    ybr = int(max(y_points))
-                    bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
-
-                    tag = ibs.get_part_tag_text(part_rowid)
-
-                    if tag is None:
-                        tag = species
-                    else:
-                        tag = '%s+%s' % (species, tag, )
-
-                    temp = {
-                        'gid'        : gid,
-                        'aid'        : aid,
-                        'part_id'    : part_rowid,
-                        'xtl'        : bbox[0] / width,
-                        'ytl'        : bbox[1] / height,
-                        'xbr'        : (bbox[0] + bbox[2]) / width,
-                        'ybr'        : (bbox[1] + bbox[3]) / height,
-                        'width'      : bbox[2] / width,
-                        'height'     : bbox[3] / height,
-                        'class'      : tag,
-                        'viewpoint'  : viewpoint,
-                        'interest'   : interest,
-                        'confidence' : 1.0,
-                    }
-                    species_set.add(temp['class'])
-                    gt_list.append(temp)
-
+        gt_list, species_set = general_parse_gt_annots(ibs, aid_list)
+        species_set = species_set | species_set
         gt_dict[uuid] = gt_list
 
     # print('General Parse GT species_set = %r' % (species_set, ))
@@ -726,7 +736,34 @@ def localizer_assign(gt_list, pred, min_overlap):
         best_overlap = overlap
         best_index = index
 
-    return best_index
+    if best_index is None:
+        best_overlap = None
+
+    return best_index, best_overlap
+
+
+def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
+    pred_list = sorted(pred_list, key=lambda pred: pred['confidence'], reverse=True)
+
+    match_list = []
+    for pred in pred_list:
+        flag = False
+
+        match_index,  best_overlap  = localizer_assign(gt_list,  pred, min_overlap)
+        match_index_, best_overlap_ = localizer_assign(gt_list_, pred, min_overlap)
+
+        if match_index is not None:
+            flag = True
+            del gt_list[match_index]
+        elif match_index_ is not None:
+            flag = None
+
+        if flag is not None:
+            match_list += [
+                (pred['confidence'], flag, match_index, best_overlap)
+            ]
+
+    return match_list
 
 
 def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
@@ -757,23 +794,9 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
         total += len(gt_list)
 
         # Match predictions
-        pred_list = sorted(pred_list, key=lambda pred: pred['confidence'], reverse=True)
-        for pred in pred_list:
-            flag = False
-
-            match_index = localizer_assign(gt_list, pred, min_overlap)
-            match_index_ = localizer_assign(gt_list_, pred, min_overlap)
-
-            if match_index is not None:
-                flag = True
-                del gt_list[match_index]
-            elif match_index_ is not None:
-                flag = None
-
-            if flag is not None:
-                match_list += [
-                    (pred['confidence'], flag)
-                ]
+        match_list_ = localizer_assignments(pred_list, gt_list, gt_list_, min_overlap)
+        for match_ in match_list_:
+            match_list.append(match_)
 
     # sort matches by confidence from high to low
     match_list = sorted(match_list, key=lambda match: match[0], reverse=True)
@@ -784,7 +807,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
 
     tp_counter = 0
     fp_counter = 0
-    for conf, flag in match_list:
+    for conf, flag, index, overlap in match_list:
         if flag:
             tp_counter += 1
         else:

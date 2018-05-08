@@ -701,7 +701,7 @@ def delete_contributors(ibs, contributor_rowid_list):
         URL:    /api/contributor/
     """
     # TODO: FIXME TESTME
-    if not ut.QUIET:
+    if ut.VERBOSE:
         print('[ibs] deleting %d contributors' % len(contributor_rowid_list))
 
     # Delete configs (UNSURE IF THIS IS CORRECT)

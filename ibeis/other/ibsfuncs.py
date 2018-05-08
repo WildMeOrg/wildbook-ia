@@ -6936,6 +6936,186 @@ def commit_ggr_fix_gps(ibs, **kwargs):
 
 
 @register_ibs_method
+def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_aoi=False):
+    r"""
+    Merge the staged annotations into a single set of actual annotations (with AoI)
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs merge_ggr_staged_annots
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> from os.path import expanduser
+        >>> import ibeis  # NOQA
+        >>> # default_dbdir = join('/', 'data', 'ibeis', 'GGR2-IBEIS')
+        >>> default_dbdir = expanduser(join('~', 'data', 'GGR2-IBEIS'))
+        >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs.merge_ggr_staged_annots()
+    """
+    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    from sklearn import cluster
+    from scipy import sparse
+
+    def _normalize_confidences(gt_list):
+        for index in range(len(gt_list)):
+            gt = gt_list[index]
+            area = gt['width'] * gt['height']
+            gt['confidence'] = area
+            gt_list[index] = gt
+        return gt_list
+
+    imageset_rowid = ibs.get_imageset_imgsetids_from_text('DETECT')
+    gid_list = sorted(ibs.get_imageset_gids(imageset_rowid))
+
+    # reviewed_list = ibs.get_image_reviewed(gid_list)
+    # gid_list = ut.filter_items(gid_list, reviewed_list)
+
+    metadata_dict_list = ibs.get_image_metadata(gid_list)
+    aids_list = ibs.get_image_aids(gid_list, is_staged=True)
+
+    existing_aid_list = []
+    new_gid_list = []
+    new_bbox_list = []
+    new_interest_list = []
+
+    zipped = list(zip(gid_list, metadata_dict_list, aids_list))
+    broken_gid_list = []
+    for gid, metadata_dict, aid_list in zipped:
+        print('Processing gid = %r with %d annots' % (gid, len(aid_list), ))
+        if len(aid_list) < 2:
+            continue
+
+        staged = metadata_dict.get('staged', {})
+        sessions = staged.get('sessions', {})
+        user_id_list = sessions.get('user_ids', [])
+        user_id_list = list(set(user_id_list))
+        user_dict = {
+            user_id: []
+            for user_id in user_id_list
+        }
+
+        user_id_list = ibs.get_annot_staged_user_ids(aid_list)
+
+        try:
+            for aid, user_id in zip(aid_list, user_id_list):
+                assert user_id in user_dict
+                user_dict[user_id].append(aid)
+        except AssertionError:
+            print('\tBad GID')
+            broken_gid_list.append(gid)
+            continue
+
+        user_id_list = sorted(list(user_dict.keys()))
+        if len(user_id_list) < reviews_required:
+            continue
+
+        ##############
+        index_list = []
+        aid_list = []
+        num_clusters_list = []
+        for user_id in user_id_list:
+            aid_list_ = user_dict[user_id]
+            start = len(aid_list)
+            aid_list.extend(aid_list_)
+            finish = len(aid_list)
+            num_clusters_list.append(len(aid_list_))
+            index_list.append((start, finish))
+
+        num_clusters = int(np.around(sum(num_clusters_list) / len(num_clusters_list)))
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        X = np.vstack(bbox_list)
+
+        ##############
+
+        gt_list, species_set = general_parse_gt_annots(ibs, aid_list)
+        connectivity = general_overlap(gt_list, gt_list)
+        # Cannot match with little overlap
+        connectivity[connectivity < min_overlap] = 0.0
+        # Cannot match against your own aid
+        np.fill_diagonal(connectivity, 0.0)
+        # Cannot match against your own reviewer
+        for start, finish in index_list:
+            connectivity[start: finish, start: finish] = 0.0
+        # Ensure that the matrix is symmetric, which it should always be
+        connectivity = sparse.csr_matrix(connectivity)
+
+        algorithm = cluster.AgglomerativeClustering(
+            n_clusters=num_clusters,
+            linkage="average",
+            affinity="cityblock",
+            connectivity=connectivity
+        )
+
+        algorithm.fit(X)
+        if hasattr(algorithm, 'labels_'):
+            prediction_list = algorithm.labels_.astype(np.int)
+        else:
+            prediction_list = algorithm.predict(X)
+
+        ##############
+
+        segment_dict = {}
+        for aid, prediction in zip(aid_list, prediction_list):
+            if prediction not in segment_dict:
+                segment_dict[prediction] = set([])
+            segment_dict[prediction].add(aid)
+        segment_list = list(segment_dict.values())
+
+        ##############
+
+        existing_aid_list_ = ibs.get_image_aids(gid, is_staged=False)
+        existing_aid_list.extend(existing_aid_list_)
+
+        for aid_set in segment_list:
+            aid_list = list(aid_set)
+            bbox_list = ibs.get_annot_bboxes(aid_list)
+            interest_list = ibs.get_annot_interest(aid_list)
+
+            xtl_list = []
+            ytl_list = []
+            w_list = []
+            h_list = []
+            aoi_list = []
+            for (xtl, ytl, w, h), interest in zip(bbox_list, interest_list):
+                xtl_list.append(xtl)
+                ytl_list.append(ytl)
+                w_list.append(w)
+                h_list.append(h)
+                aoi_list.append(interest)
+
+            xtl = sum(xtl_list) / len(xtl_list)
+            ytl = sum(ytl_list) / len(ytl_list)
+            w   = sum(w_list)   / len(w_list)
+            h   = sum(h_list)   / len(h_list)
+            bbox = (xtl, ytl, w, h)
+            aoi = aoi_list.count(True)
+
+            majority = 1 if liberal_aoi else ((len(h_list) + 1) // 2)
+            interest = 1 if aoi >= majority else 0
+
+            new_gid_list.append(gid)
+            new_bbox_list.append(bbox)
+            new_interest_list.append(interest)
+
+        print('\tSegments = %r' % (segment_list, ))
+        print('\tCenters = %d' % (num_clusters, ))
+        print('\tAIDS = %d' % (len(segment_list), ))
+
+    print('Performing delete of %d existing non-staged AIDS' % (len(existing_aid_list), ))
+    ibs.delete_annots(existing_aid_list)
+    print('Adding %d new non-staged AIDS' % (len(new_gid_list), ))
+    new_aid_list = ibs.add_annots(new_gid_list, bbox_list=new_bbox_list,
+                                  interest_list=new_interest_list)
+
+    return new_aid_list
+
+
+@register_ibs_method
 def alias_common_coco_species(ibs, **kwargs):
     aid_list = ibs.get_valid_aids()
     species_text_list = ibs.get_annot_species_texts(aid_list)
