@@ -2201,9 +2201,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         if delete_extern is None:
             delete_extern = table.rm_extern_on_delete
         if verbose is None:
-            verbose = True
+            verbose = False
         if ut.NOT_QUIET:
-            if ut.VERBOSE or len(rowid_list) > 0:
+            if ut.VERBOSE:
                 print('Requested delete of %d rows from %s' % (
                     len(rowid_list), table.tablename))
                 if dry:
@@ -2249,10 +2249,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 child_rowids = ut.flatten(child_unflat_rowids)
                 return child_rowids
 
-            if table.children:
-                print('Deleting from %r children' % (len(table.children),))
-            else:
-                print('Table is a leaf node')
+            if ut.VERBOSE:
+                if table.children:
+                    print('Deleting from %r children' % (len(table.children),))
+                else:
+                    print('Table is a leaf node')
 
             for child in table.children:
                 child_table = table.depc[child]
