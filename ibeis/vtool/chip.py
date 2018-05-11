@@ -398,7 +398,7 @@ def get_extramargin_measures(bbox_gs, new_size, halfoffset_ms=(64, 64)):
         >>> gfpath = ut.grab_test_imgpath('carl.jpg')
         >>> bbox_gs = [40, 40, 150, 150]
         >>> theta = .15 * (np.pi * 2)
-        >>> new_size = get_scaled_size_with_width(150, *bbox_gs[2:4])
+        >>> new_size = (150, 150)
         >>> halfoffset_ms = (32, 32)
         >>> mbbox_gs, margin_size = get_extramargin_measures(bbox_gs, new_size, halfoffset_ms)
         >>> ut.quit_if_noshow()
