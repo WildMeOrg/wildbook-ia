@@ -132,6 +132,19 @@ def compute_chipthumb(depc, aid_list, config=None):
     theta_list = ibs.get_annot_thetas(aid_list)
     interest_list = ibs.get_annot_interest(aid_list)
 
+    if 0.0 < pad and pad < 1.0:
+        for index in range(len(bbox_list)):
+            xtl, ytl, width, height = bbox_list[index]
+            padding_w = int(np.around(width * pad))
+            padding_h = int(np.around(height * pad))
+
+            xtl    -= padding_w
+            ytl    -= padding_h
+            width  += 2.0 * padding_w
+            height += 2.0 * padding_h
+
+            bbox_list[index] = (xtl, ytl, width, height)
+
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
     # Checks
     invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
@@ -174,24 +187,12 @@ def compute_chipthumb(depc, aid_list, config=None):
             ]
             newsize_list = ut.take_column(newsize_scale_list, 0)
             # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
-        if pad > 0:
-            pad = (pad, pad)
 
+        if 1.0 < pad:
+            pad = (pad, pad)
             extras_list = []
             for bbox, new_size in zip(bbox_list, newsize_list):
-                pad_ = list(pad)
-
-                if pad_[0] < 1.0:
-                    pad_[0] *= bbox[2]
-                if pad_[1] < 1.0:
-                    pad_[1] *= bbox[3]
-
-                halfoffset_ms = (
-                    int(np.round(pad_[0])),
-                    int(np.round(pad_[1])),
-                )
-                print('Using halfoffset_ms = %r' % (halfoffset_ms, ))
-                extras = vt.get_extramargin_measures(bbox, new_size, halfoffset_ms=halfoffset_ms)
+                extras = vt.get_extramargin_measures(bbox, new_size, halfoffset_ms=pad)
                 extras_list.append(extras)
 
             # Overwrite bbox and new size with margined versions
@@ -358,6 +359,21 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
     resize_dim = config['resize_dim']
     #cfghashid = config.get_hashid()
 
+    if 0.0 < pad and pad < 1.0:
+        for index in range(len(bbox_list)):
+            bbox = bbox_list[index]
+            xtl, ytl, width, height = bbox
+            padding_w = int(np.around(width * pad))
+            padding_h = int(np.around(height * pad))
+
+            xtl    -= padding_w
+            ytl    -= padding_h
+            width  += 2.0 * padding_w
+            height += 2.0 * padding_h
+
+            bbox = (xtl, ytl, width, height)
+            bbox_list[index] = bbox
+
     # Checks
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
     invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
@@ -386,26 +402,12 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
             newsize_list = [scale_func(dim_size, wh, dim_tol)
                             for wh in bbox_size_list]
 
-    if pad > 0:
+    if 1.0 < pad:
         pad = (pad, pad)
-
         extras_list = []
         for bbox, new_size in zip(bbox_list, newsize_list):
-            pad_ = list(pad)
-
-            if pad_[0] < 1.0:
-                pad_[0] *= bbox[2]
-            if pad_[1] < 1.0:
-                pad_[1] *= bbox[3]
-
-            halfoffset_ms = (
-                int(np.round(pad_[0])),
-                int(np.round(pad_[1])),
-            )
-            print('Using halfoffset_ms = %r' % (halfoffset_ms, ))
-            extras = vt.get_extramargin_measures(bbox, new_size, halfoffset_ms=halfoffset_ms)
+            extras = vt.get_extramargin_measures(bbox, new_size, halfoffset_ms=pad)
             extras_list.append(extras)
-
         # Overwrite bbox and new size with margined versions
         bbox_list = ut.take_column(extras_list, 0)
         newsize_list = ut.take_column(extras_list, 1)

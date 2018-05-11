@@ -457,20 +457,25 @@
         ContourSelector.prototype.create_existing = function(existing) {
             invalid = false
             invalid = invalid || (existing.segment === undefined)
+            invalid = invalid || (existing.segment.length === undefined)
             invalid = invalid || (existing.begin === undefined)
             invalid = invalid || (existing.end === undefined)
 
+            console.log(existing)
             if ( ! invalid) {
+
+                invalid = invalid || (existing.start <= 0)
+                invalid = invalid || (existing.end <= 0)
+                invalid = invalid || (existing.segment.length <= existing.start)
+                invalid = invalid || (existing.segment.length <= existing.end)
+
+
                 for(var index = 0; index < existing.segment.length; index++) {
                     point = existing.segment[index]
-                    invalid = invalid || (point.x === undefined)
-                    invalid = invalid || (point.x.local === undefined)
-                    invalid = invalid || (point.x.global === undefined)
-                    invalid = invalid || (point.y === undefined)
-                    invalid = invalid || (point.y.local === undefined)
-                    invalid = invalid || (point.y.global === undefined)
-                    invalid = invalid || (point.radius === undefined)
-                    invalid = invalid || (point.highlight === undefined)
+                    invalid = invalid || (point.x    === undefined)
+                    invalid = invalid || (point.y    === undefined)
+                    invalid = invalid || (point.r    === undefined)
+                    invalid = invalid || (point.flag === undefined)
 
                     if (invalid) {
                         break
@@ -484,8 +489,50 @@
 
             // Index into segment for begin and end
             if (existing != null) {
+
+                // Convert compact format into expanded format
+                width = this.elements.frame.width()
+                height = this.elements.frame.height()
+
+                padding_w = this.options.padding * width
+                padding_h = this.options.padding * height
+
+                local_width  = width -  2.0 * padding_w
+                local_height = height - 2.0 * padding_h
+
+                for (var index = 0; index < existing.segment.length; index++) {
+                    existing_point = existing.segment[index]
+
+                    point = {
+                        "x": {
+                            "local":  existing_point.x,
+                        },
+                        "y": {
+                            "local":  existing_point.y,
+                        },
+                        "radius": {
+                            "local":  existing_point.r,
+                        },
+                        "highlight":  existing_point.flag,
+                    }
+
+                    point.x.pixel      = (point.x.local * local_width) + padding_w
+                    point.x.global     = point.x.pixel / width
+
+                    point.y.pixel      = (point.y.local * local_height) + padding_h
+                    point.y.global     = point.y.pixel / height
+
+                    point.radius.pixel  = point.radius.local * local_width
+                    point.radius.global = point.radius.pixel / width
+
+                    existing.segment[index] = point
+                }
+
                 existing.begin = existing.segment[existing.begin]
                 existing.end   = existing.segment[existing.end]
+
+                console.log(existing.begin)
+                console.log(existing.end)
             }
 
             this.existing = existing
@@ -607,6 +654,15 @@
 
             // Add starting point to the segment
             point = this.add_segment(event)
+
+            if (point == null) {
+                if (this.points.segment.length > 0) {
+                    point = this.points.segment[this.points.segment.length - 1]
+                } else {
+                    console.log('ASSERTION ERROR! STARTING POINT CANNOT BE NULL')
+                }
+            }
+
             if (index == null) {
                 this.points.begin = point
             }
@@ -639,25 +695,46 @@
             padding_w = this.options.padding * width
             padding_h = this.options.padding * height
 
+            local_width  = width -  2.0 * padding_w
+            local_height = height - 2.0 * padding_h
+
             highlight = event.shiftKey
             point = {
                 "x": {
+                    "pixel":  this.points.cursor.x,
                     "global": this.points.cursor.x / width,
                 },
                 "y": {
+                    "pixel":  this.points.cursor.y,
                     "global": this.points.cursor.y / height,
                 },
                 "radius": {
                     "pixel":   this.options.size.radius,
-                    "percent": this.options.size.radius / width,
+                    "global":  this.options.size.radius / width,
                 },
-                "highlight": highlight
+                "highlight": highlight,
             }
-            point.x.local = ((point.x.global * width)  - padding_w) / (width  - 2.0 * padding_w)
-            point.y.local = ((point.y.global * height) - padding_h) / (height - 2.0 * padding_h)
+
+            point.x.local      = (point.x.pixel - padding_w) / local_width
+            point.y.local      = (point.y.pixel - padding_h) / local_height
+            point.radius.local = point.radius.pixel          / local_width
+
+            if (this.points.segment.length > 0) {
+                last_index = this.points.segment.length - 1
+                last_point = this.points.segment[last_index]
+
+                if (last_point.x.local == point.x.local) {
+                    if (last_point.y.local == point.y.local) {
+                        if (last_point.radius.local == point.radius.local) {
+                            if (last_point.highlight == point.highlight) {
+                                return null
+                            }
+                        }
+                    }
+                }
+            }
 
             this.points.segment.push(point)
-
             return point
         }
 
@@ -666,13 +743,17 @@
 
             radius_only !== undefined || (radius_only = false)
 
+            if (point == null) {
+                return
+            }
+
             width = this.elements.frame.width()
             height = this.elements.frame.height()
 
             temp = {
                 "x": point.x.global * width,
                 "y": point.y.global * height,
-                "radius": point.radius.percent * width,
+                "radius": point.radius.global * width,
             }
 
             // Draw radius on canvas
@@ -708,8 +789,6 @@
 
             index = this.elements.segment.length - 1
             this.color_segment(index)
-            return index
-
         }
 
         ContourSelector.prototype.color_segment = function(index) {
@@ -1026,6 +1105,9 @@
 
             // Add ending point to the segment
             point = this.add_segment(event)
+            if (point == null) {
+                point = this.points.segment[this.points.segment.length - 1]
+            }
             this.points.end = point
 
             this.elements.end.show()
@@ -1052,7 +1134,18 @@
                 data = {
                     begin:   0,
                     end:     this.points.segment.length -1,
-                    segment: this.points.segment,
+                    segment: [],
+                }
+
+                for (var index = 0; index < this.points.segment.length; index++) {
+                    point = this.points.segment[index]
+                    point_data = {
+                        "x": point.x.local,
+                        "y": point.y.local,
+                        "r": point.radius.local,
+                        "flag": point.highlight,
+                    }
+                    data.segment.push(point_data)
                 }
             }
 

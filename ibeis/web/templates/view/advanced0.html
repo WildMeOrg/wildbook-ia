@@ -251,187 +251,187 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
   plNumber.start();
   errorNumber.start();
 
-  var dataLine = {
-    {% autoescape false %}
-    labels : {{ line_label_list }},
-    {% endautoescape %}
-    datasets : [
-      // {% for prediction in prediction_list %}
-      // {
-      //   label: "Prediction",
-      //   backgroundColor : "rgba(92,184,92,0.0)",
-      //   borderColor : "rgba(92,184,92,0.2)",
-      //   pointBackgroundColor : "rgba(92,184,92,0.2)",
-      //   pointBorderColorColor : "transparent",
-      //   pointHoverBackgroundColor : "transparent",
-      //   // pointBorderColorColor : "#fff",
-      //   // pointHoverBackgroundColor : "#fff",
-      //   pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
-      //   data : {{ prediction }}
-      // },
-      // {% endfor %}
-      // {
-      //   label: "No Resights",
-      //   backgroundColor : "rgba(220,220,220,0.2)",
-      //   borderColor : "rgba(220,220,220,1)",
-      //   pointBackgroundColor : "rgba(220,220,220,0.5)",
-      //   pointBorderColorColor : "transparent",
-      //   pointHoverBackgroundColor : "transparent",
-      //   // pointBorderColorColor : "#fff",
-      //   // pointHoverBackgroundColor : "#fff",
-      //   pointHoverBorderColor : "rgba(220,220,220,1)",
-      //   data : {{ line_index_list }}
-      // },
-      {
-        label: "Unique Sightings by Car",
-        backgroundColor : "rgba(151,187,205,0.2)",
-        borderColor : "rgba(151,187,205,1)",
-        pointBackgroundColor : "rgba(151,187,205,1)",
-        pointBorderColorColor : "transparent",
-        pointHoverBackgroundColor : "transparent",
-        // pointBorderColorColor : "#fff",
-        // pointHoverBackgroundColor : "#fff",
-        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
-        data : {{ line_value_list }}
-      },
-    ]
-  };
+  // var dataLine = {
+  //   {% autoescape false %}
+  //   labels : {{ line_label_list }},
+  //   {% endautoescape %}
+  //   datasets : [
+  //     // {% for prediction in prediction_list %}
+  //     // {
+  //     //   label: "Prediction",
+  //     //   backgroundColor : "rgba(92,184,92,0.0)",
+  //     //   borderColor : "rgba(92,184,92,0.2)",
+  //     //   pointBackgroundColor : "rgba(92,184,92,0.2)",
+  //     //   pointBorderColorColor : "transparent",
+  //     //   pointHoverBackgroundColor : "transparent",
+  //     //   // pointBorderColorColor : "#fff",
+  //     //   // pointHoverBackgroundColor : "#fff",
+  //     //   pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
+  //     //   data : {{ prediction }}
+  //     // },
+  //     // {% endfor %}
+  //     // {
+  //     //   label: "No Resights",
+  //     //   backgroundColor : "rgba(220,220,220,0.2)",
+  //     //   borderColor : "rgba(220,220,220,1)",
+  //     //   pointBackgroundColor : "rgba(220,220,220,0.5)",
+  //     //   pointBorderColorColor : "transparent",
+  //     //   pointHoverBackgroundColor : "transparent",
+  //     //   // pointBorderColorColor : "#fff",
+  //     //   // pointHoverBackgroundColor : "#fff",
+  //     //   pointHoverBorderColor : "rgba(220,220,220,1)",
+  //     //   data : {{ line_index_list }}
+  //     // },
+  //     {
+  //       label: "Unique Sightings by Car",
+  //       backgroundColor : "rgba(151,187,205,0.2)",
+  //       borderColor : "rgba(151,187,205,1)",
+  //       pointBackgroundColor : "rgba(151,187,205,1)",
+  //       pointBorderColorColor : "transparent",
+  //       pointHoverBackgroundColor : "transparent",
+  //       // pointBorderColorColor : "#fff",
+  //       // pointHoverBackgroundColor : "#fff",
+  //       pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
+  //       data : {{ line_value_list }}
+  //     },
+  //   ]
+  // };
 
-  var dataBar = {
-    {% autoescape false %}
-    labels: {{ bar_label_list }},
-    {% endautoescape %}
-    datasets: [
-      {
-          label: "Images Captured",
-          backgroundColor: "rgba(77,83,96,0.5)",
-          borderColor: "rgba(77,83,96,0.8)",
-          hoverBackgroundColor: "rgba(77,83,96,0.75)",
-          hoverBorderColor: "rgba(77,83,96,1)",
-          data: {{ bar_value_list1 }}
-      },
-      {
-          label: "Images Used",
-          backgroundColor: "rgba(247,70,74,0.5)",
-          borderColor: "rgba(247,70,74,0.8)",
-          hoverBackgroundColor: "rgba(247,70,74,0.75)",
-          hoverBorderColor: "rgba(247,70,74,1)",
-          data: {{ bar_value_list2 }}
-      },
-      {
-          label: "Annotations Used",
-          backgroundColor: "rgba(253,180,92,0.5)",
-          borderColor: "rgba(253,180,92,0.8)",
-          hoverBackgroundColor: "rgba(253,180,92,0.75)",
-          hoverBorderColor: "rgba(253,180,92,1)",
-          data: {{ bar_value_list3 }}
-      },
-      {
-          label: "Unique Sightings",
-          backgroundColor: "rgba(151,187,205,0.5)",
-          borderColor: "rgba(151,187,205,0.8)",
-          hoverBackgroundColor: "rgba(151,187,205,0.75)",
-          hoverBorderColor: "rgba(151,187,205,1)",
-          data: {{ bar_value_list4 }}
-      },
-      {
-          label: "New Unique Sightings (Global)",
-          backgroundColor: "rgba(92,184,92,0.5)",
-          borderColor: "rgba(92,184,92,0.8)",
-          hoverBackgroundColor: "rgba(92,184,92,0.75)",
-          hoverBorderColor: "rgba(92,184,92,1)",
-          data: {{ bar_value_list5 }}
-      },
-      {
-          label: "New Unique Sightings (Daily)",
-          backgroundColor: "rgba(220,220,220,0.5)",
-          borderColor: "rgba(220,220,220,0.8)",
-          hoverBackgroundColor: "rgba(220,220,220,0.75)",
-          hoverBorderColor: "rgba(220,220,220,1)",
-          data: {{ bar_value_list6 }}
-      },
-    ]
-  };
+  // var dataBar = {
+  //   {% autoescape false %}
+  //   labels: {{ bar_label_list }},
+  //   {% endautoescape %}
+  //   datasets: [
+  //     {
+  //         label: "Images Captured",
+  //         backgroundColor: "rgba(77,83,96,0.5)",
+  //         borderColor: "rgba(77,83,96,0.8)",
+  //         hoverBackgroundColor: "rgba(77,83,96,0.75)",
+  //         hoverBorderColor: "rgba(77,83,96,1)",
+  //         data: {{ bar_value_list1 }}
+  //     },
+  //     {
+  //         label: "Images Used",
+  //         backgroundColor: "rgba(247,70,74,0.5)",
+  //         borderColor: "rgba(247,70,74,0.8)",
+  //         hoverBackgroundColor: "rgba(247,70,74,0.75)",
+  //         hoverBorderColor: "rgba(247,70,74,1)",
+  //         data: {{ bar_value_list2 }}
+  //     },
+  //     {
+  //         label: "Annotations Used",
+  //         backgroundColor: "rgba(253,180,92,0.5)",
+  //         borderColor: "rgba(253,180,92,0.8)",
+  //         hoverBackgroundColor: "rgba(253,180,92,0.75)",
+  //         hoverBorderColor: "rgba(253,180,92,1)",
+  //         data: {{ bar_value_list3 }}
+  //     },
+  //     {
+  //         label: "Unique Sightings",
+  //         backgroundColor: "rgba(151,187,205,0.5)",
+  //         borderColor: "rgba(151,187,205,0.8)",
+  //         hoverBackgroundColor: "rgba(151,187,205,0.75)",
+  //         hoverBorderColor: "rgba(151,187,205,1)",
+  //         data: {{ bar_value_list4 }}
+  //     },
+  //     {
+  //         label: "New Unique Sightings (Global)",
+  //         backgroundColor: "rgba(92,184,92,0.5)",
+  //         borderColor: "rgba(92,184,92,0.8)",
+  //         hoverBackgroundColor: "rgba(92,184,92,0.75)",
+  //         hoverBorderColor: "rgba(92,184,92,1)",
+  //         data: {{ bar_value_list5 }}
+  //     },
+  //     {
+  //         label: "New Unique Sightings (Daily)",
+  //         backgroundColor: "rgba(220,220,220,0.5)",
+  //         borderColor: "rgba(220,220,220,0.8)",
+  //         hoverBackgroundColor: "rgba(220,220,220,0.75)",
+  //         hoverBorderColor: "rgba(220,220,220,1)",
+  //         data: {{ bar_value_list6 }}
+  //     },
+  //   ]
+  // };
 
-    var dataAge = {
-    {% autoescape false %}
-    labels : ['Infant (0-12)', 'Yearling (12-24)', 'Juvenile (24-36)', 'Adult (36+)'],
-    {% endautoescape %}
-    datasets : [
-      {
-        label: "Female",
-        backgroundColor : "rgba(151,187,205,0.2)",
-        borderColor : "rgba(151,187,205,1)",
-        pointBackgroundColor : "rgba(151,187,205,1)",
-        pointBorderColorColor : "#fff",
-        pointHoverBackgroundColor : "#fff",
-        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
-        data : {{ age_list[0] }}
-      },
-      {
-        label: "Male",
-        backgroundColor : "rgba(92,184,92,0.2)",
-        borderColor : "rgba(92,184,92,1)",
-        pointBackgroundColor : "rgba(92,184,92,1)",
-        pointBorderColorColor : "#fff",
-        pointHoverBackgroundColor : "#fff",
-        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
-        data : {{ age_list[1] }}
-      },
-      {
-        label: "Unknown",
-        backgroundColor : "rgba(220,220,220,0.0)",
-        borderColor : "rgba(220,220,220,1)",
-        pointBackgroundColor : "rgba(220,220,220,1)",
-        pointBorderColorColor : "#fff",
-        pointHoverBackgroundColor : "#fff",
-        pointHoverBorderColor : "rgba(220,220,220,0.5)",
-        data : {{ age_list[2] }}
-      },
-    ]
-  };
+  //   var dataAge = {
+  //   {% autoescape false %}
+  //   labels : ['Infant (0-12)', 'Yearling (12-24)', 'Juvenile (24-36)', 'Adult (36+)'],
+  //   {% endautoescape %}
+  //   datasets : [
+  //     {
+  //       label: "Female",
+  //       backgroundColor : "rgba(151,187,205,0.2)",
+  //       borderColor : "rgba(151,187,205,1)",
+  //       pointBackgroundColor : "rgba(151,187,205,1)",
+  //       pointBorderColorColor : "#fff",
+  //       pointHoverBackgroundColor : "#fff",
+  //       pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
+  //       data : {{ age_list[0] }}
+  //     },
+  //     {
+  //       label: "Male",
+  //       backgroundColor : "rgba(92,184,92,0.2)",
+  //       borderColor : "rgba(92,184,92,1)",
+  //       pointBackgroundColor : "rgba(92,184,92,1)",
+  //       pointBorderColorColor : "#fff",
+  //       pointHoverBackgroundColor : "#fff",
+  //       pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
+  //       data : {{ age_list[1] }}
+  //     },
+  //     {
+  //       label: "Unknown",
+  //       backgroundColor : "rgba(220,220,220,0.0)",
+  //       borderColor : "rgba(220,220,220,1)",
+  //       pointBackgroundColor : "rgba(220,220,220,1)",
+  //       pointBorderColorColor : "#fff",
+  //       pointHoverBackgroundColor : "#fff",
+  //       pointHoverBorderColor : "rgba(220,220,220,0.5)",
+  //       data : {{ age_list[2] }}
+  //     },
+  //   ]
+  // };
 
-  var dataPie1 = {
-    {% autoescape false %}
-    labels: {{ dataset_color_label_list }},
-    {% endautoescape %}
-    datasets: [
-      {
-        label: "GGR",
-        backgroundColor: [
-          "#CA4141",
-          "#9A41CA",
-          "#428BCA",
-          "#777777",
-        ],
+  // var dataPie1 = {
+  //   {% autoescape false %}
+  //   labels: {{ dataset_color_label_list }},
+  //   {% endautoescape %}
+  //   datasets: [
+  //     {
+  //       label: "GGR",
+  //       backgroundColor: [
+  //         "#CA4141",
+  //         "#9A41CA",
+  //         "#428BCA",
+  //         "#777777",
+  //       ],
 
-        hoverBackgroundColor: [
-          "#CA4141",
-          "#9A41CA",
-          "#428BCA",
-          "#777777",
-        ],
-        data: {{ dataset_color_dict['GGR'] }},
-      },
-      {
-        label: "GZGC",
-        backgroundColor: [
-          "#CA4141",
-          "#9A41CA",
-          "#428BCA",
-          "#777777",
-        ],
+  //       hoverBackgroundColor: [
+  //         "#CA4141",
+  //         "#9A41CA",
+  //         "#428BCA",
+  //         "#777777",
+  //       ],
+  //       data: {{ dataset_color_dict['GGR'] }},
+  //     },
+  //     {
+  //       label: "GZGC",
+  //       backgroundColor: [
+  //         "#CA4141",
+  //         "#9A41CA",
+  //         "#428BCA",
+  //         "#777777",
+  //       ],
 
-        hoverBackgroundColor: [
-          "#CA4141",
-          "#9A41CA",
-          "#428BCA",
-          "#777777",
-        ],
-        data: {{ dataset_color_dict['GZGC'] }},
-      },
-    ]
-  };
+  //       hoverBackgroundColor: [
+  //         "#CA4141",
+  //         "#9A41CA",
+  //         "#428BCA",
+  //         "#777777",
+  //       ],
+  //       data: {{ dataset_color_dict['GZGC'] }},
+  //     },
+  //   ]
+  // };
 
   var tracks = {{ gps_list_tracks }};
   var markers = {{ gps_list_markers }};
@@ -443,161 +443,161 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
   window.onload = function(){
     Chart.defaults.global.defaultFontSize = 18;
 
-    var ctxLine = document.getElementById("canvasLine").getContext("2d");
-    var linkLine = document.getElementById("linkLine");
-    var chartLine = new Chart(ctxLine, {
-      type: 'line',
-      data: dataLine,
-      options: {
-        responsive: true,
-        animation: false,
-        pointDotRadius: 2,
-        pointHitDetectionRadius : 1,
-        // maintainAspectRatio: false,
-        scaleShowVerticalLines: false,
-        scaleShowHorizontalLines: false,
-        animation: {
-          onComplete: function(animationItem) {
-            ctx = animationItem.chartInstance
-            linkLine.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
-          }
-        }
-      }
-    });
+    // var ctxLine = document.getElementById("canvasLine").getContext("2d");
+    // var linkLine = document.getElementById("linkLine");
+    // var chartLine = new Chart(ctxLine, {
+    //   type: 'line',
+    //   data: dataLine,
+    //   options: {
+    //     responsive: true,
+    //     animation: false,
+    //     pointDotRadius: 2,
+    //     pointHitDetectionRadius : 1,
+    //     // maintainAspectRatio: false,
+    //     scaleShowVerticalLines: false,
+    //     scaleShowHorizontalLines: false,
+    //     animation: {
+    //       onComplete: function(animationItem) {
+    //         ctx = animationItem.chartInstance
+    //         linkLine.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    //       }
+    //     }
+    //   }
+    // });
 
-    var ctxBar = document.getElementById("canvasBar").getContext("2d");
-    var linkBar = document.getElementById("linkBar");
-    var chartBar = new Chart(ctxBar, {
-      type: 'bar',
-      data: dataBar,
-      options: {
-        responsive: true,
-        // animation: false,
-        showTooltips: false,
-        animation: {
-          onComplete: function(animationItem) {
+    // var ctxBar = document.getElementById("canvasBar").getContext("2d");
+    // var linkBar = document.getElementById("linkBar");
+    // var chartBar = new Chart(ctxBar, {
+    //   type: 'bar',
+    //   data: dataBar,
+    //   options: {
+    //     responsive: true,
+    //     // animation: false,
+    //     showTooltips: false,
+    //     animation: {
+    //       onComplete: function(animationItem) {
 
-            // var ctx = this.chart.ctx;
-            // ctx.font = this.scale.font;
-            // ctx.fillStyle = this.scale.textColor
-            // ctx.textAlign = "center";
-            // ctx.textBaseline = "bottom";
+    //         // var ctx = this.chart.ctx;
+    //         // ctx.font = this.scale.font;
+    //         // ctx.fillStyle = this.scale.textColor
+    //         // ctx.textAlign = "center";
+    //         // ctx.textBaseline = "bottom";
 
-            // this.datasets.forEach(function (dataset) {
-            //     dataset.bars.forEach(function (bar) {
-            //         ctx.fillText(bar.value, bar.x, bar.y - 5);
-            //     });
-            // })
+    //         // this.datasets.forEach(function (dataset) {
+    //         //     dataset.bars.forEach(function (bar) {
+    //         //         ctx.fillText(bar.value, bar.x, bar.y - 5);
+    //         //     });
+    //         // })
 
-            ctx = animationItem.chartInstance
-            linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
-          }
-        }
-      }
-    });
+    //         ctx = animationItem.chartInstance
+    //         linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    //       }
+    //     }
+    //   }
+    // });
 
-    var ctxAge = document.getElementById("canvasAge").getContext("2d");
-    var linkAge = document.getElementById("linkAge");
-    var chartAge = new Chart(ctxAge, {
-      type: 'line',
-      data: dataAge,
-      options: {
-        responsive: true,
-        animation: {
-          onComplete: function(animationItem) {
-            ctx = animationItem.chartInstance
-            linkAge.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
-          }
-        }
-      }
-    });
+    // var ctxAge = document.getElementById("canvasAge").getContext("2d");
+    // var linkAge = document.getElementById("linkAge");
+    // var chartAge = new Chart(ctxAge, {
+    //   type: 'line',
+    //   data: dataAge,
+    //   options: {
+    //     responsive: true,
+    //     animation: {
+    //       onComplete: function(animationItem) {
+    //         ctx = animationItem.chartInstance
+    //         linkAge.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    //       }
+    //     }
+    //   }
+    // });
 
-    var ctxPie1 = document.getElementById("canvasPie1").getContext("2d");
-    var linkPie1 = document.getElementById("linkPie1")
-    var chartPie1 = new Chart(ctxPie1,{
-      type: "pie",
-      data: dataPie1,
-      options: {
-        cutoutPercentage: 25,
-        showAllTooltips: false,
-        tooltips: {
-            // titleFontColor: "#333",
-            // bodyFontColor: "#333",
-            // backgroundColor: "transparent",
-            titleFontSize: 20,
-            bodyFontSize: 0,
-            // titleMarginBottom: 0,
-            callbacks: {
-                title: function (tooltipItem, data) {
-                  tooltipItem = tooltipItem[0]
-                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
-                  return amount;
-                  // return data.labels[tooltipItem[0].index];
-                },
-                label: function (tooltipItem, data) {
-                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
-                  var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
-                  return '';
-                  return percentage;
-                },
-            }
-        },
-        legend:{display: true,labels:{fontSize:30}},
-        animation: {
-          onComplete: function(animationItem) {
-            ctx = animationItem.chartInstance
-            linkPie1.href = ctx.toBase64Image("image/png").replace("data:image/png", "data:application/octet-stream");
-          }
-        }
-      }
-    });
+    // var ctxPie1 = document.getElementById("canvasPie1").getContext("2d");
+    // var linkPie1 = document.getElementById("linkPie1")
+    // var chartPie1 = new Chart(ctxPie1,{
+    //   type: "pie",
+    //   data: dataPie1,
+    //   options: {
+    //     cutoutPercentage: 25,
+    //     showAllTooltips: false,
+    //     tooltips: {
+    //         // titleFontColor: "#333",
+    //         // bodyFontColor: "#333",
+    //         // backgroundColor: "transparent",
+    //         titleFontSize: 20,
+    //         bodyFontSize: 0,
+    //         // titleMarginBottom: 0,
+    //         callbacks: {
+    //             title: function (tooltipItem, data) {
+    //               tooltipItem = tooltipItem[0]
+    //               var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+    //               var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+    //               return amount;
+    //               // return data.labels[tooltipItem[0].index];
+    //             },
+    //             label: function (tooltipItem, data) {
+    //               var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+    //               var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+    //               var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
+    //               return '';
+    //               return percentage;
+    //             },
+    //         }
+    //     },
+    //     legend:{display: true,labels:{fontSize:30}},
+    //     animation: {
+    //       onComplete: function(animationItem) {
+    //         ctx = animationItem.chartInstance
+    //         linkPie1.href = ctx.toBase64Image("image/png").replace("data:image/png", "data:application/octet-stream");
+    //       }
+    //     }
+    //   }
+    // });
 
-  Chart.pluginService.register({
-      beforeRender: function (chart) {
-          if (chart.config.options.showAllTooltips) {
-              // create an array of tooltips
-              // we can"t use the chart tooltip because there is only one tooltip per chart
-              chart.pluginTooltips = [];
-              chart.config.data.datasets.forEach(function (dataset, i) {
-                  chart.getDatasetMeta(i).data.forEach(function (sector, j) {
-                      chart.pluginTooltips.push(new Chart.Tooltip({
-                          _chart: chart.chart,
-                          _chartInstance: chart,
-                          _data: chart.data,
-                          _options: chart.options.tooltips,
-                          _active: [sector]
-                      }, chart));
-                  });
-              });
+  // Chart.pluginService.register({
+  //     beforeRender: function (chart) {
+  //         if (chart.config.options.showAllTooltips) {
+  //             // create an array of tooltips
+  //             // we can"t use the chart tooltip because there is only one tooltip per chart
+  //             chart.pluginTooltips = [];
+  //             chart.config.data.datasets.forEach(function (dataset, i) {
+  //                 chart.getDatasetMeta(i).data.forEach(function (sector, j) {
+  //                     chart.pluginTooltips.push(new Chart.Tooltip({
+  //                         _chart: chart.chart,
+  //                         _chartInstance: chart,
+  //                         _data: chart.data,
+  //                         _options: chart.options.tooltips,
+  //                         _active: [sector]
+  //                     }, chart));
+  //                 });
+  //             });
 
-              // turn off normal tooltips
-              chart.options.tooltips.enabled = false;
-          }
-      },
-      afterDraw: function (chart, easing) {
-          if (chart.config.options.showAllTooltips) {
-              // we don"t want the permanent tooltips to animate, so don"t do anything till the animation runs atleast once
-              if (!chart.allTooltipsOnce) {
-                  if (easing !== 1)
-                      return;
-                  chart.allTooltipsOnce = true;
-              }
+  //             // turn off normal tooltips
+  //             chart.options.tooltips.enabled = false;
+  //         }
+  //     },
+  //     afterDraw: function (chart, easing) {
+  //         if (chart.config.options.showAllTooltips) {
+  //             // we don"t want the permanent tooltips to animate, so don"t do anything till the animation runs atleast once
+  //             if (!chart.allTooltipsOnce) {
+  //                 if (easing !== 1)
+  //                     return;
+  //                 chart.allTooltipsOnce = true;
+  //             }
 
-              // turn on tooltips
-              chart.options.tooltips.enabled = true;
-              Chart.helpers.each(chart.pluginTooltips, function (tooltip) {
-                  tooltip.initialize();
-                  tooltip.update();
-                  // we don"t actually need this since we are not animating tooltips
-                  tooltip.pivot();
-                  tooltip.transition(easing).draw();
-              });
-              chart.options.tooltips.enabled = false;
-          }
-      }
-  });
+  //             // turn on tooltips
+  //             chart.options.tooltips.enabled = true;
+  //             Chart.helpers.each(chart.pluginTooltips, function (tooltip) {
+  //                 tooltip.initialize();
+  //                 tooltip.update();
+  //                 // we don"t actually need this since we are not animating tooltips
+  //                 tooltip.pivot();
+  //                 tooltip.transition(easing).draw();
+  //             });
+  //             chart.options.tooltips.enabled = false;
+  //         }
+  //     }
+  // });
 
     var center = undefined;
     // var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala

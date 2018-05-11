@@ -1402,8 +1402,17 @@ def get_image_unixtime(ibs, gid_list, timedelta_correction=True):
         URL:    /api/image/unixtime/
     """
     unixtime_list = ibs.db.get(const.IMAGE_TABLE, ('image_time_posix',), gid_list)
+    unixtime_list = [
+        -1 if unixtime is None else unixtime
+        for unixtime in unixtime_list
+    ]
+
     if timedelta_correction:
         timedelta_list = ibs.get_image_timedelta_posix(gid_list)
+        timedelta_list = [
+            0 if timedelta is None else timedelta
+            for timedelta in timedelta_list
+        ]
         unixtime_list = [
             unixtime + timedelta
             for unixtime, timedelta in zip(unixtime_list, timedelta_list)

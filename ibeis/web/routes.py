@@ -353,7 +353,7 @@ def view_advanced0(**kwargs):
     date_list = _date_list(gid_list)
 
     # flagged_date_list = None
-    flagged_date_list = ['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31']
+    flagged_date_list = ['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31', '2018/01/27', '2018/01/28']
 
     gid_list_unique = list(set(gid_list))
     date_list_unique = _date_list(gid_list_unique)
@@ -2403,7 +2403,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     finished = part_rowid is None
     display_instructions = request.cookies.get('ia-contour_instructions_seen', 1) == 1
 
-    padding = 0.1
+    padding = 0.15
     if not finished:
         image_src = routes_ajax.part_src(part_rowid, pad=padding)
 
