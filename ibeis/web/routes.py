@@ -2543,7 +2543,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
 
     example_species_list = [
         (key, const.SPECIES_MAPPING[key][1])
-        for key in const.SPECIES_MAPPING
+        for key in sorted(list(const.SPECIES_MAPPING.keys()))
         if const.SPECIES_MAPPING[key][0] is not None and key != const.UNKNOWN
     ]
 
