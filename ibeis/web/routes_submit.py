@@ -699,7 +699,7 @@ def submit_species(**kwargs):
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == u'skip':
-        print('[web] (SKIP) user_id: %s, aid: %d' % (user_id, ))
+        print('[web] (SKIP) user_id: %s' % (user_id, ))
         redirection = request.referrer
         if '?' in redirection:
             redirection = '%s&refresh=false' % (redirection, )
