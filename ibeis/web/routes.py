@@ -1752,7 +1752,7 @@ def precompute_web_detection_thumbnails(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
 
     for gid in gid_list:
-        routes_ajax.image_src(gid, resize=False)
+        routes_ajax.image_src(gid, ibs=ibs, resize=False)
 
 
 @register_ibs_method
@@ -1761,7 +1761,7 @@ def precompute_web_viewpoint_thumbnails(ibs, aid_list=None):
         aid_list = ibs.get_valid_aids()
 
     for aid in aid_list:
-        routes_ajax.annotation_src(aid)
+        routes_ajax.annotation_src(aid, ibs=ibs)
 
 
 @register_route('/turk/detection/', methods=['GET'])

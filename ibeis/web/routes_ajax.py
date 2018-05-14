@@ -33,8 +33,10 @@ def _resize_src(image, resize=False, **kwargs):
 
 
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
-def image_src(gid=None, thumbnail=False, **kwargs):
-    ibs = current_app.ibs
+def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
+    if ibs is None:
+        ibs = current_app.ibs
+
     gid = int(gid)
     image = None
 
@@ -64,8 +66,9 @@ def image_src(gid=None, thumbnail=False, **kwargs):
 
 
 @register_route('/ajax/annot/src/<aid>/', methods=['GET'])
-def annotation_src(aid=None, **kwargs):
-    ibs = current_app.ibs
+def annotation_src(aid=None, ibs=None, **kwargs):
+    if ibs is None:
+        ibs = current_app.ibs
 
     if 'dim_size' not in kwargs:
         kwargs['dim_size'] = max(
