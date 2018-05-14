@@ -416,15 +416,17 @@ def imageset_annot_quality_processed(ibs, aid_list):
     return annots_reviewed
 
 
-def imageset_part_contour_processed(ibs, part_rowid_list):
+def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress=True):
     contour_dict_list = ibs.get_part_contour(part_rowid_list)
 
-    parts_reviewed = []
-    for contour_dict in contour_dict_list:
-        contour = contour_dict.get('contour', None)
-        reviewed = contour is not None
-        reviewed = False
-        parts_reviewed.append(reviewed)
+    if reviewed_flag_progress:
+        parts_reviewed = [ reviewed == 1 for reviewed in ibs.get_part_reviewed(part_rowid_list) ]
+    else:
+        parts_reviewed = []
+        for contour_dict in contour_dict_list:
+            contour = contour_dict.get('contour', None)
+            reviewed = contour is not None
+            parts_reviewed.append(reviewed)
 
     return parts_reviewed
 

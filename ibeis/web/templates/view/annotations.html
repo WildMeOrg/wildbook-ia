@@ -45,7 +45,7 @@
         {% if page_previous != None %}
         <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}&page=1"><h3 class="small-margin">First (1)</h3></a>
         <h3>|</h3>
-        <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})/h3></a>
+        <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})</h3></a>
         {% endif %}
       </div>
 
