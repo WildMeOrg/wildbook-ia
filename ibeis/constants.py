@@ -374,7 +374,7 @@ SPECIES_MAPPING = {
     'elephant_savanna'    :        ('ELEP', 'Elephant (Savanna)'),
     'elephant_savannah'   :          (None, 'elephant_savanna'),
     'frog'                :        ('FROG', 'Frog'),
-    'gazelle'             :          (None, 'Gazelle (Generic)'),
+    'gazelle'             :         ('GAZ', 'Gazelle (Generic)'),
     'gazelle_generic'     :          (None, 'gazelle'),
     'giraffe_masai'       :        ('GIRM', 'Giraffe (Masai)'),
     'giraffe_massai'      :          (None, 'giraffe_masai'),
