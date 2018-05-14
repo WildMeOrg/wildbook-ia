@@ -2457,7 +2457,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
 
 
 @register_route('/turk/species/', methods=['GET'])
-def turk_species(**kwargs):
+def turk_species(hotkeys=8, **kwargs):
     ibs = current_app.ibs
     tup = appf.get_turk_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
@@ -2482,16 +2482,44 @@ def turk_species(**kwargs):
     imagesettext = ibs.get_imageset_text(imgsetid)
 
     species_rowids = ibs._get_all_species_rowids()
+    current_species_rowids = ibs.get_annot_species_rowids(aid_list)
+    species_count = [
+        len(current_species_rowids) - current_species_rowids.count(species_rowid)
+        for species_rowid in species_rowids
+    ]
     species_nice_list = ibs.get_species_nice(species_rowids)
+    combined_list = sorted(list(zip(species_count, species_nice_list, species_rowids)))
 
-    combined_list = sorted(zip(species_nice_list, species_rowids))
-    species_nice_list = [ combined[0] for combined in combined_list ]
-    species_rowids = [ combined[1] for combined in combined_list ]
-
+    species_count_list = [ combined[0] for combined in combined_list ]
+    species_nice_list  = [ combined[1] for combined in combined_list ]
+    species_rowids     = [ combined[2] for combined in combined_list ]
     species_text_list = ibs.get_species_texts(species_rowids)
+
+    hotkey_list = [ index + 1 for index in range(len(species_nice_list)) ]
     species_selected_list = [ species == species_ for species_ in species_text_list ]
-    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+    species_list = list(zip(hotkey_list, species_nice_list, species_text_list, species_selected_list))
+    species_extended_list = []
+    other_selected = False
+
+    zipped = list(zip(species_count_list, species_nice_list, species_selected_list))
+    for index, (species_count, species_nice, species_selected) in enumerate(zipped):
+        if species_selected:
+            species_nice += ' (default)'
+        args = (len(current_species_rowids) - species_count, species_nice, )
+        if index >= hotkeys:
+            print('% 5d   : %s' % args)
+        else:
+            print('% 5d * : %s' % args)
+
+    if len(species_list) >= hotkeys:
+        species_extended_list = species_list[hotkeys:]
+        species_list = species_list[:hotkeys]
+        extended_flag_list = [_[3] for _ in species_extended_list]
+
+        if True in extended_flag_list:
+            other_selected = True
+
+    species_list = species_list + [ (len(species_list) + 1, 'Other', const.UNKNOWN, other_selected) ]
 
     callback_url = url_for('submit_species')
     return appf.template('turk', 'species',
@@ -2503,6 +2531,7 @@ def turk_species(**kwargs):
                          image_src=image_src,
                          previous=previous,
                          species_list=species_list,
+                         species_extended_list=species_extended_list,
                          imagesettext=imagesettext,
                          progress=progress,
                          finished=finished,

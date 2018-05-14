@@ -118,6 +118,7 @@ function add_species()
      .append($("<option></option>")
      .attr("value", value)
      .text(value));
+  $('select[name="viewpoint-species"] option[value="' + value + '"]').prop('selected', true)
 }
 
 var hotkeys_disabled = false;

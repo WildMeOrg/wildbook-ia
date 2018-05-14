@@ -262,12 +262,10 @@
       $('#species-add').on('shown.bs.modal', function() {
           $('input[name="species-add"]').val('')
           hotkeys_global_disabled = true;
-          bba.options.hotkeys.enabled = false
       });
 
       $('#species-add').on('hidden.bs.modal', function() {
           hotkeys_global_disabled = false;
-          bba.options.hotkeys.enabled = true
       });
 
       // Update metadata labels for form inputs

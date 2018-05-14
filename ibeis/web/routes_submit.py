@@ -682,6 +682,7 @@ def submit_annotation(**kwargs):
 @register_route('/submit/species/', methods=['POST'])
 def submit_species(**kwargs):
     ibs = current_app.ibs
+
     method = request.form.get('ia-species-submit', '')
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
@@ -722,7 +723,10 @@ def submit_species(**kwargs):
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-        species_text = request.form['ia-species-species']
+        # species_text = request.form['ia-species-species']
+        species_text = kwargs.get('ia-species-value', '')
+        if len(species_text) == 0:
+            species_text = const.UNKNOWN
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_reviewed([aid], [1])
         print('[web] user_id: %s, aid: %d, species: %r' % (user_id, aid, species_text))
