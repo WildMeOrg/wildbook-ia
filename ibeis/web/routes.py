@@ -2594,7 +2594,7 @@ def turk_viewpoint2(**kwargs):
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed, speed_hack=True)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     viewpoint = ibs.get_annot_viewpoints(aid)
