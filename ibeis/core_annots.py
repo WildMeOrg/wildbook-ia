@@ -469,10 +469,11 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
                 imgBGR = ibs.get_images(gid)
                 last_gid = gid
             # Warp chip
-            try:
-                chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
-            except TypeError:
-                ut.embed()
+            new_size = tuple([
+                int(np.around(val))
+                for val in new_size
+            ])
+            chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
             # Do intensity normalizations
             if filter_list:
                 chipBGR = ipreproc.preprocess(chipBGR, filter_list)
