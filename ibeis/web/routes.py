@@ -2467,7 +2467,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
     display_instructions = request.cookies.get('ia-species_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
-        image_src = routes_ajax.annotation_src(aid)
+        image_src = routes_ajax.annotation_src(aid, resize=None)
         species   = ibs.get_annot_species_texts(aid)
     else:
         try:
