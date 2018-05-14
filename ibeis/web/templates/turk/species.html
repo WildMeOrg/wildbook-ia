@@ -39,7 +39,7 @@
       {% endif %}
 
       Aid: {{ aid }}
-      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-turk-instructions" style="font-size: 18px;"></span>
+      <!-- <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-turk-instructions" style="font-size: 18px;"></span> -->
 
       <div class="ia-container">
         <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}" id="ia-species-form">
@@ -133,7 +133,30 @@
           <h4 class="modal-title" id="myModalLabel">Add a Species</h4>
         </div>
         <div class="modal-body">
-            <input type="text" name="species-add" class="form-control" placeholder="New species tag">
+            <input type="text" name="species-add" class="form-control" placeholder="New species tag" style="margin-top:10px;">
+
+              <br/>
+              <br/>
+              <div style="text-align: center; margin-top: -10px"><h4>Example Species</h4></div>
+
+              <table class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Species Tag</th>
+                    <th><span style="font-weight: normal">Species Name</span></th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for species_tag, species_nice in example_species_list %}
+                    <tr>
+                      <th scope="row"><b>{{ species_tag }}</b></th>
+                      <td style="cursor: not-allowed;">{{ species_nice }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_species();">Add</button>

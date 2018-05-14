@@ -2541,6 +2541,12 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
 
     species_list = species_list + [ (len(species_list) + 1, 'Other', const.UNKNOWN, other_selected) ]
 
+    example_species_list = [
+        (key, const.SPECIES_MAPPING[key][1])
+        for key in const.SPECIES_MAPPING
+        if const.SPECIES_MAPPING[key][0] is not None and key != const.UNKNOWN
+    ]
+
     callback_url = url_for('submit_species')
     return appf.template('turk', 'species',
                          imgsetid=imgsetid,
@@ -2553,6 +2559,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
                          species_list=species_list,
                          species_extended_list=species_extended_list,
                          species_rowids_json=species_rowids_json,
+                         example_species_list=example_species_list,
                          imagesettext=imagesettext,
                          progress=progress,
                          finished=finished,
