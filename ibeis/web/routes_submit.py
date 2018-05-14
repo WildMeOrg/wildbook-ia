@@ -738,7 +738,14 @@ def submit_species(**kwargs):
             species_text = const.UNKNOWN
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] user_id: %s, aid: %d, species: %r' % (user_id, aid, species_text))
+
+        metadata_dict = ibs.get_annot_metadata(aid)
+        if 'turk' not in metadata_dict:
+            metadata_dict['turk'] = {}
+        metadata_dict['turk']['species'] = user_id
+        ibs.set_annot_metadata([aid], [metadata_dict])
+
+        print('[web] user_id: %s, aid: %d, species: %r (%r)'  % (user_id, aid, species_text, metadata_dict, ))
     # Return HTML
     previous_species_rowids = request.form.get('ia-species-rowids', None)
     print('Using previous_species_rowids = %r' % (previous_species_rowids, ))
