@@ -699,22 +699,26 @@ def submit_species(**kwargs):
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == u'skip':
+        print('[web] (SKIP) user_id: %s, aid: %d' % (user_id, ))
         redirection = request.referrer
-        if 'aid' not in redirection:
-            # Prevent multiple clears
-            if '?' in redirection:
-                redirection = '%s&refresh=false' % (redirection, aid, )
-            else:
-                redirection = '%s?refresh=false' % (redirection, aid, )
+        if '?' in redirection:
+            redirection = '%s&refresh=false' % (redirection, )
+        else:
+            redirection = '%s?refresh=false' % (redirection, )
         return redirect(redirection)
     elif method.lower() in u'refresh':
+        print('[web] (REFRESH) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d&refresh=true' % (redirection, aid, )
+                redirection = '%s&aid=%d' % (redirection, aid, )
             else:
-                redirection = '%s?aid=%d&refresh=true' % (redirection, aid, )
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        if '?' in redirection:
+            redirection = '%s&refresh=true' % (redirection, )
+        else:
+            redirection = '%s?refresh=true' % (redirection, )
         return redirect(redirection)
     elif method.lower() == u'rotate left':
         ibs.update_annot_rotate_left_90([aid])
