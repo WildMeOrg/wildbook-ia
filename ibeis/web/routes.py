@@ -2457,9 +2457,9 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
 
 
 @register_route('/turk/species/', methods=['GET'])
-def turk_species(hotkeys=8, **kwargs):
+def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwargs):
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_processed)
+    tup = appf.get_turk_annot_args(appf.imageset_annot_processed, speed_hack=True)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     review = 'review' in request.args.keys()
@@ -2480,20 +2480,40 @@ def turk_species(hotkeys=8, **kwargs):
         species   = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
-
     species_rowids = ibs._get_all_species_rowids()
+
+    if previous_species_rowids is not None:
+        try:
+            for previous_species_rowid in previous_species_rowids:
+                assert previous_species_rowid in species_rowids
+
+            species_rowids = previous_species_rowids
+        except:
+            print('Error finding previous species rowid in existing list')
+            previous_species_rowids = None
+
+    if previous_species_rowids is None:
+        refresh = True
+
     current_species_rowids = ibs.get_annot_species_rowids(aid_list)
+
     species_count = [
         len(current_species_rowids) - current_species_rowids.count(species_rowid)
         for species_rowid in species_rowids
     ]
     species_nice_list = ibs.get_species_nice(species_rowids)
-    combined_list = sorted(list(zip(species_count, species_nice_list, species_rowids)))
+    combined_list = list(zip(species_count, species_nice_list, species_rowids))
+
+    if refresh:
+        print('REFRESHING!')
+        combined_list = sorted(combined_list)
 
     species_count_list = [ combined[0] for combined in combined_list ]
     species_nice_list  = [ combined[1] for combined in combined_list ]
     species_rowids     = [ combined[2] for combined in combined_list ]
     species_text_list = ibs.get_species_texts(species_rowids)
+
+    species_rowids_json = ut.to_json(species_rowids)
 
     hotkey_list = [ index + 1 for index in range(len(species_nice_list)) ]
     species_selected_list = [ species == species_ for species_ in species_text_list ]
@@ -2532,6 +2552,7 @@ def turk_species(hotkeys=8, **kwargs):
                          previous=previous,
                          species_list=species_list,
                          species_extended_list=species_extended_list,
+                         species_rowids_json=species_rowids_json,
                          imagesettext=imagesettext,
                          progress=progress,
                          finished=finished,

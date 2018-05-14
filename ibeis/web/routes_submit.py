@@ -698,6 +698,15 @@ def submit_species(**kwargs):
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
+    elif method.lower() == u'refresh':
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d&refresh=true' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d&refresh=true' % (redirection, aid, )
+        return redirect(redirection)
     elif method.lower() == u'rotate left':
         ibs.update_annot_rotate_left_90([aid])
         print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
@@ -731,12 +740,15 @@ def submit_species(**kwargs):
         ibs.set_annot_reviewed([aid], [1])
         print('[web] user_id: %s, aid: %d, species: %r' % (user_id, aid, species_text))
     # Return HTML
+    previous_species_rowids = request.form.get('ia-species-rowids', None)
+    print('Using previous_species_rowids = %r' % (previous_species_rowids, ))
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
         return redirect(url_for('turk_species', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid))
+                                dst_ag=dst_ag, previous=aid,
+                                previous_species_rowids=previous_species_rowids))
 
 
 @register_route('/submit/quality/', methods=['POST'])

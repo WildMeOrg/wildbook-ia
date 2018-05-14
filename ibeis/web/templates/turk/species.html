@@ -40,16 +40,18 @@
 
       Aid: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-turk-instructions" style="font-size: 18px;"></span>
-      <div class="ia-container">
 
+      <div class="ia-container">
         <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}" id="ia-species-form">
           <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 300px !important;">
-          <div style="text-align: center; color: #aaa;">
+          <div style="text-align: center; color: #aaa; margin-top: 5px">
             <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+            <span id="ia-glyphicon-refresh" class="glyphicon glyphicon-refresh pull-right" style="font-size: 18px; color: #333" title="Refresh list of species based on frequency"></span>
           </div>
           <br/>
 
           <input type="text" name="ia-species-aid" value="{{ aid }}" style="display: none;" readonly>
+          <input type="text" name="ia-species-rowids" value="{{ species_rowids_json }}" style="display: none;" readonly>
           <input type="text" name="ia-species-value" value="" style="display: none;" readonly>
 
           <div class="row">
@@ -91,6 +93,7 @@
 
           <input type="submit" name="ia-species-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
           <input type="submit" name="ia-species-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
+          <input type="submit" name="ia-species-submit" id="ia-turk-submit-refresh" class="btn btn-default pull-right" value="Refresh" style="margin-left: 20px; display: none">
 
         </form>
       </div>
@@ -170,6 +173,10 @@
 
       $(".ia-species-button").click(function () {
         update_buttons($(this));
+      });
+
+      $('#ia-glyphicon-refresh').click(function () {
+        $('input#ia-turk-submit-refresh')[0].click();
       });
 
       $('#species-add').on('shown.bs.modal', function() {
