@@ -698,7 +698,16 @@ def submit_species(**kwargs):
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
         aid = None  # Reset AID to prevent previous
-    elif method.lower() == u'refresh':
+    elif method.lower() == u'skip':
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d&refresh=false' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d&refresh=false' % (redirection, aid, )
+        return redirect(redirection)
+    elif method.lower() in u'refresh':
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
