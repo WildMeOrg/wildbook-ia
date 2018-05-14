@@ -473,7 +473,7 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
                 int(np.around(val))
                 for val in new_size
             ])
-            chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
+            chipBGR = cv2.warpAffine(imgBGR, M[0:2], new_size, **warpkw)
             # Do intensity normalizations
             if filter_list:
                 chipBGR = ipreproc.preprocess(chipBGR, filter_list)
@@ -484,7 +484,11 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
 def gen_chip_worker(gpath, orient, M, new_size, filter_list, warpkw):
     imgBGR = vt.imread(gpath, orient=orient)
     # Warp chip
-    chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
+    new_size = tuple([
+        int(np.around(val))
+        for val in new_size
+    ])
+    chipBGR = cv2.warpAffine(imgBGR, M[0:2], new_size, **warpkw)
     # Do intensity normalizations
     if filter_list:
         ipreproc = image_filters.IntensityPreproc()
