@@ -687,6 +687,9 @@ def submit_species(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
+    previous_species_rowids = request.form.get('ia-species-rowids', None)
+    print('Using previous_species_rowids = %r' % (previous_species_rowids, ))
+
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
     dst_ag = request.args.get('dst_ag', '')
@@ -700,12 +703,9 @@ def submit_species(**kwargs):
         aid = None  # Reset AID to prevent previous
     elif method.lower() == u'skip':
         print('[web] (SKIP) user_id: %s' % (user_id, ))
-        redirection = request.referrer
-        if '?' in redirection:
-            redirection = '%s&refresh=false' % (redirection, )
-        else:
-            redirection = '%s?refresh=false' % (redirection, )
-        return redirect(redirection)
+        return redirect(url_for('turk_species', imgsetid=imgsetid, src_ag=src_ag,
+                                dst_ag=dst_ag, previous=aid,
+                                previous_species_rowids=previous_species_rowids))
     elif method.lower() in u'refresh':
         print('[web] (REFRESH) user_id: %s, aid: %d' % (user_id, aid, ))
         redirection = request.referrer
@@ -760,8 +760,6 @@ def submit_species(**kwargs):
 
         print('[web] user_id: %s, aid: %d, species: %r (%r)'  % (user_id, aid, species_text, metadata_dict, ))
     # Return HTML
-    previous_species_rowids = request.form.get('ia-species-rowids', None)
-    print('Using previous_species_rowids = %r' % (previous_species_rowids, ))
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
