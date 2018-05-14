@@ -6935,6 +6935,132 @@ def commit_ggr_fix_gps(ibs, **kwargs):
     ibs.set_image_gps(assignment_gid_list, assignment_gps_list)
 
 
+def merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.10):
+    import itertools
+    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+
+    gt_dict = {}
+    for aid in aid_list:
+        gt = general_parse_gt_annots(ibs, [aid])[0][0]
+        gt_dict[aid] = gt
+
+    marriage_user_id_list = []
+    for length in range(len(user_id_list), 0, -1):
+        padding = len(user_id_list) - length
+        combination_list = list(itertools.combinations(user_id_list, length))
+        for combination in combination_list:
+            combination = sorted(combination)
+            combination += [None] * padding
+            marriage_user_id_list.append(tuple(combination))
+
+    marriage_aid_list = []
+    for user_id1, user_id2, user_id3 in marriage_user_id_list:
+        aid_list1 = user_dict.get(user_id1, [None])
+        aid_list2 = user_dict.get(user_id2, [None])
+        aid_list3 = user_dict.get(user_id3, [None])
+
+        for aid1 in aid_list1:
+            for aid2 in aid_list2:
+                for aid3 in aid_list3:
+                    marriage = [aid1, aid2, aid3]
+                    padding = len(marriage)
+                    marriage = [aid for aid in marriage if aid is not None]
+                    marriage = sorted(marriage)
+                    padding -= len(marriage)
+                    marriage = sorted(marriage)
+                    marriage += [None] * padding
+                    marriage_aid_list.append(tuple(marriage))
+
+    marriage_list = []
+    for marriage_aids in marriage_aid_list:
+        aid1, aid2, aid3 = marriage_aids
+        assert aid1 in aid_list and aid1 is not None
+        assert aid2 in aid_list or  aid2 is None
+        assert aid3 in aid_list or  aid3 is None
+
+        aid_list_ = [aid1, aid2, aid3]
+        missing = len(aid_list_) - aid_list_.count(None)
+
+        gt1 = gt_dict.get(aid1, None)
+        gt2 = gt_dict.get(aid2, None)
+        gt3 = gt_dict.get(aid3, None)
+
+        overlap1 = 0.0 if None in [gt1, gt2] else general_overlap([gt1], [gt2])[0][0]
+        overlap2 = 0.0 if None in [gt1, gt3] else general_overlap([gt1], [gt3])[0][0]
+        overlap3 = 0.0 if None in [gt2, gt3] else general_overlap([gt2], [gt3])[0][0]
+
+        # Assert min_overlap conditions
+        overlap1 = 0.0 if overlap1 < min_overlap else overlap1
+        overlap2 = 0.0 if overlap2 < min_overlap else overlap2
+        overlap3 = 0.0 if overlap3 < min_overlap else overlap3
+
+        score = np.sqrt(overlap1 + overlap2 + overlap3)
+
+        marriage = [missing, score, set(marriage_aids)]
+        marriage_list.append(marriage)
+
+    marriage_list = sorted(marriage_list, reverse=True)
+
+    segment_list = []
+    married_aid_set = set([])
+    for missing, score, marriage_aids in marriage_list:
+        polygamy = len(married_aid_set & marriage_aids) > 0
+        if not polygamy:
+            marriage_aids = marriage_aids - {None}
+            married_aid_set = married_aid_set | marriage_aids
+            segment_list.append(marriage_aids)
+
+    return segment_list
+
+
+def merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.25):
+    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
+    from sklearn import cluster
+    from scipy import sparse
+
+    num_clusters = int(np.around(len(aid_list) / len(user_id_list)))
+
+    ##############
+
+    gt_list, species_set = general_parse_gt_annots(ibs, aid_list)
+    connectivity = general_overlap(gt_list, gt_list)
+    # Cannot match with little overlap
+    connectivity[connectivity < min_overlap] = 0.0
+    # Cannot match against your own aid
+    np.fill_diagonal(connectivity, 0.0)
+    # Cannot match against your own reviewer
+    for start, finish in index_list:
+        connectivity[start: finish, start: finish] = 0.0
+    # Ensure that the matrix is symmetric, which it should always be
+    connectivity = sparse.csr_matrix(connectivity)
+
+    algorithm = cluster.AgglomerativeClustering(
+        n_clusters=num_clusters,
+        linkage="average",
+        affinity="cityblock",
+        connectivity=connectivity
+    )
+
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    X = np.vstack(bbox_list)
+    algorithm.fit(X)
+    if hasattr(algorithm, 'labels_'):
+        prediction_list = algorithm.labels_.astype(np.int)
+    else:
+        prediction_list = algorithm.predict(X)
+
+    ##############
+
+    segment_dict = {}
+    for aid, prediction in zip(aid_list, prediction_list):
+        if prediction not in segment_dict:
+            segment_dict[prediction] = set([])
+        segment_dict[prediction].add(aid)
+    segment_list = list(segment_dict.values())
+
+    return segment_list
+
+
 @register_ibs_method
 def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_aoi=False):
     r"""
@@ -6955,12 +7081,9 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
         >>> default_dbdir = expanduser(join('~', 'data', 'GGR2-IBEIS'))
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> ibs = ibeis.opendb(dbdir=dbdir)
-        >>> ibs.merge_ggr_staged_annots()
+        >>> new_aid_list, broken_gid_list = ibs.merge_ggr_staged_annots()
+        >>> print('Encountered %d invalid gids: %r' % (len(broken_gid_list), broken_gid_list, ))
     """
-    from ibeis.other.detectfuncs import general_parse_gt_annots, general_overlap
-    from sklearn import cluster
-    from scipy import sparse
-
     def _normalize_confidences(gt_list):
         for index in range(len(gt_list)):
             gt = gt_list[index]
@@ -6984,6 +7107,8 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
     new_interest_list = []
 
     zipped = list(zip(gid_list, metadata_dict_list, aids_list))
+    # zipped = zipped[:10]
+
     broken_gid_list = []
     for gid, metadata_dict, aid_list in zipped:
         print('Processing gid = %r with %d annots' % (gid, len(aid_list), ))
@@ -7017,54 +7142,26 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
         ##############
         index_list = []
         aid_list = []
-        num_clusters_list = []
         for user_id in user_id_list:
             aid_list_ = user_dict[user_id]
             start = len(aid_list)
             aid_list.extend(aid_list_)
             finish = len(aid_list)
-            num_clusters_list.append(len(aid_list_))
             index_list.append((start, finish))
 
-        num_clusters = int(np.around(sum(num_clusters_list) / len(num_clusters_list)))
-        bbox_list = ibs.get_annot_bboxes(aid_list)
-        X = np.vstack(bbox_list)
-
-        ##############
-
-        gt_list, species_set = general_parse_gt_annots(ibs, aid_list)
-        connectivity = general_overlap(gt_list, gt_list)
-        # Cannot match with little overlap
-        connectivity[connectivity < min_overlap] = 0.0
-        # Cannot match against your own aid
-        np.fill_diagonal(connectivity, 0.0)
-        # Cannot match against your own reviewer
-        for start, finish in index_list:
-            connectivity[start: finish, start: finish] = 0.0
-        # Ensure that the matrix is symmetric, which it should always be
-        connectivity = sparse.csr_matrix(connectivity)
-
-        algorithm = cluster.AgglomerativeClustering(
-            n_clusters=num_clusters,
-            linkage="average",
-            affinity="cityblock",
-            connectivity=connectivity
-        )
-
-        algorithm.fit(X)
-        if hasattr(algorithm, 'labels_'):
-            prediction_list = algorithm.labels_.astype(np.int)
-        else:
-            prediction_list = algorithm.predict(X)
-
-        ##############
-
-        segment_dict = {}
-        for aid, prediction in zip(aid_list, prediction_list):
-            if prediction not in segment_dict:
-                segment_dict[prediction] = set([])
-            segment_dict[prediction].add(aid)
-        segment_list = list(segment_dict.values())
+        try:
+            if False:
+                segment_list = merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict,
+                                                               aid_list, index_list,
+                                                               min_overlap=min_overlap)
+            else:
+                segment_list = merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict,
+                                                                aid_list, index_list,
+                                                                min_overlap=min_overlap)
+        except:
+            print('\tInvalid GID')
+            broken_gid_list.append(gid)
+            continue
 
         ##############
 
@@ -7103,7 +7200,6 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
             new_interest_list.append(interest)
 
         print('\tSegments = %r' % (segment_list, ))
-        print('\tCenters = %d' % (num_clusters, ))
         print('\tAIDS = %d' % (len(segment_list), ))
 
     print('Performing delete of %d existing non-staged AIDS' % (len(existing_aid_list), ))
@@ -7112,7 +7208,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
     new_aid_list = ibs.add_annots(new_gid_list, bbox_list=new_bbox_list,
                                   interest_list=new_interest_list)
 
-    return new_aid_list
+    return new_aid_list, broken_gid_list
 
 
 @register_ibs_method

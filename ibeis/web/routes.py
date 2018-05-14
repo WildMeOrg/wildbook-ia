@@ -1444,6 +1444,7 @@ def view_images(**kwargs):
         gid_list = ibs.get_valid_gids()
         filtered = False
     # Page
+    gid_list = sorted(gid_list)
     page_start = min(len(gid_list), (page - 1) * appf.PAGE_SIZE)
     page_end   = min(len(gid_list), page * appf.PAGE_SIZE)
     page_total = int(math.ceil(len(gid_list) / appf.PAGE_SIZE))
@@ -1471,7 +1472,7 @@ def view_images(**kwargs):
         ibs.get_image_notes(gid_list),
         appf.imageset_image_processed(ibs, gid_list),
     ))
-    image_list.sort(key=lambda t: t[3])
+    # image_list.sort(key=lambda t: t[3])
     return appf.template('view', 'images',
                          filtered=filtered,
                          imgsetid_list=imgsetid_list,
