@@ -1,12 +1,18 @@
+function check_form(clear) {
+  update_buttons();
+  return true;
+}
+
 function add_species() {
   value = $('input[name="species-add"]').val()
-  console.log(value);
 
   $('select[name="ia-species-species"]')
     .append($("<option></option>")
       .attr("value", value)
       .text(value));
   $('select[name="ia-species-species"] option[value="' + value + '"]').prop('selected', true)
+
+  update_buttons();
 }
 
 function update_buttons(clicked) {
@@ -19,9 +25,6 @@ function update_buttons(clicked) {
       clicked = undefined
     }
   }
-
-  console.log(clicked)
-  console.log(selected)
 
   $('.ia-species-button').attr('selected', false)
   $('.ia-species-button').removeClass('btn-success')

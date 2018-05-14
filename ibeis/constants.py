@@ -366,6 +366,7 @@ SPECIES_MAPPING = {
     'bird'                :        ('BIRD', 'Bird (Generic)'),
     'bird_generic'        :          (None, 'bird'),
     'building'            :    ('BUILDING', 'Building'),
+    'car'                 :         ('CAR', 'Car'),
     'camel'               :       ('CAMEL', 'Camel'),
     'crane'               :       ('CRANE', 'Crane'),
     'cheetah'             :        ('CHTH', 'Cheetah'),
