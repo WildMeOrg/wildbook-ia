@@ -62,10 +62,11 @@ $(window).keydown(function(event) {
       key -= 48
       update_buttons($('#ia-species-button-' + key))
     }
-    // else if (key == 32) {
-    //   // Space key pressed, submit form as delete
-    //   $('input#ia-turk-submit-delete').click();
-    // }
+    else if (key == 32) {
+      // Space key pressed, submit form as delete
+      $('input#ia-turk-submit-skip').click();
+      event.preventDefault()
+    }
     // else if(key == 76)
     // {
     //   // L key pressed, submit form as left

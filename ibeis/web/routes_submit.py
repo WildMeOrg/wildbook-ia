@@ -703,9 +703,9 @@ def submit_species(**kwargs):
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d&refresh=false' % (redirection, aid, )
+                redirection = '%s&refresh=false' % (redirection, aid, )
             else:
-                redirection = '%s?aid=%d&refresh=false' % (redirection, aid, )
+                redirection = '%s?refresh=false' % (redirection, aid, )
         return redirect(redirection)
     elif method.lower() in u'refresh':
         redirection = request.referrer
