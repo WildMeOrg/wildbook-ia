@@ -37,13 +37,17 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
-def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False,
+def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, **kwargs):
     """Create training XML for training models."""
     import random
     from datetime import date
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+
+    if species_mapping is not None:
+        print('Received species_mapping = %r' % (species_mapping, ))
+        print('Using species_list = %r' % (species_list, ))
 
     def _add_annotation(bbox, theta, species_name, viewpoint, decrease,
                         part_name=None):
@@ -166,6 +170,9 @@ def export_to_xml(ibs, species_list=None, offset='auto', enforce_viewpoint=False
             part_rowids_list = ibs.get_annot_part_rowids(aid_list)
             zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, part_rowids_list)
             for bbox, theta, species_name, viewpoint, part_rowid_list in zipped:
+                if species_mapping is not None:
+                    species_name = species_mapping.get(species_name, species_name)
+
                 _add_annotation(bbox, theta, species_name, viewpoint, decrease)
                 if include_parts and len(part_rowid_list) > 0:
                     part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
