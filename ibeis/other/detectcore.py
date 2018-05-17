@@ -39,7 +39,7 @@ def nms(dets, scores, thresh, use_cpu=True):
 @register_ibs_method
 def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
-                  use_existing_train_test=True, include_parts=False, **kwargs):
+                  use_existing_train_test=True, include_parts=False, gid_list=None, **kwargs):
     """Create training XML for training models."""
     import random
     from datetime import date
@@ -113,7 +113,9 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     ut.ensuredir(mainsetsdir)
 
     # Get all gids and process them
-    gid_list = sorted(ibs.get_valid_gids())
+    if gid_list is not None:
+        gid_list = sorted(ibs.get_valid_gids())
+
     sets_dict = {
         'test'     : [],
         'train'    : [],
