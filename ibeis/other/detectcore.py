@@ -113,7 +113,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     ut.ensuredir(mainsetsdir)
 
     # Get all gids and process them
-    if gid_list is not None:
+    if gid_list is None:
         gid_list = sorted(ibs.get_valid_gids())
 
     sets_dict = {
