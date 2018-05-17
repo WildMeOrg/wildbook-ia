@@ -538,6 +538,7 @@ def view_advanced0(**kwargs):
         for gps_list_track in gps_list_tracks
     ]
 
+    ALLOW_IMAGE_DATE_COLOR = True
     VERSION = 2
     # Colors for GPS
     color_none = [0, "#777777"]
@@ -563,8 +564,14 @@ def view_advanced0(**kwargs):
             aid_list_ = ibs.get_image_aids(gid)
             nid_list_ = ibs.get_annot_nids(aid_list_)
             nid_list_ = [nid for nid in nid_list_ if nid > 0]
-            if len(nid_list_) == 0:
+            if len(nid_list_) == 0 or True:
                 color = color_none
+
+                if ALLOW_IMAGE_DATE_COLOR:
+                    if current_date in ['2016/01/30', '2018/01/27']:
+                        color = color_day1
+                    elif current_date in ['2016/01/31', '2018/01/28']:
+                        color = color_day2
             else:
                 aid_list_ = ut.flatten(ibs.get_name_aids(nid_list_))
                 gid_list_ = list(set(ibs.get_annot_gids(aid_list_)))
@@ -695,14 +702,17 @@ def view_advanced0(**kwargs):
         if sex not in [0, 1]:
             sex = 2
             # continue
-        if (min_age is None or min_age < 12) and max_age < 12:
-            age_list[sex][0] += 1
-        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
-            age_list[sex][1] += 1
-        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
-            age_list[sex][2] += 1
-        elif 36 <= min_age and (36 <= max_age or max_age is None):
-            age_list[sex][3] += 1
+        try:
+            if (min_age is None or min_age < 12) and max_age < 12:
+                age_list[sex][0] += 1
+            elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
+                age_list[sex][1] += 1
+            elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
+                age_list[sex][2] += 1
+            elif 36 <= min_age and (36 <= max_age or max_age is None):
+                age_list[sex][3] += 1
+        except:
+            pass
 
     age_total = sum(map(sum, age_list)) + age_unreviewed + age_ambiguous
     age_total = np.nan if age_total == 0 else age_total

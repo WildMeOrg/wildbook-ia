@@ -470,7 +470,7 @@
                 invalid = invalid || (existing.segment.length <= existing.end)
 
 
-                for(var index = 0; index < existing.segment.length; index++) {
+                for (var index = 0; index < existing.segment.length; index++) {
                     point = existing.segment[index]
                     invalid = invalid || (point.x    === undefined)
                     invalid = invalid || (point.y    === undefined)
@@ -562,7 +562,7 @@
                 "left": (100.0 * this.points.end.x.global) + "%",
             })
 
-            for(var index = 0; index < this.points.segment.length; index++) {
+            for (var index = 0; index < this.points.segment.length; index++) {
                 point = this.points.segment[index]
                 this.draw_segment(point)
             }
@@ -589,7 +589,7 @@
 
             this.ctx.clearRect(0, 0, this.elements.canvas.width(), this.elements.canvas.height());
 
-            for(var index = 0; index < this.elements.segment.length; index++) {
+            for (var index = 0; index < this.elements.segment.length; index++) {
                 if (keep_index == null || keep_index <= index) {
                     this.elements.segment[index].detach()
                 } else {
@@ -683,6 +683,38 @@
             }
 
             return true
+        }
+
+        ContourSelector.prototype.declutter = function(flag) {
+            console.log('DECLUTTER: ' + flag)
+            if (flag) {
+                css_style = {
+                    'opacity': 0.0,
+                }
+
+                radius      = 0.0
+                segment     = 0.0
+            } else {
+                css_style = {
+                    'opacity': 1.0,
+                }
+
+                radius      = this.options.transparency.radius
+                segment     = this.options.transparency.segment
+            }
+
+            this.elements.end.css(css_style)
+            this.elements.begin.css(css_style)
+
+            cta.cts.elements.canvas.css({
+                'opacity': radius,
+            })
+
+            for (var index = 0; index < this.elements.segment.length; index++) {
+                this.elements.segment[index].css({
+                    'opacity': segment,
+                })
+            }
         }
 
         ContourSelector.prototype.add_segment = function(event) {
@@ -1009,7 +1041,7 @@
 
             closest_distance = Infinity
             closest_index = null
-            for(var index = 0; index < this.points.segment.length; index++) {
+            for (var index = 0; index < this.points.segment.length; index++) {
                 values = this.current_distance(index)
                 distance = values[0]
                 if (distance < closest_distance && distance < this.options.size.radius) {
@@ -1186,9 +1218,10 @@
             options.actions.click.right          !== undefined || (options.actions.click.right = true)
             options.hotkeys                      !== undefined || (options.hotkeys = {})
             options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
-            options.hotkeys.delete               !== undefined || (options.hotkeys.delete = [8, 46, 75])
-            options.hotkeys.exit                 !== undefined || (options.hotkeys.exit   = [27])
-            options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom   = [90])
+            options.hotkeys.delete               !== undefined || (options.hotkeys.delete    = [8, 46, 75])
+            options.hotkeys.exit                 !== undefined || (options.hotkeys.exit      = [27])
+            options.hotkeys.zoom                 !== undefined || (options.hotkeys.zoom      = [90])
+            options.hotkeys.declutter            !== undefined || (options.hotkeys.declutter = [72])
             options.zoom                         !== undefined || (options.zoom = {})
             options.zoom.enabled                 !== undefined || (options.zoom.enabled = true)
             options.limits                       !== undefined || (options.limits = {})
@@ -1340,6 +1373,10 @@
                     }
                 }
 
+                if (cta.options.hotkeys.declutter.indexOf(key) != -1) {
+                    cta.cts.declutter(true)
+                }
+
                 if (cta.options.hotkeys.enabled) {
 
                     // Delete key pressed
@@ -1358,6 +1395,16 @@
                         }
                         cta.cts.hide_warning()
                     }
+                }
+            })
+
+            $(window).keyup(function(event) {
+                var key, hotkeys_movement
+
+                key = event.which
+
+                if (cta.options.hotkeys.declutter.indexOf(key) != -1) {
+                    cta.cts.declutter(false)
                 }
             })
         }
