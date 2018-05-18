@@ -50,6 +50,7 @@ $(window).keydown(function(event) {
   else if(97 <= key && key <= 104)
   {
     // 48 ==  number pad key 0
+    // 96 ==  number pad key 0
     // 97 ==  number pad key 1
     // 98 ==  number pad key 2
     // 99 ==  number pad key 3

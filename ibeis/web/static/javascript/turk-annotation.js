@@ -118,20 +118,16 @@ $(window).keydown(function(event) {
       // 50 == numeric key 2
       // 51 == numeric key 3
       // 52 == numeric key 4
-      // 53 == numeric key 5me
+      // 53 == numeric key 5
       // 54 == numeric key 6
       // 55 == numeric key 7
       // 56 == numeric key 8
       // 57 == numeric key 9
-      if (key == 48) {
-        $("#ia-annotation-viewpoint").val(-1);
-      } else {
-        value = key - 49; // offset by 49 so that the number one is the value of 0
-        $("#ia-annotation-viewpoint").val(value);
-      }
+      value = key - 49; // offset by 49 so that the number one is the value of 0
+      $("#ia-annotation-viewpoint").val(value);
       update_label();
-    } else if (97 <= key && key <= 104) {
-      // 48 ==  number pad key 0
+    } else if (96 <= key && key <= 104) {
+      // 96 ==  number pad key 0
       // 97 ==  number pad key 1
       // 98 ==  number pad key 2
       // 99 ==  number pad key 3

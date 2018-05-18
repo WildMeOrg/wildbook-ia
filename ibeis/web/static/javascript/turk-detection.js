@@ -513,8 +513,8 @@ $(window).keydown(function(event) {
                 index = index % length
                 children.eq(index).prop('selected', true);
                 $(".ia-detection-form-" + state + "-value").trigger('change');
-            } else if ((48 <= key && key <= 55) || (97 <= key && key <= 103)) {
-                // 48 == 48  == numeric key 0
+            } else if ((48 <= key && key <= 55) || (96 <= key && key <= 103)) {
+                // 48 == 46  == numeric key 0
                 // 49 == 97  == numeric key 1
                 // 50 == 98  == numeric key 2
                 // 51 == 99  == numeric key 3
@@ -540,7 +540,7 @@ $(window).keydown(function(event) {
                     element = "#ia-detection-" + state + "-viewpoint-3"
                 }
 
-                if (key == 48) {
+                if (key == 48 || key == 96) {
                     value = -1
                 } else if (49 <= key && key <= 56) {
                     value = key - 49;

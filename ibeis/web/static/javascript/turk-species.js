@@ -61,8 +61,33 @@ $(window).keydown(function(event) {
       $('input#ia-turk-submit-accept').click();
     }
     else if (49 <= key && key <= 57) {
+      // 48 == numeric key 0
+      // 49 == numeric key 1
+      // 50 == numeric key 2
+      // 51 == numeric key 3
+      // 52 == numeric key 4
+      // 53 == numeric key 5
+      // 54 == numeric key 6
+      // 55 == numeric key 7
+      // 56 == numeric key 8
+      // 57 == numeric key 9
       // Number key pressed, submit form as delete
       key -= 48
+      update_buttons($('#ia-species-button-' + key))
+    }
+    else if (97 <= key && key <= 105) {
+      // 96 ==  number pad key 0
+      // 97 ==  number pad key 1
+      // 98 ==  number pad key 2
+      // 99 ==  number pad key 3
+      // 100 == number pad key 4
+      // 101 == number pad key 5
+      // 102 == number pad key 6
+      // 103 == number pad key 7
+      // 104 == number pad key 8
+      // 105 == number pad key 9
+      // Number key pressed, submit form as delete
+      key -= 96
       update_buttons($('#ia-species-button-' + key))
     }
     else if (key == 32) {
