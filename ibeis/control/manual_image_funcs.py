@@ -866,10 +866,12 @@ def update_image_rotate_90(ibs, gid_list, direction):
     ibs._set_image_orientation(gid_list, new_orient_list)
 
     # We've just rotated, invert the width, height values in the database for each image
-    # IMPORTAND: DO THIS AFTER FIXING THE BBOXES
-    width_list = ibs.get_image_widths(gid_list)
-    height_list = ibs.get_image_heights(gid_list)
-    ibs._set_image_sizes(gid_list, height_list, width_list)
+    # IMPORTANT: DO THIS AFTER FIXING THE BBOXES
+    image_list = ibs.get_images(gid_list)
+    shape_list = [image.shape[:2] for image in image_list]
+    height_list = [shape[0] for shape in shape_list]
+    width_list = [shape[1] for shape in shape_list]
+    ibs._set_image_sizes(gid_list, width_list, height_list)
 
     # Update the bounding box locations
     for gid in gid_list:

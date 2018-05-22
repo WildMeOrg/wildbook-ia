@@ -63,6 +63,7 @@ function update_metadata_panel(state) {
         visible_ids = ['#ia-metadata-panel-part']
         hidden_ids = ['#ia-metadata-panel-annotation']
     } else {
+        $('#ia-metadata-rowid').text('');
         active_ids = []
         inactive_ids = ["#ia-metadata-badge-annotation", "#ia-metadata-badge-part"]
         visible_ids = []
@@ -204,6 +205,11 @@ function show_annotation_metadata(entry) {
     entry.metadata.multiple   !== undefined || (entry.metadata.multiple = false)
     entry.highlighted         !== undefined || (entry.highlighted = false)
 
+    if (entry.label !== null) {
+        $('#ia-metadata-rowid').text('AID: ' + entry.label);
+    } else {
+        $('#ia-metadata-rowid').text('');
+    }
     $('#ia-detection-annotation-viewpoint-1').val(entry.metadata.viewpoint1);
     $('#ia-detection-annotation-viewpoint-2').val(entry.metadata.viewpoint2);
     $('#ia-detection-annotation-viewpoint-3').val(entry.metadata.viewpoint3);
@@ -229,6 +235,11 @@ function show_part_metadata(entry, parent_entry) {
     entry.metadata.type           !== undefined || (entry.metadata.type = '____')
     parent_entry.metadata.species !== undefined || (parent_entry.metadata.species = '____')
 
+    if (entry.label !== null) {
+        $('#ia-metadata-rowid').text('PART ROWID: ' + entry.label);
+    } else {
+        $('#ia-metadata-rowid').text('');
+    }
     $('#ia-detection-part-viewpoint-1').val(entry.metadata.viewpoint1);
     $('#ia-detection-part-quality').val(entry.metadata.quality);
 
