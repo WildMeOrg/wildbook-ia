@@ -917,6 +917,10 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None, **kw
 
 @register_ibs_method
 def localizer_precision_recall(ibs, **kwargs):
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)) & set(general_get_imageset_gids(ibs, 'DETECT', **kwargs))
+    test_gid_list = sorted(list(test_gid_set))
+    print('Using %d test gids' % (len(test_gid_list), ))
+
     species_mapping = {
         'giraffe_masai'       : 'giraffe',
         'giraffe_reticulated' : 'giraffe',
@@ -1021,14 +1025,14 @@ def localizer_precision_recall(ibs, **kwargs):
 
         'ggr2': (
             [
-                {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'species_mapping': species_mapping, 'species_set' : set(['giraffe'])},
-                {'label': 'Giraffe NMS 25%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.25, 'species_mapping': species_mapping, 'species_set' : set(['giraffe'])},
-                {'label': 'Giraffe NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'species_mapping': species_mapping, 'species_set' : set(['giraffe'])},
-                {'label': 'Giraffe NMS 75%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.75, 'species_mapping': species_mapping, 'species_set' : set(['giraffe'])},
-                {'label': 'Zebra NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'species_mapping': species_mapping, 'species_set' : set(['zebra'])},
-                {'label': 'Zebra NMS 25%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.25, 'species_mapping': species_mapping, 'species_set' : set(['zebra'])},
-                {'label': 'Zebra NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'species_mapping': species_mapping, 'species_set' : set(['zebra'])},
-                {'label': 'Zebra NMS 75%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.75, 'species_mapping': species_mapping, 'species_set' : set(['zebra'])},
+                {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+                {'label': 'Giraffe NMS 25%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.25, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+                {'label': 'Giraffe NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+                {'label': 'Giraffe NMS 75%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.75, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+                {'label': 'Zebra NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+                {'label': 'Zebra NMS 25%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.25, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+                {'label': 'Zebra NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+                {'label': 'Zebra NMS 75%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.75, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
             ],
             {},
         ),
