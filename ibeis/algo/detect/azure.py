@@ -122,7 +122,7 @@ def detect(gpath_list, config_filepath, verbose=VERBOSE_AZURE, **kwargs):
                 'ytl'        : output['boundingBox']['top'],
                 'width'      : output['boundingBox']['width'],
                 'height'     : output['boundingBox']['height'],
-                'class'      : output['tagId'],
+                'class'      : output['tagName'],
                 'confidence' : output['probability'],
             }
             result_list_.append(result_dict)

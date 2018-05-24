@@ -1848,247 +1848,173 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #     plt.savefig(fig_path, bbox_inches='tight')
 
 
-# def classifier2_precision_recall_algo(ibs, category, **kwargs):
-#     depc = ibs.depc_image
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     species_set_list = list(map(ibs.get_annot_species_texts, aids_list))
+def classifier2_precision_recall_algo(ibs, category, species_mapping={},
+                                      output_path=None, test_gid_list=None, **kwargs):
+    depc = ibs.depc_image
+    if test_gid_list is None:
+        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_list = list(test_gid_set)
 
-#     label_list = [
-#         'positive' if category in species_set else 'negative'
-#         for species_set in species_set_list
-#     ]
+    aids_list = ibs.get_image_aids(test_gid_list)
 
-#     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
-#     confidence_list = [
-#         confidence_dict[category]
-#         for confidence_dict in confidence_dict_list
-#     ]
+    species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
+    species_set_list = [
+        set([
+            species_mapping.get(species, species)
+            for species in species_list
+        ])
+        for species_list in species_list_list
+    ]
 
-#     # config_ = {
-#     #     'draw_annots' : False,
-#     #     'thumbsize'   : (192, 192),
-#     # }
-#     # thumbnail_list = depc.get_property('thumbnails', test_gid_set, 'img', config=config_)
-#     # zipped = zip(test_gid_set, thumbnail_list, species_set_list, confidence_dict_list)
-#     # for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
-#     #     print(index)
-#     #     x = ';'.join(species_set)
-#     #     y = []
-#     #     for key in confidence_dict:
-#     #         y.append('%s-%0.04f' % (key, confidence_dict[key], ))
-#     #     y = ';'.join(y)
-#     #     image_path = '/home/jason/Desktop/batch3/image----%s----%s----%s----%s.png'
-#     #     cv2.imwrite(image_path % (index, test_gid, x, y), thumbnail)
+    label_list = [
+        'positive' if category in species_set else 'negative'
+        for species_set in species_set_list
+    ]
 
-#     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+    confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
+    confidence_list = [
+        confidence_dict[category]
+        for confidence_dict in confidence_dict_list
+    ]
 
+    if output_path is not None:
+        ut.ensuredir(output_path)
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (192, 192),
+        }
+        thumbnail_list = depc.get_property('thumbnails', test_gid_list, 'img', config=config_)
+        zipped = zip(test_gid_list, thumbnail_list, species_set_list, confidence_dict_list)
+        for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
+            print(index)
+            x = ';'.join(species_set)
+            y = []
+            for key in confidence_dict:
+                y.append('%s-%0.04f' % (key, confidence_dict[key], ))
+            y = ';'.join(y)
+            output_filename = 'image-index-%s-gid-%s-gt-%s-pred-%s.png' % (index, test_gid, x, y)
+            output_filepath = join(output_path, output_filename)
+            cv2.imwrite(output_filepath, thumbnail)
 
-# def classifier2_precision_recall_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     print('Processing Precision-Recall for: %r' % (label, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
-
-
-# def classifier2_roc_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     print('Processing ROC for: %r' % (label, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-#                                   target=(0.0, 1.0), **kwargs)
-
-
-# def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, **kwargs):
-
-#     def _get_prediction_list(conf, confidence_dict_list):
-#         predictions_list = [
-#             [
-#                 category
-#                 for category, confidence in confidence_dict.items()
-#                 if conf <= confidence
-#             ]
-#             for confidence_dict in confidence_dict_list
-#         ]
-#         prediction_list = [
-#             ','.join(sorted(prediction_list_))
-#             for prediction_list_ in predictions_list
-#         ]
-#         return prediction_list
-
-#     def _get_accuracy(label_list, prediction_list):
-#         assert len(label_list) == len(prediction_list)
-#         correct = 0
-#         for label, prediction in zip(label_list, prediction_list):
-#             if label == prediction:
-#                 correct += 1
-#         return correct / len(label_list)
-
-#     print('Processing Confusion Matrix')
-#     depc = ibs.depc_image
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     species_set_list = [
-#         set(ibs.get_annot_species_texts(aid_list))
-#         for aid_list in aids_list
-#     ]
-
-#     label_list = [
-#         ','.join(sorted(list(species_set)))
-#         for species_set in species_set_list
-#     ]
-#     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
-
-#     # Find the best confidence
-#     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-
-#     print('Processing best prediction_list...')
-#     best_conf = None
-#     best_accuracy = 0.0
-#     for conf in conf_list:
-#         prediction_list = _get_prediction_list(conf, confidence_dict_list)
-#         accuracy = _get_accuracy(label_list, prediction_list)
-#         if accuracy >= best_accuracy:
-#             best_accuracy = accuracy
-#             best_conf = conf
-
-#     label_list_ = ['positive'] * len(label_list)
-#     prediction_list = _get_prediction_list(best_conf, confidence_dict_list)
-#     prediction_list_ = [
-#         'positive' if label == prediction else 'negative'
-#         for label, prediction in zip(label_list, prediction_list)
-#     ]
-
-#     category_list = ['positive', 'negative']
-#     category_mapping = {
-#         'positive': 0,
-#         'negative': 1,
-#     }
-#     return best_conf, general_confusion_matrix_algo(label_list_, prediction_list_,
-#                                                     category_list, category_mapping,
-#                                                     size=20, **kwargs)
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
-# @register_ibs_method
-# def classifier2_precision_recall_algo_display(ibs, species_list=None,
-#                                               figsize=(20, 9), **kwargs):
-#     import matplotlib.pyplot as plt
-#     import plottool as pt
+def classifier2_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
-#     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
-#     # kwargs['classifier_two_weight_filepath'] = 'v3'
-#     kwargs['classifier_two_weight_filepath'] = 'candidacy'
+def classifier2_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     depc = ibs.depc_image
-#     depc.delete_property('classifier_two', test_gid_set, config=kwargs)
 
-#     if species_list is None:
-#         test_gid = test_gid_set[0]
-#         confidence_dict = depc.get_property('classifier_two', test_gid, 'scores', config=kwargs)
-#         species_list = confidence_dict.keys()
+@register_ibs_method
+def classifier2_precision_recall_algo_display(ibs, species_list=None,
+                                              species_mapping={},
+                                              nice_mapping={},
+                                              test_gid_list=None,
+                                              figsize=(20, 9), **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
 
-#     category_set = sorted(species_list)
+    depc = ibs.depc_image
+    fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
-#     nice_mapping = {
-#         'giraffe_masai'       : 'Masai Giraffe',
-#         'giraffe_reticulated' : 'Reticulated Giraffe',
-#         'turtle_sea'          : 'Sea Turtle',
-#         'whale_fluke'         : 'Whale Fluke',
-#         'zebra_grevys'        : 'Grevy\'s Zebra',
-#         'zebra_plains'        : 'Plains Zebra',
-#     }
+    # kwargs['classifier_two_weight_filepath'] = 'v3'
+    # kwargs['classifier_two_weight_filepath'] = 'candidacy'
+    kwargs['classifier_two_weight_filepath'] = 'ggr2'
 
-#     config_list = []
-#     for category in category_set:
-#         category_nice = nice_mapping.get(category, category)
-#         config_dict = {
-#             'label': category_nice,
-#             'category': category,
-#         }
-#         config_dict.update(kwargs)
-#         config_list.append(config_dict)
+    if test_gid_list is None:
+        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_list = list(test_gid_set)
 
-#     color_list_ = []
-#     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
-#     color_list = color_list_ + color_list
+    # depc.delete_property('classifier_two', test_gid_list, config=kwargs)
 
-#     axes_ = plt.subplot(121)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('Recall')
-#     axes_.set_ylabel('Precision')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
+    if species_list is None:
+        test_gid = test_gid_list[0]
+        confidence_dict = depc.get_property('classifier_two', test_gid, 'scores', config=kwargs)
+        species_list = confidence_dict.keys()
 
-#     for color, config in zip(color_list, config_list):
-#         classifier2_precision_recall_algo_plot(ibs, color=color, **config)
-#     plt.title('Precision-Recall Curves', y=1.19)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
+    category_set = sorted(species_list)
 
-#     axes_ = plt.subplot(122)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('False-Positive Rate')
-#     axes_.set_ylabel('True-Positive Rate')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
+    config_list = []
+    for category in category_set:
+        category_nice = nice_mapping.get(category, category)
+        config_dict = {
+            'label': category_nice,
+            'category': category,
+            'test_gid_list': test_gid_list,
+        }
+        config_dict.update(kwargs)
+        config_list.append(config_dict)
 
-#     op_dict = {}
-#     for color, config in zip(color_list, config_list):
-#         values = classifier2_roc_algo_plot(ibs, color=color, **config)
-#         ap, best_conf, tup = values
-#         op_dict[config['category']] = best_conf
+    color_list_ = []
+    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
+    color_list = color_list_ + color_list
 
-#     plt.title('ROC Curves', y=1.19)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
+    axes_ = plt.subplot(121)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
 
-#     ut.embed()
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
-#     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
+    for color, config in zip(color_list, config_list):
+        classifier2_precision_recall_algo_plot(ibs, color=color, **config)
+    plt.title('Precision-Recall Curves', y=1.19)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
-#     correct = 0
-#     for confidence_dict, species_set in zip(confidence_dict_list, species_set_list):
-#         species_set_ = set([])
-#         for key in confidence_dict:
-#             if op_dict[key] <= confidence_dict[key]:
-#                 species_set_.add(key)
-#         if len(species_set ^ species_set_) == 0:
-#             correct += 1
-#     print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_set)))
+    axes_ = plt.subplot(122)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
 
-#     skipped_gid_list = []
-#     for test_gid, confidence_dict in zip(test_gid_set, confidence_dict_list):
-#         species_set_ = set([])
-#         for key in confidence_dict:
-#             if op_dict[key] <= confidence_dict[key]:
-#                 species_set_.add(key)
-#         if len(species_set_) == 0:
-#             skipped_gid_list.append(test_gid)
+    op_dict = {}
+    for color, config in zip(color_list, config_list):
+        values = classifier2_roc_algo_plot(ibs, color=color, **config)
+        ap, best_conf, tup = values
+        op_dict[config['category']] = best_conf
 
-#     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
+    plt.title('ROC Curves', y=1.19)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
-#     # axes_ = plt.subplot(325)
-#     # axes_.set_aspect(1)
-#     # gca_ = plt.gca()
-#     # gca_.grid(False)
-#     # best_conf, (correct_rate, _) = classifier2_confusion_matrix_algo_plot(ibs, category_set=category_set, fig_=fig_, axes_=axes_, **kwargs)
-#     # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-#     # axes_.set_ylabel('Ground-Truth')
-#     # plt.title('Confusion Matrix (OP = %0.02f)' % (best_conf, ), y=1.12)
+    aids_list = ibs.get_image_aids(test_gid_list)
+    species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
+    species_set_list = [
+        set([
+            species_mapping.get(species, species)
+            for species in species_list_
+        ])
+        for species_list_ in species_list_list
+    ]
+    confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
 
-#     fig_filename = 'classifier2-precision-recall-roc.png'
-#     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
-#     plt.savefig(fig_path, bbox_inches='tight')
+    correct = 0
+    for confidence_dict, species_set in zip(confidence_dict_list, species_set_list):
+        species_set_ = set([])
+        for key in confidence_dict:
+            if op_dict[key] <= confidence_dict[key]:
+                species_set_.add(key)
+        if len(species_set ^ species_set_) == 0:
+            correct += 1
+    print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_list)))
+    print('\t using op_dict = %r' % (op_dict, ))
+
+    fig_filename = 'classifier2-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
 
 
 # def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
