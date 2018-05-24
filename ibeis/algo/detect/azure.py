@@ -15,13 +15,13 @@ VERBOSE_AZURE = ut.get_argflag('--verbazure') or ut.VERBOSE
 NPROC_MULTIPLIER = 2
 
 
-PREDICTION_URL = 'https://southcentralus.api.cognitive.microsoft.com/customvision/v2.0/Prediction/%s/image'
+PREDICTION_URL = 'https://southcentralus.api.cognitive.microsoft.com/customvision/v2.0/Prediction/%s/image?iterationId=%s'
 PREDICTION_HEADER = {
     'Prediction-Key': None,
     'Content-Type': 'application/octet-stream'
 }
 PREDICTION_DICT = {
-    None  : ('9bb5790b-7f59-4c0b-b571-21e68d29f4b2', '34e5c511adfc449290e10868218906f9'),
+    None  : ('9bb5790b-7f59-4c0b-b571-21e68d29f4b2', 'a4fb7280-b0be-4706-91c6-7651d116ac46', '34e5c511adfc449290e10868218906f9'),
 }
 
 
@@ -69,11 +69,11 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_AZURE, **kwargs):
         yield (gid, gpath, result_list)
 
 
-def _detect(gpath, prediction_project, prediction_model):
+def _detect(gpath, prediction_project, prediction_iteration, prediction_model):
     with open(gpath, 'rb') as image_file:
         data = image_file.read()
 
-    prediction_url = PREDICTION_URL % (prediction_project, )
+    prediction_url = PREDICTION_URL % (prediction_project, prediction_iteration, )
     prediction_header = PREDICTION_HEADER.copy()
     prediction_header['Prediction-Key'] = prediction_model
     response = requests.post(url=prediction_url, data=data, headers=prediction_header)
@@ -101,11 +101,12 @@ def detect(gpath_list, config_filepath, verbose=VERBOSE_AZURE, **kwargs):
 
     prediction = PREDICTION_DICT.get(config_filepath, None)
     assert prediction is not None, 'Azure needs to have a model configuration'
-    prediction_project, prediction_model = prediction
+    prediction_project, prediction_iteration, prediction_model = prediction
 
-    prediction_project_list = [prediction_project] * len(gpath_list)
-    prediction_model_list   = [prediction_model]   * len(gpath_list)
-    arg_iter = list(zip(gpath_list, prediction_project_list, prediction_model_list))
+    prediction_project_list   = [prediction_project] * len(gpath_list)
+    prediction_iteration_list = [prediction_iteration] * len(gpath_list)
+    prediction_model_list     = [prediction_model]   * len(gpath_list)
+    arg_iter = list(zip(gpath_list, prediction_project_list, prediction_iteration_list, prediction_model_list))
     nprocs = ut.util_parallel.get_default_numprocs()
     nprocs *= NPROC_MULTIPLIER
     nprocs = min(nprocs, len(arg_iter))
