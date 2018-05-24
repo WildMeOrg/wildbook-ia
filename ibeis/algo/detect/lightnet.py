@@ -70,13 +70,12 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
     """
     # Get new gpaths if downsampling
     gpath_list = ibs.get_image_paths(gid_list)
-    orient_list = ibs.get_image_orientation(gid_list)
 
     # Run detection
     results_iter = detect(gpath_list, verbose=verbose, **kwargs)
     # Upscale the results
-    _iter = zip(gid_list, orient_list, results_iter)
-    for gid, orient, (gpath, result_list) in _iter:
+    _iter = zip(gid_list, results_iter)
+    for gid, (gpath, result_list) in _iter:
         # Upscale the results back up to the original image size
         for result in result_list:
             bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
@@ -89,15 +88,11 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
 def _create_network(weight_filepath, class_list, conf_thresh, nms_thresh, network_size):
     """Create the lightnet network."""
     net = ln.models.Yolo(len(class_list), weight_filepath)
-    net.postprocess = tf.Compose([
-        ln.data.GetBoundingBoxes(net, conf_thresh, nms_thresh),
-        ln.data.TensorToBrambox(network_size=network_size, class_label_map=class_list),
-    ])
-
-    if torch.cuda.is_available():
-        net.cuda()
+    net.postprocess.append(ln.data.transform.TensorToBrambox(network_size, class_list))
 
     net.eval()
+    if torch.cuda.is_available():
+        net.cuda()
 
     return net
 
@@ -109,18 +104,21 @@ def _detect(net, img_path, network_size):
     im_h, im_w = img.shape[:2]
 
     img_tf = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_tf = ln.data.Letterbox.apply(img_tf, dimension=network_size)
+    img_tf = ln.data.transform.Letterbox.apply(img_tf, dimension=network_size)
     img_tf = tf.ToTensor()(img_tf)
     img_tf.unsqueeze_(0)
 
     if torch.cuda.is_available():
         img_tf = img_tf.cuda()
 
-    img_tf = torch.autograd.Variable(img_tf, volatile=True)
-
     # Run detector
-    out = net(img_tf)
-    out = ln.data.ReverseLetterbox.apply(out, network_size, (im_w, im_h))
+    if torch.__version__.startswith('0.3'):
+        img_tf = torch.autograd.Variable(img_tf, volatile=True)
+        out = net(img_tf)
+    else:
+        with torch.no_grad():
+            out = net(img_tf)
+    out = ln.data.transform.ReverseLetterbox.apply(out, network_size, (im_w, im_h))
 
     return img, out
 
