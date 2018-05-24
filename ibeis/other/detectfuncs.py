@@ -922,10 +922,9 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
 
 @register_ibs_method
-def localizer_precision_recall(ibs, **kwargs):
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)) & set(general_get_imageset_gids(ibs, 'DETECT', **kwargs))
-    test_gid_list = sorted(list(test_gid_set))
-    print('Using %d test gids' % (len(test_gid_list), ))
+def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
+    if test_gid_list is not None:
+        print('Using %d test gids' % (len(test_gid_list), ))
 
     species_mapping = {
         'giraffe_masai'       : 'giraffe',
