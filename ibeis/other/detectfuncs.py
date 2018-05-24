@@ -677,8 +677,11 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
     return pred_dict
 
 
-def localizer_precision_recall_algo(ibs, samples=SAMPLES, **kwargs):
-    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
+                                    **kwargs):
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
@@ -835,8 +838,11 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None, **kwargs):
-    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
+                                         test_gid_list=None, **kwargs):
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
