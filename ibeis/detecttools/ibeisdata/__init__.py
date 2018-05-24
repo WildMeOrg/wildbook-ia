@@ -77,10 +77,18 @@ class IBEIS_Data(object):  # NOQA
 
     def print_distribution(ibsd):
         def _print_line(category, spacing, images, rois):
-            images = str(images)
-            rois = str(rois)
+            try:
+                images = int(images)
+                images = '% 5d' % (images, )
+            except:
+                pass
+            try:
+                rois = int(rois)
+                rois = '% 5d' % (rois, )
+            except:
+                pass
             print("%s%s\t%s" % (category + " " * (spacing - len(category)),
-                                images, rois))
+                                    images, rois))
 
         key_list = list(ibsd.distribution_rois.keys())
         key_list += ['TOTAL', 'CATEGORY']
@@ -94,6 +102,24 @@ class IBEIS_Data(object):  # NOQA
             _print_line(category, _max, ibsd.distribution_images[category], ibsd.distribution_rois[category])
 
         _print_line("TOTAL", _max, len(ibsd.images), ibsd.rois)
+
+    def parse_dataset(ibsd, category, _type):
+        filename = _type + ".txt"
+
+        if category is not None:
+            filename = category + "_" + filename
+
+        filepath = os.path.join(ibsd.dataset_path, "ImageSets", "Main", filename)
+        _dict = {}
+        try:
+            _file = open(filepath)
+            for line in _file:
+                line = line.strip().split(" ")
+                _dict[line[0]] = int(line[-1])
+        except IOError as e:
+            print("<%r> %s" % (e, filepath))
+
+        return _dict
 
     def dataset(ibsd, positive_category, neg_exclude_categories=[], max_rois_pos=None, max_rois_neg=None):
         def _parse_dataset_file(category, _type):
@@ -114,10 +140,10 @@ class IBEIS_Data(object):  # NOQA
         validation = []
         test = []
 
-        train_values = _parse_dataset_file(positive_category, "train")
-        train_values = _parse_dataset_file(positive_category, "trainval")
+        train_values = ibsd.parse_dataset(positive_category, "train")
+        train_values = ibsd.parse_dataset(positive_category, "trainval")
         # val_values   = _parse_dataset_file(positive_category, "val")
-        test_values  = _parse_dataset_file(positive_category, "test")
+        test_values  = ibsd.parse_dataset(positive_category, "test")
 
         pos_rois = 0
         neg_rois = 0
