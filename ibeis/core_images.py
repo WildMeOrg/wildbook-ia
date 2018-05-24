@@ -422,7 +422,7 @@ def compute_features(depc, gid_list, config=None):
 
 class LocalizerOriginalConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['azure', 'yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
         ut.ParamInfo('species', None),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
@@ -468,6 +468,10 @@ def compute_localizations_original(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
+        >>> config = {'algo': 'azure', 'config_filepath': None}
+        >>> depc.delete_property('localizations_original', gid_list, config=config)
+        >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
+        >>> print(detects)
         >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations_original', gid_list, config=config)
         >>> detects = depc.get_property('localizations_original', gid_list, 'bboxes', config=config)
@@ -630,6 +634,10 @@ def compute_localizations_original(depc, gid_list, config=None):
             config['weight_filepath'] = config['config_filepath']
         config['config_filepath'] = None
         detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
+    elif config['algo'] in ['azure']:
+        from ibeis.algo.detect import azure
+        print('[ibs] detecting using Azure CustomVision')
+        detect_gen = azure.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['rf']:
         from ibeis.algo.detect import randomforest

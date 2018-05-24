@@ -2712,6 +2712,60 @@ def turk_viewpoint2(**kwargs):
                          review=review)
 
 
+@register_route('/turk/viewpoint3/', methods=['GET'])
+def turk_viewpoint3(**kwargs):
+    ibs = current_app.ibs
+    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed, speed_hack=True)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+
+    viewpoint = ibs.get_annot_viewpoints(aid)
+    viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+
+    review = 'review' in request.args.keys()
+    finished = aid is None
+    display_instructions = request.cookies.get('ia-viewpoint3_instructions_seen', 1) == 0
+    if not finished:
+        gid       = ibs.get_annot_gids(aid)
+        image_src = routes_ajax.annotation_src(aid)
+        species   = ibs.get_annot_species_texts(aid)
+    else:
+        gid       = None
+        image_src = None
+        species   = None
+
+    imagesettext = ibs.get_imageset_text(imgsetid)
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
+    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+
+    return appf.template('turk', 'viewpoint3',
+                         imgsetid=imgsetid,
+                         src_ag=src_ag,
+                         dst_ag=dst_ag,
+                         gid=gid,
+                         aid=aid,
+                         viewpoint1=viewpoint1,
+                         viewpoint2=viewpoint2,
+                         viewpoint3=viewpoint3,
+                         image_src=image_src,
+                         previous=previous,
+                         species_list=species_list,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         review=review)
+
+
 def commit_current_query_object_names(query_object, ibs):
     r"""
     Args:
