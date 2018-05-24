@@ -87,7 +87,7 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
 
 def _create_network(weight_filepath, class_list, conf_thresh, nms_thresh, network_size):
     """Create the lightnet network."""
-    net = ln.models.Yolo(len(class_list), weight_filepath)
+    net = ln.models.Yolo(len(class_list), weight_filepath, conf_thresh, nms_thresh)
     net.postprocess.append(ln.data.transform.TensorToBrambox(network_size, class_list))
 
     net.eval()
