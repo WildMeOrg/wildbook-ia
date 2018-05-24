@@ -63,7 +63,7 @@ def classifier_binary_train(ibs, species_list, **kwargs):
 
 
 @register_ibs_method
-def classifier2_train(ibs, species_list=None, **kwargs):
+def classifier2_train(ibs, species_list=None, species_mapping={}, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier2_training_images
     from ibeis_cnn.process import numpy_processed_directory3
     from ibeis_cnn.models.classifier2 import train_classifier2
@@ -72,6 +72,7 @@ def classifier2_train(ibs, species_list=None, **kwargs):
         species_list = sorted(species_list)
     data_path = join(ibs.get_cachedir(), 'extracted')
     values = get_cnn_classifier2_training_images(ibs, species_list,
+                                                 category_mapping=species_mapping,
                                                  dest_path=data_path,
                                                  **kwargs)
     extracted_path, category_list = values
