@@ -1891,7 +1891,7 @@ def get_image_aids(ibs, gid_list, is_staged=False):
         with ut.Timer('[get_image_aids] block 1'):
             # The index maxes the following query very efficient
             params_iter = ((gid, is_staged) for gid in gid_list)
-            where_clause = IMAGE_ROWID + '=? AND ' + ANNOT_STAGED_FLAG + '=?'
+            where_clause = '%s=? AND %s=?' % (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
             print('where_clause = %r' % (where_clause, ))
             print(where_clause)
             aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
