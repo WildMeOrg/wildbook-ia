@@ -1523,7 +1523,7 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
-    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+    return general_precision_recall_algo(ibs, label_list, confidence_list)
 
 
 def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
@@ -1733,7 +1733,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #         confidence if prediction == 'positive' else 1.0 - confidence
 #         for prediction, confidence  in zip(prediction_list, confidence_list)
 #     ]
-#     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+#     return general_precision_recall_algo(ibs, label_list, confidence_list)
 
 
 # def classifier_binary_precision_recall_algo_plot(ibs, **kwargs):
@@ -1897,7 +1897,7 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
             cv2.imwrite(output_filepath, thumbnail)
 
     kwargs.pop('category', None)
-    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+    return general_precision_recall_algo(ibs, label_list, confidence_list)
 
 
 def classifier2_precision_recall_algo_plot(ibs, **kwargs):
@@ -1984,7 +1984,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     op_dict = {}
     for color, config in zip(color_list, config_list):
         values = classifier2_roc_algo_plot(ibs, color=color, test_gid_list=test_gid_list, **config)
-        ap, best_conf, tup = values
+        ap, best_conf, tup1, tup2 = values
         op_dict[config['category']] = best_conf
 
     plt.title('ROC Curves', y=1.19)
