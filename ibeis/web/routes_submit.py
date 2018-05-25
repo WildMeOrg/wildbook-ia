@@ -593,7 +593,7 @@ def submit_viewpoint2(**kwargs):
 
 @register_route('/submit/viewpoint3/', methods=['POST'])
 def submit_viewpoint3(**kwargs):
-    with ut.Timer('[submit_viewpoint3] block 1'):
+    with ut.Timer('[submit_viewpoint3]'):
         ibs = current_app.ibs
         method = request.form.get('viewpoint-submit', '')
         imgsetid = request.args.get('imgsetid', '')
@@ -607,7 +607,6 @@ def submit_viewpoint3(**kwargs):
         aid = int(request.form['viewpoint-aid'])
         user_id = controller_inject.get_user().get('username', None)
 
-    with ut.Timer('[submit_viewpoint3] block 2'):
         if method.lower() == 'delete':
             ibs.delete_annots(aid)
             print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
@@ -646,34 +645,40 @@ def submit_viewpoint3(**kwargs):
                     redirection = '%s?aid=%d' % (redirection, aid, )
             return redirect(redirection)
         else:
-            if src_ag is not None and dst_ag is not None:
-                appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-            if method.lower() == 'ignore':
-                viewpoint_int = const.VIEW.UNKNOWN
-            else:
-                # Get metadata
-                viewpoint_str = kwargs.get('viewpoint-text-code', '')
-                if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
-                    viewpoint_str = None
-
-                if viewpoint_str is None:
+            with ut.Timer('[submit_viewpoint3] block 1'):
+                if src_ag is not None and dst_ag is not None:
+                    appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
+                if method.lower() == 'ignore':
                     viewpoint_int = const.VIEW.UNKNOWN
                 else:
-                    viewpoint_int = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
+                    # Get metadata
+                    viewpoint_str = kwargs.get('viewpoint-text-code', '')
+                    if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
+                        viewpoint_str = None
 
-            ibs.set_annot_viewpoint_int([aid], [viewpoint_int])
-            species_text = request.form['viewpoint-species']
-            # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
-            ibs.set_annot_species([aid], [species_text])
-            print('[web] user_id: %s, aid: %d, viewpoint_int: %s' % (user_id, aid, viewpoint_int))
+                    if viewpoint_str is None:
+                        viewpoint_int = const.VIEW.UNKNOWN
+                    else:
+                        viewpoint_int = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
 
-    # Return HTML
-    refer = request.args.get('refer', '')
-    if len(refer) > 0:
-        return redirect(appf.decode_refer_url(refer))
-    else:
-        return redirect(url_for('turk_viewpoint3', imgsetid=imgsetid, src_ag=src_ag,
-                                dst_ag=dst_ag, previous=aid))
+            with ut.Timer('[submit_viewpoint3] block 2'):
+                ibs.set_annot_viewpoint_int([aid], [viewpoint_int])
+                species_text = request.form['viewpoint-species']
+                # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
+
+            with ut.Timer('[submit_viewpoint3] block 3'):
+                ibs.set_annot_species([aid], [species_text])
+                print('[web] user_id: %s, aid: %d, viewpoint_int: %s' % (user_id, aid, viewpoint_int))
+
+        # Return HTML
+        refer = request.args.get('refer', '')
+        if len(refer) > 0:
+            retval = redirect(appf.decode_refer_url(refer))
+        else:
+            retval = redirect(url_for('turk_viewpoint3', imgsetid=imgsetid, src_ag=src_ag,
+                                      dst_ag=dst_ag, previous=aid))
+
+    return retval
 
 
 @register_route('/submit/annotation/', methods=['POST'])
