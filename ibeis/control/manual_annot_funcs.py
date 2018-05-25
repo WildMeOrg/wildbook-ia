@@ -686,7 +686,7 @@ def annotation_src_api(rowid=None):
 def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
                           yaw='no-filter', is_exemplar=None, is_staged=False,
                           species=None, is_known=None, hasgt=None, minqual=None,
-                          has_timestamp=None, sort=True, min_timedelta=None):
+                          has_timestamp=None, sort=False, min_timedelta=None):
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
