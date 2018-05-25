@@ -661,7 +661,7 @@ def submit_viewpoint3(**kwargs):
                     viewpoint = const.VIEW.UNKNOWN
                 else:
                     viewpoint = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
-                ibs.set_annot_viewpoint([aid], [viewpoint])
+                ibs.set_annot_viewpoint_int([aid], [viewpoint])
 
             species_text = request.form['viewpoint-species']
             ibs.set_annot_species([aid], [species_text])
