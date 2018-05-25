@@ -2714,61 +2714,63 @@ def turk_viewpoint2(**kwargs):
 
 @register_route('/turk/viewpoint3/', methods=['GET'])
 def turk_viewpoint3(**kwargs):
-    with ut.Timer('[turk_viewpoint3] block 1'):
-        ibs = current_app.ibs
-        tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
-        (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+    with ut.Timer('[turk_viewpoint3]'):
 
-    with ut.Timer('[turk_viewpoint3] block 2'):
-        viewpoint = None if aid is None else ibs.get_annot_viewpoints(aid)
-        viewpoint_code = const.YAWALIAS.get(viewpoint, None)
+        with ut.Timer('[turk_viewpoint3] block 1'):
+            ibs = current_app.ibs
+            tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+            (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
-        review = 'review' in request.args.keys()
-        finished = aid is None
-        display_instructions = request.cookies.get('ia-viewpoint3_instructions_seen', 1) == 0
-        if not finished:
-            gid       = ibs.get_annot_gids(aid)
-            image_src = routes_ajax.annotation_src(aid)
-            species   = ibs.get_annot_species_texts(aid)
-        else:
-            gid       = None
-            image_src = None
-            species   = None
+        with ut.Timer('[turk_viewpoint3] block 2'):
+            viewpoint = None if aid is None else ibs.get_annot_viewpoints(aid)
+            viewpoint_code = const.YAWALIAS.get(viewpoint, None)
 
-    with ut.Timer('[turk_viewpoint3] block 3'):
-        imagesettext = ibs.get_imageset_text(imgsetid)
+            review = 'review' in request.args.keys()
+            finished = aid is None
+            display_instructions = request.cookies.get('ia-viewpoint3_instructions_seen', 1) == 0
+            if not finished:
+                gid       = ibs.get_annot_gids(aid)
+                image_src = routes_ajax.annotation_src(aid)
+                species   = ibs.get_annot_species_texts(aid)
+            else:
+                gid       = None
+                image_src = None
+                species   = None
 
-        species_rowids = ibs._get_all_species_rowids()
-        species_nice_list = ibs.get_species_nice(species_rowids)
+        with ut.Timer('[turk_viewpoint3] block 3'):
+            imagesettext = ibs.get_imageset_text(imgsetid)
 
-        combined_list = sorted(zip(species_nice_list, species_rowids))
-        species_nice_list = [ combined[0] for combined in combined_list ]
-        species_rowids = [ combined[1] for combined in combined_list ]
+            species_rowids = ibs._get_all_species_rowids()
+            species_nice_list = ibs.get_species_nice(species_rowids)
 
-        species_text_list = ibs.get_species_texts(species_rowids)
-        species_selected_list = [ species == species_ for species_ in species_text_list ]
-        species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
-        species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+            combined_list = sorted(zip(species_nice_list, species_rowids))
+            species_nice_list = [ combined[0] for combined in combined_list ]
+            species_rowids = [ combined[1] for combined in combined_list ]
 
-        axis_preference = request.cookies.get('ia-viewpoint3_axis_preference', None)
+            species_text_list = ibs.get_species_texts(species_rowids)
+            species_selected_list = [ species == species_ for species_ in species_text_list ]
+            species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
+            species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
-    with ut.Timer('[turk_viewpoint3] block 4'):
-        template = appf.template('turk', 'viewpoint3',
-                                 imgsetid=imgsetid,
-                                 src_ag=src_ag,
-                                 dst_ag=dst_ag,
-                                 gid=gid,
-                                 aid=aid,
-                                 viewpoint_code=viewpoint_code,
-                                 axis_preference=axis_preference,
-                                 image_src=image_src,
-                                 previous=previous,
-                                 species_list=species_list,
-                                 imagesettext=imagesettext,
-                                 progress=progress,
-                                 finished=finished,
-                                 display_instructions=display_instructions,
-                                 review=review)
+            axis_preference = request.cookies.get('ia-viewpoint3_axis_preference', None)
+
+        with ut.Timer('[turk_viewpoint3] block 4'):
+            template = appf.template('turk', 'viewpoint3',
+                                     imgsetid=imgsetid,
+                                     src_ag=src_ag,
+                                     dst_ag=dst_ag,
+                                     gid=gid,
+                                     aid=aid,
+                                     viewpoint_code=viewpoint_code,
+                                     axis_preference=axis_preference,
+                                     image_src=image_src,
+                                     previous=previous,
+                                     species_list=species_list,
+                                     imagesettext=imagesettext,
+                                     progress=progress,
+                                     finished=finished,
+                                     display_instructions=display_instructions,
+                                     review=review)
 
     return template
 
