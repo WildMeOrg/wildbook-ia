@@ -38,7 +38,17 @@
       <form method="post" action="{{ url_for('submit_viewpoint3') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
         <input type="text" name="viewpoint-text-code" value="" style="display: none" readonly>
-        Viewpoint: <input type="text" name="viewpoint-text" value="" style="border: none" readonly>
+
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align: left">
+            Viewpoint: <input type="text" name="viewpoint-text" value="" style="border: none" readonly>
+          </div>
+          <div id="ia-previous-viewpoint" class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            Current:
+            <span id="ia-previous-viewpoint-value"></span>
+            <span id="ia-previous-viewpoint-warning"> (Use Shift to view)</span>
+          </div>
+        </div>
 
         <div id="canvas-container" style="width: 100%; height: 300px; text-align: center;">
           <canvas id="canvas"></canvas>
@@ -168,45 +178,53 @@
       margin-right: auto;
       border: 1px solid #888;
     }
+
+    .previous-warning {
+      font-weight: bold;
+      color: red;
+    }
+
+    .previous-missing {
+      font-style: italic;
+      color: #888;
+    }
   </style>
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-viewpoint3.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/turk-viewpoint3.js', version='20180524-0'') }}"></script>
 <script type="text/javascript">
-    var hotkeys_disabled, hotkeys_global_disabled, viewpoint1, viewpoint2, viewpoint3
-    var canvas, ctx, polygons, text, hover
+    var hotkeys_disabled, hotkeys_global_disabled, viewpoint_code
+    var canvas, ctx, polygons, texts, text, hover, previous
 
-    viewpoint1 = {{ viewpoint1 }}
-    viewpoint2 = {{ viewpoint2 }}
-    viewpoint3 = {{ viewpoint3 }}
+    viewpoint_code = '{{ viewpoint_code }}'
+    axis_preference = '{{ axis_preference }}'
+
+    axis2 = true
+    axis3 = true
 
     hotkeys_disabled = false
     hotkeys_global_disabled = false
 
-    function translate_text(text) {
-      if (text == null) {
-        return null
+    function update_translate(final) {
+      final = final.replace('F', 'Front ')
+      final = final.replace('B', 'Back ')
+      final = final.replace('L', 'Left ')
+      final = final.replace('R', 'Right ')
+      final = final.replace('U', 'Up ')
+      final = final.replace('D', 'Down ')
+      final = final.trim()
+      return final
+    }
+
+    function update_previous() {
+      var final
+
+      if (previous == null) {
+        final = 'Unspecified'
+      } else {
+        final = update_translate(previous)
       }
-
-      text = text.toUpperCase()
-      text = text.replace('-', '')
-      text = text.replace('-', '') // To catch second, if in string
-
-      if (text == 'FRONT') {
-        text = 'F'
-      } else if (text == 'BACK') {
-        text = 'B'
-      } else if (text == 'LEFT') {
-        text = 'L'
-      } else if (text == 'RIGHT') {
-        text = 'R'
-      } else if (text == 'UP') {
-        text = 'U'
-      } else if (text == 'DOWN') {
-        text = 'D'
-      }
-
-      return text
+      $('span#ia-previous-viewpoint-value').text(final)
     }
 
     function update_text() {
@@ -216,14 +234,7 @@
         $('input[name="viewpoint-text"]').val('Unspecified')
         $('input[name="viewpoint-text-code"]').val(null)
       } else {
-        final = text
-        final = final.replace('F', 'Front ')
-        final = final.replace('B', 'Back ')
-        final = final.replace('L', 'Left ')
-        final = final.replace('R', 'Right ')
-        final = final.replace('U', 'Up ')
-        final = final.replace('D', 'Down ')
-        final = final.trim()
+        final = update_translate(text)
         $('input[name="viewpoint-text"]').val(final)
         $('input[name="viewpoint-text-code"]').val(text)
       }
@@ -257,10 +268,25 @@
       } else if (checked == 'du') {
         option = (flag ? 5 : 6)
       }
-      polygons, text = render_canvas(option, hover)
+      polygons, texts, text, found = render_canvas(option, hover)
+
+      if (previous == null) {
+        $('#ia-previous-viewpoint').addClass('previous-missing')
+        $('span#ia-previous-viewpoint-warning').hide()
+      } else {
+        $('#ia-previous-viewpoint').removeClass('previous-missing')
+        if (found) {
+          $('#ia-previous-viewpoint').removeClass('previous-warning')
+          $('span#ia-previous-viewpoint-warning').hide()
+        } else {
+          $('#ia-previous-viewpoint').addClass('previous-warning')
+          $('span#ia-previous-viewpoint-warning').show()
+        }
+      }
 
       text = translate_text(text)
       update_text()
+      update_previous()
     }
 
     $('#species-add').on('shown.bs.modal', function() {
@@ -279,10 +305,17 @@
       point = [event.offsetX, event.offsetY]
       for (var index = 0; index < polygons.length; index++) {
         polygon = polygons[index]
+        text = texts[index]
         if (inside_polygon(point, polygon)) {
           redraw = hover != index
-          hover = index
-          index = polygons.length
+
+          disabled = is_disabled(index, text)
+          if (disabled) {
+            hover = undefined
+          } else {
+            hover = index
+            index = polygons.length
+          }
         }
       }
 
@@ -299,11 +332,19 @@
     });
 
     $(canvas).click(function(event) {
-      $('input#turk-submit-accept').click();
+      if (hover != null && hover != undefined) {
+        $('input#turk-submit-accept').click();
+      }
     });
 
     $(window).bind("resize", function(event) {
         render(event)
+    })
+
+    $('input[name="ia-option-radio"]').change(function(event) {
+        render(event)
+        checked = $('input[name="ia-option-radio"]:checked').val()
+        submit_cookie('ia-viewpoint3_axis_preference', checked);
     })
 
     $(window).keydown(function(event) {
@@ -317,7 +358,10 @@
     $(document).ready(function() {
       canvas = document.getElementById('canvas');
       ctx = canvas.getContext('2d');
+      previous = translate_text(viewpoint_code)
       hover = null
+
+      $('input[name="ia-option-radio"][value="' + axis_preference + '"]').click()
 
       render(event)
       $(canvas).mouseover()

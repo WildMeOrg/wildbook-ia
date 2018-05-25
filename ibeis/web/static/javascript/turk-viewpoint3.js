@@ -1,3 +1,29 @@
+function translate_text(text) {
+  if (text == null || text == "null" || text == "None") {
+    return null
+  }
+
+  text = text.toUpperCase()
+  text = text.replace('-', '')
+  text = text.replace('-', '') // To catch second, if in string
+
+  if (text == 'FRONT') {
+    text = 'F'
+  } else if (text == 'BACK') {
+    text = 'B'
+  } else if (text == 'LEFT') {
+    text = 'L'
+  } else if (text == 'RIGHT') {
+    text = 'R'
+  } else if (text == 'UP') {
+    text = 'U'
+  } else if (text == 'DOWN') {
+    text = 'D'
+  }
+
+  return text
+}
+
 function inside_polygon(point, vs) {
     // ray-casting algorithm based on
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
@@ -17,15 +43,67 @@ function inside_polygon(point, vs) {
     return inside;
 };
 
-function render_polygon(color_polycon, polygon, color_text, text, modx_text, mody_text) {
+function render_previous(polygon, text) {
+  if (translate_text(text) == previous) {
+    ctx.strokeStyle = '#FFF';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+
+    for (var index = 0; index < polygon.length; index++) {
+      point = polygon[index]
+
+      if (index == 0) {
+        ctx.moveTo(point[0], point[1]);
+      } else {
+        ctx.lineTo(point[0], point[1]);
+      }
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+    return true
+  }
+
+  return false
+}
+
+function is_disabled(index, text) {
+  disabled = false
+
+  if ( ! axis3) {
+    if (index == 9 || index == 10 || index == 11 || index == 12) {
+      disabled = true
+    }
+  }
+
+  if ( ! axis2) {
+    if (index == 1 || index == 2 || index == 5 || index == 6 || index == 9 || index == 10 || index == 11 || index == 12 || index == 13 || index == 14 || index == 15 || index == 16) {
+      disabled = true
+    }
+  }
+
+  if (translate_text(text) == previous) {
+    disabled = false
+  }
+
+  return disabled
+}
+
+function render_polygon(index, color_polycon, polygon, color_text, text, modx_text, mody_text) {
   modx_text !== undefined || (modx_text = 0.0);
   mody_text !== undefined || (mody_text = 0.0);
+
+  disabled = is_disabled(index, text)
 
   canv = $(canvas)
   width = canv.outerWidth()
   height = canv.outerHeight()
 
-  ctx.fillStyle = color_polycon;
+  if (disabled) {
+    ctx.fillStyle = '#777';
+  } else {
+    ctx.fillStyle = color_polycon;
+  }
   ctx.beginPath();
 
   minx = Infinity
@@ -53,18 +131,21 @@ function render_polygon(color_polycon, polygon, color_text, text, modx_text, mod
   ctx.closePath();
   ctx.fill();
 
-  point = [(minx + maxx) * 0.5 + modx_text, (miny + maxy) * 0.5 + mody_text]
+  if ( ! disabled) {
+    point = [(minx + maxx) * 0.5 + modx_text, (miny + maxy) * 0.5 + mody_text]
 
-  point[0] *= width
-  point[1] *= height
+    point[0] *= width
+    point[1] *= height
 
-  ctx.fillStyle = color_text;
-  ctx.fillText(text, point[0], point[1]);
+    ctx.fillStyle = color_text;
+    ctx.fillText(text, point[0], point[1]);
+  }
 }
 
-function render_canvas(option, hover) {
-  option !== undefined || (option = 1);
-  hover !== undefined  || (hover = null);
+function render_canvas(option, hover, previous) {
+  option   !== undefined || (option   = 1);
+  hover    !== undefined || (hover    = null);
+  previous !== undefined || (previous = null);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -354,26 +435,45 @@ function render_canvas(option, hover) {
     [(hover == null || hover == 16 ? '#5CB85C' : '#C9E8C9'), '#FFF'],
   ]
 
-  render_polygon(colors[0][0],  polygons[0],  colors[0][1],  texts[0])
-  render_polygon(colors[1][0],  polygons[1],  colors[1][1],  texts[1])
-  render_polygon(colors[2][0],  polygons[2],  colors[2][1],  texts[2])
-  render_polygon(colors[3][0],  polygons[3],  colors[3][1],  texts[3])
-  render_polygon(colors[4][0],  polygons[4],  colors[4][1],  texts[4])
-  render_polygon(colors[5][0],  polygons[5],  colors[5][1],  texts[5])
-  render_polygon(colors[6][0],  polygons[6],  colors[6][1],  texts[6])
-  render_polygon(colors[7][0],  polygons[7],  colors[7][1],  texts[7])
-  render_polygon(colors[8][0],  polygons[8],  colors[8][1],  texts[8])
-  render_polygon(colors[9][0],  polygons[9],  colors[9][1],  texts[9], 0.05, 0.05)
-  render_polygon(colors[10][0], polygons[10], colors[10][1], texts[10], 0.05, -0.05)
-  render_polygon(colors[11][0], polygons[11], colors[11][1], texts[11], -0.05, 0.05)
-  render_polygon(colors[12][0], polygons[12], colors[12][1], texts[12], -0.05, -0.05)
-  render_polygon(colors[13][0], polygons[13], colors[13][1], texts[13], -0.02, -0.04)
-  render_polygon(colors[14][0], polygons[14], colors[14][1], texts[14], 0.02, -0.04)
-  render_polygon(colors[15][0], polygons[15], colors[15][1], texts[15], -0.02, 0.04)
-  render_polygon(colors[16][0], polygons[16], colors[16][1], texts[16], 0.02, 0.04)
+  render_polygon(0,  colors[0][0],  polygons[0],  colors[0][1],  texts[0])
+  render_polygon(1,  colors[1][0],  polygons[1],  colors[1][1],  texts[1])
+  render_polygon(2,  colors[2][0],  polygons[2],  colors[2][1],  texts[2])
+  render_polygon(3,  colors[3][0],  polygons[3],  colors[3][1],  texts[3])
+  render_polygon(4,  colors[4][0],  polygons[4],  colors[4][1],  texts[4])
+  render_polygon(5,  colors[5][0],  polygons[5],  colors[5][1],  texts[5])
+  render_polygon(6,  colors[6][0],  polygons[6],  colors[6][1],  texts[6])
+  render_polygon(7,  colors[7][0],  polygons[7],  colors[7][1],  texts[7])
+  render_polygon(8,  colors[8][0],  polygons[8],  colors[8][1],  texts[8])
+  render_polygon(9,  colors[9][0],  polygons[9],  colors[9][1],  texts[9], 0.05, 0.05)
+  render_polygon(10, colors[10][0], polygons[10], colors[10][1], texts[10], 0.05, -0.05)
+  render_polygon(11, colors[11][0], polygons[11], colors[11][1], texts[11], -0.05, 0.05)
+  render_polygon(12, colors[12][0], polygons[12], colors[12][1], texts[12], -0.05, -0.05)
+  render_polygon(13, colors[13][0], polygons[13], colors[13][1], texts[13], -0.02, -0.04)
+  render_polygon(14, colors[14][0], polygons[14], colors[14][1], texts[14], 0.02, -0.04)
+  render_polygon(15, colors[15][0], polygons[15], colors[15][1], texts[15], -0.02, 0.04)
+  render_polygon(16, colors[16][0], polygons[16], colors[16][1], texts[16], 0.02, 0.04)
+
+  found = previous != null
+  found == true || (found = render_previous(polygons[0],  texts[0]))
+  found == true || (found = render_previous(polygons[1],  texts[1]))
+  found == true || (found = render_previous(polygons[2],  texts[2]))
+  found == true || (found = render_previous(polygons[3],  texts[3]))
+  found == true || (found = render_previous(polygons[4],  texts[4]))
+  found == true || (found = render_previous(polygons[5],  texts[5]))
+  found == true || (found = render_previous(polygons[6],  texts[6]))
+  found == true || (found = render_previous(polygons[7],  texts[7]))
+  found == true || (found = render_previous(polygons[8],  texts[8]))
+  found == true || (found = render_previous(polygons[9],  texts[9]))
+  found == true || (found = render_previous(polygons[10], texts[10]))
+  found == true || (found = render_previous(polygons[11], texts[11]))
+  found == true || (found = render_previous(polygons[12], texts[12]))
+  found == true || (found = render_previous(polygons[13], texts[13]))
+  found == true || (found = render_previous(polygons[14], texts[14]))
+  found == true || (found = render_previous(polygons[15], texts[15]))
+  found == true || (found = render_previous(polygons[16], texts[16]))
 
   text = (hover != null && 0 <= hover && hover < texts.length ? texts[hover] : null)
-  return polygons, text
+  return polygons, text, found
 }
 
 function add_species()

@@ -2718,8 +2718,8 @@ def turk_viewpoint3(**kwargs):
     tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed, speed_hack=True)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
-    viewpoint = ibs.get_annot_viewpoints(aid)
-    viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+    viewpoint = None if aid is None else ibs.get_annot_viewpoints(aid)
+    viewpoint_code = const.YAWALIAS.get(viewpoint, None)
 
     review = 'review' in request.args.keys()
     finished = aid is None
@@ -2747,15 +2747,16 @@ def turk_viewpoint3(**kwargs):
     species_list = list(zip(species_nice_list, species_text_list, species_selected_list))
     species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
+    axis_preference = request.cookies.get('ia-viewpoint3_axis_preference', None)
+
     return appf.template('turk', 'viewpoint3',
                          imgsetid=imgsetid,
                          src_ag=src_ag,
                          dst_ag=dst_ag,
                          gid=gid,
                          aid=aid,
-                         viewpoint1=viewpoint1,
-                         viewpoint2=viewpoint2,
-                         viewpoint3=viewpoint3,
+                         viewpoint_code=viewpoint_code,
+                         axis_preference=axis_preference,
                          image_src=image_src,
                          previous=previous,
                          species_list=species_list,
