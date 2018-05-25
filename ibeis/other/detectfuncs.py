@@ -102,7 +102,7 @@ def simple_code(label):
 
 
 def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
-    def errors(zipped, conf):
+    def errors(zipped, conf, category):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         for index, (label, confidence) in enumerate(zipped):
             if label == category:
@@ -121,7 +121,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
     for conf in conf_list:
-        conf_dict[conf] = errors(zipped, conf)
+        conf_dict[conf] = errors(zipped, conf, category)
 
     conf_list_ = [-1.0, -1.0]
     pr_list = [1.0, 0.0]
@@ -1858,17 +1858,17 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
     aids_list = ibs.get_image_aids(test_gid_list)
 
     species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
-    species_set_list = [
-        set([
-            species_mapping.get(species, species)
-            for species in species_list
-        ])
-        for species_list in species_list_list
-    ]
+    species_set_list = []
+    for species_list in species_list_list:
+        species_set = set([])
+        for species in species_list:
+            species = species_mapping.get(species, species)
+            species_set.add(species)
+        species_set_list.append(species_set)
 
     label_list = [
-        'positive' if category in species_set else 'negative'
-        for species_set in species_set_list
+        'positive' if category in species_set_ else 'negative'
+        for species_set_ in species_set_list
     ]
 
     confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
@@ -1896,6 +1896,7 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
             output_filepath = join(output_path, output_filename)
             cv2.imwrite(output_filepath, thumbnail)
 
+    kwargs.pop('category', None)
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
@@ -1949,7 +1950,6 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
         config_dict = {
             'label': category_nice,
             'category': category,
-            'test_gid_list': test_gid_list,
         }
         config_dict.update(kwargs)
         config_list.append(config_dict)
@@ -1967,7 +1967,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     axes_.set_ylim([0.0, 1.01])
 
     for color, config in zip(color_list, config_list):
-        classifier2_precision_recall_algo_plot(ibs, color=color, **config)
+        classifier2_precision_recall_algo_plot(ibs, color=color,
+                                               test_gid_list=test_gid_list, **config)
     plt.title('Precision-Recall Curves', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1982,7 +1983,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     op_dict = {}
     for color, config in zip(color_list, config_list):
-        values = classifier2_roc_algo_plot(ibs, color=color, **config)
+        values = classifier2_roc_algo_plot(ibs, color=color, test_gid_list=test_gid_list, **config)
         ap, best_conf, tup = values
         op_dict[config['category']] = best_conf
 
@@ -1992,13 +1993,13 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     aids_list = ibs.get_image_aids(test_gid_list)
     species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
-    species_set_list = [
-        set([
-            species_mapping.get(species, species)
-            for species in species_list_
-        ])
-        for species_list_ in species_list_list
-    ]
+    species_set_list = []
+    for species_list in species_list_list:
+        species_set = set([])
+        for species in species_list:
+            species = species_mapping.get(species, species)
+            species_set.add(species)
+        species_set_list.append(species_set)
     confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
 
     correct = 0
