@@ -1984,7 +1984,7 @@ def get_image_aids(ibs, gid_list, is_staged=False):
 
     with ut.Timer('[get_image_aids] block 3'):
         aids_list = [
-            ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
+            ibs.filter_annotation_set(aid_list_, is_staged=is_staged, sort=False)
             for aid_list_ in aids_list
         ]
     return aids_list
