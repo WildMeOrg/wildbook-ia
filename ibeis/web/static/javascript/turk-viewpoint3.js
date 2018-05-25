@@ -542,16 +542,16 @@ $(window).keydown(function(event) {
       index = index % length
       children.eq(index).prop('selected', true);
     }
-    else if(key == 76)
-    {
-      // L key pressed, submit form as left
-      $('input#turk-submit-left').click();
-    }
-    else if(key == 82)
-    {
-      // R key pressed, submit form as right
-      $('input#turk-submit-right').click();
-    }
+    // else if(key == 76)
+    // {
+    //   // L key pressed, submit form as left
+    //   $('input#turk-submit-left').click();
+    // }
+    // else if(key == 82)
+    // {
+    //   // R key pressed, submit form as right
+    //   $('input#turk-submit-right').click();
+    // }
     else if(key == 80)
     {
       // P key pressed, follow previous link
