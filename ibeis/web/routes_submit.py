@@ -647,8 +647,10 @@ def submit_viewpoint3(**kwargs):
         else:
             if src_ag is not None and dst_ag is not None:
                 appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
+
             if method.lower() == 'ignore':
-                viewpoint_int = const.VIEW.UNKNOWN
+                ibs.set_annot_viewpoints([aid], ['ignore'], only_allow_known=False, _code_update=False)
+                viewpoint = 'ignore'
             else:
                 # Get metadata
                 viewpoint_str = kwargs.get('viewpoint-text-code', '')
@@ -656,14 +658,15 @@ def submit_viewpoint3(**kwargs):
                     viewpoint_str = None
 
                 if viewpoint_str is None:
-                    viewpoint_int = const.VIEW.UNKNOWN
+                    viewpoint = const.VIEW.UNKNOWN
                 else:
-                    viewpoint_int = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
-            species_text = request.form['viewpoint-species']
+                    viewpoint = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
+                ibs.set_annot_viewpoint([aid], [viewpoint])
 
-            ibs.set_annot_viewpoint_int([aid], [viewpoint_int])
+            species_text = request.form['viewpoint-species']
             ibs.set_annot_species([aid], [species_text])
-            print('[web] user_id: %s, aid: %d, viewpoint_int: %s' % (user_id, aid, viewpoint_int))
+            ibs.set_annot_reviewed([aid], [1])
+            print('[web] user_id: %s, aid: %d, viewpoint: %s' % (user_id, aid, viewpoint))
 
         # Return HTML
         refer = request.args.get('refer', '')
