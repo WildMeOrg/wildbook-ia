@@ -241,7 +241,11 @@
     }
 
     function render(event) {
-      flag = event.shiftKey
+      if (event == null) {
+        flag = false
+      } else {
+        flag = event.shiftKey
+      }
 
       width = $(canvas).width()
       height = $(canvas).height()
@@ -289,72 +293,6 @@
       update_previous()
     }
 
-    $('#species-add').on('shown.bs.modal', function() {
-        $('input[name="species-add"]').val('')
-        hotkeys_global_disabled = true;
-    });
-
-    $('#species-add').on('hidden.bs.modal', function() {
-        hotkeys_global_disabled = false;
-    });
-
-    $(canvas).mousemove(function(event) {
-      var redraw, point
-      redraw = false
-
-      point = [event.offsetX, event.offsetY]
-      for (var index = 0; index < polygons.length; index++) {
-        polygon = polygons[index]
-        text = texts[index]
-        if (inside_polygon(point, polygon)) {
-          redraw = hover != index
-
-          disabled = is_disabled(index, text)
-          if (disabled) {
-            hover = undefined
-          } else {
-            hover = index
-            index = polygons.length
-          }
-        }
-      }
-
-      if (redraw) {
-        render(event)
-      }
-    });
-
-    $(canvas).hover(function(event) {
-      // NOTHING
-    }, function(event) {
-        hover = null
-        render(event)
-    });
-
-    $(canvas).click(function(event) {
-      if (hover != null && hover != undefined) {
-        $('input#turk-submit-accept').click();
-      }
-    });
-
-    $(window).bind("resize", function(event) {
-        render(event)
-    })
-
-    $('input[name="ia-option-radio"]').change(function(event) {
-        render(event)
-        checked = $('input[name="ia-option-radio"]:checked').val()
-        submit_cookie('ia-viewpoint3_axis_preference', checked);
-    })
-
-    $(window).keydown(function(event) {
-      render(event)
-    });
-
-    $(window).keyup(function(event) {
-      render(event)
-    });
-
     $(document).ready(function() {
       canvas = document.getElementById('canvas');
       ctx = canvas.getContext('2d');
@@ -363,7 +301,7 @@
 
       $('input[name="ia-option-radio"][value="' + axis_preference + '"]').click()
 
-      render(event)
+      render(null)
       $(canvas).mouseover()
 
       $('.ia-detection-hotkey').hide();
@@ -371,6 +309,72 @@
       {% if display_instructions %}
         $('#turk-instructions').modal('show');
       {% endif %}
+
+      $('#species-add').on('shown.bs.modal', function() {
+          $('input[name="species-add"]').val('')
+          hotkeys_global_disabled = true;
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+      });
+
+      $(canvas).on('mousemove', function(event) {
+        var redraw, point
+        redraw = false
+
+        point = [event.offsetX, event.offsetY]
+        for (var index = 0; index < polygons.length; index++) {
+          polygon = polygons[index]
+          text = texts[index]
+          if (inside_polygon(point, polygon)) {
+            redraw = hover != index
+
+            disabled = is_disabled(index, text)
+            if (disabled) {
+              hover = undefined
+            } else {
+              hover = index
+              index = polygons.length
+            }
+          }
+        }
+
+        if (redraw) {
+          render(event)
+        }
+      });
+
+      $(canvas).on('hover', function(event) {
+        // NOTHING
+      }, function(event) {
+          hover = null
+          render(event)
+      });
+
+      $(canvas).click(function(event) {
+        if (hover != null && hover != undefined) {
+          $('input#turk-submit-accept').click();
+        }
+      });
+
+      $(window).bind("resize", function(event) {
+          render(event)
+      })
+
+      $('input[name="ia-option-radio"]').change(function(event) {
+          render(event)
+          checked = $('input[name="ia-option-radio"]:checked').val()
+          submit_cookie('ia-viewpoint3_axis_preference', checked);
+      })
+
+      $(window).keydown(function(event) {
+        render(event)
+      });
+
+      $(window).keyup(function(event) {
+        render(event)
+      });
     });
 </script>
 {% endblock %}
