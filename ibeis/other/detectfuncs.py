@@ -147,6 +147,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
             tpr_list.append(tpr)
             fpr_list.append(fpr)
         except ZeroDivisionError:
+            ut.embed()
             print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
