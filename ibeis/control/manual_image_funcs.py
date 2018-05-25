@@ -1891,11 +1891,11 @@ def get_image_aids(ibs, gid_list, is_staged=False):
         with ut.Timer('[get_image_aids] block 1'):
             # The index maxes the following query very efficient
             params_iter = ((gid, is_staged) for gid in gid_list)
-            where_clause = '%s=? AND %s=?' % (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
-            print('where_clause = %r' % (where_clause, ))
-            print(where_clause)
-            aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                                   params_iter, where_clause, unpack_scalars=False)
+            where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
+            print('where_clause = %r' % (where_colnames, ))
+            print(where_colnames)
+            aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                            params_iter, where_colnames, unpack_scalars=False)
         #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
         #    '''
         #    SELECT annot_rowid
