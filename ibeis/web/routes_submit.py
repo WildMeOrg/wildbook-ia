@@ -660,15 +660,13 @@ def submit_viewpoint3(**kwargs):
                         viewpoint_int = const.VIEW.UNKNOWN
                     else:
                         viewpoint_int = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
+                species_text = request.form['viewpoint-species']
 
             with ut.Timer('[submit_viewpoint3] block 2'):
                 ibs.set_annot_viewpoint_int([aid], [viewpoint_int])
-                species_text = request.form['viewpoint-species']
-                # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
-
-            with ut.Timer('[submit_viewpoint3] block 3'):
                 ibs.set_annot_species([aid], [species_text])
-                print('[web] user_id: %s, aid: %d, viewpoint_int: %s' % (user_id, aid, viewpoint_int))
+
+            print('[web] user_id: %s, aid: %d, viewpoint_int: %s' % (user_id, aid, viewpoint_int))
 
         # Return HTML
         refer = request.args.get('refer', '')
