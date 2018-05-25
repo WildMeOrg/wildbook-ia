@@ -271,14 +271,18 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
     with ut.Timer('[get_turk_annot_args] block 2'):
         group_review_flag = src_ag is not None and dst_ag is not None
         if not group_review_flag:
-            print('NOT GROUP_REVIEW')
-            if speed_hack:
-                with ut.Timer():
-                    aid_list = ibs.get_valid_aids()
-            else:
-                gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-                aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-            reviewed_list = is_reviewed_func(ibs, aid_list)
+            with ut.Timer('[get_turk_annot_args] block 2.1'):
+                print('NOT GROUP_REVIEW')
+                if speed_hack:
+                    with ut.Timer('[get_turk_annot_args] block 2.2'):
+                        aid_list = ibs.get_valid_aids()
+                else:
+                    with ut.Timer('[get_turk_annot_args] block 2.3'):
+                        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+                    with ut.Timer('[get_turk_annot_args] block 2.4'):
+                        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+                with ut.Timer('[get_turk_annot_args] block 2.5'):
+                    reviewed_list = is_reviewed_func(ibs, aid_list)
         else:
             src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
             dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)

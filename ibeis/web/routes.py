@@ -1757,21 +1757,29 @@ def turk_cameratrap(**kwargs):
 
 
 @register_ibs_method
-def precompute_web_detection_thumbnails(ibs, gid_list=None):
+def precompute_web_detection_thumbnails(ibs, gid_list=None, **kwargs):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
-    for gid in gid_list:
-        routes_ajax.image_src(gid, ibs=ibs, resize=False)
+    kwargs['thumbsize'] = max(
+        int(appf.TARGET_WIDTH),
+        int(appf.TARGET_HEIGHT),
+    )
+    kwargs['draw_annots'] = False
+    ibs.get_image_thumbpath(gid_list, ensure_paths=True, **kwargs)
 
 
 @register_ibs_method
-def precompute_web_viewpoint_thumbnails(ibs, aid_list=None):
+def precompute_web_viewpoint_thumbnails(ibs, aid_list=None, **kwargs):
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
-    for aid in aid_list:
-        routes_ajax.annotation_src(aid, ibs=ibs)
+    kwargs['dim_size'] = max(
+        int(appf.TARGET_WIDTH),
+        int(appf.TARGET_HEIGHT),
+    )
+    ibs._parallel_chips = True
+    ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=kwargs)
 
 
 @register_route('/turk/detection/', methods=['GET'])
