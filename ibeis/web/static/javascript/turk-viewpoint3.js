@@ -43,16 +43,16 @@ function inside_polygon(point, vs) {
     return inside;
 };
 
-function render_previous(polygon, text) {
+function render_previous(index, polygon, text) {
   if (translate_text(text) == previous) {
     ctx.strokeStyle = '#FFF';
     ctx.lineWidth = 6;
     ctx.beginPath();
 
-    for (var index = 0; index < polygon.length; index++) {
-      point = polygon[index]
+    for (var i = 0; i < polygon.length; i++) {
+      point = polygon[i]
 
-      if (index == 0) {
+      if (i == 0) {
         ctx.moveTo(point[0], point[1]);
       } else {
         ctx.lineTo(point[0], point[1]);
@@ -61,6 +61,11 @@ function render_previous(polygon, text) {
 
     ctx.closePath();
     ctx.stroke();
+
+    // if (hover == null) {
+    //   hover = index
+    // }
+
     return true
   }
 
@@ -454,23 +459,23 @@ function render_canvas(option, hover, previous) {
   render_polygon(16, colors[16][0], polygons[16], colors[16][1], texts[16], 0.02, 0.04)
 
   found = previous != null
-  found == true || (found = render_previous(polygons[0],  texts[0]))
-  found == true || (found = render_previous(polygons[1],  texts[1]))
-  found == true || (found = render_previous(polygons[2],  texts[2]))
-  found == true || (found = render_previous(polygons[3],  texts[3]))
-  found == true || (found = render_previous(polygons[4],  texts[4]))
-  found == true || (found = render_previous(polygons[5],  texts[5]))
-  found == true || (found = render_previous(polygons[6],  texts[6]))
-  found == true || (found = render_previous(polygons[7],  texts[7]))
-  found == true || (found = render_previous(polygons[8],  texts[8]))
-  found == true || (found = render_previous(polygons[9],  texts[9]))
-  found == true || (found = render_previous(polygons[10], texts[10]))
-  found == true || (found = render_previous(polygons[11], texts[11]))
-  found == true || (found = render_previous(polygons[12], texts[12]))
-  found == true || (found = render_previous(polygons[13], texts[13]))
-  found == true || (found = render_previous(polygons[14], texts[14]))
-  found == true || (found = render_previous(polygons[15], texts[15]))
-  found == true || (found = render_previous(polygons[16], texts[16]))
+  found == true || (found = render_previous(0,  polygons[0],  texts[0]))
+  found == true || (found = render_previous(1,  polygons[1],  texts[1]))
+  found == true || (found = render_previous(2,  polygons[2],  texts[2]))
+  found == true || (found = render_previous(3,  polygons[3],  texts[3]))
+  found == true || (found = render_previous(4,  polygons[4],  texts[4]))
+  found == true || (found = render_previous(5,  polygons[5],  texts[5]))
+  found == true || (found = render_previous(6,  polygons[6],  texts[6]))
+  found == true || (found = render_previous(7,  polygons[7],  texts[7]))
+  found == true || (found = render_previous(8,  polygons[8],  texts[8]))
+  found == true || (found = render_previous(9,  polygons[9],  texts[9]))
+  found == true || (found = render_previous(10, polygons[10], texts[10]))
+  found == true || (found = render_previous(11, polygons[11], texts[11]))
+  found == true || (found = render_previous(12, polygons[12], texts[12]))
+  found == true || (found = render_previous(13, polygons[13], texts[13]))
+  found == true || (found = render_previous(14, polygons[14], texts[14]))
+  found == true || (found = render_previous(15, polygons[15], texts[15]))
+  found == true || (found = render_previous(16, polygons[16], texts[16]))
 
   text = (hover != null && 0 <= hover && hover < texts.length ? texts[hover] : null)
   return polygons, text, found
@@ -507,12 +512,13 @@ $(window).keydown(function(event) {
 
   if( ! hotkeys_disabled)
   {
-    if(key == 13)
-    {
-      // Enter key pressed, submit form as accept
-      $('input#turk-submit-accept').click();
-    }
-    else if (key == 17) {
+    // if(key == 13)
+    // {
+    //   // Enter key pressed, submit form as accept
+    //   // $('input#turk-submit-accept').click();
+    // }
+    // else
+    if (key == 17) {
       // Ctrl pressed
       $('.ia-detection-hotkey').show();
     }
