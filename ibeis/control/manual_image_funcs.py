@@ -1880,14 +1880,18 @@ def get_image_aids(ibs, gid_list, is_staged=False):
     if NEW_INDEX_HACK:
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
-        ibs.db.connection.execute(
-            '''
-            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
-            ''').fetchall()
-        # The index maxes the following query very efficient
-        aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                               gid_list, id_colname=IMAGE_ROWID,
-                               unpack_scalars=False)
+
+        with ut.Timer('[get_image_aids] block 1'):
+            ibs.db.connection.execute(
+                '''
+                CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+                ''').fetchall()
+
+        with ut.Timer('[get_image_aids] block 2'):
+            # The index maxes the following query very efficient
+            aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                   gid_list, id_colname=IMAGE_ROWID,
+                                   unpack_scalars=False)
         #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
         #    '''
         #    SELECT annot_rowid
@@ -1978,10 +1982,11 @@ def get_image_aids(ibs, gid_list, is_staged=False):
         """
     #print('aids_list = %r' % (aids_list,))
 
-    aids_list = [
-        ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
-        for aid_list_ in aids_list
-    ]
+    with ut.Timer('[get_image_aids] block 3'):
+        aids_list = [
+            ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
+            for aid_list_ in aids_list
+        ]
     return aids_list
 
 
