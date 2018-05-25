@@ -645,27 +645,24 @@ def submit_viewpoint3(**kwargs):
                     redirection = '%s?aid=%d' % (redirection, aid, )
             return redirect(redirection)
         else:
-            with ut.Timer('[submit_viewpoint3] block 1'):
-                if src_ag is not None and dst_ag is not None:
-                    appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-                if method.lower() == 'ignore':
+            if src_ag is not None and dst_ag is not None:
+                appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
+            if method.lower() == 'ignore':
+                viewpoint_int = const.VIEW.UNKNOWN
+            else:
+                # Get metadata
+                viewpoint_str = kwargs.get('viewpoint-text-code', '')
+                if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
+                    viewpoint_str = None
+
+                if viewpoint_str is None:
                     viewpoint_int = const.VIEW.UNKNOWN
                 else:
-                    # Get metadata
-                    viewpoint_str = kwargs.get('viewpoint-text-code', '')
-                    if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
-                        viewpoint_str = None
+                    viewpoint_int = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
+            species_text = request.form['viewpoint-species']
 
-                    if viewpoint_str is None:
-                        viewpoint_int = const.VIEW.UNKNOWN
-                    else:
-                        viewpoint_int = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
-                species_text = request.form['viewpoint-species']
-
-            with ut.Timer('[submit_viewpoint3] block 2'):
-                ibs.set_annot_viewpoint_int([aid], [viewpoint_int])
-                ibs.set_annot_species([aid], [species_text])
-
+            ibs.set_annot_viewpoint_int([aid], [viewpoint_int])
+            ibs.set_annot_species([aid], [species_text])
             print('[web] user_id: %s, aid: %d, viewpoint_int: %s' % (user_id, aid, viewpoint_int))
 
         # Return HTML

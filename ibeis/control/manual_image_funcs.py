@@ -1888,14 +1888,13 @@ def get_image_aids(ibs, gid_list, is_staged=False):
             CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
             ''').fetchall()
 
-        with ut.Timer('[get_image_aids] block 1'):
-            # The index maxes the following query very efficient
-            params_iter = ((gid, is_staged) for gid in gid_list)
-            where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
-            print('where_clause = %r' % (where_colnames, ))
-            print(where_colnames)
-            aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                                            params_iter, where_colnames, unpack_scalars=False)
+        # The index maxes the following query very efficient
+        params_iter = ((gid, is_staged) for gid in gid_list)
+        where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
+        print('where_clause = %r' % (where_colnames, ))
+        print(where_colnames)
+        aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                        params_iter, where_colnames, unpack_scalars=False)
         #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
         #    '''
         #    SELECT annot_rowid

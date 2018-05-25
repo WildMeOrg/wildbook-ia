@@ -255,70 +255,59 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
     """
     Helper to return aids in an imageset or a group review
     """
-    with ut.Timer('[get_turk_annot_args] block 1'):
-        ibs = current_app.ibs
-        def _ensureid(_id):
-            return None if _id == 'None' or _id == '' else int(_id)
+    ibs = current_app.ibs
+    def _ensureid(_id):
+        return None if _id == 'None' or _id == '' else int(_id)
 
-        imgsetid = request.args.get('imgsetid', '')
-        src_ag = request.args.get('src_ag', '')
-        dst_ag = request.args.get('dst_ag', '')
+    imgsetid = request.args.get('imgsetid', '')
+    src_ag = request.args.get('src_ag', '')
+    dst_ag = request.args.get('dst_ag', '')
 
-        imgsetid = _ensureid(imgsetid)
-        src_ag = _ensureid(src_ag)
-        dst_ag = _ensureid(dst_ag)
+    imgsetid = _ensureid(imgsetid)
+    src_ag = _ensureid(src_ag)
+    dst_ag = _ensureid(dst_ag)
 
-    with ut.Timer('[get_turk_annot_args] block 2'):
-        group_review_flag = src_ag is not None and dst_ag is not None
-        if not group_review_flag:
-            with ut.Timer('[get_turk_annot_args] block 2.1'):
-                print('NOT GROUP_REVIEW')
-                if speed_hack:
-                    with ut.Timer('[get_turk_annot_args] block 2.2'):
-                        aid_list = ibs.get_valid_aids()
-                else:
-                    with ut.Timer('[get_turk_annot_args] block 2.3'):
-                        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-                    with ut.Timer('[get_turk_annot_args] block 2.4'):
-                        aid_list = ibs.get_image_aids(gid_list, is_staged=False)
-                    with ut.Timer('[get_turk_annot_args] block 2.5'):
-                        aid_list = ut.flatten(aid_list)
-                with ut.Timer('[get_turk_annot_args] block 2.6'):
-                    reviewed_list = is_reviewed_func(ibs, aid_list)
+    group_review_flag = src_ag is not None and dst_ag is not None
+    if not group_review_flag:
+        print('NOT GROUP_REVIEW')
+        if speed_hack:
+            aid_list = ibs.get_valid_aids()
         else:
-            src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
-            dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
-            src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
-            dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
-            aid_list = src_aid_list
-            reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
+            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+            aid_list = ibs.get_image_aids(gid_list, is_staged=False)
+            aid_list = ut.flatten(aid_list)
+            reviewed_list = is_reviewed_func(ibs, aid_list)
+    else:
+        src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
+        dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
+        src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
+        dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
+        aid_list = src_aid_list
+        reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
 
-    with ut.Timer('[get_turk_annot_args] block 3'):
-        try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
-        except ZeroDivisionError:
-            progress = '0.00'
-        aid = request.args.get('aid', '')
-        if len(aid) > 0:
-            aid = int(aid)
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
+    aid = request.args.get('aid', '')
+    if len(aid) > 0:
+        aid = int(aid)
+    else:
+        aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+        if len(aid_list_) == 0:
+            aid = None
         else:
-            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
-            if len(aid_list_) == 0:
-                aid = None
+            if group_review_flag:
+                aid = aid_list_[0]
             else:
-                if group_review_flag:
-                    aid = aid_list_[0]
-                else:
-                    aid = random.choice(aid_list_)
+                aid = random.choice(aid_list_)
 
-    with ut.Timer('[get_turk_annot_args] block 4'):
-        previous = request.args.get('previous', None)
+    previous = request.args.get('previous', None)
 
-        print('aid = %r' % (aid,))
-        #print(ut.repr2(ibs.get_annot_info(aid)))
-        if aid is not None:
-            print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
-
+    print('aid = %r' % (aid,))
+    #print(ut.repr2(ibs.get_annot_info(aid)))
+    # if aid is not None:
+    #     print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
     return aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous
 
 
