@@ -1866,7 +1866,6 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
             species_set.add(species)
         species_set_list.append(species_set)
 
-    ut.embed()
     label_list = [
         'positive' if category in species_set_ else 'negative'
         for species_set_ in species_set_list
@@ -1969,7 +1968,9 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     for color, config in zip(color_list, config_list):
         classifier2_precision_recall_algo_plot(ibs, color=color,
-                                               test_gid_list=test_gid_list, **config)
+                                               test_gid_list=test_gid_list,
+                                               species_mapping=species_mapping,
+                                               **config)
     plt.title('Precision-Recall Curves', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1984,7 +1985,10 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     op_dict = {}
     for color, config in zip(color_list, config_list):
-        values = classifier2_roc_algo_plot(ibs, color=color, test_gid_list=test_gid_list, **config)
+        values = classifier2_roc_algo_plot(ibs, color=color,
+                                           test_gid_list=test_gid_list,
+                                           species_mapping=species_mapping,
+                                           **config)
         ap, best_conf, tup1, tup2 = values
         op_dict[config['category']] = best_conf
 
