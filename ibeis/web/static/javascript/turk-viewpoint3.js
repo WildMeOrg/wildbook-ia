@@ -62,9 +62,9 @@ function render_previous(index, polygon, text) {
     ctx.closePath();
     ctx.stroke();
 
-    if (hover == null) {
-      hover = index
-    }
+    // if (hover == null) {
+    //   hover = index
+    // }
 
     return true
   }
@@ -512,12 +512,13 @@ $(window).keydown(function(event) {
 
   if( ! hotkeys_disabled)
   {
-    if(key == 13)
-    {
-      // Enter key pressed, submit form as accept
-      $('input#turk-submit-accept').click();
-    }
-    else if (key == 17) {
+    // if(key == 13)
+    // {
+    //   // Enter key pressed, submit form as accept
+    //   // $('input#turk-submit-accept').click();
+    // }
+    // else
+    if (key == 17) {
       // Ctrl pressed
       $('.ia-detection-hotkey').show();
     }
