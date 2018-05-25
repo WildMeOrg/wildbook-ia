@@ -97,7 +97,7 @@
         {% if previous %}
           <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_viewpoint3') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
-        <input type="submit" name="viewpoint-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <!-- <input type="submit" name="viewpoint-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept"> -->
         <input type="submit" name="viewpoint-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
         <br/>
         <br/>
