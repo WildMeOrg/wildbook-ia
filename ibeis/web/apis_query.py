@@ -28,6 +28,7 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+GRAPH_CLIENT_PEEK = 500
 ANNOT_INFR_PEAK_MAX = 50
 
 
@@ -892,7 +893,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                                    autoinit=True)
         graph_client.aids = aid_list
         config = {
-            'manual.n_peek'   : 50,
+            'manual.n_peek'   : GRAPH_CLIENT_PEEK,
             'manual.autosave' : True,
             'redun.pos'       : 2,
             'redun.neg'       : 2,

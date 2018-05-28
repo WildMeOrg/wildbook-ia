@@ -1008,7 +1008,7 @@ class FeatConfig(dtool.Config):
     fname='featcache', chunksize=1024,
 )
 def compute_feats(depc, cid_list, config=None):
-    r"""
+
     Computes features and yields results asynchronously: TODO: Remove IBEIS from
     this equation. Move the firewall towards the controller
 

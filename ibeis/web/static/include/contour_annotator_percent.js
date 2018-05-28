@@ -622,7 +622,7 @@
             point = this.points.segment[index]
             diff_x = this.points.cursor.x - (point.x.global * width)
             diff_y = this.points.cursor.y - (point.y.global * height)
-            dist = Math.sqrt(diff_x ** 2 + diff_y ** 2)
+            dist = Math.sqrt(Math.pow(diff_x, 2) + Math.pow(diff_y, 2))
 
             return [dist, point]
         }
@@ -1062,7 +1062,7 @@
                             point = this.points.segment[index]
                             diff_x = (reference.x.global - point.x.global) * width
                             diff_y = (reference.y.global - point.y.global) * height
-                            dist = Math.sqrt(diff_x ** 2 + diff_y ** 2)
+                            dist = Math.sqrt(Math.pow(diff_x, 2) + Math.pow(diff_y, 2))
                             if (dist <= this.options.size.paint) {
                                 this.points.segment[index].highlight = highlight
                                 this.color_segment(index)

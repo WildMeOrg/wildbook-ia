@@ -347,10 +347,10 @@ TODO
             data.pixels.width = data.pixels.xbr - data.pixels.xtl
             data.pixels.height = data.pixels.ybr - data.pixels.ytl
 
-            data.pixels.hypo = Math.sqrt(data.pixels.width ** 2 + data.pixels.height ** 2)
+            data.pixels.hypo = Math.sqrt(Math.pow(data.pixels.width, 2) + Math.pow(data.pixels.height, 2))
             diff_x = data.pixels.middle.x - data.pixels.cursor.x
             diff_y = data.pixels.middle.y - data.pixels.cursor.y
-            data.pixels.right = Math.sqrt(diff_x ** 2 + diff_y ** 2)
+            data.pixels.right = Math.sqrt(Math.pow(diff_x, 2) + Math.pow(diff_y, 2))
 
             data.angles.origin = calculate_angle(data.pixels.origin, data.pixels.middle)
             data.angles.middle = calculate_angle(data.pixels.middle, data.pixels.cursor)
@@ -2003,7 +2003,7 @@ TODO
                 offset = handle.offset()
                 diff_x = event.pageX - offset.left
                 diff_y = event.pageY - offset.top
-                dist = Math.sqrt(diff_x ** 2 + diff_y ** 2)
+                dist = Math.sqrt(Math.pow(diff_x, 2) + Math.pow(diff_y, 2))
                 // Get the closest
                 if (dist < closest_dist) {
                     closest_dist = dist
@@ -2089,7 +2089,7 @@ TODO
                 y: centers.entry.y - centers.parent.y,
             }
 
-            hypo = Math.sqrt(delta.x ** 2 + delta.y ** 2)
+            hypo = Math.sqrt(Math.pow(delta.x, 2) + Math.pow(delta.y, 2))
             angle = calculate_angle(centers.entry, centers.parent)
 
             element.assignment.css({
@@ -2585,7 +2585,7 @@ TODO
             }
 
             theta = this.state.anchors.element.theta
-            hypo = Math.sqrt(delta.x ** 2 + delta.y ** 2)
+            hypo = Math.sqrt(Math.pow(delta.x, 2) + Math.pow(delta.y, 2))
             angle = calculate_angle(this.state.anchors.cursor, cursor)
             diff_angle = angle - theta
 
@@ -2604,7 +2604,7 @@ TODO
                 x: Math.cos(theta) * diff.x,
                 y: Math.sin(theta) * diff.x,
             }
-            components.x.hypo = Math.sqrt(components.x.x ** 2 + components.x.y ** 2)
+            components.x.hypo = Math.sqrt(Math.pow(components.x.x, 2) + Math.pow(components.x.y, 2))
             if (components.x.x > 0) {
                 components.x.hypo *= -1.0
             }
@@ -2612,7 +2612,7 @@ TODO
                 x: Math.sin(-theta) * diff.y,
                 y: Math.cos(-theta) * diff.y,
             }
-            components.y.hypo = Math.sqrt(components.y.x ** 2 + components.y.y ** 2)
+            components.y.hypo = Math.sqrt(Math.pow(components.y.x, 2) + Math.pow(components.y.y, 2))
             if (components.y.y > 0) {
                 components.y.hypo *= -1.0
             }
