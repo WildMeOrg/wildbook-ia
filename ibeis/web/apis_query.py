@@ -775,7 +775,7 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
     return graph_client, graph_uuid_chain
 
 
-def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
+def ensure_review_image_v2(ibs, match, draw_matches=True, draw_heatmask=False,
                            view_orientation='vertical', overlay=True):
     import plottool as pt
     render_config = {
@@ -974,7 +974,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
 @register_ibs_method
 def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
-                                 view_orientation='vertical'):
+                                 view_orientation='vertical', view_version=1):
     from ibeis.algo.verif import pairfeat
 
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
@@ -1018,8 +1018,12 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     # image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
     #                                        view_orientation=view_orientation)
 
-    image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
-                                            view_orientation=view_orientation)
+    if view_version == 1:
+        image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
+                                                view_orientation=view_orientation)
+    else:
+        image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=False,
+                                                view_orientation=view_orientation)
 
     image_clean_src = appf.embed_image_html(image_clean)
     # image_matches_src = appf.embed_image_html(image_matches)
@@ -1037,9 +1041,11 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
 def review_graph_match_html_v2(ibs, graph_uuid, callback_url=None,
                                callback_method='POST',
                                view_orientation='vertical',
+                               view_version=1,
                                include_jquery=False):
     values = ibs.review_graph_match_config_v2(graph_uuid,
-                                              view_orientation=view_orientation)
+                                              view_orientation=view_orientation,
+                                              view_version=view_version)
 
     (edge, priority, data_dict, aid1, aid2, annot_uuid_1, annot_uuid_2,
         image_clean_src, image_matches_src, image_heatmask_src,
@@ -1206,7 +1212,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
     new_name_list = list(name_delta_df['new_name'])
     zipped = list(zip(name_annot_uuid_list, old_name_list, new_name_list))
     name_dict = {
-        name_annot_uuid: {
+        str(name_annot_uuid): {
             'old': old_name,
             'new': new_name,
         }
