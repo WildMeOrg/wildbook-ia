@@ -872,7 +872,38 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
-    ut.embed()
+    # FILTER FOR GGR
+    if True:
+        num_start = len(aid_list)
+
+        # Filter by species
+        aid_list = ibs.filter_annotation_set(aid_list, species='zebra_grevys')
+
+        # Filter by viewpoint
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        aid_list = [
+            aid
+            for aid, viewpoint in zip(aid_list, viewpoint_list)
+            if viewpoint is not None and 'right' in viewpoint
+        ]
+
+        # Filter by confidence or AoI
+        interest_list = ibs.get_annot_interest(aid_list)
+        metadata_list = ibs.get_annot_metadata(aid_list)
+        confidence_list = [
+            metadata.get('confidence', {}).get('localization', 1.0)
+            for metadata in metadata_list
+        ]
+        zipped = list(zip(aid_list, interest_list, confidence_list))
+        aid_list = [
+            aid
+            for aid, interest, confidence in zipped
+            if interest or confidence > 0.75
+        ]
+
+        num_finish = len(aid_list)
+        num_difference = num_start - num_finish
+        print('Filtered out %d annotations from %d / %d' % (num_difference, num_finish, num_start, ))
 
     graph_uuid = ut.hashable_to_uuid(sorted(aid_list))
     if graph_uuid not in current_app.GRAPH_CLIENT_DICT:
