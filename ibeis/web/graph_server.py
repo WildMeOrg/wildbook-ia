@@ -377,7 +377,9 @@ class GraphClient(object):
     def refresh_status(client):
         client.cleanup()
         num_futures = len(client.futures)
-        if num_futures == 0:
+        if client.review_dict is None:
+            client.status = 'Finished'
+        elif num_futures == 0:
             client.status = 'Waiting (Empty Queue)'
         else:
             action, future = client.futures[0]
@@ -393,7 +395,7 @@ class GraphClient(object):
             else:
                 status = 'Exception'
                 client.exception = exception
-            client.status = '%s (%d in Queue)' % (status, num_futures, )
+            client.status = '%s (%d in Futures Queue)' % (status, num_futures, )
         return client.status, client.exception
 
     def add_annots(client):
