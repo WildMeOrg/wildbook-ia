@@ -793,6 +793,8 @@ def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
 
 
 def query_graph_v2_callback(graph_client, callback_type):
+    print('LANDED IN query_graph_v2_callback')
+    ut.embed()
     from ibeis.web.graph_server import ut_to_json_encode
     assert callback_type in ['review', 'finished']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
