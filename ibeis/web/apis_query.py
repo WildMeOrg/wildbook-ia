@@ -813,8 +813,6 @@ def query_graph_v2_callback(graph_client, callback_type):
                 requests.delete(callback_url, data=data_dict)
             else:
                 raise KeyError('Unsupported HTTP callback method')
-        else:
-            raise controller_inject.WebReviewFinishedException(graph_client.graph_uuid)
 
 
 @register_ibs_method
