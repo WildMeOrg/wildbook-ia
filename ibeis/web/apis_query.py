@@ -814,7 +814,7 @@ def query_graph_v2_callback(graph_client, callback_type):
             else:
                 raise KeyError('Unsupported HTTP callback method')
         else:
-            raise controller_inject.WebReviewFinishedException
+            raise controller_inject.WebReviewFinishedException(graph_client.graph_uuid)
 
 
 @register_ibs_method
