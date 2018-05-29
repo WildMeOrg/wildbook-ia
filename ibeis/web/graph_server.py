@@ -147,6 +147,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         >>> actor.infr.dump_logs()
         >>> actor.infr.status()
     """
+
     def __init__(actor):
         actor.infr = None
 
@@ -305,6 +306,7 @@ class GraphClient(object):
     #     >>> client.post({'action': 'continue_review'})
 
     """
+
     def __init__(client, graph_uuid=None, callbacks={}, autoinit=False):
         client.graph_uuid = graph_uuid
         client.callbacks = callbacks
@@ -398,16 +400,20 @@ class GraphClient(object):
         raise NotImplementedError('not done yet')
 
     def update(client, data_list):
+        client.review_vip = None
+
         if data_list is None:
             print('GRAPH CLIENT GOT NONE UPDATE')
-            return
-        print('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(len(data_list)))
-        print('First few are: ' + ut.repr4(data_list[0:3], si=2, precision=4))
-        client.review_dict = {}
-        client.review_vip = None
-        if data_list is None:
             client.review_dict = None
         else:
+            num_samples = 3
+            num_items = len(data_list)
+            num_samples = min(num_samples, num_items)
+
+            print('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
+            print('First few are: ' + ut.repr4(data_list[:num_samples], si=2, precision=4))
+            client.review_dict = {}
+
             for (edge, priority, edge_data_dict) in data_list:
                 aid1, aid2 = edge
                 if aid2 < aid1:
