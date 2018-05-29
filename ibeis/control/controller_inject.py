@@ -273,7 +273,11 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
         },
         'response' : rawreturn
     }
-    response = ut.to_json(template)
+    try:
+        response = ut.to_json(template)
+    except:
+        ut.embed()
+
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
         print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
         response = '%s(%s)' % (jQuery_callback, response)
