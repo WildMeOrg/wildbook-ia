@@ -872,6 +872,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
+    ut.embed()
+
     graph_uuid = ut.hashable_to_uuid(sorted(aid_list))
     if graph_uuid not in current_app.GRAPH_CLIENT_DICT:
         for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
