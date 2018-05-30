@@ -47,5 +47,25 @@ $(window).keydown(function(event) {
       // P key pressed
       $('a#ia-turk-previous')[0].click();
     }
+    else if(key == 90)
+    {
+      margin = 5
+
+      if (zoom) {
+        $('#identification-image-clean').removeClass('identification-image-zoom')
+        $('#identification-image-matches').removeClass('identification-image-zoom')
+        scroll = 0
+      } else {
+        $('#identification-image-clean').addClass('identification-image-zoom')
+        $('#identification-image-matches').addClass('identification-image-zoom')
+        offset = $('#identification-image-clean').offset()
+        scroll = offset.top - margin
+      }
+
+      $('html, body').animate({scrollTop: scroll});
+
+      zoom = ! zoom
+      fix_height()
+    }
   }
 });

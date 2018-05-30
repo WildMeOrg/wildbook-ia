@@ -3268,7 +3268,8 @@ def turk_identification_hardcase(*args, **kwargs):
 @register_route('/turk/identification/graph/', methods=['GET'])
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
-                              view_orientation='vertical', **kwargs):
+                              view_orientation='vertical', view_version=1,
+                              **kwargs):
     """
     CommandLine:
         python -m ibeis.web.routes turk_identification_graph --db PZ_Master1
@@ -3338,7 +3339,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             return redirect(url)
 
         values = ibs.review_graph_match_config_v2(graph_uuid, aid1=aid1, aid2=aid2,
-                                                  view_orientation=view_orientation)
+                                                  view_orientation=view_orientation,
+                                                  view_version=view_version)
         finished = False
     except controller_inject.WebReviewNotReadyException:
         finished = 'engine'

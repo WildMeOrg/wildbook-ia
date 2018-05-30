@@ -775,7 +775,7 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
     return graph_client, graph_uuid_chain
 
 
-def ensure_review_image_v2(ibs, match, draw_matches=True, draw_heatmask=False,
+def ensure_review_image_v2(ibs, match, draw_matches=False, draw_heatmask=False,
                            view_orientation='vertical', overlay=True):
     import plottool as pt
     render_config = {
@@ -872,38 +872,9 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
-    # FILTER FOR GGR
+    # FILTER FOR GGR2
     if True:
-        num_start = len(aid_list)
-
-        # Filter by species
-        aid_list = ibs.filter_annotation_set(aid_list, species='zebra_grevys')
-
-        # Filter by viewpoint
-        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-        aid_list = [
-            aid
-            for aid, viewpoint in zip(aid_list, viewpoint_list)
-            if viewpoint is not None and 'right' in viewpoint
-        ]
-
-        # Filter by confidence or AoI
-        interest_list = ibs.get_annot_interest(aid_list)
-        metadata_list = ibs.get_annot_metadata(aid_list)
-        confidence_list = [
-            metadata.get('confidence', {}).get('localization', 1.0)
-            for metadata in metadata_list
-        ]
-        zipped = list(zip(aid_list, interest_list, confidence_list))
-        aid_list = [
-            aid
-            for aid, interest, confidence in zipped
-            if interest or confidence > 0.75
-        ]
-
-        num_finish = len(aid_list)
-        num_difference = num_start - num_finish
-        print('Filtered out %d annotations from %d / %d' % (num_difference, num_finish, num_start, ))
+        aid_list = ibs.check_ggr_valid_aids(aid_list)
 
     graph_uuid = ut.hashable_to_uuid(sorted(aid_list))
     if graph_uuid not in current_app.GRAPH_CLIENT_DICT:
@@ -1018,11 +989,12 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     # image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
     #                                        view_orientation=view_orientation)
 
+    print('Using View Version: %r' % (view_version, ))
     if view_version == 1:
         image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=True,
                                                 view_orientation=view_orientation)
     else:
-        image_heatmask = ensure_review_image_v2(ibs, match, draw_heatmask=False,
+        image_heatmask = ensure_review_image_v2(ibs, match, draw_matches=True,
                                                 view_orientation=view_orientation)
 
     image_clean_src = appf.embed_image_html(image_clean)
