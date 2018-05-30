@@ -174,8 +174,8 @@ class AnnotInfrMatching(object):
 
     def _cm_breaking(infr, cm_list=None, review_cfg={}):
         """
-            >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> review_cfg = {}
+        >>> from ibeis.algo.graph.core import *  # NOQA
+        >>> review_cfg = {}
         """
         if cm_list is None:
             cm_list = infr.cm_list
@@ -435,6 +435,7 @@ class InfrLearning(object):
         from ibeis.algo.verif import deploy
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
+        infr.print('Loading verifiers for species: %r' % (species, ))
         infr.verifiers = deploy.Deployer().load_published(ibs, species)
 
     def load_latest_classifiers(infr, dpath):
@@ -672,6 +673,7 @@ class _RedundancyAugmentation(object):
 
 class CandidateSearch(_RedundancyAugmentation):
     """ Search for candidate edges """
+
     @profile
     def find_lnbnn_candidate_edges(infr):
         """
@@ -755,7 +757,7 @@ class CandidateSearch(_RedundancyAugmentation):
         if any(need_flags):
             need_edges = ut.compress(edges, need_flags)
             infr.print('There are {} edges without probabilities'.format(
-                    len(need_edges)), 1)
+                       len(need_edges)), 1)
 
             # Only recompute for the needed edges
             task_probs = infr._make_task_probs(need_edges)
@@ -800,9 +802,11 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> edges = list(infr.edges())
             >>> infr.ensure_priority_scores(edges)
         """
+        infr.print('Checking for verifiers: %r' % (infr.verifiers, ))
+
         if infr.verifiers:
             infr.print('Prioritizing {} edges with one-vs-one probs'.format(
-                    len(priority_edges)), 1)
+                       len(priority_edges)), 1)
 
             infr.ensure_task_probs(priority_edges)
 

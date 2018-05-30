@@ -38,6 +38,7 @@ class Deployer(object):
         'zebra_grevys': {
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',
             # 'photobomb_state': 'vsone.zebra_grevys.photobomb_state.RF.131.thwzdtnkjcwjqeve.cPkl',
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',
         },
         'zebra_plains': {
             # 'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
@@ -50,12 +51,11 @@ class Deployer(object):
 
     def _load_published(self, ibs, species, task_key):
         """
-            >>> from ibeis.algo.verif.vsone import *  # NOQA
-            >>> self = Deployer()
-            >>> species = 'zebra_plains'
-            >>> task_key = 'match_state'
+        >>> from ibeis.algo.verif.vsone import *  # NOQA
+        >>> self = Deployer()
+        >>> species = 'zebra_plains'
+        >>> task_key = 'match_state'
         """
-
         base_url = 'https://{remote}/public/models/pairclf'.format(
             **self.publish_info)
 
@@ -126,7 +126,7 @@ class Deployer(object):
             d = a.estimators_[0].tree_.__getstate__()['nodes']
 
 
-       Ignore:
+        Ignore:
             I'm having a similar issue when trying to use python2 to load a
             sklearn RandomForestClassifier that I saved in python3. I created a
             MWE.
@@ -311,10 +311,9 @@ class Deployer(object):
 
     def find_latest_local(self):
         """
-
-            >>> self = Deployer()
-            >>> self.find_pretrained()
-            >>> self.find_latest_local()
+        >>> self = Deployer()
+        >>> self.find_pretrained()
+        >>> self.find_latest_local()
         """
         from os.path import getctime
         task_clf_candidates = self.find_pretrained()
