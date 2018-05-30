@@ -6044,7 +6044,7 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
 
 
 @register_ibs_method
-def parse_ggr_name(ibs, imageset_text, verbose=False):
+def parse_ggr_name(ibs, imageset_text, verbose=False, allow_short=False, require_short=False):
     imageset_text = imageset_text.strip()
 
     if verbose:
@@ -6052,15 +6052,28 @@ def parse_ggr_name(ibs, imageset_text, verbose=False):
 
     imageset_text_ = imageset_text.split(',')
 
-    if len(imageset_text_) != 3:
+    valid_lengths = [3]
+    if allow_short:
+        valid_lengths += [2]
+
+    if require_short:
+        valid_lengths = [2]
+
+    if len(imageset_text_) not in valid_lengths:
         return None
 
-    dataset, number, letter = imageset_text_
+    try:
+        dataset, number, letter = imageset_text_
+    except:
+        assert allow_short or require_short
+        dataset, number = imageset_text_
+        letter = None
+
     if dataset != 'GGR2':
         return None
 
     number = int(number)
-    if letter not in ['A', 'B', 'C', 'D', 'E', 'F']:
+    if letter not in ['A', 'B', 'C', 'D', 'E', 'F', None]:
         return None
 
     if verbose:
@@ -7212,7 +7225,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
 
 @register_ibs_method
-def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75):
+def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75, verbose=True):
     num_start = len(aid_list)
 
     # Filter by species
@@ -7242,7 +7255,8 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75):
 
     num_finish = len(aid_list)
     num_difference = num_start - num_finish
-    print('Filtered out %d annotations from %d / %d' % (num_difference, num_finish, num_start, ))
+    if verbose:
+        print('Filtered out %d annotations from %d / %d' % (num_difference, num_finish, num_start, ))
 
     return aid_list
 
@@ -7264,7 +7278,121 @@ def create_ggr_match_trees(ibs):
         >>> ibs = ibeis.opendb(dbdir=dbdir)
         >>> imageset_rowid_list = ibs.create_ggr_match_trees()
     """
+    imageset_rowid_list = ibs.get_valid_imgsetids()
+    imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
+    tag_list = [
+        ibs.parse_ggr_name(imageset_text)
+        for imageset_text in imageset_text_list
+    ]
+
+    # Check that merged cars exist
+    value_list = [
+        (tag[2], tag[1], imageset_rowid)
+        for imageset_rowid, tag in zip(imageset_rowid_list, tag_list)
+        if tag is not None
+    ]
+    car_dict = {}
+    for number, letter, imageset_rowid in value_list:
+        if number not in car_dict:
+            car_dict[number] = []
+        car_dict[number].append(imageset_rowid)
+
+    car_key_list = sorted(list(car_dict.keys()))
+    for car_key in car_key_list:
+        imageset_rowid_list_ = car_dict[car_key]
+        gids_list = ibs.get_imageset_gids(imageset_rowid_list_)
+        gid_list = ut.flatten(gids_list)
+        imageset_text_ = 'GGR2,%d' % (car_key, )
+        if imageset_text_ not in imageset_text_list:
+            ibs.set_image_imagesettext(gid_list, [imageset_text_] * len(gid_list))
+
+    # Partition Cars
+    imageset_rowid_list = ibs.get_valid_imgsetids()
+    imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
+    tag_list = [
+        ibs.parse_ggr_name(imageset_text, require_short=True)
+        for imageset_text in imageset_text_list
+    ]
+    value_list = [
+        (tag[2], imageset_rowid)
+        for imageset_rowid, tag in zip(imageset_rowid_list, tag_list)
+        if tag is not None
+    ]
+    value_list = sorted(value_list)
+
     ut.embed()
+
+    species_list = [
+        ('Zebra High',   'zebra_grevys',        0.75, 4),
+        ('Zebra Low',    'zebra_grevys',        0.0,  5),
+        ('Giraffe High', 'giraffe_reticulated', 0.75, 4),
+        ('Giraffe Low',  'giraffe_reticulated', 0.0,  5),
+    ]
+    for tag, species, threshold, levels in species_list:
+        len_list = []
+        imageset_rowid_list = []
+        for number, imageset_rowid in value_list:
+            # print('Processing car %r (ImageSet ID: %r)' % (number, imageset_rowid, ))
+            aid_list = ibs.get_imageset_aids(imageset_rowid)
+            aid_list_ = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=threshold, verbose=False)
+
+            if len(aid_list_) > 0:
+                imageset_rowid_list.append(imageset_rowid)
+                len_list.append(len(aid_list_))
+
+        args = partition_ordered_list_equal_sum_recursive(len_list, imageset_rowid_list, 2, levels)
+        len_list_, imageset_rowid_list_ = args
+        print_partition_sizes_recursive(len_list_)
+
+    ut.embed()
+
+
+def print_partition_sizes_recursive(vals, level=0, index=0):
+    if isinstance(vals, int):
+        return 0
+
+    if len(vals) == 0:
+        return 0
+
+    if isinstance(vals[0], int):
+        return sum(vals)
+
+    length = 0
+    for idx, val in enumerate(vals):
+        length += print_partition_sizes_recursive(val, level=level + 1, index=idx)
+
+    prefix = '\t' * level
+    print('%sLevel %d, %d - %d' % (prefix, level, index, length, ))
+
+    return length
+
+
+def partition_ordered_list_equal_sum_recursive(vals, ids, k, level):
+    if level <= 0:
+        return vals, ids
+
+    vals_ = partition_ordered_list_equal_sum(vals, k)
+
+    ids_ = []
+    start = 0
+    for val_ in vals_:
+        end = start + len(val_)
+        id_ = ids[start: end]
+        ids_.append(id_)
+        start = end
+
+    assert len(vals_) == len(ids_)
+    for index in range(len(vals_)):
+        temp_vals_ = vals_[index]
+        temp_ids_ = ids_[index]
+
+        assert len(temp_vals_) == len(temp_ids_)
+        temp_vals_, temp_ids_ = partition_ordered_list_equal_sum_recursive(temp_vals_, temp_ids_, k, level - 1)
+
+        vals_[index] = temp_vals_
+        ids_[index] = temp_ids_
+
+    return vals_, ids_
 
 
 def partition_ordered_list_equal_sum(a, k):
