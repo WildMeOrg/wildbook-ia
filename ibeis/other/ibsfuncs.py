@@ -7250,13 +7250,8 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75):
 @register_ibs_method
 def create_ggr_match_trees(ibs):
     r"""
-    Merge the staged annotations into a single set of actual annotations (with AoI)
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
     CommandLine:
-        python -m ibeis.other.ibsfuncs merge_ggr_staged_annots
+        python -m ibeis.other.ibsfuncs create_ggr_match_trees
 
     Example:
         >>> # DISABLE_DOCTEST
