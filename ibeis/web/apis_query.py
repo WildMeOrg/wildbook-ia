@@ -28,7 +28,7 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-GRAPH_CLIENT_PEEK = 500
+GRAPH_CLIENT_PEEK = 50
 ANNOT_INFR_PEAK_MAX = 50
 
 

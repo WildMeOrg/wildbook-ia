@@ -7320,15 +7320,15 @@ def create_ggr_match_trees(ibs):
     ]
     value_list = sorted(value_list)
 
-    ut.embed()
-
+    k = 2
     species_list = [
-        ('Zebra High',   'zebra_grevys',        0.75, 4),
-        ('Zebra Low',    'zebra_grevys',        0.0,  5),
+        ('Zebra High',   'zebra_grevys',        0.75, 5),
+        ('Zebra Low',    'zebra_grevys',        0.0,  6),
         ('Giraffe High', 'giraffe_reticulated', 0.75, 4),
         ('Giraffe Low',  'giraffe_reticulated', 0.0,  5),
     ]
     for tag, species, threshold, levels in species_list:
+        print('Processing Tag: %r' % (tag, ))
         len_list = []
         imageset_rowid_list = []
         for number, imageset_rowid in value_list:
@@ -7340,31 +7340,61 @@ def create_ggr_match_trees(ibs):
                 imageset_rowid_list.append(imageset_rowid)
                 len_list.append(len(aid_list_))
 
-        args = partition_ordered_list_equal_sum_recursive(len_list, imageset_rowid_list, 2, levels)
+        args = partition_ordered_list_equal_sum_recursive(len_list, imageset_rowid_list, k, levels)
         len_list_, imageset_rowid_list_ = args
-        print_partition_sizes_recursive(len_list_)
+        print_partition_sizes_recursive(len_list_, k)
+        create_ggr_match_leaves_recursive(ibs, tag, imageset_rowid_list_, k)
 
-    ut.embed()
 
-
-def print_partition_sizes_recursive(vals, level=0, index=0):
+def print_partition_sizes_recursive(vals, k, level=0, index=0):
     if isinstance(vals, int):
         return 0
 
     if len(vals) == 0:
         return 0
 
-    if isinstance(vals[0], int):
+    val = vals[0]
+    if isinstance(val, int):
         return sum(vals)
 
     length = 0
     for idx, val in enumerate(vals):
-        length += print_partition_sizes_recursive(val, level=level + 1, index=idx)
+        length += print_partition_sizes_recursive(val, k=k, level=level + 1, index=(k * index) + idx)
 
     prefix = '\t' * level
     print('%sLevel %d, %d - %d' % (prefix, level, index, length, ))
 
     return length
+
+
+def create_ggr_match_leaves_recursive(ibs, tag, imageset_rowid_list, k, level=0, index=0):
+    assert not isinstance(imageset_rowid_list, int)
+    assert len(imageset_rowid_list) > 0
+
+    imageset_rowid = imageset_rowid_list[0]
+    if isinstance(imageset_rowid, int):
+        return imageset_rowid_list
+
+    imageset_rowid_list_ = []
+    for idx, val in enumerate(imageset_rowid_list):
+        imageset_rowid_list_ += create_ggr_match_leaves_recursive(ibs, tag, val, k=k, level=level + 1, index=(k * index) + idx)
+
+    gid_list = ut.flatten(ibs.get_imageset_gids(imageset_rowid_list_))
+    imageset_text_ = 'Leaf - %s - %d - %d' % (tag, level, index, )
+
+    print('Setting %d for %d to %r' % (len(gid_list), len(imageset_rowid_list_), imageset_text_, ))
+    imageset_text_list = ibs.get_imageset_text(ibs.get_valid_imgsetids())
+    if imageset_text_ not in imageset_text_list:
+        ibs.set_image_imagesettext(gid_list, [imageset_text_] * len(gid_list))
+        imageset_rowid = ibs.get_imageset_imgsetids_from_text(imageset_text_)
+        metadata = ibs.get_imageset_metadata(imageset_rowid)
+        assert 'leaf' not in metadata
+        metadata['leaf'] = {
+            'imageset_rowid_list': imageset_rowid_list_,
+        }
+        ibs.set_imageset_metadata([imageset_rowid], [metadata])
+
+    return imageset_rowid_list_
 
 
 def partition_ordered_list_equal_sum_recursive(vals, ids, k, level):
