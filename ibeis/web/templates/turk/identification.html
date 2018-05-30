@@ -76,7 +76,13 @@
           <h4 class="modal-title" id="myModalLabel">Identification Review Turking Instructions</h4>
         </div>
         <div class="modal-body">
-          TODO
+          <ol>
+            <li>A “Photobomb” occurs when the foreground animals in the two annotations are different, but a correct match appears in the image anyway, either between one foreground annotation and one background annotation, or between two background annotations.  We only want to say that two annotations are the same animal when both are clearly the primary animals in the annotation.  Therefore, when you see a photobomb, please click on the Photobomb box and then select Different Animals as the decision.</li>
+
+            <li>A “Scenery Match” occurs when the animals in the foreground of the annotations are not the same and the primary matching information is in the background / scenery of the annotations.  In this case click the Scenery Match box and select either Different Animals or Cannot Tell, as appropriate.  Note that you can click on both Photobomb and Scenery Match for one pair of annotations.</li>
+
+            <li>If an annotation is too poor to reliably match, please click on the corresponding Exclude button at the bottom.  Such an annotation will be removed from further consideration during the id process.</li>
+          </ol>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-identification_instructions_seen', '1');">Got it!</button>

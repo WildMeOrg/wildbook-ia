@@ -1343,6 +1343,7 @@ def view_imagesets(**kwargs):
     else:
         imgsetid_list = ibs.get_valid_imgsetids()
         filtered = False
+    imageset_text_list = ibs.get_imageset_text(imgsetid_list)
     start_time_posix_list = ibs.get_imageset_start_time_posix(imgsetid_list)
     datetime_list = [
         ut.unixtime_to_datetimestr(start_time_posix)
@@ -1350,23 +1351,74 @@ def view_imagesets(**kwargs):
         'Unknown'
         for start_time_posix in start_time_posix_list
     ]
+
+    ######################################################################################
+    all_gid_list = ibs.get_valid_gids()
+    all_aid_list = ibs.get_valid_aids()
+
     gids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ]
-    aids_list = [ ut.flatten(ibs.get_image_aids(gid_list)) for gid_list in gids_list ]
-    images_reviewed_list           = [ appf.imageset_image_processed(ibs, gid_list) for gid_list in gids_list ]
-    annots_reviewed_viewpoint_list = [ appf.imageset_annot_viewpoint_processed(ibs, aid_list) for aid_list in aids_list ]
-    annots_reviewed_quality_list   = [ appf.imageset_annot_quality_processed(ibs, aid_list) for aid_list in aids_list ]
+    num_gids = list(map(len, gids_list))
+
+    ######################################################################################
+    all_gid_aids_list = ibs.get_image_aids(all_gid_list)
+    gid_aid_mapping = {
+        gid: aid_list
+        for gid, aid_list in zip(all_gid_list, all_gid_aids_list)
+    }
+
+    aids_list = [
+        ut.flatten([gid_aid_mapping.get(gid, []) for gid in gid_list])
+        for gid_list in gids_list
+    ]
+    num_aids = list(map(len, aids_list))
+
+    ######################################################################################
+    all_gid_reviewed_list = appf.imageset_image_processed(ibs, all_gid_list)
+    gid_reviewed_mapping = {
+        gid: reviewed
+        for gid, reviewed in zip(all_gid_list, all_gid_reviewed_list)
+    }
+    images_reviewed_list = [
+        [gid_reviewed_mapping.get(gid, False) for gid in gid_list]
+        for gid_list in gids_list
+    ]
+
+    ######################################################################################
+    all_aid_reviewed_list = appf.imageset_annot_viewpoint_processed(ibs, all_aid_list)
+    aid_reviewed_mapping = {
+        aid: reviewed
+        for aid, reviewed in zip(all_aid_list, all_aid_reviewed_list)
+    }
+    annots_reviewed_viewpoint_list = [
+        [aid_reviewed_mapping.get(aid, False) for aid in aid_list]
+        for aid_list in aids_list
+    ]
+
+    ######################################################################################
+    all_aid_reviewed_list = appf.imageset_annot_quality_processed(ibs, all_aid_list)
+    aid_reviewed_mapping = {
+        aid: reviewed
+        for aid, reviewed in zip(all_aid_list, all_aid_reviewed_list)
+    }
+    annots_reviewed_quality_list = [
+        [aid_reviewed_mapping.get(aid, False) for aid in aid_list]
+        for aid_list in aids_list
+    ]
+
+    ######################################################################################
     image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
     annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
     annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
     reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in list(zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list)) ]
     is_normal_list = ut.not_list(ibs.is_special_imageset(imgsetid_list))
+
     imageset_list = list(zip(
         is_normal_list,
         imgsetid_list,
-        ibs.get_imageset_text(imgsetid_list),
-        ibs.get_imageset_num_gids(imgsetid_list),
+        imageset_text_list,
+        num_gids,
         image_processed_list,
-        ibs.get_imageset_num_aids(imgsetid_list),
+        num_aids,
         annot_processed_viewpoint_list,
         annot_processed_quality_list,
         start_time_posix_list,
@@ -1374,6 +1426,7 @@ def view_imagesets(**kwargs):
         reviewed_list,
     ))
     imageset_list.sort(key=lambda t: t[0])
+
     return appf.template('view', 'imagesets',
                          filtered=filtered,
                          imgsetid_list=imgsetid_list,
