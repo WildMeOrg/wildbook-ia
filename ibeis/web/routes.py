@@ -3377,6 +3377,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 if len(candidate_graph_uuid_list) == 0:
                     candidate_graph_uuid_list = [ random.choice(fallback_graph_uuid_list) ]
 
+                print('Using Hogwild fallback_graph_uuid_list  = %r' % (fallback_graph_uuid_list, ))
+                print('Using Hogwild candidate_graph_uuid_list = %r' % (candidate_graph_uuid_list, ))
+
                 assert len(candidate_graph_uuid_list) > 0
                 graph_uuid = random.choice(candidate_graph_uuid_list)
 
