@@ -226,12 +226,17 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return actor.infr.accept(feedback)
 
     def remove_annots(actor, aids, **kwargs):
+        print('Removing aids=%r from AnnotInference' % (aids, ))
         response = actor.infr.remove_aids(aids)
+        print('\t got response = %r' % (response, ))
+        print('Applying NonDynamic Update to AnnotInference')
         actor.infr.apply_nondynamic_update()
-        return response
+        print('\t ...applied')
+        return 'removed'
 
     def add_annots(actor, aids, **kwargs):
-        return actor.infr.add_annots(aids)
+        actor.infr.add_annots(aids)
+        return 'added'
 
     def get_feat_extractor(actor):
         match_state_verifier = actor.infr.verifiers.get('match_state', None)

@@ -1258,6 +1258,35 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
 
 
 @register_ibs_method
+def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
+    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+    ibs.web_check_uuids([], annot_uuid_list, [])
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+
+    aid_list_ = list(set(graph_client.aids) - set(aid_list))
+    graph_uuid_ = ut.hashable_to_uuid(sorted(aid_list_))
+    assert graph_uuid_ not in current_app.GRAPH_CLIENT_DICT
+    graph_client.graph_uuid = graph_uuid_
+
+    payload = {
+        'action' : 'remove_annots',
+        'dbdir'  : ibs.dbdir,
+        'aids'   : aid_list,
+    }
+    future = graph_client.post(payload)
+    future.result()  # Guarantee that this has happened before calling refresh
+
+    # Start main loop
+    future = graph_client.post({'action' : 'continue_review'})
+    future.graph_client = graph_client
+    future.add_done_callback(query_graph_v2_on_request_review)
+
+    current_app.GRAPH_CLIENT_DICT[graph_uuid_] = graph_client
+    current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_uuid_
+    return graph_uuid_
+
+
+@register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['DELETE'])
 def delete_query_chips_graph_v2(ibs, graph_uuid):
     values = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)

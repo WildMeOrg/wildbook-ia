@@ -3391,6 +3391,13 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             url = url.replace(': ', ':')
             return redirect(url)
 
+        if graph_uuid == 'hogwild':
+            graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
+            for graph_uuid_ in graph_uuid_list:
+                graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
+                if graph_client is None:
+                    continue
+
         values = ibs.review_graph_match_config_v2(graph_uuid, aid1=aid1, aid2=aid2,
                                                   view_orientation=view_orientation,
                                                   view_version=view_version)
