@@ -21,6 +21,12 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+@register_api('/api/embed/', methods=['GET'])
+def web_embed(*args, **kwargs):
+    ibs = current_app.ibs  # NOQA
+    ut.embed()
+
+
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
 @register_route('/api/image/src/<rowid>/', methods=['GET'], __route_prefix_check__=False)
