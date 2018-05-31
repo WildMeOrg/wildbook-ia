@@ -16,6 +16,17 @@
     <input type="text" name="identification-annot-uuid-1" value="{{ annot_uuid_1 }}" style="display: none;" readonly>
     <input type="text" name="identification-annot-uuid-2" value="{{ annot_uuid_2 }}" style="display: none;" readonly>
     <input type="text" name="identification-hogwild" value="{{ hogwild }}" style="display: none;" readonly>
+    <input type="text" name="identification-graph_uuid" value="{{ graph_uuid }}" style="display: none;" readonly>
+
+    {% if hogwild %}
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8" style="text-align: center; color: red; margin-top: -10px; margin-bottom: 10px;">
+          Hogwild UUID: {{ graph_uuid }}
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+    {% endif %}
 
     <div class="row">
       <div class="col-lg-2"></div>
@@ -96,7 +107,11 @@
                 {% if previous_version == 1 %}
                   <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                 {% else %}
-                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% if hogwild %}
+                      <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% else %}
+                      <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% endif %}
                 {% endif %}
               {% endif %}
             </div>

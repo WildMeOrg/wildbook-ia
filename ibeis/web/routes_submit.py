@@ -1029,7 +1029,7 @@ def submit_identification_v2(graph_uuid, **kwargs):
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
 
-    hogwild = request.form.get('hogwild', False)
+    hogwild = kwargs.get('identification-hogwild', False)
     print('Using hogwild: %r' % (hogwild, ))
 
     previous = '%s;%s;-1' % (aid1, aid2, )

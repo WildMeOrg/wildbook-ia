@@ -57,6 +57,18 @@
             {% endif %}
             {% endfor %}
           {% endif %}
+
+          {% if num_graphs > 1 %}
+            <tr>
+              <th scope="row">Hogwild</th>
+              <th scope="row"></th>
+              <td></td>
+              <td></td>
+              <td><a href="{{ url_for('turk_identification_graph') }}?hogwild=true">Review</a></td>
+              <td></td>
+              <td></td>
+            </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>

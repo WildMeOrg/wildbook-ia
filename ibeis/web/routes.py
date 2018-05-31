@@ -3345,15 +3345,16 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     """
     ibs = current_app.ibs
 
+    hogwild_graph_uuid = None
     refer_query_uuid = None
     refer_graph_uuid_str = None
     try:
-        if hogwild:
+        if hogwild and aid1 is None and aid2 is None:
             try:
+                hogwild_graph_uuid = graph_uuid
+
                 if len(current_app.GRAPH_CLIENT_DICT) == 0:
                     raise ValueError('Cannot go hogwild when there are no graphs already started')
-
-                ut.embed()
 
                 fallback_graph_uuid_list = []
                 candidate_graph_uuid_list = []
@@ -3378,7 +3379,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
                 assert len(candidate_graph_uuid_list) > 0
                 graph_uuid = random.choice(candidate_graph_uuid_list)
+
+                print('Using Hogwild graph_uuid = %r' % (graph_uuid, ))
             except AssertionError:
+                hogwild = False
                 pass
 
         if graph_uuid is None:
@@ -3523,6 +3527,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     base = url_for('submit_identification_v2')
     callback_url = '%s?%s' % (base, graph_uuid_str, )
 
+    hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid), )
+    hogwild_graph_uuid_str = hogwild_graph_uuid_str.replace(': ', ':')
+
     confidence_dict = const.CONFIDENCE.NICE_TO_CODE
     confidence_nice_list = confidence_dict.keys()
     confidence_text_list = confidence_dict.values()
@@ -3532,6 +3539,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     ]
     confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
+    graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     return appf.template('turk', 'identification',
                          match_data=match_data,
                          image_clean_src=image_clean_src,
@@ -3545,12 +3553,14 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          refer_query_uuid=refer_query_uuid,
                          refer_graph_uuid_str=refer_graph_uuid_str,
                          finished=finished,
+                         graph_uuid=graph_uuid_,
                          hogwild=hogwild,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
                          confidence_list=confidence_list,
                          previous=previous,
                          graph_uuid_str=graph_uuid_str,
+                         hogwild_graph_uuid_str=hogwild_graph_uuid_str,
                          previous_version=2,
                          replace_review_rowid=-1,
                          view_orientation=view_orientation,
