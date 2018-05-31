@@ -24,6 +24,25 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 @register_api('/api/embed/', methods=['GET'])
 def web_embed(*args, **kwargs):
     ibs = current_app.ibs  # NOQA
+
+    if False:
+        from ibeis.algo.graph.state import POSTV
+
+        payload = {
+            'action'      : 'update_task_thresh',
+            'task'        : 'match_state',
+            'decision'    : POSTV,
+            'value'       : 0.995,
+        }
+
+        for graph_uuid in current_app.GRAPH_CLIENT_DICT:
+            graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
+            if graph_client is None:
+                continue
+
+            future = graph_client.post(payload)
+            future.result()  # Guarantee that this has happened before calling refresh
+
     ut.embed()
 
 
