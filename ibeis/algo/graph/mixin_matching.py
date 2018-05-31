@@ -807,6 +807,9 @@ class CandidateSearch(_RedundancyAugmentation):
         if infr.verifiers:
             infr.print('Prioritizing {} edges with one-vs-one probs'.format(
                        len(priority_edges)), 1)
+            infr.print('Using thresholds: %r' % (infr.task_thresh, ))
+            infr.print('Using infr.params[autoreview.enabled]          : %r' % (infr.params['autoreview.enabled'], ))
+            infr.print('Using infr.params[autoreview.prioritize_nonpos]: %r' % (infr.params['autoreview.prioritize_nonpos'], ))
 
             infr.ensure_task_probs(priority_edges)
 

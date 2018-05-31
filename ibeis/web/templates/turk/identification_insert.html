@@ -85,16 +85,16 @@
             </div>
           </div>
 
-          <div class="row">
+          <div class="row" style="margin-top: 10px;">
             <div class="col-lg-4">
               <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-info" value="Exclude Top">
             </div>
             <div class="col-lg-4">
               {% if previous %}
                 {% if previous_version == 1 %}
-                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}" style="margin-top: 10px;">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                 {% else %}
-                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}" style="margin-top: 10px;">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                 {% endif %}
               {% endif %}
             </div>

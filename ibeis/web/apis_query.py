@@ -139,6 +139,7 @@ def process_graph_match_html(ibs, **kwargs):
         Method: POST
         URL:    /api/review/query/graph/
     """
+    ut.embed()
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
@@ -152,6 +153,8 @@ def process_graph_match_html(ibs, **kwargs):
         'unknown'          : const.EVIDENCE_DECISION.INT_TO_CODE[const.EVIDENCE_DECISION.UNKNOWN],
         'photobomb'        : 'photobomb',
         'scenerymatch'     : 'scenerymatch',
+        'excludetop'       : 'excludetop',
+        'excludebottom'    : 'excludebottom',
     }
     annot_uuid_1 = uuid.UUID(request.form['identification-annot-uuid-1'])
     annot_uuid_2 = uuid.UUID(request.form['identification-annot-uuid-2'])
@@ -1103,23 +1106,30 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     edge = (aid1, aid2, )
     user_id = controller_inject.get_user()
     now = datetime.utcnow()
-    payload = {
-        'action'            : 'add_feedback',
-        'edge'              : edge,
-        'evidence_decision' : decision,
-        # TODO: meta_decision should come from the html resp.  When generating
-        # the html page, the default value should be its previous value. If the
-        # user changes it to be something incompatible them perhaps just reset
-        # it to null.
-        'meta_decision'     : 'null',
-        'tags'              : [] if len(tags) == 0 else tags.split(';'),
-        'user_id'           : 'user:web:%s' % (user_id, ),
-        'confidence'        : confidence,
-        'timestamp_s1'      : user_times['server_time_start'],
-        'timestamp_c1'      : user_times['client_time_start'],
-        'timestamp_c2'      : user_times['client_time_end'],
-        'timestamp'         : float(now.strftime("%s.%f"))
-    }
+
+    if decision in ['excludetop', 'excludebottom']:
+        payload = {
+            'action'            : 'remove_annots',
+            'aids'              : [aid1 if decision == 'excludetop' else aid2],
+        }
+    else:
+        payload = {
+            'action'            : 'add_feedback',
+            'edge'              : edge,
+            'evidence_decision' : decision,
+            # TODO: meta_decision should come from the html resp.  When generating
+            # the html page, the default value should be its previous value. If the
+            # user changes it to be something incompatible them perhaps just reset
+            # it to null.
+            'meta_decision'     : 'null',
+            'tags'              : [] if len(tags) == 0 else tags.split(';'),
+            'user_id'           : 'user:web:%s' % (user_id, ),
+            'confidence'        : confidence,
+            'timestamp_s1'      : user_times['server_time_start'],
+            'timestamp_c1'      : user_times['client_time_start'],
+            'timestamp_c2'      : user_times['client_time_end'],
+            'timestamp'         : float(now.strftime("%s.%f"))
+        }
     print('POSTING GRAPH CLIENT REVIEW:')
     print(ut.repr4(payload))
     graph_client.post(payload)
