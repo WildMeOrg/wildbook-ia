@@ -1028,6 +1028,10 @@ def submit_identification_v2(graph_uuid, **kwargs):
     annot_uuid_1, annot_uuid_2 = ibs.process_graph_match_html_v2(graph_uuid, **kwargs)
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+
+    hogwild = request.form.get('hogwild', False)
+    print('Using hogwild: %r' % (hogwild, ))
+
     previous = '%s;%s;-1' % (aid1, aid2, )
 
     # Return HTML
@@ -1037,8 +1041,8 @@ def submit_identification_v2(graph_uuid, **kwargs):
     else:
         base = url_for('turk_identification_graph')
         sep = '&' if '?' in base else '?'
-        args = (base, sep, ut.to_json(graph_uuid), previous, )
-        url = '%s%sgraph_uuid=%s&previous=%s' % args
+        args = (base, sep, ut.to_json(graph_uuid), previous, hogwild, )
+        url = '%s%sgraph_uuid=%s&previous=%s&hogwild=%s' % args
         url = url.replace(': ', ':')
         return redirect(url)
 

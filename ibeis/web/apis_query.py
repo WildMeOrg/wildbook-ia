@@ -139,7 +139,6 @@ def process_graph_match_html(ibs, **kwargs):
         Method: POST
         URL:    /api/review/query/graph/
     """
-    ut.embed()
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())

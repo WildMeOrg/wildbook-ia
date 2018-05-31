@@ -3322,7 +3322,7 @@ def turk_identification_hardcase(*args, **kwargs):
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
                               view_orientation='vertical', view_version=1,
-                              **kwargs):
+                              hogwild=False, **kwargs):
     """
     CommandLine:
         python -m ibeis.web.routes turk_identification_graph --db PZ_Master1
@@ -3348,6 +3348,39 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     refer_query_uuid = None
     refer_graph_uuid_str = None
     try:
+        if hogwild:
+            try:
+                if len(current_app.GRAPH_CLIENT_DICT) == 0:
+                    raise ValueError('Cannot go hogwild when there are no graphs already started')
+
+                ut.embed()
+
+                fallback_graph_uuid_list = []
+                candidate_graph_uuid_list = []
+
+                graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
+                for graph_uuid_ in graph_uuid_list:
+                    graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
+                    if graph_client is None:
+                        continue
+                    if graph_client.review_dict is None:
+                        continue
+
+                    fallback_graph_uuid_list.append(graph_uuid_)
+                    if len(graph_client.futures) == 0 and len(graph_client.review_dict) > 0:
+                        candidate_graph_uuid_list.append(graph_uuid_)
+
+                if len(fallback_graph_uuid_list) == 0:
+                    raise ValueError('Cannot go hogwild when all graphs are finished')
+
+                if len(candidate_graph_uuid_list) == 0:
+                    candidate_graph_uuid_list = [ random.choice(fallback_graph_uuid_list) ]
+
+                assert len(candidate_graph_uuid_list) > 0
+                graph_uuid = random.choice(candidate_graph_uuid_list)
+            except AssertionError:
+                pass
+
         if graph_uuid is None:
             if annot_uuid_list is None:
                 import ibeis
@@ -3390,13 +3423,6 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 url += '&hardcase=True'
             url = url.replace(': ', ':')
             return redirect(url)
-
-        if graph_uuid == 'hogwild':
-            graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
-            for graph_uuid_ in graph_uuid_list:
-                graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
-                if graph_client is None:
-                    continue
 
         values = ibs.review_graph_match_config_v2(graph_uuid, aid1=aid1, aid2=aid2,
                                                   view_orientation=view_orientation,
@@ -3519,6 +3545,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          refer_query_uuid=refer_query_uuid,
                          refer_graph_uuid_str=refer_graph_uuid_str,
                          finished=finished,
+                         hogwild=hogwild,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
                          confidence_list=confidence_list,
