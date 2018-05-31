@@ -3361,13 +3361,20 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
                 graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
                 for graph_uuid_ in graph_uuid_list:
+                    print('Processing %r' % (graph_uuid_, ))
+
                     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
                     if graph_client is None:
+                        print('\t ERROR: UNKNOWN graph_client')
                         continue
+
                     if graph_client.review_dict is None:
+                        print('\t ERROR: FINISHED')
                         continue
 
                     fallback_graph_uuid_list.append(graph_uuid_)
+                    print('\t len(graph_client.futures)     = %d' % (len(graph_client.futures), ))
+                    print('\t len(graph_client.review_dict) = %d' % (len(graph_client.review_dict), ))
                     if len(graph_client.futures) == 0 and len(graph_client.review_dict) > 0:
                         candidate_graph_uuid_list.append(graph_uuid_)
 
@@ -3375,6 +3382,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     raise ValueError('Cannot go hogwild when all graphs are finished')
 
                 if len(candidate_graph_uuid_list) == 0:
+                    print('WARNING: candidate_graph_uuid_list was empty, picking random from fallback_graph_uuid_list')
                     candidate_graph_uuid_list = [ random.choice(fallback_graph_uuid_list) ]
 
                 print('Using Hogwild fallback_graph_uuid_list  = %r' % (fallback_graph_uuid_list, ))
