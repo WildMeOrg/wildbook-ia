@@ -39,9 +39,10 @@ def web_embed(*args, **kwargs):
             graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
             if graph_client is None:
                 continue
-
+            if len(graph_client.futures) > 0:
+                continue
             future = graph_client.post(payload)
-            future.result()  # Guarantee that this has happened before calling refresh
+            # future.result()  # Guarantee that this has happened before calling refresh
 
     ut.embed()
 
