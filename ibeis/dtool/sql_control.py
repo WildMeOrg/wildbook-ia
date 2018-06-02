@@ -31,6 +31,8 @@ VERYVERBOSE    = ut.VERYVERBOSE
 COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
 #AUTODUMP       = ut.get_argflag('--auto-dump')
 
+TIMEOUT = 300
+
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
@@ -431,7 +433,7 @@ class SQLDatabaseController(object):
     def _create_connection(db):
         if db.fname == ':memory:':
             uri = None
-            connection = lite.connect(':memory:', detect_types=lite.PARSE_DECLTYPES)
+            connection = lite.connect(':memory:', detect_types=lite.PARSE_DECLTYPES, timeout=TIMEOUT)
         else:
             assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
             if not exists(db.fpath):
@@ -448,7 +450,7 @@ class SQLDatabaseController(object):
                 uri = 'file:' + db.fpath
                 if db.readonly:
                     uri += '?mode=ro'
-                connection = lite.connect(uri, uri=True, detect_types=lite.PARSE_DECLTYPES)
+                connection = lite.connect(uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=TIMEOUT)
             else:
                 import os
                 if db.readonly:
@@ -456,11 +458,11 @@ class SQLDatabaseController(object):
                     flag = os.O_RDONLY  # if db.readonly else os.O_RDWR
                     fd = os.open(db.fpath, flag)
                     uri = '/dev/fd/%d' % fd
-                    connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES)
+                    connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES, timeout=TIMEOUT)
                     os.close(fd)
                 else:
                     uri = db.fpath
-                    connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES)
+                    connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES, timeout=TIMEOUT)
 
         # Keep track of what thead this was started in
         threadid = threading.current_thread()
@@ -596,7 +598,7 @@ class SQLDatabaseController(object):
         db.connection.close()
         tempfile.seek(0)
         # Create a database in memory and import from tempfile
-        db.connection = lite.connect(":memory:", detect_types=lite.PARSE_DECLTYPES)
+        db.connection = lite.connect(":memory:", detect_types=lite.PARSE_DECLTYPES, timeout=TIMEOUT)
         db.connection.cursor().executescript(tempfile.read())
         db.connection.commit()
         db.connection.row_factory = lite.Row
@@ -608,7 +610,7 @@ class SQLDatabaseController(object):
         del db.cur
         db.connection.close()
         del db.connection
-        db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
+        db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES, timeout=TIMEOUT)
         db.connection.text_factory = db.text_factory
         db.cur = db.connection.cursor()
 
