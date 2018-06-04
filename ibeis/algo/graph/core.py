@@ -669,21 +669,74 @@ class MiscHelpers(object):
         return nids
 
     def remove_aids(infr, aids):
-        remove_idxs = ut.take(ut.make_index_lookup(infr.aids), aids)
+        """
+        Remove annotations from the graph.
+        Returns:
+            dict: split: indicates which PCCs were split by this action.
+        Note:
+            This may cause unintended splits!
+        Example:
+            >>> from graphid import demo, util
+            >>> infr = demo.demodata_infr(num_pccs=5, pos_redun=1)
+            >>> infr.refresh_candidate_edges()
+            >>> infr.pin_node_layout()
+            >>> before = infr.copy()
+            >>> aids = infr.aids[::5]
+            >>> splits = infr.remove_aids(aids)
+            >>> assert len(splits['old']) > 0
+            >>> infr.assert_invariants()
+            >>> # xdoc: +REQUIRES(--show)
+            >>> util.qtensure()
+            >>> after = infr
+            >>> before.show(fnum=1, pnum=(1, 2, 1), pickable=True)
+            >>> after.show(fnum=1, pnum=(1, 2, 2), pickable=True)
+        """
+        infr.print('remove_aids len(aids)={}'.format(len(aids)), level=3)
+
+        # Determine which edges are going to be removed
+        remove_edges = nxu.edges_outgoing(infr.graph, aids)
+
+        old_groups = list(infr.positive_components())
+
+        # Remove from tertiary bookkeeping structures
+        remove_idxs = list(ut.take(ut.make_index_lookup(infr.aids), aids))
         ut.delete_items_by_index(infr.orig_name_labels, remove_idxs)
         ut.delete_items_by_index(infr.aids, remove_idxs)
-        infr.graph.remove_nodes_from(aids)
         infr.aids_set = set(infr.aids)
-        remove_edges = [(u, v) for u, v in infr.external_feedback.keys()
-                        if u not in infr.aids_set or v not in infr.aids_set]
+
+        # Remove from secondary bookkeeping structures
         ut.delete_dict_keys(infr.external_feedback, remove_edges)
-        remove_edges = [(u, v) for u, v in infr.internal_feedback.keys()
-                        if u not in infr.aids_set or v not in infr.aids_set]
         ut.delete_dict_keys(infr.internal_feedback, remove_edges)
 
-        infr.pos_graph.remove_nodes_from(aids)
-        infr.neg_graph.remove_nodes_from(aids)
-        infr.incomp_graph.remove_nodes_from(aids)
+        # Remove from core bookkeeping structures
+        infr.graph.remove_nodes_from(aids)
+        for graph in infr.review_graphs.values():
+            graph.remove_nodes_from(aids)
+
+        infr.queue.delete_items(remove_edges)
+
+        # TODO: should refactor to preform a dyanmic step, but in this case is
+        # less work to use a bazooka to shoot a fly.
+        infr.apply_nondynamic_update()
+
+        # I'm unsure if relabeling is necessary
+        infr.relabel_using_reviews()
+
+        new_groups = list(infr.positive_components())
+
+        # print('old_groups = {!r}'.format(old_groups))
+        # print('new_groups = {!r}'.format(new_groups))
+        delta = ut.grouping_delta(old_groups, new_groups)
+        splits = delta['splits']
+
+        n_old = len(splits['old'])
+        n_new = len(list(ut.flatten(splits['new'])))
+        infr.print(
+            'removing {} aids split {} old PCCs into {} new PCCs'.format(
+                len(aids), n_old, n_new))
+
+        return splits
+        # print(ub.repr2(delta, nl=2))
 
     def add_aids(infr, aids, nids=None):
         """
@@ -1082,7 +1135,7 @@ class AnnotInference(ut.NiceRepr,
         if do_logging:
             if ibs is not None:
                 from os.path import join
-                import ubelt as ub
+                # import ubelt as ub
                 # logdir = ibs.get_logdir_local()
                 logdir = '.'
                 logname = 'AnnotInference' + ut.timestamp()

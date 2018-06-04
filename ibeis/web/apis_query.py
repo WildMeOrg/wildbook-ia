@@ -1109,9 +1109,16 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     now = datetime.utcnow()
 
     if decision in ['excludetop', 'excludebottom']:
+        aid = aid1 if decision == 'excludetop' else aid2
+
+        metadata_dict = ibs.get_annot_metadata(aid)
+        assert 'excluded' not in metadata_dict
+        metadata_dict['excluded'] = True
+        ibs.set_annot_metadata([aid], [metadata_dict])
+
         payload = {
             'action'            : 'remove_annots',
-            'aids'              : [aid1 if decision == 'excludetop' else aid2],
+            'aids'              : [aid],
         }
     else:
         payload = {

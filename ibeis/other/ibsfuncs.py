@@ -7246,11 +7246,15 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75, 
         metadata.get('confidence', {}).get('localization', 1.0)
         for metadata in metadata_list
     ]
-    zipped = list(zip(aid_list, interest_list, confidence_list))
+    excluded_list = [
+        metadata.get('excluded', False)
+        for metadata in metadata_list
+    ]
+    zipped = list(zip(aid_list, interest_list, confidence_list, excluded_list))
     aid_list = [
         aid
-        for aid, interest, confidence in zipped
-        if interest or confidence > threshold
+        for aid, interest, confidence, excluded in zipped
+        if not excluded and (interest or confidence > threshold)
     ]
 
     num_finish = len(aid_list)
