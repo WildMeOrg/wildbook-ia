@@ -223,7 +223,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return user_request
 
     def add_feedback(actor, **feedback):
-        return actor.infr.accept(feedback)
+        response = actor.infr.accept(feedback)
+        return response
 
     def remove_annots(actor, aids, **kwargs):
         print('Removing aids=%r from AnnotInference' % (aids, ))
@@ -243,6 +244,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     def add_annots(actor, aids, **kwargs):
         actor.infr.add_annots(aids)
         return 'added'
+
+    def get_cc_status(actor):
+        cc_status = actor.infr.connected_component_status()
+        return cc_status
 
     def get_feat_extractor(actor):
         match_state_verifier = actor.infr.verifiers.get('match_state', None)
@@ -335,6 +340,7 @@ class GraphClient(object):
 
         # Save status of the client (the status of the futures)
         client.status = 'Initialized'
+        client.cc_status = None
         client.exception = None
 
         client.aids = None
@@ -364,16 +370,27 @@ class GraphClient(object):
             raise ValueError('payload must be a dict with an action')
         future = client.executor.post(payload)
         client.futures.append((payload['action'], future))
+
+        # Update graph_client cc_status for all external calls
+        payload_ = {
+            'action' : 'get_cc_status',
+        }
+        future_ = client.executor.post(payload_)
+        client.futures.append((payload_['action'], future_))
+
         return future
 
     def cleanup(client):
         # remove done items from our list
+        latest_cc_status = None
         new_futures = []
         for action, future in client.futures:
             exception = None
             if future.done():
                 try:
                     exception = future.exception()
+                    if action == 'get_cc_status' and not future.cancelled():
+                        latest_cc_status = future.result()
                 except concurrent.futures.CancelledError:
                     pass
                 if exception is not None:
@@ -388,9 +405,13 @@ class GraphClient(object):
                 else:
                     new_futures.append((action, future))
         client.futures = new_futures
+        return latest_cc_status
 
     def refresh_status(client):
-        client.cleanup()
+        latest_cc_status = client.cleanup()
+        if latest_cc_status is not None:
+            client.cc_status = latest_cc_status
+
         num_futures = len(client.futures)
         if client.review_dict is None:
             client.status = 'Finished'
@@ -423,12 +444,14 @@ class GraphClient(object):
             print('GRAPH CLIENT GOT NONE UPDATE')
             client.review_dict = None
         else:
-            num_samples = 3
+            data_list = list(data_list)
+            num_samples = 5
             num_items = len(data_list)
             num_samples = min(num_samples, num_items)
+            first = list(data_list[:num_samples])
 
             print('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
-            print('First few are: ' + ut.repr4(data_list[:num_samples], si=2, precision=4))
+            print('First few are: ' + ut.repr4(first, si=2, precision=4))
             client.review_dict = {}
 
             for (edge, priority, edge_data_dict) in data_list:

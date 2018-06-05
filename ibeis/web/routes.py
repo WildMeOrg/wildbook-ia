@@ -3345,6 +3345,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     """
     ibs = current_app.ibs
 
+    progress = None
     hogwild_graph_uuid = None
     refer_query_uuid = None
     refer_graph_uuid_str = None
@@ -3390,6 +3391,15 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
                 assert len(candidate_graph_uuid_list) > 0
                 graph_uuid = random.choice(candidate_graph_uuid_list)
+
+                progress = 0
+                for graph_uuid_ in graph_uuid_list:
+                    graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid_)
+                    cc_status = graph_client.cc_status
+                    print(cc_status)
+                    if cc_status is not None:
+                        progress += cc_status.get('num_names_max', 0)
+                progress = int(progress)
 
                 print('Using Hogwild graph_uuid = %r' % (graph_uuid, ))
             except AssertionError:
@@ -3485,7 +3495,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     timedelta /= days
                     timedelta_str = '%0.2f years' % (timedelta, )
 
-        progress = False
+        if progress is None:
+            graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
+            cc_status = graph_client.cc_status
+            if cc_status is not None:
+                progress = cc_status.get('num_names_max', 0)
+
         alert = priority is not None and priority > 10.0
         data_dict.get('prob_match')
         queue_len = data_dict.get('queue_len', 0)
@@ -3500,19 +3515,36 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             ut.order_dict_by(probs_nice, const.EVIDENCE_DECISION.CODE_TO_NICE.values())
             match_data['Probs'] = probs_nice
         elif 'prob_match' in data_dict:
-            match_data['Prob'] = data_dict['prob_match']
+            match_data['Probs'] = data_dict['prob_match']
         elif 'normscore' in data_dict:
             match_data['Score'] = data_dict['normscore']
 
-        match_data['priority'] = priority
+        match_data['Priority'] = priority
 
         if 'nid_edge' in data_dict:
             match_data['Names'] = data_dict['nid_edge']
 
         if 'n_ccs' in data_dict:
-            match_data['CCSize'] = data_dict['n_ccs']
+            match_data['Connected Components'] = data_dict['n_ccs']
 
-        match_data['qsize'] = queue_len
+        match_data['Queue Size'] = queue_len
+
+        if 'Probs' in match_data:
+            probs_dict = match_data.pop('Probs')
+            if 'Positive' in probs_dict:
+                match_data['VAMP'] = {
+                    'Positive': probs_dict['Positive'],
+                }
+
+        review_rowid_list = ibs._get_all_review_rowids()
+        identity_list = ibs.get_review_identity(review_rowid_list)
+        num_auto = identity_list.count('algo:auto_clf')
+        num_manual = len(review_rowid_list) - num_auto
+        match_data['Reviews'] = {
+            'Auto': num_auto,
+            'Manual': num_manual,
+        }
+
         match_data = ut.repr2(match_data, si=True, precision=3, kvsep='=',
                                nobr=1)
         previous = request.args.get('previous', None)

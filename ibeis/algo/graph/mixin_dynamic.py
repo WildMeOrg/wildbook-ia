@@ -437,11 +437,11 @@ class DynamicUpdate(object):
         infr._add_review_edge(edge, decision)
 
         if was_within:
+            new_nid1, new_nid2 = infr.pos_graph.node_labels(*edge)
             if prev_decision == POSTV:
                 # changed an existing positive edge
                 if infr.recover_graph.has_edge(*edge):
                     infr.recover_graph.remove_edge(*edge)
-                new_nid1, new_nid2 = infr.pos_graph.node_labels(*edge)
                 was_split = new_nid1 != new_nid2
                 if was_split:
                     old_nid = nid1

@@ -45,9 +45,9 @@
         {% endif %}
 
         {% if not REFER_DST_ENCODED and progress %}
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
-              {{ progress }}% (approximate)
+          <div class="progress" style="margin-bottom: 0px;">
+            <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="{{ progress }}" style="width: 100%;">
+              {{ progress }} Names (PCCs)
             </div>
           </div>
         {% endif %}
