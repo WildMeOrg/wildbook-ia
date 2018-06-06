@@ -129,7 +129,75 @@
           <h4 class="modal-title" id="myModalLabel">Viewpoint Turking Instructions</h4>
         </div>
         <div class="modal-body">
-          TODO
+          To turk a viewpoint, simply click on the correct colored face based on the following guidelines:
+          <br/>
+
+          <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+            <a href="#"><h4 style="margin-bottom:2px;">What is a Rhombicuboctahedron?</h4></a>
+          </div>
+
+          <img class="image-center" src="{{ url_for('static', filename='images/rhombicuboctahedron.gif') }}" style="width: 50%; max-width: 400px;">
+          <p style="width:100%; color:#888; text-align:center;"><i>A conceptual animation of a "Rhombi-cube-octa-hedron" or, simply, a <a href="https://en.wikipedia.org/wiki/Rhombicuboctahedron">Rhombicuboctahedron</a></i></p>
+          <br/>
+
+          This shape gives us 26 axis-aligned faces to distinguish an animal's viewpoint.  The shape is made up of 3 octagons, each along the x-axis, y-axis, and z-axis.  The octagon faces are squares.  The 8 "corners" are shaped as triangles, with each side of the triangle touching each of the three axis.
+
+          <br/>
+          <br/>
+          <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+              <b style="color: #f0ad4e">Whew...</b> <i>That sounded complicated</i>
+          </div>
+          <br/>
+
+          Another way to think about this shape is to think of a standard <a href="https://en.wikipedia.org/wiki/Rubik%27s_Cube">Rubik's Cube</a> toy:
+          <br/>
+          <br/>
+
+          <img class="image-center" src="{{ url_for('static', filename='images/rubiks.jpg') }}" style="width: 50%; max-width: 400px;">
+          <p style="width:100%; color:#888; text-align:center;"><i>A Rubik's Cube</i></p>
+          <br/>
+
+          The shape of a standard cube (like a Rubik's Cube, above) has similar traits to the Rhombicuboctahedron.  Both shapes have 6 "primary" faces: <i>top, bottom, left, right, front, and back.</i>
+          <br/>
+          <br/>
+
+          A Rhombicuboctahedron, however, puts squares between these "primary" faces to make the various "secondary" combinations.  For example: top-front, front-left, front-right, bottom-front and left-front, top-left, left-back, and bottom-left.  There are 12 of these two-face combinations.  Using the example of the Rubik's Cube, there are 12 edges that touch two colors (red and white, or blue and red, or blue and white, or the other 9 edges on the back and underside of the cube).
+
+          <br/>
+          <br/>
+          The remaining 8 faces of the Rhombicuboctahedron that we have not discussed are the "tertiary" faces, which are a combination of three faces.  They are, in their entirety: top-front-left, top-front-right, top-back-left, top-back-right, bottom-front-left, bottom-front-right, bottom-back-left, and bottom-back-right.  On the Rhombicuboctahedron, these are triangle faces instead of rectangles.  Coming back to our ever-handy Rubik's Cube analogue, we can see that the 8 tertiary faces are represented by the 8 corner points of the cube.  For example, the corner that sits between the white-red-blue.
+
+          <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+            <a href="#"><h4 style="margin-bottom:2px;">How to interpret the color grid</h4></a>
+          </div>
+
+          The purpose of this interface is to allow a user to quickly and easily specify one of the 26 faces on the Rhombicuboctahedron in order to specify the viewpoint of the animal.  For example, the Rhombicuboctahedron shape allows us to specify just "front" or a combination of two viewpoints like "back-right" or even complicated views such as "bottom-top-left".  To keep it fast and easy to use, we flatten the Rhombicuboctahedron shape out to show only one "side" at a time, facing towards you.  To rotate the shape by 180 degrees, hold down the <b>Shift</b> key.
+
+          <br/>
+          <br/>
+          <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+              <b style="color: #f0ad4e">Note:</b> <i>Use the <b>Shift</b> key to rotate the grid and see other viewpoints</i>
+          </div>
+          <br/>
+
+          The colors of the grid indicate which type of faces you are looking at: primary, secondary, or tertiary.  The color blue is reserved for primary, green for secondary, and orange for tertiary.  The color red is reserved for the primary pair that is currently the default face, and is always shown in the center of the grid.  When viewing the grid, you can see 17 of the faces at one time.  To see the remaining 9 faces on the "back side" of the Rhombicuboctahedron, hold down the <b>Shift</b> key.
+
+          Lastly, when you hover over a face, it will highlight and show the full name of currently selected face at the top left of the grid.  To select that viewpoint for the given example, simply click on the viewpoint face and it will be saved automatically.
+
+          <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+            <a href="#"><h4 style="margin-bottom:2px;">How to change the default face</h4></a>
+          </div>
+
+          The default face (and actually a pair of faces) can be changed below the grid.  For example, the option "Left-Right" shows the Left viewpoint as the default face and the Right viewpoint as it's opposite when the <b>Shift</b> key is held down.  The option "Right-Left" reverses this and makes the Right viewpoint the default (no <b>Shift</b> key held down) and the Left viewpoint the opposite that is shown when <b>Shift</b> is held.
+
+          <br/>
+          <br/>
+          <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+              <b style="color: #f0ad4e">Note:</b> <i>There are 6 default face options, but all of the 26 faces of the Rhombicuboctahedron can be accessed from any of the options with the help of the Shift key.</i>
+          </div>
+          <br/>
+
+          The defaults are purely a user preference based on the frequency of a given viewpoint in the data that is being turked.  You can change these defaults as needed and they will stay saved between Accepting the viewpoint.
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-viewpoint_instructions_seen', '1');">Got it!</button>
