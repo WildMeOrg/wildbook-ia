@@ -30,7 +30,7 @@ $(window).keydown(function(event) {
     else if(key == 67 || key == 51 || key == 99)
     {
       // C key pressed + 3
-      $('input#ia-turk-submit-notcomparable').click();
+      // $('input#ia-turk-submit-notcomparable').click();
     }
     else if(key == 81)
     {

@@ -388,9 +388,9 @@ class GraphClient(object):
             exception = None
             if future.done():
                 try:
-                    exception = future.exception()
-                    if action == 'get_cc_status' and not future.cancelled():
+                    if action == 'get_cc_status':
                         latest_cc_status = future.result()
+                    exception = future.exception()
                 except concurrent.futures.CancelledError:
                     pass
                 if exception is not None:

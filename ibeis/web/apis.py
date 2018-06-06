@@ -32,7 +32,7 @@ def web_embed(*args, **kwargs):
             'action'      : 'update_task_thresh',
             'task'        : 'match_state',
             'decision'    : POSTV,
-            'value'       : 0.995,
+            'value'       : 0.95,
         }
 
         for graph_uuid in current_app.GRAPH_CLIENT_DICT:

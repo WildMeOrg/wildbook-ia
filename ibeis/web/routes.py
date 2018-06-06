@@ -3527,6 +3527,13 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         if 'n_ccs' in data_dict:
             match_data['Connected Components'] = data_dict['n_ccs']
 
+        interest_config = {
+            'aoi_two_weight_filepath': 'candidacy',
+        }
+        interest_prediction_list = ibs.depc_annot.get_property('aoi_two', [aid1, aid2], None, config=interest_config)
+        match_data['AoI Top'] = interest_prediction_list[0]
+        match_data['AoI Bottom'] = interest_prediction_list[1]
+
         match_data['Queue Size'] = queue_len
 
         if 'Probs' in match_data:
@@ -3682,107 +3689,121 @@ def turk_quality(**kwargs):
 
 @register_route('/turk/demographics/', methods=['GET'])
 def turk_demographics(**kwargs):
-    ibs = current_app.ibs
-    imgsetid = request.args.get('imgsetid', '')
-    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+    with ut.Timer('turk_demographics 0'):
+        ibs = current_app.ibs
+        imgsetid = request.args.get('imgsetid', '')
+        imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-    nid_list = ibs.get_annot_nids(aid_list)
-    reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list, nid_list)
-    try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
-    except ZeroDivisionError:
-        progress = '0.00'
+        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        nid_list = ibs.get_annot_nids(aid_list)
 
-    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
-    aid = request.args.get('aid', '')
-    if len(aid) > 0:
-        aid = int(aid)
-    else:
-        aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
-        if len(aid_list_) == 0:
-            aid = None
+    with ut.Timer('turk_demographics 1'):
+        reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list, nid_list)
+
+    with ut.Timer('turk_demographics 2'):
+        try:
+            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+        except ZeroDivisionError:
+            progress = '0.00'
+
+        imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
+        aid = request.args.get('aid', '')
+        if len(aid) > 0:
+            aid = int(aid)
         else:
-            # aid = aid_list_[0]
-            aid = random.choice(aid_list_)
-    previous = request.args.get('previous', None)
-    value_sex = ibs.get_annot_sex([aid])[0]
-    if value_sex >= 0:
-        value_sex += 2
-    else:
-        value_sex = None
-    value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
-    value_age = None
-    if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
-        value_age = 1
-    if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
-        value_age = 2
-    elif value_age_min is 3 and value_age_max == 5:
-        value_age = 3
-    elif value_age_min is 6 and value_age_max == 11:
-        value_age = 4
-    elif value_age_min is 12 and value_age_max == 23:
-        value_age = 5
-    elif value_age_min is 24 and value_age_max == 35:
-        value_age = 6
-    elif value_age_min is 36 and (value_age_max > 36 or value_age_max is None):
-        value_age = 7
+            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+            if len(aid_list_) == 0:
+                aid = None
+            else:
+                # aid = aid_list_[0]
+                aid = random.choice(aid_list_)
 
-    review = 'review' in request.args.keys()
-    finished = aid is None
-    display_instructions = request.cookies.get('ia-demographics_instructions_seen', 1) == 0
-    if not finished:
-        gid       = ibs.get_annot_gids(aid)
-        image_src = routes_ajax.annotation_src(aid)
-    else:
-        gid       = None
-        image_src = None
-    name_aid_list = None
-    nid = ibs.get_annot_name_rowids(aid)
-    if nid is not None:
-        name_aid_list = ibs.get_name_aids(nid)
-        quality_list = ibs.get_annot_qualities(name_aid_list)
-        quality_text_list = ibs.get_annot_quality_texts(name_aid_list)
-        viewpoint_list = ibs.get_annot_viewpoints(name_aid_list)
-        name_aid_combined_list = list(zip(
-            name_aid_list,
-            quality_list,
-            quality_text_list,
-            viewpoint_list,
-        ))
-        # name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
-    else:
-        name_aid_combined_list = []
+        previous = request.args.get('previous', None)
+        value_sex = ibs.get_annot_sex([aid])[0]
+        if value_sex >= 0:
+            value_sex += 2
+        else:
+            value_sex = None
+        value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
+        value_age = None
+        if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
+            value_age = 1
+        if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
+            value_age = 2
+        elif value_age_min is 3 and value_age_max == 5:
+            value_age = 3
+        elif value_age_min is 6 and value_age_max == 11:
+            value_age = 4
+        elif value_age_min is 12 and value_age_max == 23:
+            value_age = 5
+        elif value_age_min is 24 and value_age_max == 35:
+            value_age = 6
+        elif value_age_min is 36 and (value_age_max > 36 or value_age_max is None):
+            value_age = 7
 
-    region_str = 'UNKNOWN'
-    if aid is not None and gid is not None:
-        imgsetid_list = ibs.get_image_imgsetids(gid)
-        imgset_text_list = ibs.get_imageset_text(imgsetid_list)
-        imgset_text_list = [
-            imgset_text
-            for imgset_text in imgset_text_list
-            if 'GGR Special Zone' in imgset_text
-        ]
-        assert len(imgset_text_list) < 2
-        if len(imgset_text_list) == 1:
-            region_str = imgset_text_list[0]
+        review = 'review' in request.args.keys()
+        finished = aid is None
+        display_instructions = request.cookies.get('ia-demographics_instructions_seen', 1) == 0
 
-    return appf.template('turk', 'demographics',
-                         imgsetid=imgsetid,
-                         gid=gid,
-                         aid=aid,
-                         region_str=region_str,
-                         value_sex=value_sex,
-                         value_age=value_age,
-                         name_aid_combined_list=name_aid_combined_list,
-                         image_src=image_src,
-                         previous=previous,
-                         imagesettext=imagesettext,
-                         progress=progress,
-                         finished=finished,
-                         display_instructions=display_instructions,
-                         review=review)
+    with ut.Timer('turk_demographics 3'):
+        if not finished:
+            gid       = ibs.get_annot_gids(aid)
+            image_src = routes_ajax.annotation_src(aid)
+        else:
+            gid       = None
+            image_src = None
+
+    with ut.Timer('turk_demographics 4'):
+        name_aid_list = None
+        nid = ibs.get_annot_name_rowids(aid)
+        if nid is not None:
+            name_aid_list = ibs.get_name_aids(nid)
+            quality_list = ibs.get_annot_qualities(name_aid_list)
+            quality_text_list = ibs.get_annot_quality_texts(name_aid_list)
+            viewpoint_list = ibs.get_annot_viewpoints(name_aid_list)
+            name_aid_combined_list = list(zip(
+                name_aid_list,
+                quality_list,
+                quality_text_list,
+                viewpoint_list,
+            ))
+            # name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
+        else:
+            name_aid_combined_list = []
+
+    with ut.Timer('turk_demographics 5'):
+        region_str = 'UNKNOWN'
+        if aid is not None and gid is not None:
+            imgsetid_list = ibs.get_image_imgsetids(gid)
+            imgset_text_list = ibs.get_imageset_text(imgsetid_list)
+            imgset_text_list = [
+                imgset_text
+                for imgset_text in imgset_text_list
+                if 'GGR Special Zone' in imgset_text
+            ]
+            assert len(imgset_text_list) < 2
+            if len(imgset_text_list) == 1:
+                region_str = imgset_text_list[0]
+
+    with ut.Timer('turk_demographics 6'):
+        template = appf.template('turk', 'demographics',
+                                 imgsetid=imgsetid,
+                                 gid=gid,
+                                 aid=aid,
+                                 region_str=region_str,
+                                 value_sex=value_sex,
+                                 value_age=value_age,
+                                 name_aid_combined_list=name_aid_combined_list,
+                                 image_src=image_src,
+                                 previous=previous,
+                                 imagesettext=imagesettext,
+                                 progress=progress,
+                                 finished=finished,
+                                 display_instructions=display_instructions,
+                                 review=review)
+
+    return template
 
 
 @register_route('/group_review/', methods=['GET'])
