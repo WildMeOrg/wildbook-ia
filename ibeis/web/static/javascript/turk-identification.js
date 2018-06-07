@@ -49,6 +49,7 @@ $(window).keydown(function(event) {
     }
     else if(key == 90)
     {
+      // Z key pressed, zoom
       margin = 5
 
       if (zoom) {
@@ -62,7 +63,11 @@ $(window).keydown(function(event) {
         scroll = offset.top - margin
       }
 
-      $('html, body').animate({scrollTop: scroll});
+      if (animation != null) {
+        animation.stop();
+      }
+
+      animation = $('html, body').animate({scrollTop: scroll});
 
       zoom = ! zoom
       fix_height()

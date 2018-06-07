@@ -815,6 +815,8 @@ def get_ibeis_flask_route(__name__):
                            **options):
             if __route_prefix_check__:
                 assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
+            else:
+                __route_authenticate__ = False
             if __route_postfix_check__:
                 assert rule.endswith('/'), 'A route should always end in a forward-slash'
             assert 'methods' in options, 'A route should always have a specified methods list'

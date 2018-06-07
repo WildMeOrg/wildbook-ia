@@ -3689,19 +3689,16 @@ def turk_quality(**kwargs):
 
 @register_route('/turk/demographics/', methods=['GET'])
 def turk_demographics(**kwargs):
-    with ut.Timer('turk_demographics 0'):
+    with ut.Timer('turk_demographics'):
         ibs = current_app.ibs
         imgsetid = request.args.get('imgsetid', '')
         imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        nid_list = ibs.get_annot_nids(aid_list)
+        with ut.Timer('turk_demographics 0'):
+            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+            aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+            reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
 
-    with ut.Timer('turk_demographics 1'):
-        reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list, nid_list)
-
-    with ut.Timer('turk_demographics 2'):
         try:
             progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
         except ZeroDivisionError:
@@ -3721,8 +3718,9 @@ def turk_demographics(**kwargs):
 
         previous = request.args.get('previous', None)
         value_sex = ibs.get_annot_sex([aid])[0]
-        if value_sex >= 0:
-            value_sex += 2
+        if value_sex is not None:
+            if value_sex >= 0:
+                value_sex += 2
         else:
             value_sex = None
         value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
@@ -3739,14 +3737,13 @@ def turk_demographics(**kwargs):
             value_age = 5
         elif value_age_min is 24 and value_age_max == 35:
             value_age = 6
-        elif value_age_min is 36 and (value_age_max > 36 or value_age_max is None):
+        elif value_age_min is 36 and (value_age_max is None or value_age_max > 36):
             value_age = 7
 
         review = 'review' in request.args.keys()
         finished = aid is None
         display_instructions = request.cookies.get('ia-demographics_instructions_seen', 1) == 0
 
-    with ut.Timer('turk_demographics 3'):
         if not finished:
             gid       = ibs.get_annot_gids(aid)
             image_src = routes_ajax.annotation_src(aid)
@@ -3754,7 +3751,6 @@ def turk_demographics(**kwargs):
             gid       = None
             image_src = None
 
-    with ut.Timer('turk_demographics 4'):
         name_aid_list = None
         nid = ibs.get_annot_name_rowids(aid)
         if nid is not None:
@@ -3772,7 +3768,6 @@ def turk_demographics(**kwargs):
         else:
             name_aid_combined_list = []
 
-    with ut.Timer('turk_demographics 5'):
         region_str = 'UNKNOWN'
         if aid is not None and gid is not None:
             imgsetid_list = ibs.get_image_imgsetids(gid)
@@ -3786,24 +3781,21 @@ def turk_demographics(**kwargs):
             if len(imgset_text_list) == 1:
                 region_str = imgset_text_list[0]
 
-    with ut.Timer('turk_demographics 6'):
-        template = appf.template('turk', 'demographics',
-                                 imgsetid=imgsetid,
-                                 gid=gid,
-                                 aid=aid,
-                                 region_str=region_str,
-                                 value_sex=value_sex,
-                                 value_age=value_age,
-                                 name_aid_combined_list=name_aid_combined_list,
-                                 image_src=image_src,
-                                 previous=previous,
-                                 imagesettext=imagesettext,
-                                 progress=progress,
-                                 finished=finished,
-                                 display_instructions=display_instructions,
-                                 review=review)
-
-    return template
+    return appf.template('turk', 'demographics',
+                         imgsetid=imgsetid,
+                         gid=gid,
+                         aid=aid,
+                         region_str=region_str,
+                         value_sex=value_sex,
+                         value_age=value_age,
+                         name_aid_combined_list=name_aid_combined_list,
+                         image_src=image_src,
+                         previous=previous,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         review=review)
 
 
 @register_route('/group_review/', methods=['GET'])

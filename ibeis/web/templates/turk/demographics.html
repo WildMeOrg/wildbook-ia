@@ -155,13 +155,27 @@
     }
   </style>
   {% endif %}
+
+  <style>
+    .container
+    {
+      /*width: 1500px !important;*/
+    }
+
+    .big-image-zoom {
+      max-height: 500px !important;
+    }
+  </style>
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-demographics.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/turk-demographics.js', version='20180607-0') }}"></script>
 <script type="text/javascript">
   var loading = [];
   var requests = [];
   var buffer = 5;
+
+  var zoom = false;
+  var animation = null;
 
   function lazy_load_images()
   {

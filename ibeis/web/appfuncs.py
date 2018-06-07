@@ -431,12 +431,26 @@ def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress
     return parts_reviewed
 
 
-def imageset_annot_demographics_processed(ibs, aid_list, nid_list):
-    sex_list = ibs.get_annot_sex(aid_list)
-    age_list = ibs.get_annot_age_months_est(aid_list)
+def imageset_annot_demographics_processed(ibs, aid_list):
+    nid_list = ibs.get_annot_nids(aid_list)
+    flag_list = [ nid < 0 for nid in nid_list ]
+    aid_list_ = ut.filterfalse_items(aid_list, flag_list)
+
+    sex_list = ibs.get_annot_sex(aid_list_)
+    sex_dict = {
+        aid: sex > 0
+        for aid, sex in zip(aid_list_, sex_list)
+    }
+
+    age_list = ibs.get_annot_age_months_est(aid_list_)
+    age_dict = {
+        aid: -1 not in age and age.count(None) < 2
+        for aid, age in zip(aid_list_, age_list)
+    }
+
     annots_reviewed = [
-        (nid < 0) or (nid > 0 and sex >= 0 and -1 not in list(age) and list(age).count(None) < 2)
-        for nid, sex, age in zip(nid_list, sex_list, age_list)
+        sex_dict.get(aid, True) and age_dict.get(aid, True)
+        for aid in aid_list
     ]
     return annots_reviewed
 

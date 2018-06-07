@@ -96,4 +96,27 @@ $(window).keydown(function(event) {
     $("#slider-demographics-age").val(value + 1); // subtract 2 to get into the range [-1, -5]
     update_label();
   }
+  else if(key == 90)
+  {
+    // Z key pressed, zoom
+    margin = 5
+
+    if (zoom) {
+      $('#big-image').removeClass('big-image-zoom')
+      scroll = 0
+    } else {
+      $('#big-image').addClass('big-image-zoom')
+      offset = $('#big-image').offset()
+      scroll = offset.top - margin
+    }
+
+    if (animation != null) {
+      animation.stop();
+    }
+
+    animation = $('html, body').animate({scrollTop: scroll});
+
+    zoom = ! zoom
+    fix_height()
+  }
 });

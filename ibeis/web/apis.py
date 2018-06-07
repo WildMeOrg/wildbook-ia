@@ -41,7 +41,7 @@ def web_embed(*args, **kwargs):
                 continue
             if len(graph_client.futures) > 0:
                 continue
-            future = graph_client.post(payload)
+            future = graph_client.post(payload)  # NOQA
             # future.result()  # Guarantee that this has happened before calling refresh
 
     ut.embed()
@@ -49,7 +49,7 @@ def web_embed(*args, **kwargs):
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/<rowid>/', methods=['GET'], __route_prefix_check__=False)
+@register_route('/api/image/src/<rowid>/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
 def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the image file of image <gid>
@@ -98,7 +98,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/json/<uuid>/', methods=['GET'], __route_prefix_check__=False)
+@register_route('/api/image/src/json/<uuid>/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
 def image_src_api_json(uuid=None, **kwargs):
     r"""
     Returns the image file of image <gid>
