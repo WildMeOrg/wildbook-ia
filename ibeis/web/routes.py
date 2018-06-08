@@ -142,6 +142,13 @@ def login(refer=None, *args, **kwargs):
                 'jon.crall',
             ],
         ),
+        'ctrl-h': (
+            'CTRL-H',
+            [
+                'jon.hannis',
+                'melinda.hannis',
+            ],
+        ),
     }
     organization_dict_json = json.dumps(organization_dict)
 
