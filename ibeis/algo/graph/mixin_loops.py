@@ -74,7 +74,6 @@ class InfrLoops(object):
         infr.init_refresh()
 
         infr.phase = 0
-
         # Phase 0.1: Ensure the user sees something immediately
         if infr.params['algo.quickstart']:
             infr.loop_phase = 'quickstart_init'
@@ -107,13 +106,13 @@ class InfrLoops(object):
             for _ in infr.pos_redun_gen():
                 yield _
 
+        infr.phase = 1
         if infr.params['ranking.enabled']:
             for count in it.count(0):
 
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-                infr.phase = 1
                 infr.loop_phase = 'ranking_{}'.format(count)
                 for _ in infr.ranked_list_gen(use_refresh):
                     yield _
@@ -142,12 +141,12 @@ class InfrLoops(object):
                     infr.print('break triggered')
                     break
 
+        infr.phase = 3
         # Phase 0.3: Ensure positive redundancy (this is generally quick)
         if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
             # Phase 3: Try to automatically acheive negative redundancy without
             # asking the user to do anything but resolve inconsistency.
             infr.print('Entering phase 3', 1, color='red')
-            infr.phase = 3
             infr.loop_phase = 'negredun'
             for _ in infr.neg_redun_gen():
                 yield _

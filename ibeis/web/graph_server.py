@@ -251,32 +251,26 @@ class GraphActor(GRAPH_ACTOR_CLASS):
             infr_status['phase'] = actor.infr.phase
         except:
             pass
-
         try:
             infr_status['loop_phase'] = actor.infr.loop_phase
         except:
             pass
-
         try:
             infr_status['is_inconsistent'] = len(actor.infr.nid_to_errors) > 0
         except:
             pass
-
         try:
-            infr_status['is_converged'] = actor.infr.refresh.num_meaningful == 0
+            infr_status['is_converged'] = actor.infr.phase > 0 and actor.infr.refresh.num_meaningful == 0
         except:
             pass
-
         try:
             infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful
         except:
             pass
-
         try:
             infr_status['num_inconsistent_ccs'] = len(actor.infr.nid_to_errors)
         except:
             pass
-
         try:
             infr_status['cc_status'] = actor.infr.connected_component_status()
         except:
