@@ -245,9 +245,17 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         actor.infr.add_annots(aids)
         return 'added'
 
-    def get_cc_status(actor):
-        cc_status = actor.infr.connected_component_status()
-        return cc_status
+    def get_infr_status(actor):
+        infr_status = {
+            'phase':                actor.infr.phase,
+            'loop_phase':           actor.infr.loop_phase,
+            'is_inconsistent':      len(actor.infr.nid_to_errors) > 0,
+            'is_converged':         actor.infr.refresh.num_meaningful == 0,
+            'num_meaningful':       actor.infr.refresh.num_meaningful,
+            'num_inconsistent_ccs': len(actor.infr.nid_to_errors),
+            'cc_status':            actor.infr.connected_component_status(),
+        }
+        return infr_status
 
     def get_feat_extractor(actor):
         match_state_verifier = actor.infr.verifiers.get('match_state', None)
@@ -340,10 +348,11 @@ class GraphClient(object):
 
         # Save status of the client (the status of the futures)
         client.status = 'Initialized'
-        client.cc_status = None
+        client.infr_status = None
         client.exception = None
 
         client.aids = None
+        client.imagesets = None
         client.config = None
         client.extr = None
 
@@ -371,9 +380,9 @@ class GraphClient(object):
         future = client.executor.post(payload)
         client.futures.append((payload['action'], future))
 
-        # Update graph_client cc_status for all external calls
+        # Update graph_client infr_status for all external calls
         payload_ = {
-            'action' : 'get_cc_status',
+            'action' : 'get_infr_status',
         }
         future_ = client.executor.post(payload_)
         client.futures.append((payload_['action'], future_))
@@ -382,14 +391,14 @@ class GraphClient(object):
 
     def cleanup(client):
         # remove done items from our list
-        latest_cc_status = None
+        latest_infr_status = None
         new_futures = []
         for action, future in client.futures:
             exception = None
             if future.done():
                 try:
-                    if action == 'get_cc_status':
-                        latest_cc_status = future.result()
+                    if action == 'get_infr_status':
+                        latest_infr_status = future.result()
                     exception = future.exception()
                 except concurrent.futures.CancelledError:
                     pass
@@ -405,12 +414,12 @@ class GraphClient(object):
                 else:
                     new_futures.append((action, future))
         client.futures = new_futures
-        return latest_cc_status
+        return latest_infr_status
 
     def refresh_status(client):
-        latest_cc_status = client.cleanup()
-        if latest_cc_status is not None:
-            client.cc_status = latest_cc_status
+        latest_infr_status = client.cleanup()
+        if latest_infr_status is not None:
+            client.infr_status = latest_infr_status
 
         num_futures = len(client.futures)
         if client.review_dict is None:

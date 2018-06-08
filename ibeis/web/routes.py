@@ -1451,6 +1451,9 @@ def view_graphs(**kwargs):
         graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
         graph_uuid_str = graph_uuid_str.replace(': ', ':')
         graph_status, graph_exception = graph_client.refresh_status()
+        infr_status = graph_client.infr_status
+        if infr_status is None:
+            infr_status = {}
         if graph_exception is not None:
             import traceback
             trace = traceback.format_tb(graph_exception.__traceback__)
@@ -1461,13 +1464,23 @@ def view_graphs(**kwargs):
         else:
             edge_list = list(graph_client.review_dict.keys())
             num_edges = len(edge_list)
+        phase = 'Phase %s (%s)' % (infr_status.get('phase', None), infr_status.get('loop_phase', None))
+        state = 0
+        if infr_status['is_inconsistent']:
+            state = -1
+        elif infr_status['is_converged']:
+            state = 1
+        reviews = '%s (%s)' % (num_edges, infr_status.get('num_meaningful', None))
         graph = (
             graph_uuid,
+            graph_client.imagesets,
             graph_status,
             graph_exception,
             len(graph_client.aids),
-            num_edges,
+            reviews,
             graph_uuid_str,
+            phase,
+            state
         )
         graph_list.append(graph)
 
@@ -3322,7 +3335,8 @@ def turk_identification_hardcase(*args, **kwargs):
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
                               view_orientation='vertical', view_version=1,
-                              hogwild=False, **kwargs):
+                              hogwild=False, creation_imageset_rowid_list=None,
+                              **kwargs):
     """
     CommandLine:
         python -m ibeis.web.routes turk_identification_graph --db PZ_Master1
@@ -3395,9 +3409,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 progress = 0
                 for graph_uuid_ in graph_uuid_list:
                     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid_)
-                    cc_status = graph_client.cc_status
-                    print(cc_status)
-                    if cc_status is not None:
+                    infr_status = graph_client.infr_status
+                    if infr_status is not None:
+                        cc_status = infr_status.get('cc_status', {})
                         progress += cc_status.get('num_names_max', 0)
                 progress = int(progress)
 
@@ -3434,7 +3448,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
             graph_uuid = ibs.query_chips_graph_v2(
                 annot_uuid_list=annot_uuid_list,
-                query_config_dict=query_config_dict)
+                query_config_dict=query_config_dict,
+                creation_imageset_rowid_list=creation_imageset_rowid_list)
             print('Calculated graph_uuid {} from all {} annotations'.format(
                 graph_uuid, len(annot_uuid_list)))
             # HACK probably should be a config flag instead
@@ -3497,8 +3512,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
         if progress is None:
             graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-            cc_status = graph_client.cc_status
-            if cc_status is not None:
+            infr_status = graph_client.infr_status
+            if infr_status is not None:
+                cc_status = infr_status.get('cc_status', {})
                 progress = cc_status.get('num_names_max', 0)
 
         alert = priority is not None and priority > 10.0

@@ -826,7 +826,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          review_callback_url=None,
                          review_callback_method='POST',
                          finished_callback_url=None,
-                         finished_callback_method='POST'):
+                         finished_callback_method='POST',
+                         creation_imageset_rowid_list=None):
     """
     CommandLine:
         python -m ibeis.web.apis_query --test-query_chips_graph_v2:0
@@ -899,7 +900,11 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
         }
         graph_client = GraphClient(graph_uuid, callbacks=callback_dict,
                                    autoinit=True)
+
+        if creation_imageset_rowid_list is not None:
+            graph_client.imagesets = creation_imageset_rowid_list
         graph_client.aids = aid_list
+
         config = {
             'manual.n_peek'   : GRAPH_CLIENT_PEEK,
             'manual.autosave' : True,

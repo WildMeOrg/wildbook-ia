@@ -73,6 +73,8 @@ class InfrLoops(object):
         # Initialize a refresh criteria
         infr.init_refresh()
 
+        infr.phase = 0
+
         # Phase 0.1: Ensure the user sees something immediately
         if infr.params['algo.quickstart']:
             infr.loop_phase = 'quickstart_init'
@@ -111,6 +113,7 @@ class InfrLoops(object):
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                infr.phase = 1
                 infr.loop_phase = 'ranking_{}'.format(count)
                 for _ in infr.ranked_list_gen(use_refresh):
                     yield _
@@ -120,6 +123,7 @@ class InfrLoops(object):
                     infr.print('Triggered break criteria', 1, color='red')
 
                 # Phase 2: Ensure positive redundancy.
+                infr.phase = 2
                 infr.loop_phase = 'posredun_{}'.format(count)
                 if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                     # Fix positive redundancy of anything within the loop
@@ -138,14 +142,17 @@ class InfrLoops(object):
                     infr.print('break triggered')
                     break
 
+        # Phase 0.3: Ensure positive redundancy (this is generally quick)
         if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
             # Phase 3: Try to automatically acheive negative redundancy without
             # asking the user to do anything but resolve inconsistency.
             infr.print('Entering phase 3', 1, color='red')
+            infr.phase = 3
             infr.loop_phase = 'negredun'
             for _ in infr.neg_redun_gen():
                 yield _
 
+        infr.phase = 4
         infr.print('Terminate', 1, color='red')
         infr.print('Exiting main loop')
 

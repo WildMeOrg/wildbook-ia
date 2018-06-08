@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import zipfile
 import time
+from io import BytesIO
 from six.moves import cStringIO as StringIO
 from flask import request, current_app, send_file
 from ibeis.control import controller_inject
@@ -89,7 +90,10 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    img_io = StringIO()
+    if six.PY2:
+        img_io = StringIO()
+    else:
+        img_io = BytesIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -120,12 +124,12 @@ def image_src_api_json(uuid=None, **kwargs):
     try:
         if isinstance(uuid, six.string_types):
             uuid = uuid_module.UUID(uuid)
-        gid = ibs.get_image_gids_from_uuid(uuid)
-        return image_src_api(gid, **kwargs)
     except:
         from ibeis.control.controller_inject import translate_ibeis_webreturn
         return translate_ibeis_webreturn(None, success=False, code=500,
                                          message='Invalid image UUID')
+    gid = ibs.get_image_gids_from_uuid(uuid)
+    return image_src_api(gid, **kwargs)
 
 
 @register_api('/api/upload/image/', methods=['POST'])

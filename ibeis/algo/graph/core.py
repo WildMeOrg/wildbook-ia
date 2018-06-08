@@ -1289,6 +1289,7 @@ class AnnotInference(ut.NiceRepr,
 
         # set to the current phase of the main loop
         # (mostly for testing)
+        infr.phase = None
         infr.loop_phase = None
 
         # Testing state

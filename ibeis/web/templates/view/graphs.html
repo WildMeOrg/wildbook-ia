@@ -26,6 +26,7 @@
         <thead>
           <tr>
             <th>UUID</th>
+            <th>ImagesetIDs</th>
             <th>Status</th>
             <th>nAnnots</th>
             <th>nReviews</th>
@@ -40,10 +41,15 @@
               <th class="no-items" colspan="99">Sorry, no graph UUIDs to display</th>
             </tr>
           {% else %}
-            {% for (graph_uuid, graph_status, graph_exception, num_aids, num_edges, graph_uuid_str) in graph_list %}
-            <tr>
+            {% for (graph_uuid, imageset_rowids, graph_status, graph_exception, num_aids, num_edges, graph_uuid_str, phase, state) in graph_list %}
+            <tr {% if state == 1 %}class="success"{% endif %} {% if state == -1 %}class="danger"% endif %}>
               <th scope="row">{{ graph_uuid }}</th>
-              <th scope="row">{{ graph_status }}</th>
+              <th scope="row">{{ imageset_rowids }}</th>
+              <th scope="row">
+                {{ graph_status }}
+                <br/>
+                {{ phase }}
+              </th>
               <td>{{ num_aids }}</td>
               <td>{{ num_edges }}</td>
               <td><a href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}">Review</a></td>

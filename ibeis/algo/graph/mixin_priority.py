@@ -10,6 +10,9 @@ from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
+ENABLE_PRIORITY_PCC_CORRECTION = True
+
+
 class Priority(object):
     """
     Handles prioritization of edges for review.
@@ -105,6 +108,31 @@ class Priority(object):
             # Reinstate the appropriate edges into the queue
             edges = nxu.edges_outgoing(infr.unreviewed_graph, cc)
             infr._reinstate_edge_priority(edges)
+
+    def _correct_priorities(infr, edge, priority):
+        corrected_priority = None
+
+        if not ENABLE_PRIORITY_PCC_CORRECTION:
+            return corrected_priority
+
+        if priority < 10:
+            try:
+                primary_task = 'match_state'
+                decision_probs = infr.task_probs[primary_task][edge]
+            except KeyError:
+                decision_probs = None
+
+            if decision_probs is not None:
+                u, v = edge
+                nid1, nid2 = infr.node_labels(u, v)
+                if nid1 == nid2:
+                    if priority != decision_probs[NEGTV]:
+                        corrected_priority = decision_probs[NEGTV]
+                else:
+                    if priority != decision_probs[POSTV]:
+                        corrected_priority = decision_probs[POSTV]
+
+        return corrected_priority
 
     @profile
     def prioritize(infr, metric=None, edges=None, scores=None,
@@ -208,6 +236,9 @@ class Priority(object):
         for edge, priority in zip(edges, priorities):
             if edge not in infr.queue:
                 num_new += 1
+            corrected_priority = infr._correct_priorities(edge, priority)
+            if corrected_priority is not None:
+                priority = corrected_priority
             infr._push(edge, priority)
 
         infr.print('added %d edges to the queue' % (num_new,), 1)
@@ -222,6 +253,9 @@ class Priority(object):
         if isinstance(priority, six.string_types):
             prob_match = infr.get_edge_attr(edge, priority, default=1e-9)
             priority = prob_match
+        corrected_priority = infr._correct_priorities(edge, priority)
+        if corrected_priority is not None:
+            priority = corrected_priority
         # Use edge-nids to break ties for determenistic behavior
         infr._push(edge, priority)
 
@@ -238,6 +272,12 @@ class Priority(object):
             except IndexError:
                 raise StopIteration('no more to review!')
             else:
+                # Re-prioritize positive or negative relative to PCCs
+                corrected_priority = infr._correct_priorities(edge, priority)
+                if corrected_priority is not None:
+                    infr.push(edge, corrected_priority)
+                    continue
+
                 if infr.params['redun.enabled']:
                     u, v = edge
                     nid1, nid2 = infr.node_labels(u, v)
@@ -373,7 +413,6 @@ class Priority(object):
             >>> infr.add_feedback((2, 3), NEGTV)
             >>> assert not infr.confidently_separated(u, v, thresh)
         """
-
         def can_cross(G, edge, n_negs):
             """
             DFS state condition
