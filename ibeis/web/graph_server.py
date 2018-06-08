@@ -248,37 +248,37 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     def get_infr_status(actor):
         infr_status = {}
         try:
-            infr_status['phase'] = actor.infr.phase,
+            infr_status['phase'] = actor.infr.phase
         except:
             pass
 
         try:
-            infr_status['loop_phase'] = actor.infr.loop_phase,
+            infr_status['loop_phase'] = actor.infr.loop_phase
         except:
             pass
 
         try:
-            infr_status['is_inconsistent'] = len(actor.infr.nid_to_errors) > 0,
+            infr_status['is_inconsistent'] = len(actor.infr.nid_to_errors) > 0
         except:
             pass
 
         try:
-            infr_status['is_converged'] = actor.infr.refresh.num_meaningful == 0,
+            infr_status['is_converged'] = actor.infr.refresh.num_meaningful == 0
         except:
             pass
 
         try:
-            infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful,
+            infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful
         except:
             pass
 
         try:
-            infr_status['num_inconsistent_ccs'] = len(actor.infr.nid_to_errors),
+            infr_status['num_inconsistent_ccs'] = len(actor.infr.nid_to_errors)
         except:
             pass
 
         try:
-            infr_status['cc_status'] = actor.infr.connected_component_status(),
+            infr_status['cc_status'] = actor.infr.connected_component_status()
         except:
             pass
 
