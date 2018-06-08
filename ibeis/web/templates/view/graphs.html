@@ -42,7 +42,7 @@
             </tr>
           {% else %}
             {% for (graph_uuid, imageset_rowids, graph_status, graph_exception, num_aids, num_edges, graph_uuid_str, phase, state) in graph_list %}
-            <tr {% if state == 1 %}class="success"{% endif %} {% if state == -1 %}class="danger"% endif %}>
+            <tr {% if state == 1 %}class="success"{% endif %} {% if state == -1 %}class="danger"{% endif %}>
               <th scope="row">{{ graph_uuid }}</th>
               <th scope="row">{{ imageset_rowids }}</th>
               <th scope="row">
