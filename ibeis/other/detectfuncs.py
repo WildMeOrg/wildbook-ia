@@ -2475,7 +2475,7 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
 
     fig_ = plt.figure(figsize=figsize)
 
-    test_gid_set = sorted(set(test_gid_list))
+    test_gid_set = None if test_gid_list is None else sorted(set(test_gid_list))
     config_list = [
         # {'label': 'All Species',         'category_list': None},
         # {'label': 'Masai Giraffe',       'category_list': ['giraffe_masai']},

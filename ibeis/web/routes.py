@@ -1466,9 +1466,9 @@ def view_graphs(**kwargs):
             num_edges = len(edge_list)
         phase = 'Phase %s (%s)' % (infr_status.get('phase', None), infr_status.get('loop_phase', None))
         state = 0
-        if infr_status['is_inconsistent']:
+        if infr_status.get('is_inconsistent', False):
             state = -1
-        elif infr_status['is_converged']:
+        elif infr_status.get('is_converged', False):
             state = 1
         reviews = '%s (%s)' % (num_edges, infr_status.get('num_meaningful', None))
         graph = (
@@ -2451,6 +2451,67 @@ def turk_annotation_dynamic(**kwargs):
                          EMBEDDED_JAVASCRIPT=None,
                          review=review,
                          __wrapper__=False)
+
+
+@register_route('/turk/annotation/grid/', methods=['GET'])
+def turk_annotation_grid(imgsetid=None, samples=60, **kwargs):
+    import random
+
+    ibs = current_app.ibs
+
+    if imgsetid is None:
+        aid_list = ibs.get_valid_aids()
+    else:
+        aid_list = ibs.get_imageset_aids(imgsetid)
+
+    metadata_list = ibs.get_annot_metadata(aid_list)
+    highlighted_list = [
+        metadata.get('turk', {}).get('grid', None)
+        for metadata in metadata_list
+    ]
+    reviewed_list = [
+        highlighted is not None
+        for highlighted in highlighted_list
+    ]
+
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
+    except ZeroDivisionError:
+        progress = '100.0'
+
+    zipped = list(zip(aid_list, highlighted_list))
+    values_list = ut.filterfalse_items(zipped, reviewed_list)
+
+    aid_list_ = []
+    highlighted_list_ = []
+    while len(values_list) > 0 and len(aid_list_) < samples:
+        index = random.randint(0, len(values_list) - 1)
+        aid, highlighted = values_list.pop(index)
+        aid_list_.append(aid)
+        highlighted_list_.append(highlighted)
+
+    finished = len(aid_list_) == 0
+
+    highlighted_list = [False] * len(aid_list_)
+    annotation_list = list(zip(
+        aid_list_,
+        highlighted_list_,
+    ))
+    aid_list_str = ','.join(map(str, aid_list_))
+
+    annotation_list.sort(key=lambda t: t[0])
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_annotation_grid'), imgsetid, )
+    return appf.template('turk', 'grid_annotation',
+                         imgsetid=imgsetid,
+                         aid_list=aid_list_,
+                         aid_list_str=aid_list_str,
+                         num_aids=len(aid_list_),
+                         annotation_list=annotation_list,
+                         num_annotations=len(annotation_list),
+                         progress=progress,
+                         finished=finished,
+                         callback_url=callback_url,
+                         callback_method='POST')
 
 
 @register_route('/turk/contour/', methods=['GET'])
