@@ -3278,7 +3278,7 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     ibs = current_app.ibs
     aid_list = ibs.get_imageset_aids(imgsetid)
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
-    return turk_identification_graph(annot_uuid_list=annot_uuid_list)
+    return turk_identification_graph(annot_uuid_list=annot_uuid_list, creation_imageset_rowid_list=[imgsetid])
 
 
 @register_route('/turk/query/graph/v2/refer/', methods=['GET'])
