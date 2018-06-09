@@ -3459,7 +3459,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     fallback_graph_uuid_list.append(graph_uuid_)
                     print('\t len(graph_client.futures)     = %d' % (len(graph_client.futures), ))
                     print('\t len(graph_client.review_dict) = %d' % (len(graph_client.review_dict), ))
-                    if len(graph_client.futures) == 0 and len(graph_client.review_dict) > 0:
+                    if len(graph_client.futures) < 15 and len(graph_client.review_dict) > 0:
                         candidate_graph_uuid_list.append(graph_uuid_)
 
                 if len(fallback_graph_uuid_list) == 0:
