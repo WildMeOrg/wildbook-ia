@@ -2477,13 +2477,13 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
 
     test_gid_set = None if test_gid_list is None else sorted(set(test_gid_list))
     config_list = [
-        # {'label': 'All Species',         'category_list': None},
-        # {'label': 'Masai Giraffe',       'category_list': ['giraffe_masai']},
-        {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
-        # {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
-        # {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},
-        {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
-        # {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
+        # {'label': 'All Species',         'aoi_two_weight_filepath': 'ggr2', 'category_list': None},
+        # {'label': 'Masai Giraffe',       'aoi_two_weight_filepath': 'ggr2', 'category_list': ['giraffe_masai']},
+        {'label': 'Reticulated Giraffe', 'aoi_two_weight_filepath': 'ggr2', 'category_list': ['giraffe_reticulated']},
+        # {'label': 'Sea Turtle',          'aoi_two_weight_filepath': 'ggr2', 'category_list': ['turtle_sea']},
+        # {'label': 'Whale Fluke',         'aoi_two_weight_filepath': 'ggr2', 'category_list': ['whale_fluke']},
+        {'label': 'Grevy\'s Zebra',      'aoi_two_weight_filepath': 'ggr2', 'category_list': ['zebra_grevys']},
+        # {'label': 'Plains Zebra',        'aoi_two_weight_filepath': 'ggr2', 'category_list': ['zebra_plains']},
     ]
     color_list = [(0, 0, 0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
