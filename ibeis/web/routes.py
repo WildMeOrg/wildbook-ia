@@ -1444,8 +1444,19 @@ def view_imagesets(**kwargs):
 
 
 @register_route('/view/graphs/', methods=['GET'])
-def view_graphs(**kwargs):
+def view_graphs(nids=False, **kwargs):
     ibs = current_app.ibs
+
+    if nids:
+        import ibeis
+        aid_list = ibs.get_valid_aids()
+        nid_list = [const.UNKNOWN_NAME_ROWID] * len(aid_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list)
+        aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+        infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
+        infr.relabel_using_reviews()
+        infr.write_ibeis_annotmatch_feedback()
+        infr.write_ibeis_name_assignment()
 
     graph_uuid_list = current_app.GRAPH_CLIENT_DICT
     num_graphs = len(graph_uuid_list)
@@ -3806,6 +3817,7 @@ def turk_demographics(**kwargs):
         with ut.Timer('turk_demographics 0'):
             gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
             aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+            aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
             reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
 
         try:
