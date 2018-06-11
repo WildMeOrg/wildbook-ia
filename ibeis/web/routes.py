@@ -2461,8 +2461,7 @@ def turk_annotation_dynamic(**kwargs):
 
 
 @register_route('/turk/annotation/grid/', methods=['GET'])
-def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys',
-                         aoi_thresh=0.67, version=1, **kwargs):
+def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', version=1, **kwargs):
     import random
 
     ibs = current_app.ibs
@@ -2481,11 +2480,11 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys',
     reviewed_list = []
     for highlighted in highlighted_list:
         if version == 1:
-            reviewed = highlighted is not None
+            reviewed = highlighted not in [True, False]
         elif version == 2:
-            reviewed = highlighted == True  # NOQA
+            reviewed = highlighted not in [None, False]
         elif version == 3:
-            reviewed = highlighted == False  # NOQA
+            reviewed = highlighted not in [None, True]
         reviewed_list.append(reviewed)
 
     kwargs = {
@@ -2497,25 +2496,24 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys',
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
-    suggested_list = [confidence >= aoi_thresh for confidence in confidence_list]
 
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
     except ZeroDivisionError:
         progress = '100.0'
 
-    zipped = list(zip(aid_list, highlighted_list, suggested_list))
+    zipped = list(zip(aid_list, highlighted_list, confidence_list))
     values_list = ut.filterfalse_items(zipped, reviewed_list)
 
     aid_list_ = []
     highlighted_list_ = []
-    suggested_list_ = []
+    confidence_list_ = []
     while len(values_list) > 0 and len(aid_list_) < samples:
         index = random.randint(0, len(values_list) - 1)
-        aid, highlighted, suggested = values_list.pop(index)
+        aid, highlighted, confidence = values_list.pop(index)
         aid_list_.append(aid)
         highlighted_list_.append(highlighted)
-        suggested_list_.append(suggested)
+        confidence_list_.append(confidence)
 
     finished = len(aid_list_) == 0
 
@@ -2523,7 +2521,7 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys',
     annotation_list = list(zip(
         aid_list_,
         highlighted_list_,
-        suggested_list,
+        confidence_list_,
     ))
     aid_list_str = ','.join(map(str, aid_list_))
 
