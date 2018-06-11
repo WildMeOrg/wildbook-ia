@@ -7225,7 +7225,8 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
 
 @register_ibs_method
-def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75, verbose=True):
+def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75,
+                         enable_grid=True, verbose=True):
     num_start = len(aid_list)
 
     # Filter by species
@@ -7254,6 +7255,9 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75, 
         metadata.get('turk', {}).get('grid', False)
         for metadata in metadata_list
     ]
+    if not enable_grid:
+        grid_list = [False] * len(grid_list)
+
     zipped = list(zip(aid_list, interest_list, confidence_list, excluded_list, grid_list))
     aid_list = [
         aid
