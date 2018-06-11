@@ -2471,7 +2471,8 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
 
-    aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+    enable_grid = version == 1
+    aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75, enable_grid=enable_grid)
     metadata_list = ibs.get_annot_metadata(aid_list)
     highlighted_list = [
         metadata.get('turk', {}).get('grid', None)
@@ -2480,11 +2481,11 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     reviewed_list = []
     for highlighted in highlighted_list:
         if version == 1:
-            reviewed = highlighted not in [True, False]
+            reviewed = highlighted in [True, False]
         elif version == 2:
-            reviewed = highlighted not in [None, False]
+            reviewed = highlighted in [None, False]
         elif version == 3:
-            reviewed = highlighted not in [None, True]
+            reviewed = highlighted in [None, True]
         reviewed_list.append(reviewed)
 
     kwargs = {

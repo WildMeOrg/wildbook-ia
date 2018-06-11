@@ -7251,6 +7251,7 @@ def check_ggr_valid_aids(ibs, aid_list, species='zebra_grevys', threshold=0.75,
         metadata.get('excluded', False)
         for metadata in metadata_list
     ]
+
     grid_list = [
         metadata.get('turk', {}).get('grid', False)
         for metadata in metadata_list
