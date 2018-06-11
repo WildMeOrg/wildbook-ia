@@ -1448,8 +1448,6 @@ def view_graphs(nids=False, **kwargs):
     ibs = current_app.ibs
 
     if nids:
-        ut.embed()
-
         import ibeis
         aid_list = ibs.get_valid_aids()
         nid_list = [const.UNKNOWN_NAME_ROWID] * len(aid_list)
