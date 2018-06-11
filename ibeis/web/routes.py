@@ -2461,7 +2461,8 @@ def turk_annotation_dynamic(**kwargs):
 
 
 @register_route('/turk/annotation/grid/', methods=['GET'])
-def turk_annotation_grid(imgsetid=None, samples=60, **kwargs):
+def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys',
+                         aoi_thresh=0.67, version=1, **kwargs):
     import random
 
     ibs = current_app.ibs
@@ -2471,32 +2472,50 @@ def turk_annotation_grid(imgsetid=None, samples=60, **kwargs):
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
 
-    aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+    aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
     metadata_list = ibs.get_annot_metadata(aid_list)
     highlighted_list = [
         metadata.get('turk', {}).get('grid', None)
         for metadata in metadata_list
     ]
-    reviewed_list = [
-        highlighted is not None
-        for highlighted in highlighted_list
+    reviewed_list = []
+    for highlighted in highlighted_list:
+        if version == 1:
+            reviewed = highlighted is not None
+        elif version == 2:
+            reviewed = highlighted == True  # NOQA
+        elif version == 3:
+            reviewed = highlighted == False  # NOQA
+        reviewed_list.append(reviewed)
+
+    kwargs = {
+        'aoi_two_weight_filepath': 'ggr2',
+    }
+    prediction_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'class', config=kwargs)
+    confidence_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
     ]
+    suggested_list = [confidence >= aoi_thresh for confidence in confidence_list]
 
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
     except ZeroDivisionError:
         progress = '100.0'
 
-    zipped = list(zip(aid_list, highlighted_list))
+    zipped = list(zip(aid_list, highlighted_list, suggested_list))
     values_list = ut.filterfalse_items(zipped, reviewed_list)
 
     aid_list_ = []
     highlighted_list_ = []
+    suggested_list_ = []
     while len(values_list) > 0 and len(aid_list_) < samples:
         index = random.randint(0, len(values_list) - 1)
-        aid, highlighted = values_list.pop(index)
+        aid, highlighted, suggested = values_list.pop(index)
         aid_list_.append(aid)
         highlighted_list_.append(highlighted)
+        suggested_list_.append(suggested)
 
     finished = len(aid_list_) == 0
 
@@ -2504,6 +2523,7 @@ def turk_annotation_grid(imgsetid=None, samples=60, **kwargs):
     annotation_list = list(zip(
         aid_list_,
         highlighted_list_,
+        suggested_list,
     ))
     aid_list_str = ','.join(map(str, aid_list_))
 
