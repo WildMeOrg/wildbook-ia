@@ -38,10 +38,8 @@ class Deployer(object):
         'zebra_grevys': {
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',
             # 'photobomb_state': 'vsone.zebra_grevys.photobomb_state.RF.131.thwzdtnkjcwjqeve.cPkl',
-
-            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED
-
-            'match_state': 'vsone.zebra_grevys.match_state.RF.131.xdeywhdcnpsjqohi.ggr2.cPkl',
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.xdeywhdcnpsjqohi.ggr2.cPkl',  # GGR2
         },
         'zebra_plains': {
             # 'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
