@@ -56,7 +56,7 @@
     <div class="row">
       {% for (aid, highlighted, confidence) in annotation_list %}
         <div class="ajax-image-container col-lg-3 col-md-3 col-sm-4 col-xs-6">
-          <img class="ajax-image ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" confidence="{{ confidence }}" />
+          <img class="ajax-image ajax-image-load ajax-image-unloaded {% if highlighted %}ajax-image-highlighted{% endif %}" src="" aid="{{ aid }}" confidence="{{ confidence }}" />
         </div>
       {% endfor %}
     </div>

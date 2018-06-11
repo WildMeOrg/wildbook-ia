@@ -2513,6 +2513,10 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     while len(values_list) > 0 and len(aid_list_) < samples:
         index = random.randint(0, len(values_list) - 1)
         aid, highlighted, confidence = values_list.pop(index)
+
+        if version == 2:
+            highlighted = True
+
         aid_list_.append(aid)
         highlighted_list_.append(highlighted)
         confidence_list_.append(confidence)
@@ -2528,7 +2532,7 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     aid_list_str = ','.join(map(str, aid_list_))
 
     annotation_list.sort(key=lambda t: t[0])
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_annotation_grid'), imgsetid, )
+    callback_url = '%s?imgsetid=%s&version=%d' % (url_for('submit_annotation_grid'), imgsetid, version, )
     return appf.template('turk', 'grid_annotation',
                          imgsetid=imgsetid,
                          aid_list=aid_list_,

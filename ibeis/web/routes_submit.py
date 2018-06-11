@@ -769,11 +769,13 @@ def submit_annotation(**kwargs):
 
 
 @register_route('/submit/annotation/grid/', methods=['POST'])
-def submit_annotation_grid(**kwargs):
+def submit_annotation_grid(version=1, **kwargs):
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    assert version in [1, 2, 3]
 
     aid_list = kwargs['annotation-grid-aids']
     highlight_list = kwargs['annotation-grid-highlighted']
@@ -784,7 +786,15 @@ def submit_annotation_grid(**kwargs):
     for metadata, highlight in zip(metadata_list, highlight_list):
         if 'turk' not in metadata:
             metadata['turk'] = {}
-        metadata['turk']['grid'] = highlight
+
+        if version == 1:
+            value = highlight
+        elif version == 2:
+            value = not highlight
+        elif version == 3:
+            value = highlight
+
+        metadata['turk']['grid'] = value
         metadata_list_.append(metadata)
 
     ibs.set_annot_metadata(aid_list, metadata_list_)
@@ -794,7 +804,7 @@ def submit_annotation_grid(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_annotation_grid', imgsetid=imgsetid))
+        return redirect(url_for('turk_annotation_grid', imgsetid=imgsetid, version=version))
 
 
 @register_route('/submit/species/', methods=['POST'])
