@@ -2278,12 +2278,12 @@ def set_annot_names_to_same_new_name(ibs, aid_list):
 
 
 @register_ibs_method
-def set_annot_names_to_different_new_names(ibs, aid_list):
+def set_annot_names_to_different_new_names(ibs, aid_list, **kwargs):
     new_nid_list = ibs.make_next_nids(num=len(aid_list))
     if ut.VERBOSE:
         print('Setting aid_list={aid_list} to have new_nid_list={new_nid_list}'.format(
             aid_list=aid_list, new_nid_list=new_nid_list))
-    ibs.set_annot_name_rowids(aid_list, new_nid_list)
+    ibs.set_annot_name_rowids(aid_list, new_nid_list, **kwargs)
 
 
 @register_ibs_method

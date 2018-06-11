@@ -358,7 +358,7 @@ class IBEISIO(object):
         ibs.set_annotmatch_posixtime_modified(am_rowids, new_timestamp)
         # ibs.set_annotmatch_count(am_rowids, new_timestamp) TODO
 
-    def write_ibeis_name_assignment(infr, name_delta_df=None):
+    def write_ibeis_name_assignment(infr, name_delta_df=None, **kwargs):
         """
         Write the name delta to the annotations table.
 
@@ -379,7 +379,7 @@ class IBEISIO(object):
         infr.print('write_ibeis_name_assignment id %d' % len(name_delta_df))
         aid_list = name_delta_df.index.values
         new_name_list = name_delta_df['new_name'].values
-        infr.ibs.set_annot_names(aid_list, new_name_list)
+        infr.ibs.set_annot_names(aid_list, new_name_list, **kwargs)
 
     def get_ibeis_name_delta(infr, ignore_unknown=True, relabel=True):
         """

@@ -1449,22 +1449,32 @@ def view_graphs(nids=False, **kwargs):
 
     if nids:
         import ibeis
+        import ibeis.constants as const
+
         aid_list = ibs.get_valid_aids()
         nid_list = [const.UNKNOWN_NAME_ROWID] * len(aid_list)
-        ibs.set_annot_name_rowids(aid_list, nid_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list, notify_wildbook=False)
         ibs.delete_empty_nids()
 
         nid_list = ibs.get_valid_nids()
         print('Reset nids: %d' % (len(nid_list), ))
 
         aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+        ibs.set_annot_names_to_different_new_names(aid_list, notify_wildbook=False)
+
+        nid_list = ibs.get_valid_nids()
+        print('Reset nids: %d' % (len(nid_list), ))
+
         infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
-        num_pccs = len(infr.positive_components)
+        infr.reset_feedback('staging', apply=True)
+        num_pccs = len(list(infr.positive_components()))
         print('Proposed PCCs: %d' % (num_pccs, ))
 
         infr.relabel_using_reviews()
         infr.write_ibeis_annotmatch_feedback()
-        infr.write_ibeis_name_assignment()
+        infr.write_ibeis_name_assignment(notify_wildbook=False)
+
+        ibs.delete_empty_nids()
 
         nid_list = ibs.get_valid_nids()
         print('Final nids: %d' % (len(nid_list), ))
