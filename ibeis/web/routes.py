@@ -1444,10 +1444,10 @@ def view_imagesets(**kwargs):
 
 
 @register_route('/view/graphs/', methods=['GET'])
-def view_graphs(nids=False, **kwargs):
+def view_graphs(sync=False, **kwargs):
     ibs = current_app.ibs
 
-    if nids:
+    if sync:
         import ibeis
         import ibeis.constants as const
 
@@ -1470,7 +1470,8 @@ def view_graphs(nids=False, **kwargs):
         num_pccs = len(list(infr.positive_components()))
         print('Proposed PCCs: %d' % (num_pccs, ))
 
-        infr.relabel_using_reviews()
+        infr.relabel_using_reviews(rectify=True)
+        infr.write_ibeis_staging_feedback()
         infr.write_ibeis_annotmatch_feedback()
         infr.write_ibeis_name_assignment(notify_wildbook=False)
 
