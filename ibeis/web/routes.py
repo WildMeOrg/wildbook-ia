@@ -1448,15 +1448,28 @@ def view_graphs(nids=False, **kwargs):
     ibs = current_app.ibs
 
     if nids:
+        ut.embed()
+
         import ibeis
         aid_list = ibs.get_valid_aids()
         nid_list = [const.UNKNOWN_NAME_ROWID] * len(aid_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
+        ibs.delete_empty_nids()
+
+        nid_list = ibs.get_valid_nids()
+        print('Reset nids: %d' % (len(nid_list), ))
+
         aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
         infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
+        num_pccs = len(infr.positive_components)
+        print('Proposed PCCs: %d' % (num_pccs, ))
+
         infr.relabel_using_reviews()
         infr.write_ibeis_annotmatch_feedback()
         infr.write_ibeis_name_assignment()
+
+        nid_list = ibs.get_valid_nids()
+        print('Final nids: %d' % (len(nid_list), ))
 
     graph_uuid_list = current_app.GRAPH_CLIENT_DICT
     num_graphs = len(graph_uuid_list)
