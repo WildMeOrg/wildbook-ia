@@ -11,6 +11,7 @@ from ibeis.control import controller_inject
 from ibeis.web import apis_engine
 from ibeis.web import job_engine
 from ibeis.web import appfuncs as appf
+from tornado.log import access_log
 import utool as ut
 
 
@@ -30,11 +31,28 @@ def tst_html_error():
     pass
 
 
+class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
+
+    def _log(self, status_code, request):
+        if status_code < 400:
+            log_method = access_log.info
+        elif status_code < 500:
+            log_method = access_log.warning
+        else:
+            log_method = access_log.error
+
+        timestamp = ut.timestamp()
+        request_time = 1000.0 * request.request_time()
+        log_method(
+            "WALL=%s STATUS=%s METHOD=%s URL=%s IP=%s TIME=%.2fms",
+            timestamp,
+            status_code, request.method,
+            request.uri, request.remote_ip, request_time)
+
+
 def start_tornado(ibs, port=None, browser=None, url_suffix=None,
                   start_web_loop=True, fallback=True):
-    """
-        Initialize the web server
-    """
+    """Initialize the web server"""
     if browser is None:
         browser = ut.get_argflag('--browser')
     if url_suffix is None:
@@ -63,7 +81,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
         # WSGI is Python standard described in detail in PEP 3333
-        wsgi_container = tornado.wsgi.WSGIContainer(app)
+        wsgi_container = TimedWSGIContainer(app)
 
         # # Try wrapping with newrelic performance monitoring
         # try:
