@@ -2499,6 +2499,7 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     ]
 
     try:
+        print('Total len(reviewed_list) = %d' % (len(reviewed_list), ))
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list), )
     except ZeroDivisionError:
         progress = '100.0'
