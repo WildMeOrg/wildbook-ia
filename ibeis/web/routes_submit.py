@@ -769,7 +769,7 @@ def submit_annotation(**kwargs):
 
 
 @register_route('/submit/annotation/grid/', methods=['POST'])
-def submit_annotation_grid(version=1, **kwargs):
+def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwargs):
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
@@ -804,7 +804,10 @@ def submit_annotation_grid(version=1, **kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_annotation_grid', imgsetid=imgsetid, version=version))
+        return redirect(url_for('turk_annotation_grid',
+                                imgsetid=imgsetid,
+                                samples=samples, species=species,
+                                version=version))
 
 
 @register_route('/submit/species/', methods=['POST'])
