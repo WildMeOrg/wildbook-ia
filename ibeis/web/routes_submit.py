@@ -934,7 +934,7 @@ def submit_quality(**kwargs):
 
 
 @register_route('/submit/demographics/', methods=['POST'])
-def submit_demographics(**kwargs):
+def submit_demographics(species='zebra_grevys', **kwargs):
     ibs = current_app.ibs
 
     DAN_SPECIAL_WRITE_AGE_TO_ALL_ANOTATIONS = True
@@ -997,7 +997,7 @@ def submit_demographics(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_demographics', imgsetid=imgsetid, previous=aid))
+        return redirect(url_for('turk_demographics', imgsetid=imgsetid, previous=aid, species=species))
 
 
 @register_route('/submit/identification/', methods=['POST'])
