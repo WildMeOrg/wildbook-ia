@@ -2821,7 +2821,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/name/', methods=['PUT'])
-def set_annot_names(ibs, aid_list, name_list):
+def set_annot_names(ibs, aid_list, name_list, **kwargs):
     r"""
     Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
     list of annotations.
@@ -2857,7 +2857,7 @@ def set_annot_names(ibs, aid_list, name_list):
     assert not any([name == '' for name in name_list]), (
         'cannot change name to empty string use ____ for unknown.')
     name_rowid_list = ibs.add_names(name_list)
-    ibs.set_annot_name_rowids(aid_list, name_rowid_list)
+    ibs.set_annot_name_rowids(aid_list, name_rowid_list, **kwargs)
 
 
 @register_ibs_method
