@@ -1510,7 +1510,7 @@ def view_graphs(sync=False, **kwargs):
             state = -1
         elif infr_status.get('is_converged', False):
             state = 1
-        reviews = '%s (%s)' % (num_edges, infr_status.get('num_meaningful', None))
+        reviews = '%s (%s)' % (num_edges, infr_status.get('num_pccs', None))
         graph = (
             graph_uuid,
             graph_client.imagesets,
@@ -3405,7 +3405,16 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     ibs = current_app.ibs
     aid_list = ibs.get_imageset_aids(imgsetid)
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
-    return turk_identification_graph(annot_uuid_list=annot_uuid_list, creation_imageset_rowid_list=[imgsetid])
+
+    imageset_text = ibs.get_imageset_text(imgsetid).lower()
+    species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+
+    config = {
+        'species':     species,
+        'threshold':   0.75,
+        'enable_grid': True,
+    }
+    return turk_identification_graph(annot_uuid_list=annot_uuid_list, creation_imageset_rowid_list=[imgsetid], **config)
 
 
 @register_route('/turk/query/graph/v2/refer/', methods=['GET'])
@@ -3576,7 +3585,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             graph_uuid = ibs.query_chips_graph_v2(
                 annot_uuid_list=annot_uuid_list,
                 query_config_dict=query_config_dict,
-                creation_imageset_rowid_list=creation_imageset_rowid_list)
+                creation_imageset_rowid_list=creation_imageset_rowid_list,
+                **kwargs
+            )
+
             print('Calculated graph_uuid {} from all {} annotations'.format(
                 graph_uuid, len(annot_uuid_list)))
             # HACK probably should be a config flag instead
@@ -3684,6 +3696,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             if 'Positive' in probs_dict:
                 match_data['VAMP'] = {
                     'Positive': probs_dict['Positive'],
+                }
+            if 'Negative' in probs_dict:
+                match_data['VAMP'] = {
+                    'Negative': probs_dict['Negative'],
                 }
 
         review_rowid_list = ibs._get_all_review_rowids()

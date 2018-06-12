@@ -271,7 +271,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         except:
             pass
         try:
-            infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful
+            infr_status['num_pccs'] = len(actor.infr.queue)
         except:
             pass
         try:

@@ -827,7 +827,8 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          review_callback_method='POST',
                          finished_callback_url=None,
                          finished_callback_method='POST',
-                         creation_imageset_rowid_list=None):
+                         creation_imageset_rowid_list=None,
+                         **kwargs):
     """
     CommandLine:
         python -m ibeis.web.apis_query --test-query_chips_graph_v2:0
@@ -879,7 +880,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
     # FILTER FOR GGR2
     if True:
-        aid_list = ibs.check_ggr_valid_aids(aid_list)
+        aid_list = ibs.check_ggr_valid_aids(aid_list, **kwargs)
 
     graph_uuid = ut.hashable_to_uuid(sorted(aid_list))
     if graph_uuid not in current_app.GRAPH_CLIENT_DICT:
