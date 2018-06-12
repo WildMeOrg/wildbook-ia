@@ -982,13 +982,13 @@ def submit_demographics(**kwargs):
             age_min = 36
             age_max = None
 
+        ibs.set_annot_sex([aid], [sex])
         nid = ibs.get_annot_name_rowids(aid)
         if nid is not None and DAN_SPECIAL_WRITE_AGE_TO_ALL_ANOTATIONS:
             aid_list = ibs.get_name_aids(nid)
         else:
             aid_list = [aid]
 
-        ibs.set_annot_sex(aid_list, [sex] * len(aid_list))
         ibs.set_annot_age_months_est_min(aid_list, [age_min] * len(aid_list))
         ibs.set_annot_age_months_est_max(aid_list, [age_max] * len(aid_list))
         print('[web] user_id: %s, aid: %d, sex: %r, age: %r' % (user_id, aid, sex, age))
