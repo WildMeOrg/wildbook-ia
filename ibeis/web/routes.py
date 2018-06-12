@@ -2565,7 +2565,8 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     aid_list_str = ','.join(map(str, aid_list_))
 
     annotation_list.sort(key=lambda t: t[0])
-    callback_url = '%s?imgsetid=%s&version=%d' % (url_for('submit_annotation_grid'), imgsetid, version, )
+    args = (url_for('submit_annotation_grid'), imgsetid, version, samples, species, )
+    callback_url = '%s?imgsetid=%s&version=%d&samples=%d&species=%r' % args
     return appf.template('turk', 'grid_annotation',
                          imgsetid=imgsetid,
                          aid_list=aid_list_,
