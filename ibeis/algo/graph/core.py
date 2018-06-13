@@ -852,6 +852,8 @@ class MiscHelpers(object):
             # Send the message to a python logger
             infr.logger.log(loglevel, msg)
 
+        print(msg)
+
     print = log_message
 
     def latest_logs(infr, colored=False):

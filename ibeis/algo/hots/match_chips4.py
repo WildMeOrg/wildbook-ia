@@ -202,7 +202,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         cm = qaid2_cm[qaid]
     """
     if use_cache:
-        if ut.VERBOSE:
+        if verbose:
             print('[mc4] cache-query is on')
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
