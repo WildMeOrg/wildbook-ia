@@ -223,7 +223,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.print('loading published models')
-        actor.infr.load_published()
+        try:
+            actor.infr.load_published()
+        except:
+            pass
 
         # Start actor.infr Main Loop
         actor.infr.print('start id review')

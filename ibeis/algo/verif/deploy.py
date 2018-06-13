@@ -44,6 +44,8 @@ class Deployer(object):
         'zebra_plains': {
             # 'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
         },
+        'giraffe_reticulated': {
+        },
     }
 
     def __init__(self, dpath='.', pblm=None):
