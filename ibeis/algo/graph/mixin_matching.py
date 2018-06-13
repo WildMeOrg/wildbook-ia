@@ -83,7 +83,7 @@ class AnnotInfrMatching(object):
         #     # import sys
         #     # sys.exit(1)
 
-        cm_list = qreq_.execute(prog_hook=prog_hook)
+        cm_list = qreq_.execute(prog_hook=prog_hook, use_cache=True)
         infr._set_vsmany_info(qreq_, cm_list)
 
         edges = set(infr._cm_breaking(
