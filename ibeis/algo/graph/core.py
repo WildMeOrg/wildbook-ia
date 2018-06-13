@@ -836,7 +836,7 @@ class MiscHelpers(object):
             parent_name = ut.get_parent_frame().f_code.co_name
             msg = '[{}] '.format(parent_name) + msg
 
-        if infr.logs:
+        if True:
             # Append the message to an internal log deque
             infr.logs.append((msg, color))
             if len(infr.logs) == infr.logs.maxlen:
@@ -1119,8 +1119,6 @@ class AnnotInference(ut.NiceRepr,
         """
         # infr.verbose = verbose
 
-        infr.print('__init__ start', level=1)
-
         infr.name = None
         infr.verbose = verbose
 
@@ -1131,7 +1129,6 @@ class AnnotInference(ut.NiceRepr,
             import ibeis
             ibs = ibeis.opendb(ibs)
 
-        infr.print('__init__ logging', level=1)
         # setup logging
         infr.logger = None
         do_logging = ut.get_argflag(('--loginfr', '--log-infr'))
@@ -1152,9 +1149,10 @@ class AnnotInference(ut.NiceRepr,
                 logger.setLevel(logging.DEBUG)
                 infr.logger = logger
 
-        infr.print('__init__ queue', level=1)
         infr.logs = collections.deque(maxlen=10000)
         infr.log_index = 0
+
+        infr.print('__init__ queue', level=1)
 
         # If not dirty, new feedback should dynamically maintain a consistent
         # state. If dirty it means we need to recompute connected compoments
