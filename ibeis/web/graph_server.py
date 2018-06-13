@@ -191,7 +191,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                            force_serial=True)
 
         # Create the AnnotInference
-        actor.infr.print('starting via actor')
+        print('starting via actor with ibs = %r' % (ibs, ))
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
