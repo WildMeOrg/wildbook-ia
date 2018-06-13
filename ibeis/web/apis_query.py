@@ -988,7 +988,11 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
 
     edge, priority, data_dict = data
 
-    previous_edge_list.append(edge)
+    edge_ = [
+        int(edge[0]),
+        int(edge[1]),
+    ]
+    previous_edge_list.append(edge_)
     if len(previous_edge_list) > EDGES_MAX:
         cutoff = int(-1.0 * EDGES_MAX)
         previous_edge_list = previous_edge_list[cutoff:]

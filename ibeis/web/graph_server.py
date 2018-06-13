@@ -527,7 +527,16 @@ class GraphClient(object):
 
         edge = None
         if client.review_vip is not None and client.review_vip in edge_list:
-            if client.review_vip not in previous_edge_list:
+            vip_1 = int(client.review_vip[0])
+            vip_2 = int(client.review_vip[1])
+
+            found = False
+            for edge_1, edge_2 in previous_edge_list:
+                if edge_1 == vip_1 and edge_2 == vip_2:
+                    found = True
+                    break
+
+            if not found:
                 print('SHOWING VIP TO USER!!!')
                 edge = client.review_vip
                 client.prev_vip = edge
