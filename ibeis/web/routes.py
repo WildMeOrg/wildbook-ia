@@ -3512,7 +3512,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     """
     ibs = current_app.ibs
 
-    if hogwild_species is 'None':
+    if hogwild_species == 'None':
         hogwild_species = None
 
     progress = None
@@ -3529,6 +3529,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
                 fallback_graph_uuid_list = []
                 candidate_graph_uuid_list = []
+                progress_graph_uuid_list = []
 
                 graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
                 for graph_uuid_ in graph_uuid_list:
@@ -3539,10 +3540,6 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                         print('\t ERROR: UNKNOWN graph_client')
                         continue
 
-                    if graph_client.review_dict is None:
-                        print('\t ERROR: FINISHED')
-                        continue
-
                     if hogwild_species is not None:
                         imagesets = graph_client.imagesets
                         if imagesets is not None:
@@ -3551,6 +3548,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                             species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
                             if species != hogwild_species:
                                 continue
+
+                    progress_graph_uuid_list.append(graph_uuid_)
+
+                    if graph_client.review_dict is None:
+                        print('\t ERROR: FINISHED')
+                        continue
 
                     fallback_graph_uuid_list.append(graph_uuid_)
                     print('\t len(graph_client.futures)     = %d' % (len(graph_client.futures), ))
@@ -3572,7 +3575,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                 graph_uuid = random.choice(candidate_graph_uuid_list)
 
                 progress = 0
-                for graph_uuid_ in graph_uuid_list:
+                for graph_uuid_ in progress_graph_uuid_list:
                     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid_)
                     infr_status = graph_client.infr_status
                     if infr_status is not None:
@@ -3722,14 +3725,11 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
         if 'Probs' in match_data:
             probs_dict = match_data.pop('Probs')
+            match_data['VAMP'] = {}
             if 'Positive' in probs_dict:
-                match_data['VAMP'] = {
-                    'Positive': probs_dict['Positive'],
-                }
+                match_data['VAMP']['Positive'] = probs_dict['Positive']
             if 'Negative' in probs_dict:
-                match_data['VAMP'] = {
-                    'Negative': probs_dict['Negative'],
-                }
+                match_data['VAMP']['Negative'] = probs_dict['Negative']
 
         review_rowid_list = ibs._get_all_review_rowids()
         identity_list = ibs.get_review_identity(review_rowid_list)
