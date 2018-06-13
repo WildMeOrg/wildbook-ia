@@ -1118,6 +1118,9 @@ class AnnotInference(ut.NiceRepr,
             pass
         """
         # infr.verbose = verbose
+
+        infr.print('__init__ start', level=1)
+
         infr.name = None
         infr.verbose = verbose
 
@@ -1128,6 +1131,7 @@ class AnnotInference(ut.NiceRepr,
             import ibeis
             ibs = ibeis.opendb(ibs)
 
+        infr.print('__init__ logging', level=1)
         # setup logging
         infr.logger = None
         do_logging = ut.get_argflag(('--loginfr', '--log-infr'))
@@ -1148,6 +1152,7 @@ class AnnotInference(ut.NiceRepr,
                 logger.setLevel(logging.DEBUG)
                 infr.logger = logger
 
+        infr.print('__init__ queue', level=1)
         infr.logs = collections.deque(maxlen=10000)
         infr.log_index = 0
 
@@ -1172,6 +1177,7 @@ class AnnotInference(ut.NiceRepr,
             UNREV: None,
         }
 
+        infr.print('__init__ structures', level=1)
         # Criterion
         infr.queue = ut.PriorityQueue()
         infr.refresh = None
@@ -1193,6 +1199,8 @@ class AnnotInference(ut.NiceRepr,
         # between them. The weight on the edge should represent the strength.
         infr.neg_metagraph = infr._graph_cls()
 
+        infr.print('__init__ feedback', level=1)
+
         # This should represent The feedback read from a database. We do not
         # need to do any updates to an external database based on this data.
         infr.external_feedback = ut.ddict(list)
@@ -1211,6 +1219,7 @@ class AnnotInference(ut.NiceRepr,
         infr.ranker = None
         infr.verifiers = None
 
+        infr.print('__init__ configuration', level=1)
         # TODO: move to params
         infr.task_thresh = {
             'match_state': {
@@ -1280,6 +1289,7 @@ class AnnotInference(ut.NiceRepr,
             'thumbsize': 221,
         }
 
+        infr.print('__init__ storage', level=1)
         infr.verifier_params = {}  # TODO
         infr.ranker_params = {}
 
@@ -1306,14 +1316,17 @@ class AnnotInference(ut.NiceRepr,
         infr.qreq_ = None
         infr.manual_wgt = None
 
-        infr.print('__init__', level=1)
+        infr.print('__init__ aids', level=1)
         if aids == 'all':
             aids = ibs.get_valid_aids()
         infr.add_aids(aids, nids)
+
+        infr.print('__init__ autoinit', level=1)
         if autoinit:
             infr.initialize_graph()
             if isinstance(autoinit, six.string_types):
                 infr.reset_feedback(autoinit)
+        infr.print('__init__ done', level=1)
 
     def subparams(infr, prefix):
         """

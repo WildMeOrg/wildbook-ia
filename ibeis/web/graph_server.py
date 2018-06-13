@@ -10,9 +10,6 @@ import futures_actors
 print, rrr, profile = ut.inject2(__name__)
 
 
-CANARY_SET = set([36690, 37456, 39725, 41636, 41666, 48691, 50525, 50882, 52047, 52098, 52212, 52270, 52335, 53403, 55337, 55433, 56673, 57290, 57756, 65148, 65157, 65751, 65893, 68237, 73014, 80108, 81663, 82592, 82615, 82626, 85544, 86670, 87591, 87867, 92540, 93835, 95500, 96041, 99156, 99662, 100215, 100357, 100824, 102664, 102790, 105949, 106728, 108187, 108448, 110582, 111814, 112982, 113197, 113242, 115068, 116169, 116636, 121332, 121364, 128918, 129563, 130975, 140965, 141484])
-
-
 def double_review_test():
     # from ibeis.web.graph_server import *
     import ibeis
@@ -193,12 +190,10 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False,
                            force_serial=True)
 
-        overlap = set(aids) & set(CANARY_SET)
-        assert len(overlap) == 0, 'CANARY FAILURE: %d OVERLAPPED BY %r' % (len(overlap), overlap, )
-
         # Create the AnnotInference
+        actor.infr.print('starting via actor')
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
-        actor.infr.print('start via actor')
+        actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
         # Configure query_annot_infr
         for key in config:
