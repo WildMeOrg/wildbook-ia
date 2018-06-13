@@ -556,19 +556,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         decision_to_samples[NEGTV] = edgeset(decision_to_samples[NEGTV])
         decision_to_samples[INCMP] = edgeset(decision_to_samples[INCMP])
 
-        balance = 1.2 * min(decision_to_samples[POSTV], decision_to_samples[NEGTV])
+        balance = int(1.2 * min(len(decision_to_samples[POSTV]),
+                                len(decision_to_samples[NEGTV])))
 
         decision_to_samples[POSTV] = ut.shuffle(list(decision_to_samples[POSTV]))[0:balance]
         decision_to_samples[NEGTV] = ut.shuffle(list(decision_to_samples[NEGTV]))[0:balance]
         decision_to_samples[INCMP] = ut.shuffle(list(decision_to_samples[INCMP]))[0:balance]
 
         # Union all edges together and return
-        aid_samples = sorted(edgeset(ub.flatten([
+        aid_pairs = sorted(edgeset(ub.flatten([
             decision_to_samples[POSTV],
             decision_to_samples[NEGTV],
             decision_to_samples[INCMP],
         ])))
-        return aid_samples
+        return aid_pairs
 
     @profile
     def make_training_pairs(pblm):
@@ -633,6 +634,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         aid_pairs = pblm.make_training_pairs()
         pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
+
         if pblm.verbose > 0:
             ut.cprint('[pblm] apply_multi_task_multi_label', color='blue')
         pblm.samples.apply_multi_task_multi_label()
