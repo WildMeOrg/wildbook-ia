@@ -489,6 +489,88 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         aid_pairs = data
         return aid_pairs
 
+    def make_graph_based_bootstrap_pairs(pblm):
+        """
+        Sampling method for when you want to bootstrap VAMP after several
+        reviews.
+
+        Sample pairs for VAMP training using manually reviewed edges and mines
+        other (random) pairs as needed.
+
+        We first sample a base set via:
+            (1) take all manually reviewed positive edges (not in an inconsistent PCC)
+            (2) take all manually reviewed negative edges (not touching an inconsistent PCC)
+            (3) take all manually reviewed incomparable edges.
+            Note: it is important to ignore any PCC currently in an
+            inconsistent state.
+
+        We can then generate additional positive samples by sampling
+        automatically reviewed positive edges within PCCs.
+
+        We can do the same for negatives.
+        """
+        from networkx.algorithms.connectivity import k_edge_subgraphs
+        # from ibeis.algo.graph import nx_utils as nxu
+        import itertools as it
+        infr = pblm.infr
+
+        def edgeset(iterable):
+            return set(it.starmap(infr.e_, iterable))
+
+        decision_to_samples = ub.ddict(set)
+
+        # Loop over all known edges in the graph
+        for aid1, aid2, data in infr.graph.edges(data=True):
+            nid1, nid2 = infr.pos_graph.node_labels(aid1, aid2)
+
+            # Check if this edge is touching an inconsistent PCC
+            is_touching_inconsistent_pcc = (
+                nid1 in infr.nid_to_errors or
+                nid2 in infr.nid_to_errors
+            )
+
+            if not is_touching_inconsistent_pcc:
+                decision = data['evidence_decision']
+                user_id = data['user_id']
+                if user_id.startswith('user:'):
+                    decision_to_samples[decision].add((aid1, aid2))
+                elif decision == NEGTV:
+                    # If the decision is negative just put it in
+                    # its between two PCCs that are consistent, we will just
+                    # trust the decision.
+                    decision_to_samples[decision].add((aid1, aid2))
+
+        # We have all of the user data. Can we add in anything else?
+
+        # Loop through all the consistent data add any automatically
+        # reviewed edges between k-edge-connected subgraphs
+        pccs = list(map(frozenset, infr.consistent_components()))
+        for cc in ut.ProgIter(pccs, label='pos sample'):
+            pos_subgraph = infr.pos_graph.subgraph(cc)
+            for ksub in k_edge_subgraphs(pos_subgraph, k=2):
+                ksub_g = pos_subgraph.subgraph(ksub)
+                decision_to_samples[POSTV].update(set(ksub_g.edges()))
+
+        #
+        decision_to_samples[POSTV] = edgeset(decision_to_samples[POSTV])
+        decision_to_samples[NEGTV] = edgeset(decision_to_samples[NEGTV])
+        decision_to_samples[INCMP] = edgeset(decision_to_samples[INCMP])
+
+        balance = int(1.2 * min(len(decision_to_samples[POSTV]),
+                                len(decision_to_samples[NEGTV])))
+
+        decision_to_samples[POSTV] = ut.shuffle(list(decision_to_samples[POSTV]))[0:balance]
+        decision_to_samples[NEGTV] = ut.shuffle(list(decision_to_samples[NEGTV]))[0:balance]
+        decision_to_samples[INCMP] = ut.shuffle(list(decision_to_samples[INCMP]))[0:balance]
+
+        # Union all edges together and return
+        aid_pairs = sorted(edgeset(ub.flatten([
+            decision_to_samples[POSTV],
+            decision_to_samples[NEGTV],
+            decision_to_samples[INCMP],
+        ])))
+        return aid_pairs
+
     @profile
     def make_training_pairs(pblm):
         """
@@ -506,24 +588,27 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         sample_method = pblm.hyper_params['sample_method']
 
+        aid_pairs_ = []
         if sample_method == 'lnbnn':
-            aid_pairs_ = pblm.make_lnbnn_training_pairs()
+            aid_pairs_.append(pblm.make_lnbnn_training_pairs())
+            aid_pairs_.append(infr.photobomb_samples())
+            aid_pairs_.append(list(infr.incomp_graph.edges()))
         elif sample_method == 'random':
-            aid_pairs_ = pblm.make_randomized_training_pairs()
+            aid_pairs_.append(pblm.make_randomized_training_pairs())
+            aid_pairs_.append(infr.photobomb_samples())
+            aid_pairs_.append(list(infr.incomp_graph.edges()))
         elif sample_method == 'lnbnn+random':
-            aid_pairs1 = pblm.make_lnbnn_training_pairs()
-            aid_pairs2 = pblm.make_randomized_training_pairs()
-            aid_pairs_ = list(set(aid_pairs1).union(aid_pairs2))
+            aid_pairs_.append(pblm.make_lnbnn_training_pairs())
+            aid_pairs_.append(pblm.make_randomized_training_pairs())
+            aid_pairs_.append(infr.photobomb_samples())
+            aid_pairs_.append(list(infr.incomp_graph.edges()))
+        elif sample_method == 'bootstrap':
+            aid_pairs_.append(infr.make_graph_based_bootstrap_pairs())
         else:
             raise KeyError('Unknown sample_method={}'.format(sample_method))
 
-        pb_aid_pairs = infr.photobomb_samples()
-        incomp_aid_pairs = list(infr.incomp_graph.edges())
-
-        # Simplify life by using undirected pairs
-        aid_pairs = pb_aid_pairs + list(aid_pairs_) + incomp_aid_pairs
-        # Ensure this is sorted
-        aid_pairs = sorted(set(it.starmap(infr.e_, aid_pairs)))
+        # Simplify life by using sorted undirected pairs
+        aid_pairs = sorted(set(it.starmap(infr.e_, ub.flatten(aid_pairs_))))
         return aid_pairs
 
     @profile
@@ -549,6 +634,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         aid_pairs = pblm.make_training_pairs()
         pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
+
         if pblm.verbose > 0:
             ut.cprint('[pblm] apply_multi_task_multi_label', color='blue')
         pblm.samples.apply_multi_task_multi_label()
