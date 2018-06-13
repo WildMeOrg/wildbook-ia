@@ -1215,12 +1215,15 @@ class QueryRequest(ut.NiceRepr):
         infostr = '\n'.join(infostr_list)
         return infostr
 
-    def get_chipmatch_fpaths(qreq_, qaid_list):
+    def get_chipmatch_fpaths(qreq_, qaid_list, super_qres_cache=False):
         r"""
         Generates chipmatch paths for input query annotation rowids
         """
         dpath = qreq_.get_qresdir()
-        cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
+        if super_qres_cache:
+            cfgstr = 'supercache'
+        else:
+            cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
         qauuid_list = qreq_.get_qreq_pcc_uuids(qaid_list)
         for qaid, qauuid in zip(qaid_list, qauuid_list):
             fname = chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,
@@ -1258,7 +1261,7 @@ class QueryRequest(ut.NiceRepr):
             qreq_.prog_hook = prog_hook
             cm_list = mc4.submit_query_request(
                 qreq_, use_cache=use_cache, use_bigcache=use_cache, verbose=True,
-                save_qcache=use_cache)
+                save_qcache=use_cache, use_supercache=use_cache)
         return cm_list
 
 

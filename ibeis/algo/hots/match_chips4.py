@@ -12,9 +12,10 @@ from ibeis.algo.hots import pipeline
 
 # TODO: Move to params
 USE_HOTSPOTTER_CACHE = pipeline.USE_HOTSPOTTER_CACHE
-USE_CACHE    = not ut.get_argflag(('--nocache-query', '--noqcache'))  and USE_HOTSPOTTER_CACHE
-USE_BIGCACHE = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache')) and ut.USE_CACHE
-SAVE_CACHE   = not ut.get_argflag('--nocache-save')
+USE_CACHE      = not ut.get_argflag(('--nocache-query', '--noqcache'))  and USE_HOTSPOTTER_CACHE
+USE_BIGCACHE   = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache')) and ut.USE_CACHE
+USE_SUPERCACHE = not ut.get_argflag(('--nocache-super', '--no-supercache-query', '--noqcache', '--nosupercache')) and ut.USE_CACHE
+SAVE_CACHE     = not ut.get_argflag('--nocache-save')
 #MIN_BIGCACHE_BUNDLE = 20
 #MIN_BIGCACHE_BUNDLE = 150
 MIN_BIGCACHE_BUNDLE = 64
@@ -27,7 +28,7 @@ HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
 
 @profile
 def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
-                         verbose=None, save_qcache=None):
+                         verbose=None, save_qcache=None, use_supercache=None):
     """
     Called from qreq_.execute
 
@@ -59,6 +60,8 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         save_qcache = SAVE_CACHE
     if use_bigcache is None:
         use_bigcache = USE_BIGCACHE
+    if use_supercache is None:
+        use_supercache = USE_SUPERCACHE
     # Create new query request object to store temporary state
     if verbose:
         #print('[mc4] --- Submit QueryRequest_ --- ')
@@ -93,7 +96,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         # ------------
         # Execute query request
         qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache,
-                                             verbose=verbose)
+                                             verbose=verbose, use_supercache=use_supercache)
         # ------------
         if save_qcache and is_big:
             cacher.save(qaid2_cm)
@@ -104,7 +107,8 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
 
 @profile
 def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
-                              batch_size=None):
+                              batch_size=None, use_supercache=False,
+                              invalidate_supercache=False):
     """
     Args:
         qreq_ (ibeis.QueryRequest):
@@ -201,7 +205,10 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         other = cm_ = qaid2_cm_[qaid]
         cm = qaid2_cm[qaid]
     """
-    SUPER_HACK = True
+    if use_supercache and invalidate_supercache:
+        dpath = qreq_.get_qresdir()
+        fpath_list = ut.glob('%s/*_cm_supercache_*' % (dpath, ))
+        ut.delete(fpath_list)
 
     if use_cache:
         if verbose:
@@ -209,25 +216,8 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
-        fpath_list = list(qreq_.get_chipmatch_fpaths(external_qaids))
-
-        if SUPER_HACK:
-            fpath_list_ = []
-            for fpath in fpath_list:
-                temp = fpath.split('_cm_')
-                assert len(temp) == 2
-                temp1, temp2 = temp
-                temp2_ = temp2.split('_')
-                temp2_[0] = 'zeugyrohnuklsnwt'
-                temp2 = '_'.join(temp2_)
-                fpath_ = '%s_cm_%s' % (temp1, temp2, )
-                fpath_list_.append(fpath_)
-            fpath_list = fpath_list_
-
-        print(external_qaids[:10])
-        print(fpath_list[:10])
+        fpath_list = list(qreq_.get_chipmatch_fpaths(external_qaids, super_qres_cache=use_supercache))
         exists_flags = [exists(fpath) for fpath in fpath_list]
-        print('has cache: %d / %d' % (exists_flags.count(True), len(exists_flags), ))
         qaids_hit = ut.compress(external_qaids, exists_flags)
         fpaths_hit = ut.compress(fpath_list, exists_flags)
         fpath_iter = ut.ProgIter(
