@@ -209,6 +209,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         external_qaids = qreq_.qaids
         fpath_list = list(qreq_.get_chipmatch_fpaths(external_qaids))
         exists_flags = [exists(fpath) for fpath in fpath_list]
+        print('has cache: %d / %d' % (exists_flags.count(True), exists_flags, ))
         qaids_hit = ut.compress(external_qaids, exists_flags)
         fpaths_hit = ut.compress(fpath_list, exists_flags)
         fpath_iter = ut.ProgIter(
