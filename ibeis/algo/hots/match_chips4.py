@@ -201,6 +201,8 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         other = cm_ = qaid2_cm_[qaid]
         cm = qaid2_cm[qaid]
     """
+    SUPER_HACK = True
+
     if use_cache:
         if verbose:
             print('[mc4] cache-query is on')
@@ -208,6 +210,20 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
         fpath_list = list(qreq_.get_chipmatch_fpaths(external_qaids))
+
+        if SUPER_HACK:
+            fpath_list_ = []
+            for fpath in fpath_list:
+                temp = fpath.split('_cm_')
+                assert len(temp) == 2
+                temp1, temp2 = temp
+                temp2_ = temp2.split('_')
+                temp2_[0] = 'zeugyrohnuklsnwt'
+                temp2 = '_'.join(temp2_)
+                fpath_ = '%s_cm_%s' % (temp1, temp2, )
+                fpath_list_.append(fpath_)
+            fpath_list = fpath_list_
+
         print(external_qaids[:10])
         print(fpath_list[:10])
         exists_flags = [exists(fpath) for fpath in fpath_list]
