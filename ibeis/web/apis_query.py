@@ -957,7 +957,12 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
                                  view_orientation='vertical', view_version=1):
     from ibeis.algo.verif import pairfeat
+    from flask import session
 
+    EDGES_KEY = '_EDGES_'
+    EDGES_MAX = 10
+
+    user_id = controller_inject.get_user()
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
     if aid1 is not None and aid2 is not None:
@@ -972,11 +977,24 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
                 {},
             )
     else:
-        data = graph_client.sample()
+        if EDGES_KEY not in session:
+            session[EDGES_KEY] = []
+        previous_edge_list = session[EDGES_KEY]
+        print('Using previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
+
+        data = graph_client.sample(previous_edge_list=previous_edge_list)
         if data is None:
             raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
     edge, priority, data_dict = data
+
+    previous_edge_list.append(edge)
+    if len(previous_edge_list) > EDGES_MAX:
+        cutoff = int(-1.0 * EDGES_MAX)
+        previous_edge_list = previous_edge_list[cutoff:]
+    session[EDGES_KEY] = previous_edge_list
+    print('Updating previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
+
     args = (edge, priority, )
     print('Sampled edge %r with priority %0.02f' % args)
     print('Data: ' + ut.repr4(data_dict))

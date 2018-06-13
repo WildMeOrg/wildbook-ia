@@ -517,21 +517,28 @@ class GraphClient(object):
         priority, data_dict = client.review_dict[edge]
         return edge, priority, data_dict
 
-    def sample(client):
+    def sample(client, previous_edge_list=[]):
         if client.review_dict is None:
             raise controller_inject.WebReviewFinishedException(client.graph_uuid)
         print('SAMPLING')
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
+
+        edge = None
         if client.review_vip is not None and client.review_vip in edge_list:
-            print('SHOWING VIP TO USER!!!')
-            edge = client.review_vip
-            client.prev_vip = edge
-            client.review_vip = None
-        else:
-            print('VIP ALREADY SHOWN')
+            if client.review_vip not in previous_edge_list:
+                print('SHOWING VIP TO USER!!!')
+                edge = client.review_vip
+                client.prev_vip = edge
+                client.review_vip = None
+            else:
+                print('VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)')
+
+        if edge is None:
+            print('VIP ALREADY SHOWN!!!')
             edge = random.choice(edge_list)
+
         priority, data_dict = client.review_dict[edge]
         print('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict
