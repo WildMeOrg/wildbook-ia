@@ -966,6 +966,7 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
 
     if aid1 is not None and aid2 is not None:
+        previous_edge_list = None
         if aid1 > aid2:
             aid1, aid2 = aid2, aid1
         edge = (aid1, aid2)
@@ -992,12 +993,13 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
         int(edge[0]),
         int(edge[1]),
     ]
-    previous_edge_list.append(edge_)
-    if len(previous_edge_list) > EDGES_MAX:
-        cutoff = int(-1.0 * EDGES_MAX)
-        previous_edge_list = previous_edge_list[cutoff:]
-    session[EDGES_KEY] = previous_edge_list
-    print('Updating previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
+    if previous_edge_list is not None:
+        previous_edge_list.append(edge_)
+        if len(previous_edge_list) > EDGES_MAX:
+            cutoff = int(-1.0 * EDGES_MAX)
+            previous_edge_list = previous_edge_list[cutoff:]
+        session[EDGES_KEY] = previous_edge_list
+        print('Updating previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
 
     args = (edge, priority, )
     print('Sampled edge %r with priority %0.02f' % args)
