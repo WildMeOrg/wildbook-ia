@@ -178,9 +178,20 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                 try:
                     return func(**message)
                 except Exception as ex:
+                    import sys
+                    import traceback
+
+                    traceback.print_exc()
+                    trace = traceback.format_exc()
+
                     if actor.infr is not None:
                         actor.infr.print('Actor Server Error: {!r}'.format(ex))
-                    raise
+                        actor.infr.print('Actor Server Traceback: {!r}'.format(trace))
+                    else:
+                        print(ex)
+                        print(trace)
+
+                    raise sys.exc_info()[0](trace)
 
     def start(actor, dbdir, aids='all', config={},
               **kwargs):
