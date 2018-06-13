@@ -603,7 +603,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             aid_pairs_.append(infr.photobomb_samples())
             aid_pairs_.append(list(infr.incomp_graph.edges()))
         elif sample_method == 'bootstrap':
-            aid_pairs_.append(infr.make_graph_based_bootstrap_pairs())
+            aid_pairs_.append(pblm.make_graph_based_bootstrap_pairs())
         else:
             raise KeyError('Unknown sample_method={}'.format(sample_method))
 
