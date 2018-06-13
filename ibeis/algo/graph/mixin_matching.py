@@ -36,7 +36,7 @@ class AnnotInfrMatching(object):
         infr.qreq_ = qreq_
 
     def _make_rankings(infr, qaids=None, daids=None, prog_hook=None,
-                       cfgdict=None, name_method='node'):
+                       cfgdict=None, name_method='node', use_cache=True):
         #from ibeis.algo.graph import graph_iden
 
         # TODO: expose other ranking algos like SMK
@@ -83,7 +83,7 @@ class AnnotInfrMatching(object):
         #     # import sys
         #     # sys.exit(1)
 
-        cm_list = qreq_.execute(prog_hook=prog_hook, use_cache=True)
+        cm_list = qreq_.execute(prog_hook=prog_hook, use_cache=use_cache)
         infr._set_vsmany_info(qreq_, cm_list)
 
         edges = set(infr._cm_breaking(

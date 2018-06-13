@@ -1249,7 +1249,7 @@ class QueryRequest(ut.NiceRepr):
         """
         if qaids is not None:
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
-            cm_list = shallow_qreq_.execute(prog_hook=prog_hook)
+            cm_list = shallow_qreq_.execute(prog_hook=prog_hook, use_cache=use_cache)
             #cm_list = qreq_.ibs.query_chips(
             #    qreq_=shallow_qreq_, use_bigcache=False )
         else:
