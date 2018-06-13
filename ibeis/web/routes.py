@@ -1451,36 +1451,49 @@ def view_graphs(sync=False, **kwargs):
         import ibeis
         import ibeis.constants as const
 
+        aid_list_ = ibs.get_valid_aids()
+
+        # Save sex from current name
+        sex_list_ = ibs.get_annot_sex(aid_list_)
+
+        nid_list = [const.UNKNOWN_NAME_ROWID] * len(aid_list_)
+        ibs.set_annot_name_rowids(aid_list_, nid_list, notify_wildbook=False)
+        ibs.delete_empty_nids()
+
+        nid_list = ibs.get_valid_nids()
+        print('Delete nids: %d' % (len(nid_list), ))
+
         species_list = ['zebra_grevys', 'giraffe_reticulated']
         for species in species_list:
-            aid_list = ibs.get_valid_aids()
-            nid_list = [const.UNKNOWN_NAME_ROWID] * len(aid_list)
-            ibs.set_annot_name_rowids(aid_list, nid_list, notify_wildbook=False)
-            ibs.delete_empty_nids()
-
-            nid_list = ibs.get_valid_nids()
-            print('Reset nids: %d' % (len(nid_list), ))
-
-            aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+            aid_list = ibs.check_ggr_valid_aids(aid_list_, species=species, threshold=0.75)
             ibs.set_annot_names_to_different_new_names(aid_list, notify_wildbook=False)
-
-            nid_list = ibs.get_valid_nids()
-            print('Reset nids: %d' % (len(nid_list), ))
 
             infr = ibeis.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
             infr.reset_feedback('staging', apply=True)
             num_pccs = len(list(infr.positive_components()))
-            print('Proposed PCCs: %d' % (num_pccs, ))
+            print('\tproposing PCCs for %r: %d' % (species, num_pccs, ))
 
             infr.relabel_using_reviews(rectify=True)
             infr.write_ibeis_staging_feedback()
             infr.write_ibeis_annotmatch_feedback()
             infr.write_ibeis_name_assignment(notify_wildbook=False)
 
-            ibs.delete_empty_nids()
+        ibs.delete_empty_nids()
+        nid_list = ibs.get_valid_nids()
+        print('Final nids: %d' % (len(nid_list), ))
 
-            nid_list = ibs.get_valid_nids()
-            print('Final nids: %d' % (len(nid_list), ))
+        # Reset sex for new names from old names
+        nid_list_ = ibs.get_annot_nids(aid_list_)
+
+        seen = set([])
+        new_nid_list = []
+        new_sex_list = []
+        for nid_, sex_ in zip(nid_list_, sex_list_):
+            if nid_ > 0 and nid_ is not None and nid_ not in seen:
+                new_nid_list.append(nid_)
+                new_sex_list.append(sex_)
+                seen.add(nid_)
+        ibs.set_name_sex(new_nid_list, new_sex_list)
 
     graph_uuid_list = current_app.GRAPH_CLIENT_DICT
     num_graphs = len(graph_uuid_list)
