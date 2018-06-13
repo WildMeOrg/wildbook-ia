@@ -1219,17 +1219,31 @@ class AnnotInference(ut.NiceRepr,
 
         infr.print('__init__ configuration', level=1)
         # TODO: move to params
-        infr.task_thresh = {
-            'match_state': {
-                POSTV: np.inf,
-                NEGTV: np.inf,
-                INCMP: np.inf,
+        infr.task_thresh_dict = {
+            'zebra_grevys': {
+                'match_state': {
+                    POSTV: np.inf,
+                    NEGTV: np.inf,
+                    INCMP: np.inf,
+                },
+                'photobomb_state': {
+                    'pb': np.inf,
+                    'nopb': np.inf,
+                }
             },
-            'photobomb_state': {
-                'pb': np.inf,
-                'nopb': np.inf,
-            }
+            'giraffe_reticulated': {
+                'match_state': {
+                    POSTV: np.inf,
+                    NEGTV: np.inf,
+                    INCMP: np.inf,
+                },
+                'photobomb_state': {
+                    'pb': np.inf,
+                    'nopb': np.inf,
+                }
+            },
         }
+        infr.task_thresh = None
 
         # Parameters / Configurations / Callbacks
         infr.callbacks = {

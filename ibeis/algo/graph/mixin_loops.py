@@ -330,7 +330,7 @@ class InfrLoops(object):
                 for value in gen:
                     yield value
 
-            print('found_any = {!r}'.format(found_any))
+            # print('found_any = {!r}'.format(found_any))
             if not found_any:
                 break
 

@@ -435,6 +435,9 @@ class InfrLearning(object):
         from ibeis.algo.verif import deploy
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
+        infr.print('Loading task_thresh for species: %r' % (species, ))
+        assert species in infr.task_thresh_dict
+        infr.task_thresh = infr.task_thresh_dict[species]
         infr.print('Loading verifiers for species: %r' % (species, ))
         infr.verifiers = deploy.Deployer().load_published(ibs, species)
 

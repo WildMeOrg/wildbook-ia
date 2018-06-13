@@ -26,14 +26,6 @@ class Deployer(object):
         'path': '/media/hdd/PUBLIC/models/pairclf',
     }
 
-    # published = {
-    #     'zebra_plains': {
-    #         'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
-    #         # 'photobomb_state': None,
-    #     },
-    #     'zebra_grevys': {},
-    # }
-
     published = {
         'zebra_grevys': {
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',
@@ -45,6 +37,7 @@ class Deployer(object):
             # 'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
         },
         'giraffe_reticulated': {
+            # 'match_state': 'vsone.giraffe_reticulated.match_state.RF.107.clvhhvwgwxpflnhu.ggr2.cPkl',  # GGR2
         },
     }
 

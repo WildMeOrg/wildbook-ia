@@ -3429,7 +3429,8 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
         'threshold':   0.75,
         'enable_grid': True,
     }
-    return turk_identification_graph(annot_uuid_list=annot_uuid_list, creation_imageset_rowid_list=[imgsetid], **config)
+    return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                     creation_imageset_rowid_list=[imgsetid], **config)
 
 
 @register_route('/turk/query/graph/v2/refer/', methods=['GET'])
@@ -3486,7 +3487,8 @@ def turk_identification_hardcase(*args, **kwargs):
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
                               view_orientation='vertical', view_version=1,
-                              hogwild=False, creation_imageset_rowid_list=None,
+                              hogwild=False, hogwild_species=None,
+                              creation_imageset_rowid_list=None,
                               **kwargs):
     """
     CommandLine:
@@ -3509,6 +3511,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         >>> ut.show_if_requested()
     """
     ibs = current_app.ibs
+
+    if hogwild_species is 'None':
+        hogwild_species = None
 
     progress = None
     hogwild_graph_uuid = None
@@ -3537,6 +3542,15 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     if graph_client.review_dict is None:
                         print('\t ERROR: FINISHED')
                         continue
+
+                    if hogwild_species is not None:
+                        imagesets = graph_client.imagesets
+                        if imagesets is not None:
+                            imageset_id = imagesets[0]
+                            imageset_text = ibs.get_imageset_text(imageset_id).lower()
+                            species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+                            if species != hogwild_species:
+                                continue
 
                     fallback_graph_uuid_list.append(graph_uuid_)
                     print('\t len(graph_client.futures)     = %d' % (len(graph_client.futures), ))
@@ -3779,6 +3793,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          finished=finished,
                          graph_uuid=graph_uuid_,
                          hogwild=hogwild,
+                         hogwild_species=hogwild_species,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
                          confidence_list=confidence_list,
