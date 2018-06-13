@@ -836,7 +836,7 @@ class MiscHelpers(object):
             parent_name = ut.get_parent_frame().f_code.co_name
             msg = '[{}] '.format(parent_name) + msg
 
-        if True:
+        if infr.logs:
             # Append the message to an internal log deque
             infr.logs.append((msg, color))
             if len(infr.logs) == infr.logs.maxlen:
