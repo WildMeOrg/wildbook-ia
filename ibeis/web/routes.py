@@ -347,13 +347,15 @@ def view_advanced0(**kwargs):
         aid_list = list(set(aid_list1 + aid_list2 + aid_list3))
 
         # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        # aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
         return aid_list
 
     ibs = current_app.ibs
 
     aid_list = ibs.get_valid_aids()
     aid_list = filter_annots_general(aid_list)
-    aid_list = filter_annots_imageset(aid_list)
+    # aid_list = filter_annots_imageset(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     unixtime_list = ibs.get_image_unixtime(gid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
@@ -480,7 +482,7 @@ def view_advanced0(**kwargs):
     gid_list = ibs.get_valid_gids()
     gid_list = filter_images_imageset(gid_list)
     aid_list = ibs.get_valid_aids()
-    aid_list = filter_annots_imageset(aid_list)
+    # aid_list = filter_annots_imageset(aid_list)
     nid_list = ibs.get_valid_nids()
     nid_list = filter_names_imageset(nid_list)
     # contributor_list = ibs.get_valid_contributor_rowids()
@@ -492,7 +494,7 @@ def view_advanced0(**kwargs):
     contributor_list = set(note_list)
     # nid_list = ibs.get_valid_nids()
     aid_list_count = filter_annots_general(aid_list)
-    aid_list_count = filter_annots_imageset(aid_list_count)
+    # aid_list_count = filter_annots_imageset(aid_list_count)
     gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
     nid_list_count_dup = ibs.get_annot_name_rowids(aid_list_count)
     nid_list_count = list(set(nid_list_count_dup))
@@ -545,8 +547,10 @@ def view_advanced0(**kwargs):
         for gps_list_track in gps_list_tracks
     ]
 
-    ALLOW_IMAGE_DATE_COLOR = True
-    VERSION = 2
+    ut.embed()
+
+    ALLOW_IMAGE_DATE_COLOR = False
+    VERSION = 1
     # Colors for GPS
     color_none = [0, "#777777"]
     color_day1 = [1, "#CA4141"]
@@ -571,7 +575,7 @@ def view_advanced0(**kwargs):
             aid_list_ = ibs.get_image_aids(gid)
             nid_list_ = ibs.get_annot_nids(aid_list_)
             nid_list_ = [nid for nid in nid_list_ if nid > 0]
-            if len(nid_list_) == 0 or True:
+            if len(nid_list_) == 0:
                 color = color_none
 
                 if ALLOW_IMAGE_DATE_COLOR:
@@ -600,6 +604,16 @@ def view_advanced0(**kwargs):
                         color = color_day1
                 elif current_date == '2016/01/31':
                     if '2016/01/30' in date_list:
+                        color = color_resight
+                    else:
+                        color = color_day2
+                elif current_date == '2018/01/27':
+                    if '2018/01/28' in date_list:
+                        color = color_resight
+                    else:
+                        color = color_day1
+                elif current_date == '2018/01/28':
+                    if '2018/01/27' in date_list:
                         color = color_resight
                     else:
                         color = color_day2
@@ -657,7 +671,7 @@ def view_advanced0(**kwargs):
         ]
 
     valid_aids = ibs.get_valid_aids()
-    valid_aids = filter_annots_imageset(valid_aids)
+    # valid_aids = filter_annots_imageset(valid_aids)
     used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
     # used_contributor_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
     note_list = ibs.get_image_notes(used_gids)
@@ -999,13 +1013,15 @@ def view_advanced2(**kwargs):
         aid_list = aid_list1 + aid_list2 + aid_list3
 
         # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        # aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
         return aid_list
 
     ibs = current_app.ibs
 
     aid_list = ibs.get_valid_aids()
     aid_list = filter_annots_general(aid_list)
-    aid_list = filter_annots_imageset(aid_list)
+    # aid_list = filter_annots_imageset(aid_list)
     species_list = ibs.get_annot_species_texts(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     unixtime_list = ibs.get_image_unixtime(gid_list)

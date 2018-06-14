@@ -22,12 +22,14 @@ class AnnotInfrMatching(object):
 
     @profile
     def exec_matching(infr, qaids=None, daids=None, prog_hook=None,
-                      cfgdict=None, name_method='node'):
+                      cfgdict=None, name_method='node', use_cache=False,
+                      invalidate_supercache=False):
         """
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores ibeis labeling
         """
-        infr._make_rankings(qaids, daids, prog_hook, cfgdict, name_method)
+        infr._make_rankings(qaids, daids, prog_hook, cfgdict, name_method,
+                            use_cache=use_cache, invalidate_supercache=invalidate_supercache)
 
     def _set_vsmany_info(infr, qreq_, cm_list):
         infr.vsmany_qreq_ = qreq_
@@ -36,7 +38,8 @@ class AnnotInfrMatching(object):
         infr.qreq_ = qreq_
 
     def _make_rankings(infr, qaids=None, daids=None, prog_hook=None,
-                       cfgdict=None, name_method='node', use_cache=False):
+                       cfgdict=None, name_method='node', use_cache=None,
+                       invalidate_supercache=None):
         #from ibeis.algo.graph import graph_iden
 
         # TODO: expose other ranking algos like SMK
@@ -83,7 +86,8 @@ class AnnotInfrMatching(object):
         #     # import sys
         #     # sys.exit(1)
 
-        cm_list = qreq_.execute(prog_hook=prog_hook, use_cache=use_cache)
+        cm_list = qreq_.execute(prog_hook=prog_hook, use_cache=use_cache,
+                                invalidate_supercache=invalidate_supercache)
         infr._set_vsmany_info(qreq_, cm_list)
 
         edges = set(infr._cm_breaking(
@@ -700,6 +704,7 @@ class CandidateSearch(_RedundancyAugmentation):
             'requery': True,
             'can_match_samename': False,
             'can_match_sameimg': False,
+            'K': 5,
             # 'sv_on': False,
         })
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})

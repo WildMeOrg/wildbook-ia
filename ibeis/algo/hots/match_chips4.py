@@ -28,7 +28,8 @@ HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
 
 @profile
 def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
-                         verbose=None, save_qcache=None, use_supercache=None):
+                         verbose=None, save_qcache=None, use_supercache=None,
+                         invalidate_supercache=None):
     """
     Called from qreq_.execute
 
@@ -96,7 +97,9 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         # ------------
         # Execute query request
         qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache,
-                                             verbose=verbose, use_supercache=use_supercache)
+                                             verbose=verbose,
+                                             use_supercache=use_supercache,
+                                             invalidate_supercache=invalidate_supercache)
         # ------------
         if save_qcache and is_big:
             cacher.save(qaid2_cm)
@@ -205,7 +208,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         other = cm_ = qaid2_cm_[qaid]
         cm = qaid2_cm[qaid]
     """
-    if use_supercache and invalidate_supercache:
+    if invalidate_supercache:
         dpath = qreq_.get_qresdir()
         fpath_list = ut.glob('%s/*_cm_supercache_*' % (dpath, ))
         ut.delete(fpath_list)

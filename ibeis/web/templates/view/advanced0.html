@@ -771,7 +771,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         heatmap_data.push(gps);
-        color = "#428BCA";
+        // color = "#428BCA";
+        color = colors_all[index];
         new google.maps.Polyline({
             path: [gps, gps2],
             clickable: false,
@@ -866,7 +867,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         gps = new google.maps.LatLng(marker[0], marker[1]);
         bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
-        color = "#428BCA";
+        // color = "#428BCA";
+        color = colors_all[index];
         new google.maps.Polyline({
             path: [gps, gps2],
             clickable: false,
