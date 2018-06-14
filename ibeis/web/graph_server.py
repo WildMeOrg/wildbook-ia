@@ -276,7 +276,11 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         except:
             pass
         try:
-            infr_status['is_converged'] = actor.infr.phase > 0 and actor.infr.refresh.num_meaningful == 0
+            infr_status['is_converged'] = actor.infr.phase == 4
+        except:
+            pass
+        try:
+            infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful
         except:
             pass
         try:

@@ -1541,7 +1541,7 @@ def view_graphs(sync=False, **kwargs):
             state = -1
         elif infr_status.get('is_converged', False):
             state = 1
-        reviews = '%s (%s)' % (num_edges, infr_status.get('num_pccs', None))
+        reviews = '%s (%s - %s)' % (num_edges, infr_status.get('num_meaningful', None), infr_status.get('num_pccs', None))
         graph = (
             graph_uuid,
             graph_client.imagesets,
