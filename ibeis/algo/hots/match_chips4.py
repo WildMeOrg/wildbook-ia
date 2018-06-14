@@ -211,7 +211,8 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     if invalidate_supercache:
         dpath = qreq_.get_qresdir()
         fpath_list = ut.glob('%s/*_cm_supercache_*' % (dpath, ))
-        ut.delete(fpath_list)
+        for fpath in fpath_list:
+            ut.delete(fpath)
 
     if use_cache:
         if verbose:
