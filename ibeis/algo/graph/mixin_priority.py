@@ -266,6 +266,9 @@ class Priority(object):
         Pops the highest priority edge from the queue.
         """
         # The outer loop simulates recursive calls without using the stack
+        SIZE_THRESH_ENABLED = False
+        SIZE_THRESH = 10
+
         while True:
             try:
                 edge, priority = infr._pop()
@@ -277,6 +280,17 @@ class Priority(object):
                 if corrected_priority is not None:
                     infr.push(edge, corrected_priority)
                     continue
+
+                if SIZE_THRESH_ENABLED:
+                    u, v = edge
+                    nid1, nid2 = infr.node_labels(u, v)
+                    cc1 = infr.pos_graph.component(nid1)
+                    cc2 = infr.pos_graph.component(nid2)
+                    size1 = len(cc1)
+                    size2 = len(cc2)
+
+                    if nid1 == nid2 and not (size1 > SIZE_THRESH and size2 > SIZE_THRESH):
+                        continue
 
                 if infr.params['redun.enabled']:
                     u, v = edge
