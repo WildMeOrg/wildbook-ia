@@ -1305,7 +1305,9 @@ class AnnotInference(ut.NiceRepr,
 
         infr.print('__init__ storage', level=1)
         infr.verifier_params = {}  # TODO
-        infr.ranker_params = {}
+        infr.ranker_params = {
+            'K': 5,
+        }
 
         # Developer modes (consoldate this)
         infr.test_mode = False

@@ -63,6 +63,7 @@ class AnnotInfrMatching(object):
                 'score_method': 'csum'
             }
             cfgdict.update(infr.ranker_params)
+        infr.print('Using LNBNN config = %r' % (cfgdict, ))
         # hack for using current nids
         if name_method == 'node':
             aids = sorted(set(ut.aslist(qaids) + ut.aslist(daids)))
@@ -704,7 +705,6 @@ class CandidateSearch(_RedundancyAugmentation):
             'requery': True,
             'can_match_samename': False,
             'can_match_sameimg': False,
-            'K': 5,
             # 'sv_on': False,
         })
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})

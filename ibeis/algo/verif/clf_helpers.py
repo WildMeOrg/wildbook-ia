@@ -900,6 +900,7 @@ class ClfResult(ut.NiceRepr):
         # for k in [2, 0, 1]:
         choice_mv = ut.odict([
             ('@fpr=.01', ('fpr', .01)),
+            ('@fpr=.001', ('fpr', .001)),
             ('@fpr=.0001', ('fpr', 1E-4)),
             ('@fpr=.0000', ('fpr', 0)),
             ('@max(mcc)', ('mcc', 'max')),
@@ -931,11 +932,11 @@ class ClfResult(ut.NiceRepr):
                 # chosen_type = class_name + '@fpr=0'
                 # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
-        choice_k, choice_mv = next(iter(choice_mv.items()))
-        metric, value = choice_mv
-        pos_threshes = res.get_pos_threshes(metric, value, warmup=warmup)
-        print('Choosing threshold based on %s' % (choice_k,))
-        res.report_auto_thresholds(pos_threshes)
+        for choice_k, choice_mv in iter(choice_mv.items()):
+            metric, value = choice_mv
+            pos_threshes = res.get_pos_threshes(metric, value, warmup=warmup)
+            print('Choosing threshold based on %s' % (choice_k,))
+            res.report_auto_thresholds(pos_threshes)
 
     def report_auto_thresholds(res, threshes, verbose=True):
         report_lines = []
