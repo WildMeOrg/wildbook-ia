@@ -39,7 +39,7 @@ class Deployer(object):
         },
         'giraffe_reticulated': {
             # 'match_state': 'vsone.giraffe_reticulated.match_state.RF.107.clvhhvwgwxpflnhu.ggr2.cPkl',  # GGR2 0
-            # 'match_state': 'vsone.giraffe_reticulated.match_state.RF.107.kqbaqnrdyxpjrzjd.ggr2.cPkl',  # GGR2 1
+            # 'match_state': 'vsone.giraffe_reticulated.match_state.RF.131.kqbaqnrdyxpjrzjd.ggr2.cPkl',  # GGR2 1
         },
     }
 
