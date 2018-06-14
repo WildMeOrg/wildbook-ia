@@ -517,7 +517,7 @@ class GraphClient(object):
         priority, data_dict = client.review_dict[edge]
         return edge, priority, data_dict
 
-    def sample(client, previous_edge_list=[]):
+    def sample(client, previous_edge_list=[], max_previous_edges=10):
         if client.review_dict is None:
             raise controller_inject.WebReviewFinishedException(client.graph_uuid)
         print('SAMPLING')
@@ -531,10 +531,13 @@ class GraphClient(object):
             vip_2 = int(client.review_vip[1])
 
             found = False
-            for edge_1, edge_2 in previous_edge_list:
-                if edge_1 == vip_1 and edge_2 == vip_2:
-                    found = True
-                    break
+            if len(edge_list) >= max_previous_edges:
+                for edge_1, edge_2 in previous_edge_list:
+                    if edge_1 == vip_1 and edge_2 == vip_2:
+                        found = True
+                        break
+            else:
+                print('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
 
             if not found:
                 print('SHOWING VIP TO USER!!!')
