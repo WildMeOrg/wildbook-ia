@@ -527,25 +527,25 @@ class GraphClient(object):
 
         edge = None
         if client.review_vip is not None and client.review_vip in edge_list:
-            vip_1 = int(client.review_vip[0])
-            vip_2 = int(client.review_vip[1])
-
-            found = False
             if len(edge_list) >= max_previous_edges:
+                vip_1 = int(client.review_vip[0])
+                vip_2 = int(client.review_vip[1])
+
+                found = False
                 for edge_1, edge_2 in previous_edge_list:
                     if edge_1 == vip_1 and edge_2 == vip_2:
                         found = True
                         break
+
+                if not found:
+                    print('SHOWING VIP TO USER!!!')
+                    edge = client.review_vip
+                    client.prev_vip = edge
+                    client.review_vip = None
+                else:
+                    print('VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)')
             else:
                 print('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
-
-            if not found:
-                print('SHOWING VIP TO USER!!!')
-                edge = client.review_vip
-                client.prev_vip = edge
-                client.review_vip = None
-            else:
-                print('VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)')
 
         if edge is None:
             print('VIP ALREADY SHOWN!!!')

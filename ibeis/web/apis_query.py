@@ -983,7 +983,7 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
         previous_edge_list = session[EDGES_KEY]
         print('Using previous_edge_list\n\tUser: %s\n\tList: %r' % (user_id, previous_edge_list, ))
 
-        data = graph_client.sample(previous_edge_list=previous_edge_list, max_edges=EDGES_MAX)
+        data = graph_client.sample(previous_edge_list=previous_edge_list, max_previous_edges=EDGES_MAX)
         if data is None:
             raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
