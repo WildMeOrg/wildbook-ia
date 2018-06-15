@@ -810,6 +810,24 @@ def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwa
                                 version=version))
 
 
+@register_route('/submit/splits/', methods=['POST'])
+def submit_splits(**kwargs):
+    ibs = current_app.ibs
+
+    aid_list = kwargs['annotation-splits-aids']
+    highlight_list = kwargs['annotation-splits-highlighted']
+    assert len(aid_list) == len(highlight_list)
+
+    ut.embed()
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_splits', aid=None))
+
+
 @register_route('/submit/species/', methods=['POST'])
 def submit_species(**kwargs):
     ibs = current_app.ibs

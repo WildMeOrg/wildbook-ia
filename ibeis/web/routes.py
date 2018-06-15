@@ -2611,6 +2611,29 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
                          callback_method='POST')
 
 
+@register_route('/turk/splits/', methods=['GET'])
+def turk_splits(aid=None, **kwargs):
+    ibs = current_app.ibs
+
+    annotation_list = []
+    if aid is not None:
+        nid = ibs.get_annot_nids(aid)
+        aid_list = ibs.get_name_aids(nid)
+
+        annotation_list = list(zip(
+            aid_list,
+        ))
+
+    annotation_list.sort(key=lambda t: t[0])
+    callback_url = '%s' % (url_for('submit_splits'), )
+    return appf.template('turk', 'splits',
+                         aid=aid,
+                         annotation_list=annotation_list,
+                         num_annotations=len(annotation_list),
+                         callback_url=callback_url,
+                         callback_method='POST')
+
+
 @register_route('/turk/contour/', methods=['GET'])
 def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     ibs = current_app.ibs
@@ -3976,16 +3999,17 @@ def turk_demographics(species='zebra_grevys', **kwargs):
 
         region_str = 'UNKNOWN'
         if aid is not None and gid is not None:
-            imgsetid_list = ibs.get_image_imgsetids(gid)
+            imgsetid_list = sorted(ibs.get_image_imgsetids(gid))
             imgset_text_list = ibs.get_imageset_text(imgsetid_list)
             imgset_text_list = [
-                imgset_text
+                imgset_text.strip('GGR Special Zone').strip()
                 for imgset_text in imgset_text_list
                 if 'GGR Special Zone' in imgset_text
             ]
-            assert len(imgset_text_list) < 2
-            if len(imgset_text_list) == 1:
-                region_str = imgset_text_list[0]
+            # assert len(imgset_text_list) < 2
+            # if len(imgset_text_list) == 1:
+            #     region_str = imgset_text_list[0]
+            region_str = ', '.join(imgset_text_list)
 
     return appf.template('turk', 'demographics',
                          imgsetid=imgsetid,
