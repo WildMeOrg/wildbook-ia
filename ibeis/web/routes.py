@@ -4002,7 +4002,7 @@ def turk_demographics(species='zebra_grevys', **kwargs):
             imgsetid_list = sorted(ibs.get_image_imgsetids(gid))
             imgset_text_list = ibs.get_imageset_text(imgsetid_list)
             imgset_text_list = [
-                imgset_text.strip('GGR Special Zone').strip()
+                imgset_text
                 for imgset_text in imgset_text_list
                 if 'GGR Special Zone' in imgset_text
             ]
