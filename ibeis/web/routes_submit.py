@@ -1009,7 +1009,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
 
         ibs.set_annot_age_months_est_min(aid_list, [age_min] * len(aid_list))
         ibs.set_annot_age_months_est_max(aid_list, [age_max] * len(aid_list))
-        print('[web] user_id: %s, aid: %d, sex: %r, age: %r' % (user_id, aid, sex, age))
+        print('[web] Updating %d demographics with user_id: %s\n\taid_list : %d\n\tsex: %r\n\tage_min: %r\n\tage_max: %r' % (len(aid_list), user_id, aid_list, sex, age_min, age_max,))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:

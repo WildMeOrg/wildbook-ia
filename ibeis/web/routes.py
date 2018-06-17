@@ -312,43 +312,43 @@ def view_advanced0(**kwargs):
 
     def filter_annots_general(aid_list):
         # Grevy's
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'good',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_grevys',
-            'view': ['right'],
-        }
-        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        # filter_kw = {
+        #     'multiple': None,
+        #     'minqual': 'good',
+        #     'is_known': True,
+        #     'min_pername': 1,
+        #     'species': 'zebra_grevys',
+        #     'view': ['right'],
+        # }
+        # aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
 
-        # Plains
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_plains',
-            'view': ['left'],
-        }
-        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        # # Plains
+        # filter_kw = {
+        #     'multiple': None,
+        #     'minqual': 'ok',
+        #     'is_known': True,
+        #     'min_pername': 1,
+        #     'species': 'zebra_plains',
+        #     'view': ['left'],
+        # }
+        # aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
 
-        # Masai
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'giraffe_masai',
-            'view': ['left'],
-        }
-        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        # # Masai
+        # filter_kw = {
+        #     'multiple': None,
+        #     'minqual': 'ok',
+        #     'is_known': True,
+        #     'min_pername': 1,
+        #     'species': 'giraffe_masai',
+        #     'view': ['left'],
+        # }
+        # aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
 
-        aid_list = list(set(aid_list1 + aid_list2 + aid_list3))
+        # aid_list = list(set(aid_list1 + aid_list2 + aid_list3))
 
         # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
 
-        # aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+        aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
         return aid_list
 
     ibs = current_app.ibs
@@ -3927,6 +3927,12 @@ def turk_demographics(species='zebra_grevys', **kwargs):
             aid_list = ut.flatten(ibs.get_image_aids(gid_list))
             aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
             reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
+
+        print('!' * 100)
+        print('Demographics Progress')
+        print('\t reviewed_list.count(True) = %d' % (reviewed_list.count(True), ))
+        print('\t len(reviewed_list)        = %d' % (len(aid_list), ))
+        print('!' * 100)
 
         try:
             progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
