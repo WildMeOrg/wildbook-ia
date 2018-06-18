@@ -62,7 +62,7 @@ class AnnotInfrMatching(object):
                 'prescore_method': 'csum',
                 'score_method': 'csum'
             }
-            cfgdict.update(infr.ranker_params)
+        cfgdict.update(infr.ranker_params)
         infr.print('Using LNBNN config = %r' % (cfgdict, ))
         # hack for using current nids
         if name_method == 'node':

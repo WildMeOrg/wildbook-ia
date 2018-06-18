@@ -281,7 +281,7 @@ class Priority(object):
                     infr.push(edge, corrected_priority)
                     continue
 
-                if SIZE_THRESH_ENABLED:
+                if SIZE_THRESH_ENABLED and infr.phase > 0:
                     u, v = edge
                     nid1, nid2 = infr.node_labels(u, v)
                     cc1 = infr.pos_graph.component(nid1)
