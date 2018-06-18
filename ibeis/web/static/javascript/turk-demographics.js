@@ -9,6 +9,7 @@ function is_biologist()
 function update_label()
 {
   var demographics_sex_strs = [];
+  demographics_sex_strs[4] = 'Indeterminate';
   demographics_sex_strs[3] = 'Male';
   demographics_sex_strs[2] = 'Female';
   demographics_sex_strs[1] = 'Unknown';

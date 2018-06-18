@@ -106,6 +106,7 @@ SEX_INT_TO_TEXT = {
     -1  : 'UNKNOWN SEX',
     0   : 'Female',
     1   : 'Male',
+    2   : 'INDETERMINATE SEX',
 }
 SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 

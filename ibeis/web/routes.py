@@ -547,7 +547,7 @@ def view_advanced0(**kwargs):
         for gps_list_track in gps_list_tracks
     ]
 
-    ut.embed()
+    # ut.embed()
 
     ALLOW_IMAGE_DATE_COLOR = False
     VERSION = 1
@@ -735,7 +735,9 @@ def view_advanced0(**kwargs):
         except:
             pass
 
-    age_total = sum(map(sum, age_list)) + age_unreviewed + age_ambiguous
+    age_total = sum(map(sum, age_list))
+    if False:
+        age_total += age_unreviewed + age_ambiguous
     age_total = np.nan if age_total == 0 else age_total
     age_fmt_str = (lambda x: '% 4d (% 2.02f%%)' % (x, 100 * x / age_total, ))
     age_str_list = [

@@ -58,16 +58,19 @@
         <input type="text" name="demographics-aid" value="{{ aid }}" style="display: none;" readonly>
         Sex: <span id="label-sex"></span> | Age: <span id="label-age"></span>
         <br/>
-        <input type="range" name="demographics-sex-value" id="slider-demographics-sex" value="{% if value_sex %}{{ value_sex }}{% else %}1{% endif %}" min="1" max="3" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="demographics-sex-value" id="slider-demographics-sex" value="{% if value_sex %}{{ value_sex }}{% else %}1{% endif %}" min="1" max="4" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand" style="height: 50px;">
-          <div class="col-custom-span col-custom-span-3">
+          <div class="col-custom-span col-custom-span-4">
             Unknown
           </div>
-          <div class="col-custom-span col-custom-span-3">
+          <div class="col-custom-span col-custom-span-4">
             Female
           </div>
-          <div class="col-custom-span col-custom-span-3">
+          <div class="col-custom-span col-custom-span-4">
             Male
+          </div>
+          <div class="col-custom-span col-custom-span-4">
+            Indeterminate
           </div>
         </div>
 
@@ -168,7 +171,7 @@
   </style>
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-demographics.js', version='20180607-0') }}"></script>
+<script src="{{ url_for('static', filename='javascript/turk-demographics.js', version='20180618-0') }}"></script>
 <script type="text/javascript">
   var loading = [];
   var requests = [];
