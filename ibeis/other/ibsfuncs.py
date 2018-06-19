@@ -5804,6 +5804,9 @@ def compute_ggr_path_dict(ibs):
     from matplotlib.path import Path
     import shapefile
 
+    path_dict = {}
+
+    # ADD ZONES
     point_dict = {
         1  : [-0.829843, 35.732721],
         2  : [-0.829843, 37.165353],
@@ -5831,8 +5834,6 @@ def compute_ggr_path_dict(ibs):
         'North' : [6, 10, 14, 11],
         'Core' : [1, 3, 14, 11],
     }
-
-    path_dict = {}
 
     for zone in zone_dict:
         point_list = [ point_dict[vertex] for vertex in zone_dict[zone] ]
@@ -5901,7 +5902,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
         ibs.delete_imagesets(imageset_rowid_list_delete)
 
     # GET DATA
-    path_dict = compute_ggr_path_dict(ibs)
+    path_dict = ibs.compute_ggr_path_dict()
     zone_list = sorted(path_dict.keys()) + ['Zone 7']
     imageset_dict = { zone : [] for zone in zone_list }
 
@@ -5951,7 +5952,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
         'GGR2,8,D'   : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mpala',
         'GGR2,39,A'  : 'Zone 1,County Laikipia,Zone Core,Land Tenure Colcheccio - Franscombe',
         'GGR2,40,A'  : 'Zone 2,County Samburu,Zone Core,Land Tenure Kalama',
-        'GGR2,54,B'  : 'Zone 3,County Isiolo,Zone Core,Land Tenute Nasuulu',
+        'GGR2,54,B'  : 'Zone 3,County Isiolo,Zone Core,Land Tenure Nasuulu',
         'GGR2,92,D'  : 'Zone 2,County Samburu,Zone Core,Land Tenure Westgate',
         'GGR2,94,C'  : 'Zone 1,County Laikipia,Zone Core,Land Tenure Mukogodo',
         'GGR2,103,A' : None,
@@ -5989,11 +5990,10 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
             note = note_list_[index]
 
             # Find siblings in the same car
-            sibling_gid_list = [
-                gid_
-                for gid_, note_ in zip(gid_list, note_list_)
-                if note_ == note
-            ]
+            sibling_gid_list = []
+            for gid_, note_ in zip(gid_list, note_list_):
+                if note_ == note:
+                    sibling_gid_list.append(gid_)
 
             # Get valid GPS
             gps_list = ibs.get_image_gps(sibling_gid_list)
