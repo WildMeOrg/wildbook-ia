@@ -5837,7 +5837,7 @@ def compute_ggr_path_dict(ibs):
     for zone in zone_dict:
         point_list = [ point_dict[vertex] for vertex in zone_dict[zone] ]
         name = 'Zone %s' % (zone, )
-        zone_dict[name] = Path(np.array(
+        path_dict[name] = Path(np.array(
             point_list
         ))
 
