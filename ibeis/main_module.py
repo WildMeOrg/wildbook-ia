@@ -561,7 +561,7 @@ def _preload(mpl=True, par=True, logging=True):
     if  multiprocessing.current_process().name != 'MainProcess':
         return
     if ut.VERBOSE:
-        print('[ibies] _preload')
+        print('[ibeis] _preload')
     _parse_args()
     # mpl backends
     if logging and not params.args.nologging:

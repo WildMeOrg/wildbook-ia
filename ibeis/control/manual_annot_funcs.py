@@ -1741,7 +1741,7 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         tau = 2 * pi
 
     SeeAlso:
-        ibies.const.VIEWTEXT_TO_YAW_RADIANS
+        ibeis.const.VIEWTEXT_TO_YAW_RADIANS
 
     Returns:
         yaw_list (list): the yaw (in radians) for the annotation
@@ -2018,7 +2018,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
             (tau = 2 * pi)
 
     SeeAlso:
-        ibies.const.VIEWTEXT_TO_YAW_RADIANS
+        ibeis.const.VIEWTEXT_TO_YAW_RADIANS
 
     References:
         http://upload.wikimedia.org/wikipedia/commons/7/7e/Rollpitchyawplain.png

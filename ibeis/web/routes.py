@@ -310,51 +310,57 @@ def view_advanced0(**kwargs):
         ]
         return nid_list
 
-    def filter_annots_general(aid_list):
-        # Grevy's
-        # filter_kw = {
-        #     'multiple': None,
-        #     'minqual': 'good',
-        #     'is_known': True,
-        #     'min_pername': 1,
-        #     'species': 'zebra_grevys',
-        #     'view': ['right'],
-        # }
-        # aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+    def filter_annots_general(ibs, aid_list):
+        if ibs.dbname == 'GGR-IBEIS':
+            # Grevy's
+            filter_kw = {
+                'multiple': None,
+                'minqual': 'good',
+                'is_known': True,
+                'min_pername': 1,
+                'species': 'zebra_grevys',
+                'view': ['right'],
+            }
+            aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            # aid_list1 = []
 
-        # # Plains
-        # filter_kw = {
-        #     'multiple': None,
-        #     'minqual': 'ok',
-        #     'is_known': True,
-        #     'min_pername': 1,
-        #     'species': 'zebra_plains',
-        #     'view': ['left'],
-        # }
-        # aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            # Plains
+            filter_kw = {
+                'multiple': None,
+                'minqual': 'ok',
+                'is_known': True,
+                'min_pername': 1,
+                'species': 'zebra_plains',
+                'view': ['left'],
+            }
+            aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            aid_list2 = []
 
-        # # Masai
-        # filter_kw = {
-        #     'multiple': None,
-        #     'minqual': 'ok',
-        #     'is_known': True,
-        #     'min_pername': 1,
-        #     'species': 'giraffe_masai',
-        #     'view': ['left'],
-        # }
-        # aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            # Masai
+            filter_kw = {
+                'multiple': None,
+                'minqual': 'ok',
+                'is_known': True,
+                'min_pername': 1,
+                'species': 'giraffe_masai',
+                'view': ['left'],
+            }
+            aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            aid_list3 = []
 
-        # aid_list = list(set(aid_list1 + aid_list2 + aid_list3))
+            aid_list = aid_list1 + aid_list2 + aid_list3
 
-        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        else:
+            assert ibs.dbname == 'GGR2-IBEIS'
+            aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
 
-        aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
         return aid_list
 
     ibs = current_app.ibs
 
     aid_list = ibs.get_valid_aids()
-    aid_list = filter_annots_general(aid_list)
+    aid_list = filter_annots_general(ibs, aid_list)
     # aid_list = filter_annots_imageset(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     unixtime_list = ibs.get_image_unixtime(gid_list)
@@ -723,20 +729,18 @@ def view_advanced0(**kwargs):
         if sex not in [0, 1]:
             sex = 2
             # continue
-        try:
-            if (min_age is None or min_age < 12) and max_age < 12:
-                age_list[sex][0] += 1
-            elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
-                age_list[sex][1] += 1
-            elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
-                age_list[sex][2] += 1
-            elif 36 <= min_age and (36 <= max_age or max_age is None):
-                age_list[sex][3] += 1
-        except:
-            pass
+        if (min_age is None or min_age < 12) and max_age < 12:
+            age_list[sex][0] += 1
+        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
+            age_list[sex][1] += 1
+        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
+            age_list[sex][2] += 1
+        elif 36 <= min_age and (max_age is None or 36 <= max_age):
+            age_list[sex][3] += 1
 
+    DEMOGRAPHICS_INCLUDE_UNREVIEWED_AMBIGOUS = False
     age_total = sum(map(sum, age_list))
-    if False:
+    if DEMOGRAPHICS_INCLUDE_UNREVIEWED_AMBIGOUS:
         age_total += age_unreviewed + age_ambiguous
     age_total = np.nan if age_total == 0 else age_total
     age_fmt_str = (lambda x: '% 4d (% 2.02f%%)' % (x, 100 * x / age_total, ))
@@ -753,7 +757,7 @@ def view_advanced0(**kwargs):
     # dbinfo_str = dbinfo()
     dbinfo_str = 'SKIPPED DBINFO'
 
-    path_dict = ibs.compute_ggr_path_dict()
+    path_dict = ibs.compute_ggr_county_path_dict()
     if 'North' in path_dict:
         path_dict.pop('North')
     if 'Core' in path_dict:

@@ -36,7 +36,7 @@ class Win32CompatTempFile(object):
     """
     def __init__(temp, delete=True, verbose=False):
         temp.delete = delete
-        appname = 'ibies'
+        appname = 'ibeis'
         temp.dpath = ut.ensure_app_resource_dir(appname, 'tempfiles')
         temp.fpath = None
         temp.fname = None

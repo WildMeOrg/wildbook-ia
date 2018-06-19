@@ -5800,7 +5800,7 @@ def compute_occurrences(ibs, config=None):
 
 
 @register_ibs_method
-def compute_ggr_path_dict(ibs):
+def compute_ggr_county_path_dict(ibs):
     from matplotlib.path import Path
     import shapefile
 
@@ -5865,9 +5865,33 @@ def compute_ggr_path_dict(ibs):
 
 
 @register_ibs_method
+def compute_ggr_land_tenure_path_dict(ibs):
+    from matplotlib.path import Path
+    import shapefile
+
+    path_dict = {}
+
+    land_tenure_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
+    unzipped_path = ut.grab_zipped_url(land_tenure_file_url)
+    land_tenure_path = join(unzipped_path, 'LandTenure')
+    land_tenures = shapefile.Reader(land_tenure_path)
+    for record, shape in zip(land_tenures.records(), land_tenures.shapes()):
+        name = record[0]
+        if len(name) == 0:
+            continue
+        point_list = shape.points
+        point_list = [ list(point)[::-1] for point in point_list ]
+        path_dict[name] = Path(np.array(
+            point_list
+        ))
+
+    return path_dict
+
+
+@register_ibs_method
 def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False):
     # GET DATA
-    path_dict = ibs.compute_ggr_path_dict()
+    path_dict = ibs.compute_ggr_county_path_dict()
     zone_list = sorted(path_dict.keys()) + ['7']
     imageset_dict = { zone : [] for zone in zone_list }
 
