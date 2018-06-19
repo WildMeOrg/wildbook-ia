@@ -5832,12 +5832,14 @@ def compute_ggr_path_dict(ibs):
         'Core' : [1, 3, 14, 11],
     }
 
-    path_dict = {
-        zone : Path(np.array(
-            [ point_dict[vertex] for vertex in zone_dict[zone] ]
+    path_dict = {}
+
+    for zone in zone_dict:
+        point_list = [ point_dict[vertex] for vertex in zone_dict[zone] ]
+        name = 'Zone %s' % (zone, )
+        zone_dict[name] = Path(np.array(
+            point_list
         ))
-        for zone in zone_dict
-    }
 
     # ADD COUNTIES
     name_list = [
@@ -5857,6 +5859,7 @@ def compute_ggr_path_dict(ibs):
             continue
         point_list = shape.points
         point_list = [ list(point)[::-1] for point in point_list ]
+        name = 'County %s' % (name, )
         path_dict[name] = Path(np.array(
             point_list
         ))
@@ -5872,6 +5875,7 @@ def compute_ggr_path_dict(ibs):
             continue
         point_list = shape.points
         point_list = [ list(point)[::-1] for point in point_list ]
+        name = 'Land Tenure %s' % (name, )
         path_dict[name] = Path(np.array(
             point_list
         ))

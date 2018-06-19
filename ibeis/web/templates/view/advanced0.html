@@ -735,20 +735,25 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         paths: [
 
           {% for vertex in path_dict[path].vertices %}
-          // This is not real data:
-          new google.maps.LatLng({{vertex[0]}}, {{vertex[1]}}),
+            // This is not real data:
+            new google.maps.LatLng({{vertex[0]}}, {{vertex[1]}}),
           {% endfor %}
           // ...
         ],
-        {% if path in ['1', '2', '3', '4', '5', '6', '7'] %}
-          // borderColor: '#FF0000',
-          // strokeColor: '#FF0000',
-          borderColor: 'transparent',
-          strokeColor: 'transparent',
-        {% else %}
+
+        {% if 'Zone' in path %}
+          borderColor: '#FF0000',
+          strokeColor: '#FF0000',
+          // borderColor: 'transparent',
+          // strokeColor: 'transparent',
+        {% elif 'County' in path %}
           borderColor: '#0000FF',
           strokeColor: '#0000FF',
+        {% else %}
+          borderColor: '#00FF00',
+          strokeColor: '#00FF00',
         {% endif %}
+
         strokeOpacity: 0.3,
         strokeWeight: 2,
         backgroundColor: '#FFFFFF',
