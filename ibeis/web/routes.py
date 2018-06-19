@@ -499,7 +499,7 @@ def view_advanced0(**kwargs):
     ]
     contributor_list = set(note_list)
     # nid_list = ibs.get_valid_nids()
-    aid_list_count = filter_annots_general(aid_list)
+    aid_list_count = filter_annots_general(ibs, aid_list)
     # aid_list_count = filter_annots_imageset(aid_list_count)
     gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
     nid_list_count_dup = ibs.get_annot_name_rowids(aid_list_count)
@@ -979,54 +979,57 @@ def view_advanced2(**kwargs):
         ]
         return aid_list
 
-    def filter_annots_general(aid_list):
-        # Grevy's
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'good',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_grevys',
-            'view': ['right'],
-        }
-        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        # aid_list1 = []
+    def filter_annots_general(ibs, aid_list):
+        if ibs.dbname == 'GGR-IBEIS':
+            # Grevy's
+            filter_kw = {
+                'multiple': None,
+                'minqual': 'good',
+                'is_known': True,
+                'min_pername': 1,
+                'species': 'zebra_grevys',
+                'view': ['right'],
+            }
+            aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            # aid_list1 = []
 
-        # Plains
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_plains',
-            'view': ['left'],
-        }
-        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        aid_list2 = []
+            # Plains
+            filter_kw = {
+                'multiple': None,
+                'minqual': 'ok',
+                'is_known': True,
+                'min_pername': 1,
+                'species': 'zebra_plains',
+                'view': ['left'],
+            }
+            aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            aid_list2 = []
 
-        # Masai
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'giraffe_masai',
-            'view': ['left'],
-        }
-        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        aid_list3 = []
+            # Masai
+            filter_kw = {
+                'multiple': None,
+                'minqual': 'ok',
+                'is_known': True,
+                'min_pername': 1,
+                'species': 'giraffe_masai',
+                'view': ['left'],
+            }
+            aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            aid_list3 = []
 
-        aid_list = aid_list1 + aid_list2 + aid_list3
+            aid_list = aid_list1 + aid_list2 + aid_list3
 
-        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+            # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        else:
+            assert ibs.dbname == 'GGR2-IBEIS'
+            aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
 
-        # aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
         return aid_list
 
     ibs = current_app.ibs
 
     aid_list = ibs.get_valid_aids()
-    aid_list = filter_annots_general(aid_list)
+    aid_list = filter_annots_general(ibs, aid_list)
     # aid_list = filter_annots_imageset(aid_list)
     species_list = ibs.get_annot_species_texts(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
