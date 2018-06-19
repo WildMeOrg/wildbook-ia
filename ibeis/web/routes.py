@@ -757,7 +757,7 @@ def view_advanced0(**kwargs):
     # dbinfo_str = dbinfo()
     dbinfo_str = 'SKIPPED DBINFO'
 
-    path_dict = ibs.compute_ggr_county_path_dict()
+    path_dict = ibs.compute_ggr_path_dict()
     if 'North' in path_dict:
         path_dict.pop('North')
     if 'Core' in path_dict:

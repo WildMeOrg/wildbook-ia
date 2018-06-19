@@ -5800,7 +5800,7 @@ def compute_occurrences(ibs, config=None):
 
 
 @register_ibs_method
-def compute_ggr_county_path_dict(ibs):
+def compute_ggr_path_dict(ibs):
     from matplotlib.path import Path
     import shapefile
 
@@ -5861,16 +5861,7 @@ def compute_ggr_county_path_dict(ibs):
             point_list
         ))
 
-    return path_dict
-
-
-@register_ibs_method
-def compute_ggr_land_tenure_path_dict(ibs):
-    from matplotlib.path import Path
-    import shapefile
-
-    path_dict = {}
-
+    # ADD LAND TENURES
     land_tenure_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
     unzipped_path = ut.grab_zipped_url(land_tenure_file_url)
     land_tenure_path = join(unzipped_path, 'LandTenure')
@@ -5891,7 +5882,7 @@ def compute_ggr_land_tenure_path_dict(ibs):
 @register_ibs_method
 def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False):
     # GET DATA
-    path_dict = ibs.compute_ggr_county_path_dict()
+    path_dict = ibs.compute_ggr_path_dict()
     zone_list = sorted(path_dict.keys()) + ['7']
     imageset_dict = { zone : [] for zone in zone_list }
 
@@ -5911,41 +5902,41 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False):
     ]
 
     special_zone_map = {
-        # 'GGR,3,A' : '1,Laikipia,Core',
-        # 'GGR,8,A' : '3,Isiolo,Core',
-        # 'GGR,10,A' : '1,Laikipia,Core',
-        # 'GGR,13,A' : '1,Laikipia,Core',
-        # 'GGR,14,A' : '1,Laikipia,Core',
-        # 'GGR,15,A' : '1,Laikipia,Core',
-        # 'GGR,19,A' : '2,Samburu,Core',
-        # 'GGR,23,A' : '1,Laikipia,Core',
-        # 'GGR,24,A' : '1,Laikipia,Core',
-        # 'GGR,25,A' : '1,Laikipia,Core',
-        # 'GGR,27,A' : '1,Laikipia,Core',
-        # 'GGR,29,A' : '1,Laikipia,Core',
-        # 'GGR,37,A' : '1,Laikipia,Core',
-        # 'GGR,37,B' : '1,Laikipia,Core',
-        # 'GGR,38,C' : '1,Laikipia,Core',
-        # 'GGR,40,A' : '1,Laikipia,Core',
-        # 'GGR,41,B' : '1,Laikipia,Core',
-        # 'GGR,44,A' : None,
-        # 'GGR,45,A' : '2,Isiolo,Core',
-        # 'GGR,46,A' : '1,Laikipia,Core',
-        # 'GGR,62,B' : '1,Laikipia,Core',
-        # 'GGR,86,A' : '3,Isiolo,Core',
-        # 'GGR,96,A' : '1,Laikipia,Core',
-        # 'GGR,97,B' : '2,Samburu,Core',
-        # 'GGR,108,A' : '1,Laikipia,Core',
-        # 'GGR,118,C' : '6,North,Marsabit,Core',
+        'GGR,3,A' : '1,Laikipia,Core',
+        'GGR,8,A' : '3,Isiolo,Core',
+        'GGR,10,A' : '1,Laikipia,Core',
+        'GGR,13,A' : '1,Laikipia,Core',
+        'GGR,14,A' : '1,Laikipia,Core',
+        'GGR,15,A' : '1,Laikipia,Core',
+        'GGR,19,A' : '2,Samburu,Core',
+        'GGR,23,A' : '1,Laikipia,Core',
+        'GGR,24,A' : '1,Laikipia,Core',
+        'GGR,25,A' : '1,Laikipia,Core',
+        'GGR,27,A' : '1,Laikipia,Core',
+        'GGR,29,A' : '1,Laikipia,Core',
+        'GGR,37,A' : '1,Laikipia,Core',
+        'GGR,37,B' : '1,Laikipia,Core',
+        'GGR,38,C' : '1,Laikipia,Core',
+        'GGR,40,A' : '1,Laikipia,Core',
+        'GGR,41,B' : '1,Laikipia,Core',
+        'GGR,44,A' : None,
+        'GGR,45,A' : '2,Isiolo,Core',
+        'GGR,46,A' : '1,Laikipia,Core',
+        'GGR,62,B' : '1,Laikipia,Core',
+        'GGR,86,A' : '3,Isiolo,Core',
+        'GGR,96,A' : '1,Laikipia,Core',
+        'GGR,97,B' : '2,Samburu,Core',
+        'GGR,108,A' : '1,Laikipia,Core',
+        'GGR,118,C' : '6,North,Marsabit,Core',
     }
 
     skipped_gid_list = []
     skipped_note_list = []
     skipped = 0
-    for gid, point in zip(gid_list, gps_list):
+    zipped = list(enumerate(zip(gid_list, gps_list)))
+    for index, (gid, point) in ut.ProgIter(zipped, lbl='assigning zones'):
         if point == (-1, -1):
             unixtime = ibs.get_image_unixtime(gid)
-            index = gid_list.index(gid)
             note = note_list_[index]
 
             # Find siblings in the same car
@@ -6000,17 +5991,22 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False):
         if not found:
             imageset_dict['7'].append(gid)
 
+    imageset_id_list = []
     for zone, gid_list in sorted(imageset_dict.items()):
         imageset_str = 'GGR Special Zone %s' % (zone, )
         imageset_id = ibs.add_imagesets(imageset_str)
+        imageset_id_list.append(imageset_id)
         args = (imageset_str, imageset_id, len(gid_list), )
         print('Creating new GGR imageset: %r (ID %d) with %d images' % args)
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
+
     print('SKIPPED %d IMAGES' % (skipped, ))
     skipped_note_list = sorted(list(set(skipped_note_list)))
     print('skipped_note_list = %r' % (skipped_note_list, ))
     print('skipped_gid_list = %r' % (skipped_gid_list, ))
+
+    return imageset_id_list
 
 
 @register_ibs_method
