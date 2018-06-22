@@ -55,6 +55,129 @@ ANNOT_STAGED_FLAG        = 'annot_staged_flag'
 ANNOT_STAGED_USER_ID     = 'annot_staged_user_identity'
 
 
+# Define the properties that will make up the semantic / visual uuids
+VISUAL_TUP_PROPS = ['image_uuids', 'verts', 'thetas']
+# TODO: Remove viewpoint and species?
+SEMANTIC_TUP_PROPS = [
+    'viewpoint_code',
+    'names',
+    'species_texts'
+]
+
+
+@register_ibs_method
+@register_api('/api/annot/uuid/', methods=['POST'])
+def compute_annot_visual_semantic_uuids(ibs, gid_list, include_preprocess=False,
+                                        **kwargs):
+
+    preprocess_dict = ibs._add_annots_preprocess(gid_list, **kwargs)
+
+    theta_list         = preprocess_dict['theta_list']
+    vert_list          = preprocess_dict['vert_list']
+    species_rowid_list = preprocess_dict['species_rowid_list']
+    viewpoint_ints     = preprocess_dict['viewpoint_ints']
+    nid_list           = preprocess_dict['nid_list']
+
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    species_list = ibs.get_species_texts(species_rowid_list)
+    view_codes = ut.dict_take(ibs.const.VIEW.INT_TO_CODE, viewpoint_ints)
+    name_list = ibs.get_name_texts(nid_list)
+
+    props = {
+        'image_uuids': image_uuid_list,
+        'verts': vert_list,
+        'thetas': theta_list,
+        'species_texts': species_list,
+        'viewpoint_code': view_codes,
+        'names': name_list,
+    }
+    visual_infotup = ut.take(props, VISUAL_TUP_PROPS)
+    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
+
+    semantic_infotup = ut.take(props, VISUAL_TUP_PROPS + SEMANTIC_TUP_PROPS)
+    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
+
+    value_dict = {
+        'visual_uuid_list'  : annot_visual_uuid_list,
+        'semantic_uuid_list': annot_semantic_uuid_list,
+    }
+
+    if include_preprocess:
+        for key in preprocess_dict:
+            assert key not in value_dict
+            value_dict[key] = preprocess_dict[key]
+
+    return value_dict
+
+
+@register_ibs_method
+def _add_annots_preprocess(ibs, gid_list, bbox_list=None, theta_list=None, vert_list=None,
+                           species_list=None, species_rowid_list=None, viewpoint_list=None,
+                           nid_list=None, name_list=None, skip_cleaning=False, **kwargs):
+    from vtool import geometry
+
+    # BBOXES / VERTS
+    # For import only, we can specify both by setting import_override to True
+    assert bool(bbox_list is None) != bool(vert_list is None), (
+        'must specify exactly one of bbox_list or vert_list')
+
+    if vert_list is None:
+        vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
+    elif bbox_list is None:
+        bbox_list = geometry.bboxes_from_vert_list(vert_list)
+
+    if theta_list is None:
+        theta_list = [0.0 for _ in range(len(gid_list))]
+
+    len_gid   = len(gid_list)
+    len_bbox  = len(bbox_list)
+    len_vert  = len(vert_list)
+    len_theta = len(theta_list)
+    try:
+        assert len_gid  == len_bbox, 'bbox and gid are not of same size'
+        assert len_gid  == len_theta, 'theta and gid are not of same size'
+        assert len_gid  == len_vert, 'vert and gid are not of same size'
+    except AssertionError as ex:
+        ut.printex(ex, key_list=['len_vert', 'len_gid', 'len_bbox'
+                                    'len_theta'])
+        raise
+
+    # SPECIES
+    if species_rowid_list is not None:
+        assert species_list is None, 'cannot mix species_rowid and species'
+    else:
+        if species_list is not None:
+            species_rowid_list = ibs.add_species(species_list, skip_cleaning=skip_cleaning)
+        else:
+            species_rowid_list = [const.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
+
+    # VIEWPOINTS
+    if viewpoint_list is None:
+        viewpoint_list = [None] * len(gid_list)
+
+    viewpoint_ints = _ensure_viewpoint_to_int(viewpoint_list)
+
+    # NAMES
+    assert name_list is None or nid_list is None, 'cannot specify both names and nids'
+
+    if name_list is not None:
+        nid_list = ibs.add_names(name_list)
+    else:
+        if nid_list is None:
+            nid_list = [const.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
+
+    preprocess_dict = {
+        'bbox_list'          : bbox_list,
+        'theta_list'         : theta_list,
+        'vert_list'          : vert_list,
+        'species_rowid_list' : species_rowid_list,
+        'viewpoint_list'     : viewpoint_list,
+        'viewpoint_ints'     : viewpoint_ints,
+        'nid_list'           : nid_list,
+    }
+    return preprocess_dict
+
+
 # ==========
 # ADDERS
 # ==========
@@ -195,80 +318,33 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         [14, 15]
     """
     assert yaw_list is None, 'yaw is depricated'
+
     #ut.embed()
-    from vtool import geometry
     if ut.VERBOSE:
         print('[ibs] adding annotations')
-    # Prepare the SQL input
-    assert name_list is None or nid_list is None, 'cannot specify both names and nids'
-    # For import only, we can specify both by setting import_override to True
-    assert bool(bbox_list is None) != bool(vert_list is None), (
-        'must specify exactly one of bbox_list or vert_list')
+
     ut.assert_all_not_None(gid_list, 'gid_list')
-
-    if theta_list is None:
-        theta_list = [0.0 for _ in range(len(gid_list))]
-    if name_list is not None:
-        nid_list = ibs.add_names(name_list)
-    else:
-        if nid_list is None:
-            nid_list = [const.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
-
-    if species_rowid_list is not None:
-        assert species_list is None, 'cannot mix species_rowid and species'
-        species_list = ibs.get_species_texts(species_rowid_list)
-    else:
-        if species_list is not None:
-            species_rowid_list = ibs.add_species(species_list, skip_cleaning=skip_cleaning)
-        else:
-            species_rowid_list = [const.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
-            species_list = ibs.get_species_texts(species_rowid_list)
-    if detect_confidence_list is None:
-        detect_confidence_list = [0.0 for _ in range(len(gid_list))]
-    if notes_list is None:
-        notes_list = ['' for _ in range(len(gid_list))]
-
-    if vert_list is None:
-        vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
-    elif bbox_list is None:
-        bbox_list = geometry.bboxes_from_vert_list(vert_list)
-
-    len_bbox    = len(bbox_list)
-    len_vert    = len(vert_list)
-    len_gid     = len(gid_list)
-    len_notes   = len(notes_list)
-    len_theta   = len(theta_list)
-    try:
-        assert len_vert == len_bbox, 'bbox and verts are not of same size'
-        assert len_gid  == len_bbox, 'bbox and gid are not of same size'
-        assert len_gid  == len_theta, 'bbox and gid are not of same size'
-        assert len_notes == len_gid, 'notes and gids are not of same size'
-    except AssertionError as ex:
-        ut.printex(ex, key_list=['len_vert', 'len_gid', 'len_bbox'
-                                    'len_theta', 'len_notes'])
-        raise
-
     if len(gid_list) == 0:
         # nothing is being added
         print('[ibs] WARNING: 0 annotations are beign added!')
         print(ut.repr2(locals()))
         return []
 
-    if viewpoint_list is None:
-        viewpoint_list = [None] * len(gid_list)
-    if quality_list is None:
-        quality_list = [None] * len(gid_list)
-    if multiple_list is None:
-        multiple_list = [False] * len(gid_list)
-    if interest_list is None:
-        interest_list = [False] * len(gid_list)
+    preprocess_dict = ibs.compute_annot_visual_semantic_uuids(
+        gid_list, include_preprocess=True,
+        bbox_list=bbox_list, theta_list=theta_list, vert_list=vert_list,
+        species_list=species_list, species_rowid_list=species_rowid_list,
+        viewpoint_list=viewpoint_list, nid_list=nid_list, name_list=name_list,
+        skip_cleaning=skip_cleaning
+    )
 
-    viewpoint_ints = _ensure_viewpoint_to_int(viewpoint_list)
-
-    nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [six.text_type(verts) for verts in vert_list]
-    xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
-    assert len(nVert_list) == len(vertstr_list)
+    bbox_list          = preprocess_dict['bbox_list']
+    theta_list         = preprocess_dict['theta_list']
+    vert_list          = preprocess_dict['vert_list']
+    species_rowid_list = preprocess_dict['species_rowid_list']
+    viewpoint_list     = preprocess_dict['viewpoint_list']
+    viewpoint_ints     = preprocess_dict['viewpoint_ints']
+    nid_list           = preprocess_dict['nid_list']
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids
     if annot_uuid_list is None:
@@ -279,24 +355,26 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # with the updating of the determenistic uuids. Find a way to
     # integrate both pieces of code without too much reundancy.
     # Make sure these tuples are constructed correctly
-    if annot_visual_uuid_list is None or annot_semantic_uuid_list is None:
-        if name_list is None:
-            name_list = ibs.get_name_texts(nid_list)
-        view_codes = ut.dict_take(ibs.const.VIEW.INT_TO_CODE, viewpoint_ints)
-        props = {
-            'image_uuids': ibs.get_image_uuids(gid_list),
-            'verts': vert_list,
-            'thetas': theta_list,
-            'names': name_list,
-            'viewpoint_code': view_codes,
-            'species_texts': species_list,
-        }
-        if annot_visual_uuid_list is None:
-            visual_infotup = ut.take(props, VISUAL_TUP_PROPS)
-            annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
-        if annot_semantic_uuid_list is None:
-            semantic_infotup = ut.take(props, VISUAL_TUP_PROPS + SEMANTIC_TUP_PROPS)
-            annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
+    if annot_visual_uuid_list is None:
+        annot_visual_uuid_list = preprocess_dict['visual_uuid_list']
+    if annot_semantic_uuid_list is None:
+        annot_semantic_uuid_list = preprocess_dict['semantic_uuid_list']
+
+    if detect_confidence_list is None:
+        detect_confidence_list = [0.0 for _ in range(len(gid_list))]
+    if notes_list is None:
+        notes_list = ['' for _ in range(len(gid_list))]
+    if quality_list is None:
+        quality_list = [None] * len(gid_list)
+    if multiple_list is None:
+        multiple_list = [False] * len(gid_list)
+    if interest_list is None:
+        interest_list = [False] * len(gid_list)
+
+    nVert_list = [len(verts) for verts in vert_list]
+    vertstr_list = [six.text_type(verts) for verts in vert_list]
+    xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
+    assert len(nVert_list) == len(vertstr_list)
 
     if staged_uuid_list is None:
         staged_uuid_list = [None] * len(gid_list)
@@ -361,16 +439,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     config2_ = {'thumbsize': 221}
     ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
     return aid_list
-
-
-# Define the properties that will make up the semantic / visual uuids
-VISUAL_TUP_PROPS = ['image_uuids', 'verts', 'thetas']
-# TODO: Remove viewpoint and species?
-SEMANTIC_TUP_PROPS = [
-    'viewpoint_code',
-    'names',
-    'species_texts'
-]
 
 
 @register_ibs_method

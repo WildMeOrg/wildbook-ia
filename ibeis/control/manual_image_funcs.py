@@ -48,6 +48,13 @@ ANNOT_ROWID = 'annot_rowid'
 ANNOT_ROWIDS = 'annot_rowids'
 IMAGE_ROWID = 'image_rowid'
 
+IMAGE_COLNAMES = (
+    'image_uuid', 'image_uri', 'image_uri_original', 'image_original_name',
+    'image_ext', 'image_width', 'image_height',
+    'image_time_posix', 'image_gps_lat',
+    'image_gps_lon', 'image_orientation', 'image_note',
+)
+
 
 @register_ibs_method
 @accessor_decors.ider
@@ -218,12 +225,46 @@ def get_num_images(ibs, **kwargs):
 
 
 @register_ibs_method
+def _compute_image_uuids(ibs, gpath_list, sanitize=True, **kwargs):
+    from ibeis.algo.preproc import preproc_image
+    from ibeis.other import ibsfuncs
+
+    #print('[ibs] gpath_list = %r' % (gpath_list,))
+    # Processing an image might fail, yeilding a None instead of a tup
+    if sanitize:
+        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
+
+    # Create param_iter
+    # params_list = list(preproc_image.add_images_params_gen(gpath_list))
+    params_list = list(ut.generate2(
+        preproc_image.parse_imageinfo, zip(gpath_list),
+        nTasks=len(gpath_list), force_serial=ibs.force_serial))
+
+    # Error reporting
+    print('\n'.join(
+        [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
+         in zip(gpath_list, params_list) if not params_]))
+
+    return params_list
+
+
+@register_ibs_method
+@register_api('/api/image/uuid/', methods=['POST'])
+def compute_image_uuids(ibs, gpath_list, **kwargs):
+    params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+
+    uuid_colx = IMAGE_COLNAMES.index('image_uuid')
+    uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
+
+    return uuid_list
+
+
+@register_ibs_method
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False,
-               auto_localize=None, sanitize=True,
-               location_for_names=None,
+               auto_localize=None, location_for_names=None,
                **kwargs):
     r"""
     Adds a list of image paths to the database.
@@ -278,9 +319,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         >>> # Clean things up
         >>> ibs.delete_images(new_gids1)
     """
-    from ibeis.algo.preproc import preproc_image
-    from ibeis.other import ibsfuncs
-
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
     if auto_localize is None:
@@ -291,29 +329,13 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     if location_for_names is None:
         location_for_names = ibs.cfg.other_cfg.location_for_names
 
-    #print('[ibs] gpath_list = %r' % (gpath_list,))
-    # Processing an image might fail, yeilding a None instead of a tup
-    if sanitize:
-        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
     if params_list is None:
-        # Create param_iter
-        # params_list = list(preproc_image.add_images_params_gen(gpath_list))
-        params_list = list(ut.generate2(
-            preproc_image.parse_imageinfo, zip(gpath_list),
-            nTasks=len(gpath_list), force_serial=ibs.force_serial))
-    # Error reporting
-    print('\n'.join(
-        [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
-         in zip(gpath_list, params_list) if not params_]))
-    # Add any unadded images
-    colnames = ('image_uuid', 'image_uri', 'image_uri_original', 'image_original_name',
-                'image_ext', 'image_width', 'image_height',
-                'image_time_posix', 'image_gps_lat',
-                'image_gps_lon', 'image_orientation', 'image_note',)
+        params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+
     # <DEBUG>
     debug = False
     if debug:
-        uuid_colx = colnames.index('image_uuid')
+        uuid_colx = IMAGE_COLNAMES.index('image_uuid')
         uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
         valid_gids = ibs.get_valid_gids()
@@ -321,11 +343,12 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         print('[preadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
         print('[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
     # </DEBUG>
+
     # Execute SQL Add
     from distutils.version import LooseVersion
 
     if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
-        colnames = colnames + ('image_original_path', 'image_location_code')
+        colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
         params_list = [tuple(params) + (gpath, location_for_names)
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
