@@ -353,7 +353,8 @@ def view_advanced0(**kwargs):
             # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
         else:
             assert ibs.dbname == 'GGR2-IBEIS'
-            aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+            # aid_list = ibs.check_ggr_valid_aids(aid_list, species='zebra_grevys', threshold=0.75)
+            aid_list = ibs.check_ggr_valid_aids(aid_list, species='giraffe_reticulated', threshold=0.75)
 
         return aid_list
 

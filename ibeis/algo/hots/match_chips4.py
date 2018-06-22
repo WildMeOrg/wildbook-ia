@@ -217,6 +217,8 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     if use_cache:
         if verbose:
             print('[mc4] cache-query is on')
+        if use_supercache:
+            print('[mc4] supercache-query is on')
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
@@ -264,7 +266,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         if ut.VERBOSE:
             print('[mc4] cache-query is off')
         qaid2_cm_hit = {}
-    qaid2_cm = execute_query2(qreq_, verbose, save_qcache, batch_size)
+    qaid2_cm = execute_query2(qreq_, verbose, save_qcache, batch_size, use_supercache)
     # Merge cache hits with computed misses
     if len(qaid2_cm_hit) > 0:
         qaid2_cm.update(qaid2_cm_hit)
@@ -273,7 +275,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
 
 
 @profile
-def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
+def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=False):
     """
     Breaks up query request into several subrequests
     to process "more efficiently" and safer as well.
@@ -317,7 +319,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
         assert all([qaid == cm.qaid for qaid, cm in
                     zip(sub_qreq_.qaids, sub_cm_list)]), 'not corresonding'
         if save_qcache:
-            fpath_list = list(qreq_.get_chipmatch_fpaths(sub_qreq_.qaids))
+            fpath_list = list(qreq_.get_chipmatch_fpaths(sub_qreq_.qaids, super_qres_cache=use_supercache))
             _iter = zip(sub_cm_list, fpath_list)
             _iter = ut.ProgIter(_iter, length=len(sub_cm_list),
                                 label='saving chip matches', adjust=True, freq=1)

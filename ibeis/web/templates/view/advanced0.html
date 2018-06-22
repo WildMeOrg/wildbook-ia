@@ -742,16 +742,18 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         ],
 
         {% if 'Zone' in path %}
-          borderColor: '#FF0000',
-          strokeColor: '#FF0000',
-          // borderColor: 'transparent',
-          // strokeColor: 'transparent',
+          // borderColor: '#FF0000',
+          // strokeColor: '#FF0000',
+          borderColor: 'transparent',
+          strokeColor: 'transparent',
         {% elif 'County' in path %}
           borderColor: '#0000FF',
           strokeColor: '#0000FF',
         {% else %}
-          borderColor: '#00FFFF',
-          strokeColor: '#00FFFF',
+          // borderColor: '#00FFFF',
+          // strokeColor: '#00FFFF',
+          borderColor: 'transparent',
+          strokeColor: 'transparent',
         {% endif %}
 
         strokeOpacity: 0.3,
