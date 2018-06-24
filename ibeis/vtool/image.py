@@ -413,7 +413,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
                 print('[vt.imread] ' + msg)
                 raise IOError(msg)
         if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
-            print('[vt.imread] Applying orientation %r' % (orient, ))
+            if False:
+                print('[vt.imread] Applying orientation %r' % (orient, ))
             imgBGR = _fix_orientation(imgBGR, orient)
     return imgBGR
 
