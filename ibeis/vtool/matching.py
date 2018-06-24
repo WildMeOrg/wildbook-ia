@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 from vtool import _rhomb_dist
 import six
 import warnings
+import pandas as pd
 import utool as ut
 import numpy as np
 import parse
@@ -888,7 +889,6 @@ class AnnotPairFeatInfo(object):
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
         >>> import vtool as vt
-        >>> import pandas as pd
         >>> match = demodata_match({})
         >>> match.add_global_measures(['time', 'gps'])
         >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
@@ -1042,12 +1042,11 @@ class AnnotPairFeatInfo(object):
                                 value1 = int(value1)
                     if op(value1, value):
                         found.append(col)
-                except:
+                except Exception:
                     pass
         return found
 
     def group_importance(featinfo, item):
-        import pandas as pd
         name, keys = item
         num = len(keys)
         weight = sum(ut.take(featinfo.importances, keys))
@@ -1059,7 +1058,6 @@ class AnnotPairFeatInfo(object):
         return df
 
     def print_margins(featinfo, group_id, ignore_trivial=True):
-        import pandas as pd
         columns = featinfo.columns
         if isinstance(group_id, list):
             cols = featinfo.select_columns(criteria=group_id)
@@ -1085,7 +1083,6 @@ class AnnotPairFeatInfo(object):
             print(_weights)
 
     def group_counts(featinfo, item):
-        import pandas as pd
         name, keys = item
         num = len(keys)
         tup = (num,)
@@ -1094,7 +1091,6 @@ class AnnotPairFeatInfo(object):
         return df
 
     def print_counts(featinfo, group_id):
-        import pandas as pd
         columns = featinfo.columns
         grouper = getattr(featinfo, group_id)
         _keys = ut.group_items(columns, ut.lmap(grouper, columns))
@@ -1180,7 +1176,6 @@ class AnnotPairFeatInfo(object):
             >>> # ENABLE_DOCTEST
             >>> from vtool.matching import *  # NOQA
             >>> import vtool as vt
-            >>> import pandas as pd
             >>> match = demodata_match({})
             >>> match.add_global_measures(['view', 'qual', 'gps', 'time'])
             >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
@@ -1627,12 +1622,10 @@ def assign_symmetric_matches(fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist,
     # flat_matx1 = fx1_to_fx2 + np.arange(distmat.shape[0])[:, None] * distmat.shape[1]
     # fx1_to_dist = distmat.take(flat_matx1).reshape(fx1_to_fx2.shape)
 
-    import pandas as pd
     fx21 = pd.DataFrame(fx2_to_fx1)
     fx21.columns.name = 'K'
     fx21.index.name = 'fx1'
 
-    import pandas as pd
     fx12 = pd.DataFrame(fx1_to_fx2)
     fx12.columns.name = 'K'
     fx12.index.name = 'fx2'
