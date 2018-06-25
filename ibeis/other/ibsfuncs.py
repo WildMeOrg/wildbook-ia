@@ -517,7 +517,7 @@ def check_for_unregistered_images(ibs):
 
 
 @register_ibs_method
-def trash_unregistered_images(ibs, verbose=True):
+def delete_unregistered_images(ibs, verbose=True):
     dst_fpath = ibs.trashdir
     ut.ensuredir(dst_fpath)
     _, gpath_unregistered = ibs.check_for_unregistered_images()
