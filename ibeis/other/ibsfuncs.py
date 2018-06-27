@@ -391,6 +391,8 @@ def assert_images_exist(ibs, gid_list=None, verbose=True):
         bad_gpaths = ibs.get_image_paths(bad_gids)
         print('Bad Gpaths:')
         print(ut.truncate_str(ut.repr2(bad_gpaths), maxlen=500))
+        print('Bad GIDs:')
+        print(bad_gids)
     assert num_bad_gids == 0, '%d images dont exist' % (num_bad_gids,)
     print('[check] checked %d images exist' % len(gid_list))
 
