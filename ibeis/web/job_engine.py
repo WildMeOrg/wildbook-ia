@@ -150,7 +150,10 @@ def initialize_job_manager(ibs):
         ibs.job_manager.reciever = JobBackend(use_static_ports=True)
     else:
         ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
-        ibs.job_manager.reciever.initialize_background_processes(dbdir=ibs.get_dbdir())
+        ibs.job_manager.reciever.initialize_background_processes(
+            dbdir=ibs.get_dbdir(),
+            containerized=ibs.containerized
+        )
 
     ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict)
     ibs.job_manager.jobiface.initialize_client_thread()
@@ -394,7 +397,7 @@ class JobBackend(object):
             for key, port in list(zip(key_list, port_list))
         }
 
-    def initialize_background_processes(self, dbdir=None, wait=0):
+    def initialize_background_processes(self, dbdir=None, wait=0, containerized=False):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
@@ -412,7 +415,7 @@ class JobBackend(object):
             self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict)
             self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
         if self.spawn_collector:
-            self.collect_proc = _spawner(collector_loop, self.port_dict, dbdir)
+            self.collect_proc = _spawner(collector_loop, self.port_dict, dbdir, containerized)
         if self.spawn_engine:
             if self.fg_engine:
                 print('ENGINE IS IN DEBUG FOREGROUND MODE')
@@ -852,7 +855,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
     return engine_result
 
 
-def collector_loop(port_dict, dbdir):
+def collector_loop(port_dict, dbdir, containerized):
     """
     Service that stores completed algorithm results
     """
@@ -884,7 +887,8 @@ def collector_loop(port_dict, dbdir):
                 idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
                 try:
                     reply = on_collect_request(collect_request, collecter_data,
-                                               awaiting_data, shelve_path)
+                                               awaiting_data, shelve_path,
+                                               containerized=containerized)
                 except Exception as ex:
                     print(ut.repr3(collect_request))
                     ut.printex(ex, 'ERROR in collection')
@@ -895,7 +899,8 @@ def collector_loop(port_dict, dbdir):
             print('Exiting collector')
 
 
-def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_path):
+def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_path,
+                       containerized=False):
     """ Run whenever the collector recieves a message """
     import requests
     reply = {}
@@ -915,6 +920,9 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
         callback_url = collect_request['callback_url']
         callback_method = collect_request['callback_method']
         jobid = engine_result['jobid']
+
+        if containerized:
+            callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
 
         # OLD METHOD
         # collecter_data[jobid] = engine_result
