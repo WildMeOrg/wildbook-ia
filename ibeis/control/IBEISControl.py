@@ -308,6 +308,10 @@ class IBEISController(BASE_CLASS):
         # by default use serial because warpAffine is weird with multiproc
         ibs._parallel_chips = False
 
+        ibs.containerized = ut.get_argflag('--containerized')
+        if ibs.containerized:
+            print('[ibs.__init__] CONTAINERIZED: True\n')
+
         print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):

@@ -72,18 +72,22 @@ def get_wildbook_base_url(ibs, wb_target=None):
         print(message)
         raise IOError(message)
 
-    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
-    computer_name = ut.get_computer_name()
-
-    princeton = computer_name in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']
-    if princeton:
-        hostname = 'quagga.princeton.edu'
-        wb_target = 'wildbook'
-    else:
-        hostname = '127.0.0.1'
-
     wb_port = 8080
-    wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target
+    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
+
+    if ibs.containerized:
+        wb_hostname = 'wildbook'
+        wb_target = ''
+    else:
+        wb_hostname = '127.0.0.1'
+
+    wb_hostname = str(wb_hostname)
+    wb_port     = str(wb_port)
+    wb_target   = str(wb_target)
+
+    wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target, )
+    wildbook_base_url = wildbook_base_url.strip('/')
+
     print('USING WB BASEURL: %r' % (wildbook_base_url, ))
     return wildbook_base_url
 

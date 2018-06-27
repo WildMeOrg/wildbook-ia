@@ -159,6 +159,10 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             if list_ is None or index >= len(list_) or list_[index] is None:
                 raise ValueError('Must specify all required fields')
             value = list_[index]
+
+            if ibs.containerized:
+                value = value.replace('://localhost/', '://wildbook:8080/')
+
             if isinstance(value, dict):
                 value = ut.s3_dict_encode_to_str(value)
             return value
@@ -202,7 +206,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
     params_gen = ut.generate2(_parse_imageinfo, zip(index_list),
                               force_serial=True)
     params_gen = list(params_gen)
-    gpath_list = [ _[0] for _ in params_gen ]
+    gpath_list = [ _[1] for _ in params_gen ]
     gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)  # NOQA
     # return gid_list
     image_uuid_list = ibs.get_image_uuids(gid_list)

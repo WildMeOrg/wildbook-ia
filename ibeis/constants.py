@@ -300,13 +300,13 @@ INTRA_OCCUR_KEY = 'intra_occurrence'
 HARD_NOTE_TAG = '<HARDCASE>'
 
 # HACK
-if ut.get_computer_name() == 'ibeis.cs.uic.edu':
-    #_DEFAULT_WILDBOOK_TARGET = 'prod'
-    # _DEFAULT_WILDBOOK_TARGET = 'lewa2'
+COMPUTER_NAME = ut.get_computer_name()
+if COMPUTER_NAME in ['ibeis.cs.uic.edu']:
     _DEFAULT_WILDBOOK_TARGET = 'lewa3'
-elif ut.get_computer_name() == 'Leviathan':
-    # _DEFAULT_WILDBOOK_TARGET = 'wildbook'
+elif COMPUTER_NAME in ['Leviathan']:
     _DEFAULT_WILDBOOK_TARGET = 'lewa3'
+elif COMPUTER_NAME in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']:
+    _DEFAULT_WILDBOOK_TARGET = 'quagga.princeton.edu'
 else:
     _DEFAULT_WILDBOOK_TARGET = 'ibeis'
 WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT_WILDBOOK_TARGET,
