@@ -1050,6 +1050,12 @@ def get_annot_multiple_json(ibs, annot_uuid_list, **kwargs):
     return ibs.get_annot_multiple(aid_list, **kwargs)
 
 
+@register_api('/api/annot/interest/json/', methods=['GET'])
+def get_annot_interest_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_interest(aid_list, **kwargs)
+
+
 @register_api('/api/annot/image/contributor/tag/json/', methods=['GET'])
 def get_annot_image_contributor_tag_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
