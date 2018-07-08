@@ -6017,15 +6017,15 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
                 if closest_gps is not None and closest_diff <= min_diff:
                     point = closest_gps
 
-        if point == (-1, -1):
-            note = note_list[index]
-            if note in special_zone_map:
-                zone_str = special_zone_map[note]
-                if zone_str is not None:
-                    zone_list = zone_str.strip().split(',')
-                    for zone in zone_list:
-                        imageset_dict[zone].append(gid)
-                    continue
+        # if point == (-1, -1):
+        #     note = note_list[index]
+        #     if note in special_zone_map:
+        #         zone_str = special_zone_map[note]
+        #         if zone_str is not None:
+        #             zone_list = zone_str.strip().split(',')
+        #             for zone in zone_list:
+        #                 imageset_dict[zone].append(gid)
+        #             continue
 
         if point == (-1, -1):
             skipped_gid_list.append(gid)
@@ -6039,8 +6039,8 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
             if path.contains_point(point):
                 found = True
                 imageset_dict[zone].append(gid)
-        if not found:
-            imageset_dict['Zone 7'].append(gid)
+        # if not found:
+        #     imageset_dict['Zone 7'].append(gid)
 
     imageset_id_list = []
     for zone, gid_list in sorted(imageset_dict.items()):
