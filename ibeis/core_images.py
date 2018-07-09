@@ -1576,7 +1576,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         if gid not in group_dict:
             group_dict[gid] = []
         group_dict[gid].append(result)
-    assert len(gid_list_) == len(group_dict.keys())
+    assert len(set(gid_list_)) == len(group_dict.keys())
 
     # Return the results
     for gid in gid_list_:
