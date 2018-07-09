@@ -550,9 +550,10 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
             depc.delete_property('localizations', gid_list, config=config)
         results_list = depc.get_property('localizations', gid_list, None, config=config)
         if commit:
-            labeler_config = config.copy()
-            labeler_config['labeler_weight_filepath'] = 'candidacy'
-            viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
+            # labeler_config = config.copy()
+            # labeler_config['labeler_weight_filepath'] = 'candidacy'
+            # viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
+            viewpoints_list = None
             aids_list = ibs.commit_localization_results(gid_list, results_list, viewpoints_list=viewpoints_list, note='cnnyolodetect')
             return aids_list
     else:
