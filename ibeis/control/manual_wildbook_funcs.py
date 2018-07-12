@@ -76,7 +76,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
 
     if ibs.containerized:
-        wb_hostname = 'wildbook'
+        wb_hostname = 'nginx'
         wb_target = ''
     else:
         wb_hostname = '127.0.0.1'
