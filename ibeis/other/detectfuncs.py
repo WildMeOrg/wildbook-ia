@@ -992,40 +992,40 @@ def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
         #     {},
         # ),
 
-        'hammerhead': (
-            [
-                {'label': 'Hammerhead NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['shark_hammerhead'])},
-            ],
-            {},
-        ),
+        # 'hammerhead': (
+        #     [
+        #         {'label': 'Hammerhead NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['shark_hammerhead'])},
+        #     ],
+        #     {},
+        # ),
 
-        '!hammerhead': (
-            [
-                {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
-                {'label': 'Hammerhead ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
-            ],
-            {'offset_color': 1},
-        ),
+        # '!hammerhead': (
+        #     [
+        #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
+        #         {'label': 'Hammerhead ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
+        #     ],
+        #     {'offset_color': 1},
+        # ),
 
         # 'ggr2-giraffe-lightnet': (
         #     [
@@ -1162,6 +1162,23 @@ def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
         #     ],
         #     {},
         # ),
+
+        'lynx': (
+            [
+                {'label': 'Lynx NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['lynx'])},
+                {'label': 'Lynx NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['lynx'])},
+            ],
+            {},
+        ),
     }
 
     for config_key in config_dict:

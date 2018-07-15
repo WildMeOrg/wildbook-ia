@@ -29,6 +29,7 @@ WEIGHT_URL_DICT = {
     'seaturtle'     : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
     'hammerhead'    : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.shark_hammerhead.weights',
     'ggr2'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
+    'lynx'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.lynx.weights',
 
     None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
 }
