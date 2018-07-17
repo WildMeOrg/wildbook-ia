@@ -160,11 +160,12 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
                 raise ValueError('Must specify all required fields')
             value = list_[index]
 
-            if ibs.containerized:
-                value = value.replace('://localhost/', '://wildbook:8080/')
-
             if isinstance(value, dict):
                 value = ut.s3_dict_encode_to_str(value)
+
+            if ibs.containerized:
+                value = value.replace('://localhost/', '://nginx:80/')
+
             return value
 
         def _resolve(list_, default='', assert_=False):
