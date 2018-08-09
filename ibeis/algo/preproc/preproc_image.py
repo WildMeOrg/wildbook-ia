@@ -104,13 +104,13 @@ def parse_imageinfo(gpath):
             print('[preproc] IOError: %s' % (str(ex),))
             return None
         if len(w) > 0:
-            for warn in w:
-                warnings.showwarning(warn.message, warn.category,
-                                     warn.filename, warn.lineno, warn.file,
-                                     warn.line)
-                #warnstr = warnings.formatwarning
-                #print(warnstr)
-            print('Warnings issued by %r' % (gpath,))
+            # for warn in w:
+            #     warnings.showwarning(warn.message, warn.category,
+            #                          warn.filename, warn.lineno, warn.file,
+            #                          warn.line)
+            #     warnstr = warnings.formatwarning
+            #     print(warnstr)
+            print('%d warnings issued by %r' % (len(w), gpath,))
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags

@@ -318,7 +318,8 @@ class ZIPPED_URLS(object):
     NAUTS          = 'https://lev.cs.rpi.edu/public/databases/NAUT_test.zip'
     WDS            = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
     PZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip'  # DEPRICATE
-    GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'
+    GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
+    DF_CURVRANK    = 'https://lev.cs.rpi.edu/public/databases/testdb_curvrank.zip'
 
 
 # Turn off features at Lewa :(
@@ -374,6 +375,7 @@ SPECIES_MAPPING = {
     'crane'               :       ('CRANE', 'Crane'),
     'cheetah'             :        ('CHTH', 'Cheetah'),
     'dog_wild'            :          ('WD', 'Wild Dog'),
+    'dolphin_fin'         :          ('DF', 'Dolphin Fin'),
     'elephant_savanna'    :        ('ELEP', 'Elephant (Savanna)'),
     'elephant_savannah'   :          (None, 'elephant_savanna'),
     'frog'                :        ('FROG', 'Frog'),

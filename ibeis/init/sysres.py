@@ -410,7 +410,7 @@ def ensure_wd_peter2():
         >>> ensure_wd_peter2()
     """
     zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
-    ensure_db_from_url(zipped_db_url)
+    return ensure_db_from_url(zipped_db_url)
 
 
 def ensure_pz_mtest():
@@ -777,17 +777,21 @@ def ensure_pz_mtest_mergesplit_test():
 
 def ensure_wilddogs():
     """ Ensures that you have the NAUT_test dataset """
-    ensure_db_from_url(const.ZIPPED_URLS.WDS)
+    return ensure_db_from_url(const.ZIPPED_URLS.WDS)
 
 
 def ensure_nauts():
     """ Ensures that you have the NAUT_test dataset """
-    ensure_db_from_url(const.ZIPPED_URLS.NAUTS)
+    return ensure_db_from_url(const.ZIPPED_URLS.NAUTS)
 
 
 def ensure_testdb2():
     zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
-    ensure_db_from_url(zipped_db_url)
+    return ensure_db_from_url(zipped_db_url)
+
+
+def ensure_testdb_curvrank():
+    return ensure_db_from_url(const.ZIPPED_URLS.DF_CURVRANK)
 
 
 def ensure_db_from_url(zipped_db_url):
@@ -796,6 +800,7 @@ def ensure_db_from_url(zipped_db_url):
     workdir = sysres.get_workdir()
     dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
     print('have %s=%r' % (zipped_db_url, dbdir,))
+    return dbdir
 
 
 def get_global_distinctiveness_modeldir(ensure=True):
