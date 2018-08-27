@@ -196,6 +196,11 @@ def _detect_remote_push_annot_metadata(ibs, annot_uuid_list):
                                      'annot_tags_list',
                                      annot_uuid_list,
                                      ibs.get_annot_tag_text(aid_list))
+    ibs._detect_remote_push_metadata('/api/annot/name/text/json/',
+                                     'annot_uuid_list',
+                                     'name_text_list',
+                                     annot_uuid_list,
+                                     ibs.get_annot_name_texts(aid_list))
 
 
 @register_ibs_method
