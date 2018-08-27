@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.reset_testdbs &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.tests.reset_testdbs &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,43 +120,60 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
-      
-    <li>ibeis.tests.reset_testdbs</li>
+        
+      <li>ibeis.tests.reset_testdbs</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.reset_testdbs</h1><div class="highlight"><pre>
-<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">downloads standard test datasets. can delete them as well</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># TODO: ADD COPYRIGHT TAG</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_database</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="k">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="k">import</span> <span class="n">ingest_database</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">cycle</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">cycle</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
-<span class="n">__test__</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c1"># This is not a test</span>
+<span class="n">__test__</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># This is not a test</span>
 
 
 <div class="viewcode-block" id="testdb2_stuff"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.testdb2_stuff">[docs]</a><span class="k">def</span> <span class="nf">testdb2_stuff</span><span class="p">():</span>
@@ -162,22 +191,22 @@
     <span class="n">image_species_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)),</span> <span class="mi">0</span><span class="p">)</span>
 
-    <span class="n">new_contrib_rowid1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_new_temp_contributor</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">()))</span>
-    <span class="n">new_contrib_rowid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_new_temp_contributor</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">()))</span>
+    <span class="n">new_contributor_rowid1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_new_temp_contributor</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contributor_rowids</span><span class="p">()))</span>
+    <span class="n">new_contributor_rowid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_new_temp_contributor</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contributor_rowids</span><span class="p">()))</span>
 
     <span class="n">gids1</span><span class="p">,</span> <span class="n">gids2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_species_list</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="n">party_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_party</span><span class="p">([</span><span class="s1">&#39;TestCar1&#39;</span><span class="p">,</span> <span class="s1">&#39;TestCar2&#39;</span><span class="p">])</span>
     <span class="n">partyid1</span><span class="p">,</span> <span class="n">partyid2</span> <span class="o">=</span> <span class="n">party_rowids</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gids1</span><span class="p">,</span> <span class="p">[</span><span class="n">new_contrib_rowid1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids1</span><span class="p">))</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gids2</span><span class="p">,</span> <span class="p">[</span><span class="n">new_contrib_rowid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids2</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gids1</span><span class="p">,</span> <span class="p">[</span><span class="n">new_contributor_rowid1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids1</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gids2</span><span class="p">,</span> <span class="p">[</span><span class="n">new_contributor_rowid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids2</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_party_rowids</span><span class="p">(</span><span class="n">gids1</span><span class="p">,</span> <span class="p">[</span><span class="n">partyid1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids1</span><span class="p">))</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_party_rowids</span><span class="p">(</span><span class="n">gids2</span><span class="p">,</span> <span class="p">[</span><span class="n">partyid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids2</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_party_rowids</span><span class="p">(</span><span class="n">gids2</span><span class="p">,</span> <span class="p">[</span><span class="n">partyid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids2</span><span class="p">))</span></div>
 
-    <span class="c1">#image_contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)</span>
+    <span class="c1">#image_contributor_rowid_list = ibs.get_image_contributor_rowid(gid_list)</span>
 
-</div>
-<div class="viewcode-block" id="get_testdata_dir"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.get_testdata_dir">[docs]</a><span class="k">def</span> <span class="nf">get_testdata_dir</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_testdata_dir"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.get_testdata_dir">[docs]</a><span class="k">def</span> <span class="nf">get_testdata_dir</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets test img directory and downloads it if it doesn&#39;t exist</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -186,10 +215,10 @@
     <span class="p">}</span>
     <span class="n">zipped_testdata_url</span> <span class="o">=</span> <span class="n">testdata_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="n">testdata_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_testdata_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">testdata_dir</span>
+    <span class="k">return</span> <span class="n">testdata_dir</span></div>
 
 
-<span class="c1"># Convert stanadardized names to true names</span></div>
+<span class="c1"># Convert stanadardized names to true names</span>
 <span class="n">TEST_DBNAMES_MAP</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;nauts&#39;</span><span class="p">:</span>         <span class="s1">&#39;NAUT_test&#39;</span><span class="p">,</span>
     <span class="s1">&#39;mtest&#39;</span><span class="p">:</span>         <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
@@ -202,29 +231,29 @@
 
 
 <div class="viewcode-block" id="delete_dbdir"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.delete_dbdir">[docs]</a><span class="k">def</span> <span class="nf">delete_dbdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="n">dbname</span><span class="p">),</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="n">dbname</span><span class="p">),</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-</div>
+
 <div class="viewcode-block" id="ensure_smaller_testingdbs"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.ensure_smaller_testingdbs">[docs]</a><span class="k">def</span> <span class="nf">ensure_smaller_testingdbs</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Makes the smaller test databases</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">make_testdb0</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot; makes testdb0 &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="nf">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c1"># Read ndata from args or command line</span>
             <span class="sd">&quot;&quot;&quot; DEPRICATE &quot;&quot;&quot;</span>
-            <span class="n">ndata_arg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--ndata&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;use --ndata to specify bigger data&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">ndata_arg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ndata_arg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--ndata&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;use --ndata to specify bigger data&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ndata_arg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">ndata</span> <span class="o">=</span> <span class="n">ndata_arg</span>
             <span class="n">imgdir</span> <span class="o">=</span> <span class="n">get_testdata_dir</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+            <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
             <span class="c1"># Get only the gpaths of certain names</span>
-            <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpath</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span> <span class="k">if</span>
                               <span class="n">ut</span><span class="o">.</span><span class="n">basename_noext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
             <span class="c1"># Get a some number of test images</span>
-            <span class="k">if</span> <span class="n">ndata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ndata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">gpath_cycle</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
                     <span class="n">gpath_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">gpath_cycle</span><span class="o">.</span><span class="n">next</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndata</span><span class="p">)]</span>
@@ -233,9 +262,9 @@
             <span class="k">return</span> <span class="n">gpath_list</span>
         <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
         <span class="n">TESTDB0</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;testdb0&#39;</span><span class="p">)</span>
-        <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">TESTDB0</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">TESTDB0</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>
-        <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixpath</span><span class="p">,</span> <span class="n">get_test_gpaths</span><span class="p">()))</span>
         <span class="c1">#print(&#39;[RESET] gpath_list=%r&#39; % gpath_list)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>  <span class="c1"># NOQA</span>
@@ -257,53 +286,55 @@
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="s1">&#39;aids&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
 
-    <span class="n">get_testdata_dir</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s1">&#39;testdb0&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">MAKE TESTDB0</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">get_testdata_dir</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s1">&#39;testdb0&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">MAKE TESTDB0</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">make_testdb0</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">MAKE TESTDB1</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">ingest_database</span><span class="o">.</span><span class="n">ingest_standard_database</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">MAKE TESTDB1</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ingest_database</span><span class="o">.</span><span class="n">ingest_standard_database</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span></div>
 
-</div>
+
 <div class="viewcode-block" id="reset_testdbs"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.reset_testdbs">[docs]</a><span class="k">def</span> <span class="nf">reset_testdbs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># Step 0) Parse Args</span>
-    <span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">:</span> <span class="bp">False</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibeis</span><span class="o">.</span><span class="n">ENABLE_WILDBOOK_SIGNAL</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">:</span> <span class="kc">False</span>
                     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">TEST_DBNAMES_MAP</span><span class="p">)}</span>
-    <span class="n">default_args</span><span class="p">[</span><span class="s1">&#39;reset_all&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">default_args</span><span class="p">[</span><span class="s1">&#39;reset_all&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">default_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">argdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_dict_from_argv</span><span class="p">(</span><span class="n">default_args</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">argdict</span><span class="p">))):</span>
         <span class="c1"># Default behavior is to reset the small dbs</span>
-        <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_testdb0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_testdb1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_testdb_guiall&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_testdb0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_testdb1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_testdb_guiall&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># Step 1) Delete DBs to be Reset</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">TEST_DBNAMES_MAP</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">argdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_all&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">argdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">argdict</span><span class="p">[</span><span class="s1">&#39;reset_all&#39;</span><span class="p">]:</span>
             <span class="n">delete_dbdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
 
     <span class="c1"># Step 3) Ensure DBs that dont exist</span>
     <span class="n">ensure_smaller_testingdbs</span><span class="p">()</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;NAUT_test&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;NAUT_test&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_nauts</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;wd_peter2&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;wd_peter2&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_wilddogs</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;testdb2&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;testdb2&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">ensure_testdb2</span><span class="p">()</span>
 
     <span class="c1"># Step 4) testdb1 becomes the main database</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-    <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">)</span>
+    <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">)</span></div>
 
-</div>
+
 <div class="viewcode-block" id="reset_mtest"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.reset_mtest">[docs]</a><span class="k">def</span> <span class="nf">reset_mtest</span><span class="p">():</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf reset_mtest</span>
 
@@ -313,11 +344,11 @@
 <span class="sd">        &gt;&gt;&gt; result = reset_mtest()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Hack, this function does not have a utool main</span>
-    <span class="k">return</span> <span class="n">reset_testdbs</span><span class="p">(</span><span class="n">reset_mtest</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reset_testdbs</span><span class="p">(</span><span class="n">reset_mtest</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.tests.reset_testdbs</span>
 
@@ -335,6 +366,9 @@
 </pre></div>
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -343,7 +377,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -365,10 +399,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>

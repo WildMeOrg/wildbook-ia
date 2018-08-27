@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc package &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.algo.preproc package &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,10 +32,13 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
         <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
-        <link rel="next" title="ibeis.control package" href="ibeis.control.html"/>
-        <link rel="prev" title="ibeis.algo.hots.smk package" href="ibeis.algo.hots.smk.html"/> 
+        <link rel="next" title="ibeis.algo.smk package" href="ibeis.algo.smk.html"/>
+        <link rel="prev" title="ibeis.algo.hots package" href="ibeis.algo.hots.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -42,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -61,7 +67,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -82,7 +88,11 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a><ul class="current">
@@ -109,19 +119,19 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._ibeis_object">ibeis._ibeis_object module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annots">ibeis.annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_parts">ibeis.core_parts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.images">ibeis.images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -137,8 +147,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ibeis</a>
+        
       </nav>
 
 
@@ -151,23 +163,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
           <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
-      
+        
           <li><a href="ibeis.algo.html">ibeis.algo package</a> &raquo;</li>
-      
-    <li>ibeis.algo.preproc package</li>
+        
+      <li>ibeis.algo.preproc package</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/ibeis.algo.preproc.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/ibeis.algo.preproc.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -180,17 +209,35 @@
 </div>
 <div class="section" id="module-ibeis.algo.preproc.occurrence_blackbox">
 <span id="ibeis-algo-preproc-occurrence-blackbox-module"></span><h2>ibeis.algo.preproc.occurrence_blackbox module<a class="headerlink" href="#module-ibeis.algo.preproc.occurrence_blackbox" title="Permalink to this headline">¶</a></h2>
+<p>animal_walking_speeds</p>
+<p>ZEBRA_SPEED_MAX  = 64  # km/h
+ZEBRA_SPEED_RUN  = 50  # km/h
+ZEBRA_SPEED_SLOW_RUN  = 20  # km/h
+ZEBRA_SPEED_FAST_WALK = 10  # km/h
+ZEBRA_SPEED_WALK = 7  # km/h</p>
+<p>km_per_sec = .02
+km_per_sec = .002
+mph = km_per_sec / ut.KM_PER_MILE * 60 * 60
+print(‘mph = %r’ % (mph,))</p>
+<p>1 / km_per_sec</p>
+<p>import datetime
+thresh_sec = datetime.timedelta(minutes=5).seconds
+thresh_km = thresh_sec * km_per_sec
+print(‘thresh_sec = %r’ % (thresh_sec,))
+print(‘thresh_km = %r’ % (thresh_km,))
+thresh_sec = thresh_km / km_per_sec
+print(‘thresh_sec = %r’ % (thresh_sec,))</p>
 <dl class="function">
-<dt id="ibeis.algo.preproc.occurrence_blackbox.cluster_timespace">
-<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">cluster_timespace</code><span class="sig-paren">(</span><em>X_data</em>, <em>thresh</em>, <em>km_per_sec=0.02</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#cluster_timespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.cluster_timespace" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.algo.preproc.occurrence_blackbox.cluster_timespace_km">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">cluster_timespace_km</code><span class="sig-paren">(</span><em>posixtimes</em>, <em>latlons</em>, <em>thresh_km</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#cluster_timespace_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.cluster_timespace_km" title="Permalink to this definition">¶</a></dt>
 <dd><p>Agglometerative clustering of time/space data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) &#8211; Nx3 array where columns are (seconds, lat, lon)</li>
-<li><strong>thresh</strong> (<em>float</em>) &#8211; threshold in kilometers</li>
+<li><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</li>
+<li><strong>thresh_km</strong> (<em>float</em>) – threshold in kilometers</li>
 </ul>
 </td>
 </tr>
@@ -205,9 +252,11 @@ scipy.cluster.hierarchy.fcluster.html</dd>
 <p class="rubric">Notes</p>
 <p># Visualize spots
 <a class="reference external" href="http://www.darrinward.com/lat-long/?id=2009879">http://www.darrinward.com/lat-long/?id=2009879</a></p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.preproc.occurrence_blackbox cluster_timespace_km</dd>
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
@@ -222,13 +271,87 @@ scipy.cluster.hierarchy.fcluster.html</dd>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.862946</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.804977</span><span class="p">),</span>  <span class="c1"># CP2</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.849809</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.758486</span><span class="p">),</span>  <span class="c1"># CP3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># kilometers</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;X_labels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">X_labels</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_km</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># kilometers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="n">KM_PER_SEC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_km</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_km</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;X_labels = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">X_labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = np.array([3, 2, 2, 2, 2, 2, 1, 1, 1])</span>
 </pre></div>
 </div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.cluster_timespace_sec">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">cluster_timespace_sec</code><span class="sig-paren">(</span><em>posixtimes</em>, <em>latlons</em>, <em>thresh_sec=5</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#cluster_timespace_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.cluster_timespace_sec" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</li>
+<li><strong>thresh_sec</strong> (<em>float</em>) – threshold in seconds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>  <span class="c1"># MRC</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.654384</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.768919</span><span class="p">),</span>  <span class="c1"># Park3</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Park5</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.876974</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.819311</span><span class="p">),</span>  <span class="c1"># CP1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.862946</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.804977</span><span class="p">),</span>  <span class="c1"># CP2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.849809</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.758486</span><span class="p">),</span>  <span class="c1"># CP3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="mi">250</span>  <span class="c1"># seconds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_sec</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;X_labels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">X_labels</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])</span>
+</pre></div>
+</div>
+</dd>
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>  <span class="c1"># Park3</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>  <span class="c1"># Park3.5</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Park5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="mi">250</span>  <span class="c1"># seconds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="n">KM_PER_SEC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_sec</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;X_labels = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">X_labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = np.array([3, 4, 1, 2, 4, 5])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -241,8 +364,8 @@ on the earth (specified in decimal degrees)</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>latlon1</strong> (<em>tuple</em>) &#8211; (lat, lon)</li>
-<li><strong>latlon2</strong> (<em>tuple</em>) &#8211; (lat, lon)</li>
+<li><strong>latlon1</strong> (<em>tuple</em>) – (lat, lon)</li>
+<li><strong>latlon2</strong> (<em>tuple</em>) – (lat, lon)</li>
 </ul>
 </td>
 </tr>
@@ -258,23 +381,116 @@ on the earth (specified in decimal degrees)</p>
 <p>en.wikipedia.org/wiki/Haversine_formula
 gis.stackexchange.com/questions/81551/matching-gps-tracks
 stackoverflow.com/questions/4913349/haversine-distance-gps-points</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
+<dl class="docutils">
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="k">as</span> <span class="nn">spdist</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.21895315</span><span class="p">,</span> <span class="o">-</span><span class="mf">158.81099213</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">9.77816711</span><span class="p">,</span>  <span class="o">-</span><span class="mf">17.27471498</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kilometers</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;kilometers = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kilometers</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">kilometers = 11930.9093642</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">kilometers = 11930.909364189827</span>
 </pre></div>
 </div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.algo.preproc.occurrence_blackbox.timespace_distance">
-<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">timespace_distance</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.02</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#timespace_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.timespace_distance" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.algo.preproc.occurrence_blackbox.haversine_rad">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">haversine_rad</code><span class="sig-paren">(</span><em>lat1</em>, <em>lon1</em>, <em>lat2</em>, <em>lon2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#haversine_rad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.haversine_rad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.main">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.main" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>ib
+cd ~/code/ibeis/ibeis/algo/preproc
+python occurrence_blackbox.py –lat 42.727985 42.657414 42.658333 42.654384 –lon -73.683994 -73.774448 -73.770993 -73.768919 –sec 0 0 0 0
+# Should return
+X_labels = [2, 1, 1, 1]</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.prepare_data">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">prepare_data</code><span class="sig-paren">(</span><em>posixtimes</em>, <em>latlons</em>, <em>km_per_sec=0.002</em>, <em>thresh_units='seconds'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#prepare_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.prepare_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Package datas and picks distance function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>posixtimes</strong> (<em>ndarray</em>) – </li>
+<li><strong>latlons</strong> (<em>ndarray</em>) – </li>
+<li><strong>km_per_sec</strong> (<em>float</em>) – (default = 0.002)</li>
+<li><strong>thresh_units</strong> (<em>str</em>) – (default = ‘seconds’)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><a href="#id1"><span class="problematic" id="id2">arr_</span></a> -</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.preproc.occurrence_blackbox prepare_data</dd>
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.227985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.083994</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.258333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.470993</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="mf">0.002</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_units</span> <span class="o">=</span> <span class="s1">&#39;seconds&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="p">,</span> <span class="n">thresh_units</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;arr_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">X_data</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">dist_func</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.space_distance_km">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">space_distance_km</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#space_distance_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.space_distance_km" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.space_distance_sec">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">space_distance_sec</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#space_distance_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.space_distance_sec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.time_dist_km">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">time_dist_km</code><span class="sig-paren">(</span><em>sec1</em>, <em>sec2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#time_dist_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.time_dist_km" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.time_dist_sec">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">time_dist_sec</code><span class="sig-paren">(</span><em>sec1</em>, <em>sec2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#time_dist_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.time_dist_sec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.timespace_distance_km">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">timespace_distance_km</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#timespace_distance_km"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.timespace_distance_km" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes distance between two points in space and time.
 Time is converted into spatial units using km_per_sec</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -282,9 +498,9 @@ Time is converted into spatial units using km_per_sec</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>pt1</strong> (<em>tuple</em>) &#8211; (seconds, lat, lon)</li>
-<li><strong>pt2</strong> (<em>tuple</em>) &#8211; (seconds, lat, lon)</li>
-<li><strong>km_per_sec</strong> (<em>float</em>) &#8211; reasonable animal walking speed</li>
+<li><strong>pt1</strong> (<em>tuple</em>) – (seconds, lat, lon)</li>
+<li><strong>pt2</strong> (<em>tuple</em>) – (seconds, lat, lon)</li>
+<li><strong>km_per_sec</strong> (<em>float</em>) – reasonable animal walking speed</li>
 </ul>
 </td>
 </tr>
@@ -296,100 +512,45 @@ Time is converted into spatial units using km_per_sec</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
+<dl class="docutils">
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.occurrence_blackbox</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="k">as</span> <span class="nn">spdist</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="o">.</span><span class="mo">02</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.21895315</span><span class="p">,</span> <span class="o">-</span><span class="mf">158.81099213</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">9.77816711</span><span class="p">,</span>  <span class="o">-</span><span class="mf">17.27471498</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">40.779299</span><span class="p">,</span><span class="o">-</span><span class="mf">73.9719498</span><span class="p">]</span> <span class="c1"># museum of natural history</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">37.7336402</span><span class="p">,</span><span class="o">-</span><span class="mf">122.5050342</span><span class="p">]</span> <span class="c1"># san fransisco zoo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># google measures about 4138.88 kilometers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist_km1</span> <span class="o">=</span> <span class="n">timespace_distance_km</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_km1 = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist_km1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Now add a time component</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">360.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kilometers</span> <span class="o">=</span> <span class="n">timespace_distance</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;kilometers = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kilometers</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">kilometers = 2058.6323187</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist_km2</span> <span class="o">=</span> <span class="n">timespace_distance_km</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_km2 = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist_km2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dist_km1</span><span class="p">,</span> <span class="mf">4136.4568647922624</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dist_km2</span><span class="p">,</span> <span class="mf">4137.1768647922627</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd>
+</dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.preproc.occurrence_blackbox.timespace_distance_sec">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">timespace_distance_sec</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#timespace_distance_sec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.timespace_distance_sec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.algo.preproc.preproc_annot">
 <span id="ibeis-algo-preproc-preproc-annot-module"></span><h2>ibeis.algo.preproc.preproc_annot module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_annot" title="Permalink to this headline">¶</a></h2>
-<p>The goal of this module is to offload annotation work from the controller into a
-single place.</p>
-<p>CommandLine Help for manual controller functions</p>
-<p># Cross platform alias helper
-python -c &#8220;import utool as ut; ut.write_to(&#8216;Tgen.sh&#8217;, &#8216;python -m ibeis.control.template_generator $&#64;&#8217;)&#8221;  # NOQA</p>
-<p>Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False with_columns:False
-Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True with_native:True strip_docstr:True
-Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:True with_columns:False &#8211;quiet
-Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False with_columns:False</p>
+<p>helpers for controller manual_annot_funcs</p>
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_annot.generate_annot_properties">
 <code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">generate_annot_properties</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>bbox_list=None</em>, <em>theta_list=None</em>, <em>species_list=None</em>, <em>nid_list=None</em>, <em>name_list=None</em>, <em>detect_confidence_list=None</em>, <em>notes_list=None</em>, <em>vert_list=None</em>, <em>annot_uuid_list=None</em>, <em>yaw_list=None</em>, <em>quiet_delete_thumbs=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#generate_annot_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.generate_annot_properties" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_annot.make_annot_semantic_uuid">
-<code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">make_annot_semantic_uuid</code><span class="sig-paren">(</span><em>semantic_infotup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#make_annot_semantic_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.make_annot_semantic_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>semantic_infotup</strong> (<em>tuple</em>) &#8211; (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">annot_semantic_uuid_list</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_preproc_annot</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">semantic_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">annot_semantic_uuid_list</span> <span class="o">=</span> <span class="n">make_annot_semantic_uuid</span><span class="p">(</span><span class="n">semantic_infotup</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">annot_semantic_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">bf774bf3-582d-dbce-6ca6-329adeb086a6</span>
-</pre></div>
-</div>
-<p>215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_annot.make_annot_visual_uuid">
-<code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">make_annot_visual_uuid</code><span class="sig-paren">(</span><em>visual_infotup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#make_annot_visual_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.make_annot_visual_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visual_infotup</strong> (<em>tuple</em>) &#8211; (image_uuid_list, verts_list, theta_list)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">annot_visual_uuid_list</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_preproc_annot</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">visual_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">annot_visual_uuid_list</span> <span class="o">=</span> <span class="n">make_annot_visual_uuid</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">annot_visual_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">8687dcb6-1f1f-fdd3-8b72-8f36f9f41905</span>
-</pre></div>
-</div>
-</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_annot.make_annotation_uuids">
@@ -402,12 +563,6 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.algo.preproc.preproc_annot.test_annotation_uuid">
-<code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">test_annotation_uuid</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#test_annotation_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.test_annotation_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Consistency test</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="ibeis.algo.preproc.preproc_annot.testdata_preproc_annot">
 <code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">testdata_preproc_annot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#testdata_preproc_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.testdata_preproc_annot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -416,65 +571,9 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 <div class="section" id="module-ibeis.algo.preproc.preproc_image">
 <span id="ibeis-algo-preproc-preproc-image-module"></span><h2>ibeis.algo.preproc.preproc_image module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_image" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="ibeis.algo.preproc.preproc_image.add_images_params_gen">
-<code class="descclassname">ibeis.algo.preproc.preproc_image.</code><code class="descname">add_images_params_gen</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_image.html#add_images_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_image.add_images_params_gen" title="Permalink to this definition">¶</a></dt>
-<dd><p>generates values for add_images sqlcommands asychronously</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list</em>) &#8211; </td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Kwargs:</dt>
-<dd>ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,
-adjust</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">params_gen</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">generator</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
-</pre></div>
-</div>
-<dl class="docutils">
-<dt>Example0:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;doesnotexist.jpg&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">params_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">add_images_params_gen</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">,</span> <span class="s1">&#39;UUID gen method changed&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;easy1.JPG&#39;</span><span class="p">,</span> <span class="s1">&#39;orig name is different&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">params_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
 <dt id="ibeis.algo.preproc.preproc_image.get_standard_ext">
 <code class="descclassname">ibeis.algo.preproc.preproc_image.</code><code class="descname">get_standard_ext</code><span class="sig-paren">(</span><em>gpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_image.html#get_standard_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_image.get_standard_ext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns standardized image extension</p>
-<dl class="docutils">
-<dt>Cyth::</dt>
-<dd><dl class="first last docutils">
-<dt>cdef:</dt>
-<dd>str gpath
-str ext</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
@@ -486,18 +585,6 @@ str ext</dd>
 <dt id="ibeis.algo.preproc.preproc_image.parse_exif">
 <code class="descclassname">ibeis.algo.preproc.preproc_image.</code><code class="descname">parse_exif</code><span class="sig-paren">(</span><em>pil_img</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_image.html#parse_exif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_image.parse_exif" title="Permalink to this definition">¶</a></dt>
 <dd><p>Image EXIF helper</p>
-<dl class="docutils">
-<dt>Cyth::</dt>
-<dd><dl class="first last docutils">
-<dt>cdef:</dt>
-<dd>Image pil_img
-dict exif_dict
-long lat
-long lon
-long exiftime</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
@@ -508,31 +595,34 @@ long exiftime</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tup</strong> (<em>tuple</em>) &#8211; a tuple or one argument
-(so the function can be parallelized easily)
-(here it is just gpath, no tuple, sorry for confusion)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath</strong> (<em>str</em>) – image path</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">param_tup -
-if successful returns a tuple of image parameters which are values
-for SQL columns on else returns None</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>param_tup -</dt>
+<dd>if successful returns a tuple of image parameters which are values
+for SQL columns on else returns None</dd>
+</dl>
+</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_image --exec-parse_imageinfo
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;/media/raid/work/lynx/_ibsdb/images/f6c84c6d-55ca-fd02-d0b4-1c7c9c27c894.jpg&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">param_tup</span> <span class="o">=</span> <span class="n">parse_imageinfo</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.preproc.preproc_image –exec-parse_imageinfo</dd>
+<dt>Doctest:</dt>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="s1">&#39;patsy.jpg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">param_tup</span> <span class="o">=</span> <span class="n">parse_imageinfo</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;param_tup = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">param_tup</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uuid</span> <span class="o">=</span> <span class="n">param_tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;16008058-788c-2d48-cd50-f6029f726cbf&#39;</span>
 </pre></div>
 </div>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -540,15 +630,15 @@ for SQL columns on else returns None</td>
 <span id="ibeis-algo-preproc-preproc-occurrence-module"></span><h2>ibeis.algo.preproc.preproc_occurrence module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_occurrence" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">agglomerative_cluster_occurrences</code><span class="sig-paren">(</span><em>X_data</em>, <em>seconds_thresh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#agglomerative_cluster_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">agglomerative_cluster_occurrences</code><span class="sig-paren">(</span><em>X_data</em>, <em>thresh_sec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#agglomerative_cluster_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Agglomerative occurrence clustering algorithm</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) &#8211; Length N array of data to cluster</li>
-<li><strong>seconds_thresh</strong> (<em>float</em>) &#8211; </li>
+<li><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</li>
+<li><strong>thresh_sec</strong> (<em>float</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -560,21 +650,21 @@ for SQL columns on else returns None</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.preproc.preproc_occurrence –exec-agglomerative_cluster_occurrences</dd>
+</dl>
 <p class="rubric">References</p>
 <p><a class="reference external" href="https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata">https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata</a>
 <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html</a></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seconds_thresh</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">agglomerative_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">seconds_thresh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">agglomerative_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;(occur_ids, occur_gids) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -586,19 +676,17 @@ for SQL columns on else returns None</td>
 <dl class="docutils">
 <dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt>
 <dd>scipy.cluster.hierarchy.linkage.html</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.preproc.preproc_occurrence cluster_timespace –show</dd>
 </dl>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_occurrence cluster_timespace --show
-</pre></div>
-</div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">testdata_gps</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">thresh</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hier</span><span class="o">.</span><span class="n">dendrogram</span><span class="p">(</span><span class="n">linkage_mat</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot_annotaiton_gps</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
@@ -608,14 +696,14 @@ for SQL columns on else returns None</td>
 
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.compute_occurrence_groups">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">compute_occurrence_groups</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>cluster_algo</em>, <em>cfgdict={}</em>, <em>use_gps=False</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">compute_occurrence_groups</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>config={}</em>, <em>use_gps=False</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>gid_list</strong> (<em>list</em>) &#8211; </li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -627,59 +715,29 @@ for SQL columns on else returns None</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf compute_occurrence_groups
-python -m ibeis --tf compute_occurrence_groups --show --zoom<span class="o">=</span>.3
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis compute_occurrence_groups</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">require_unixtime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">use_gps</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cluster_algo</span> <span class="o">=</span> <span class="s1">&#39;meanshift&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">quantile</span><span class="o">=.</span><span class="mo">005</span><span class="p">,</span> <span class="n">min_imgs_per_occurence</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">compute_occurrence_groups</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">cluster_algo</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_gps</span><span class="o">=</span><span class="n">use_gps</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aidsgroups_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="n">aidsgroups_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nids</span><span class="p">[</span><span class="n">nids</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#metric = list(map(len, aids_list))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">gids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># ibeis.algo.Config.OccurrenceConfig().asdict()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">ibeis_compute_occurr</span> <span class="n">ences</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">flat_imgsetids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">metric</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#gids = occur_gids[index]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">min_qual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(aids) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#pt.imshow(bigimg)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#aids = ibs.group_annots_by_name(aids)[0][0]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">with_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>ibs.unflat_map(ibs.get_annot_case_tags, aids_list)
-ibs.filter_aidpairs_by_tags(has_any=&#8217;photobomb&#8217;)</p>
-<p>photobomb_aids = ibs.filter_aidpairs_by_tags(has_any=&#8217;photobomb&#8217;)
-aids = photobomb_aids[0:10].flatten()
-_gt_aids = ibs.get_annot_groundtruth(aids)
-gt_aids = ut.get_list_column_slice(_gt_aids, slice(0, 3))
-aid_set = np.unique(np.append(aids.flatten(), ut.flatten(gt_aids)))
-aid_set = ibs.filter_annots_general(aid_set, minqual=&#8217;ok&#8217;)</p>
-<p># This is the set of annotations used for testing intraoccurrence photobombs
-#print(ut.repr3(ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=aid_set), strvals=True, nl=1))
-print(ut.repr3(ibs.get_annot_stats_dict(aid_set, forceall=True), strvals=True, nl=1))</p>
 </dd></dl>
 
 <dl class="function">
@@ -703,18 +761,19 @@ Output: Length M list of unique labels, and lenth M list of lists of ids</p>
 
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.ibeis_compute_occurrences">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">ibeis_compute_occurrences</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>seconds_thresh=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#ibeis_compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.ibeis_compute_occurrences" title="Permalink to this definition">¶</a></dt>
-<dd><p>clusters occurrences togethers (by time, not yet space) An occurrence is a
-meeting, localized in time and space between a camera and a group of
-animals.  Animals are identified within each occurrence.</p>
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">ibeis_compute_occurrences</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>config=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#ibeis_compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.ibeis_compute_occurrences" title="Permalink to this definition">¶</a></dt>
+<dd><p>clusters occurrences togethers (by time, not yet space)
+An occurrence is a meeting, localized in time and space between a camera
+and a group of animals.
+Animals are identified within each occurrence.</p>
 <p>Does not modify database state, just returns cluster ids</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>gid_list</strong> (<em>list</em>) &#8211; </li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -726,65 +785,11 @@ animals.  Animals are identified within each occurrence.</p>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf ibeis_compute_occurrences:0 --show
-
-TODO: FIXME: good example of autogen doctest <span class="k">return</span> failure
-</pre></div>
-</div>
-<p>#Ignore:
-#    &gt;&gt;&gt; import ibeis
-#    &gt;&gt;&gt; from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-#    &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#8217;lynx&#8217;)
-#    &gt;&gt;&gt; aid_list = ibs.get_valid_aids()
-#    &gt;&gt;&gt; filter_kw = {}
-#    &gt;&gt;&gt; filter_kw[&#8216;been_adjusted&#8217;] = True
-#    &gt;&gt;&gt; <a href="#id1"><span class="problematic" id="id2">aid_list_</span></a> = ibs.filter_annots_general(aid_list, filter_kw)
-#    &gt;&gt;&gt; gid_list = ibs.get_annot_gids(<a href="#id3"><span class="problematic" id="id4">aid_list_</span></a>)
-#    &gt;&gt;&gt; flat_imgsetids, flat_gids = ibeis_compute_occurrences(ibs, gid_list)
-#    &gt;&gt;&gt; aids_list = list(ut.group_items(<a href="#id5"><span class="problematic" id="id6">aid_list_</span></a>, flat_imgsetids).values())
-#    &gt;&gt;&gt; metric = list(map(len, aids_list))
-#    &gt;&gt;&gt; sortx = ut.list_argsort(metric)[::-1]
-#    &gt;&gt;&gt; index = sortx[1]
-#    &gt;&gt;&gt; #gids = occur_gids[index]
-#    &gt;&gt;&gt; aids = aids_list[index]
-#    &gt;&gt;&gt; gids = list(set(ibs.get_annot_gids(aids)))
-#    &gt;&gt;&gt; print(&#8216;len(aids) = %r&#8217; % (len(aids),))
-#    &gt;&gt;&gt; ut.quit_if_noshow()
-#    &gt;&gt;&gt; from ibeis.viz import viz_graph
-#    &gt;&gt;&gt; import plottool as pt
-#    &gt;&gt;&gt; #pt.imshow(bigimg)
-#    &gt;&gt;&gt; #bigimg = vt.stack_image_recurse(img_list)
-#    &gt;&gt;&gt; self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
-#    &gt;&gt;&gt; ut.show_if_requested()</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">ibeis_compute_occurrences</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">flat_imgsetids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">metric</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#gids = occur_gids[index]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(aids) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#pt.imshow(bigimg)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1">#bigimg = vt.stack_image_recurse(img_list)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">with_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis –tf ibeis_compute_occurrences:0 –show
+TODO: FIXME: good example of autogen doctest return failure</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -796,8 +801,8 @@ TODO: FIXME: good example of autogen doctest <span class="k">return</span> failu
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>X_data</strong> (<em>ndarray</em>) &#8211; Length N array of data to cluster</li>
-<li><strong>quantile</strong> (<em>float</em>) &#8211; quantile should be between [0, 1].
+<li><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</li>
+<li><strong>quantile</strong> (<em>float</em>) – quantile should be between [0, 1].
 eg: quantile=.5 represents the median of all pairwise distances</li>
 </ul>
 </td>
@@ -810,37 +815,76 @@ eg: quantile=.5 represents the median of all pairwise distances</li>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.algo.preproc.preproc_occurrence –exec-meanshift_cluster_occurrences</dd>
+</dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">quantile</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">meanshift_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">quantile</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.algo.preproc.preproc_occurrence.plot_annotaiton_gps">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">plot_annotaiton_gps</code><span class="sig-paren">(</span><em>X_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#plot_annotaiton_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.plot_annotaiton_gps" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.algo.preproc.preproc_occurrence.plot_gps_html">
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">plot_gps_html</code><span class="sig-paren">(</span><em>gps_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#plot_gps_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.plot_gps_html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots gps coordinates on a map projection</p>
 <dl class="docutils">
 <dt>InstallBasemap:</dt>
-<dd>sudo apt-get install libgeos-dev
-pip install git+https://github.com/matplotlib/basemap</dd>
+<dd><p class="first">sudo apt-get install libgeos-dev
+pip install git+https://github.com/matplotlib/basemap
+http://matplotlib.org/basemap/users/examples.html</p>
+<p>pip install gmplot</p>
+<p class="last">sudo apt-get install netcdf-bin
+sudo apt-get install libnetcdf-dev
+pip install netCDF4</p>
+</dd>
+<dt>Ignore:</dt>
+<dd>pip install git+git://github.com/myuser/foo.git&#64;v123</dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Setup GPS points to draw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Setup GPS points&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gps_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">gps2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unixtime_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">unixtime2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">has_gps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">has_unixtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtime_list_</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">isvalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">has_gps</span><span class="p">,</span> <span class="n">has_unixtime</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gps_list</span> <span class="o">=</span> <span class="n">gps_list_</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">unixtime_list_</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_image_gps</span><span class="p">(</span><span class="n">gps_list</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.prepare_X_data">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">prepare_X_data</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>use_gps=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#prepare_X_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.prepare_X_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>FIXME: use vt.haversine formula on gps dimensions
-fix weighting between seconds and gps</p>
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">prepare_X_data</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>use_gps=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#prepare_X_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.prepare_X_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits data into groups with/without gps and time</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ibeis.control.accessor_decors.DEBUG_GETTERS = True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_gps</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">gids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datas</span> <span class="o">=</span> <span class="n">prepare_X_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">use_gps</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">datas</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">datas</span><span class="p">[</span><span class="s1">&#39;both&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">12</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">datas</span><span class="p">[</span><span class="s1">&#39;neither&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -851,10 +895,10 @@ fix weighting between seconds and gps</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>X_name</strong> &#8211; Nx1 matrix denoting groundtruth locations
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nx1 matrix denoting groundtruth locations
 X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ndarray</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">X_name (ndarray)</td>
 </tr>
 </tbody>
 </table>
@@ -899,10 +943,17 @@ X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
 </div>
 <div class="section" id="module-ibeis.algo.preproc">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.algo.preproc" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="ibeis.algo.preproc.IMPORT_TUPLES">
+<code class="descclassname">ibeis.algo.preproc.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('preproc_annot', None), ('preproc_image', None), ('preproc_occurrence', None), ('preproc_residual', None), ('preproc_rvec', None)]</em><a class="headerlink" href="#ibeis.algo.preproc.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Regen Command</em> – cd /home/joncrall/code/ibeis/ibeis/algo/preproc
+makeinit.py –modname=ibeis.algo.preproc –write</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.algo.preproc.reassign_submodule_attributes">
 <code class="descclassname">ibeis.algo.preproc.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
-<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+<dd><p>why reloading all the modules doesnt do this I don’t know</p>
 </dd></dl>
 
 <dl class="function">
@@ -922,15 +973,18 @@ X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ibeis.control.html" class="btn btn-neutral float-right" title="ibeis.control package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ibeis.algo.smk.html" class="btn btn-neutral float-right" title="ibeis.algo.smk package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ibeis.algo.hots.smk.html" class="btn btn-neutral" title="ibeis.algo.hots.smk package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ibeis.algo.hots.html" class="btn btn-neutral" title="ibeis.algo.hots package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -939,7 +993,7 @@ X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -961,10 +1015,11 @@ X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

@@ -1,0 +1,603 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.apis_sync &mdash; ibeis 1.8.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+        
+      <li>ibeis.web.apis_sync</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.web.apis_sync</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+
+<span class="sd">SeeAlso:</span>
+<span class="sd">    routes.turk_identification</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>   <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s1">&#39;[apis_sync]&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">))</span>
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">REMOTE_TESTING</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">if</span> <span class="n">REMOTE_TESTING</span><span class="p">:</span>
+    <span class="n">REMOTE_DOMAIN</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+    <span class="n">REMOTE_PORT</span> <span class="o">=</span> <span class="s1">&#39;5555&#39;</span>
+    <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">REMOTE_DOMAIN</span> <span class="o">=</span> <span class="s1">&#39;35.161.135.191&#39;</span>
+    <span class="n">REMOTE_PORT</span> <span class="o">=</span> <span class="s1">&#39;5555&#39;</span>
+    <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="s1">&#39;e468d14b-3a39-4165-8f62-16f9e3deea39&#39;</span>
+
+    <span class="n">remote_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_arg_dict</span><span class="p">()</span>
+    <span class="n">REMOTE_DOMAIN</span> <span class="o">=</span> <span class="n">remote_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sync-domain&#39;</span><span class="p">,</span> <span class="n">REMOTE_DOMAIN</span><span class="p">)</span>
+    <span class="n">REMOTE_PORT</span> <span class="o">=</span> <span class="n">remote_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sync-port&#39;</span><span class="p">,</span> <span class="n">REMOTE_PORT</span><span class="p">)</span>
+    <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="n">remote_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sync-uuid&#39;</span><span class="p">,</span> <span class="n">REMOTE_UUID</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">REMOTE_UUID</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">]:</span>
+        <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="n">REMOTE_URL</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_DOMAIN</span><span class="p">,</span> <span class="n">REMOTE_PORT</span><span class="p">,</span> <span class="p">)</span>
+<span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">REMOTE_UUID</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">REMOTE_UUID</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_construct_route_url</span><span class="p">(</span><span class="n">route_rule</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">route_rule</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+        <span class="n">route_rule</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">route_rule</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">route_rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+        <span class="n">route_rule</span> <span class="o">=</span> <span class="n">route_rule</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_URL</span><span class="p">,</span> <span class="n">route_rule</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">route_url</span>
+
+
+<span class="k">def</span> <span class="nf">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Could not get valid JSON response from server&#39;</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">response_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">assert</span> <span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;response&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span>
+
+
+<span class="k">def</span> <span class="nf">_get</span><span class="p">(</span><span class="n">route_rule</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">route_rule</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_assert_remote_online</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;/api/core/db/version/&#39;</span><span class="p">)</span>
+        <span class="n">uuid</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;/api/core/db/uuid/init/&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">version</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">REMOTE_UUID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">uuid</span> <span class="o">==</span> <span class="n">REMOTE_UUID</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Remote IBEIS DETECT database offline at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_URL</span><span class="p">,</span> <span class="p">))</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/upload/image/&#39;</span><span class="p">)</span>
+
+    <span class="n">num_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">image_path_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_path_list</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">num_images</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">file_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">file_dict</span><span class="p">)</span>
+        <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_imageset</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">):</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/image/imageset/text/json/&#39;</span><span class="p">)</span>
+
+    <span class="n">db_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="n">db_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
+    <span class="n">time_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
+    <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;Sync from </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="n">db_uuid</span><span class="p">,</span> <span class="n">time_str</span><span class="p">)</span>
+    <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">imageset_text</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="n">image_uuid_list</span><span class="p">,</span>
+        <span class="s1">&#39;imageset_text_list&#39;</span><span class="p">:</span> <span class="n">imageset_text_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
+    <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/annot/json/&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending...&#39;</span><span class="p">)</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="s1">&#39;annot_bbox_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
+    <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">route_rule</span><span class="p">,</span> <span class="n">uuid_str</span><span class="p">,</span> <span class="n">value_str</span><span class="p">,</span>
+                                 <span class="n">uuid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">):</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">route_rule</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Setting </span><span class="si">%s</span><span class="s1"> metadata for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">route_rule</span><span class="p">,</span> <span class="n">uuid_str</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">uuid_str</span><span class="p">:</span> <span class="n">uuid_list</span><span class="p">,</span>
+        <span class="n">value_str</span><span class="p">:</span> <span class="n">value_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
+    <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...set&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_annot_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/bbox/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;bbox_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/theta/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;theta_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/viewpoint/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;viewpoint_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/quality/text/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;quality_text_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/species/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;species_text_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/multiple/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;flag_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_multiple</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/interest/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;flag_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/tags/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_tags_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/annot/name/text/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;name_text_list&#39;</span><span class="p">,</span>
+                                     <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_parts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/part/json/&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending...&#39;</span><span class="p">)</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_annot_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">),</span>
+        <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">),</span>
+        <span class="s1">&#39;part_bbox_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
+    <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_detect_remote_push_part_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_uuid_list</span><span class="p">):</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_rowids_from_uuid</span><span class="p">(</span><span class="n">part_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/part/bbox/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;bbox_list&#39;</span><span class="p">,</span>
+                                     <span class="n">part_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/part/theta/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;theta_list&#39;</span><span class="p">,</span>
+                                     <span class="n">part_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/part/viewpoint/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;viewpoint_list&#39;</span><span class="p">,</span>
+                                     <span class="n">part_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_viewpoints</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/part/quality/text/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;quality_text_list&#39;</span><span class="p">,</span>
+                                     <span class="n">part_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_quality_texts</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>  <span class="c1"># NOQA</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/part/type/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;type_text_list&#39;</span><span class="p">,</span>
+                                     <span class="n">part_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_metadata</span><span class="p">(</span><span class="s1">&#39;/api/part/tags/json/&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;part_tags_list&#39;</span><span class="p">,</span>
+                                     <span class="n">part_uuid_list</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_tag_text</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="detect_remote_sync_images"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_sync.detect_remote_sync_images">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/sync/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detect_remote_sync_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">only_sync_missing_images</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">_assert_remote_online</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+
+    <span class="n">confirm_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">confirm_str</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">confirm_list</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;You are about to submit </span><span class="si">%d</span><span class="s1"> images to a remote DETECT database at </span><span class="si">%r</span><span class="s1"> with UUID=</span><span class="si">%r</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">REMOTE_URL</span><span class="p">,</span> <span class="n">REMOTE_UUID</span><span class="p">,</span> <span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;In order to continue, please type exactly the confirmation string </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">confirm_str</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="n">input_func</span> <span class="o">=</span> <span class="n">raw_input</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">input_func</span> <span class="o">=</span> <span class="nb">input</span>
+    <span class="n">response_str</span> <span class="o">=</span> <span class="n">input_func</span><span class="p">(</span><span class="s1">&#39;Confirmation string [Empty to abort]: &#39;</span><span class="p">)</span>
+    <span class="n">response_str</span> <span class="o">=</span> <span class="n">response_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">confirm_str</span> <span class="o">==</span> <span class="n">response_str</span><span class="p">,</span> <span class="s1">&#39;Confirmation string mismatch, aborting...&#39;</span>
+
+    <span class="c1">############################################################################</span>
+
+    <span class="c1"># Sync images</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list_</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;/api/image/json/&#39;</span><span class="p">)</span>
+
+    <span class="n">missing_gid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">gid</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">image_uuid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">image_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">image_uuid_list_</span>
+    <span class="p">]</span>
+
+    <span class="n">num_missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> images...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_images</span><span class="p">(</span><span class="n">missing_gid_list</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Filter only missing</span>
+    <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">missing_gid_list</span> <span class="k">if</span> <span class="n">only_sync_missing_images</span> <span class="k">else</span> <span class="n">gid_list</span>
+    <span class="n">image_uuid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+
+    <span class="c1">############################################################################</span>
+
+    <span class="c1"># Sync imageset</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Setting imageset...&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_imageset</span><span class="p">(</span><span class="n">image_uuid_list_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...set&#39;</span><span class="p">)</span>
+
+    <span class="c1">############################################################################</span>
+
+    <span class="c1"># Sync annots</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">annot_uuid_list_</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;/api/annot/json/&#39;</span><span class="p">)</span>
+
+    <span class="n">missing_aid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">aid</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">annot_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annot_uuid_list_</span>
+    <span class="p">]</span>
+
+    <span class="n">num_missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> annots...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_annots</span><span class="p">(</span><span class="n">missing_aid_list</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
+
+    <span class="c1">############################################################################</span>
+
+    <span class="c1"># Sync annotation metadata</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Synching annotation metadata...&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_annot_metadata</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...synched&#39;</span><span class="p">)</span>
+
+    <span class="c1">############################################################################</span>
+
+    <span class="c1"># Sync parts</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_part_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">part_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">part_uuid_list_</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;/api/part/json/&#39;</span><span class="p">)</span>
+
+    <span class="n">missing_part_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">part_rowid</span>
+        <span class="k">for</span> <span class="n">part_rowid</span><span class="p">,</span> <span class="n">part_uuid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_uuid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">part_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">part_uuid_list_</span>
+    <span class="p">]</span>
+
+    <span class="n">num_missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_part_rowid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> parts...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_parts</span><span class="p">(</span><span class="n">missing_part_rowid_list</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
+
+    <span class="c1">############################################################################</span>
+
+    <span class="c1"># Sync part metadata</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Synching part metadata...&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_part_metadata</span><span class="p">(</span><span class="n">part_uuid_list</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...synched&#39;</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app</span>
+<span class="sd">        python -m ibeis.web.app --allexamples</span>
+<span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Wild Me.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

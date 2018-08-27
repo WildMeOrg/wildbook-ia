@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.autowrap_api_decorators &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis.control.autowrap_api_decorators &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,23 +120,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
-      
+        
           <li><a href="../control.html">ibeis.control</a> &raquo;</li>
-      
-    <li>ibeis.control.autowrap_api_decorators</li>
+        
+      <li>ibeis.control.autowrap_api_decorators</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -142,21 +171,21 @@
 <div class="viewcode-block" id="get_func"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.autowrap_api_decorators.get_func">[docs]</a><span class="k">def</span> <span class="nf">get_func</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
     <span class="n">index</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
     <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span> <span class="n">index</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">line</span>
+    <span class="k">return</span> <span class="n">line</span></div>
 
-</div>
+
 <div class="viewcode-block" id="get_parts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.autowrap_api_decorators.get_parts">[docs]</a><span class="k">def</span> <span class="nf">get_parts</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">sub</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="n">get_func</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Processing Line: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;    Stripped: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
-        <span class="nb">raw_input</span><span class="p">(</span><span class="s1">&#39;SKIPPED&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Line: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    Stripped: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">raw_input</span><span class="p">(</span><span class="s1">&#39;SKIPPED&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">BLACKLIST</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Processing Line: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;    Stripped: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
-        <span class="nb">raw_input</span><span class="p">(</span><span class="s1">&#39;BLACKLISTED&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Line: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    Stripped: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">raw_input</span><span class="p">(</span><span class="s1">&#39;BLACKLISTED&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="c1"># Ascertain method</span>
     <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;delete_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="p">):</span>
         <span class="k">return</span> <span class="n">sub</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;delete&#39;</span>
@@ -181,10 +210,10 @@
         <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;post&#39;</span>
         <span class="k">return</span> <span class="n">sub</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">method</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Processing Line: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;    Stripped: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
-        <span class="nb">raw_input</span><span class="p">(</span><span class="s1">&#39;FAILED&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Line: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    Stripped: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">raw_input</span><span class="p">(</span><span class="s1">&#39;FAILED&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="c1"># print(&#39;    Method-less: %r&#39; % (line, ))</span>
     <span class="n">submodule</span> <span class="o">=</span> <span class="n">sub</span>
     <span class="c1"># print(&#39;    Submodule: %r&#39; % (submodule, ))</span>
@@ -194,20 +223,20 @@
     <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">submodule</span><span class="p">,</span> <span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">func</span> <span class="o">=</span> <span class="n">line</span>
     <span class="c1"># print(&#39;    Function: %r&#39; % (func, ))</span>
-    <span class="k">return</span> <span class="n">submodule</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method</span>
+    <span class="k">return</span> <span class="n">submodule</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method</span></div>
 
-</div>
+
 <div class="viewcode-block" id="get_decorator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.autowrap_api_decorators.get_decorator">[docs]</a><span class="k">def</span> <span class="nf">get_decorator</span><span class="p">(</span><span class="n">submodule</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">submodule</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">func</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">method</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">submodule</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;/api/</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">submodule</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;/api/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">submodule</span><span class="p">,</span> <span class="p">)</span>
     <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">url</span><span class="p">,</span> <span class="n">method</span>
+    <span class="k">return</span> <span class="n">url</span><span class="p">,</span> <span class="n">method</span></div>
 
-</div>
+
 <div class="viewcode-block" id="process_file"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.autowrap_api_decorators.process_file">[docs]</a><span class="k">def</span> <span class="nf">process_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sub</span><span class="p">):</span>
     <span class="n">filename_src</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">)</span>
     <span class="n">filename_dst</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_processed.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="p">)</span>
@@ -223,16 +252,16 @@
 
     <span class="c1"># Expand docs</span>
     <span class="n">preprocessed</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">func</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">latest</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">multiline</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">latest</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">multiline</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">multiline</span><span class="p">:</span>
             <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
             <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                <span class="n">multiline</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">multiline</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;&#39;&#39;&#39;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">line_</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                 <span class="n">line_</span> <span class="o">=</span> <span class="n">line_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -241,14 +270,14 @@
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    r&quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line_</span><span class="p">,</span> <span class="p">))</span>
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    &quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="n">func</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">continue</span>
             <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;&#39;&#39;&#39;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    r&quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    Auto-docstr for </span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="p">))</span>
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    &quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-                <span class="n">func</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">continue</span>
         <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&quot;&quot;&quot;&#39;</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;r&quot;&quot;&quot;&#39;</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -264,37 +293,37 @@
             <span class="n">func</span> <span class="o">=</span> <span class="n">get_func</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
             <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
             <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                <span class="n">multiline</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">multiline</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">continue</span>
         <span class="n">preprocessed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-        <span class="n">func</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># Process lines</span>
     <span class="n">processed</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">incomment</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="n">latest</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">incomment</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">latest</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">preprocessed</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">incomment</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">latest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    &quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">latest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    &quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
                 <span class="n">url</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="n">latest</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    RESTful:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;        Method: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="p">))</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;        URL:    </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
-                <span class="n">incomment</span> <span class="o">=</span> <span class="bp">False</span>
-            <span class="k">if</span> <span class="n">latest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    Example:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="ow">or</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    Example0:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+                <span class="n">incomment</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">latest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    Example:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="ow">or</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    Example0:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
                 <span class="n">url</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="n">latest</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;    RESTful:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;        Method: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="p">))</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;        URL:    </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
                 <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="n">incomment</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">incomment</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;    r&quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
-            <span class="n">incomment</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">incomment</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;def&#39;</span><span class="p">):</span>
             <span class="n">submodule</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="n">get_parts</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
             <span class="n">latest</span> <span class="o">=</span> <span class="n">get_decorator</span><span class="p">(</span><span class="n">submodule</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">latest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">latest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">url</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="n">latest</span>
                 <span class="n">wrapper</span> <span class="o">=</span> <span class="s1">&#39;@register_api(</span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1">, methods=[</span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1">])</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="p">)</span>
                 <span class="c1"># print(wrapper)</span>
@@ -303,12 +332,12 @@
 
     <span class="c1"># Write destination file</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename_dst</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dst</span><span class="p">:</span>
-        <span class="n">dst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">processed</span><span class="p">))</span>
+        <span class="n">dst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">processed</span><span class="p">))</span></div>
 
     <span class="c1"># output = os.popen(&#39;diff %s %s&#39; % (filename_dst, filename_cmp, )).read()</span>
     <span class="c1"># print(output)</span>
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="c1"># filename = &#39;manual_image_funcs&#39;</span>
     <span class="c1"># submodule = &#39;image&#39;</span>
     <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;manual_meta_funcs&#39;</span>
@@ -318,6 +347,9 @@
 </pre></div>
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -326,7 +358,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -348,10 +380,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>

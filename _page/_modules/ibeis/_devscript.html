@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis._devscript &mdash; ibeis 1.5.2 documentation</title>
+  <title>ibeis._devscript &mdash; ibeis 1.8.1 documentation</title>
   
 
+  
+  
   
   
 
@@ -30,7 +32,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="ibeis 1.8.1 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                1.5.2
+                1.8.1
               </div>
             
           
@@ -80,7 +86,11 @@
           
             
             
-                <ul>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
 </ul>
 
@@ -94,8 +104,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../index.html">ibeis</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ibeis</a>
+        
       </nav>
 
 
@@ -108,21 +120,38 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-      
+        
           <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
-      
-    <li>ibeis._devscript</li>
+        
+      <li>ibeis._devscript</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -130,7 +159,7 @@
             
   <h1>Source code for ibeis._devscript</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 
@@ -140,7 +169,7 @@
         <span class="n">hack_argv_key</span> <span class="o">=</span> <span class="s1">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
 
         <span class="n">common_args</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;--dpath=~/latex/cand/&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;--dpath=~/latex/crall-thesis-2017/&#39;</span><span class="p">,</span>
             <span class="s1">&#39;--clipwhite&#39;</span><span class="p">,</span>
             <span class="s1">&#39;--contextadjust&#39;</span><span class="p">,</span>
             <span class="s1">&#39;--dpi=256&#39;</span><span class="p">,</span>
@@ -204,7 +233,7 @@
 
         <span class="c1"># Save location</span>
         <span class="c1">#fname_fmt = &#39;figuresX/expt_{e}_{db}_a_{a}_t_{t}&#39;</span>
-        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s1">&#39;figuresX/expt_{label}&#39;</span>
+        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s1">&#39;figuresX/expt_</span><span class="si">{label}</span><span class="s1">&#39;</span>
 
         <span class="c1">#if hack_argv_key in [&#39;scores&#39;]:</span>
         <span class="c1">#    fname_fmt += &#39;_{filt}&#39;</span>
@@ -224,18 +253,18 @@
         <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
                 <span class="s1">&#39;--figsize=18,8&#39;</span><span class="p">,</span>
-                <span class="s1">r&#39;--width=&quot;.8\textwidth&quot;&#39;</span><span class="p">,</span>
-            <span class="p">])</span>
+                <span class="sa">r</span><span class="s1">&#39;--width=&quot;.8\textwidth&quot;&#39;</span><span class="p">,</span>
+            <span class="p">])</span></div>
 
 <span class="c1">#import IPython</span>
-<span class="c1">#IPython.embed()</span></div>
+<span class="c1">#IPython.embed()</span>
 <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:]:</span>
     <span class="n">hack_argv</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
 <span class="c1">#ut.show_if_requested()</span>
 <span class="c1">#sys.exit(1)</span>
-<span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="k">import</span> <span class="n">get_funcname</span>  <span class="c1"># NOQA</span>
 <span class="c1">#import functools</span>
 
 <span class="c1"># A list of registered development test functions</span>
@@ -285,14 +314,14 @@
         <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
             <span class="c1">#if ut.VERBOSE:</span>
             <span class="c1">#if ut.QUIET:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DEVCMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DEVCMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_wrapper</span>
     <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">closure_devcmd</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">closure_devcmd</span>
+    <span class="k">return</span> <span class="n">closure_devcmd</span></div>
 
-</div>
+
 <div class="viewcode-block" id="devprecmd"><a class="viewcode-back" href="../../ibeis.html#ibeis._devscript.devprecmd">[docs]</a><span class="k">def</span> <span class="nf">devprecmd</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Decorator which registers a function as a developer precommand &quot;&quot;&quot;</span>
     <span class="n">noargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
@@ -309,7 +338,7 @@
         <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
             <span class="c1">#if ut.VERBOSE:</span>
             <span class="c1">#if ut.QUIET:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DEVPRECMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[DEVPRECMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_wrapper</span>
     <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
@@ -317,6 +346,9 @@
     <span class="k">return</span> <span class="n">closure_devprecmd</span></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -326,7 +358,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Jon Crall.
+        &copy; Copyright 2018, Wild Me.
 
     </p>
   </div>
@@ -348,10 +380,11 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.2',
+            VERSION:'1.8.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../_static/jquery.js"></script>
