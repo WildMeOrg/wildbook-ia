@@ -297,19 +297,15 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
         })
         category_dict[species] = index
 
-    template_dict = {
-        'info'        : info,
-        'licenses'    : licenses,
-        'categories'  : categories,
-        'images'      : [],
-        'annotations' : [],
-    }
-
-    output_dict = {
-        'train' : template_dict.copy(),
-        'val'   : template_dict.copy(),
-        'test'  : template_dict.copy(),
-    }
+    output_dict = {}
+    for dataset in ['train', 'val', 'test']:
+        output_dict[dataset] = {
+            'info'        : info,
+            'licenses'    : licenses,
+            'categories'  : categories,
+            'images'      : [],
+            'annotations' : [],
+        }
 
     # Get all gids and process them
     if gid_list is None:
@@ -447,8 +443,6 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             annot_index += 1
 
         image_index += 1
-
-    ut.embed()
 
     for dataset in output_dict:
         for index in range(len(output_dict[dataset]['annotations'])):
