@@ -425,7 +425,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                 decisions.append(decision.lower())
 
             output_dict[dataset]['annotations'].append({
-                'segmentation'      : segmentation,
+                'segmentation'      : [segmentation],
                 'area'              : area,
                 'iscrowd'           : 0,
                 'image_id'          : image_index,
