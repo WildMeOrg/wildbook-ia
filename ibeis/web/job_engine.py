@@ -406,9 +406,10 @@ class JobBackend(object):
         def _spawner(func, *args, **kwargs):
 
             if thread:
-                _spawner_func_ = ut.spawn_background_process
-            else:
+                # mp.set_start_method('spawn')
                 _spawner_func_ = ut.spawn_background_daemon_thread
+            else:
+                _spawner_func_ = ut.spawn_background_process
 
             if wait != 0:
                 print('Waiting for background process (%s) to spin up' % (ut.get_funcname(func,)))
