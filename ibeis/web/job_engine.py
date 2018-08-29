@@ -397,16 +397,22 @@ class JobBackend(object):
             for key, port in list(zip(key_list, port_list))
         }
 
-    def initialize_background_processes(self, dbdir=None, wait=0, containerized=False):
+    def initialize_background_processes(self, dbdir=None, wait=0, containerized=False,
+                                        thread=True):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
-        #_spawner = ut.spawn_background_process
-        #_spawner = ut.spawn_background_daemon_thread
+
         def _spawner(func, *args, **kwargs):
+
+            if thread:
+                _spawner_func_ = ut.spawn_background_process
+            else:
+                _spawner_func_ = ut.spawn_background_daemon_thread
+
             if wait != 0:
                 print('Waiting for background process (%s) to spin up' % (ut.get_funcname(func,)))
-            proc = ut.spawn_background_process(func, *args, **kwargs)
+            proc = _spawner_func_(func, *args, **kwargs)
             # time.sleep(wait)
             assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
             return proc
@@ -611,7 +617,6 @@ def make_queue_loop(name='collect'):
     Args:
         name (None): (default = None)
     """
-
     assert name is not None, 'must name queue'
     queue_name = name + '_queue'
     loop_name = queue_name + '_loop'
