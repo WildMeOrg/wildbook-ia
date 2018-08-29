@@ -249,15 +249,17 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
     annotdir = join(datadir, 'annotations')
+    imagedir = join(datadir, 'images')
     image_dir_dict = {
-        'train' : join(datadir, 'train%s' % (current_year, )),
-        'val'   : join(datadir, 'val%s'   % (current_year, )),
-        'test'  : join(datadir, 'test%s'  % (current_year, )),
+        'train' : join(imagedir, 'train%s' % (current_year, )),
+        'val'   : join(imagedir, 'val%s'   % (current_year, )),
+        'test'  : join(imagedir, 'test%s'  % (current_year, )),
     }
 
     ut.delete(datadir)
     ut.ensuredir(datadir)
     ut.ensuredir(annotdir)
+    ut.ensuredir(imagedir)
     for dataset in image_dir_dict:
         ut.ensuredir(image_dir_dict[dataset])
 
@@ -327,6 +329,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
+
         if gid in test_gid_set:
             dataset = 'test'
         elif gid in train_gid_set:
@@ -395,18 +398,15 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
             new_verts = np.round(trans_pts).astype(np.int).T.tolist()
 
-            x_points = [pt[0] for pt in new_verts]
-            y_points = [pt[1] for pt in new_verts]
-            xmin = int(min(x_points) * decrease)
-            xmax = int(max(x_points) * decrease)
-            ymin = int(min(y_points) * decrease)
-            ymax = int(max(y_points) * decrease)
+            x_points = [int(np.around(pt[0] * decrease)) for pt in new_verts]
+            y_points = [int(np.around(pt[1] * decrease)) for pt in new_verts]
+            segmentation = ut.flatten(list(zip(x_points, y_points)))
 
-            # Bounds check
-            xmin = max(xmin, 0)
-            ymin = max(ymin, 0)
-            xmax = min(xmax, width - 1)
-            ymax = min(ymax, height - 1)
+            xmin = max(min(x_points), 0)
+            ymin = max(min(y_points), 0)
+            xmax = min(max(x_points), width - 1)
+            ymax = min(max(y_points), height - 1)
+
             w = xmax - xmin
             h = ymax - ymin
             area = w * h
@@ -425,12 +425,11 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                     continue
                 match = list(set(aid_tuple) - set([aid]))
                 assert len(match) == 1
-                match = match[0]
-                ids.append(ids)
+                ids.append(match[0])
                 decisions.append(decision.lower())
 
             output_dict[dataset]['annotations'].append({
-                'segmentation'      : None,
+                'segmentation'      : segmentation,
                 'area'              : area,
                 'iscrowd'           : 0,
                 'image_id'          : image_index,
@@ -466,7 +465,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
     for dataset in output_dict:
         json_filename = 'instances_%s%s.json' % (dataset, current_year, )
-        json_filepath = join(datadir, json_filename)
+        json_filepath = join(annotdir, json_filename)
 
         with open(json_filepath, 'w') as json_file:
             json.dump(output_dict[dataset], json_file)
