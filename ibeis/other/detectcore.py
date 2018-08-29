@@ -449,7 +449,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
         image_index += 1
 
-    for dataset in output_dict[dataset]:
+    for dataset in output_dict:
         for index in range(len(output_dict[dataset]['annotations'])):
             individual_ids = output_dict[dataset]['annotations'][index]['individual_ids']
             review_ids     = output_dict[dataset]['annotations'][index]['review_ids']
