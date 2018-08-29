@@ -37,6 +37,12 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
+def export_to_pascal(ibs, *args, **kwargs):
+    """Alias for export_to_xml"""
+    return ibs.export_to_xml(*args, **kwargs)
+
+
+@register_ibs_method
 def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, gid_list=None, **kwargs):
@@ -221,6 +227,242 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             content = sets_dict[key]
             content = '\n'.join(content)
             file_.write(content)
+
+    print('...completed')
+    return datadir
+
+
+@register_ibs_method
+def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
+                   use_maximum_linear_dimension=True,
+                   use_existing_train_test=True, gid_list=None, **kwargs):
+    """Create training COCO dataset for training models."""
+    from datetime import date
+    import datetime
+    import random
+    import json
+
+    if species_mapping is not None:
+        print('Received species_mapping = %r' % (species_mapping, ))
+        print('Using species_list = %r' % (species_list, ))
+
+    current_year = int(date.today().year)
+    datadir = abspath(join(ibs.get_cachedir(), 'coco'))
+    annotdir = join(datadir, 'annotations')
+    image_dir_dict = {
+        'train' : join(datadir, 'train%s' % (current_year, )),
+        'val'   : join(datadir, 'val%s'   % (current_year, )),
+        'test'  : join(datadir, 'test%s'  % (current_year, )),
+    }
+
+    ut.delete(datadir)
+    ut.ensuredir(datadir)
+    ut.ensuredir(annotdir)
+    for dataset in image_dir_dict:
+        ut.ensuredir(image_dir_dict[dataset])
+
+    info = {
+        'description'         : 'Wild Me GGR-2018 Dataset',
+        'url'                 : 'http://www.greatgrevysrally.com',
+        'version'             : '1.0',
+        'year'                : current_year,
+        'contributor'         : 'Wild Me, Jason Parham <parham@wildme.org>',
+        'date_created'        : datetime.datetime.utcnow().isoformat(' '),
+        'ibeis_database_name' : ibs.get_db_name(),
+        'ibeis_database_uuid' : str(ibs.get_db_init_uuid()),
+    }
+
+    licenses = [
+        {
+            'url'  : 'http://creativecommons.org/licenses/by-nc-nd/2.0/',
+            'id'   : 3,
+            'name' : 'Attribution-NonCommercial-NoDerivs License',
+        },
+    ]
+
+    assert len(species_list) == len(set(species_list)), 'Cannot have duplicate species in species_list'
+    category_dict = {}
+    categories = []
+    for index, species in enumerate(sorted(species_list)):
+
+        if species_mapping is not None:
+            species = species_mapping.get(species, species)
+
+        categories.append({
+            'id'           : index,
+            'name'         : species,
+            'supercategory': 'animal',
+        })
+        category_dict[species] = index
+
+    template_dict = {
+        'info'        : info,
+        'licenses'    : licenses,
+        'categories'  : categories,
+        'images'      : [],
+        'annotations' : [],
+    }
+
+    output_dict = {
+        'train' : template_dict.copy(),
+        'val'   : template_dict.copy(),
+        'test'  : template_dict.copy(),
+    }
+
+    # Get all gids and process them
+    if gid_list is None:
+        gid_list = sorted(ibs.get_valid_gids())
+
+    # Make a preliminary train / test split as imagesets or use the existing ones
+    if not use_existing_train_test:
+        ibs.imageset_train_test_split(**kwargs)
+
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
+
+    image_index = 1
+    annot_index = 1
+
+    aid_dict = {}
+
+    print('Exporting %d images' % (len(gid_list),))
+    for gid in gid_list:
+        if gid in test_gid_set:
+            dataset = 'test'
+        elif gid in train_gid_set:
+            state = random.uniform(0.0, 1.0)
+            if state <= 0.75:
+                dataset = 'train'
+            else:
+                dataset = 'val'
+        else:
+            raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
+
+        _image = ibs.get_images(gid)
+        height, width, channels = _image.shape
+
+        condition = width > height if use_maximum_linear_dimension else width < height
+        if condition:
+            ratio = height / width
+            decrease = target_size / width
+            width = target_size
+            height = int(target_size * ratio)
+        else:
+            ratio = width / height
+            decrease = target_size / height
+            height = target_size
+            width = int(target_size * ratio)
+
+        image_filename = '%012d.jpg' % (image_index, )
+        image_filepath = join(image_dir_dict[dataset], image_filename)
+        _image = vt.resize(_image, (width, height))
+        vt.imwrite(image_filepath, _image)
+
+        output_dict[dataset]['images'].append({
+            'license'          : 3,
+            'file_name'        : image_filename,
+            'coco_url'         : None,
+            'height'           : height,
+            'width'            : width,
+            'date_captured'    : ibs.get_image_datetime_str(gid).replace('/', '-'),
+            'flickr_url'       : None,
+            'id'               : image_index,
+            'ibeis_image_uuid' : str(ibs.get_image_uuids(gid)),
+        })
+
+        aid_list = ibs.get_image_aids(gid)
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        theta_list = ibs.get_annot_thetas(aid_list)
+        species_name_list = ibs.get_annot_species_texts(aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+
+        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list)
+        for aid, bbox, theta, species_name, viewpoint in zipped:
+            if species_mapping is not None:
+                species_name = species_mapping.get(species_name, species_name)
+
+            if species_name is not None:
+                if species_name not in species_list:
+                    continue
+
+            # Transformation matrix
+            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+            verts = vt.verts_from_bbox(bbox, close=True)
+            xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+            trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+
+            x_points = [pt[0] for pt in new_verts]
+            y_points = [pt[1] for pt in new_verts]
+            xmin = int(min(x_points) * decrease)
+            xmax = int(max(x_points) * decrease)
+            ymin = int(min(y_points) * decrease)
+            ymax = int(max(y_points) * decrease)
+
+            # Bounds check
+            xmin = max(xmin, 0)
+            ymin = max(ymin, 0)
+            xmax = min(xmax, width - 1)
+            ymax = min(ymax, height - 1)
+            w = xmax - xmin
+            h = ymax - ymin
+
+            individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
+            reviews = ibs.get_review_rowids_from_single([aid])[0]
+            user_list = ibs.get_review_identity(reviews)
+            aid_tuple_list = ibs.get_review_aid_tuple(reviews)
+            decision_list = ibs.get_review_decision_str(reviews)
+
+            ids = []
+            decisions = []
+            zipped = zip(user_list, aid_tuple_list, decision_list)
+            for user, aid_tuple, decision in zipped:
+                if 'user:web' not in user:
+                    continue
+                match = list(set(aid_tuple) - set([aid]))
+                assert len(match) == 1
+                match = match[0]
+                ids.append(ids)
+                decisions.append(decision.lower())
+
+            output_dict[dataset]['annotations'].append({
+                'segmentation'      : None,
+                'area'              : w * h,
+                'iscrowd'           : 0,
+                'image_id'          : image_index,
+                'bbox'              : [xmin, ymin, w, h],
+                'category_id'       : category_dict[species_name],
+                'id'                : annot_index,
+                'viewpoint'         : viewpoint,
+                'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
+                'individual_ids'    : individuals,
+                'review_ids'        : list(zip(ids, decisions)),
+            })
+
+            aid_dict[aid] = annot_index
+            annot_index += 1
+
+        image_index += 1
+
+    for dataset in output_dict[dataset]:
+        for index in range(len(output_dict[dataset]['annotations'])):
+            individual_ids = output_dict[dataset]['annotations'][index]['individual_ids']
+            review_ids     = output_dict[dataset]['annotations'][index]['review_ids']
+            individual_ids = [aid_dict[aid] for aid in individual_ids if aid in aid_dict]
+            review_ids     = [
+                (aid_dict[aid], decision)
+                for aid, decision in review_ids
+                if aid in aid_dict
+            ]
+            output_dict[dataset]['annotations'][index]['individual_ids'] = individual_ids
+            output_dict[dataset]['annotations'][index]['review_ids']     = review_ids
+
+    for dataset in output_dict:
+        json_filename = 'instances_%s%s.json' % (dataset, current_year, )
+        json_filepath = join(datadir, json_filename)
+
+        with open(json_filepath, 'w') as json_file:
+            json.dump(output_dict[dataset], json_file)
 
     print('...completed')
     return datadir
