@@ -353,6 +353,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             height = target_size
             width = int(target_size * ratio)
 
+        image_path = ibs.get_image_paths(gid)
         image_filename = '%012d.jpg' % (image_index, )
         image_filepath = join(image_dir_dict[dataset], image_filename)
         _image = vt.resize(_image, (width, height))
@@ -369,6 +370,8 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             'id'               : image_index,
             'ibeis_image_uuid' : str(ibs.get_image_uuids(gid)),
         })
+
+        print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
 
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -406,6 +409,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             ymax = min(ymax, height - 1)
             w = xmax - xmin
             h = ymax - ymin
+            area = w * h
 
             individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
             reviews = ibs.get_review_rowids_from_single([aid])[0]
@@ -427,7 +431,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
             output_dict[dataset]['annotations'].append({
                 'segmentation'      : None,
-                'area'              : w * h,
+                'area'              : area,
                 'iscrowd'           : 0,
                 'image_id'          : image_index,
                 'bbox'              : [xmin, ymin, w, h],
@@ -438,6 +442,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                 'individual_ids'    : individuals,
                 'review_ids'        : list(zip(ids, decisions)),
             })
+            print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
             aid_dict[aid] = annot_index
             annot_index += 1
