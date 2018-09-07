@@ -541,6 +541,8 @@ def review_query_chips_test(**kwargs):
 
 
 @register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1toM
 @register_api('/api/review/query/chip/best/', methods=['GET'])
 def review_query_chips_best(ibs, aid, **kwargs):
     from ibeis.algo.hots import chip_match
