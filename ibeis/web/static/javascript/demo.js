@@ -41,6 +41,55 @@ function monitorJob(jobid, callback, index, progress) {
     });
 }
 
+function retrieveIdentification(index, response) {
+    var progressBar = $('#progress-bar-' + index + '-3');
+
+    console.log(response)
+
+    progressBar.removeClass('progress-bar-striped')
+    progressBar.css({"width": "100%"});
+}
+
+function submitIdentification() {
+
+    var index = queue.identify.shift()
+
+    if (index === undefined) {
+      return
+    }
+
+    var progressBar = $('#progress-bar-' + index + '-3');
+    progressBar.css({"width": "10%"});
+
+    var record = registry[index]
+
+    var data = {
+      'annot_uuid': record.detection.uuid,
+    }
+
+    $.ajax({
+        url: "/api/engine/review/query/chip/best/",
+        method: "POST",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        data: JSON.stringify(data),
+        success: function(response) {
+
+            jobid = response.response
+            registry[index].identify_job = jobid
+
+            progressBar.css({"width": "30%"});
+            monitorJob(jobid, retrieveIdentification, index, 3)
+        },
+        error: function(response) {
+          submitError(index, 3)
+        },
+    });
+
+    submitIdentification()
+}
+
+
 function retrieveClassification(index, response) {
     var progressBar = $('#progress-bar-' + index + '-2');
 
@@ -55,6 +104,7 @@ function retrieveClassification(index, response) {
     progressBar.css({"width": "100%"});
 
     queue.identify.push(index)
+    submitIdentification()
 }
 
 function submitClassification() {

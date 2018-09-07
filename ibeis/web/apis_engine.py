@@ -446,7 +446,7 @@ def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=N
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/engine/labeler/cnn/', methods=['POST'])
+@register_api('/api/engine/review/query/chip/best/', methods=['POST'])
 def start_review_query_chips_best(ibs, annot_uuid, callback_url=None, callback_method=None, **kwargs):
     annot_uuid_list = [annot_uuid]
 
