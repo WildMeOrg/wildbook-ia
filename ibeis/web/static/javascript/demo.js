@@ -47,7 +47,7 @@ function retrieveIdentification(index, response) {
     console.log(response)
     console.log(registry[index])
 
-    $('img#image-' + index).attr('src', response.match).on('load', function() {
+    $('img#match-' + index).attr('src', response.match).on('load', function() {
       progressBar.removeClass('progress-bar-striped')
       progressBar.css({"width": "100%"});
     })
@@ -364,10 +364,10 @@ function registerFiles(files) {
         row2.append(center2)
         row2.append(right2)
 
-        var image = $('<img id="image-' + index + '" src="#">');
+        var image = $('<img id="image-' + index + '" src="">');
         left2.append(image)
 
-        var annot = $('<img id="annot-' + index + '" src="#">');
+        var annot = $('<img id="annot-' + index + '" src="">');
         center2.append(annot)
 
         var texts = ['Upload', 'Detect', 'Classify', 'Identify']
@@ -387,7 +387,7 @@ function registerFiles(files) {
         var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
         row2.append(center3)
 
-        var match = $('<img id="match-' + index + '" src="#">');
+        var match = $('<img id="match-' + index + '" src="">');
         center3.append(match)
 
         var record = {
