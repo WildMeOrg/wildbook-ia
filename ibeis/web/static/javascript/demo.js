@@ -25,8 +25,8 @@ function monitorJob(jobid, callback, index, progress) {
                   dataType: "json",
                   success: function(response) {
                       response = response.response.json_result
-                      callback(index, response)
                       progressBar.css({"width": "90%"});
+                      callback(index, response)
                   },
                   error: function(response) {
                     submitError(index, progress)
@@ -47,8 +47,10 @@ function retrieveIdentification(index, response) {
     console.log(response)
     console.log(registry[index])
 
-    progressBar.removeClass('progress-bar-striped')
-    progressBar.css({"width": "100%"});
+    $('img#image-' + index).attr('src', response.match).on('load', function() {
+      progressBar.removeClass('progress-bar-striped')
+      progressBar.css({"width": "100%"});
+    })
 }
 
 function submitIdentification() {
@@ -63,6 +65,8 @@ function submitIdentification() {
     progressBar.css({"width": "10%"});
 
     var record = registry[index]
+
+    $('img#match-' + index).attr('src', '/static/images/loading.gif')
 
     var data = {
       'annot_uuid': record.detection.uuid,
@@ -198,6 +202,8 @@ function submitDetection() {
 
     var record = registry[index]
 
+    $('img#annot-' + index).attr('src', '/static/images/loading.gif')
+
     $.ajax({
         url: "/api/image/uuid/?gid_list=[" + record.gid + "]",
         method: "GET",
@@ -256,6 +262,8 @@ function submitUpload() {
 
     var record = registry[index]
     data.append("image", record.file);
+
+    $('img#image-' + index).attr('src', '/static/images/loading.gif')
 
     $.ajax({
         xhr: function() {
@@ -356,10 +364,10 @@ function registerFiles(files) {
         row2.append(center2)
         row2.append(right2)
 
-        var image = $('<img id="image-' + index + '" src="/static/images/loading.gif">');
+        var image = $('<img id="image-' + index + '" src="#">');
         left2.append(image)
 
-        var annot = $('<img id="annot-' + index + '" src="/static/images/loading.gif">');
+        var annot = $('<img id="annot-' + index + '" src="#">');
         center2.append(annot)
 
         var texts = ['Upload', 'Detect', 'Classify', 'Identify']
@@ -375,6 +383,12 @@ function registerFiles(files) {
             '</div>'
           )
         }
+
+        var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
+        row2.append(center3)
+
+        var match = $('<img id="match-' + index + '" src="#">');
+        center3.append(match)
 
         var record = {
           index: index,
