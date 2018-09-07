@@ -522,13 +522,13 @@
 }
 
 .element-right .id-container-labels {
-  font-style: bold;
+  font-weight: bold;
   text-align: right;
   margin-top: 10px;
 }
 
 .element-right .id-container-values {
-  padding-left: 10px;
+  padding-left: 0px;
   font-style: italic;
   text-align: left;
   margin-top: 10px;
