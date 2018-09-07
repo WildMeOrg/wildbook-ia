@@ -44,13 +44,44 @@ function monitorJob(jobid, callback, index, progress) {
 function retrieveIdentification(index, response) {
     var progressBar = $('#progress-bar-' + index + '-3');
 
-    console.log(response)
-    console.log(registry[index])
+    name = response
+    registry[index].detection.name = name
 
     // $('img#match-' + index).attr('src', response.match).on('load', function() {
     //   progressBar.removeClass('progress-bar-striped')
     //   progressBar.css({"width": "100%"});
     // })
+
+    if (name == 'Zak') {
+      species = 'Chapman’s Zebra'
+      viewpoint = 'Right side'
+      sex = 'Male'
+      age = '19 years old'
+    } else if (name == 'Florence') {
+      species = 'Grant’s Zebra'
+      viewpoint = 'Right side'
+      sex = 'Female'
+      age = '9 years old'
+    } else {
+      species = 'Grant’s Zebra'
+      viewpoint = 'Right side'
+      sex = 'Male'
+      age = '3 years old'
+    } else {
+      name = 'Unknown'
+      species = registry[index].detection.species2
+      viewpoint = registry[index].detection.viewpoint2 + ' side'
+      sex = 'Unknown'
+      age = 'Unknown'
+    }
+
+    $('#id-container-' + index).text(
+      '<b>Species:<b> ' + species + '<br/>' +
+      '<b>Viewpoint:<b> ' + viewpoint + '<br/>' +
+      '<b>Name:<b> ' + name + '<br/>' +
+      '<b>Sex:<b> ' + sex + '<br/>' +
+      '<b>Age:<b> ' + age + '<br/>' +
+    )
 
     progressBar.removeClass('progress-bar-striped')
     progressBar.css({"width": "100%"});
@@ -387,7 +418,10 @@ function registerFiles(files) {
           )
         }
 
-        right2.append('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 id-container"></div>')
+        right2.append(
+            '<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"></div>' +
+            '<div class="col-lg-9 col-md-9 col-sm-12 col-xs-12 id-container-' + index'"></div>'
+          )
 
         // var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
         // row2.append(center3)
