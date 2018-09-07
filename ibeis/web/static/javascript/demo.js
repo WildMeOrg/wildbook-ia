@@ -47,10 +47,13 @@ function retrieveIdentification(index, response) {
     console.log(response)
     console.log(registry[index])
 
-    $('img#match-' + index).attr('src', response.match).on('load', function() {
-      progressBar.removeClass('progress-bar-striped')
-      progressBar.css({"width": "100%"});
-    })
+    // $('img#match-' + index).attr('src', response.match).on('load', function() {
+    //   progressBar.removeClass('progress-bar-striped')
+    //   progressBar.css({"width": "100%"});
+    // })
+
+    progressBar.removeClass('progress-bar-striped')
+    progressBar.css({"width": "100%"});
 }
 
 function submitIdentification() {
@@ -384,11 +387,11 @@ function registerFiles(files) {
           )
         }
 
-        var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
-        row2.append(center3)
+        // var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
+        // row2.append(center3)
 
-        var match = $('<img id="match-' + index + '" src="">');
-        center3.append(match)
+        // var match = $('<img id="match-' + index + '" src="">');
+        // center3.append(match)
 
         var record = {
           index: index,
