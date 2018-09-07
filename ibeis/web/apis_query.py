@@ -547,8 +547,6 @@ def review_query_chips_test(**kwargs):
 def review_query_chips_best(ibs, aid, **kwargs):
     from ibeis.algo.hots import chip_match
 
-    ibs = current_app.ibs
-
     query_config_dict = {}
 
     # Compile test data
