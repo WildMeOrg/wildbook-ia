@@ -62,7 +62,7 @@ function retrieveIdentification(index, response) {
       viewpoint = 'Right side'
       sex = 'Female'
       age = '9 years old'
-    } else {
+    } else if (name == 'Pete') {
       species = 'Grant’s Zebra'
       viewpoint = 'Right side'
       sex = 'Male'
