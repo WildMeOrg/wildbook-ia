@@ -83,12 +83,20 @@ function retrieveIdentification(index, response) {
     console.log(registry[index])
     console.log(registry[index].detection)
 
-    $('#id-container-' + index).html(
-      '<b>Species:<b> ' + species + '<br/>' +
-      '<b>Viewpoint:<b> ' + viewpoint + '<br/>' +
-      '<b>Name:<b> ' + name + '<br/>' +
-      '<b>Sex:<b> ' + sex + '<br/>' +
-      '<b>Age:<b> ' + age
+    $('#id-container-labels-' + index).html(
+      'Name:<br/>' +
+      'Species:<br/>' +
+      'Viewpoint:<br/>' +
+      'Sex:<br/>' +
+      'Age:<br/>'
+    )
+
+    $('#id-container-values-' + index).html(
+      '' + name + '<br/>' +
+      '' + species + '<br/>' +
+      '' + viewpoint + '<br/>' +
+      '' + sex + '<br/>' +
+      '' + age
     )
 
     progressBar.removeClass('progress-bar-striped')
@@ -427,8 +435,8 @@ function registerFiles(files) {
         }
 
         right2.append(
-            '<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"></div>' +
-            '<div id="id-container-' + index + '" class="col-lg-9 col-md-9 col-sm-12 col-xs-12"></div>'
+            '<div id="id-container-labels-' + index + '" class="col-lg-6 col-md-6 col-sm-6 col-xs-6"></div>' +
+            '<div id="id-container-values-' + index + '" class="col-lg-6 col-md-6 col-sm-6 col-xs-6"></div>'
           )
 
         // var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
