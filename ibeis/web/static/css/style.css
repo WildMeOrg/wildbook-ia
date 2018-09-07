@@ -469,7 +469,11 @@
   bottom: 10px;
   right: 22px;
   width: 100px;
-  height: auto;
+  height: 100px;
+}
+
+#logo img {
+  width: 100%;
   opacity: 0.90;
 }
 
@@ -520,4 +524,9 @@
 .element-right .progress-container {
   padding: 0px;
   margin-top: 6px;
+}
+
+.element-right .id-container {
+  background-color: red;
+  margin-top: 10px;
 }

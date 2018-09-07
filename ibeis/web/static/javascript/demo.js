@@ -387,6 +387,8 @@ function registerFiles(files) {
           )
         }
 
+        right2.append('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 id-container"></div>')
+
         // var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
         // row2.append(center3)
 
