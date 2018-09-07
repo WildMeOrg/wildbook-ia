@@ -542,7 +542,7 @@ def review_query_chips_test(**kwargs):
 
 @register_ibs_method
 @register_api('/api/review/query/chip/best/', methods=['GET'])
-def review_query_chips_best(aid, **kwargs):
+def review_query_chips_best(ibs, aid, **kwargs):
     from ibeis.algo.hots import chip_match
 
     ibs = current_app.ibs

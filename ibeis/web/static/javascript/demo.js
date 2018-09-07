@@ -45,6 +45,7 @@ function retrieveIdentification(index, response) {
     var progressBar = $('#progress-bar-' + index + '-3');
 
     console.log(response)
+    console.log(registry[index])
 
     progressBar.removeClass('progress-bar-striped')
     progressBar.css({"width": "100%"});
@@ -97,8 +98,6 @@ function retrieveClassification(index, response) {
 
     registry[index].detection.species2 = response.species
     registry[index].detection.viewpoint2 = response.viewpoint
-
-    console.log(registry[index])
 
     progressBar.removeClass('progress-bar-striped')
     progressBar.css({"width": "100%"});
