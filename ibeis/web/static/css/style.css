@@ -378,3 +378,146 @@
 {
   visibility: hidden !important;
 }*/
+
+#dropbox {
+    /*border: 2px dashed #000000;*/
+    padding: 20px;
+}
+
+@keyframes dropShadow {
+    0% {
+        box-shadow: 0px 0px 50px #EEE;
+    }
+
+    50% {
+        box-shadow: 0px 0px 50px #888;
+    }
+
+    100% {
+        box-shadow: 0px 0px 50px #EEE;
+    }
+}
+
+#dropbox.active {
+    animation-name: dropShadow;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+#dropbox {
+  width: 50%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  box-shadow: 0px 0px 50px #EEE;
+}
+
+#dropbox-container {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  left: 0;
+}
+
+#dropbox-container-inside {
+  text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.progress-global {
+  height: 2px !important;
+  box-shadow: none;
+  background-color: white;
+}
+
+.progress {
+  height: 10px !important;
+  border-radius: 2px;
+  display: inline-block;
+  width: 100%;
+}
+
+.progress-bar {
+    background-color: #eee;  /* #5aced0, #429798; */
+    /*background-image: linear-gradient(90deg, #c45b24, #eda641, #83ba56, #3f83c0)*/
+}
+
+.progress-bar0 {
+    background-color: #c45b24;
+}
+
+.progress-bar1 {
+    background-color: #eda641;
+}
+
+.progress-bar2 {
+    background-color: #83ba56;
+}
+
+.progress-bar3 {
+    background-color: #3f83c0;
+}
+
+
+#logo {
+  position: absolute;
+  bottom: 10px;
+  right: 22px;
+  width: 100px;
+  height: auto;
+  opacity: 0.90;
+}
+
+#images-container {
+  margin-top: 10px;
+}
+
+.element {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.element-left, .element-center {
+  text-align: center;
+  height: 300px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.element-right {
+  text-align: left;
+  height: 300px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.element-left img, .element-center img {
+  margin-left: auto;
+  margin-right: auto;
+  height: auto;
+  max-height: 100%;
+  width: auto;
+  max-width: 100%;
+}
+
+.element-right .row {
+  height: 20px;
+}
+
+.element-right .text-container {
+  text-align: center;
+  color: #444;
+  font-style: italic;
+}
+
+.element-right .progress-container {
+  padding: 0px;
+  margin-top: 6px;
+}

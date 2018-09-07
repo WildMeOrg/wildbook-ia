@@ -424,6 +424,28 @@ def start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_me
 
 @register_ibs_method
 @accessor_decors.default_decorator
+@register_api('/api/engine/labeler/cnn/', methods=['POST'])
+def start_labeler_cnn(ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs):
+    # Check UUIDs
+    ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
+
+    #import ibeis
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
+    annot_uuid_list = ensure_uuid_list(annot_uuid_list)
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    args = (aid_list, kwargs, )
+    jobid = ibs.job_manager.jobiface.queue_job('labeler_cnn', callback_url, callback_method, *args)
+
+    #if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
 @register_api('/test/engine/detect/cnn/yolo/', methods=['GET'])
 def start_detect_image_test_yolo(ibs):
     from random import shuffle  # NOQA

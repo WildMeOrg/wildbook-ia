@@ -1,0 +1,49 @@
+{% extends "layout.wb.min.html" %}
+{% block content %}
+    <div id="dropbox-container" class="hidden">
+        <div id="dropbox-container-inside">
+            <img id="dropbox" src="#">
+        </div>
+
+        <div id="dropbox-text" style="text-align: center;">
+            <br/>
+            <i style="color: #ccc; margin-top: 20px;">drag and drop images of animals</i>
+        </div>
+
+        <div id="progress" class="progress-global">
+          <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+        </div>
+
+        <div id="images-container">
+        </div>
+
+        <img id="logo" src="#">
+    </div>
+
+
+{% endblock %}
+{% block content_custom_css %}
+{% endblock %}
+{% block content_custom_javascript %}
+    <script src="{{ url_for('static', filename='javascript/demo.js', version='20180905-0') }}" ia-dependency="javascript"></script>
+
+    <script type="text/javascript" ia-dependency="javascript">
+        var initialized = false;
+        var queue = {
+            upload: [],
+            detect: [],
+            classify: [],
+            identify: [],
+        };
+
+        var animations = {};
+        var registry = [];
+
+        $(document).ready(function() {
+            var image1 = '{{ url_for('static', filename='images/logo-wildbook-zebra.png') }}';
+            var image2 = '{{ url_for('static', filename='images/logo-wildme.png') }}';
+            init(image1, image2);
+
+        });
+    </script>
+{% endblock %}

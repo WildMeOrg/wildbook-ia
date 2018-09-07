@@ -540,6 +540,88 @@ def review_query_chips_test(**kwargs):
     return 'done'
 
 
+@register_api('/api/review/query/chip/best/', methods=['GET'])
+def review_query_chips_best(aid, **kwargs):
+    from ibeis.algo.hots import chip_match
+
+    ibs = current_app.ibs
+
+    ut.embed()
+
+    query_config_dict = {}
+
+    # Compile test data
+    aid_list = ibs.get_valid_aids()
+    qaid_list = [aid]
+    daid_list = list(set(aid_list) - set([aid]))
+    result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
+
+    review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][0]
+
+    annot_uuid_key = str(review_pair['annot_uuid_key'])
+    cm_dict = result_dict['cm_dict'][annot_uuid_key]
+    query_config_dict = result_dict['query_config_dict']
+    view_orientation = request.args.get('view_orientation', 'horizontal')
+
+    proot = query_config_dict.get('pipeline_root', 'vsmany')
+    proot = query_config_dict.get('proot', proot)
+
+    view_orientation = view_orientation.lower()
+    if view_orientation not in ['vertical', 'horizontal']:
+        view_orientation = 'horizontal'
+
+    # unpack info
+    try:
+        annot_uuid_1 = review_pair['annot_uuid_1']
+        annot_uuid_2 = review_pair['annot_uuid_2']
+    except Exception:
+        #??? HACK
+        # FIXME:
+        print('[!!!!] review_pair = %r' % (review_pair,))
+        review_pair = review_pair[0]
+        annot_uuid_1 = review_pair['annot_uuid_1']
+        annot_uuid_2 = review_pair['annot_uuid_2']
+
+    ibs.web_check_uuids(qannot_uuid_list=[annot_uuid_1],
+                        dannot_uuid_list=[annot_uuid_2])
+
+    aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
+    aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+
+    cm = chip_match.ChipMatch.from_dict(cm_dict, ibs=ibs)
+    qreq_ = ibs.new_query_request([aid_1], [aid_2],
+                                  cfgdict=query_config_dict)
+
+    # Get score
+    idx = cm.daid2_idx[aid_2]
+    match_score = cm.name_score_list[idx]
+    #match_score = cm.aid2_score[aid_2]
+
+    try:
+        image_matches = ensure_review_image(ibs, aid_2, cm, qreq_,
+                                            view_orientation=view_orientation)
+    except KeyError:
+        image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
+        traceback.print_exc()
+    try:
+        image_clean = ensure_review_image(ibs, aid_2, cm, qreq_,
+                                          view_orientation=view_orientation,
+                                          draw_matches=False)
+    except KeyError:
+        image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+        traceback.print_exc()
+
+    image_matches_src = appf.embed_image_html(image_matches)
+    image_clean_src = appf.embed_image_html(image_clean)
+
+    return_dict = {
+        'match': image_matches_src,
+        'clean': image_clean_src,
+        'score': match_score,
+    }
+    return return_dict
+
+
 @register_ibs_method
 @register_api('/test/query/chip/', methods=['GET'])
 def query_chips_test(ibs, **kwargs):

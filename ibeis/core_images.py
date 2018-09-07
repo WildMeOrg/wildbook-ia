@@ -1672,16 +1672,16 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
 class DetectorConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', 'candidacy'),
-        ut.ParamInfo('classifier_sensitivity',     0.0),
+        ut.ParamInfo('classifier_sensitivity',     0.10),
         #
         ut.ParamInfo('localizer_algo',             'yolo'),
         ut.ParamInfo('localizer_config_filepath',  'candidacy'),
         ut.ParamInfo('localizer_weight_filepath',  'candidacy'),
         ut.ParamInfo('localizer_grid',             False),
-        ut.ParamInfo('localizer_sensitivity',      0.0),
+        ut.ParamInfo('localizer_sensitivity',      0.10),
         #
         ut.ParamInfo('labeler_weight_filepath',    'candidacy'),
-        ut.ParamInfo('labeler_sensitivity',        0.0),
+        ut.ParamInfo('labeler_sensitivity',        0.10),
     ]
     _sub_config_list = [
         ThumbnailConfig,
@@ -1806,11 +1806,11 @@ def compute_detections(depc, gid_list, config=None):
                           conf_list, score_list))
         zipped_ = []
         for bbox, theta, species, viewpoint, conf, score in zipped:
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and max(bbox[2], bbox[3]) / min(bbox[2], bbox[3]) < 20.0:
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']:
                 zipped_.append([bbox, theta, species, viewpoint, conf * score])
             else:
                 print('Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'],))
-                print('Labeler   %0.02f %0.02f' % (conf, config['labeler_sensitivity'],))
+                print('Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'],))
         if len(zipped_) == 0:
             detect_list = list(empty_list)
         else:

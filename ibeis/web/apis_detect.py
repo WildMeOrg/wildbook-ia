@@ -567,6 +567,34 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
 
 @register_ibs_method
 @accessor_decors.default_decorator
+@accessor_decors.getter_1toM
+@register_api('/api/labeler/cnn/', methods=['PUT', 'GET', 'POST'])
+def labeler_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
+    depc = ibs.depc_annot
+    config = {}
+
+    if model_tag is not None:
+        config['labeler_weight_filepath'] = model_tag
+
+    if testing:
+        depc.delete_property('labeler', aid_list, config=config)
+
+    result_list = depc.get_property('labeler', aid_list, None, config=config)
+
+    output_list = []
+    for result in result_list:
+        score, species, viewpoint, quality, orientation, probs = result
+        output_list.append({
+            'score': score,
+            'species': species,
+            'viewpoint': viewpoint,
+        })
+
+    return output_list
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 @register_api('/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False)
 def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
