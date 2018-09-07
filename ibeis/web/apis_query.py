@@ -540,6 +540,7 @@ def review_query_chips_test(**kwargs):
     return 'done'
 
 
+@register_ibs_method
 @register_api('/api/review/query/chip/best/', methods=['GET'])
 def review_query_chips_best(aid, **kwargs):
     from ibeis.algo.hots import chip_match
