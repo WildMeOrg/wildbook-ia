@@ -469,12 +469,8 @@
   bottom: 10px;
   right: 22px;
   width: 100px;
-  height: 100px;
+  height: auto;
   opacity: 0.90;
-}
-
-#logo img {
-  width: 100%;
 }
 
 #images-container {
