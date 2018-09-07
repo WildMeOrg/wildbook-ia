@@ -80,7 +80,7 @@ function retrieveIdentification(index, response) {
       '<b>Viewpoint:<b> ' + viewpoint + '<br/>' +
       '<b>Name:<b> ' + name + '<br/>' +
       '<b>Sex:<b> ' + sex + '<br/>' +
-      '<b>Age:<b> ' + age + '<br/>' +
+      '<b>Age:<b> ' + age
     )
 
     progressBar.removeClass('progress-bar-striped')
