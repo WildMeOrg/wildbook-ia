@@ -463,17 +463,12 @@
     background-color: #3f83c0;
 }
 
-
 #logo {
   position: absolute;
   bottom: 10px;
   right: 22px;
   width: 100px;
-  height: 100px;
-}
-
-#logo img {
-  width: 100%;
+  height: auto;
   opacity: 0.90;
 }
 
