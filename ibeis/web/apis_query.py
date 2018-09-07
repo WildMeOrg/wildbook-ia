@@ -546,8 +546,6 @@ def review_query_chips_best(aid, **kwargs):
 
     ibs = current_app.ibs
 
-    ut.embed()
-
     query_config_dict = {}
 
     # Compile test data
@@ -561,14 +559,11 @@ def review_query_chips_best(aid, **kwargs):
     annot_uuid_key = str(review_pair['annot_uuid_key'])
     cm_dict = result_dict['cm_dict'][annot_uuid_key]
     query_config_dict = result_dict['query_config_dict']
-    view_orientation = request.args.get('view_orientation', 'horizontal')
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
 
-    view_orientation = view_orientation.lower()
-    if view_orientation not in ['vertical', 'horizontal']:
-        view_orientation = 'horizontal'
+    view_orientation = 'horizontal'
 
     # unpack info
     try:
@@ -593,9 +588,9 @@ def review_query_chips_best(aid, **kwargs):
                                   cfgdict=query_config_dict)
 
     # Get score
-    idx = cm.daid2_idx[aid_2]
-    match_score = cm.name_score_list[idx]
-    #match_score = cm.aid2_score[aid_2]
+    # idx = cm.daid2_idx[aid_2]
+    # match_score = cm.name_score_list[idx]
+    match_score = cm.aid2_score[aid_2]
 
     try:
         image_matches = ensure_review_image(ibs, aid_2, cm, qreq_,
