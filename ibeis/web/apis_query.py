@@ -552,6 +552,8 @@ def review_query_chips_best(ibs, aid, **kwargs):
     daid_list = ibs.get_valid_aids()
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
 
+    ut.embed()
+
     review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][0]
 
     annot_uuid_key = str(review_pair['annot_uuid_key'])
