@@ -83,7 +83,7 @@ function retrieveIdentification(index, response) {
     console.log(registry[index])
     console.log(registry[index].detection)
 
-    $('#id-container-' + index).text(
+    $('#id-container-' + index).html(
       '<b>Species:<b> ' + species + '<br/>' +
       '<b>Viewpoint:<b> ' + viewpoint + '<br/>' +
       '<b>Name:<b> ' + name + '<br/>' +
