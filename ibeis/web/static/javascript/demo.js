@@ -45,7 +45,6 @@ function retrieveIdentification(index, response) {
     var progressBar = $('#progress-bar-' + index + '-3');
 
     name = response
-    registry[index].detection.name = name
 
     // $('img#match-' + index).attr('src', response.match).on('load', function() {
     //   progressBar.removeClass('progress-bar-striped')
@@ -74,6 +73,15 @@ function retrieveIdentification(index, response) {
       sex = 'Unknown'
       age = 'Unknown'
     }
+
+    registry[index].detection.name = name
+    registry[index].detection.species = species
+    registry[index].detection.viewpoint = viewpoint
+    registry[index].detection.sex = sex
+    registry[index].detection.age = age
+
+    console.log(registry[index])
+    console.log(registry[index].detection)
 
     $('#id-container-' + index).text(
       '<b>Species:<b> ' + species + '<br/>' +
@@ -420,7 +428,7 @@ function registerFiles(files) {
 
         right2.append(
             '<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"></div>' +
-            '<div class="col-lg-9 col-md-9 col-sm-12 col-xs-12 id-container-' + index + '"></div>'
+            '<div id="id-container-' + index + '" class="col-lg-9 col-md-9 col-sm-12 col-xs-12"></div>'
           )
 
         // var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
