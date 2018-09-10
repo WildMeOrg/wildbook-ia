@@ -349,6 +349,7 @@ class TEST_SPECIES(object):
     ZEB_HYBRID      = 'zebra_hybrid'
     ZEB_PLAIN       = 'zebra_plains'
     LYNX            = 'lynx'
+    JAGUAR          = 'jaguar'
     CHEETAH         = 'cheetah'
     SHARK_SANDTIGER = 'shark_sandtiger'
     UNKNOWN         = UNKNOWN
@@ -363,6 +364,7 @@ SPECIES_WITH_DETECTORS = (
     TEST_SPECIES.WHALE_HUMPBACK,
     TEST_SPECIES.LYNX,
     TEST_SPECIES.CHEETAH,
+    TEST_SPECIES.JAGUAR,
 )
 
 SPECIES_MAPPING = {
