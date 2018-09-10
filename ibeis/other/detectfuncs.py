@@ -2337,7 +2337,13 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
 
 @register_ibs_method
-def background_accuracy_display(ibs, category_list, test_gid_set=None):
+def background_accuracy_display(ibs, category_list, test_gid_set=None,
+                                output_path=None):
+
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'background')))
+        ut.ensuredir(output_path)
+
     if test_gid_set is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
         test_gid_set = list(test_gid_set)
@@ -2366,18 +2372,14 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None):
         mask = vt.resize_mask(image, chip)
         blended = vt.blend_images_multiply(chip, mask)
         blended *= 255.0
-
-        chip = chip.astype(np.float32)
-        mask = mask.astype(np.float32)
-        mask = cv2.merge((mask, mask, mask))
-        blended = blended.astype(np.float32)
+        blended = np.around(blended)
+        blended[blended < 0] = 0
+        blended[blended > 255] = 255
+        blended = blended.astype(np.uint8)
 
         canvas = np.hstack((chip, mask, blended))
-        canvas = np.around(canvas)
-        canvas[canvas < 0] = 0
-        canvas[canvas > 255] = 255
-        canvas = canvas.astype(np.uint8)
-        cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.%d.png' % (species, gid, aid, ), canvas)
+        output_filepath = join(output_path, 'background.%s.%d.%d.png' % (species, gid, aid, ))
+        cv2.imwrite(output_filepath, canvas)
 
 
 def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kwargs):
