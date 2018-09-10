@@ -2344,7 +2344,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    area_list_ = area_list[1:]
+    # area_list_ = area_list[1:]
+    area_list_ = area_list
     mAP = sum(area_list_) / len(area_list_)
     args = (mAP * 100.0, )
     plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.19)
