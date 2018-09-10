@@ -926,7 +926,7 @@ def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
     if test_gid_list is not None:
         print('Using %d test gids' % (len(test_gid_list), ))
 
-    species_mapping = {
+    species_mapping = {  # NOQA
         'giraffe_masai'       : 'giraffe',
         'giraffe_reticulated' : 'giraffe',
         'zebra_grevys'        : 'zebra',
@@ -1163,19 +1163,36 @@ def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
         #     {},
         # ),
 
-        'lynx': (
+        # 'lynx': (
+        #     [
+        #         {'label': 'Lynx NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['lynx'])},
+        #         {'label': 'Lynx NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['lynx'])},
+        #     ],
+        #     {},
+        # ),
+
+        'jaguar': (
             [
-                {'label': 'Lynx NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['lynx'])},
-                {'label': 'Lynx NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['lynx'])},
+                {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['jaguar'])},
+                {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['jaguar'])},
             ],
             {},
         ),
