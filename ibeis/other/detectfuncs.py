@@ -2302,8 +2302,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_ylim([0.0, 1.01])
     area_list = []
     for color, config in zip(color_list, config_list):
-        area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
-                                                           color=color, **config)
+        ret = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
+                                                 color=color, **config)
+        area = ret[0]
         area_list.append(area)
     plt.title('Precision-Recall Curve', y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
