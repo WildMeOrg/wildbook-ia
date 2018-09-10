@@ -2549,7 +2549,8 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
         # {'label': 'Whale Fluke',         'aoi_two_weight_filepath': 'ggr2', 'category_list': ['whale_fluke']},
         # {'label': 'Grevy\'s Zebra',      'aoi_two_weight_filepath': 'ggr2', 'category_list': ['zebra_grevys']},
         # {'label': 'Plains Zebra',        'aoi_two_weight_filepath': 'ggr2', 'category_list': ['zebra_plains']},
-        {'label': 'Hammerhead',        'aoi_two_weight_filepath': 'hammerhead', 'category_list': ['shark_hammerhead']},
+        # {'label': 'Hammerhead',        'aoi_two_weight_filepath': 'hammerhead', 'category_list': ['shark_hammerhead']},
+        {'label': 'Jaguar',        'aoi_two_weight_filepath': 'jaguar', 'category_list': ['jaguar']},
     ]
     color_list = [(0, 0, 0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
