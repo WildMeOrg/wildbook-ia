@@ -2368,7 +2368,6 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None,
     zipped = zip(aid_list, gid_list, species_list, image_list, chip_list)
     for index, (aid, gid, species, image, chip) in enumerate(zipped):
         print(index)
-        ut.embed()
         mask = vt.resize_mask(image, chip)
         blended = vt.blend_images_multiply(chip, mask)
         blended *= 255.0
