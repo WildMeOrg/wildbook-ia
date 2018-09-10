@@ -2058,316 +2058,326 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-# def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
-#                         samples=SAMPLES, **kwargs):
+def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
+                        samples=SAMPLES, **kwargs):
 
-#     def errors(zipped, conf, category):
-#         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
-#         for index, (label, confidence) in enumerate(zipped):
-#             if label == category:
-#                 if conf <= confidence:
-#                     tp += 1
-#                 else:
-#                     fn += 1
-#             else:
-#                 if conf <= confidence:
-#                     fp += 1
-#                 else:
-#                     tn += 1
-#         return tp, tn, fp, fn
+    def errors(zipped, conf, category):
+        tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
+        for index, (label, confidence) in enumerate(zipped):
+            if label == category:
+                if conf <= confidence:
+                    tp += 1
+                else:
+                    fn += 1
+            else:
+                if conf <= confidence:
+                    fp += 1
+                else:
+                    tn += 1
+        return tp, tn, fp, fn
 
-#     depc = ibs.depc_annot
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     aid_list = ut.flatten(aids_list)
-#     # Get annot species and viewpoints
-#     species_list = ibs.get_annot_species_texts(aid_list)
-#     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-#     # Filter aids with species of interest and undefined viewpoints
-#     flag_list = [
-#         species in category_list
-#         for species, viewpoint in zip(species_list, viewpoint_list)
-#     ]
-#     if False in flag_list:
-#         aid_list = ut.compress(aid_list, flag_list)
-#         # Get new species and viewpoints
-#         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-#         species_list = ibs.get_annot_species_texts(aid_list)
+    depc = ibs.depc_annot
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = list(test_gid_set)
+    aids_list = ibs.get_image_aids(test_gid_set)
+    aid_list = ut.flatten(aids_list)
+    # Get annot species and viewpoints
+    species_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+    # Filter aids with species of interest and undefined viewpoints
+    flag_list = [
+        species in category_list
+        for species, viewpoint in zip(species_list, viewpoint_list)
+    ]
+    if False in flag_list:
+        aid_list = ut.compress(aid_list, flag_list)
+        # Get new species and viewpoints
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        species_list = ibs.get_annot_species_texts(aid_list)
 
-#     # Make ground-truth
-#     label_list = [
-#         '%s:%s' % (
-#             species,
-#             viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
-#         )
-#         for species, viewpoint in zip(species_list, viewpoint_list)
-#     ]
-#     # Get predictions
-#     # depc.delete_property('labeler', aid_list, config=kwargs)
-#     probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
+    # Make ground-truth
+    label_list = [
+        '%s:%s' % (
+            species,
+            viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
+        )
+        for species, viewpoint in zip(species_list, viewpoint_list)
+    ]
+    # Get predictions
+    # depc.delete_property('labeler', aid_list, config=kwargs)
+    probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
 
-#     value1_list = set(label_list)
-#     value2_list = set(probability_dict_list[0].keys())
-#     assert len(value1_list - value2_list) == 0
-#     assert len(value2_list - value1_list) == 0
+    value1_list = set(label_list)
+    value2_list = set(probability_dict_list[0].keys())
+    assert len(value1_list - value2_list) == 0
+    assert len(value2_list - value1_list) == 0
 
-#     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-#     label_dict = {}
-#     for key in value1_list:
-#         print('\t%r' % (key, ))
-#         conf_dict = {}
-#         confidence_list = [
-#             probability_dict[key]
-#             for probability_dict in probability_dict_list
-#         ]
-#         zipped = list(zip(label_list, confidence_list))
-#         for conf in conf_list:
-#             conf_dict[conf] = errors(zipped, conf, key)
-#         label_dict[key] = conf_dict
-#     return label_dict
-
-
-# def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
-
-#     if category_list is None:
-#         category_list_ = label_dict.keys()
-#     else:
-#         category_list_ = []
-#         for category in category_list:
-#             for key in label_dict:
-#                 if category in key or category is None:
-#                     category_list_.append(key)
-
-#     global_conf_dict = {}
-#     for category in category_list_:
-#         conf_dict = label_dict[category]
-#         for conf in conf_dict:
-#             new_list = conf_dict[conf]
-#             if conf not in global_conf_dict:
-#                 global_conf_dict[conf] = new_list
-#             else:
-#                 cur_list = global_conf_dict[conf]
-#                 zipped_ = zip(cur_list, new_list)
-#                 global_conf_dict[conf] = [cur + new for cur, new in zipped_]
-
-#     conf_list_ = [-1.0, -1.0]
-#     pr_list = [1.0, 0.0]
-#     re_list = [0.0, 1.0]
-#     tpr_list = [0.0, 1.0]
-#     fpr_list = [0.0, 1.0]
-#     # conf_list_ = []
-#     # pr_list = []
-#     # re_list = []
-#     # tpr_list = []
-#     # fpr_list = []
-#     for conf in sorted(global_conf_dict.keys(), reverse=True):
-#         error_list = global_conf_dict[conf]
-#         tp, tn, fp, fn = error_list
-#         try:
-#             pr = tp / (tp + fp)
-#             re = tp / (tp + fn)
-#             tpr = tp / (tp + fn)
-#             fpr = fp / (fp + tn)
-#             conf_list_.append(conf)
-#             pr_list.append(pr)
-#             re_list.append(re)
-#             tpr_list.append(tpr)
-#             fpr_list.append(fpr)
-#         except ZeroDivisionError:
-#             print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
-
-#     return conf_list_, pr_list, re_list, tpr_list, fpr_list
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    label_dict = {}
+    for key in value1_list:
+        print('\t%r' % (key, ))
+        conf_dict = {}
+        confidence_list = [
+            probability_dict[key]
+            for probability_dict in probability_dict_list
+        ]
+        zipped = list(zip(label_list, confidence_list))
+        for conf in conf_list:
+            conf_dict[conf] = errors(zipped, conf, key)
+        label_dict[key] = conf_dict
+    return label_dict
 
 
-# def labeler_precision_recall_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     category_list = kwargs['category_list']
-#     print('Processing Precision-Recall for: %r (category_list = %r)' % (label, category_list, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
+
+    if category_list is None:
+        category_list_ = label_dict.keys()
+    else:
+        category_list_ = []
+        for category in category_list:
+            for key in label_dict:
+                if category in key or category is None:
+                    category_list_.append(key)
+
+    global_conf_dict = {}
+    for category in category_list_:
+        conf_dict = label_dict[category]
+        for conf in conf_dict:
+            new_list = conf_dict[conf]
+            if conf not in global_conf_dict:
+                global_conf_dict[conf] = new_list
+            else:
+                cur_list = global_conf_dict[conf]
+                zipped_ = zip(cur_list, new_list)
+                global_conf_dict[conf] = [cur + new for cur, new in zipped_]
+
+    conf_list_ = [-1.0, -1.0]
+    pr_list = [1.0, 0.0]
+    re_list = [0.0, 1.0]
+    tpr_list = [0.0, 1.0]
+    fpr_list = [0.0, 1.0]
+    # conf_list_ = []
+    # pr_list = []
+    # re_list = []
+    # tpr_list = []
+    # fpr_list = []
+    for conf in sorted(global_conf_dict.keys(), reverse=True):
+        error_list = global_conf_dict[conf]
+        tp, tn, fp, fn = error_list
+        try:
+            pr = tp / (tp + fp)
+            re = tp / (tp + fn)
+            tpr = tp / (tp + fn)
+            fpr = fp / (fp + tn)
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
+        except ZeroDivisionError:
+            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
+
+    return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
 
-# def labeler_roc_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     category_list = kwargs['category_list']
-#     print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
-#                                   target=(0.0, 1.0), **kwargs)
+def labeler_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    category_list = kwargs['category_list']
+    print('Processing Precision-Recall for: %r (category_list = %r)' % (label, category_list, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-# def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, category_mapping=None, **kwargs):
-#     print('Processing Confusion Matrix')
-#     depc = ibs.depc_annot
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     aid_list = ut.flatten(aids_list)
-#     species_list = ibs.get_annot_species_texts(aid_list)
-#     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-#     label_list = [
-#         '%s:%s' % (
-#             species,
-#             viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
-#         )
-#         for species, viewpoint in zip(species_list, viewpoint_list)
-#     ]
-#     temp_list = [
-#         (aid, label)
-#         for aid, label in zip(aid_list, label_list)
-#         if label in category_list
-#     ]
-#     aid_list = [_[0] for _ in temp_list]
-#     label_list = [_[1] for _ in temp_list]
-#     conf_list = depc.get_property('labeler', aid_list, 'score', config=kwargs)
-#     species_list = depc.get_property('labeler', aid_list, 'species', config=kwargs)
-#     viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint', config=kwargs)
-#     prediction_list = [
-#         '%s:%s' % (species, viewpoint, )
-#         for species, viewpoint in zip(species_list, viewpoint_list)
-#     ]
-
-#     category_list = list(map(simple_code, category_list))
-#     label_list = list(map(simple_code, label_list))
-#     prediction_list = list(map(simple_code, prediction_list))
-#     if category_mapping is None:
-#         category_mapping = { key: index for index, key in enumerate(category_list) }
-#     category_mapping = {
-#         simple_code(key): category_mapping[key]
-#         for key in category_mapping
-#     }
-#     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-#                                                  category_mapping, conf_list=conf_list,
-#                                                  size=8, **kwargs)
+def labeler_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    category_list = kwargs['category_list']
+    print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
 
 
-# @register_ibs_method
-# def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
-#                                           category_mapping=None, figsize=(30, 9), **kwargs):
-#     import matplotlib.pyplot as plt
-#     import plottool as pt
+def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, category_mapping=None, **kwargs):
+    print('Processing Confusion Matrix')
+    depc = ibs.depc_annot
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = list(test_gid_set)
+    aids_list = ibs.get_image_aids(test_gid_set)
+    aid_list = ut.flatten(aids_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+    label_list = [
+        '%s:%s' % (
+            species,
+            viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
+        )
+        for species, viewpoint in zip(species_list, viewpoint_list)
+    ]
+    temp_list = [
+        (aid, label)
+        for aid, label in zip(aid_list, label_list)
+        if label in category_list
+    ]
+    aid_list = [_[0] for _ in temp_list]
+    label_list = [_[1] for _ in temp_list]
+    conf_list = depc.get_property('labeler', aid_list, 'score', config=kwargs)
+    species_list = depc.get_property('labeler', aid_list, 'species', config=kwargs)
+    viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint', config=kwargs)
+    prediction_list = [
+        '%s:%s' % (species, viewpoint, )
+        for species, viewpoint in zip(species_list, viewpoint_list)
+    ]
 
-#     if category_list is None:
-#         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#         test_gid_set = list(test_gid_set)
-#         aids_list = ibs.get_image_aids(test_gid_set)
-#         aid_list = ut.flatten(aids_list)
-#         species_list = ibs.get_annot_species_texts(aid_list)
-#         category_list = sorted(list(set(species_list)))
-
-#     print('Compiling raw numbers...')
-#     kwargs['labeler_weight_filepath'] = 'candidacy'
-#     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,
-#                                      **kwargs)
-
-#     config_list = [
-#         {'label': 'All Species',         'category_list': None},
-#         {'label': 'Masai Giraffe',       'category_list': ['giraffe_masai']},
-#         {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
-#         {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
-#         {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},
-#         {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
-#         {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
-#     ]
-#     color_list = [(0.0, 0.0, 0.0)]
-#     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
-
-#     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
-
-#     axes_ = plt.subplot(131)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('Recall')
-#     axes_.set_ylabel('Precision')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-#     area_list = []
-#     for color, config in zip(color_list, config_list):
-#         area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
-#                                                            color=color, **config)
-#         area_list.append(area)
-#     plt.title('Precision-Recall Curve', y=1.19)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
-
-#     axes_ = plt.subplot(132)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('False-Positive Rate')
-#     axes_.set_ylabel('True-Positive Rate')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-#     for color, config in zip(color_list, config_list):
-#         labeler_roc_algo_plot(ibs, label_dict=label_dict,
-#                               color=color, **config)
-#     plt.title('ROC Curve', y=1.19)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
-
-#     key_list = sorted(label_dict.keys())
-#     fuzzy_dict = {}
-#     for index1, label1 in enumerate(key_list):
-#         if label1 == 'ignore':
-#             fuzzy_list = []
-#         else:
-#             species, viewpoint = label1.strip().split(':')
-#             fuzzy_list = []
-#             for index2, label2 in enumerate(key_list):
-#                 if species in label2:
-#                     fuzzy_list.append(index2)
-#         fuzzy_dict[index1] = set(fuzzy_list)
-
-#     axes_ = plt.subplot(133)
-#     axes_.set_aspect(1)
-#     gca_ = plt.gca()
-#     gca_.grid(False)
-#     correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
-#     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
-#     axes_.set_ylabel('Ground-Truth')
-#     area_list_ = area_list[1:]
-#     mAP = sum(area_list_) / len(area_list_)
-#     args = (mAP * 100.0, )
-#     plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.19)
-
-#     fig_filename = 'labeler-precision-recall-roc.png'
-#     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
-#     plt.savefig(fig_path, bbox_inches='tight')
+    category_list = list(map(simple_code, category_list))
+    label_list = list(map(simple_code, label_list))
+    prediction_list = list(map(simple_code, prediction_list))
+    if category_mapping is None:
+        category_mapping = { key: index for index, key in enumerate(category_list) }
+    category_mapping = {
+        simple_code(key): category_mapping[key]
+        for key in category_mapping
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                                 category_mapping, conf_list=conf_list,
+                                                 size=8, **kwargs)
 
 
-# @register_ibs_method
-# def background_accuracy_display(ibs, category_list, test_gid_set=None):
-#     if test_gid_set is None:
-#         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#         test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     aid_list = ut.flatten(aids_list)
-#     species_list = ibs.get_annot_species_texts(aid_list)
+@register_ibs_method
+def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
+                                          category_mapping=None, figsize=(30, 9), **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
 
-#     aid_list = [
-#         aid
-#         for aid, species in zip(aid_list, species_list)
-#         if species in category_list
-#     ]
-#     species_list = ibs.get_annot_species_texts(aid_list)
-#     gid_list = ibs.get_annot_gids(aid_list)
+    if category_list is None:
+        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_set = list(test_gid_set)
+        aids_list = ibs.get_image_aids(test_gid_set)
+        aid_list = ut.flatten(aids_list)
+        species_list = ibs.get_annot_species_texts(aid_list)
+        category_list = sorted(list(set(species_list)))
 
-#     config2_ = {
-#         'fw_detector': 'cnn'
-#     }
-#     hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)
-#     image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
-#     chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
-#     zipped = zip(aid_list, gid_list, species_list, image_list, chip_list)
-#     for index, (aid, gid, species, image, chip) in enumerate(zipped):
-#         print(index)
-#         canvas = vt.blend_images_multiply(chip, vt.resize_mask(image, chip))
-#         canvas *= 255.0
-#         canvas = np.around(canvas)
-#         canvas[canvas < 0] = 0
-#         canvas[canvas > 255] = 255
-#         canvas = canvas.astype(np.uint8)
-#         cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.%d.png' % (species, gid, aid, ), canvas)
+    print('Compiling raw numbers...')
+    kwargs['labeler_weight_filepath'] = 'jaguar'
+
+    label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,
+                                     **kwargs)
+
+    config_list = [
+        # {'label': 'All Species',         'category_list': None},
+        {'label': 'Jaguar',       'category_list': ['jaguar']},
+        # {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
+        # {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
+        # {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},
+        # {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
+        # {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
+    ]
+    color_list = [(0.0, 0.0, 0.0)]
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+
+    fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
+
+    axes_ = plt.subplot(131)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area_list = []
+    for color, config in zip(color_list, config_list):
+        area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
+                                                           color=color, **config)
+        area_list.append(area)
+    plt.title('Precision-Recall Curve', y=1.19)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(132)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    for color, config in zip(color_list, config_list):
+        labeler_roc_algo_plot(ibs, label_dict=label_dict,
+                              color=color, **config)
+    plt.title('ROC Curve', y=1.19)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    key_list = sorted(label_dict.keys())
+    fuzzy_dict = {}
+    for index1, label1 in enumerate(key_list):
+        if label1 == 'ignore':
+            fuzzy_list = []
+        else:
+            species, viewpoint = label1.strip().split(':')
+            fuzzy_list = []
+            for index2, label2 in enumerate(key_list):
+                if species in label2:
+                    fuzzy_list.append(index2)
+        fuzzy_dict[index1] = set(fuzzy_list)
+
+    axes_ = plt.subplot(133)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    area_list_ = area_list[1:]
+    mAP = sum(area_list_) / len(area_list_)
+    args = (mAP * 100.0, )
+    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.19)
+
+    fig_filename = 'labeler-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
+@register_ibs_method
+def background_accuracy_display(ibs, category_list, test_gid_set=None):
+    if test_gid_set is None:
+        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_set = list(test_gid_set)
+    aids_list = ibs.get_image_aids(test_gid_set)
+    aid_list = ut.flatten(aids_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+
+    aid_list = [
+        aid
+        for aid, species in zip(aid_list, species_list)
+        if species in category_list
+    ]
+    species_list = ibs.get_annot_species_texts(aid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+
+    config2_ = {
+        'fw_detector': 'cnn'
+    }
+    hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)
+    image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
+    chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
+    zipped = zip(aid_list, gid_list, species_list, image_list, chip_list)
+    for index, (aid, gid, species, image, chip) in enumerate(zipped):
+        print(index)
+        ut.embed()
+        mask = vt.resize_mask(image, chip)
+        blended = vt.blend_images_multiply(chip, mask)
+        blended *= 255.0
+
+        chip = chip.astype(np.float32)
+        mask = mask.astype(np.float32)
+        mask = cv2.merge((mask, mask, mask))
+        blended = blended.astype(np.float32)
+
+        canvas = np.hstack((chip, mask, blended))
+        canvas = np.around(canvas)
+        canvas[canvas < 0] = 0
+        canvas[canvas > 255] = 255
+        canvas = canvas.astype(np.uint8)
+        cv2.imwrite('/home/jason/Desktop/background/background.%s.%d.%d.png' % (species, gid, aid, ), canvas)
 
 
 def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kwargs):
