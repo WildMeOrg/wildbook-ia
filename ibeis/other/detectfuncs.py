@@ -54,6 +54,7 @@ def simple_code(label):
     if label == 'ignore':
         return 'IGNORE'
     label = label.replace('lion',                'LN')
+    label = label.replace('jaguar',              'JAG')
     label = label.replace('zebra_plains',        'PZ')
     label = label.replace('hippopotamus',        'HIPPO')
     label = label.replace('antelope',            'ANTEL')
@@ -2248,8 +2249,10 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
     category_list = list(map(simple_code, category_list))
     label_list = list(map(simple_code, label_list))
     prediction_list = list(map(simple_code, prediction_list))
+
     if category_mapping is None:
         category_mapping = { key: index for index, key in enumerate(category_list) }
+
     category_mapping = {
         simple_code(key): category_mapping[key]
         for key in category_mapping
@@ -2261,7 +2264,8 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
 
 @register_ibs_method
 def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
-                                          category_mapping=None, figsize=(30, 9), **kwargs):
+                                          category_mapping=None, fuzzy_dict=None,
+                                          figsize=(30, 9), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2325,24 +2329,32 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
                borderaxespad=0.0)
 
     key_list = sorted(label_dict.keys())
-    fuzzy_dict = {}
-    for index1, label1 in enumerate(key_list):
-        if label1 == 'ignore':
-            fuzzy_list = []
-        else:
-            species, viewpoint = label1.strip().split(':')
-            fuzzy_list = []
-            for index2, label2 in enumerate(key_list):
-                if species in label2:
-                    fuzzy_list.append(index2)
-        fuzzy_dict[index1] = set(fuzzy_list)
+
+    fuzzy = fuzzy_dict is not None
+    if not fuzzy:
+        fuzzy_dict = {}
+        for index1, label1 in enumerate(key_list):
+            if label1 == 'ignore':
+                fuzzy_list = []
+            else:
+                species, viewpoint = label1.strip().split(':')
+                fuzzy_list = []
+                for index2, label2 in enumerate(key_list):
+                    if species in label2:
+                        fuzzy_list.append(index2)
+            fuzzy_dict[index1] = set(fuzzy_list)
 
     axes_ = plt.subplot(133)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
     correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
+
+    if fuzzy:
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%, Fuzzy = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
+    else:
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
+
     axes_.set_ylabel('Ground-Truth')
     # area_list_ = area_list[1:]
     area_list_ = area_list
