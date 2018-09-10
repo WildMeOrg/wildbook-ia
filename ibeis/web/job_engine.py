@@ -817,8 +817,9 @@ def engine_loop(id_, port_dict, dbdir=None):
                     callback_url=callback_url,
                     callback_method=callback_method,
                 )
-                if VERBOSE_JOBS:
-                    print('...done working. pushing result to collector')
+                # if VERBOSE_JOBS:
+                print('...done working. pushing result to collector for jobid %s' % (jobid, ))
+
                 # CALLS: collector_store
                 collect_deal_sock.send_json(collect_request)
         except KeyboardInterrupt:
@@ -951,9 +952,14 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                 callback_method = 'post'
             else:
                 callback_method = callback_method.lower()
-            if VERBOSE_JOBS:
-                print('calling callback_url using callback_method')
+
+            # if VERBOSE_JOBS:
+            print('calling callback_url using callback_method')
+
             try:
+                args = (callback_url, callback_method)
+                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r' % args)
+
                 # requests.get(callback_url)
                 data_dict = {'jobid': jobid}
                 if callback_method == 'post':
@@ -969,8 +975,10 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                     text = response.text
                 except:
                     text = None
+
                 args = (callback_url, callback_method, data_dict, response, text, )
                 print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
+
             except Exception as ex:
                 msg = (('ERROR in collector. '
                         'Tried to call callback_url=%r with callback_method=%r')
