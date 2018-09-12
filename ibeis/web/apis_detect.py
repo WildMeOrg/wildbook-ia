@@ -666,7 +666,7 @@ def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/lightnet/', methods=['PUT', 'GET', 'POST'])
-def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=None,
+def detect_cnn_lightnet(ibs, gid_list, labeler=False, commit=True, testing=False, model_tag=None,
                         **kwargs):
     """
     Run animal detection in each image. Adds annotations to the database as they are found.
@@ -711,19 +711,27 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
     }
     if model_tag is not None:
         config['weight_filepath'] = model_tag
+
     config_str_list = ['weight_filepath'] + list(config.keys())
     for config_str in config_str_list:
         if config_str in kwargs:
             config[config_str] = kwargs[config_str]
+
     if testing:
         depc.delete_property('localizations', gid_list, config=config)
     results_list = depc.get_property('localizations', gid_list, None, config=config)
+
     if commit:
-        labeler_config = config.copy()
-        labeler_config['labeler_weight_filepath'] = 'candidacy'
-        viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
+        if labeler:
+            labeler_config = config.copy()
+            labeler_config['labeler_weight_filepath'] = 'candidacy'
+            viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
+        else:
+            viewpoints_list = None
         aids_list = ibs.commit_localization_results(gid_list, results_list, viewpoints_list=viewpoints_list, note='cnnlightnetdetect')
         return aids_list
+    else:
+        return results_list
 
 
 @register_ibs_method
