@@ -205,7 +205,8 @@ def make_expanded_input_graph(graph, target):
         return accum_ids
 
     sources = list(ut.nx_source_nodes(graph))
-    assert len(sources) == 1, 'expected a unique source'
+    print(sources)
+    # assert len(sources) == 1, 'expected a unique source'
     source = sources[0]
 
     graph = graph.subgraph(ut.nx_all_nodes_between(graph, source, target)).copy()
