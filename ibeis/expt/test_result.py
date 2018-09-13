@@ -67,8 +67,13 @@ def build_cmsinfo(cm_list, qreq_):
     qaids = qreq_.qaids
     daids = qreq_.daids
     # Get the groundtruth ranks and accuracy measures
-    # qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]
-    qx2_cminfo = [cm.extend_results(qreq_).summarize(qreq_) for cm in cm_list]
+    qx2_cminfo = []
+    for cm in cm_list:
+        if hasattr(cm, 'extend_results'):
+            cminfo = cm.extend_results(qreq_).summarize(qreq_)
+        else:
+            cminfo = cm.summarize(qreq_)
+        qx2_cminfo.append(cminfo)
     cmsinfo = ut.dict_stack(qx2_cminfo, 'qx2_')
     cmsinfo['qx2_gt_rank'] = ut.replace_nones(cmsinfo['qx2_gt_rank'] , -1)
 
