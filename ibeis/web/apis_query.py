@@ -386,7 +386,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrank'):
+    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke'):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -513,10 +513,13 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {
             'pipeline_root' : 'OC_WDTW'
         }
-    # the new oriented curvature dtw
-    elif 'use_curvrank' in request.args:
+    elif 'use_curvrank_dorsal' in request.args:
         query_config_dict = {
-            'pipeline_root' : 'CurvRank'
+            'pipeline_root' : 'CurvRankDorsal'
+        }
+    elif 'use_curvrank_fluke' in request.args:
+        query_config_dict = {
+            'pipeline_root' : 'CurvRankFluke'
         }
     else:
         query_config_dict = {}
@@ -809,21 +812,6 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> ibs = ibeis.opendb_test(db='testdb1')
         >>> cfgdict = {'pipeline_root':'BC_DTW'}
-        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict, verbose=True)
-        >>> cm = ibs.query_chips(qreq_=qreq_)[0]
-        >>> ut.quit_if_noshow()
-        >>> cm.ishow_analysis(qreq_)
-        >>> ut.show_if_requested()
-
-    Example1:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
-        >>> import ibeis
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5]
-        >>> ibs = ibeis.opendb_test(db='testdb1')
-        >>> cfgdict = {'pipeline_root':'CurvRank'}
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict, verbose=True)
         >>> cm = ibs.query_chips(qreq_=qreq_)[0]
         >>> ut.quit_if_noshow()
