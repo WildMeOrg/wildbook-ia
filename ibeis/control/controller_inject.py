@@ -273,10 +273,7 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
         },
         'response' : rawreturn
     }
-    try:
-        response = ut.to_json(template)
-    except:
-        ut.embed()
+    response = ut.to_json(template)
 
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
         print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
@@ -386,20 +383,22 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             output = func(ibs=ibs, **kwargs)
         except WebException:
             raise
-        except Exception as ex2:
+        except Exception as ex2:  # NOQA
             msg_list = []
-            msg_list.append('Error in translate_ibeis_webcall')
+            # msg_list.append('Error in translate_ibeis_webcall')
             msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
             msg_list.append('Received Function Definition: %s' % (funcstr,))
-            msg_list.append('kwargs = %r' % (kwargs,))
-            msg_list.append('args = %r' % (args,))
-            msg_list.append('flask.request.args = %r' % (flask.request.args,))
-            msg_list.append('flask.request.form = %r' % (flask.request.form,))
+            msg_list.append('Received Function Parameters: %r' % (kwargs,))
+            # msg_list.append('\targs = %r' % (args,))
+            # msg_list.append('flask.request.args = %r' % (flask.request.args,))
+            # msg_list.append('flask.request.form = %r' % (flask.request.form,))
+            msg_list.append('%s: %s' % (type(ex2).__name__, ex2, ))
             msg = '\n'.join(msg_list)
-            error_msg = ut.formatex(ex2, msg, tb=True)
-            print(error_msg)
+            # error_msg = ut.formatex(ex2, msg, tb=True)
+            # print(error_msg)
             # error_msg = ut.strip_ansi(error_msg)
-            raise Exception(error_msg)
+            # raise Exception(error_msg)
+            raise Exception(msg)
             #raise
     resp_tup = (output, True, 200, None)
     return resp_tup
@@ -591,7 +590,7 @@ def remote_api_wrapper(func):
 API_SEEN_SET = set([])
 
 
-def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
+def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
     """For function calls that resolve to api calls and return json."""
     if __name__ == '__main__':
         return ut.dummy_args_decor
@@ -681,7 +680,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message = resp_tup
                     except WebException as webex:
-                        ut.printex(webex)
+                        # ut.printex(webex)
                         rawreturn = webex.get_rawreturn(
                             DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE)
                         success = False
@@ -689,21 +688,20 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         message = webex.message
                         jQuery_callback = None
                     except Exception as ex:
-                        ut.printex(ex)
-                        rawreturn = ''
+                        # ut.printex(ex)
+                        rawreturn = None
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
                             rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
-                        errmsg = str(ex)
-                        message = 'API error, Python Exception thrown: %s' % (errmsg)
+                        message = str(ex)
+                        # errmsg = str(ex)
+                        # message = 'API error, Python Exception thrown: %s' % (errmsg)
                         if "'int' object is not iterable" in message:
-                            rawreturn = (
-                                'HINT: the input for this call is most likely '
-                                'expected to be a list.  Try adding a comma at '
-                                'the end of the input (to cast the conversion '
-                                'into a list) or encapsualte the input with '
-                                '[].')
+                            rawreturn = '''
+                            HINT: the input for this call is most likely expected to be a list.
+                            Try adding a comma at the end of the input (to cast the conversion into a list) or encapsulate the input with [].
+                            '''
                         jQuery_callback = None
 
                     #print('RECEIVED FORMAT: %r' % (__format__, ))

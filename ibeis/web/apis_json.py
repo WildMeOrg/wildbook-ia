@@ -281,7 +281,7 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
 
 @register_api('/api/image/json/', methods=['POST'])
 def add_images_json(ibs, image_uri_list,
-                    image_time_posix_list=None, image_gps_lat_list=None,
+                    image_unixtime_list=None, image_gps_lat_list=None,
                     image_gps_lon_list=None, **kwargs):
     """
     REST:
@@ -439,6 +439,7 @@ def add_images_json(ibs, image_uri_list,
         'image_height_list',
         'image_orig_name_list',
         'image_ext_list',
+        'image_time_posix_list',
         'image_orientation_list',
         'image_notes_list',
     ]
@@ -458,16 +459,18 @@ def add_images_json(ibs, image_uri_list,
     image_uri_list = _verify(image_uri_list, 'image_uri_list', expected_length)
     gid_list = ibs.add_images(image_uri_list, **kwargs)  # NOQA
 
-    if image_time_posix_list is not None:
-        image_time_posix_list = _rectify(image_time_posix_list, -1, expected_length, float)
-        image_time_posix_list = _verify(image_time_posix_list, 'image_time_posix_list', expected_length)
-        ibs.set_image_time_posix(gid_list, image_time_posix_list)
+    if image_unixtime_list is not None:
+        image_unixtime_list = _rectify(image_unixtime_list, -1, expected_length, float)
+        image_unixtime_list = _verify(image_unixtime_list, 'image_unixtime_list', expected_length)
+        print('Setting times: %r -> %r' % (gid_list, image_unixtime_list, ))
+        ibs.set_image_unixtime(gid_list, image_unixtime_list)
 
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
         image_gps_lat_list = _rectify(image_gps_lat_list, -1.0, expected_length, float)
         image_gps_lon_list = _rectify(image_gps_lon_list, -1.0, expected_length, float)
         image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length)
         image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length)
+        print('Setting gps: %r -> %r, %r' % (gid_list, image_gps_lat_list, image_gps_lon_list, ))
         ibs.set_image_gps(gid_list, lat_list=image_gps_lat_list, lon_list=image_gps_lon_list)
 
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -479,6 +482,7 @@ class ParseError(object):
         self.value = value
 
 
+@register_api('/api/annot/json/', methods=['POST'])
 def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
                     annot_viewpoint_list=None, annot_quality_list=None,
                     annot_species_list=None, annot_multiple_list=None,
@@ -629,7 +633,7 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
     if annot_species_list is not None:
         annot_species_list = _rectify(annot_species_list, const.UNKNOWN, expected_length, str)
         annot_species_list = _verify(annot_species_list, 'annot_species_list', expected_length)
-        ibs.set_annot_quality_texts(aid_list, annot_species_list)
+        ibs.set_annot_species(aid_list, annot_species_list)
 
     if annot_multiple_list is not None:
         annot_multiple_list = _rectify(annot_multiple_list, False, expected_length, bool)
