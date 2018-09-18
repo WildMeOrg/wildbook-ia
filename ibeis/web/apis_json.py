@@ -149,66 +149,131 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>> print(web_instance.get_image_paths(gid_list))
         >>> print(web_instance.get_image_uris_original(gid_list))
     """
-    def _get_standard_ext(gpath):
-        ext = splitext(gpath)[1].lower()
-        return '.jpg' if ext == '.jpeg' else ext
+    def _rectify(list_, default, length, func=None):
+        if list_ is None:
+            list_ = [None] * length
 
-    def _parse_imageinfo(index):
-        def _resolve_uri():
-            list_ = image_uri_list
-            if list_ is None or index >= len(list_) or list_[index] is None:
-                raise ValueError('Must specify all required fields')
-            value = list_[index]
+        ret_list = []
+        for item in list_:
 
-            if isinstance(value, dict):
-                value = ut.s3_dict_encode_to_str(value)
+            if item is None:
+                item = default
 
-            if ibs.containerized:
-                value = value.replace('://localhost/', '://nginx:80/')
+            if None not in [func, item]:
+                item = func(item)
 
-            return value
+            ret_list.append(item)
 
-        def _resolve(list_, default='', assert_=False):
-            if list_ is None or index >= len(list_) or list_[index] is None:
-                if assert_:
-                    raise ValueError('Must specify all required fields')
-                return default
-            return list_[index]
+        return ret_list
 
-        uri = _resolve_uri()
-        orig_gname = basename(uri)
-        ext = _get_standard_ext(uri)
+    def _rectify_uri(list_, default, length, func=None):
+        list_ = _rectify(list_, default, length, func=None)
 
-        uuid_ = _resolve(image_uuid_list, assert_=True)
-        if isinstance(uuid_, six.string_types):
-            uuid_ = uuid.UUID(uuid_)
+        ret_list = []
+        for item in list_:
 
-        param_tup = (
-            uuid_,
-            uri,
-            uri,
-            _resolve(image_orig_name_list, default=orig_gname),
-            _resolve(image_ext_list, default=ext),
-            int(_resolve(image_width_list, assert_=True)),
-            int(_resolve(image_height_list, assert_=True)),
-            int(_resolve(image_time_posix_list, default=-1)),
-            float(_resolve(image_gps_lat_list, default=-1.0)),
-            float(_resolve(image_gps_lon_list, default=-1.0)),
-            int(_resolve(image_orientation_list, default=0)),
-            _resolve(image_notes_list),
-        )
-        return param_tup
+            if isinstance(item, dict):
+                item = ut.s3_dict_encode_to_str(item)
+
+            if ibs.containerized and item is not None:
+                item = item.replace('://localhost/', '://nginx:80/')
+
+            ret_list.append(item)
+
+        return ret_list
+
+    def _verify(list_, tag, length):
+        length_ = len(list_)
+        if length_ != length:
+            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
+            args = (tag, length_, length, )
+            raise ValueError(message % args)
+
+        error_list = []
+        for value in enumerate(list_):
+            index, item = value
+            if item is None:
+                error_list.append(value)
+
+        if len(error_list) > 0:
+            message = 'The input list %s has invalid values (index, value): %r'
+            args = (tag, error_list, )
+            raise ValueError(message % args)
+
+    def _uuid(value):
+        import uuid
+        import six
+
+        if value is None:
+            return None
+
+        if isinstance(value, six.string_types):
+            value = uuid.UUID(value)
+
+        return value
+
+    def _base(value):
+        if value is None:
+            return None
+
+        return basename(value)
+
+    def _ext(value):
+        if value is None:
+            return None
+
+        value = splitext(value)[1].lower()
+        value = '.jpg' if value == '.jpeg' else value
+        return value
 
     # TODO: FIX ME SO THAT WE DON'T HAVE TO LOCALIZE EVERYTHING
     kwargs['auto_localize'] = kwargs.get('auto_localize', True)
     kwargs['sanitize'] = kwargs.get('sanitize', False)
 
-    index_list = range(len(image_uri_list))
-    params_gen = ut.generate2(_parse_imageinfo, zip(index_list),
-                              force_serial=True)
-    params_gen = list(params_gen)
-    gpath_list = [ _[1] for _ in params_gen ]
-    gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)  # NOQA
+    expected_length = len(image_uri_list)
+
+    # Rectify values
+    image_uri_list         = _rectify_uri(image_uri_list    , None, expected_length,   str)  # None values are required
+    image_uuid_list        = _rectify(image_uuid_list       , None, expected_length, _uuid)  # None values are required
+    image_width_list       = _rectify(image_width_list      , None, expected_length,   int)  # None values are required
+    image_height_list      = _rectify(image_height_list     , None, expected_length,   int)  # None values are required
+    image_orig_name_list   = _rectify(image_uri_list        , None, expected_length, _base)  # None values are required
+    image_ext_list         = _rectify(image_uri_list        , None, expected_length,  _ext)  # None values are required
+    image_time_posix_list  = _rectify(image_time_posix_list ,   -1, expected_length, float)
+    image_gps_lat_list     = _rectify(image_gps_lat_list    , -1.0, expected_length, float)
+    image_gps_lon_list     = _rectify(image_gps_lon_list    , -1.0, expected_length, float)
+    image_orientation_list = _rectify(image_orientation_list,  0.0, expected_length,   int)
+    image_notes_list       = _rectify(image_notes_list      ,   '', expected_length,   str)
+
+    # Verify values
+    image_uri_list         = _verify(image_uri_list        , 'image_uri_list'        , expected_length)
+    image_uuid_list        = _verify(image_uuid_list       , 'image_uuid_list'       , expected_length)
+    image_width_list       = _verify(image_width_list      , 'image_width_list'      , expected_length)
+    image_height_list      = _verify(image_height_list     , 'image_height_list'     , expected_length)
+    image_orig_name_list   = _verify(image_orig_name_list  , 'image_orig_name_list'  , expected_length)
+    image_ext_list         = _verify(image_ext_list        , 'image_ext_list'        , expected_length)
+    image_time_posix_list  = _verify(image_time_posix_list , 'image_time_posix_list' , expected_length)
+    image_gps_lat_list     = _verify(image_gps_lat_list    , 'image_gps_lat_list'    , expected_length)
+    image_gps_lon_list     = _verify(image_gps_lon_list    , 'image_gps_lon_list'    , expected_length)
+    image_orientation_list = _verify(image_orientation_list, 'image_orientation_list', expected_length)
+    image_notes_list       = _verify(image_notes_list      , 'image_notes_list'      , expected_length)
+
+    params_gen = zip(
+        image_uuid_list,
+        image_uri_list,
+        image_uri_list,
+        image_orig_name_list,
+        image_ext_list,
+        image_width_list,
+        image_height_list,
+        image_time_posix_list,
+        image_gps_lat_list,
+        image_gps_lon_list,
+        image_orientation_list,
+        image_notes_list
+    )
+
+    gid_list = ibs.add_images(image_uri_list, params_list=params_gen, **kwargs)  # NOQA
     # return gid_list
     image_uuid_list = ibs.get_image_uuids(gid_list)
     return image_uuid_list
@@ -270,7 +335,6 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         >>> print(web_instance.get_annot_uuids(aid_list))
         >>> print(web_instance.get_annot_bboxes(aid_list))
     """
-
     image_uuid_list = [
         uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
         for uuid_ in image_uuid_list
@@ -313,7 +377,6 @@ def add_parts_json(ibs, annot_uuid_list, part_uuid_list, part_bbox_list,
             Defaults to 0.0 (no rotation).
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
     """
-
     annot_uuid_list = [
         uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
         for uuid_ in annot_uuid_list
