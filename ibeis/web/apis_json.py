@@ -3,12 +3,13 @@
 Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
-from os.path import splitext, basename
+# from os.path import splitext, basename
 import uuid
 import six
 from ibeis.web.routes_ajax import image_src
 from ibeis.control import controller_inject
 import utool as ut
+import ibeis.constants as const
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
@@ -41,12 +42,247 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
     return imageset_uuid_list
 
 
+# @register_api('/api/image/json/', methods=['POST'])
+# def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
+#                     image_height_list, image_orig_name_list=None, image_ext_list=None,
+#                     image_time_posix_list=None, image_gps_lat_list=None,
+#                     image_gps_lon_list=None, image_orientation_list=None,
+#                     image_notes_list=None, **kwargs):
+#     """
+#     REST:
+#         Method: POST
+#         URL: /api/image/json/
+
+#     Ignore:
+#         sudo pip install boto
+
+#     Args:
+#         image_uri_list (list) : list of string image uris, most likely HTTP(S) or S3
+#             encoded URLs.  Alternatively, this can be a list of dictionaries (JSON
+#             objects) that specify AWS S3 stored assets.  An example below:
+
+#                 image_uri_list = [
+#                     'http://domain.com/example/asset1.png',
+#                     '/home/example/Desktop/example/asset2.jpg',
+#                     's3://s3.amazon.com/example-bucket-2/asset1-in-bucket-2.tif',
+#                     {
+#                         'bucket'          : 'example-bucket-1',
+#                         'key'             : 'example/asset1.png',
+#                         'auth_domain'     : None,  # Uses 127.0.0.1
+#                         'auth_access_id'  : None,  # Uses system default
+#                         'auth_secret_key' : None,  # Uses system default
+#                     },
+#                     {
+#                         'bucket' : 'example-bucket-1',
+#                         'key'    : 'example/asset2.jpg',
+#                         # if unspecified, auth uses 127.0.0.1 and system defaults
+#                     },
+#                     {
+#                         'bucket'          : 'example-bucket-2',
+#                         'key'             : 'example/asset1-in-bucket-2.tif',
+#                         'auth_domain'     : 's3.amazon.com',
+#                         'auth_access_id'  : '____________________',
+#                         'auth_secret_key' : '________________________________________',
+#                     },
+#                 ]
+
+#             Note that you cannot specify AWS authentication access ids or secret keys
+#             using string uri's.  For specific authentication methods, please use the
+#             latter list of dictionaries.
+
+#         image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA
+#         image_width_list (list of int) : list of image widths
+#         image_height_list (list of int) : list of image heights
+#         image_orig_name_list (list of str): list of original image names
+#         image_ext_list (list of str): list of original image names
+#         image_time_posix_list (list of int): list of image's POSIX timestamps
+#         image_gps_lat_list (list of float): list of image's GPS latitude values
+#         image_gps_lon_list (list of float): list of image's GPS longitude values
+#         image_orientation_list (list of int): list of image's orientation flags
+#         image_notes_list (list of str) : optional list of any related notes with
+#             the images
+#         **kwargs : key-value pairs passed to the ibs.add_images() function.
+
+#     CommandLine:
+#         python -m ibeis.web.apis_json --test-add_images_json
+
+
+#         ,"bucket":"flukebook-prod-asset-store","key":""
+
+#     Example:
+#         >>> # WEB_DOCTEST
+#         >>> from ibeis.control.IBEISControl import *  # NOQA
+#         >>> import ibeis
+#         >>> import uuid
+#         >>> web_instance = ibeis.opendb(db='testdb1')
+#         >>> _payload = {
+#         >>>     'image_uri_list': [
+#         >>>         'https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg',
+#         >>>         {
+#         >>>             'bucket'          : 'test-asset-store',
+#         >>>             'key'             : 'caribwhale/20130903-JAC-0002.JPG',
+#         >>>         },
+#         >>>         {
+#         >>>             'bucket'          : 'flukebook-prod-asset-store',
+#         >>>             'key'             : '3/a/3a76b0e8-1c64-403d-ace1-679cf2f081c0/f2.jpg',
+#         >>>         },
+#         >>>     ],
+#         >>>     'image_uuid_list': [
+#         >>>         uuid.uuid4(),
+#         >>>         uuid.uuid4(),
+#         >>>         uuid.uuid4(),
+#         >>>     ],
+#         >>>     'image_width_list': [
+#         >>>         1992,
+#         >>>         1194,
+#         >>>         500,
+#         >>>     ],
+#         >>>     'image_height_list': [
+#         >>>         1328,
+#         >>>         401,
+#         >>>         500,
+#         >>>     ],
+#         >>> }
+#         >>> gid_list = ibeis.web.apis_json.add_images_json(web_instance, **_payload)
+#         >>> print(gid_list)
+#         >>> print(web_instance.get_image_uuids(gid_list))
+#         >>> print(web_instance.get_image_uris(gid_list))
+#         >>> print(web_instance.get_image_paths(gid_list))
+#         >>> print(web_instance.get_image_uris_original(gid_list))
+#     """
+#     def _rectify(list_, default, length, func=None):
+#         if list_ is None:
+#             list_ = [None] * length
+
+#         ret_list = []
+#         for item in list_:
+
+#             if item is None:
+#                 item = default
+
+#             if None not in [func, item]:
+#                 item = func(item)
+
+#             ret_list.append(item)
+
+#         return ret_list
+
+#     def _rectify_uri(list_, default, length, func=None):
+#         list_ = _rectify(list_, default, length, func=None)
+
+#         ret_list = []
+#         for item in list_:
+
+#             if isinstance(item, dict):
+#                 item = ut.s3_dict_encode_to_str(item)
+
+#             if ibs.containerized and item is not None:
+#                 item = item.replace('://localhost/', '://nginx:80/')
+
+#             ret_list.append(item)
+
+#         return ret_list
+
+#     def _verify(list_, tag, length, allow_none=False):
+#         length_ = len(list_)
+#         if length_ != length:
+#             message = 'The input list %s has the wrong length. Received: %d. Expected %d'
+#             args = (tag, length_, length, )
+#             raise ValueError(message % args)
+
+#         error_list = []
+#         for value in enumerate(list_):
+#             index, item = value
+#             if item is None:
+#                 error_list.append(value)
+
+#         if len(error_list) > 0:
+#             message = 'The input list %s has invalid values (index, value): %r'
+#             args = (tag, error_list, )
+#             raise ValueError(message % args)
+
+#     def _uuid(value):
+#         import uuid
+#         import six
+
+#         if value is None:
+#             return None
+
+#         if isinstance(value, six.string_types):
+#             value = uuid.UUID(value)
+
+#         return value
+
+#     def _base(value):
+#         if value is None:
+#             return None
+
+#         return basename(value)
+
+#     def _ext(value):
+#         if value is None:
+#             return None
+
+#         value = splitext(value)[1].lower()
+#         value = '.jpg' if value == '.jpeg' else value
+#         return value
+
+#     # TODO: FIX ME SO THAT WE DON'T HAVE TO LOCALIZE EVERYTHING
+#     kwargs['auto_localize'] = kwargs.get('auto_localize', True)
+#     kwargs['sanitize'] = kwargs.get('sanitize', False)
+
+#     expected_length = len(image_uri_list)
+
+#     # Rectify values
+#     image_uri_list         = _rectify_uri(image_uri_list    , None, expected_length,   str)
+#     image_uuid_list        = _rectify(image_uuid_list       , None, expected_length, _uuid)
+#     image_width_list       = _rectify(image_width_list      , None, expected_length,   int)
+#     image_height_list      = _rectify(image_height_list     , None, expected_length,   int)
+#     image_orig_name_list   = _rectify(image_uri_list        , None, expected_length, _base)
+#     image_ext_list         = _rectify(image_uri_list        , None, expected_length,  _ext)
+#     image_time_posix_list  = _rectify(image_time_posix_list ,   -1, expected_length, float)
+#     image_gps_lat_list     = _rectify(image_gps_lat_list    , -1.0, expected_length, float)
+#     image_gps_lon_list     = _rectify(image_gps_lon_list    , -1.0, expected_length, float)
+#     image_orientation_list = _rectify(image_orientation_list,  0.0, expected_length,   int)
+#     image_notes_list       = _rectify(image_notes_list      ,   '', expected_length,   str)
+
+#     # Verify values
+#     image_uri_list         = _verify(image_uri_list        , 'image_uri_list'        , expected_length)
+#     image_uuid_list        = _verify(image_uuid_list       , 'image_uuid_list'       , expected_length)
+#     image_width_list       = _verify(image_width_list      , 'image_width_list'      , expected_length)
+#     image_height_list      = _verify(image_height_list     , 'image_height_list'     , expected_length)
+#     image_orig_name_list   = _verify(image_orig_name_list  , 'image_orig_name_list'  , expected_length)
+#     image_ext_list         = _verify(image_ext_list        , 'image_ext_list'        , expected_length)
+#     image_time_posix_list  = _verify(image_time_posix_list , 'image_time_posix_list' , expected_length)
+#     image_gps_lat_list     = _verify(image_gps_lat_list    , 'image_gps_lat_list'    , expected_length)
+#     image_gps_lon_list     = _verify(image_gps_lon_list    , 'image_gps_lon_list'    , expected_length)
+#     image_orientation_list = _verify(image_orientation_list, 'image_orientation_list', expected_length)
+#     image_notes_list       = _verify(image_notes_list      , 'image_notes_list'      , expected_length)
+
+#     params_gen = zip(
+#         image_uuid_list,
+#         image_uri_list,
+#         image_uri_list,
+#         image_orig_name_list,
+#         image_ext_list,
+#         image_width_list,
+#         image_height_list,
+#         image_time_posix_list,
+#         image_gps_lat_list,
+#         image_gps_lon_list,
+#         image_orientation_list,
+#         image_notes_list
+#     )
+
+#     gid_list = ibs.add_images(image_uri_list, params_list=params_gen, **kwargs)  # NOQA
+#     image_uuid_list = ibs.get_image_uuids(gid_list)
+#     return image_uuid_list
+
+
 @register_api('/api/image/json/', methods=['POST'])
-def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
-                    image_height_list, image_orig_name_list=None, image_ext_list=None,
+def add_images_json(ibs, image_uri_list,
                     image_time_posix_list=None, image_gps_lat_list=None,
-                    image_gps_lon_list=None, image_orientation_list=None,
-                    image_notes_list=None, **kwargs):
+                    image_gps_lon_list=None, **kwargs):
     """
     REST:
         Method: POST
@@ -89,17 +325,9 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             using string uri's.  For specific authentication methods, please use the
             latter list of dictionaries.
 
-        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA
-        image_width_list (list of int) : list of image widths
-        image_height_list (list of int) : list of image heights
-        image_orig_name_list (list of str): list of original image names
-        image_ext_list (list of str): list of original image names
         image_time_posix_list (list of int): list of image's POSIX timestamps
         image_gps_lat_list (list of float): list of image's GPS latitude values
         image_gps_lon_list (list of float): list of image's GPS longitude values
-        image_orientation_list (list of int): list of image's orientation flags
-        image_notes_list (list of str) : optional list of any related notes with
-            the images
         **kwargs : key-value pairs passed to the ibs.add_images() function.
 
     CommandLine:
@@ -166,7 +394,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
 
         return ret_list
 
-    def _rectify_uri(list_, default, length, func=None):
+    def _rectify_uri(list_, default, length, func=str):
         list_ = _rectify(list_, default, length, func=None)
 
         ret_list = []
@@ -182,7 +410,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
 
         return ret_list
 
-    def _verify(list_, tag, length):
+    def _verify(list_, tag, length, allow_none=False):
         length_ = len(list_)
         if length_ != length:
             message = 'The input list %s has the wrong length. Received: %d. Expected %d'
@@ -200,91 +428,61 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             args = (tag, error_list, )
             raise ValueError(message % args)
 
-    def _uuid(value):
-        import uuid
-        import six
+        return list_
 
-        if value is None:
-            return None
-
-        if isinstance(value, six.string_types):
-            value = uuid.UUID(value)
-
-        return value
-
-    def _base(value):
-        if value is None:
-            return None
-
-        return basename(value)
-
-    def _ext(value):
-        if value is None:
-            return None
-
-        value = splitext(value)[1].lower()
-        value = '.jpg' if value == '.jpeg' else value
-        return value
-
-    # TODO: FIX ME SO THAT WE DON'T HAVE TO LOCALIZE EVERYTHING
     kwargs['auto_localize'] = kwargs.get('auto_localize', True)
     kwargs['sanitize'] = kwargs.get('sanitize', False)
+
+    depricated_list = [
+        'image_uuid_list',
+        'image_width_list',
+        'image_height_list',
+        'image_orig_name_list',
+        'image_ext_list',
+        'image_orientation_list',
+        'image_notes_list',
+    ]
+
+    bad_list = []
+    for depricated_value in depricated_list:
+        if depricated_value in kwargs:
+            bad_list.append(depricated_value)
+
+    if len(bad_list) > 0:
+        raise ValueError('This API signature has changed, the following parameters have been deprecated: %r.  Please remove them and try again.' % (bad_list, ))
 
     expected_length = len(image_uri_list)
 
     # Rectify values
-    image_uri_list         = _rectify_uri(image_uri_list    , None, expected_length,   str)  # None values are required
-    image_uuid_list        = _rectify(image_uuid_list       , None, expected_length, _uuid)  # None values are required
-    image_width_list       = _rectify(image_width_list      , None, expected_length,   int)  # None values are required
-    image_height_list      = _rectify(image_height_list     , None, expected_length,   int)  # None values are required
-    image_orig_name_list   = _rectify(image_uri_list        , None, expected_length, _base)  # None values are required
-    image_ext_list         = _rectify(image_uri_list        , None, expected_length,  _ext)  # None values are required
-    image_time_posix_list  = _rectify(image_time_posix_list ,   -1, expected_length, float)
-    image_gps_lat_list     = _rectify(image_gps_lat_list    , -1.0, expected_length, float)
-    image_gps_lon_list     = _rectify(image_gps_lon_list    , -1.0, expected_length, float)
-    image_orientation_list = _rectify(image_orientation_list,  0.0, expected_length,   int)
-    image_notes_list       = _rectify(image_notes_list      ,   '', expected_length,   str)
+    image_uri_list = _rectify_uri(image_uri_list, None, expected_length, str)
+    image_uri_list = _verify(image_uri_list, 'image_uri_list', expected_length)
+    gid_list = ibs.add_images(image_uri_list, **kwargs)  # NOQA
 
-    # Verify values
-    image_uri_list         = _verify(image_uri_list        , 'image_uri_list'        , expected_length)
-    image_uuid_list        = _verify(image_uuid_list       , 'image_uuid_list'       , expected_length)
-    image_width_list       = _verify(image_width_list      , 'image_width_list'      , expected_length)
-    image_height_list      = _verify(image_height_list     , 'image_height_list'     , expected_length)
-    image_orig_name_list   = _verify(image_orig_name_list  , 'image_orig_name_list'  , expected_length)
-    image_ext_list         = _verify(image_ext_list        , 'image_ext_list'        , expected_length)
-    image_time_posix_list  = _verify(image_time_posix_list , 'image_time_posix_list' , expected_length)
-    image_gps_lat_list     = _verify(image_gps_lat_list    , 'image_gps_lat_list'    , expected_length)
-    image_gps_lon_list     = _verify(image_gps_lon_list    , 'image_gps_lon_list'    , expected_length)
-    image_orientation_list = _verify(image_orientation_list, 'image_orientation_list', expected_length)
-    image_notes_list       = _verify(image_notes_list      , 'image_notes_list'      , expected_length)
+    if image_time_posix_list is not None:
+        image_time_posix_list = _rectify(image_time_posix_list, -1, expected_length, float)
+        image_time_posix_list = _verify(image_time_posix_list, 'image_time_posix_list', expected_length)
+        ibs.set_image_time_posix(gid_list, image_time_posix_list)
 
-    params_gen = zip(
-        image_uuid_list,
-        image_uri_list,
-        image_uri_list,
-        image_orig_name_list,
-        image_ext_list,
-        image_width_list,
-        image_height_list,
-        image_time_posix_list,
-        image_gps_lat_list,
-        image_gps_lon_list,
-        image_orientation_list,
-        image_notes_list
-    )
+    if image_gps_lat_list is not None and image_gps_lon_list is not None:
+        image_gps_lat_list = _rectify(image_gps_lat_list, -1.0, expected_length, float)
+        image_gps_lon_list = _rectify(image_gps_lon_list, -1.0, expected_length, float)
+        image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length)
+        image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length)
+        ibs.set_image_gps(gid_list, lat_list=image_gps_lat_list, lon_list=image_gps_lon_list)
 
-    gid_list = ibs.add_images(image_uri_list, params_list=params_gen, **kwargs)  # NOQA
-    # return gid_list
     image_uuid_list = ibs.get_image_uuids(gid_list)
     return image_uuid_list
 
 
-@register_api('/api/annot/json/', methods=['POST'])
-def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
-                    annot_theta_list=None, annot_viewpoint_list=None,
-                    annot_quality_list=None, annot_species_list=None,
-                    annot_multiple_list=None, annot_interest_list=None,
-                    annot_name_list=None, annot_notes_list=None, **kwargs):
+class ParseError(object):
+    def __init__(self, value):
+        self.value = value
+
+
+def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
+                    annot_viewpoint_list=None, annot_quality_list=None,
+                    annot_species_list=None, annot_multiple_list=None,
+                    annot_interest_list=None, annot_name_list=None, **kwargs):
     """
     REST:
         Method: POST
@@ -295,7 +493,6 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
 
     Args:
         image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA
-        annot_uuid_list (list of str) : list of annotations UUIDs to be used in IBEIS IA
         annot_bbox_list (list of 4-tuple) : list of bounding box coordinates encoded as
             a 4-tuple of the values (xtl, ytl, width, height) where xtl is the
             'top left corner, x value' and ytl is the 'top left corner, y value'.
@@ -305,7 +502,6 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
             If the list is partially known, use None (null in JSON) for unknown entries.
         annot_name_list (list of str) : list of names for the annotation, if known.
             If the list is partially known, use None (null in JSON) for unknown entries.
-        annot_notes_list (list of str) : list of notes to be added to the annotation.
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
 
     CommandLine:
@@ -335,30 +531,127 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         >>> print(web_instance.get_annot_uuids(aid_list))
         >>> print(web_instance.get_annot_bboxes(aid_list))
     """
-    image_uuid_list = [
-        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
-        for uuid_ in image_uuid_list
+    def _rectify(list_, default, length, func=None):
+        if list_ is None:
+            list_ = [None] * length
+
+        ret_list = []
+        for item in list_:
+
+            if item is None:
+                item = default
+
+            if None not in [func, item]:
+                item = func(item)
+
+            ret_list.append(item)
+
+        return ret_list
+
+    def _verify(list_, tag, length, allow_none=False):
+        length_ = len(list_)
+        if length_ != length:
+            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
+            args = (tag, length_, length, )
+            raise ValueError(message % args)
+
+        error_list = []
+        for value in enumerate(list_):
+            index, item = value
+            if item is None:
+                error_list.append(value)
+            if isinstance(item, ParseError):
+                value = (index, item.value)
+                error_list.append(value)
+
+        if len(error_list) > 0:
+            message = 'The input list %s has invalid values (index, value): %r'
+            args = (tag, error_list, )
+            raise ValueError(message % args)
+
+        return list_
+
+    def _uuid(value):
+        if value is None:
+            return ParseError(value)
+
+        if isinstance(value, six.string_types):
+            value = uuid.UUID(value)
+
+        return value
+
+    def _bbox(value):
+        if len(value) != 4:
+            return ParseError(value)
+
+        value = tuple(map(float, value))
+
+        return value
+
+    depricated_list = [
+        'annot_uuid_list',
+        'annot_notes_list',
     ]
-    annot_uuid_list = [
-        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
-        for uuid_ in annot_uuid_list
-    ]
+
+    bad_list = []
+    for depricated_value in depricated_list:
+        if depricated_value in kwargs:
+            bad_list.append(depricated_value)
+
+    if len(bad_list) > 0:
+        raise ValueError('This API signature has changed, the following parameters have been deprecated: %r.  Please remove them and try again.' % (bad_list, ))
+
+    expected_length = len(image_uuid_list)
+
+    image_uuid_list  = _rectify(image_uuid_list,  None, expected_length, _uuid)
+    annot_bbox_list  = _rectify(annot_bbox_list,  None, expected_length, _bbox)
+    annot_theta_list = _rectify(annot_theta_list, None, expected_length, float)
+
+    image_uuid_list  = _verify(image_uuid_list,  'image_uuid_list',  expected_length)
+    annot_bbox_list  = _verify(annot_bbox_list,  'annot_bbox_list',  expected_length)
+    annot_theta_list = _verify(annot_theta_list, 'annot_theta_list', expected_length)
+
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    aid_list = ibs.add_annots(gid_list,
-                              bbox_list=annot_bbox_list, theta_list=annot_theta_list,
-                              species_list=annot_species_list, name_list=annot_name_list,
-                              annot_uuid_list=annot_uuid_list, viewpoint_list=annot_viewpoint_list,
-                              quality_list=annot_quality_list,
-                              multiple_list=annot_multiple_list, interest_list=annot_interest_list,
-                              notes_list=annot_notes_list, **kwargs)
-    # return aid_list
+    gid_list  = _verify(gid_list,  'image_uuid_list',  expected_length)
+
+    aid_list = ibs.add_annots(gid_list, bbox_list=annot_bbox_list, theta_list=annot_theta_list)
+
+    if annot_viewpoint_list is not None:
+        annot_viewpoint_list = _rectify(annot_viewpoint_list, const.VIEW.UNKNOWN, expected_length, str)
+        annot_viewpoint_list = _verify(annot_viewpoint_list, 'annot_viewpoint_list', expected_length)
+        ibs.set_annot_viewpoints(aid_list, annot_viewpoint_list)
+
+    if annot_quality_list is not None:
+        annot_quality_list = _rectify(annot_quality_list, const.QUAL_UNKNOWN, expected_length, str)
+        annot_quality_list = _verify(annot_quality_list, 'annot_quality_list', expected_length)
+        ibs.set_annot_quality_texts(aid_list, annot_quality_list)
+
+    if annot_species_list is not None:
+        annot_species_list = _rectify(annot_species_list, const.UNKNOWN, expected_length, str)
+        annot_species_list = _verify(annot_species_list, 'annot_species_list', expected_length)
+        ibs.set_annot_quality_texts(aid_list, annot_species_list)
+
+    if annot_multiple_list is not None:
+        annot_multiple_list = _rectify(annot_multiple_list, False, expected_length, bool)
+        annot_multiple_list = _verify(annot_multiple_list, 'annot_multiple_list', expected_length)
+        ibs.set_annot_multiple(aid_list, annot_multiple_list)
+
+    if annot_interest_list is not None:
+        annot_interest_list = _rectify(annot_interest_list, False, expected_length, bool)
+        annot_interest_list = _verify(annot_interest_list, 'annot_interest_list', expected_length)
+        ibs.set_annot_interest(aid_list, annot_interest_list)
+
+    if annot_name_list is not None:
+        annot_name_list = _rectify(annot_name_list, const.UNKNOWN, expected_length, str)
+        annot_name_list = _verify(annot_name_list, 'annot_name_list', expected_length)
+        ibs.set_annot_names(aid_list, annot_name_list)
+
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     return annot_uuid_list
 
 
 @register_api('/api/part/json/', methods=['POST'])
-def add_parts_json(ibs, annot_uuid_list, part_uuid_list, part_bbox_list,
-                   part_theta_list=None, **kwargs):
+def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwargs):
     """
     REST:
         Method: POST
@@ -377,19 +670,77 @@ def add_parts_json(ibs, annot_uuid_list, part_uuid_list, part_bbox_list,
             Defaults to 0.0 (no rotation).
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
     """
-    annot_uuid_list = [
-        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
-        for uuid_ in annot_uuid_list
-    ]
-    part_uuid_list = [
-        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
-        for uuid_ in part_uuid_list
-    ]
+    def _rectify(list_, default, length, func=None):
+        if list_ is None:
+            list_ = [None] * length
+
+        ret_list = []
+        for item in list_:
+
+            if item is None:
+                item = default
+
+            if None not in [func, item]:
+                item = func(item)
+
+            ret_list.append(item)
+
+        return ret_list
+
+    def _verify(list_, tag, length, allow_none=False):
+        length_ = len(list_)
+        if length_ != length:
+            message = 'The input list %s has the wrong length. Received: %d. Expected %d'
+            args = (tag, length_, length, )
+            raise ValueError(message % args)
+
+        error_list = []
+        for value in enumerate(list_):
+            index, item = value
+            if item is None:
+                error_list.append(value)
+            if isinstance(item, ParseError):
+                value = (index, item.value)
+                error_list.append(value)
+
+        if len(error_list) > 0:
+            message = 'The input list %s has invalid values (index, value): %r'
+            args = (tag, error_list, )
+            raise ValueError(message % args)
+
+        return list_
+
+    def _uuid(value):
+        if value is None:
+            return ParseError(value)
+
+        if isinstance(value, six.string_types):
+            value = uuid.UUID(value)
+
+        return value
+
+    def _bbox(value):
+        if len(value) != 4:
+            return ParseError(value)
+
+        value = tuple(map(float, value))
+
+        return value
+
+    expected_length = len(annot_uuid_list)
+
+    annot_uuid_list = _rectify(annot_uuid_list, None, expected_length, _uuid)
+    part_bbox_list  = _rectify(part_bbox_list,  None, expected_length, _bbox)
+    part_theta_list = _rectify(part_theta_list, None, expected_length, float)
+
+    annot_uuid_list = _verify(annot_uuid_list, 'image_uuid_list',  expected_length)
+    part_bbox_list  = _verify(part_bbox_list,  'part_bbox_list',  expected_length)
+    part_theta_list = _verify(part_theta_list, 'part_theta_list', expected_length)
+
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    part_rowid_list = ibs.add_parts(aid_list, part_uuid_list=part_uuid_list,
-                                    bbox_list=part_bbox_list, theta_list=part_theta_list,
-                                    **kwargs)
-    # return aid_list
+    aid_list = _verify(aid_list, 'annot_uuid_list', expected_length)
+
+    part_rowid_list = ibs.add_parts(aid_list, bbox_list=part_bbox_list, theta_list=part_theta_list)
     part_uuid_list = ibs.get_part_uuids(part_rowid_list)
     return part_uuid_list
 
