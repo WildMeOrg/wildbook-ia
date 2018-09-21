@@ -133,7 +133,11 @@ def build_cmsinfo(cm_list, qreq_):
         if gt_name_score <= 0:
             # ensure failure cases are loud give them the worst possible rank
             # instead of a random one.
-            gt_name_rank = len(qreq_.dnids) + 1
+            if hasattr(qreq_, 'dnids'):
+                gt_name_rank = len(qreq_.dnids) + 1
+            else:
+                dnids = list(set(ibs.get_annot_nids(qreq_.daids)))
+                gt_name_rank = len(dnids) + 1
         qnx2_nameres_info = {}
         qnx2_nameres_info['qnid'] = qnid
         qnx2_nameres_info['gt_nid'] = gt_nid

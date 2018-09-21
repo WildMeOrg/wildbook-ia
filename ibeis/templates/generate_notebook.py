@@ -77,6 +77,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
 
         python -m ibeis autogen_ipynb --db testdb_curvrank --ipynb -t default:proot=CurvRankDorsal
         python -m ibeis autogen_ipynb --db testdb_curvrank --ipynb -t default:proot=CurvRankDFluke
+        python -m ibeis autogen_ipynb --db PW_Master --ipynb -t default:proot=CurvRankDorsal
 
     Ignore:
         python -m ibeis autogen_ipynb --db WS_ALL
