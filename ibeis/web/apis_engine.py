@@ -7,6 +7,7 @@ import six
 import utool as ut
 import uuid  # NOQA
 from ibeis.control import accessor_decors, controller_inject
+import ibeis.constants as const
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -352,9 +353,13 @@ def start_identify_annots_query(ibs,
 
     # Ensure annotations
     qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
+
     if dannot_uuid_list is None or (len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None):
-        # VERY HACK
+        qaid = qaid_list[0]
+        species = ibs.get_annot_species_texts(qaid)
+        assert species != const.UNKNOWN, 'Cannot query an annotation with an empty (unset) species against an unspecified database_annot_uuid_list'
         daid_list = ibs.get_valid_aids()
+        daid_list = ibs.filter_annotation_set(daid_list, species=species)
     else:
         daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 

@@ -216,7 +216,7 @@ def image_upload(cleanup=True, **kwargs):
     gid_list = ibs.add_images([upload_filepath], **kwargs)
     gid = gid_list[0]
 
-    if cleanup:
+    if cleanup and exists(upload_filepath):
         ut.remove_dirs(upload_filepath)
 
     return gid

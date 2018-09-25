@@ -1569,6 +1569,43 @@ def view_graphs(sync=False, **kwargs):
     return appf.template('view', 'graphs', **embedded)
 
 
+@register_route('/view/jobs/', methods=['GET'])
+def view_jobs(**kwargs):
+    ibs = current_app.ibs
+
+    response = ibs.get_job_status()
+    assert response['status'] == 'ok'
+
+    jobs = response['json_result']
+    job_list = []
+    for jobid in jobs.keys():
+        job = jobs[jobid]
+        jov_status = job['status']
+        job_state = 0
+        if jov_status == 'completed':
+            job_state += 1
+        if jov_status == 'exception':
+            job_state -= 1
+        job_exception = None
+        job_list.append((
+            jobid,
+            job['jobcounter'],
+            job['action'],
+            job['endpoint'],
+            job['function'],
+            jov_status,
+            job_state,
+            job['time_received'],
+            job['time_updated'],
+            job['time_completed'],
+        ))
+
+    num_jobs = len(job_list)
+
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'jobs', **embedded)
+
+
 @register_route('/view/image/<gid>/', methods=['GET'])
 def image_view_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     r"""

@@ -369,11 +369,58 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             args = tuple()
             kwargs = dict()
     """
-    print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    assert len(args) == 0, 'There should not be any args=%r' % (args,)
+
+    # print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
     print('[TRANSLATE] Calling: %s' % (funcstr,))
-    assert len(args) == 0, 'There should not be any args=%r' % (args,)
+
+    try:
+        key_list = sorted(list(kwargs.keys()))
+        type_list = []
+        message_list = []
+
+        for key in kwargs:
+            try:
+                values = kwargs[key]
+                type_ = type(values).__name__
+                if type_ == 'list':
+                    if len(values) == 0:
+                        type_ = 'empty list'
+                        message_ = '[]'
+                    else:
+                        value = values[0]
+                        type_ += ' of ' + type(value).__name__
+                        length1 = len(values)
+                        try:
+                            length2 = len(set(values))
+                        except TypeError:
+                            length2 = len(set(map(str, values)))
+                        length3 = min(length1, 3)
+                        mod = '...' if length1 != length3 else ''
+                        message_ = 'length %d with unique %d of %s%s' % (length1, length2, values[:length3], mod, )
+                else:
+                    message_ = '%s' % (values, )
+            except:
+                type_ = 'UNKNOWN'
+                message_ = 'ERROR IN PARSING'
+
+            type_list.append(type_)
+            message_list.append(message_)
+
+        zipped = list(zip(key_list, type_list, message_list))
+
+        if len(zipped) > 0:
+            length1 = max(list(map(len, key_list)))
+            length2 = max(list(map(len, type_list)))
+
+            for key_, type_, message_ in zipped:
+                key_ = key_.rjust(length1)
+                type_ = type_.ljust(length2)
+                print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_, ))
+    except:
+        print('[TRANSLATE] ERROR IN KWARGS PARSING')
 
     try:
         # TODO, have better way to differentiate ibs funcs from other funcs
@@ -663,6 +710,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
                         kwargs.update(kwargs4)
+
+                        # Update the request object to include the final rectified inputs for possible future reference
+                        flask.request.processed = ut.to_json(kwargs)
+
                         jQuery_callback = None
                         if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
                             jQuery_callback = str(kwargs.pop('callback', None))

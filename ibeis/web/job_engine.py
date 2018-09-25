@@ -61,7 +61,7 @@ import uuid  # NOQA
 import numpy as np
 import shelve
 import random
-from os.path import join
+from os.path import join, exists, abspath
 from functools import partial
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
@@ -217,7 +217,7 @@ def get_job_id_list(ibs):
 
 @register_ibs_method
 @register_api('/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False)
-def get_job_status(ibs, jobid):
+def get_job_status(ibs, jobid=None):
     """
     Web call that returns the status of a job
 
@@ -243,7 +243,42 @@ def get_job_status(ibs, jobid):
         >>> web_ibs.terminate2()
 
     """
-    status = ibs.job_manager.jobiface.get_job_status(jobid)
+    if jobid is None:
+        status = ibs.job_manager.jobiface.get_job_status_dict()
+    else:
+        status = ibs.job_manager.jobiface.get_job_status(jobid)
+    return status
+
+
+@register_ibs_method
+@register_api('/api/engine/job/metadata/', methods=['GET', 'POST'], __api_plural_check__=False)
+def get_job_metadata(ibs, jobid):
+    """
+    Web call that returns the metadata of a job
+
+    CommandLine:
+        # Run Everything together
+        python -m ibeis.web.job_engine --exec-get_job_metadata
+
+        # Start job queue in its own process
+        python -m ibeis.web.job_engine job_engine_tester --bg
+        # Start web server in its own process
+        ./main.py --web --fg
+        pass
+        # Run foreground process
+        python -m ibeis.web.job_engine --exec-get_job_metadata:0 --fg
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.job_engine import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> # Test get metadata of a job id that does not exist
+        >>> response = web_ibs.send_ibeis_request('/api/engine/job/metadata/', jobid='badjob')
+        >>> web_ibs.terminate2()
+
+    """
+    status = ibs.job_manager.jobiface.get_job_metadata(jobid)
     return status
 
 
@@ -504,11 +539,26 @@ class JobInterface(object):
             print = partial(ut.colorprint, color='blue')
             if jobiface.verbose >= 1:
                 print('----')
+
+            request = None
+            try:
+                import flask
+                if flask.request:
+                    request = {
+                        'endpoint': flask.request.path,
+                        'function': flask.request.endpoint,
+                        'input'   : flask.request.processed,
+                    }
+            except RuntimeError:
+                pass
+
             engine_request = {
                 'action': action,
-                'args': args, 'kwargs': kwargs,
+                'args': args,
+                'kwargs': kwargs,
                 'callback_url': callback_url,
-                'callback_method': callback_method
+                'callback_method': callback_method,
+                'request': request,
             }
             if jobiface.verbose >= 2:
                 print('Queue job: %s' % (engine_request))
@@ -548,6 +598,38 @@ class JobInterface(object):
                 print('Request status of jobid=%r' % (jobid,))
             pair_msg = dict(action='job_status', jobid=jobid)
             # CALLS: collector_request_status
+            jobiface.collect_deal_sock.send_json(pair_msg)
+            if jobiface.verbose >= 3:
+                print('... waiting for collector reply')
+            reply = jobiface.collect_deal_sock.recv_json()
+            if jobiface.verbose >= 2:
+                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
+        return reply
+
+    def get_job_status_dict(jobiface):
+        with ut.Indenter('[client %d] ' % (jobiface.id_)):
+            print = partial(ut.colorprint, color='teal')
+            if jobiface.verbose >= 1:
+                print('----')
+                print('Request list of job ids')
+            pair_msg = dict(action='job_status_dict')
+            # CALLS: collector_request_status
+            jobiface.collect_deal_sock.send_json(pair_msg)
+            if jobiface.verbose >= 3:
+                print('... waiting for collector reply')
+            reply = jobiface.collect_deal_sock.recv_json()
+            if jobiface.verbose >= 2:
+                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
+        return reply
+
+    def get_job_metadata(jobiface, jobid):
+        with ut.Indenter('[client %d] ' % (jobiface.id_)):
+            print = partial(ut.colorprint, color='teal')
+            if jobiface.verbose >= 1:
+                print('----')
+                print('Request metadata of jobid=%r' % (jobid,))
+            pair_msg = dict(action='job_input', jobid=jobid)
+            # CALLS: collector_request_metadata
             jobiface.collect_deal_sock.send_json(pair_msg)
             if jobiface.verbose >= 3:
                 print('... waiting for collector reply')
@@ -689,15 +771,19 @@ def engine_queue_loop(port_dict):
     name = 'engine'
     queue_name = name + '_queue'
     loop_name = queue_name + '_loop'
+
     print = partial(ut.colorprint, color='red')
+
     with ut.Indenter('[%s] ' % (queue_name,)):
         print('Init specialized make_queue_loop: name=%r' % (name,))
+
         # bind the client dealer to the queue router
         rout_sock = ctx.socket(zmq.ROUTER)
         rout_sock.setsockopt_string(zmq.IDENTITY, 'special_queue.' + name + '.' + 'ROUTER')
         rout_sock.bind(iface1)
         if VERBOSE_JOBS:
             print('bind %s_url2 = %r' % (name, iface1,))
+
         # bind the server router to the queue dealer
         deal_sock = ctx.socket(zmq.DEALER)
         deal_sock.setsockopt_string(zmq.IDENTITY, 'special_queue.' + name + '.' + 'DEALER')
@@ -721,41 +807,111 @@ def engine_queue_loop(port_dict):
                 evts = dict(poller.poll())
                 if rout_sock in evts:
                     # HACK GET REQUEST FROM CLIENT
+
+                    # jobid = 'jobid-%04d' % (job_counter,)
+                    jobid = '%s' % (uuid.uuid4(), )
                     job_counter += 1
+                    print('Creating jobid %r (counter %d)' % (jobid, job_counter, ))
+
                     # CALLER: job_client
                     idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
 
-                    #jobid = 'result_%s' % (id_,)
-                    #jobid = 'result_%s' % (uuid.uuid4(),)
-                    jobid = 'jobid-%04d' % (job_counter,)
-                    if VERBOSE_JOBS:
-                        print('Creating jobid %r' % (jobid,))
-
+                    ######################################################################
+                    # Status: Received (Notify Collector)
                     # Reply immediately with a new jobid
                     reply_notify = {
                         'jobid': jobid,
-                        'status': 'ok',
-                        'text': 'job accepted',
+                        'status': 'received',
                         'action': 'notification',
                     }
-                    engine_request = engine_request
-                    engine_request['jobid'] = jobid
+
                     if VERBOSE_JOBS:
                         print('...notifying collector about new job')
                     # CALLS: collector_notify
                     collect_deal_sock.send_json(reply_notify)
+
+                    ######################################################################
+                    # Status: Received (Notify Client)
                     if VERBOSE_JOBS:
                         print('... notifying client that job was accepted')
                     # RETURNS: job_client_return
                     send_multipart_json(rout_sock, idents, reply_notify)
+
+                    ######################################################################
+                    # Status: Metadata
+                    action          = engine_request['action']
+                    args            = engine_request['args']
+                    kwargs          = engine_request['kwargs']
+                    callback_url    = engine_request['callback_url']
+                    callback_method = engine_request['callback_method']
+                    request         = engine_request['request']
+
+                    # Reply immediately with a new jobid
+                    metadata_notify = {
+                        'jobid': jobid,
+                        'metadata': {
+                            'jobcounter'      : job_counter,
+                            'action'          : action,
+                            'args'            : args,
+                            'kwargs'          : kwargs,
+                            'callback_url'    : callback_url,
+                            'callback_method' : callback_method,
+                            'request'         : request,
+                            'times'           : {
+                                'received'    : ut.timestamp(),
+                                'updated'     : None,
+                                'completed'   : None,
+                            }
+                        },
+                        'action': 'metadata',
+                    }
+
+                    if VERBOSE_JOBS:
+                        print('...notifying collector about job metadata')
+                    # CALLS: collector_notify
+                    collect_deal_sock.send_json(metadata_notify)
+
+                    ######################################################################
+                    # Status: Accepted (Metadata Processed)
+                    # Reply immediately with a new jobid
+                    reply_notify = {
+                        'jobid': jobid,
+                        'status': 'accepted',
+                        'action': 'notification',
+                    }
+
+                    if VERBOSE_JOBS:
+                        print('...notifying collector about new job')
+                    # CALLS: collector_notify
+                    collect_deal_sock.send_json(reply_notify)
+
+                    ######################################################################
+                    # Status: Queueing on the Engine
+                    assert 'jobid' not in engine_request
+                    engine_request['jobid'] = jobid
+
                     if VERBOSE_JOBS:
                         print('... notifying backend engine to start')
                     # CALL: engine_
                     send_multipart_json(deal_sock, idents, engine_request)
+
+                    ######################################################################
+                    # Status: Queued
+                    queued_notify = {
+                        'jobid': jobid,
+                        'status': 'queued',
+                        'action': 'notification',
+                    }
+
+                    if VERBOSE_JOBS:
+                        print('...notifying collector that job was queued')
+                    # CALLS: collector_notify
+                    collect_deal_sock.send_json(queued_notify)
                 if deal_sock in evts:
                     pass
         except KeyboardInterrupt:
             print('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
+
         if VERBOSE_JOBS:
             print('Exiting %s queue' % (loop_name,))
 
@@ -806,7 +962,24 @@ def engine_loop(id_, port_dict, dbdir=None):
                 callback_url = engine_request['callback_url']
                 callback_method = engine_request['callback_method']
 
+                # Notify start working
+                reply_notify = {
+                    'jobid': jobid,
+                    'status': 'working',
+                    'action': 'notification',
+                }
+                collect_deal_sock.send_json(reply_notify)
+
                 engine_result = on_engine_request(ibs, jobid, action, args, kwargs)
+                exec_status = engine_result['exec_status']
+
+                # Notify start working
+                reply_notify = {
+                    'jobid': jobid,
+                    'status': 'publishing',
+                    'action': 'notification',
+                }
+                collect_deal_sock.send_json(reply_notify)
 
                 # Store results in the collector
                 collect_request = dict(
@@ -822,6 +995,14 @@ def engine_loop(id_, port_dict, dbdir=None):
 
                 # CALLS: collector_store
                 collect_deal_sock.send_json(collect_request)
+
+                # Notify start working
+                reply_notify = {
+                    'jobid': jobid,
+                    'status': exec_status,
+                    'action': 'notification',
+                }
+                collect_deal_sock.send_json(reply_notify)
         except KeyboardInterrupt:
             print('Caught ctrl+c in engine loop. Gracefully exiting')
         # ----
@@ -848,7 +1029,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
             print('resolving action=%r to ibeis function=%r' % (action, action_func))
     try:
         result = action_func(*args, **kwargs)
-        exec_status = 'ok'
+        exec_status = 'completed'
     except Exception as ex:
         result = ut.formatex(ex, keys=['jobid'], tb=True)
         result = ut.strip_ansi(result)
@@ -879,22 +1060,26 @@ def collector_loop(port_dict, dbdir, containerized):
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
         # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
         shelve_path = ibs.get_shelves_path()
-        ut.delete(shelve_path)
+
+        if exists(shelve_path):
+            ut.delete(shelve_path)
         ut.ensuredir(shelve_path)
 
         collecter_data = {}
-        awaiting_data = {}
+        status_data = {}
+
         try:
             while True:
                 # several callers here
                 # CALLER: collector_notify
                 # CALLER: collector_store
                 # CALLER: collector_request_status
+                # CALLER: collector_request_metadata
                 # CALLER: collector_request_result
                 idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
                 try:
                     reply = on_collect_request(collect_request, collecter_data,
-                                               awaiting_data, shelve_path,
+                                               status_data, shelve_path,
                                                containerized=containerized)
                 except Exception as ex:
                     print(ut.repr3(collect_request))
@@ -906,46 +1091,78 @@ def collector_loop(port_dict, dbdir, containerized):
             print('Exiting collector')
 
 
-def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_path,
-                       containerized=False):
+def on_collect_request(collect_request, collecter_data, status_data,
+                       shelve_path, containerized=False):
     """ Run whenever the collector recieves a message """
     import requests
-    reply = {}
+    reply = {
+        'status': 'ok',
+    }
     action = collect_request['action']
     if VERBOSE_JOBS:
         print('...building action=%r response' % (action,))
+
     if action == 'notification':
         # From the Queue
         jobid = collect_request['jobid']
-        awaiting_data[jobid] = collect_request['text']
-        # Make waiting lock
+        status = collect_request['status']
+        status_data[jobid] = status
+
         lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
-        ut.touch(lock_filepath)
+        if status == 'received':
+            # Make waiting lock
+            ut.touch(lock_filepath)
+        elif status == 'completed':
+            if exists(lock_filepath):
+                ut.delete(lock_filepath)
+
+        if jobid in collecter_data:
+            if 'input' in collecter_data[jobid]:
+                times = collecter_data[jobid]['input'].get('times', None)
+                assert times is not None
+                times['updated'] = ut.timestamp()
+                if status == 'completed':
+                    times['completed'] = ut.timestamp()
+    elif action == 'metadata':
+        # From the Engine
+        jobid    = collect_request['jobid']
+        metadata = collect_request.get('metadata', None)
+
+        if jobid not in collecter_data:
+            collecter_data[jobid] = {
+                'input': None,
+                'output': None,
+            }
+        collecter_data[jobid]['input'] = metadata
+
+        if VERBOSE_JOBS:
+            print('stored metadata')
     elif action == 'store':
         # From the Engine
-        engine_result = collect_request['engine_result']
-        callback_url = collect_request['callback_url']
+        engine_result   = collect_request['engine_result']
+        callback_url    = collect_request['callback_url']
         callback_method = collect_request['callback_method']
+
         jobid = engine_result['jobid']
 
         if containerized:
             callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
 
-        # OLD METHOD
-        # collecter_data[jobid] = engine_result
-        collecter_data[jobid] = engine_result['exec_status']
+        shelve_filepath = abspath(join(shelve_path, '%s.shelve' % (jobid, )))
 
-        # NEW METHOD
-        shelve_filepath = join(shelve_path, '%s.shelve' % (jobid, ))
+        if jobid not in collecter_data:
+            collecter_data[jobid] = {
+                'input': None,
+                'output': None,
+            }
+        collecter_data[jobid]['output'] = shelve_filepath
+
         shelf = shelve.open(shelve_filepath, writeback=True)
         try:
-            shelf[str('result')] = engine_result
+            key = str('result')
+            shelf[key] = engine_result
         finally:
             shelf.close()
-
-        # Delete the lock
-        lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
-        ut.delete(lock_filepath)
 
         if callback_url is not None:
             if callback_method is None:
@@ -958,7 +1175,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
 
             try:
                 args = (callback_url, callback_method)
-                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r' % args)
+                print('ATTEMPTING CALLBACK TO %r\n\tMETHOD: %r' % args)
 
                 # requests.get(callback_url)
                 data_dict = {'jobid': jobid}
@@ -977,7 +1194,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                     text = None
 
                 args = (callback_url, callback_method, data_dict, response, text, )
-                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
+                print('CALLBACK COMPLETED TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
 
             except Exception as ex:
                 msg = (('ERROR in collector. '
@@ -991,51 +1208,74 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
     elif action == 'job_status':
         # From a Client
         jobid = collect_request['jobid']
-        if jobid in collecter_data:
-            reply['jobstatus'] = 'completed'
-            reply['exec_status'] = collecter_data[jobid]
-        elif jobid in awaiting_data:
-            reply['jobstatus'] = 'working'
-        else:
-            reply['jobstatus'] = 'unknown'
-        reply['status'] = 'ok'
         reply['jobid'] = jobid
+        reply['jobstatus'] = status_data.get('jobid', 'unknown')
+    elif action == 'job_status_dict':
+        # From a Client
+        json_result = {}
+        for jobid in status_data:
+            status = status_data.get(jobid)
+            metadata = collecter_data.get(jobid, {}).get('input', {})
+            times = metadata.get('times', {})
+            request = metadata.get('request', {})
+            if request is None:
+                request = {}
+            json_result[jobid] = {
+                'status'         : status,
+                'jobcounter'     : metadata.get('jobcounter', None),
+                'action'         : metadata.get('action', None),
+                'endpoint'       : request.get('endpoint', None),
+                'function'       : request.get('function', None),
+                'time_received'  : times.get('received', None),
+                'time_updated'   : times.get('updated', None),
+                'time_completed' : times.get('completed', None),
+            }
+        reply['json_result'] = json_result
     elif action == 'job_id_list':
-        reply['status'] = 'ok'
-        reply['jobid_list'] = list(collecter_data.keys())
+        reply['jobid_list'] = sorted(list(status_data.keys()))
+    elif action == 'job_input':
+        # From a Client
+        jobid = collect_request['jobid']
+        reply['jobid'] = jobid
+
+        if jobid not in collecter_data:
+            reply['status'] = 'invalid'
+            reply['json_result'] = None
+        else:
+            assert 'input' in collecter_data[jobid]
+            assert 'output' in collecter_data[jobid]
+
+            metadata = collecter_data[jobid]['input']
+            reply['json_result'] = metadata
     elif action == 'job_result':
         # From a Client
         jobid = collect_request['jobid']
-        try:
-            # OLD METHOD
-            # engine_result = collecter_data[jobid]
-            # NEW METHOD
-            shelve_filepath = join(shelve_path, '%s.shelve' % (jobid, ))
+        reply['jobid'] = jobid
+
+        if jobid not in collecter_data:
+            reply['status'] = 'invalid'
+            reply['json_result'] = None
+        else:
+            assert 'input' in collecter_data[jobid]
+            assert 'output' in collecter_data[jobid]
+
+            shelve_filepath = collecter_data[jobid]['output']
+
             shelf = shelve.open(shelve_filepath)
+
             try:
-                engine_result = shelf[str('result')]
+                key = str('result')
+                engine_result = shelf[key]
             finally:
                 shelf.close()
 
+            reply['status'] = engine_result['exec_status']
             json_result = engine_result['json_result']
-            reply['jobid'] = jobid
-            reply['status'] = 'ok'
-            # reply['json_result'] = json_result
-            # We want to parse the JSON result here, since we need to live in
-            # Python land for the rest of the call until the API wrapper
-            # converts the Python objcets to JSON before the response is
-            # generated.  This prevents the API from converting a Python string
-            # of JSON to a JSON string of JSON, which is bad.
             reply['json_result'] = ut.from_json(json_result)
-        except KeyError:
-            reply['jobid'] = jobid
-            reply['status'] = 'invalid'
-            reply['json_result'] = None
     else:
         # Other
         print('...error unknown action=%r' % (action,))
         reply['status'] = 'error'
-        reply['text'] = 'unknown action'
     return reply
 
 
