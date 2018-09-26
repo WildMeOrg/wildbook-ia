@@ -5,7 +5,7 @@ from ibeis.control import accessor_decors, controller_inject
 from ibeis import constants as const
 import utool as ut
 import simplejson as json
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, exists
 from flask import url_for, request, current_app
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
@@ -18,6 +18,33 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1toM
+@register_api('/api/wic/cnn/', methods=['PUT', 'GET', 'POST'])
+def wic_cnn(ibs, gid_list, testing=False, model_tag='candidacy', **kwargs):
+    depc = ibs.depc_image
+    config = {}
+
+    if model_tag is not None:
+        config['classifier_two_weight_filepath'] = model_tag
+
+    if testing:
+        depc.delete_property('classifier_two', gid_list, config=config)
+
+    result_list = depc.get_property('classifier_two', gid_list, None, config=config)
+
+    output_list = []
+    for result in result_list:
+        scores, classes = result
+        output_list.append({
+            'scores': scores,
+            'class': classes,
+        })
+
+    return output_list
 
 
 @register_ibs_method
@@ -600,6 +627,58 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
 
 
 @register_ibs_method
+@register_api('/api/models/cnn/lightnet/', methods=['PUT', 'GET', 'POST'], __api_plural_check__=False)
+def models_cnn_lightnet(ibs, **kwargs):
+    """
+    Return the models (and their labels) for the YOLO CNN detector
+
+    RESTful:
+        Method: PUT, GET
+        URL:    /api/labels/cnn/lightnet/
+    """
+    from ibeis.algo.detect.lightnet import WEIGHT_URL_DICT, _parse_classes_from_weights, _parse_class_list
+    model_dict = ibs.models_cnn(WEIGHT_URL_DICT, _parse_classes_from_weights, _parse_class_list, **kwargs)
+    return model_dict
+
+
+@register_ibs_method
+@register_api('/api/models/cnn/yolo/', methods=['PUT', 'GET', 'POST'], __api_plural_check__=False)
+def models_cnn_yolo(ibs, **kwargs):
+    """
+    Return the models (and their labels) for the YOLO CNN detector
+
+    RESTful:
+        Method: PUT, GET
+        URL:    /api/labels/cnn/yolo/
+    """
+    from pydarknet._pydarknet import CONFIG_URL_DICT, _parse_classes_from_cfg, _parse_class_list
+    model_dict = ibs.models_cnn(CONFIG_URL_DICT, _parse_classes_from_cfg, _parse_class_list, **kwargs)
+    return model_dict
+
+
+@register_ibs_method
+def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash=False, **kwargs):
+    import urllib
+
+    model_dict = {}
+    for config_tag in config_dict:
+        config_url = config_dict[config_tag]
+        classes_url = parse_classes_func(config_url)
+        try:
+            classes_filepath = ut.grab_file_url(classes_url, appname='pydarknet',
+                                                check_hash=check_hash)
+            assert exists(classes_filepath)
+        except (urllib.error.HTTPError, AssertionError):
+            continue
+
+        classes_filepath = ut.truepath(classes_filepath)
+        line_list = parse_line_func(classes_filepath)
+        model_dict[config_tag] = line_list
+
+    return model_dict
+
+
+@register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/labeler/cnn/', methods=['PUT', 'GET', 'POST'])
@@ -622,6 +701,33 @@ def labeler_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
             'score': score,
             'species': species,
             'viewpoint': viewpoint,
+        })
+
+    return output_list
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1toM
+@register_api('/api/aoi/cnn/', methods=['PUT', 'GET', 'POST'])
+def aoi_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
+    depc = ibs.depc_annot
+    config = {}
+
+    if model_tag is not None:
+        config['aoi_two_weight_filepath'] = model_tag
+
+    if testing:
+        depc.delete_property('aoi_two', aid_list, config=config)
+
+    result_list = depc.get_property('aoi_two', aid_list, None, config=config)
+
+    output_list = []
+    for result in result_list:
+        score, class_ = result
+        output_list.append({
+            'score': score,
+            'class': class_,
         })
 
     return output_list

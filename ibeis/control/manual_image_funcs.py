@@ -225,7 +225,7 @@ def get_num_images(ibs, **kwargs):
 
 
 @register_ibs_method
-def _compute_image_uuids(ibs, gpath_list, sanitize=True, **kwargs):
+def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
     from ibeis.algo.preproc import preproc_image
     from ibeis.other import ibsfuncs
 
@@ -241,9 +241,19 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, **kwargs):
         nTasks=len(gpath_list), force_serial=ibs.force_serial))
 
     # Error reporting
-    print('\n'.join(
-        [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
-         in zip(gpath_list, params_list) if not params_]))
+    failed_list = [
+        gpath
+        for (gpath, params_) in zip(gpath_list, params_list)
+        if not params_
+    ]
+
+    print('\n'.join([
+        ' ! Failed reading gpath=%r' % (gpath, )
+        for gpath in failed_list
+    ]))
+
+    if ensure and len(failed_list) > 0:
+        print('Importing %d files failed: %r' % (len(failed_list), failed_list, ))
 
     return params_list
 
@@ -329,7 +339,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     if location_for_names is None:
         location_for_names = ibs.cfg.other_cfg.location_for_names
 
-    if params_list is None:
+    compute_params = params_list is None
+    if compute_params:
         params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
 
     # <DEBUG>
@@ -365,6 +376,11 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         gext_list  = ibs.get_image_exts(gid_list)
         if ut.VERBOSE:
             ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
+
+    if not compute_params:
+        # We need to double check that the UUIDs are valid, considering we received the UUIDs
+        guuid_list_ = ibs.compute_image_uuids(gpath_list)
+        assert guuid_list_ == guuid_list
 
     if ut.VERBOSE:
         uuid_list = [None if params_ is None else params_[0] for params_ in params_list]

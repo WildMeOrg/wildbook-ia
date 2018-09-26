@@ -82,6 +82,29 @@ def annotation_src(aid=None, ibs=None, **kwargs):
     return image_src
 
 
+@register_route('/ajax/background/src/<aid>/', methods=['GET'])
+def probchip_src(aid=None, ibs=None, **kwargs):
+    import cv2
+
+    if ibs is None:
+        ibs = current_app.ibs
+
+    if 'dim_size' not in kwargs:
+        kwargs['dim_size'] = max(
+            int(appf.TARGET_WIDTH),
+            int(appf.TARGET_HEIGHT),
+        )
+
+    image_filepath = ibs.get_annot_probchip_fpath(aid, config2_=kwargs)
+    image = cv2.imread(image_filepath)
+    x, y, w, h = ibs.get_annot_bboxes(aid)
+
+    image = cv2.resize(image, (w, h))
+    # image_src = _resize_src(image, **kwargs)
+    image_src = appf.embed_image_html(image, target_height=300)
+    return image_src
+
+
 @register_route('/ajax/part/src/<part_rowid>/', methods=['GET'])
 def part_src(part_rowid, **kwargs):
     ibs = current_app.ibs

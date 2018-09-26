@@ -170,12 +170,14 @@ def view(**kwargs):
     imgsetids_list = ibs.get_valid_imgsetids()
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
+    pid_list = ibs.get_valid_part_rowids()
     nid_list = ibs.get_valid_nids()
 
     return appf.template('view',
                          num_imgsetids=len(imgsetids_list),
                          num_gids=len(gid_list),
                          num_aids=len(aid_list),
+                         num_pids=len(pid_list),
                          num_nids=len(nid_list))
 
 
@@ -1753,6 +1755,60 @@ def view_annotations(**kwargs):
                          page_total=page_total,
                          page_previous=page_previous,
                          page_next=page_next)
+
+
+@register_route('/view/parts/', methods=['GET'])
+def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
+               page=1, **kwargs):
+    ibs = current_app.ibs
+
+    filtered = True
+    if imgsetid_list is not None:
+        gid_list = ibs.get_imageset_gids(imgsetid_list)
+    if gid_list is not None:
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    if aid_list is not None:
+        pid_list = ut.flatten(ibs.get_image_aids(aid_list))
+    else:
+        pid_list = ibs.get_valid_part_rowids()
+        filtered = False
+
+    # Page
+    page_start = min(len(pid_list), (page - 1) * appf.PAGE_SIZE)
+    page_end   = min(len(pid_list), page * appf.PAGE_SIZE)
+    page_total = int(math.ceil(len(pid_list) / appf.PAGE_SIZE))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(pid_list) else page + 1
+
+    pid_list = pid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(pid_list), page_previous, page_next, ))
+
+    pid_list      = [] if pid_list      is None else pid_list
+    aid_list      = [] if aid_list      is None else aid_list
+    gid_list      = [] if gid_list      is None else gid_list
+    imgsetid_list = [] if imgsetid_list is None else imgsetid_list
+
+    imgsetid_list_str = ','.join(map(str, imgsetid_list))
+    gid_list_str = ','.join(map(str, gid_list))
+    aid_list_str = ','.join(map(str, aid_list))
+    pid_list_str = ','.join(map(str, pid_list))
+
+    num_imgsetids = len(imgsetid_list)
+    num_gids = len(gid_list)
+    num_aids = len(aid_list)
+    num_pids = len(pid_list)
+
+    part_list = list(zip(
+        pid_list,
+        ibs.get_part_aids(pid_list),
+        ibs.get_part_gids(pid_list),
+        ibs.get_part_types(pid_list),
+        ibs.get_part_reviewed(pid_list),
+    ))
+    part_list.sort(key=lambda t: t[0])
+
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'parts', **embedded)
 
 
 @register_route('/view/names/', methods=['GET'])

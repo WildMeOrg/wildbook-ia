@@ -364,6 +364,50 @@ def get_part_detect_confidence(ibs, part_rowid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
+@register_api('/api/part/image/rowid/', methods=['GET'])
+def get_part_gids(ibs, part_rowid_list, assume_unique=False):
+    r"""
+    Get parent imageation rowids of parts
+
+    Args:
+        part_rowid_list (list):
+
+    Returns:
+        gid_list (list):  image rowids
+
+    RESTful:
+        Method: GET
+        URL:    /api/part/image/rowid/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_part_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> part_rowid_list = ibs.get_valid_part_rowids()
+        >>> result = get_part_gids(ibs, part_rowid_list)
+        >>> print(result)
+    """
+    aid_list = ibs.get_part_aids(part_rowid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+    return gid_list
+
+
+@register_ibs_method
+def get_part_image_rowids(ibs, part_rowid_list):
+    return ibs.get_part_gids(part_rowid_list)
+
+
+@register_ibs_method
+def get_part_image_uuids(ibs, part_rowid_list):
+    gid_list = ibs.get_part_gids(part_rowid_list)
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    return image_uuid_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1to1
 @register_api('/api/part/annot/rowid/', methods=['GET'])
 def get_part_aids(ibs, part_rowid_list, assume_unique=False):
     r"""

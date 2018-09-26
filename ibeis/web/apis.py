@@ -144,6 +144,48 @@ def annot_src_api(rowid=None, fresh=False, **kwargs):
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
+@register_route('/api/background/src/<rowid>/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
+def background_src_api(rowid=None, fresh=False, **kwargs):
+    r"""
+    Returns the image file of annot <aid>
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.app import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_ibeis_request('/api/annot/src/', type_='get', aid=1)
+        >>> print(resp)
+        >>> web_ibs.terminate2()
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/src/<rowid>/
+    """
+    from PIL import Image  # NOQA
+    ibs = current_app.ibs
+    gpath = ibs.get_annot_probchip_fpath(rowid)
+
+    # Load image
+    assert gpath is not None, 'image path should not be None'
+    image = vt.imread(gpath, orient='auto')
+    image = appf.resize_via_web_parameters(image)
+    image = image[:, :, ::-1]
+
+    # Encode image
+    image_pil = Image.fromarray(image)
+    if six.PY2:
+        img_io = StringIO()
+    else:
+        img_io = BytesIO()
+    image_pil.save(img_io, 'JPEG', quality=100)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
+    # return send_file(gpath, mimetype='application/unknown')
+
+
+# Special function that is a route only to ignore the JSON response, but is
+# actually (and should be) an API call
 @register_route('/api/image/src/json/<uuid>/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
 def image_src_api_json(uuid=None, **kwargs):
     r"""
