@@ -510,6 +510,18 @@ within this file</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.other.detectcore.export_to_coco">
+<code class="descclassname">ibeis.other.detectcore.</code><code class="descname">export_to_coco</code><span class="sig-paren">(</span><em>ibs</em>, <em>species_list</em>, <em>species_mapping=None</em>, <em>target_size=1200</em>, <em>use_maximum_linear_dimension=True</em>, <em>use_existing_train_test=True</em>, <em>gid_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#export_to_coco"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.export_to_coco" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create training COCO dataset for training models.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectcore.export_to_pascal">
+<code class="descclassname">ibeis.other.detectcore.</code><code class="descname">export_to_pascal</code><span class="sig-paren">(</span><em>ibs</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#export_to_pascal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.export_to_pascal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for export_to_xml</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.other.detectcore.export_to_xml">
 <code class="descclassname">ibeis.other.detectcore.</code><code class="descname">export_to_xml</code><span class="sig-paren">(</span><em>ibs</em>, <em>species_list</em>, <em>species_mapping=None</em>, <em>offset='auto'</em>, <em>enforce_viewpoint=False</em>, <em>target_size=900</em>, <em>purge=False</em>, <em>use_maximum_linear_dimension=True</em>, <em>use_existing_train_test=True</em>, <em>include_parts=False</em>, <em>gid_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#export_to_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.export_to_xml" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create training XML for training models.</p>
@@ -658,6 +670,11 @@ within this file</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.other.detectfuncs.background_accuracy_display">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">background_accuracy_display</code><span class="sig-paren">(</span><em>ibs</em>, <em>category_list</em>, <em>test_gid_set=None</em>, <em>output_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#background_accuracy_display"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.background_accuracy_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.other.detectfuncs.classifier2_precision_recall_algo">
 <code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">classifier2_precision_recall_algo</code><span class="sig-paren">(</span><em>ibs</em>, <em>category</em>, <em>species_mapping={}</em>, <em>output_path=None</em>, <em>test_gid_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#classifier2_precision_recall_algo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.classifier2_precision_recall_algo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -760,6 +777,36 @@ within this file</p>
 <dl class="function">
 <dt id="ibeis.other.detectfuncs.general_tp_fp_fn">
 <code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">general_tp_fp_fn</code><span class="sig-paren">(</span><em>gt_list</em>, <em>pred_list</em>, <em>min_overlap</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#general_tp_fp_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.general_tp_fp_fn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectfuncs.labeler_confusion_matrix_algo_plot">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">labeler_confusion_matrix_algo_plot</code><span class="sig-paren">(</span><em>ibs</em>, <em>category_list</em>, <em>viewpoint_mapping</em>, <em>category_mapping=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#labeler_confusion_matrix_algo_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.labeler_confusion_matrix_algo_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectfuncs.labeler_precision_recall_algo">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">labeler_precision_recall_algo</code><span class="sig-paren">(</span><em>ibs</em>, <em>category_list</em>, <em>label_dict</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#labeler_precision_recall_algo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.labeler_precision_recall_algo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectfuncs.labeler_precision_recall_algo_display">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">labeler_precision_recall_algo_display</code><span class="sig-paren">(</span><em>ibs</em>, <em>category_list=None</em>, <em>viewpoint_mapping=None</em>, <em>category_mapping=None</em>, <em>fuzzy_dict=None</em>, <em>figsize=(30</em>, <em>9)</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#labeler_precision_recall_algo_display"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.labeler_precision_recall_algo_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectfuncs.labeler_precision_recall_algo_plot">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">labeler_precision_recall_algo_plot</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#labeler_precision_recall_algo_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.labeler_precision_recall_algo_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectfuncs.labeler_roc_algo_plot">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">labeler_roc_algo_plot</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#labeler_roc_algo_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.labeler_roc_algo_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.detectfuncs.labeler_tp_tn_fp_fn">
+<code class="descclassname">ibeis.other.detectfuncs.</code><code class="descname">labeler_tp_tn_fp_fn</code><span class="sig-paren">(</span><em>ibs</em>, <em>category_list</em>, <em>viewpoint_mapping=None</em>, <em>samples=1000</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectfuncs.html#labeler_tp_tn_fp_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectfuncs.labeler_tp_tn_fp_fn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

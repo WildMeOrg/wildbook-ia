@@ -240,6 +240,27 @@
 <span id="ibeis-web-apis-module"></span><h2>ibeis.web.apis module<a class="headerlink" href="#module-ibeis.web.apis" title="Permalink to this headline">¶</a></h2>
 <p>Dependencies: flask, tornado</p>
 <dl class="function">
+<dt id="ibeis.web.apis.annot_src_api">
+<code class="descclassname">ibeis.web.apis.</code><code class="descname">annot_src_api</code><span class="sig-paren">(</span><em>rowid=None</em>, <em>fresh=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis.html#annot_src_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis.annot_src_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the image file of annot &lt;aid&gt;</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.app</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">send_ibeis_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/src/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/src/&lt;rowid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.apis.heartbeat">
 <code class="descclassname">ibeis.web.apis.</code><code class="descname">heartbeat</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis.html#heartbeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis.heartbeat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -484,7 +505,7 @@ URL: /api/detect/cnn/yolo/json/</dd>
 
 <dl class="function">
 <dt id="ibeis.web.apis_detect.detect_cnn_lightnet">
-<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">detect_cnn_lightnet</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>commit=True</em>, <em>testing=False</em>, <em>model_tag=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#detect_cnn_lightnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.detect_cnn_lightnet" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">detect_cnn_lightnet</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>labeler=False</em>, <em>commit=True</em>, <em>testing=False</em>, <em>model_tag=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#detect_cnn_lightnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.detect_cnn_lightnet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run animal detection in each image. Adds annotations to the database as they are found.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -756,6 +777,43 @@ URL:    /api/detect/species/working/</dd>
 URL:    /api/detect/species/enabled/</dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_detect.image_upload_detect">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">image_upload_detect</code><span class="sig-paren">(</span><em>cleanup=True</em>, <em>config={}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#image_upload_detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.image_upload_detect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the detection results for an uploaded image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>image binary</em>) – the POST variable containing the binary
+(multi-form) image data</li>
+<li><strong>config</strong> (<em>dict</em>) – the detection configuration arguments</li>
+<li><strong>**kwargs</strong> – Arbitrary keyword arguments; the kwargs are passed down to
+the add_images and detect_cnn_json functions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dict of detection results (not annotations)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">results_dict (dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: POST
+URL:    /api/upload/image/detect/cnn/yolo/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_detect.labeler_cnn">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">labeler_cnn</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>testing=False</em>, <em>model_tag='candidacy'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#labeler_cnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.labeler_cnn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.web.apis_detect.log_detections">
@@ -1082,6 +1140,11 @@ python -m ibeis.web.apis_engine start_identify_annots_query –show –domain=lo
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.apis_engine.start_labeler_cnn">
+<code class="descclassname">ibeis.web.apis_engine.</code><code class="descname">start_labeler_cnn</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid_list</em>, <em>callback_url=None</em>, <em>callback_method=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_engine.html#start_labeler_cnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_engine.start_labeler_cnn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.apis_engine.start_predict_ws_injury_interim_svm">
 <code class="descclassname">ibeis.web.apis_engine.</code><code class="descname">start_predict_ws_injury_interim_svm</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid_list</em>, <em>callback_url=None</em>, <em>callback_method=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_engine.html#start_predict_ws_injury_interim_svm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_engine.start_predict_ws_injury_interim_svm" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
@@ -1123,6 +1186,11 @@ URL: /api/engine/classify/whaleshark/injury/</dd>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_engine.start_review_query_chips_best">
+<code class="descclassname">ibeis.web.apis_engine.</code><code class="descname">start_review_query_chips_best</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid</em>, <em>callback_url=None</em>, <em>callback_method=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_engine.html#start_review_query_chips_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_engine.start_review_query_chips_best" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.web.apis_engine.start_web_query_all">
@@ -1186,6 +1254,12 @@ URL: /api/engine/query/web/</dd>
 <div class="section" id="module-ibeis.web.apis_json">
 <span id="ibeis-web-apis-json-module"></span><h2>ibeis.web.apis_json module<a class="headerlink" href="#module-ibeis.web.apis_json" title="Permalink to this headline">¶</a></h2>
 <p>Dependencies: flask, tornado</p>
+<dl class="class">
+<dt id="ibeis.web.apis_json.ParseError">
+<em class="property">class </em><code class="descclassname">ibeis.web.apis_json.</code><code class="descname">ParseError</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#ParseError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.ParseError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.web.apis_json.add_annotmatch_json">
 <code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_annotmatch_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>match_annot_uuid1_list</em>, <em>match_annot_uuid2_list</em>, <em>match_evidence_decision_list=None</em>, <em>match_meta_decision_list=None</em>, <em>match_confidence_list=None</em>, <em>match_user_list=None</em>, <em>match_tag_list=None</em>, <em>match_modified_list=None</em>, <em>match_count_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_annotmatch_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_annotmatch_json" title="Permalink to this definition">¶</a></dt>
@@ -1193,7 +1267,7 @@ URL: /api/engine/query/web/</dd>
 
 <dl class="function">
 <dt id="ibeis.web.apis_json.add_annots_json">
-<code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_annots_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uuid_list</em>, <em>annot_uuid_list</em>, <em>annot_bbox_list</em>, <em>annot_theta_list=None</em>, <em>annot_viewpoint_list=None</em>, <em>annot_quality_list=None</em>, <em>annot_species_list=None</em>, <em>annot_multiple_list=None</em>, <em>annot_interest_list=None</em>, <em>annot_name_list=None</em>, <em>annot_notes_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_annots_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_annots_json" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_annots_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uuid_list</em>, <em>annot_bbox_list</em>, <em>annot_theta_list</em>, <em>annot_viewpoint_list=None</em>, <em>annot_quality_list=None</em>, <em>annot_species_list=None</em>, <em>annot_multiple_list=None</em>, <em>annot_interest_list=None</em>, <em>annot_name_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_annots_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_annots_json" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>REST:</dt>
 <dd>Method: POST
@@ -1207,7 +1281,6 @@ URL: /api/annot/json/</dd>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>image_uuid_list</strong> (<em>list of str</em>) – list of image UUIDs to be used in IBEIS IA</li>
-<li><strong>annot_uuid_list</strong> (<em>list of str</em>) – list of annotations UUIDs to be used in IBEIS IA</li>
 <li><strong>annot_bbox_list</strong> (<em>list of 4-tuple</em>) – list of bounding box coordinates encoded as
 a 4-tuple of the values (xtl, ytl, width, height) where xtl is the
 ‘top left corner, x value’ and ytl is the ‘top left corner, y value’.</li>
@@ -1217,7 +1290,6 @@ Defaults to 0.0 (no rotation).</li>
 If the list is partially known, use None (null in JSON) for unknown entries.</li>
 <li><strong>annot_name_list</strong> (<em>list of str</em>) – list of names for the annotation, if known.
 If the list is partially known, use None (null in JSON) for unknown entries.</li>
-<li><strong>annot_notes_list</strong> (<em>list of str</em>) – list of notes to be added to the annotation.</li>
 <li><strong>**kwargs</strong> – key-value pairs passed to the ibs.add_annots() function.</li>
 </ul>
 </td>
@@ -1257,7 +1329,7 @@ If the list is partially known, use None (null in JSON) for unknown entries.</li
 
 <dl class="function">
 <dt id="ibeis.web.apis_json.add_images_json">
-<code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_images_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uri_list</em>, <em>image_uuid_list</em>, <em>image_width_list</em>, <em>image_height_list</em>, <em>image_orig_name_list=None</em>, <em>image_ext_list=None</em>, <em>image_time_posix_list=None</em>, <em>image_gps_lat_list=None</em>, <em>image_gps_lon_list=None</em>, <em>image_orientation_list=None</em>, <em>image_notes_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_images_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_images_json" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_images_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uri_list</em>, <em>image_unixtime_list=None</em>, <em>image_gps_lat_list=None</em>, <em>image_gps_lon_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_images_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_images_json" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>REST:</dt>
 <dd>Method: POST
@@ -1308,17 +1380,9 @@ objects) that specify AWS S3 stored assets.  An example below:</p>
 using string uri’s.  For specific authentication methods, please use the
 latter list of dictionaries.</p>
 </li>
-<li><strong>image_uuid_list</strong> (<em>list of str</em>) – list of image UUIDs to be used in IBEIS IA</li>
-<li><strong>image_width_list</strong> (<em>list of int</em>) – list of image widths</li>
-<li><strong>image_height_list</strong> (<em>list of int</em>) – list of image heights</li>
-<li><strong>image_orig_name_list</strong> (<em>list of str</em>) – list of original image names</li>
-<li><strong>image_ext_list</strong> (<em>list of str</em>) – list of original image names</li>
 <li><strong>image_time_posix_list</strong> (<em>list of int</em>) – list of image’s POSIX timestamps</li>
 <li><strong>image_gps_lat_list</strong> (<em>list of float</em>) – list of image’s GPS latitude values</li>
 <li><strong>image_gps_lon_list</strong> (<em>list of float</em>) – list of image’s GPS longitude values</li>
-<li><strong>image_orientation_list</strong> (<em>list of int</em>) – list of image’s orientation flags</li>
-<li><strong>image_notes_list</strong> (<em>list of str</em>) – optional list of any related notes with
-the images</li>
 <li><strong>**kwargs</strong> – key-value pairs passed to the ibs.add_images() function.</li>
 </ul>
 </td>
@@ -1413,7 +1477,7 @@ URL:    /api/imageset/json/</dd>
 
 <dl class="function">
 <dt id="ibeis.web.apis_json.add_parts_json">
-<code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_parts_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid_list</em>, <em>part_uuid_list</em>, <em>part_bbox_list</em>, <em>part_theta_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_parts_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_parts_json" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_json.</code><code class="descname">add_parts_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid_list</em>, <em>part_bbox_list</em>, <em>part_theta_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_json.html#add_parts_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_json.add_parts_json" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>REST:</dt>
 <dd>Method: POST
@@ -2910,6 +2974,11 @@ python -m ibeis.web.apis_query review_graph_match_html –show –domain=localho
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.apis_query.review_query_chips_best">
+<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">review_query_chips_best</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#review_query_chips_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.review_query_chips_best" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.apis_query.review_query_chips_test">
 <code class="descclassname">ibeis.web.apis_query.</code><code class="descname">review_query_chips_test</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#review_query_chips_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.review_query_chips_test" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
@@ -3478,7 +3547,7 @@ python -m ibeis.web.job_engine job_engine_tester –bg –only-engine –fg-engi
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="ibeis.web.job_engine.JobBackend.initialize_background_processes">
-<code class="descname">initialize_background_processes</code><span class="sig-paren">(</span><em>dbdir=None</em>, <em>wait=0</em>, <em>containerized=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#JobBackend.initialize_background_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.JobBackend.initialize_background_processes" title="Permalink to this definition">¶</a></dt>
+<code class="descname">initialize_background_processes</code><span class="sig-paren">(</span><em>dbdir=None</em>, <em>wait=0</em>, <em>containerized=False</em>, <em>thread=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#JobBackend.initialize_background_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.JobBackend.initialize_background_processes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -3493,6 +3562,11 @@ python -m ibeis.web.job_engine job_engine_tester –bg –only-engine –fg-engi
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="ibeis.web.job_engine.JobInterface.get_job_metadata">
+<code class="descname">get_job_metadata</code><span class="sig-paren">(</span><em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#JobInterface.get_job_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.JobInterface.get_job_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.web.job_engine.JobInterface.get_job_result">
 <code class="descname">get_job_result</code><span class="sig-paren">(</span><em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#JobInterface.get_job_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.JobInterface.get_job_result" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3500,6 +3574,11 @@ python -m ibeis.web.job_engine job_engine_tester –bg –only-engine –fg-engi
 <dl class="method">
 <dt id="ibeis.web.job_engine.JobInterface.get_job_status">
 <code class="descname">get_job_status</code><span class="sig-paren">(</span><em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#JobInterface.get_job_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.JobInterface.get_job_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.job_engine.JobInterface.get_job_status_dict">
+<code class="descname">get_job_status_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#JobInterface.get_job_status_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.JobInterface.get_job_status_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -3603,6 +3682,35 @@ python -m ibeis.web.job_engine –exec-get_job_status:0 –fg</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.job_engine.get_job_metadata">
+<code class="descclassname">ibeis.web.job_engine.</code><code class="descname">get_job_metadata</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#get_job_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.get_job_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Web call that returns the metadata of a job</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first"># Run Everything together
+python -m ibeis.web.job_engine –exec-get_job_metadata</p>
+<p class="last"># Start job queue in its own process
+python -m ibeis.web.job_engine job_engine_tester –bg
+# Start web server in its own process
+./main.py –web –fg
+pass
+# Run foreground process
+python -m ibeis.web.job_engine –exec-get_job_metadata:0 –fg</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.job_engine</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>  <span class="c1"># , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Test get metadata of a job id that does not exist</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_ibeis_request</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/metadata/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="s1">&#39;badjob&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.job_engine.get_job_result">
 <code class="descclassname">ibeis.web.job_engine.</code><code class="descname">get_job_result</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#get_job_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.get_job_result" title="Permalink to this definition">¶</a></dt>
 <dd><p>Web call that returns the result of a job</p>
@@ -3610,7 +3718,7 @@ python -m ibeis.web.job_engine –exec-get_job_status:0 –fg</p>
 
 <dl class="function">
 <dt id="ibeis.web.job_engine.get_job_status">
-<code class="descclassname">ibeis.web.job_engine.</code><code class="descname">get_job_status</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#get_job_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.get_job_status" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.job_engine.</code><code class="descname">get_job_status</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#get_job_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.get_job_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Web call that returns the status of a job</p>
 <dl class="docutils">
 <dt>CommandLine:</dt>
@@ -3721,7 +3829,7 @@ python -m ibeis.web.job_engine job_engine_tester –fg</p>
 
 <dl class="function">
 <dt id="ibeis.web.job_engine.on_collect_request">
-<code class="descclassname">ibeis.web.job_engine.</code><code class="descname">on_collect_request</code><span class="sig-paren">(</span><em>collect_request</em>, <em>collecter_data</em>, <em>awaiting_data</em>, <em>shelve_path</em>, <em>containerized=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#on_collect_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.on_collect_request" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.job_engine.</code><code class="descname">on_collect_request</code><span class="sig-paren">(</span><em>collect_request</em>, <em>collecter_data</em>, <em>status_data</em>, <em>shelve_path</em>, <em>containerized=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#on_collect_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.on_collect_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run whenever the collector recieves a message</p>
 </dd></dl>
 
@@ -4164,6 +4272,11 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 <dl class="function">
 <dt id="ibeis.web.routes.view_imagesets">
 <code class="descclassname">ibeis.web.routes.</code><code class="descname">view_imagesets</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#view_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.view_imagesets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.routes.view_jobs">
+<code class="descclassname">ibeis.web.routes.</code><code class="descname">view_jobs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#view_jobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.view_jobs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

@@ -221,7 +221,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">shelve</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">abspath</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -377,7 +377,7 @@
 
 <div class="viewcode-block" id="get_job_status"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.get_job_status">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/status/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">get_job_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_job_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Web call that returns the status of a job</span>
 
@@ -403,7 +403,42 @@
 <span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">jobid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_status_dict</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">status</span></div>
+
+
+<div class="viewcode-block" id="get_job_metadata"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.get_job_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/job/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_job_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Web call that returns the metadata of a job</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Run Everything together</span>
+<span class="sd">        python -m ibeis.web.job_engine --exec-get_job_metadata</span>
+
+<span class="sd">        # Start job queue in its own process</span>
+<span class="sd">        python -m ibeis.web.job_engine job_engine_tester --bg</span>
+<span class="sd">        # Start web server in its own process</span>
+<span class="sd">        ./main.py --web --fg</span>
+<span class="sd">        pass</span>
+<span class="sd">        # Run foreground process</span>
+<span class="sd">        python -m ibeis.web.job_engine --exec-get_job_metadata:0 --fg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.job_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;)  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Test get metadata of a job id that does not exist</span>
+<span class="sd">        &gt;&gt;&gt; response = web_ibs.send_ibeis_request(&#39;/api/engine/job/metadata/&#39;, jobid=&#39;badjob&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_metadata</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">status</span></div>
 
 
@@ -557,16 +592,23 @@
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">port</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">port_list</span><span class="p">))</span>
         <span class="p">}</span>
 
-<div class="viewcode-block" id="JobBackend.initialize_background_processes"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.JobBackend.initialize_background_processes">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_background_processes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="JobBackend.initialize_background_processes"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.JobBackend.initialize_background_processes">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_background_processes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                        <span class="n">thread</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;fuchsia&#39;</span><span class="p">)</span>
         <span class="c1">#if VERBOSE_JOBS:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initialize Background Processes&#39;</span><span class="p">)</span>
-        <span class="c1">#_spawner = ut.spawn_background_process</span>
-        <span class="c1">#_spawner = ut.spawn_background_daemon_thread</span>
+
         <span class="k">def</span> <span class="nf">_spawner</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">thread</span><span class="p">:</span>
+                <span class="c1"># mp.set_start_method(&#39;spawn&#39;)</span>
+                <span class="n">_spawner_func_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_daemon_thread</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_spawner_func_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_process</span>
+
             <span class="k">if</span> <span class="n">wait</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Waiting for background process (</span><span class="si">%s</span><span class="s1">) to spin up&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">,)))</span>
-            <span class="n">proc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_process</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">proc</span> <span class="o">=</span> <span class="n">_spawner_func_</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c1"># time.sleep(wait)</span>
             <span class="k">assert</span> <span class="n">proc</span><span class="o">.</span><span class="n">is_alive</span><span class="p">(),</span> <span class="s1">&#39;proc (</span><span class="si">%s</span><span class="s1">) died too soon&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">,))</span>
             <span class="k">return</span> <span class="n">proc</span>
@@ -657,11 +699,26 @@
             <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">)</span>
+
+            <span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">flask</span>
+                <span class="k">if</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="p">:</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;endpoint&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                        <span class="s1">&#39;function&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span>
+                        <span class="s1">&#39;input&#39;</span>   <span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">processed</span><span class="p">,</span>
+                    <span class="p">}</span>
+            <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
             <span class="n">engine_request</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span>
-                <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
+                <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span>
+                <span class="s1">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
                 <span class="s1">&#39;callback_url&#39;</span><span class="p">:</span> <span class="n">callback_url</span><span class="p">,</span>
-                <span class="s1">&#39;callback_method&#39;</span><span class="p">:</span> <span class="n">callback_method</span>
+                <span class="s1">&#39;callback_method&#39;</span><span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span>
+                <span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Queue job: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_request</span><span class="p">))</span>
@@ -701,6 +758,38 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Request status of jobid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
             <span class="n">pair_msg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;job_status&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">)</span>
             <span class="c1"># CALLS: collector_request_status</span>
+            <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">pair_msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... waiting for collector reply&#39;</span><span class="p">)</span>
+            <span class="n">reply</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">recv_json</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;got reply = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">True</span><span class="p">),))</span>
+        <span class="k">return</span> <span class="n">reply</span></div>
+
+<div class="viewcode-block" id="JobInterface.get_job_status_dict"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.JobInterface.get_job_status_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_status_dict</span><span class="p">(</span><span class="n">jobiface</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[client </span><span class="si">%d</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">)):</span>
+            <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;teal&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Request list of job ids&#39;</span><span class="p">)</span>
+            <span class="n">pair_msg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;job_status_dict&#39;</span><span class="p">)</span>
+            <span class="c1"># CALLS: collector_request_status</span>
+            <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">pair_msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... waiting for collector reply&#39;</span><span class="p">)</span>
+            <span class="n">reply</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">recv_json</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;got reply = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">True</span><span class="p">),))</span>
+        <span class="k">return</span> <span class="n">reply</span></div>
+
+<div class="viewcode-block" id="JobInterface.get_job_metadata"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.JobInterface.get_job_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_metadata</span><span class="p">(</span><span class="n">jobiface</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[client </span><span class="si">%d</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">)):</span>
+            <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;teal&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Request metadata of jobid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
+            <span class="n">pair_msg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;job_input&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">)</span>
+            <span class="c1"># CALLS: collector_request_metadata</span>
             <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">pair_msg</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... waiting for collector reply&#39;</span><span class="p">)</span>
@@ -771,7 +860,6 @@
 <span class="sd">    Args:</span>
 <span class="sd">        name (None): (default = None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">assert</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;must name queue&#39;</span>
     <span class="n">queue_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_queue&#39;</span>
     <span class="n">loop_name</span> <span class="o">=</span> <span class="n">queue_name</span> <span class="o">+</span> <span class="s1">&#39;_loop&#39;</span>
@@ -843,15 +931,19 @@
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;engine&#39;</span>
     <span class="n">queue_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_queue&#39;</span>
     <span class="n">loop_name</span> <span class="o">=</span> <span class="n">queue_name</span> <span class="o">+</span> <span class="s1">&#39;_loop&#39;</span>
+
     <span class="nb">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">queue_name</span><span class="p">,)):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Init specialized make_queue_loop: name=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,))</span>
+
         <span class="c1"># bind the client dealer to the queue router</span>
         <span class="n">rout_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">ROUTER</span><span class="p">)</span>
         <span class="n">rout_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;special_queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;ROUTER&#39;</span><span class="p">)</span>
         <span class="n">rout_sock</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">iface1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">iface1</span><span class="p">,))</span>
+
         <span class="c1"># bind the server router to the queue dealer</span>
         <span class="n">deal_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">DEALER</span><span class="p">)</span>
         <span class="n">deal_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;special_queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;DEALER&#39;</span><span class="p">)</span>
@@ -875,41 +967,111 @@
                 <span class="n">evts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">poller</span><span class="o">.</span><span class="n">poll</span><span class="p">())</span>
                 <span class="k">if</span> <span class="n">rout_sock</span> <span class="ow">in</span> <span class="n">evts</span><span class="p">:</span>
                     <span class="c1"># HACK GET REQUEST FROM CLIENT</span>
+
+                    <span class="c1"># jobid = &#39;jobid-%04d&#39; % (job_counter,)</span>
+                    <span class="n">jobid</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">(),</span> <span class="p">)</span>
                     <span class="n">job_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating jobid </span><span class="si">%r</span><span class="s1"> (counter </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">job_counter</span><span class="p">,</span> <span class="p">))</span>
+
                     <span class="c1"># CALLER: job_client</span>
                     <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">rout_sock</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
 
-                    <span class="c1">#jobid = &#39;result_%s&#39; % (id_,)</span>
-                    <span class="c1">#jobid = &#39;result_%s&#39; % (uuid.uuid4(),)</span>
-                    <span class="n">jobid</span> <span class="o">=</span> <span class="s1">&#39;jobid-</span><span class="si">%04d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">job_counter</span><span class="p">,)</span>
-                    <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating jobid </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
-
+                    <span class="c1">######################################################################</span>
+                    <span class="c1"># Status: Received (Notify Collector)</span>
                     <span class="c1"># Reply immediately with a new jobid</span>
                     <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
-                        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39;job accepted&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;received&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
                     <span class="p">}</span>
-                    <span class="n">engine_request</span> <span class="o">=</span> <span class="n">engine_request</span>
-                    <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+
                     <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...notifying collector about new job&#39;</span><span class="p">)</span>
                     <span class="c1"># CALLS: collector_notify</span>
                     <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">reply_notify</span><span class="p">)</span>
+
+                    <span class="c1">######################################################################</span>
+                    <span class="c1"># Status: Received (Notify Client)</span>
                     <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... notifying client that job was accepted&#39;</span><span class="p">)</span>
                     <span class="c1"># RETURNS: job_client_return</span>
                     <span class="n">send_multipart_json</span><span class="p">(</span><span class="n">rout_sock</span><span class="p">,</span> <span class="n">idents</span><span class="p">,</span> <span class="n">reply_notify</span><span class="p">)</span>
+
+                    <span class="c1">######################################################################</span>
+                    <span class="c1"># Status: Metadata</span>
+                    <span class="n">action</span>          <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+                    <span class="n">args</span>            <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
+                    <span class="n">kwargs</span>          <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]</span>
+                    <span class="n">callback_url</span>    <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
+                    <span class="n">callback_method</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_method&#39;</span><span class="p">]</span>
+                    <span class="n">request</span>         <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span>
+
+                    <span class="c1"># Reply immediately with a new jobid</span>
+                    <span class="n">metadata_notify</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                        <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s1">&#39;jobcounter&#39;</span>      <span class="p">:</span> <span class="n">job_counter</span><span class="p">,</span>
+                            <span class="s1">&#39;action&#39;</span>          <span class="p">:</span> <span class="n">action</span><span class="p">,</span>
+                            <span class="s1">&#39;args&#39;</span>            <span class="p">:</span> <span class="n">args</span><span class="p">,</span>
+                            <span class="s1">&#39;kwargs&#39;</span>          <span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
+                            <span class="s1">&#39;callback_url&#39;</span>    <span class="p">:</span> <span class="n">callback_url</span><span class="p">,</span>
+                            <span class="s1">&#39;callback_method&#39;</span> <span class="p">:</span> <span class="n">callback_method</span><span class="p">,</span>
+                            <span class="s1">&#39;request&#39;</span>         <span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;times&#39;</span>           <span class="p">:</span> <span class="p">{</span>
+                                <span class="s1">&#39;received&#39;</span>    <span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(),</span>
+                                <span class="s1">&#39;updated&#39;</span>     <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                <span class="s1">&#39;completed&#39;</span>   <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">},</span>
+                        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;metadata&#39;</span><span class="p">,</span>
+                    <span class="p">}</span>
+
+                    <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...notifying collector about job metadata&#39;</span><span class="p">)</span>
+                    <span class="c1"># CALLS: collector_notify</span>
+                    <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">metadata_notify</span><span class="p">)</span>
+
+                    <span class="c1">######################################################################</span>
+                    <span class="c1"># Status: Accepted (Metadata Processed)</span>
+                    <span class="c1"># Reply immediately with a new jobid</span>
+                    <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;accepted&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
+                    <span class="p">}</span>
+
+                    <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...notifying collector about new job&#39;</span><span class="p">)</span>
+                    <span class="c1"># CALLS: collector_notify</span>
+                    <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">reply_notify</span><span class="p">)</span>
+
+                    <span class="c1">######################################################################</span>
+                    <span class="c1"># Status: Queueing on the Engine</span>
+                    <span class="k">assert</span> <span class="s1">&#39;jobid&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">engine_request</span>
+                    <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+
                     <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... notifying backend engine to start&#39;</span><span class="p">)</span>
                     <span class="c1"># CALL: engine_</span>
                     <span class="n">send_multipart_json</span><span class="p">(</span><span class="n">deal_sock</span><span class="p">,</span> <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span><span class="p">)</span>
+
+                    <span class="c1">######################################################################</span>
+                    <span class="c1"># Status: Queued</span>
+                    <span class="n">queued_notify</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;queued&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
+                    <span class="p">}</span>
+
+                    <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...notifying collector that job was queued&#39;</span><span class="p">)</span>
+                    <span class="c1"># CALLS: collector_notify</span>
+                    <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">queued_notify</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">deal_sock</span> <span class="ow">in</span> <span class="n">evts</span><span class="p">:</span>
                     <span class="k">pass</span>
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Caught ctrl+c in </span><span class="si">%s</span><span class="s1"> queue. Gracefully exiting&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">loop_name</span><span class="p">,))</span>
+
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exiting </span><span class="si">%s</span><span class="s1"> queue&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">loop_name</span><span class="p">,))</span></div>
 
@@ -960,7 +1122,24 @@
                 <span class="n">callback_url</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
                 <span class="n">callback_method</span> <span class="o">=</span> <span class="n">engine_request</span><span class="p">[</span><span class="s1">&#39;callback_method&#39;</span><span class="p">]</span>
 
+                <span class="c1"># Notify start working</span>
+                <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;working&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">reply_notify</span><span class="p">)</span>
+
                 <span class="n">engine_result</span> <span class="o">=</span> <span class="n">on_engine_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">exec_status</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s1">&#39;exec_status&#39;</span><span class="p">]</span>
+
+                <span class="c1"># Notify start working</span>
+                <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;publishing&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">reply_notify</span><span class="p">)</span>
 
                 <span class="c1"># Store results in the collector</span>
                 <span class="n">collect_request</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -971,10 +1150,19 @@
                     <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
                     <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...done working. pushing result to collector&#39;</span><span class="p">)</span>
+                <span class="c1"># if VERBOSE_JOBS:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...done working. pushing result to collector for jobid </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
+
                 <span class="c1"># CALLS: collector_store</span>
                 <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">collect_request</span><span class="p">)</span>
+
+                <span class="c1"># Notify start working</span>
+                <span class="n">reply_notify</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">,</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">exec_status</span><span class="p">,</span>
+                    <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;notification&#39;</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">reply_notify</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Caught ctrl+c in engine loop. Gracefully exiting&#39;</span><span class="p">)</span>
         <span class="c1"># ----</span>
@@ -1001,7 +1189,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;resolving action=</span><span class="si">%r</span><span class="s1"> to ibeis function=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">action_func</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">action_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">exec_status</span> <span class="o">=</span> <span class="s1">&#39;ok&#39;</span>
+        <span class="n">exec_status</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">],</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strip_ansi</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -1032,22 +1220,26 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="c1"># shelve_path = join(ut.get_shelves_dir(appname=&#39;ibeis&#39;), &#39;engine&#39;)</span>
         <span class="n">shelve_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_shelves_path</span><span class="p">()</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">)</span>
 
         <span class="n">collecter_data</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">awaiting_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">status_data</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="c1"># several callers here</span>
                 <span class="c1"># CALLER: collector_notify</span>
                 <span class="c1"># CALLER: collector_store</span>
                 <span class="c1"># CALLER: collector_request_status</span>
+                <span class="c1"># CALLER: collector_request_metadata</span>
                 <span class="c1"># CALLER: collector_request_result</span>
                 <span class="n">idents</span><span class="p">,</span> <span class="n">collect_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">collect_rout_sock</span><span class="p">,</span> <span class="nb">print</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">reply</span> <span class="o">=</span> <span class="n">on_collect_request</span><span class="p">(</span><span class="n">collect_request</span><span class="p">,</span> <span class="n">collecter_data</span><span class="p">,</span>
-                                               <span class="n">awaiting_data</span><span class="p">,</span> <span class="n">shelve_path</span><span class="p">,</span>
+                                               <span class="n">status_data</span><span class="p">,</span> <span class="n">shelve_path</span><span class="p">,</span>
                                                <span class="n">containerized</span><span class="o">=</span><span class="n">containerized</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">collect_request</span><span class="p">))</span>
@@ -1059,55 +1251,92 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exiting collector&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="on_collect_request"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.on_collect_request">[docs]</a><span class="k">def</span> <span class="nf">on_collect_request</span><span class="p">(</span><span class="n">collect_request</span><span class="p">,</span> <span class="n">collecter_data</span><span class="p">,</span> <span class="n">awaiting_data</span><span class="p">,</span> <span class="n">shelve_path</span><span class="p">,</span>
-                       <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="on_collect_request"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.job_engine.on_collect_request">[docs]</a><span class="k">def</span> <span class="nf">on_collect_request</span><span class="p">(</span><span class="n">collect_request</span><span class="p">,</span> <span class="n">collecter_data</span><span class="p">,</span> <span class="n">status_data</span><span class="p">,</span>
+                       <span class="n">shelve_path</span><span class="p">,</span> <span class="n">containerized</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Run whenever the collector recieves a message &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">requests</span>
-    <span class="n">reply</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">reply</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
     <span class="n">action</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...building action=</span><span class="si">%r</span><span class="s1"> response&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">,))</span>
+
     <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;notification&#39;</span><span class="p">:</span>
         <span class="c1"># From the Queue</span>
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
-        <span class="n">awaiting_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
-        <span class="c1"># Make waiting lock</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
+        <span class="n">status_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+
         <span class="n">lock_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.lock&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">touch</span><span class="p">(</span><span class="n">lock_filepath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;received&#39;</span><span class="p">:</span>
+            <span class="c1"># Make waiting lock</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">touch</span><span class="p">(</span><span class="n">lock_filepath</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;completed&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">lock_filepath</span><span class="p">):</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">lock_filepath</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;input&#39;</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]:</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;times&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">times</span><span class="p">[</span><span class="s1">&#39;updated&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;completed&#39;</span><span class="p">:</span>
+                    <span class="n">times</span><span class="p">[</span><span class="s1">&#39;completed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;metadata&#39;</span><span class="p">:</span>
+        <span class="c1"># From the Engine</span>
+        <span class="n">jobid</span>    <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">collect_request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">jobid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
+            <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;input&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
+
+        <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;stored metadata&#39;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;store&#39;</span><span class="p">:</span>
         <span class="c1"># From the Engine</span>
-        <span class="n">engine_result</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;engine_result&#39;</span><span class="p">]</span>
-        <span class="n">callback_url</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
+        <span class="n">engine_result</span>   <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;engine_result&#39;</span><span class="p">]</span>
+        <span class="n">callback_url</span>    <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;callback_url&#39;</span><span class="p">]</span>
         <span class="n">callback_method</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;callback_method&#39;</span><span class="p">]</span>
+
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">containerized</span><span class="p">:</span>
             <span class="n">callback_url</span> <span class="o">=</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;://localhost/&#39;</span><span class="p">,</span> <span class="s1">&#39;://wildbook:8080/&#39;</span><span class="p">)</span>
 
-        <span class="c1"># OLD METHOD</span>
-        <span class="c1"># collecter_data[jobid] = engine_result</span>
-        <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s1">&#39;exec_status&#39;</span><span class="p">]</span>
+        <span class="n">shelve_filepath</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">)))</span>
 
-        <span class="c1"># NEW METHOD</span>
-        <span class="n">shelve_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">if</span> <span class="n">jobid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
+            <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;output&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shelve_filepath</span>
+
         <span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelve_filepath</span><span class="p">,</span> <span class="n">writeback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">shelf</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">engine_result</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">)</span>
+            <span class="n">shelf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">engine_result</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-        <span class="c1"># Delete the lock</span>
-        <span class="n">lock_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.lock&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">lock_filepath</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">callback_method</span> <span class="o">=</span> <span class="s1">&#39;post&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">callback_method</span> <span class="o">=</span> <span class="n">callback_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calling callback_url using callback_method&#39;</span><span class="p">)</span>
+
+            <span class="c1"># if VERBOSE_JOBS:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calling callback_url using callback_method&#39;</span><span class="p">)</span>
+
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ATTEMPTING CALLBACK TO </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">METHOD: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
                 <span class="c1"># requests.get(callback_url)</span>
                 <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">}</span>
                 <span class="k">if</span> <span class="n">callback_method</span> <span class="o">==</span> <span class="s1">&#39;post&#39;</span><span class="p">:</span>
@@ -1121,10 +1350,13 @@
                                      <span class="p">(</span><span class="n">callback_method</span><span class="p">,</span> <span class="p">))</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">text</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="n">text</span> <span class="o">=</span> <span class="kc">None</span>
+
                 <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WILDBOOK CALLBACK TO </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">METHOD: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">DATA: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">RESPONSE: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">TEXT: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CALLBACK COMPLETED TO </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">METHOD: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">DATA: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">RESPONSE: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">TEXT: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;ERROR in collector. &#39;</span>
                         <span class="s1">&#39;Tried to call callback_url=</span><span class="si">%r</span><span class="s1"> with callback_method=</span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -1137,51 +1369,74 @@
     <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;job_status&#39;</span><span class="p">:</span>
         <span class="c1"># From a Client</span>
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;exec_status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">awaiting_data</span><span class="p">:</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;working&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
-        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ok&#39;</span>
         <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">status_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobid&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;job_status_dict&#39;</span><span class="p">:</span>
+        <span class="c1"># From a Client</span>
+        <span class="n">json_result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">status_data</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">status_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;times&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="n">request</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">request</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">json_result</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;status&#39;</span>         <span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+                <span class="s1">&#39;jobcounter&#39;</span>     <span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobcounter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;action&#39;</span>         <span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;endpoint&#39;</span>       <span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;function&#39;</span>       <span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;time_received&#39;</span>  <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;received&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;time_updated&#39;</span>   <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;updated&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;time_completed&#39;</span> <span class="p">:</span> <span class="n">times</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_result</span>
     <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;job_id_list&#39;</span><span class="p">:</span>
-        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ok&#39;</span>
-        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">collecter_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">status_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;job_input&#39;</span><span class="p">:</span>
+        <span class="c1"># From a Client</span>
+        <span class="n">jobid</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
+        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+
+        <span class="k">if</span> <span class="n">jobid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
+            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;invalid&#39;</span>
+            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s1">&#39;input&#39;</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="s1">&#39;output&#39;</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
+
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;input&#39;</span><span class="p">]</span>
+            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
     <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;job_result&#39;</span><span class="p">:</span>
         <span class="c1"># From a Client</span>
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># OLD METHOD</span>
-            <span class="c1"># engine_result = collecter_data[jobid]</span>
-            <span class="c1"># NEW METHOD</span>
-            <span class="n">shelve_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+
+        <span class="k">if</span> <span class="n">jobid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
+            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;invalid&#39;</span>
+            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s1">&#39;input&#39;</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="s1">&#39;output&#39;</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
+
+            <span class="n">shelve_filepath</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;output&#39;</span><span class="p">]</span>
+
             <span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelve_filepath</span><span class="p">)</span>
+
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">engine_result</span> <span class="o">=</span> <span class="n">shelf</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">)]</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;result&#39;</span><span class="p">)</span>
+                <span class="n">engine_result</span> <span class="o">=</span> <span class="n">shelf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
+            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s1">&#39;exec_status&#39;</span><span class="p">]</span>
             <span class="n">json_result</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ok&#39;</span>
-            <span class="c1"># reply[&#39;json_result&#39;] = json_result</span>
-            <span class="c1"># We want to parse the JSON result here, since we need to live in</span>
-            <span class="c1"># Python land for the rest of the call until the API wrapper</span>
-            <span class="c1"># converts the Python objcets to JSON before the response is</span>
-            <span class="c1"># generated.  This prevents the API from converting a Python string</span>
-            <span class="c1"># of JSON to a JSON string of JSON, which is bad.</span>
             <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_result</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;invalid&#39;</span>
-            <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Other</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...error unknown action=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">,))</span>
         <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;error&#39;</span>
-        <span class="n">reply</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unknown action&#39;</span>
     <span class="k">return</span> <span class="n">reply</span></div>
 
 

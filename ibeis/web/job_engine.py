@@ -1190,6 +1190,7 @@ def on_collect_request(collect_request, collecter_data, status_data,
                                      (callback_method, ))
                 try:
                     text = response.text
+                    text = unicode(text).encode('utf-8')
                 except:
                     text = None
 

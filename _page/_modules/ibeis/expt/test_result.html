@@ -229,8 +229,13 @@
     <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
     <span class="c1"># Get the groundtruth ranks and accuracy measures</span>
-    <span class="c1"># qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]</span>
-    <span class="n">qx2_cminfo</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">extend_results</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+    <span class="n">qx2_cminfo</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="s1">&#39;extend_results&#39;</span><span class="p">):</span>
+            <span class="n">cminfo</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">extend_results</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cminfo</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qx2_cminfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cminfo</span><span class="p">)</span>
     <span class="n">cmsinfo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_stack</span><span class="p">(</span><span class="n">qx2_cminfo</span><span class="p">,</span> <span class="s1">&#39;qx2_&#39;</span><span class="p">)</span>
     <span class="n">cmsinfo</span><span class="p">[</span><span class="s1">&#39;qx2_gt_rank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">cmsinfo</span><span class="p">[</span><span class="s1">&#39;qx2_gt_rank&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
@@ -290,7 +295,11 @@
         <span class="k">if</span> <span class="n">gt_name_score</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># ensure failure cases are loud give them the worst possible rank</span>
             <span class="c1"># instead of a random one.</span>
-            <span class="n">gt_name_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">dnids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;dnids&#39;</span><span class="p">):</span>
+                <span class="n">gt_name_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">dnids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dnids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)))</span>
+                <span class="n">gt_name_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dnids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">qnx2_nameres_info</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s1">&#39;qnid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qnid</span>
         <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s1">&#39;gt_nid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_nid</span>

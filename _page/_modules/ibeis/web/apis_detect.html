@@ -648,6 +648,40 @@
                            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="image_upload_detect"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.image_upload_detect">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/upload/image/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">image_upload_detect</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the detection results for an uploaded image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image (image binary): the POST variable containing the binary</span>
+<span class="sd">            (multi-form) image data</span>
+<span class="sd">        config (dict): the detection configuration arguments</span>
+<span class="sd">        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to</span>
+<span class="sd">            the add_images and detect_cnn_json functions</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        results_dict (dict): dict of detection results (not annotations)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/upload/image/detect/cnn/yolo/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.web.apis</span> <span class="k">import</span> <span class="n">image_upload</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">image_upload</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="n">cleanup</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_json</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo</span><span class="p">,</span>
+                                  <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_list&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">results</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
 <div class="viewcode-block" id="detect_cnn_yolo"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.detect_cnn_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
@@ -725,6 +759,34 @@
             <span class="k">return</span> <span class="n">aids_list</span></div>
 
 
+<div class="viewcode-block" id="labeler_cnn"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.labeler_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/labeler/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">labeler_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;candidacy&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
+    <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+        <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="n">score</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">probs</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span>
+            <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+            <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
+        <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">output_list</span></div>
+
+
 <div class="viewcode-block" id="detect_cnn_yolo_exists"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.detect_cnn_yolo_exists">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
@@ -798,7 +860,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">detect_cnn_lightnet</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">detect_cnn_lightnet</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">labeler</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run animal detection in each image. Adds annotations to the database as they are found.</span>
@@ -843,19 +905,27 @@
     <span class="p">}</span>
     <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
     <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;weight_filepath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">config_str_list</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">config</span><span class="p">[</span><span class="n">config_str</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">config_str</span><span class="p">]</span>
+
     <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
         <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
     <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
-        <span class="n">labeler_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">labeler_config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;candidacy&#39;</span>
-        <span class="n">viewpoints_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations_labeler&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">labeler</span><span class="p">:</span>
+            <span class="n">labeler_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">labeler_config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;candidacy&#39;</span>
+            <span class="n">viewpoints_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations_labeler&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">viewpoints_list</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">viewpoints_list</span><span class="o">=</span><span class="n">viewpoints_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnlightnetdetect&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">aids_list</span></div>
+        <span class="k">return</span> <span class="n">aids_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">results_list</span></div>
 
 
 <div class="viewcode-block" id="commit_localization_results"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.commit_localization_results">[docs]</a><span class="nd">@register_ibs_method</span>

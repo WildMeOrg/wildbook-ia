@@ -1729,6 +1729,43 @@
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;graphs&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">embedded</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="view_jobs"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes.view_jobs">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/view/jobs/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">view_jobs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ok&#39;</span>
+
+    <span class="n">jobs</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span>
+    <span class="n">job_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="n">jobs</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
+        <span class="n">jov_status</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
+        <span class="n">job_state</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">jov_status</span> <span class="o">==</span> <span class="s1">&#39;completed&#39;</span><span class="p">:</span>
+            <span class="n">job_state</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">jov_status</span> <span class="o">==</span> <span class="s1">&#39;exception&#39;</span><span class="p">:</span>
+            <span class="n">job_state</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">job_exception</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">job_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+            <span class="n">jobid</span><span class="p">,</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;jobcounter&#39;</span><span class="p">],</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;endpoint&#39;</span><span class="p">],</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;function&#39;</span><span class="p">],</span>
+            <span class="n">jov_status</span><span class="p">,</span>
+            <span class="n">job_state</span><span class="p">,</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;time_received&#39;</span><span class="p">],</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;time_updated&#39;</span><span class="p">],</span>
+            <span class="n">job</span><span class="p">[</span><span class="s1">&#39;time_completed&#39;</span><span class="p">],</span>
+        <span class="p">))</span>
+
+    <span class="n">num_jobs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">job_list</span><span class="p">)</span>
+
+    <span class="n">embedded</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">embedded</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="image_view_api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes.image_view_api">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/view/image/&lt;gid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">image_view_api</span><span class="p">(</span><span class="n">gid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>

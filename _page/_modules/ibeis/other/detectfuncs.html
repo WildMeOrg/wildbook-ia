@@ -216,6 +216,7 @@
     <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;ignore&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="s1">&#39;IGNORE&#39;</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;lion&#39;</span><span class="p">,</span>                <span class="s1">&#39;LN&#39;</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;jaguar&#39;</span><span class="p">,</span>              <span class="s1">&#39;JAG&#39;</span><span class="p">)</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span>        <span class="s1">&#39;PZ&#39;</span><span class="p">)</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;hippopotamus&#39;</span><span class="p">,</span>        <span class="s1">&#39;HIPPO&#39;</span><span class="p">)</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;antelope&#39;</span><span class="p">,</span>            <span class="s1">&#39;ANTEL&#39;</span><span class="p">)</span>
@@ -1088,7 +1089,7 @@
     <span class="k">if</span> <span class="n">test_gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using </span><span class="si">%d</span><span class="s1"> test gids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">),</span> <span class="p">))</span>
 
-    <span class="n">species_mapping</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">species_mapping</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># NOQA</span>
         <span class="s1">&#39;giraffe_masai&#39;</span>       <span class="p">:</span> <span class="s1">&#39;giraffe&#39;</span><span class="p">,</span>
         <span class="s1">&#39;giraffe_reticulated&#39;</span> <span class="p">:</span> <span class="s1">&#39;giraffe&#39;</span><span class="p">,</span>
         <span class="s1">&#39;zebra_grevys&#39;</span>        <span class="p">:</span> <span class="s1">&#39;zebra&#39;</span><span class="p">,</span>
@@ -1325,19 +1326,53 @@
         <span class="c1">#     {},</span>
         <span class="c1"># ),</span>
 
-        <span class="s1">&#39;lynx&#39;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="c1"># &#39;lynx&#39;: (</span>
+        <span class="c1">#     [</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 0%&#39;,            &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.00, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 10%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.10, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 20%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.20, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 30%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.30, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 40%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.40, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 50%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.50, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 60%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.60, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 70%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.70, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 80%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.80, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 90%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.90, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Lynx NMS 100%&#39;,          &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;lynx&#39;, &#39;weight_filepath&#39; : &#39;lynx&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 1.00, &#39;species_set&#39; : set([&#39;lynx&#39;])},</span>
+        <span class="c1">#     ],</span>
+        <span class="c1">#     {},</span>
+        <span class="c1"># ),</span>
+
+        <span class="c1"># &#39;jaguar&#39;: (</span>
+        <span class="c1">#     [</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 0%&#39;,            &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.00, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 10%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.10, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 20%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.20, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 30%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.30, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 40%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.40, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 50%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.50, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 60%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.60, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 70%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.70, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 80%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.80, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 90%&#39;,           &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 0.90, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#         {&#39;label&#39;: &#39;Jaguar NMS 100%&#39;,          &#39;grid&#39; : False, &#39;algo&#39;: &#39;lightnet&#39;, &#39;config_filepath&#39; : &#39;jaguar&#39;, &#39;weight_filepath&#39; : &#39;jaguar&#39;, &#39;nms&#39;: True, &#39;nms_thresh&#39;: 1.00, &#39;species_set&#39; : set([&#39;jaguar&#39;])},</span>
+        <span class="c1">#     ],</span>
+        <span class="c1">#     {},</span>
+        <span class="c1"># ),</span>
+
+        <span class="s1">&#39;!jaguar&#39;</span><span class="p">:</span> <span class="p">(</span>
             <span class="p">[</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 0%&#39;</span><span class="p">,</span>            <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.00</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 10%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 20%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 30%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.30</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 40%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.40</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 50%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.50</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 60%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.60</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 70%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.70</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 80%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 90%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
-                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Lynx NMS 100%&#39;</span><span class="p">,</span>          <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;lynx&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">1.00</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lynx&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 0%&#39;</span><span class="p">,</span>            <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.00</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 10%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 20%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 30%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.30</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 40%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.40</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 50%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.50</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 60%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.60</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 70%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.70</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 80%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 90%&#39;</span><span class="p">,</span>           <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
+                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar NMS 100%&#39;</span><span class="p">,</span>          <span class="s1">&#39;grid&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">1.00</span><span class="p">,</span> <span class="s1">&#39;species_set&#39;</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;!jaguar&#39;</span><span class="p">])},</span>
             <span class="p">],</span>
             <span class="p">{},</span>
         <span class="p">),</span>
@@ -2203,316 +2238,340 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span></div>
 
 
-<span class="c1"># def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,</span>
-<span class="c1">#                         samples=SAMPLES, **kwargs):</span>
+<div class="viewcode-block" id="labeler_tp_tn_fp_fn"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.labeler_tp_tn_fp_fn">[docs]</a><span class="k">def</span> <span class="nf">labeler_tp_tn_fp_fn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">samples</span><span class="o">=</span><span class="n">SAMPLES</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
-<span class="c1">#     def errors(zipped, conf, category):</span>
-<span class="c1">#         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0</span>
-<span class="c1">#         for index, (label, confidence) in enumerate(zipped):</span>
-<span class="c1">#             if label == category:</span>
-<span class="c1">#                 if conf &lt;= confidence:</span>
-<span class="c1">#                     tp += 1</span>
-<span class="c1">#                 else:</span>
-<span class="c1">#                     fn += 1</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 if conf &lt;= confidence:</span>
-<span class="c1">#                     fp += 1</span>
-<span class="c1">#                 else:</span>
-<span class="c1">#                     tn += 1</span>
-<span class="c1">#         return tp, tn, fp, fn</span>
+    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
+        <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">confidence</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="n">category</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">conf</span> <span class="o">&lt;=</span> <span class="n">confidence</span><span class="p">:</span>
+                    <span class="n">tp</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fn</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">conf</span> <span class="o">&lt;=</span> <span class="n">confidence</span><span class="p">:</span>
+                    <span class="n">fp</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tn</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span>
 
-<span class="c1">#     depc = ibs.depc_annot</span>
-<span class="c1">#     test_gid_set = set(general_get_imageset_gids(ibs, &#39;TEST_SET&#39;))</span>
-<span class="c1">#     test_gid_set = list(test_gid_set)</span>
-<span class="c1">#     aids_list = ibs.get_image_aids(test_gid_set)</span>
-<span class="c1">#     aid_list = ut.flatten(aids_list)</span>
-<span class="c1">#     # Get annot species and viewpoints</span>
-<span class="c1">#     species_list = ibs.get_annot_species_texts(aid_list)</span>
-<span class="c1">#     viewpoint_list = ibs.get_annot_viewpoints(aid_list)</span>
-<span class="c1">#     # Filter aids with species of interest and undefined viewpoints</span>
-<span class="c1">#     flag_list = [</span>
-<span class="c1">#         species in category_list</span>
-<span class="c1">#         for species, viewpoint in zip(species_list, viewpoint_list)</span>
-<span class="c1">#     ]</span>
-<span class="c1">#     if False in flag_list:</span>
-<span class="c1">#         aid_list = ut.compress(aid_list, flag_list)</span>
-<span class="c1">#         # Get new species and viewpoints</span>
-<span class="c1">#         viewpoint_list = ibs.get_annot_viewpoints(aid_list)</span>
-<span class="c1">#         species_list = ibs.get_annot_species_texts(aid_list)</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="c1"># Get annot species and viewpoints</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c1"># Filter aids with species of interest and undefined viewpoints</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">species</span> <span class="ow">in</span> <span class="n">category_list</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="kc">False</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="c1"># Get new species and viewpoints</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
-<span class="c1">#     # Make ground-truth</span>
-<span class="c1">#     label_list = [</span>
-<span class="c1">#         &#39;%s:%s&#39; % (</span>
-<span class="c1">#             species,</span>
-<span class="c1">#             viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),</span>
-<span class="c1">#         )</span>
-<span class="c1">#         for species, viewpoint in zip(species_list, viewpoint_list)</span>
-<span class="c1">#     ]</span>
-<span class="c1">#     # Get predictions</span>
-<span class="c1">#     # depc.delete_property(&#39;labeler&#39;, aid_list, config=kwargs)</span>
-<span class="c1">#     probability_dict_list = depc.get_property(&#39;labeler&#39;, aid_list, &#39;probs&#39;, config=kwargs)</span>
+    <span class="c1"># Make ground-truth</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">viewpoint_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># Get predictions</span>
+    <span class="c1"># depc.delete_property(&#39;labeler&#39;, aid_list, config=kwargs)</span>
+    <span class="n">probability_dict_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;probs&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
 
-<span class="c1">#     value1_list = set(label_list)</span>
-<span class="c1">#     value2_list = set(probability_dict_list[0].keys())</span>
-<span class="c1">#     assert len(value1_list - value2_list) == 0</span>
-<span class="c1">#     assert len(value2_list - value1_list) == 0</span>
+    <span class="n">value1_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span>
+    <span class="n">value2_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">probability_dict_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">value1_list</span> <span class="o">-</span> <span class="n">value2_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">value2_list</span> <span class="o">-</span> <span class="n">value1_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
-<span class="c1">#     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]</span>
-<span class="c1">#     label_dict = {}</span>
-<span class="c1">#     for key in value1_list:</span>
-<span class="c1">#         print(&#39;\t%r&#39; % (key, ))</span>
-<span class="c1">#         conf_dict = {}</span>
-<span class="c1">#         confidence_list = [</span>
-<span class="c1">#             probability_dict[key]</span>
-<span class="c1">#             for probability_dict in probability_dict_list</span>
-<span class="c1">#         ]</span>
-<span class="c1">#         zipped = list(zip(label_list, confidence_list))</span>
-<span class="c1">#         for conf in conf_list:</span>
-<span class="c1">#             conf_dict[conf] = errors(zipped, conf, key)</span>
-<span class="c1">#         label_dict[key] = conf_dict</span>
-<span class="c1">#     return label_dict</span>
-
-
-<span class="c1"># def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):</span>
-
-<span class="c1">#     if category_list is None:</span>
-<span class="c1">#         category_list_ = label_dict.keys()</span>
-<span class="c1">#     else:</span>
-<span class="c1">#         category_list_ = []</span>
-<span class="c1">#         for category in category_list:</span>
-<span class="c1">#             for key in label_dict:</span>
-<span class="c1">#                 if category in key or category is None:</span>
-<span class="c1">#                     category_list_.append(key)</span>
-
-<span class="c1">#     global_conf_dict = {}</span>
-<span class="c1">#     for category in category_list_:</span>
-<span class="c1">#         conf_dict = label_dict[category]</span>
-<span class="c1">#         for conf in conf_dict:</span>
-<span class="c1">#             new_list = conf_dict[conf]</span>
-<span class="c1">#             if conf not in global_conf_dict:</span>
-<span class="c1">#                 global_conf_dict[conf] = new_list</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 cur_list = global_conf_dict[conf]</span>
-<span class="c1">#                 zipped_ = zip(cur_list, new_list)</span>
-<span class="c1">#                 global_conf_dict[conf] = [cur + new for cur, new in zipped_]</span>
-
-<span class="c1">#     conf_list_ = [-1.0, -1.0]</span>
-<span class="c1">#     pr_list = [1.0, 0.0]</span>
-<span class="c1">#     re_list = [0.0, 1.0]</span>
-<span class="c1">#     tpr_list = [0.0, 1.0]</span>
-<span class="c1">#     fpr_list = [0.0, 1.0]</span>
-<span class="c1">#     # conf_list_ = []</span>
-<span class="c1">#     # pr_list = []</span>
-<span class="c1">#     # re_list = []</span>
-<span class="c1">#     # tpr_list = []</span>
-<span class="c1">#     # fpr_list = []</span>
-<span class="c1">#     for conf in sorted(global_conf_dict.keys(), reverse=True):</span>
-<span class="c1">#         error_list = global_conf_dict[conf]</span>
-<span class="c1">#         tp, tn, fp, fn = error_list</span>
-<span class="c1">#         try:</span>
-<span class="c1">#             pr = tp / (tp + fp)</span>
-<span class="c1">#             re = tp / (tp + fn)</span>
-<span class="c1">#             tpr = tp / (tp + fn)</span>
-<span class="c1">#             fpr = fp / (fp + tn)</span>
-<span class="c1">#             conf_list_.append(conf)</span>
-<span class="c1">#             pr_list.append(pr)</span>
-<span class="c1">#             re_list.append(re)</span>
-<span class="c1">#             tpr_list.append(tpr)</span>
-<span class="c1">#             fpr_list.append(fpr)</span>
-<span class="c1">#         except ZeroDivisionError:</span>
-<span class="c1">#             print(&#39;Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r&#39; % (conf, tp, tn, fp, fn, ))</span>
-
-<span class="c1">#     return conf_list_, pr_list, re_list, tpr_list, fpr_list</span>
+    <span class="n">conf_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">]</span>
+    <span class="n">label_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">value1_list</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">conf_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">confidence_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">probability_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">probability_dict</span> <span class="ow">in</span> <span class="n">probability_dict_list</span>
+        <span class="p">]</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">label_list</span><span class="p">,</span> <span class="n">confidence_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">conf</span> <span class="ow">in</span> <span class="n">conf_list</span><span class="p">:</span>
+            <span class="n">conf_dict</span><span class="p">[</span><span class="n">conf</span><span class="p">]</span> <span class="o">=</span> <span class="n">errors</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">label_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">conf_dict</span>
+    <span class="k">return</span> <span class="n">label_dict</span></div>
 
 
-<span class="c1"># def labeler_precision_recall_algo_plot(ibs, **kwargs):</span>
-<span class="c1">#     label = kwargs[&#39;label&#39;]</span>
-<span class="c1">#     category_list = kwargs[&#39;category_list&#39;]</span>
-<span class="c1">#     print(&#39;Processing Precision-Recall for: %r (category_list = %r)&#39; % (label, category_list, ))</span>
-<span class="c1">#     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)</span>
-<span class="c1">#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)</span>
+<div class="viewcode-block" id="labeler_precision_recall_algo"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.labeler_precision_recall_algo">[docs]</a><span class="k">def</span> <span class="nf">labeler_precision_recall_algo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="n">label_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">category_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">category_list_</span> <span class="o">=</span> <span class="n">label_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">category_list_</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">category_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">label_dict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">category</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">category_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="n">global_conf_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">category_list_</span><span class="p">:</span>
+        <span class="n">conf_dict</span> <span class="o">=</span> <span class="n">label_dict</span><span class="p">[</span><span class="n">category</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">conf</span> <span class="ow">in</span> <span class="n">conf_dict</span><span class="p">:</span>
+            <span class="n">new_list</span> <span class="o">=</span> <span class="n">conf_dict</span><span class="p">[</span><span class="n">conf</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">conf</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">global_conf_dict</span><span class="p">:</span>
+                <span class="n">global_conf_dict</span><span class="p">[</span><span class="n">conf</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_list</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cur_list</span> <span class="o">=</span> <span class="n">global_conf_dict</span><span class="p">[</span><span class="n">conf</span><span class="p">]</span>
+                <span class="n">zipped_</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cur_list</span><span class="p">,</span> <span class="n">new_list</span><span class="p">)</span>
+                <span class="n">global_conf_dict</span><span class="p">[</span><span class="n">conf</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur</span> <span class="o">+</span> <span class="n">new</span> <span class="k">for</span> <span class="n">cur</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">zipped_</span><span class="p">]</span>
+
+    <span class="n">conf_list_</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">pr_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+    <span class="n">re_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">tpr_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">fpr_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="c1"># conf_list_ = []</span>
+    <span class="c1"># pr_list = []</span>
+    <span class="c1"># re_list = []</span>
+    <span class="c1"># tpr_list = []</span>
+    <span class="c1"># fpr_list = []</span>
+    <span class="k">for</span> <span class="n">conf</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">global_conf_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">error_list</span> <span class="o">=</span> <span class="n">global_conf_dict</span><span class="p">[</span><span class="n">conf</span><span class="p">]</span>
+        <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">error_list</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pr</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span>
+            <span class="n">re</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
+            <span class="n">tpr</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
+            <span class="n">fpr</span> <span class="o">=</span> <span class="n">fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">fp</span> <span class="o">+</span> <span class="n">tn</span><span class="p">)</span>
+            <span class="n">conf_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+            <span class="n">pr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pr</span><span class="p">)</span>
+            <span class="n">re_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="p">)</span>
+            <span class="n">tpr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tpr</span><span class="p">)</span>
+            <span class="n">fpr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fpr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Zero division error (</span><span class="si">%r</span><span class="s1">) - tp: </span><span class="si">%r</span><span class="s1"> tn: </span><span class="si">%r</span><span class="s1"> fp: </span><span class="si">%r</span><span class="s1"> fn: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">conf_list_</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span></div>
 
 
-<span class="c1"># def labeler_roc_algo_plot(ibs, **kwargs):</span>
-<span class="c1">#     label = kwargs[&#39;label&#39;]</span>
-<span class="c1">#     category_list = kwargs[&#39;category_list&#39;]</span>
-<span class="c1">#     print(&#39;Processing ROC for: %r (category_list = %r)&#39; % (label, category_list, ))</span>
-<span class="c1">#     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)</span>
-<span class="c1">#     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,</span>
-<span class="c1">#                                   target=(0.0, 1.0), **kwargs)</span>
+<div class="viewcode-block" id="labeler_precision_recall_algo_plot"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.labeler_precision_recall_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">labeler_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+    <span class="n">category_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">labeler_precision_recall_algo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">general_area_best_conf</span><span class="p">(</span><span class="n">conf_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<span class="c1"># def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, category_mapping=None, **kwargs):</span>
-<span class="c1">#     print(&#39;Processing Confusion Matrix&#39;)</span>
-<span class="c1">#     depc = ibs.depc_annot</span>
-<span class="c1">#     test_gid_set = set(general_get_imageset_gids(ibs, &#39;TEST_SET&#39;))</span>
-<span class="c1">#     test_gid_set = list(test_gid_set)</span>
-<span class="c1">#     aids_list = ibs.get_image_aids(test_gid_set)</span>
-<span class="c1">#     aid_list = ut.flatten(aids_list)</span>
-<span class="c1">#     species_list = ibs.get_annot_species_texts(aid_list)</span>
-<span class="c1">#     viewpoint_list = ibs.get_annot_viewpoints(aid_list)</span>
-<span class="c1">#     label_list = [</span>
-<span class="c1">#         &#39;%s:%s&#39; % (</span>
-<span class="c1">#             species,</span>
-<span class="c1">#             viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),</span>
-<span class="c1">#         )</span>
-<span class="c1">#         for species, viewpoint in zip(species_list, viewpoint_list)</span>
-<span class="c1">#     ]</span>
-<span class="c1">#     temp_list = [</span>
-<span class="c1">#         (aid, label)</span>
-<span class="c1">#         for aid, label in zip(aid_list, label_list)</span>
-<span class="c1">#         if label in category_list</span>
-<span class="c1">#     ]</span>
-<span class="c1">#     aid_list = [_[0] for _ in temp_list]</span>
-<span class="c1">#     label_list = [_[1] for _ in temp_list]</span>
-<span class="c1">#     conf_list = depc.get_property(&#39;labeler&#39;, aid_list, &#39;score&#39;, config=kwargs)</span>
-<span class="c1">#     species_list = depc.get_property(&#39;labeler&#39;, aid_list, &#39;species&#39;, config=kwargs)</span>
-<span class="c1">#     viewpoint_list = depc.get_property(&#39;labeler&#39;, aid_list, &#39;viewpoint&#39;, config=kwargs)</span>
-<span class="c1">#     prediction_list = [</span>
-<span class="c1">#         &#39;%s:%s&#39; % (species, viewpoint, )</span>
-<span class="c1">#         for species, viewpoint in zip(species_list, viewpoint_list)</span>
-<span class="c1">#     ]</span>
-
-<span class="c1">#     category_list = list(map(simple_code, category_list))</span>
-<span class="c1">#     label_list = list(map(simple_code, label_list))</span>
-<span class="c1">#     prediction_list = list(map(simple_code, prediction_list))</span>
-<span class="c1">#     if category_mapping is None:</span>
-<span class="c1">#         category_mapping = { key: index for index, key in enumerate(category_list) }</span>
-<span class="c1">#     category_mapping = {</span>
-<span class="c1">#         simple_code(key): category_mapping[key]</span>
-<span class="c1">#         for key in category_mapping</span>
-<span class="c1">#     }</span>
-<span class="c1">#     return general_confusion_matrix_algo(label_list, prediction_list, category_list,</span>
-<span class="c1">#                                                  category_mapping, conf_list=conf_list,</span>
-<span class="c1">#                                                  size=8, **kwargs)</span>
+<div class="viewcode-block" id="labeler_roc_algo_plot"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.labeler_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">labeler_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+    <span class="n">category_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">labeler_precision_recall_algo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">general_area_best_conf</span><span class="p">(</span><span class="n">conf_list</span><span class="p">,</span> <span class="n">fpr_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">interpolate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                  <span class="n">target</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<span class="c1"># @register_ibs_method</span>
-<span class="c1"># def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,</span>
-<span class="c1">#                                           category_mapping=None, figsize=(30, 9), **kwargs):</span>
-<span class="c1">#     import matplotlib.pyplot as plt</span>
-<span class="c1">#     import plottool as pt</span>
+<div class="viewcode-block" id="labeler_confusion_matrix_algo_plot"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.labeler_confusion_matrix_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">labeler_confusion_matrix_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="p">,</span> <span class="n">category_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix&#39;</span><span class="p">)</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">viewpoint_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">label_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">category_list</span>
+    <span class="p">]</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">temp_list</span><span class="p">]</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">temp_list</span><span class="p">]</span>
+    <span class="n">conf_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">prediction_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="p">]</span>
 
-<span class="c1">#     if category_list is None:</span>
-<span class="c1">#         test_gid_set = set(general_get_imageset_gids(ibs, &#39;TEST_SET&#39;))</span>
-<span class="c1">#         test_gid_set = list(test_gid_set)</span>
-<span class="c1">#         aids_list = ibs.get_image_aids(test_gid_set)</span>
-<span class="c1">#         aid_list = ut.flatten(aids_list)</span>
-<span class="c1">#         species_list = ibs.get_annot_species_texts(aid_list)</span>
-<span class="c1">#         category_list = sorted(list(set(species_list)))</span>
+    <span class="n">category_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">simple_code</span><span class="p">,</span> <span class="n">category_list</span><span class="p">))</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">simple_code</span><span class="p">,</span> <span class="n">label_list</span><span class="p">))</span>
+    <span class="n">prediction_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">simple_code</span><span class="p">,</span> <span class="n">prediction_list</span><span class="p">))</span>
 
-<span class="c1">#     print(&#39;Compiling raw numbers...&#39;)</span>
-<span class="c1">#     kwargs[&#39;labeler_weight_filepath&#39;] = &#39;candidacy&#39;</span>
-<span class="c1">#     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,</span>
-<span class="c1">#                                      **kwargs)</span>
+    <span class="k">if</span> <span class="n">category_mapping</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">category_mapping</span> <span class="o">=</span> <span class="p">{</span> <span class="n">key</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">category_list</span><span class="p">)</span> <span class="p">}</span>
 
-<span class="c1">#     config_list = [</span>
-<span class="c1">#         {&#39;label&#39;: &#39;All Species&#39;,         &#39;category_list&#39;: None},</span>
-<span class="c1">#         {&#39;label&#39;: &#39;Masai Giraffe&#39;,       &#39;category_list&#39;: [&#39;giraffe_masai&#39;]},</span>
-<span class="c1">#         {&#39;label&#39;: &#39;Reticulated Giraffe&#39;, &#39;category_list&#39;: [&#39;giraffe_reticulated&#39;]},</span>
-<span class="c1">#         {&#39;label&#39;: &#39;Sea Turtle&#39;,          &#39;category_list&#39;: [&#39;turtle_sea&#39;]},</span>
-<span class="c1">#         {&#39;label&#39;: &#39;Whale Fluke&#39;,         &#39;category_list&#39;: [&#39;whale_fluke&#39;]},</span>
-<span class="c1">#         {&#39;label&#39;: &#39;Grevy\&#39;s Zebra&#39;,      &#39;category_list&#39;: [&#39;zebra_grevys&#39;]},</span>
-<span class="c1">#         {&#39;label&#39;: &#39;Plains Zebra&#39;,        &#39;category_list&#39;: [&#39;zebra_plains&#39;]},</span>
-<span class="c1">#     ]</span>
-<span class="c1">#     color_list = [(0.0, 0.0, 0.0)]</span>
-<span class="c1">#     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)</span>
-
-<span class="c1">#     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA</span>
-
-<span class="c1">#     axes_ = plt.subplot(131)</span>
-<span class="c1">#     axes_.set_autoscalex_on(False)</span>
-<span class="c1">#     axes_.set_autoscaley_on(False)</span>
-<span class="c1">#     axes_.set_xlabel(&#39;Recall&#39;)</span>
-<span class="c1">#     axes_.set_ylabel(&#39;Precision&#39;)</span>
-<span class="c1">#     axes_.set_xlim([0.0, 1.01])</span>
-<span class="c1">#     axes_.set_ylim([0.0, 1.01])</span>
-<span class="c1">#     area_list = []</span>
-<span class="c1">#     for color, config in zip(color_list, config_list):</span>
-<span class="c1">#         area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,</span>
-<span class="c1">#                                                            color=color, **config)</span>
-<span class="c1">#         area_list.append(area)</span>
-<span class="c1">#     plt.title(&#39;Precision-Recall Curve&#39;, y=1.19)</span>
-<span class="c1">#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode=&quot;expand&quot;,</span>
-<span class="c1">#                borderaxespad=0.0)</span>
-
-<span class="c1">#     axes_ = plt.subplot(132)</span>
-<span class="c1">#     axes_.set_autoscalex_on(False)</span>
-<span class="c1">#     axes_.set_autoscaley_on(False)</span>
-<span class="c1">#     axes_.set_xlabel(&#39;False-Positive Rate&#39;)</span>
-<span class="c1">#     axes_.set_ylabel(&#39;True-Positive Rate&#39;)</span>
-<span class="c1">#     axes_.set_xlim([0.0, 1.01])</span>
-<span class="c1">#     axes_.set_ylim([0.0, 1.01])</span>
-<span class="c1">#     for color, config in zip(color_list, config_list):</span>
-<span class="c1">#         labeler_roc_algo_plot(ibs, label_dict=label_dict,</span>
-<span class="c1">#                               color=color, **config)</span>
-<span class="c1">#     plt.title(&#39;ROC Curve&#39;, y=1.19)</span>
-<span class="c1">#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode=&quot;expand&quot;,</span>
-<span class="c1">#                borderaxespad=0.0)</span>
-
-<span class="c1">#     key_list = sorted(label_dict.keys())</span>
-<span class="c1">#     fuzzy_dict = {}</span>
-<span class="c1">#     for index1, label1 in enumerate(key_list):</span>
-<span class="c1">#         if label1 == &#39;ignore&#39;:</span>
-<span class="c1">#             fuzzy_list = []</span>
-<span class="c1">#         else:</span>
-<span class="c1">#             species, viewpoint = label1.strip().split(&#39;:&#39;)</span>
-<span class="c1">#             fuzzy_list = []</span>
-<span class="c1">#             for index2, label2 in enumerate(key_list):</span>
-<span class="c1">#                 if species in label2:</span>
-<span class="c1">#                     fuzzy_list.append(index2)</span>
-<span class="c1">#         fuzzy_dict[index1] = set(fuzzy_list)</span>
-
-<span class="c1">#     axes_ = plt.subplot(133)</span>
-<span class="c1">#     axes_.set_aspect(1)</span>
-<span class="c1">#     gca_ = plt.gca()</span>
-<span class="c1">#     gca_.grid(False)</span>
-<span class="c1">#     correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)</span>
-<span class="c1">#     axes_.set_xlabel(&#39;Predicted (Correct = %0.02f%%, Species = %0.02f%%)&#39; % (correct_rate * 100.0, fuzzy_rate * 100.0, ))</span>
-<span class="c1">#     axes_.set_ylabel(&#39;Ground-Truth&#39;)</span>
-<span class="c1">#     area_list_ = area_list[1:]</span>
-<span class="c1">#     mAP = sum(area_list_) / len(area_list_)</span>
-<span class="c1">#     args = (mAP * 100.0, )</span>
-<span class="c1">#     plt.title(&#39;Confusion Matrix\nmAP = %0.02f&#39; % args, y=1.19)</span>
-
-<span class="c1">#     fig_filename = &#39;labeler-precision-recall-roc.png&#39;</span>
-<span class="c1">#     fig_path = abspath(expanduser(join(&#39;~&#39;, &#39;Desktop&#39;, fig_filename)))</span>
-<span class="c1">#     plt.savefig(fig_path, bbox_inches=&#39;tight&#39;)</span>
+    <span class="n">category_mapping</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">simple_code</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">category_mapping</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">category_mapping</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">general_confusion_matrix_algo</span><span class="p">(</span><span class="n">label_list</span><span class="p">,</span> <span class="n">prediction_list</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span>
+                                                 <span class="n">category_mapping</span><span class="p">,</span> <span class="n">conf_list</span><span class="o">=</span><span class="n">conf_list</span><span class="p">,</span>
+                                                 <span class="n">size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<span class="c1"># @register_ibs_method</span>
-<span class="c1"># def background_accuracy_display(ibs, category_list, test_gid_set=None):</span>
-<span class="c1">#     if test_gid_set is None:</span>
-<span class="c1">#         test_gid_set = set(general_get_imageset_gids(ibs, &#39;TEST_SET&#39;))</span>
-<span class="c1">#         test_gid_set = list(test_gid_set)</span>
-<span class="c1">#     aids_list = ibs.get_image_aids(test_gid_set)</span>
-<span class="c1">#     aid_list = ut.flatten(aids_list)</span>
-<span class="c1">#     species_list = ibs.get_annot_species_texts(aid_list)</span>
+<div class="viewcode-block" id="labeler_precision_recall_algo_display"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.labeler_precision_recall_algo_display">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">labeler_precision_recall_algo_display</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                          <span class="n">category_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fuzzy_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                          <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
-<span class="c1">#     aid_list = [</span>
-<span class="c1">#         aid</span>
-<span class="c1">#         for aid, species in zip(aid_list, species_list)</span>
-<span class="c1">#         if species in category_list</span>
-<span class="c1">#     ]</span>
-<span class="c1">#     species_list = ibs.get_annot_species_texts(aid_list)</span>
-<span class="c1">#     gid_list = ibs.get_annot_gids(aid_list)</span>
+    <span class="k">if</span> <span class="n">category_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
+        <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">category_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">)))</span>
 
-<span class="c1">#     config2_ = {</span>
-<span class="c1">#         &#39;fw_detector&#39;: &#39;cnn&#39;</span>
-<span class="c1">#     }</span>
-<span class="c1">#     hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)</span>
-<span class="c1">#     image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]</span>
-<span class="c1">#     chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)</span>
-<span class="c1">#     zipped = zip(aid_list, gid_list, species_list, image_list, chip_list)</span>
-<span class="c1">#     for index, (aid, gid, species, image, chip) in enumerate(zipped):</span>
-<span class="c1">#         print(index)</span>
-<span class="c1">#         canvas = vt.blend_images_multiply(chip, vt.resize_mask(image, chip))</span>
-<span class="c1">#         canvas *= 255.0</span>
-<span class="c1">#         canvas = np.around(canvas)</span>
-<span class="c1">#         canvas[canvas &lt; 0] = 0</span>
-<span class="c1">#         canvas[canvas &gt; 255] = 255</span>
-<span class="c1">#         canvas = canvas.astype(np.uint8)</span>
-<span class="c1">#         cv2.imwrite(&#39;/home/jason/Desktop/background/background.%s.%d.%d.png&#39; % (species, gid, aid, ), canvas)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Compiling raw numbers...&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;jaguar&#39;</span>
+
+    <span class="n">label_dict</span> <span class="o">=</span> <span class="n">labeler_tp_tn_fp_fn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="n">viewpoint_mapping</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># {&#39;label&#39;: &#39;All Species&#39;,         &#39;category_list&#39;: None},</span>
+        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar&#39;</span><span class="p">,</span>       <span class="s1">&#39;category_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;jaguar&#39;</span><span class="p">]},</span>
+        <span class="c1"># {&#39;label&#39;: &#39;Reticulated Giraffe&#39;, &#39;category_list&#39;: [&#39;giraffe_reticulated&#39;]},</span>
+        <span class="c1"># {&#39;label&#39;: &#39;Sea Turtle&#39;,          &#39;category_list&#39;: [&#39;turtle_sea&#39;]},</span>
+        <span class="c1"># {&#39;label&#39;: &#39;Whale Fluke&#39;,         &#39;category_list&#39;: [&#39;whale_fluke&#39;]},</span>
+        <span class="c1"># {&#39;label&#39;: &#39;Grevy\&#39;s Zebra&#39;,      &#39;category_list&#39;: [&#39;zebra_grevys&#39;]},</span>
+        <span class="c1"># {&#39;label&#39;: &#39;Plains Zebra&#39;,        &#39;category_list&#39;: [&#39;zebra_plains&#39;]},</span>
+    <span class="p">]</span>
+    <span class="n">color_list</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+    <span class="n">color_list</span> <span class="o">+=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">config_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">color_list</span><span class="p">),</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">fig_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">axes_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">131</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_autoscalex_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_autoscaley_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Recall&#39;</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Precision&#39;</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">])</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">])</span>
+    <span class="n">area_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">color</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">config_list</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">labeler_precision_recall_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="n">label_dict</span><span class="p">,</span>
+                                                 <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">area_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">area</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Precision-Recall Curve&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.19</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">102</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;expand&quot;</span><span class="p">,</span>
+               <span class="n">borderaxespad</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">axes_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">132</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_autoscalex_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_autoscaley_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;False-Positive Rate&#39;</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;True-Positive Rate&#39;</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">])</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">color</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">config_list</span><span class="p">):</span>
+        <span class="n">labeler_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="n">label_dict</span><span class="p">,</span>
+                              <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;ROC Curve&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.19</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">102</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;expand&quot;</span><span class="p">,</span>
+               <span class="n">borderaxespad</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">key_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">label_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="n">fuzzy</span> <span class="o">=</span> <span class="n">fuzzy_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fuzzy</span><span class="p">:</span>
+        <span class="n">fuzzy_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">index1</span><span class="p">,</span> <span class="n">label1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">key_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">label1</span> <span class="o">==</span> <span class="s1">&#39;ignore&#39;</span><span class="p">:</span>
+                <span class="n">fuzzy_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">label1</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+                <span class="n">fuzzy_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">index2</span><span class="p">,</span> <span class="n">label2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">key_list</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">label2</span><span class="p">:</span>
+                        <span class="n">fuzzy_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index2</span><span class="p">)</span>
+            <span class="n">fuzzy_dict</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">fuzzy_list</span><span class="p">)</span>
+
+    <span class="n">axes_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">133</span><span class="p">)</span>
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">gca_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">gca_</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">correct_rate</span><span class="p">,</span> <span class="n">fuzzy_rate</span> <span class="o">=</span> <span class="n">labeler_confusion_matrix_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="n">viewpoint_mapping</span><span class="p">,</span> <span class="n">category_mapping</span><span class="o">=</span><span class="n">category_mapping</span><span class="p">,</span> <span class="n">fig_</span><span class="o">=</span><span class="n">fig_</span><span class="p">,</span> <span class="n">axes_</span><span class="o">=</span><span class="n">axes_</span><span class="p">,</span> <span class="n">fuzzy_dict</span><span class="o">=</span><span class="n">fuzzy_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fuzzy</span><span class="p">:</span>
+        <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Predicted (Correct = </span><span class="si">%0.02f%%</span><span class="s1">, Fuzzy = </span><span class="si">%0.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">correct_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="n">fuzzy_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Predicted (Correct = </span><span class="si">%0.02f%%</span><span class="s1">, Species = </span><span class="si">%0.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">correct_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="n">fuzzy_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="n">axes_</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Ground-Truth&#39;</span><span class="p">)</span>
+    <span class="c1"># area_list_ = area_list[1:]</span>
+    <span class="n">area_list_</span> <span class="o">=</span> <span class="n">area_list</span>
+    <span class="n">mAP</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">area_list_</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_list_</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">mAP</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix</span><span class="se">\n</span><span class="s1">mAP = </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.19</span><span class="p">)</span>
+
+    <span class="n">fig_filename</span> <span class="o">=</span> <span class="s1">&#39;labeler-precision-recall-roc.png&#39;</span>
+    <span class="n">fig_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="n">fig_filename</span><span class="p">)))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="background_accuracy_display"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.background_accuracy_display">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">background_accuracy_display</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,</span> <span class="n">test_gid_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">)))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">test_gid_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
+        <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">test_gid_set</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">aid</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">category_list</span>
+    <span class="p">]</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">config2_</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;fw_detector&#39;</span><span class="p">:</span> <span class="s1">&#39;cnn&#39;</span>
+    <span class="p">}</span>
+    <span class="n">hough_cpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">image_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">hough_cpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">hough_cpath</span> <span class="ow">in</span> <span class="n">hough_cpath_list</span><span class="p">]</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">image_list</span><span class="p">,</span> <span class="n">chip_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
+        <span class="n">blended</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">blend_images_multiply</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="n">blended</span> <span class="o">*=</span> <span class="mf">255.0</span>
+        <span class="n">blended</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">blended</span><span class="p">)</span>
+        <span class="n">blended</span><span class="p">[</span><span class="n">blended</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">blended</span><span class="p">[</span><span class="n">blended</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">]</span> <span class="o">=</span> <span class="mi">255</span>
+        <span class="n">blended</span> <span class="o">=</span> <span class="n">blended</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+        <span class="n">canvas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">blended</span><span class="p">))</span>
+        <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;background.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">canvas</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="aoi2_precision_recall_algo"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectfuncs.aoi2_precision_recall_algo">[docs]</a><span class="k">def</span> <span class="nf">aoi2_precision_recall_algo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">category_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_gid_set_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -2664,7 +2723,8 @@
         <span class="c1"># {&#39;label&#39;: &#39;Whale Fluke&#39;,         &#39;aoi_two_weight_filepath&#39;: &#39;ggr2&#39;, &#39;category_list&#39;: [&#39;whale_fluke&#39;]},</span>
         <span class="c1"># {&#39;label&#39;: &#39;Grevy\&#39;s Zebra&#39;,      &#39;aoi_two_weight_filepath&#39;: &#39;ggr2&#39;, &#39;category_list&#39;: [&#39;zebra_grevys&#39;]},</span>
         <span class="c1"># {&#39;label&#39;: &#39;Plains Zebra&#39;,        &#39;aoi_two_weight_filepath&#39;: &#39;ggr2&#39;, &#39;category_list&#39;: [&#39;zebra_plains&#39;]},</span>
-        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Hammerhead&#39;</span><span class="p">,</span>        <span class="s1">&#39;aoi_two_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;hammerhead&#39;</span><span class="p">,</span> <span class="s1">&#39;category_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;shark_hammerhead&#39;</span><span class="p">]},</span>
+        <span class="c1"># {&#39;label&#39;: &#39;Hammerhead&#39;,        &#39;aoi_two_weight_filepath&#39;: &#39;hammerhead&#39;, &#39;category_list&#39;: [&#39;shark_hammerhead&#39;]},</span>
+        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Jaguar&#39;</span><span class="p">,</span>        <span class="s1">&#39;aoi_two_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span> <span class="s1">&#39;category_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;jaguar&#39;</span><span class="p">]},</span>
     <span class="p">]</span>
     <span class="n">color_list</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
     <span class="n">color_list</span> <span class="o">+=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">config_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">color_list</span><span class="p">),</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>

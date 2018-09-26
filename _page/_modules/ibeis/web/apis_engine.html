@@ -167,6 +167,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">uuid</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="k">as</span> <span class="nn">const</span>
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -512,9 +513,13 @@
 
     <span class="c1"># Ensure annotations</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">dannot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dannot_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># VERY HACK</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">species</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;Cannot query an annotation with an empty (unset) species against an unspecified database_annot_uuid_list&#39;</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annotation_set</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
 
@@ -574,6 +579,53 @@
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">)</span>
     <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;detect_cnn_yolo_json&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1">#if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_labeler_cnn"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_engine.start_labeler_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/labeler/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_labeler_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1">#import ibeis</span>
+    <span class="c1">#from ibeis.web import apis_engine</span>
+    <span class="c1">#ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;labeler_cnn&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1">#if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_review_query_chips_best"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_engine.start_review_query_chips_best">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/review/query/chip/best/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_review_query_chips_best</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span>
+
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1">#import ibeis</span>
+    <span class="c1">#from ibeis.web import apis_engine</span>
+    <span class="c1">#ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;review_query_chips_best&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
     <span class="c1">#if callback_url is not None:</span>
     <span class="c1">#    #import requests</span>

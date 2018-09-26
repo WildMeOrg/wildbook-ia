@@ -546,7 +546,7 @@
 
     <span class="n">proot</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">)</span>
     <span class="n">proot</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proot&#39;</span><span class="p">,</span> <span class="n">proot</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">proot</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;BC_DTW&#39;</span><span class="p">,</span> <span class="s1">&#39;OC_WDTW&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">proot</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bc_dtw&#39;</span><span class="p">,</span> <span class="s1">&#39;oc_wdtw&#39;</span><span class="p">,</span> <span class="s1">&#39;curvrankdorsal&#39;</span><span class="p">,</span> <span class="s1">&#39;curvrankfluke&#39;</span><span class="p">):</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">AnnotMatch</span>  <span class="c1"># ibs.depc_annot.requestclass_dict[&#39;BC_DTW&#39;]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span>
@@ -673,6 +673,14 @@
         <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;pipeline_root&#39;</span> <span class="p">:</span> <span class="s1">&#39;OC_WDTW&#39;</span>
         <span class="p">}</span>
+    <span class="k">elif</span> <span class="s1">&#39;use_curvrank_dorsal&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;pipeline_root&#39;</span> <span class="p">:</span> <span class="s1">&#39;CurvRankDorsal&#39;</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="s1">&#39;use_curvrank_fluke&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;pipeline_root&#39;</span> <span class="p">:</span> <span class="s1">&#39;CurvRankFluke&#39;</span>
+        <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">result_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips_test</span><span class="p">(</span><span class="n">query_config_dict</span><span class="o">=</span><span class="n">query_config_dict</span><span class="p">)</span>
@@ -698,6 +706,92 @@
 <span class="s1">    &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_html</span><span class="p">,</span> <span class="p">)</span>
     <span class="k">return</span> <span class="n">template_html</span>
     <span class="k">return</span> <span class="s1">&#39;done&#39;</span></div>
+
+
+<div class="viewcode-block" id="review_query_chips_best"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_query.review_query_chips_best">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/query/chip/best/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">review_query_chips_best</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># from ibeis.algo.hots import chip_match</span>
+
+    <span class="c1"># query_config_dict = {}</span>
+
+    <span class="c1"># Compile test data</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">result_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips_graph</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">uuid</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;cm_dict&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;cm_dict&#39;</span><span class="p">][</span><span class="n">uuid</span><span class="p">]</span>
+
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;name_score_list&#39;</span><span class="p">]</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;unique_name_list&#39;</span><span class="p">]</span>
+    <span class="n">best_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+    <span class="n">best_name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="n">best_index</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">best_name</span></div>
+
+    <span class="c1"># review_pair = result_dict[&#39;inference_dict&#39;][&#39;annot_pair_dict&#39;][&#39;review_pair_list&#39;][0]</span>
+
+    <span class="c1"># annot_uuid_key = str(review_pair[&#39;annot_uuid_key&#39;])</span>
+    <span class="c1"># cm_dict = result_dict[&#39;cm_dict&#39;][annot_uuid_key]</span>
+    <span class="c1"># query_config_dict = result_dict[&#39;query_config_dict&#39;]</span>
+
+    <span class="c1"># proot = query_config_dict.get(&#39;pipeline_root&#39;, &#39;vsmany&#39;)</span>
+    <span class="c1"># proot = query_config_dict.get(&#39;proot&#39;, proot)</span>
+
+    <span class="c1"># view_orientation = &#39;horizontal&#39;</span>
+
+    <span class="c1"># # unpack info</span>
+    <span class="c1"># try:</span>
+    <span class="c1">#     annot_uuid_1 = review_pair[&#39;annot_uuid_1&#39;]</span>
+    <span class="c1">#     annot_uuid_2 = review_pair[&#39;annot_uuid_2&#39;]</span>
+    <span class="c1"># except Exception:</span>
+    <span class="c1">#     #??? HACK</span>
+    <span class="c1">#     # FIXME:</span>
+    <span class="c1">#     print(&#39;[!!!!] review_pair = %r&#39; % (review_pair,))</span>
+    <span class="c1">#     review_pair = review_pair[0]</span>
+    <span class="c1">#     annot_uuid_1 = review_pair[&#39;annot_uuid_1&#39;]</span>
+    <span class="c1">#     annot_uuid_2 = review_pair[&#39;annot_uuid_2&#39;]</span>
+
+    <span class="c1"># ibs.web_check_uuids(qannot_uuid_list=[annot_uuid_1],</span>
+    <span class="c1">#                     dannot_uuid_list=[annot_uuid_2])</span>
+
+    <span class="c1"># aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)</span>
+    <span class="c1"># aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)</span>
+
+    <span class="c1"># cm = chip_match.ChipMatch.from_dict(cm_dict, ibs=ibs)</span>
+    <span class="c1"># qreq_ = ibs.new_query_request([aid_1], [aid_2],</span>
+    <span class="c1">#                               cfgdict=query_config_dict)</span>
+
+    <span class="c1"># # Get score</span>
+    <span class="c1"># # idx = cm.daid2_idx[aid_2]</span>
+    <span class="c1"># # match_score = cm.name_score_list[idx]</span>
+    <span class="c1"># match_score = cm.aid2_score[aid_2]</span>
+
+    <span class="c1"># try:</span>
+    <span class="c1">#     image_matches = ensure_review_image(ibs, aid_2, cm, qreq_,</span>
+    <span class="c1">#                                         view_orientation=view_orientation)</span>
+    <span class="c1"># except KeyError:</span>
+    <span class="c1">#     image_matches = np.zeros((100, 100, 3), dtype=np.uint8)</span>
+    <span class="c1">#     traceback.print_exc()</span>
+    <span class="c1"># try:</span>
+    <span class="c1">#     image_clean = ensure_review_image(ibs, aid_2, cm, qreq_,</span>
+    <span class="c1">#                                       view_orientation=view_orientation,</span>
+    <span class="c1">#                                       draw_matches=False)</span>
+    <span class="c1"># except KeyError:</span>
+    <span class="c1">#     image_clean = np.zeros((100, 100, 3), dtype=np.uint8)</span>
+    <span class="c1">#     traceback.print_exc()</span>
+
+    <span class="c1"># image_matches_src = appf.embed_image_html(image_matches)</span>
+    <span class="c1"># image_clean_src = appf.embed_image_html(image_clean)</span>
+
+    <span class="c1"># return_dict = {</span>
+    <span class="c1">#     &#39;match&#39;: image_matches_src,</span>
+    <span class="c1">#     &#39;clean&#39;: image_clean_src,</span>
+    <span class="c1">#     &#39;score&#39;: match_score,</span>
+    <span class="c1"># }</span>
+    <span class="c1"># return return_dict</span>
 
 
 <div class="viewcode-block" id="query_chips_test"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_query.query_chips_test">[docs]</a><span class="nd">@register_ibs_method</span>

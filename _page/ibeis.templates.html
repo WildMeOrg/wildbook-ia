@@ -260,8 +260,11 @@ python -m ibeis autogen_ipynb –db PZ_Master1 -a timectrl:qindex=0:100 -t best 
 python -m ibeis autogen_ipynb –db PZ_Master1 -a timectrl –run
 jupyter-notebook Experiments-lynx.ipynb
 killall python</p>
-<p class="last">python -m ibeis autogen_ipynb –db humpbacks –ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
+<p>python -m ibeis autogen_ipynb –db humpbacks –ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
 python -m ibeis autogen_ipynb –db humpbacks –ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 –noexample</p>
+<p class="last">python -m ibeis autogen_ipynb –db testdb_curvrank –ipynb -t default:proot=CurvRankDorsal
+python -m ibeis autogen_ipynb –db testdb_curvrank –ipynb -t default:proot=CurvRankDFluke
+python -m ibeis autogen_ipynb –db PW_Master –ipynb -t default:proot=CurvRankDorsal</p>
 </dd>
 <dt>Ignore:</dt>
 <dd>python -m ibeis autogen_ipynb –db WS_ALL</dd>
