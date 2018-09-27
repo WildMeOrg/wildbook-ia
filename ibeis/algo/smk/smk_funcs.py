@@ -369,17 +369,17 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
+        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs.astype(np.float64)),)
         >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
         >>> print(result)
-        idx_to_wxs = MaskedArray([[0, 1],
-                        [2, --],
-                        [4, --],
-                        [2, 0]])
-        idx_to_maws = MaskedArray([[ 0.5 ,  0.5 ],
-                        [ 1.  ,   nan],
-                        [ 1.  ,   nan],
-                        [ 0.5 ,  0.5 ]])
+        idx_to_wxs = np.ma.MaskedArray([[0., 1.],
+                           [2., inf],
+                           [4., inf],
+                           [2., 0.]])
+        idx_to_maws = np.ma.MaskedArray([[0.5, 0.5],
+                           [1. , inf],
+                           [1. , inf],
+                           [0.5, 0.5]])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -394,17 +394,17 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
+        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs.astype(np.float64)),)
         >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
         >>> print(result)
-        idx_to_wxs = MaskedArray([[0, 1],
-                        [2, --],
-                        [4, --],
-                        [2, 0]])
-        idx_to_maws = MaskedArray([[ 1.  ,  1.  ],
-                        [ 1.  ,   nan],
-                        [ 1.  ,   nan],
-                        [ 1.  ,  1.  ]])
+        idx_to_wxs = np.ma.MaskedArray([[0., 1.],
+                           [2., inf],
+                           [4., inf],
+                           [2., 0.]])
+        idx_to_maws = np.ma.MaskedArray([[1., 1.],
+                           [1., inf],
+                           [1., inf],
+                           [1., 1.]])
     """
     if _idx_to_wx.shape[1] <= 1:
         idx_to_wxs = _idx_to_wx.tolist()

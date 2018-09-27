@@ -1159,7 +1159,7 @@ def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> bbox_list = [[0, 0, 100, 100]] * len(aid_list)
-        >>> part_rowid_list = ibs,add_parts(aid_list, bbox_list=bbox_list)
+        >>> part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)
         >>> metadata_dict_list = [
         >>>     {'test': random.uniform(0.0, 1.0)},
         >>> ] * len(part_rowid_list)

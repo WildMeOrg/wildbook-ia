@@ -422,7 +422,8 @@ class IBEISIO(object):
             >>> infr.add_feedback((7, 8), POSTV)
             >>> pccs2 = list(infr.positive_components())
             >>> print('pccs2 = %r' % (pccs2,))
-            >>> assert pccs2 == [{1}, {2, 3, 4, 5, 6}, {7, 8}, {9}]
+            >>> pccs2 = sorted(pccs2)
+            >>> assert pccs2 == [{9}, {1}, {2, 3, 4, 5, 6}, {7, 8}]
             >>> print(list(infr.gen_node_values('name_label', infr.aids)))
             >>> name_delta_df = infr.get_ibeis_name_delta()
             >>> result = str(name_delta_df)

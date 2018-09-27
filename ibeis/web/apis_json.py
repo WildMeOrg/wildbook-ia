@@ -473,8 +473,8 @@ def add_images_json(ibs, image_uri_list,
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
         image_gps_lat_list = _rectify(image_gps_lat_list, -1.0, expected_length, float)
         image_gps_lon_list = _rectify(image_gps_lon_list, -1.0, expected_length, float)
-        image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length, allow_None=True)
-        image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length, allow_None=True)
+        image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length, allow_none=True)
+        image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length, allow_none=True)
 
         for index, value in enumerate(zip(image_gps_lat_list, image_gps_lon_list)):
             image_gps_lat, image_gps_lon = value

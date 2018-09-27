@@ -1355,7 +1355,7 @@ class AnnotInference(ut.NiceRepr,
             >>> infr = ibeis.AnnotInference(None)
             >>> result = ut.repr2(infr.subparams('refresh'))
             >>> print(result)
-            {'method': 'binomial', 'patience': 72, 'thresh': 0.1, 'window': 20}
+            {'method': 'binomial', 'patience': 72, 'thresh': 0.052, 'window': 20}
         """
         prefix_ = prefix + '.'
         subparams = {k[len(prefix_):]: v for k, v in infr.params.items()

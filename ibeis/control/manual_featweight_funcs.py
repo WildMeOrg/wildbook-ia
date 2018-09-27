@@ -34,7 +34,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
         >>> assert np.all(np.array(depth) > [1200, 1400])
         >>> percent_ = (fgws_list[0] > .5).sum() / len(fgws_list[0])
         >>> print('Calculated percent = %0.04f' % (percent_, ))
-        >>> assert percent_ > .4 and percent_ < .6, 'should be around .54'
+        >>> assert percent_ > .6 and percent_ < .8, 'should be around 0.7472'
     """
     fgws_list = ibs.depc_annot.get('featweight', aid_list, 'fwg',
                                    config=config2_)

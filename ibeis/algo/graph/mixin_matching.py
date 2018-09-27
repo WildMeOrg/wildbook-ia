@@ -608,6 +608,7 @@ class _RedundancyAugmentation(object):
         Doctest:
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
+            >>> ut.embed()
             >>> infr = demo.demodata_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
             >>> infr.add_feedback((2, 5), 'match')
             >>> infr.add_feedback((1, 5), 'notcomp')
@@ -732,6 +733,7 @@ class CandidateSearch(_RedundancyAugmentation):
             python -m ibeis.algo.graph.mixin_matching ensure_task_probs
 
         Doctest:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_matching import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
@@ -800,7 +802,7 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
-            >>> infr.load_published()
+            >>> # infr.load_published()
             >>> priority_edges = list(infr.edges())
             >>> infr.ensure_priority_scores(priority_edges)
 
@@ -812,7 +814,7 @@ class CandidateSearch(_RedundancyAugmentation):
         """
         infr.print('Checking for verifiers: %r' % (infr.verifiers, ))
 
-        if infr.verifiers:
+        if infr.verifiers and infr.ibs is not None:
             infr.print('Prioritizing {} edges with one-vs-one probs'.format(
                        len(priority_edges)), 1)
             infr.print('Using thresholds: %r' % (infr.task_thresh, ))
@@ -820,6 +822,7 @@ class CandidateSearch(_RedundancyAugmentation):
             infr.print('Using infr.params[autoreview.prioritize_nonpos]: %r' % (infr.params['autoreview.prioritize_nonpos'], ))
 
             infr.ensure_task_probs(priority_edges)
+            infr.load_published()
 
             primary_task = 'match_state'
             match_probs = infr.task_probs[primary_task]
