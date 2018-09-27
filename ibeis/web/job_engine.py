@@ -1145,9 +1145,6 @@ def on_collect_request(collect_request, collecter_data, status_data,
 
         jobid = engine_result['jobid']
 
-        if containerized:
-            callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
-
         shelve_filepath = abspath(join(shelve_path, '%s.shelve' % (jobid, )))
 
         if jobid not in collecter_data:
@@ -1165,6 +1162,10 @@ def on_collect_request(collect_request, collecter_data, status_data,
             shelf.close()
 
         if callback_url is not None:
+
+            if containerized:
+                callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
+
             if callback_method is None:
                 callback_method = 'post'
             else:

@@ -330,12 +330,14 @@
     <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">pid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_part_rowids</span><span class="p">()</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">,</span>
                          <span class="n">num_imgsetids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">imgsetids_list</span><span class="p">),</span>
                          <span class="n">num_gids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
                          <span class="n">num_aids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+                         <span class="n">num_pids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
                          <span class="n">num_nids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">))</span></div>
 
 
@@ -1913,6 +1915,60 @@
                          <span class="n">page_total</span><span class="o">=</span><span class="n">page_total</span><span class="p">,</span>
                          <span class="n">page_previous</span><span class="o">=</span><span class="n">page_previous</span><span class="p">,</span>
                          <span class="n">page_next</span><span class="o">=</span><span class="n">page_next</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="view_parts"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes.view_parts">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/view/parts/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">view_parts</span><span class="p">(</span><span class="n">pid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">page</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="n">filtered</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_part_rowids</span><span class="p">()</span>
+        <span class="n">filtered</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Page</span>
+    <span class="n">page_start</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span> <span class="p">(</span><span class="n">page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">appf</span><span class="o">.</span><span class="n">PAGE_SIZE</span><span class="p">)</span>
+    <span class="n">page_end</span>   <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span> <span class="n">page</span> <span class="o">*</span> <span class="n">appf</span><span class="o">.</span><span class="n">PAGE_SIZE</span><span class="p">)</span>
+    <span class="n">page_total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">)</span> <span class="o">/</span> <span class="n">appf</span><span class="o">.</span><span class="n">PAGE_SIZE</span><span class="p">))</span>
+    <span class="n">page_previous</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_start</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">page</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">page_next</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_end</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">)</span> <span class="k">else</span> <span class="n">page</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">pid_list</span> <span class="o">=</span> <span class="n">pid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="n">pid_list</span>      <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">pid_list</span>      <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pid_list</span>
+    <span class="n">aid_list</span>      <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">aid_list</span>      <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">aid_list</span>
+    <span class="n">gid_list</span>      <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">gid_list</span>      <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">gid_list</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">imgsetid_list</span>
+
+    <span class="n">imgsetid_list_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">))</span>
+    <span class="n">gid_list_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">))</span>
+    <span class="n">aid_list_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">pid_list_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">pid_list</span><span class="p">))</span>
+
+    <span class="n">num_imgsetids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">num_gids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">num_aids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">num_pids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">)</span>
+
+    <span class="n">part_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span>
+        <span class="n">pid_list</span><span class="p">,</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_gids</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
+    <span class="p">))</span>
+    <span class="n">part_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">embedded</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;parts&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">embedded</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="view_names"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes.view_names">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/view/names/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>

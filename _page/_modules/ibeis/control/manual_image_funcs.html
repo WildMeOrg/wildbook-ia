@@ -387,7 +387,7 @@
 
 
 <span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">_compute_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_compute_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="k">import</span> <span class="n">preproc_image</span>
     <span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
 
@@ -403,9 +403,19 @@
         <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">),</span> <span class="n">force_serial</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span><span class="p">))</span>
 
     <span class="c1"># Error reporting</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="p">[</span><span class="s1">&#39; ! Failed reading gpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,)</span> <span class="k">for</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">params_</span><span class="p">)</span>
-         <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">params_</span><span class="p">]))</span>
+    <span class="n">failed_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">gpath</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">params_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params_</span>
+    <span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="s1">&#39; ! Failed reading gpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">failed_list</span>
+    <span class="p">]))</span>
+
+    <span class="k">if</span> <span class="n">ensure</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Importing </span><span class="si">%d</span><span class="s1"> files failed: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">),</span> <span class="n">failed_list</span><span class="p">,</span> <span class="p">))</span>
 
     <span class="k">return</span> <span class="n">params_list</span>
 
@@ -491,7 +501,8 @@
     <span class="k">if</span> <span class="n">location_for_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">location_for_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">location_for_names</span>
 
-    <span class="k">if</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">compute_params</span> <span class="o">=</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">compute_params</span><span class="p">:</span>
         <span class="n">params_list</span> <span class="o">=</span> <span class="n">_compute_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># &lt;DEBUG&gt;</span>
@@ -527,6 +538,11 @@
         <span class="n">gext_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">guuid_list</span><span class="p">,</span> <span class="n">gext_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">compute_params</span><span class="p">:</span>
+        <span class="c1"># We need to double check that the UUIDs are valid, considering we received the UUIDs</span>
+        <span class="n">guuid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">compute_image_uuids</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">guuid_list_</span> <span class="o">==</span> <span class="n">guuid_list</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">params_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">params_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">params_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span>

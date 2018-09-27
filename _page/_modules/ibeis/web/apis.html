@@ -304,6 +304,48 @@
 
 <span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
 <span class="c1"># actually (and should be) an API call</span>
+<div class="viewcode-block" id="background_src_api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.background_src_api">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/api/background/src/&lt;rowid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">background_src_api</span><span class="p">(</span><span class="n">rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the image file of annot &lt;aid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, start_job_queue=False)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.send_ibeis_request(&#39;/api/annot/src/&#39;, type_=&#39;get&#39;, aid=1)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/src/&lt;rowid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="k">assert</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image path should not be None&#39;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Encode image</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="n">img_io</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">img_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="s1">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">img_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span></div>
+    <span class="c1"># return send_file(gpath, mimetype=&#39;application/unknown&#39;)</span>
+
+
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span>
 <div class="viewcode-block" id="image_src_api_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.image_src_api_json">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/api/image/src/json/&lt;uuid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">image_src_api_json</span><span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>

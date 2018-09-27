@@ -523,6 +523,50 @@
     <span class="k">return</span> <span class="n">part_detect_confidence_list</span></div>
 
 
+<div class="viewcode-block" id="get_part_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_part_funcs.get_part_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/image/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get parent imageation rowids of parts</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        gid_list (list):  image rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/image/rowid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.get_valid_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_part_gids(ibs, part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_image_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_part_funcs.get_part_image_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_part_image_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_gids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_part_image_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_part_funcs.get_part_image_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_part_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_gids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_uuid_list</span></div>
+
+
 <div class="viewcode-block" id="get_part_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_part_funcs.get_part_aids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>

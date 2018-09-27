@@ -261,6 +261,27 @@ URL:    /api/annot/src/&lt;rowid&gt;/</dd>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.apis.background_src_api">
+<code class="descclassname">ibeis.web.apis.</code><code class="descname">background_src_api</code><span class="sig-paren">(</span><em>rowid=None</em>, <em>fresh=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis.html#background_src_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis.background_src_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the image file of annot &lt;aid&gt;</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.app</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">send_ibeis_request</span><span class="p">(</span><span class="s1">&#39;/api/annot/src/&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/src/&lt;rowid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.apis.heartbeat">
 <code class="descclassname">ibeis.web.apis.</code><code class="descname">heartbeat</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis.html#heartbeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis.heartbeat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -437,6 +458,11 @@ URL:    /api/image/zip</dd>
 <div class="section" id="module-ibeis.web.apis_detect">
 <span id="ibeis-web-apis-detect-module"></span><h2>ibeis.web.apis_detect module<a class="headerlink" href="#module-ibeis.web.apis_detect" title="Permalink to this headline">¶</a></h2>
 <p>Dependencies: flask, tornado.</p>
+<dl class="function">
+<dt id="ibeis.web.apis_detect.aoi_cnn">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">aoi_cnn</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>testing=False</em>, <em>model_tag='candidacy'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#aoi_cnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.aoi_cnn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="function">
 <dt id="ibeis.web.apis_detect.commit_detection_results">
 <code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">commit_detection_results</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>results_list</em>, <em>note=None</em>, <em>update_json_log=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#commit_detection_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.commit_detection_results" title="Permalink to this definition">¶</a></dt>
@@ -821,6 +847,33 @@ URL:    /api/upload/image/detect/cnn/yolo/</dd>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.apis_detect.models_cnn">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">models_cnn</code><span class="sig-paren">(</span><em>ibs</em>, <em>config_dict</em>, <em>parse_classes_func</em>, <em>parse_line_func</em>, <em>check_hash=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#models_cnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.models_cnn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_detect.models_cnn_lightnet">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">models_cnn_lightnet</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#models_cnn_lightnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.models_cnn_lightnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the models (and their labels) for the YOLO CNN detector</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: PUT, GET
+URL:    /api/labels/cnn/lightnet/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_detect.models_cnn_yolo">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">models_cnn_yolo</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#models_cnn_yolo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.models_cnn_yolo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the models (and their labels) for the YOLO CNN detector</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: PUT, GET
+URL:    /api/labels/cnn/yolo/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.apis_detect.process_detection_html">
 <code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">process_detection_html</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#process_detection_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.process_detection_html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process the return from the detection review interface.  Pass the POST result from the detection review form directly to this function unmodified.</p>
@@ -877,6 +930,11 @@ URL:    /api/review/detect/cnn/yolo/</dd>
 <dl class="function">
 <dt id="ibeis.web.apis_detect.review_detection_test">
 <code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">review_detection_test</code><span class="sig-paren">(</span><em>image_uuid=None</em>, <em>result_list=None</em>, <em>callback_url=None</em>, <em>callback_method='POST'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#review_detection_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.review_detection_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_detect.wic_cnn">
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">wic_cnn</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>testing=False</em>, <em>model_tag='candidacy'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#wic_cnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.wic_cnn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -4285,6 +4343,11 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.routes.view_parts">
+<code class="descclassname">ibeis.web.routes.</code><code class="descname">view_parts</code><span class="sig-paren">(</span><em>pid_list=None</em>, <em>aid_list=None</em>, <em>gid_list=None</em>, <em>imgsetid_list=None</em>, <em>page=1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#view_parts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.view_parts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.routes.view_viewpoints">
 <code class="descclassname">ibeis.web.routes.</code><code class="descname">view_viewpoints</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#view_viewpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.view_viewpoints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -4321,6 +4384,11 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 <dl class="function">
 <dt id="ibeis.web.routes_ajax.part_src">
 <code class="descclassname">ibeis.web.routes_ajax.</code><code class="descname">part_src</code><span class="sig-paren">(</span><em>part_rowid</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes_ajax.html#part_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes_ajax.part_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.routes_ajax.probchip_src">
+<code class="descclassname">ibeis.web.routes_ajax.</code><code class="descname">probchip_src</code><span class="sig-paren">(</span><em>aid=None</em>, <em>ibs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes_ajax.html#probchip_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes_ajax.probchip_src" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

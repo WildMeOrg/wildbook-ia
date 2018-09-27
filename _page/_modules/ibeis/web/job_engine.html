@@ -1305,9 +1305,6 @@
 
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s1">&#39;jobid&#39;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">containerized</span><span class="p">:</span>
-            <span class="n">callback_url</span> <span class="o">=</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;://localhost/&#39;</span><span class="p">,</span> <span class="s1">&#39;://wildbook:8080/&#39;</span><span class="p">)</span>
-
         <span class="n">shelve_filepath</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">shelve_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.shelve&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="p">)))</span>
 
         <span class="k">if</span> <span class="n">jobid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">collecter_data</span><span class="p">:</span>
@@ -1325,6 +1322,10 @@
             <span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">containerized</span><span class="p">:</span>
+                <span class="n">callback_url</span> <span class="o">=</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;://localhost/&#39;</span><span class="p">,</span> <span class="s1">&#39;://wildbook:8080/&#39;</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">callback_method</span> <span class="o">=</span> <span class="s1">&#39;post&#39;</span>
             <span class="k">else</span><span class="p">:</span>

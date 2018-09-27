@@ -381,7 +381,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         type_list = []
         message_list = []
 
-        for key in kwargs:
+        for key in key_list:
             try:
                 values = kwargs[key]
                 type_ = type(values).__name__

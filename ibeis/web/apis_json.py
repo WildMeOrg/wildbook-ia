@@ -420,7 +420,7 @@ def add_images_json(ibs, image_uri_list,
         error_list = []
         for value in enumerate(list_):
             index, item = value
-            if item is None:
+            if item is None and not allow_none:
                 error_list.append(value)
 
         if len(error_list) > 0:
@@ -461,17 +461,38 @@ def add_images_json(ibs, image_uri_list,
 
     if image_unixtime_list is not None:
         image_unixtime_list = _rectify(image_unixtime_list, -1, expected_length, float)
-        image_unixtime_list = _verify(image_unixtime_list, 'image_unixtime_list', expected_length)
-        print('Setting times: %r -> %r' % (gid_list, image_unixtime_list, ))
-        ibs.set_image_unixtime(gid_list, image_unixtime_list)
+        image_unixtime_list = _verify(image_unixtime_list, 'image_unixtime_list', expected_length, allow_none=True)
+
+        flag_list = [image_unixtime is not None for image_unixtime in image_unixtime_list]
+        gid_list_ = ut.filter_items(gid_list, flag_list)
+        image_unixtime_list_ = ut.filter_items(image_unixtime_list, flag_list)
+
+        print('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_, ))
+        ibs.set_image_unixtime(gid_list_, image_unixtime_list_)
 
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
         image_gps_lat_list = _rectify(image_gps_lat_list, -1.0, expected_length, float)
         image_gps_lon_list = _rectify(image_gps_lon_list, -1.0, expected_length, float)
-        image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length)
-        image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length)
-        print('Setting gps: %r -> %r, %r' % (gid_list, image_gps_lat_list, image_gps_lon_list, ))
-        ibs.set_image_gps(gid_list, lat_list=image_gps_lat_list, lon_list=image_gps_lon_list)
+        image_gps_lat_list = _verify(image_gps_lat_list, 'image_gps_lat_list', expected_length, allow_None=True)
+        image_gps_lon_list = _verify(image_gps_lon_list, 'image_gps_lon_list', expected_length, allow_None=True)
+
+        for index, value in enumerate(zip(image_gps_lat_list, image_gps_lon_list)):
+            image_gps_lat, image_gps_lon = value
+            if image_gps_lat is not None:
+                assert image_gps_lon is not None, 'Cannot specify a longitude without a latitude, index %d' % (index, )
+            if image_gps_lon is not None:
+                assert image_gps_lat is not None, 'Cannot specify a longitude without a latitude, index %d' % (index, )
+
+        flag_list = [
+            image_gps_lat_ is not None and image_gps_lon_ is not None
+            for image_gps_lat_, image_gps_lon_ in zip(image_gps_lat_list, image_gps_lon_list)
+        ]
+        gid_list_ = ut.filter_items(gid_list, flag_list)
+        image_gps_lat_list_ = ut.filter_items(image_gps_lat_list, flag_list)
+        image_gps_lon_list_ = ut.filter_items(image_gps_lon_list, flag_list)
+
+        print('Setting gps: %r -> %r, %r' % (gid_list_, image_gps_lat_list_, image_gps_lon_list_, ))
+        ibs.set_image_gps(gid_list_, lat_list=image_gps_lat_list_, lon_list=image_gps_lon_list_)
 
     image_uuid_list = ibs.get_image_uuids(gid_list)
     return image_uuid_list
@@ -562,7 +583,7 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
         error_list = []
         for value in enumerate(list_):
             index, item = value
-            if item is None:
+            if item is None and not allow_none:
                 error_list.append(value)
             if isinstance(item, ParseError):
                 value = (index, item.value)
@@ -622,33 +643,51 @@ def add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list,
 
     if annot_viewpoint_list is not None:
         annot_viewpoint_list = _rectify(annot_viewpoint_list, const.VIEW.UNKNOWN, expected_length, str)
-        annot_viewpoint_list = _verify(annot_viewpoint_list, 'annot_viewpoint_list', expected_length)
-        ibs.set_annot_viewpoints(aid_list, annot_viewpoint_list)
+        annot_viewpoint_list = _verify(annot_viewpoint_list, 'annot_viewpoint_list', expected_length, allow_none=True)
+        flag_list = [annot_viewpoint is not None for annot_viewpoint in annot_viewpoint_list]
+        aid_list_ = ut.filter_items(aid_list, flag_list)
+        annot_viewpoint_list_ = ut.filter_items(annot_viewpoint_list, flag_list)
+        ibs.set_annot_viewpoints(aid_list_, annot_viewpoint_list_)
 
     if annot_quality_list is not None:
         annot_quality_list = _rectify(annot_quality_list, const.QUAL_UNKNOWN, expected_length, str)
-        annot_quality_list = _verify(annot_quality_list, 'annot_quality_list', expected_length)
-        ibs.set_annot_quality_texts(aid_list, annot_quality_list)
+        annot_quality_list = _verify(annot_quality_list, 'annot_quality_list', expected_length, allow_none=True)
+        flag_list = [annot_quality is not None for annot_quality in annot_quality_list]
+        aid_list_ = ut.filter_items(aid_list, flag_list)
+        annot_quality_list_ = ut.filter_items(annot_quality_list, flag_list)
+        ibs.set_annot_quality_texts(aid_list_, annot_quality_list_)
 
     if annot_species_list is not None:
         annot_species_list = _rectify(annot_species_list, const.UNKNOWN, expected_length, str)
-        annot_species_list = _verify(annot_species_list, 'annot_species_list', expected_length)
-        ibs.set_annot_species(aid_list, annot_species_list)
+        annot_species_list = _verify(annot_species_list, 'annot_species_list', expected_length, allow_none=True)
+        flag_list = [annot_species is not None for annot_species in annot_species_list]
+        aid_list_ = ut.filter_items(aid_list, flag_list)
+        annot_species_list_ = ut.filter_items(annot_species_list, flag_list)
+        ibs.set_annot_species(aid_list_, annot_species_list_)
 
     if annot_multiple_list is not None:
         annot_multiple_list = _rectify(annot_multiple_list, False, expected_length, bool)
-        annot_multiple_list = _verify(annot_multiple_list, 'annot_multiple_list', expected_length)
-        ibs.set_annot_multiple(aid_list, annot_multiple_list)
+        annot_multiple_list = _verify(annot_multiple_list, 'annot_multiple_list', expected_length, allow_none=True)
+        flag_list = [annot_multiple is not None for annot_multiple in annot_multiple_list]
+        aid_list_ = ut.filter_items(aid_list, flag_list)
+        annot_multiple_list_ = ut.filter_items(annot_multiple_list, flag_list)
+        ibs.set_annot_multiple(aid_list_, annot_multiple_list_)
 
     if annot_interest_list is not None:
         annot_interest_list = _rectify(annot_interest_list, False, expected_length, bool)
-        annot_interest_list = _verify(annot_interest_list, 'annot_interest_list', expected_length)
-        ibs.set_annot_interest(aid_list, annot_interest_list)
+        annot_interest_list = _verify(annot_interest_list, 'annot_interest_list', expected_length, allow_none=True)
+        flag_list = [annot_interest is not None for annot_interest in annot_interest_list]
+        aid_list_ = ut.filter_items(aid_list, flag_list)
+        annot_interest_list_ = ut.filter_items(annot_interest_list, flag_list)
+        ibs.set_annot_interest(aid_list_, annot_interest_list_)
 
     if annot_name_list is not None:
         annot_name_list = _rectify(annot_name_list, const.UNKNOWN, expected_length, str)
-        annot_name_list = _verify(annot_name_list, 'annot_name_list', expected_length)
-        ibs.set_annot_names(aid_list, annot_name_list)
+        annot_name_list = _verify(annot_name_list, 'annot_name_list', expected_length, allow_none=True)
+        flag_list = [annot_name is not None for annot_name in annot_name_list]
+        aid_list_ = ut.filter_items(aid_list, flag_list)
+        annot_name_list_ = ut.filter_items(annot_name_list, flag_list)
+        ibs.set_annot_names(aid_list_, annot_name_list_)
 
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     return annot_uuid_list
@@ -701,7 +740,7 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
         error_list = []
         for value in enumerate(list_):
             index, item = value
-            if item is None:
+            if item is None and not allow_none:
                 error_list.append(value)
             if isinstance(item, ParseError):
                 value = (index, item.value)
