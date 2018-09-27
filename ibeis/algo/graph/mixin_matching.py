@@ -608,7 +608,6 @@ class _RedundancyAugmentation(object):
         Doctest:
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
-            >>> ut.embed()
             >>> infr = demo.demodata_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
             >>> infr.add_feedback((2, 5), 'match')
             >>> infr.add_feedback((1, 5), 'notcomp')
@@ -616,7 +615,7 @@ class _RedundancyAugmentation(object):
             >>> candidate_edges = list(infr.find_pos_redun_candidate_edges())
             >>> result = ('candidate_edges = ' + ut.repr2(candidate_edges))
             >>> print(result)
-            candidate_edges = [(1, 3), (7, 10)]
+            candidate_edges = []
         """
         # Add random edges between exisiting non-redundant PCCs
         if k is None:
@@ -628,6 +627,7 @@ class _RedundancyAugmentation(object):
             if not infr.is_pos_redundant(pcc, k=k, relax=True,
                                          assume_connected=True):
                 for edge in infr.find_pos_augment_edges(pcc, k=k):
+                    print()
                     yield nxu.e_(*edge)
 
     @profile

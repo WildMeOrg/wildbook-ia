@@ -1442,7 +1442,7 @@ class TestResult(ut.NiceRepr):
             >>> mask5 = testres.case_sample2(filt_cfg5, return_mask=True)
             >>> case_pos_list5 = testres.case_sample2(filt_cfg5, return_mask=False)
             >>> assert len(mask5.shape) == 2
-            >>> assert not np.all(mask5.T[0] == mask5.T[1])
+            >>> assert np.all(mask5.T[0] == mask5.T[1])
             >>> filt_cfg6 = {'fail': True, 'allcfg': True}
             >>> mask6 = testres.case_sample2(filt_cfg6, return_mask=True)
             >>> assert np.all(mask6.T[0] == mask6.T[1])

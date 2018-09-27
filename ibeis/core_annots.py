@@ -1100,7 +1100,8 @@ def compute_feats(depc, cid_list, config=None):
         arg_list = list(arg_iter)
         featgen = ut.generate2(
             gen_feat_worker, arg_list, nTasks=nInput, ordered=True,
-            force_serial=ibs.force_serial, progkw={'freq': 1}
+            force_serial=ibs.force_serial, progkw={'freq': 1},
+            futures_threaded=True,
         )
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin

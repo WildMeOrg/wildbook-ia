@@ -121,6 +121,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         'chunksize': 256,
         'progkw': {'freq': 50},
         #'adjust': True,
+        'futures_threaded': True,
         'force_serial': ibs.force_serial or config['force_serial'],
     }
     gen = ut.generate2(draw_thumb_helper, args_list, nTasks=len(args_list),
