@@ -58,6 +58,11 @@ def root(**kwargs):
     dbname = ibs.dbname
     dbdir = ibs.dbdir
 
+    if ibs.containerized:
+        hostname = ut.get_computer_name()
+    else:
+        hostname = None
+
     embedded = dict(globals(), **locals())
     return appf.template(None, **embedded)
 
