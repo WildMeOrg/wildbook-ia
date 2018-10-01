@@ -1483,7 +1483,7 @@ def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
 def plot(*args, **kwargs):
     yscale = kwargs.pop('yscale', 'linear')
     xscale = kwargs.pop('xscale', 'linear')
-    logscale_kwargs = kwargs.pop('logscale_kwargs', {'nonposx': 'clip'})
+    logscale_kwargs = kwargs.pop('logscale_kwargs', {})  # , {'nonposx': 'clip'})
     plot = plt.plot(*args, **kwargs)
     ax = plt.gca()
 
