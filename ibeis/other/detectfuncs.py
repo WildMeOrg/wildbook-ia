@@ -51,6 +51,8 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
 
 
 def simple_code(label):
+    from ibeis.constants import YAWALIAS
+
     if label == 'ignore':
         return 'IGNORE'
     label = label.replace('lion',                'LN')
@@ -85,17 +87,12 @@ def simple_code(label):
     label = label.replace('train',               'TRAIN')
     label = label.replace('cat_domestic',        'DOCM')
     label = label.replace('airplane',            'PLANE')
+    label = label.replace('manta',               'MM')
 
-    label = label.replace('frontleft',           'FL')
-    label = label.replace('frontright',          'FR')
-    label = label.replace('backleft',            'BL')
-    label = label.replace('backright',           'BR')
-    label = label.replace('front',               'F')
-    label = label.replace('back',                'B')
-    label = label.replace('left',                'L')
-    label = label.replace('right',               'R')
-    label = label.replace('up',                  'U')
-    label = label.replace('down',                'D')
+    for key in sorted(YAWALIAS.keys(), key=len, reverse=True):
+        value = YAWALIAS[key]
+        label.replace(key, value)
+
     return label
 
 
@@ -1198,19 +1195,53 @@ def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
         #     {},
         # ),
 
-        '!jaguar': (
+        # '!jaguar': (
+        #     [
+        #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!jaguar'])},
+        #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!jaguar'])},
+        #     ],
+        #     {},
+        # ),
+
+        'manta': (
             [
-                {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!jaguar'])},
-                {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!jaguar'])},
+                {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['manta_ray_giant'])},
+                {'label': 'Manta NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['manta_ray_giant'])},
+            ],
+            {},
+        ),
+
+        '!manta': (
+            [
+                {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!manta_ray_giant'])},
+                {'label': 'Manta NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!manta_ray_giant'])},
             ],
             {},
         ),
@@ -2278,14 +2309,15 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
-    kwargs['labeler_weight_filepath'] = 'jaguar'
+    kwargs['labeler_weight_filepath'] = 'manta'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,
                                      **kwargs)
 
     config_list = [
         # {'label': 'All Species',         'category_list': None},
-        {'label': 'Jaguar',       'category_list': ['jaguar']},
+        # {'label': 'Jaguar',              'category_list': ['jaguar']},
+        {'label': 'Manta',               'category_list': ['manta_ray_giant']},
         # {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
         # {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
         # {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},

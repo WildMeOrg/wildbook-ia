@@ -1224,6 +1224,17 @@ class AnnotInference(ut.NiceRepr,
         infr.task_thresh_dict = {
             'zebra_grevys': {
                 'match_state': {
+                    POSTV: np.inf,  # GGR2 - 0.7732
+                    NEGTV: np.inf,  # GGR2 - 0.8605
+                    INCMP: np.inf,
+                },
+                'photobomb_state': {
+                    'pb': np.inf,
+                    'nopb': np.inf,
+                }
+            },
+            'zebra_plains': {
+                'match_state': {
                     POSTV: np.inf,
                     NEGTV: np.inf,
                     INCMP: np.inf,
@@ -1235,8 +1246,8 @@ class AnnotInference(ut.NiceRepr,
             },
             'giraffe_reticulated': {
                 'match_state': {
-                    POSTV: np.inf,
-                    NEGTV: np.inf,
+                    POSTV: np.inf,  # GGR2 - 0.7460
+                    NEGTV: np.inf,  # GGR2 - 0.8876
                     INCMP: np.inf,
                 },
                 'photobomb_state': {

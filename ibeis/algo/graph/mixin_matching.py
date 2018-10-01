@@ -22,7 +22,7 @@ class AnnotInfrMatching(object):
 
     @profile
     def exec_matching(infr, qaids=None, daids=None, prog_hook=None,
-                      cfgdict=None, name_method='node', use_cache=False,
+                      cfgdict=None, name_method='node', use_cache=True,
                       invalidate_supercache=False):
         """
         Loads chip matches into the inference structure

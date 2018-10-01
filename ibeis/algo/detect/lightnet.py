@@ -31,6 +31,7 @@ WEIGHT_URL_DICT = {
     'ggr2'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
     'lynx'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.lynx.weights',
     'jaguar'        : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.jaguar.weights',
+    'manta'         : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.manta_ray_giant.weights',
 
     None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
 }

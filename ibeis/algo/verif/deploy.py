@@ -28,18 +28,18 @@ class Deployer(object):
 
     published = {
         'zebra_grevys': {
-            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',
             # 'photobomb_state': 'vsone.zebra_grevys.photobomb_state.RF.131.thwzdtnkjcwjqeve.cPkl',
-            'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',  # OLD PRE-TRAINED 0
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED 1
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.kukigovqipdrjihg.ggr2.cPkl',  # GGR2 0
-            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
         },
         'zebra_plains': {
-            # 'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',
+            'match_state': 'vsone.zebra_plains.match_state.RF.131.eurizlstehqjvlsu.cPkl',  # OLD PRE-TRAINED
         },
         'giraffe_reticulated': {
             # 'match_state': 'vsone.giraffe_reticulated.match_state.RF.107.clvhhvwgwxpflnhu.ggr2.cPkl',  # GGR2 0
-            # 'match_state': 'vsone.giraffe_reticulated.match_state.RF.131.kqbaqnrdyxpjrzjd.ggr2.cPkl',  # GGR2 1
+            'match_state': 'vsone.giraffe_reticulated.match_state.RF.131.kqbaqnrdyxpjrzjd.ggr2.cPkl',  # GGR2 1
         },
     }
 
