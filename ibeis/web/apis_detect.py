@@ -133,12 +133,12 @@ def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
 
 @register_ibs_method
 @register_api('/test/detect/cnn/yolo/', methods=['GET'])
-def detection_yolo_test(ibs):
+def detection_yolo_test(ibs, config={}):
     from random import shuffle  # NOQA
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
-    results_dict = ibs.detect_cnn_yolo_json(gid_list)
+    results_dict = ibs.detect_cnn_yolo_json(gid_list, config=config)
     return results_dict
 
 
@@ -149,7 +149,7 @@ def detection_lightnet_test(ibs, config={}):
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)
     gid_list = gid_list[:3]
-    results_dict = ibs.detect_cnn_lightnet_json(gid_list)
+    results_dict = ibs.detect_cnn_lightnet_json(gid_list, config=config)
     return results_dict
 
 
@@ -850,9 +850,10 @@ def detect_cnn_lightnet(ibs, gid_list, labeler=False, commit=True, testing=False
         'nms_thresh'  : 0.4,
     }
     if model_tag is not None:
+        config['config_filepath'] = model_tag
         config['weight_filepath'] = model_tag
 
-    config_str_list = ['weight_filepath'] + list(config.keys())
+    config_str_list = ['config_filepath', 'weight_filepath'] + list(config.keys())
     for config_str in config_str_list:
         if config_str in kwargs:
             config[config_str] = kwargs[config_str]
