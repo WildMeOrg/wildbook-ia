@@ -221,6 +221,14 @@ def get_job_status(ibs, jobid=None):
     """
     Web call that returns the status of a job
 
+    Returns one of:
+        received              - job has been received, but not ingested yet
+        accepted              - job has been accepted (validated)
+        queued                - job has been transferred to the engine queue
+        working               - job is being worked on by the engine
+        publishing            - job is done on the engine, pushing results to collector
+        completed | exception - job is complete or has an error
+
     CommandLine:
         # Run Everything together
         python -m ibeis.web.job_engine --exec-get_job_status
@@ -1211,7 +1219,7 @@ def on_collect_request(collect_request, collecter_data, status_data,
         # From a Client
         jobid = collect_request['jobid']
         reply['jobid'] = jobid
-        reply['jobstatus'] = status_data.get('jobid', 'unknown')
+        reply['jobstatus'] = status_data.get(jobid, 'unknown')
     elif action == 'job_status_dict':
         # From a Client
         json_result = {}

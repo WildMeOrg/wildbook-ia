@@ -45,12 +45,12 @@
             <tr {% if job_state == 1 %}class="success"{% endif %} {% if job_state == -1 %}class="danger"{% endif %}>
               <th scope="row">{{ job_uuid }}</th>
               <th scope="row">{{ job_number }}</th>
-              <td><a href="http://localhost:5000/api/engine/job/metadata/?jobid={{ job_uuid }}&__format__=true">{{ job_endpoint }}</a></td>
+              <td><a href="/api/engine/job/metadata/?jobid={{ job_uuid }}&__format__=true" target="_blank">{{ job_endpoint }}</a></td>
               <td>{{ job_status }}</td>
               <td>{{ job_time_requested_str }}</td>
               <td>{{ job_time_status_str }}</td>
               <td>{{ job_time_completed_str }}</td>
-              <td>{% if job_state != 0 %}<a href="http://localhost:5000/api/engine/job/result/?jobid={{ job_uuid }}&__format__=true">{% if job_state == 1 %}Results{% endif %}{% if job_state == -1 %}Trace{% endif %}</td></a>{% endif %}</td>
+              <td>{% if job_state != 0 %}<a href="/api/engine/job/result/?jobid={{ job_uuid }}&__format__=true" target="_blank">{% if job_state == 1 %}Results{% endif %}{% if job_state == -1 %}Trace{% endif %}</td></a>{% endif %}</td>
             </tr>
             {% endfor %}
           {% endif %}

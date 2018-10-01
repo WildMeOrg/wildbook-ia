@@ -2134,23 +2134,26 @@ def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
     species_list = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     # Filter aids with species of interest and undefined viewpoints
-    flag_list = [
-        species in category_list
+
+    viewpoint_list = [
+        viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint)
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
+
+    flag_list = [
+        species in category_list and viewpoint is not None
+        for species, viewpoint in zip(species_list, viewpoint_list)
+    ]
+
     if False in flag_list:
         aid_list = ut.compress(aid_list, flag_list)
-        # Get new species and viewpoints
-        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-        species_list = ibs.get_annot_species_texts(aid_list)
+        species_list = ut.compress(species_list, flag_list)
+        viewpoint_list = ut.compress(viewpoint_list, flag_list)
 
     # Make ground-truth
     label_list = [
-        '%s:%s' % (
-            species,
-            viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
-        )
-        for species, viewpoint in zip(species_list, viewpoint_list)
+        '%s:%s' % (species, viewpoint_, )
+        for species, viewpoint_ in zip(species_list, viewpoint_list)
     ]
     # Get predictions
     # depc.delete_property('labeler', aid_list, config=kwargs)
