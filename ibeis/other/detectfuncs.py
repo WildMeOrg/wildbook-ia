@@ -85,13 +85,13 @@ def simple_code(label):
     label = label.replace('horse_domestic',      'DOMH')
     label = label.replace('boat',                'BOAT')
     label = label.replace('train',               'TRAIN')
-    label = label.replace('cat_domestic',        'DOCM')
+    label = label.replace('cat_domestic',        'DOMC')
     label = label.replace('airplane',            'PLANE')
-    label = label.replace('manta',               'MM')
+    label = label.replace('manta_ray_giant',     'MM')
 
     for key in sorted(YAWALIAS.keys(), key=len, reverse=True):
         value = YAWALIAS[key]
-        label.replace(key, value)
+        label = label.replace(key, value)
 
     return label
 
