@@ -150,7 +150,7 @@ def _convert_species_nice_to_text(species_nice_list):
 def _convert_species_nice_to_code(species_nice_list):
     import re
     def _convert(text):
-        text = re.sub(r'[_]+', ' ', text)
+        text = re.sub(r'[_\+]+', ' ', text)
         text = text.title()
         text = re.sub(r'[^A-Z0-9]+', '', text)
         return text

@@ -849,6 +849,7 @@ def detect_cnn_lightnet(ibs, gid_list, labeler=False, commit=True, testing=False
         'nms'         : True,
         'nms_thresh'  : 0.4,
     }
+
     if model_tag is not None:
         config['config_filepath'] = model_tag
         config['weight_filepath'] = model_tag

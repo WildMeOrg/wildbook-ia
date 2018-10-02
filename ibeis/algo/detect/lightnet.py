@@ -33,7 +33,7 @@ WEIGHT_URL_DICT = {
     'jaguar'        : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.jaguar.weights',
     'manta'         : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.manta_ray_giant.weights',
 
-    None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
+    None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
 }
 
 
@@ -193,6 +193,8 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             }
             result_list_.append(result_dict)
         results_list_.append(result_list_)
+
+    ut.embed()
 
     if len(results_list_) != len(gpath_list):
         raise ValueError('Lightnet did not return valid data')
