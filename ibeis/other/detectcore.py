@@ -863,7 +863,7 @@ def visualize_predictions(ibs, config, **kwargs):
 
 
 def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=False,
-                             num_images=10, output_path=None):
+                             num_images=10, t_width=500, output_path=None):
     if gid_list is None:
         gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **config)
 
@@ -889,9 +889,10 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
         output_path = abspath(expanduser(join('~', 'Desktop', 'bboxes')))
         ut.ensuredir(output_path)
 
+    filepath_dict = {}
     for gid, image_uuid in zip(gid_list, uuid_list):
         image = ibs.get_images(gid)
-        image = _resize(image, t_width=500)
+        image = _resize(image, t_width=t_width)
         h, w, c = image.shape
 
         val_list = val_dict[image_uuid]
@@ -907,6 +908,10 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
         write_filepath = join(output_path, write_filename)
         print(write_filepath)
         cv2.imwrite(write_filepath, image)
+
+        filepath_dict[gid] = write_filepath
+
+    return filepath_dict
 
 if __name__ == '__main__':
     """
