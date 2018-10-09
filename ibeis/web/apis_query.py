@@ -969,7 +969,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
 
-    ibs.web_check_uuids([], annot_uuid_list, [])
+    ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     # FILTER FOR GGR2
@@ -1352,7 +1352,7 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
 @register_api('/api/query/graph/v2/', methods=['PUT'])
 def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    ibs.web_check_uuids([], annot_uuid_list, [])
+    ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     for graph_uuid_ in current_app.GRAPH_CLIENT_DICT:
@@ -1392,7 +1392,7 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
 @register_ibs_method
 def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-    ibs.web_check_uuids([], annot_uuid_list, [])
+    ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     aid_list_ = list(set(graph_client.aids) - set(aid_list))

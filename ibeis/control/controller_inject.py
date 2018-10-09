@@ -193,7 +193,7 @@ class WebMissingUUIDException(WebException):
 class WebDuplicateUUIDException(WebException):
     def __init__(self, qdup_pos_map={}, ddup_pos_map={}):
         message = ('Some UUIDs are specified more than once at positions:\n'
-                   'duplicate_data_uuids=%s\n'
+                   'duplicate_database_uuids=%s\n'
                    'duplicate_query_uuids=%s\n') % (
                        ut.repr3(qdup_pos_map, nl=1),
                        ut.repr3(ddup_pos_map, nl=1))
@@ -253,6 +253,18 @@ class WebReviewFinishedException(WebException):
         }
         code = 605
         super(WebReviewFinishedException, self).__init__(message, rawreturn, code)
+
+
+class WebMultipleNamedDuplicateException(WebException):
+    def __init__(self, bad_dict):
+        message = ('Duplcate UUIDs are specified with more than one name:\n'
+                   'bad_database_uuids=%s\n') % (ut.repr3(bad_dict, nl=1),)
+        bad_dict = {str(k): v for k, v in bad_dict.items()}
+        rawreturn = {
+            'bad_dict' : bad_dict,
+        }
+        code = 606
+        super(WebMultipleNamedDuplicateException, self).__init__(message, rawreturn, code)
 
 
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,

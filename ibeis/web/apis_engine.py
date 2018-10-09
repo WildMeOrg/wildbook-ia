@@ -44,6 +44,47 @@ def ensure_uuid_list(list_):
     return list_
 
 
+def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
+    assert None not in [annot_uuid_list, name_list]
+    assert len(annot_uuid_list) == len(name_list)
+
+    bad_uuid_set = set([])
+
+    annot_dict = {}
+    for annot_uuid, name in zip(annot_uuid_list, name_list):
+        if annot_uuid not in annot_dict:
+            annot_dict[annot_uuid] = []
+
+        if name not in ['', const.UNKNOWN, None]:
+            annot_dict[annot_uuid].append(name)
+
+        if len(annot_dict[annot_uuid]) > 1:
+            bad_uuid_set.add(annot_uuid)
+
+    if len(bad_uuid_set) > 0:
+        bad_dict = {
+            bad_uuid: annot_dict[bad_uuid]
+            for bad_uuid in bad_uuid_set
+        }
+        raise controller_inject.WebMultipleNamedDuplicateException(bad_dict)
+
+    annot_uuid_list_ = []
+    name_list_ = []
+    for annot_uuid in annot_dict:
+        names = annot_dict.get(annot_uuid, [])
+        if len(names) == 0:
+            name = const.UNKNOWN
+        elif len(names) == 1:
+            name = names[0]
+        else:
+            raise RuntimeError('Sanity check failed in web_check_annot_uuids_with_names')
+
+        annot_uuid_list_.append(annot_uuid)
+        name_list_.append(name)
+
+    return annot_uuid_list_, name_list_
+
+
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/uuid/check/', methods=['GET', 'POST'])
@@ -342,6 +383,9 @@ def start_identify_annots_query(ibs,
         assert len(database_annot_uuid_list) == len(dname_list)
 
     # Check UUIDs
+    if dname_list is not None:
+        vals = web_check_annot_uuids_with_names(database_annot_uuid_list, dname_list)
+        database_annot_uuid_list, dname_list = vals
     ibs.web_check_uuids([], query_annot_uuid_list, database_annot_uuid_list)
 
     #import ibeis
@@ -565,7 +609,7 @@ def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None,
         >>> ibs.close_job_manager()
     """
     # Check UUIDs
-    ibs.web_check_uuids([], annot_uuid_list)
+    ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
 
     #import ibeis
     #from ibeis.web import apis_engine
