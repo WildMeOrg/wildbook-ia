@@ -38,6 +38,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 
 
+IMAGE_TILE_FLAG       = 'image_tile_flag'
 IMAGE_TIME_POSIX      = 'image_time_posix'
 IMAGE_LOCATION_CODE   = 'image_location_code'
 IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
@@ -100,8 +101,8 @@ def _get_all_image_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
-def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
-                   require_gps=None, reviewed=None, **kwargs):
+def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None,
+                   is_tile=False, is_reviewed=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -140,6 +141,19 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
     else:
         assert not ut.isiterable(imgsetid)
         gid_list = ibs.get_imageset_gids(imgsetid)
+
+    gid_list = ibs.filter_image_set(
+        gid_list, require_unixtime=require_unixtime, require_gps=require_gps,
+        is_tile=is_tile, is_reviewed=is_reviewed, **kwargs)
+
+    return gid_list
+
+
+@register_ibs_method
+def filter_image_set(ibs, gid_list, require_unixtime=False, require_gps=None,
+                     is_tile=False, is_reviewed=None, sort=False, **kwargs):
+    is_reviewed = kwargs.get('reviewed', is_reviewed)
+
     if require_unixtime:
         # Remove images without timestamps
         unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
@@ -148,10 +162,22 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
     if require_gps:
         isvalid_gps = [lat != -1 and lon != -1 for lat, lon in ibs.get_image_gps(gid_list)]
         gid_list = ut.compress(gid_list, isvalid_gps)
-    if reviewed is not None:
+
+    if is_tile is True:
+        # corresponding unoptimized hack for is_staged
+        flag_list = ibs.get_image_tile_flags(gid_list)
+        gid_list  = ut.compress(gid_list, flag_list)
+    elif is_tile is False:
+        flag_list = ibs.get_image_tile_flags(gid_list)
+        gid_list  = ut.filterfalse_items(gid_list, flag_list)
+
+    if is_reviewed is not None:
         reviewed_list = ibs.get_image_reviewed(gid_list)
-        isvalid_list = [reviewed == flag for flag in reviewed_list]
+        isvalid_list = [is_reviewed == flag for flag in reviewed_list]
         gid_list = ut.compress(gid_list, isvalid_list)
+
+    if sort:
+        gid_list = sorted(gid_list)
     return gid_list
 
 
@@ -2497,6 +2523,226 @@ def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
     contributor_tag_list = ibs.get_contributor_tag(
         contributor_rowid_list, eager=eager, nInput=nInput)
     return contributor_tag_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/', methods=['GET'])
+def get_image_tile_flags(ibs, gid_list):
+    r"""
+    returns if an image is tile
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (int):  list of image ids
+
+    Returns:
+        list: image_tile_flag_list - True if image is tile
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_tile_flags
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/tile/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> gid_list = get_image_tile_flags(ibs, gid_list)
+        >>> result = str(gid_list)
+        >>> print(result)
+    """
+    image_tile_flag_list = ibs.db.get(const.IMAGE_TABLE,
+                                      (IMAGE_TILE_FLAG,), gid_list)
+    return image_tile_flag_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/parent/rowid/', methods=['GET'])
+def get_image_tile_parent_gids(ibs, gid_list):
+    parent_gid_list = ibs.db.get(const.IMAGE_TABLE,
+                                 ('image_tile_parent_rowid',), gid_list)
+    return parent_gid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/parent/rowid/', methods=['GET'])
+def get_image_tile_level(ibs, gid_list):
+    parent_gid_list = ibs.get_image_tile_parent_gids(gid_list)
+
+    level_list = [
+        0 if parent_gid is None else 1 + ibs.get_image_tile_level(parent_gid)
+        for parent_gid in parent_gid_list
+    ]
+    return level_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1toM
+@register_api('/api/image/tile/bbox/', methods=['GET'])
+def get_image_tile_bboxes(ibs, gid_list):
+    r"""
+    Returns:
+        bbox_list (list):  image bounding boxes in image space
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/bbox/
+    """
+    colnames = ('image_tile_xtl', 'image_tile_ytl', 'image_tile_width', 'image_tile_height',)
+    bbox_list = ibs.db.get(const.IMAGE_TABLE, colnames, gid_list)
+    return bbox_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/config/', methods=['GET'])
+def get_image_tile_config(ibs, gid_list, return_raw=False):
+    config_str_list = ibs.db.get(const.IMAGE_TABLE, ('image_tile_config_json',), gid_list)
+    config_list = []
+    for config_str in config_str_list:
+        if config_str in [None, '']:
+            config_dict = {}
+        else:
+            config_dict = config_str if return_raw else ut.from_json(config_str)
+        config_list.append(config_dict)
+    return config_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/config/hash/', methods=['GET'])
+def get_image_tile_config_hashid(ibs, gid_list):
+    config_hash_list = ibs.db.get(const.IMAGE_TABLE, ('image_tile_config_hashid',), gid_list)
+    return config_hash_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/tile/', methods=['PUT'])
+def _set_image_tile_flags(ibs, gid_list, flag_list):
+    r"""
+    Sets if an image is tile
+
+    RESTful:
+        Method: PUT
+        URL:    /api/image/tile/
+    """
+    id_iter = ((gid,) for gid in gid_list)
+    val_iter = ((flag,) for flag in flag_list)
+    ibs.db.set(const.IMAGE_TABLE, (IMAGE_TILE_FLAG,), val_iter, id_iter)
+
+
+@register_ibs_method
+@register_api('/api/image/tile/', methods=['PUT'])
+def _set_image_tile_parent_gids(ibs, gid_list, parent_gid_list):
+    r"""
+    Returns:
+        list_ (list): all nids of known animals
+        (does not include unknown names)
+    """
+    id_iter = ((gid,) for gid in gid_list)
+    val_iter = ((parent_gid,) for parent_gid in parent_gid_list)
+    ibs.db.set(const.IMAGE_TABLE, ('image_tile_parent_rowid',), val_iter, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/tile/', methods=['PUT'])
+def _set_image_tile_bboxes(ibs, gid_list, bbox_list):
+    xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
+    val_iter = zip(xtl_list, ytl_list, width_list, height_list)
+    id_iter = ((aid,) for aid in gid_list)
+    colnames = ('image_tile_xtl', 'image_tile_ytl', 'image_tile_width', 'image_tile_height',)
+    # SET BBOX in ANNOTATION_TABLE
+    ibs.db.set(const.IMAGE_TABLE, colnames, val_iter, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/tile/config/', methods=['PUT'])
+def _set_image_tile_config(ibs, gid_list, config_dict_list):
+    r"""
+    Sets the image's config using a config dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/image/config/
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-set_image_config
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:1]
+        >>> config_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.repr2(config_dict_list))
+        >>> ibs.set_image_config(gid_list, config_dict_list)
+        >>> # verify results
+        >>> config_dict_list_ = ibs.get_image_config(gid_list)
+        >>> print(ut.repr2(config_dict_list_))
+        >>> assert config_dict_list == config_dict_list_
+        >>> config_str_list = [ut.to_json(config_dict) for config_dict in config_dict_list]
+        >>> print(ut.repr2(config_str_list))
+        >>> config_str_list_ = ibs.get_image_config(gid_list, return_raw=True)
+        >>> print(ut.repr2(config_str_list_))
+        >>> assert config_str_list == config_str_list_
+    """
+    id_iter = [(gid,) for gid in gid_list]
+
+    hash_dict = {}
+
+    config_str_list = []
+    config_hash_str_list = []
+    for config_dict in config_dict_list:
+        config_str = ut.to_json(config_dict)
+
+        config_hash_str = hash_dict.get(config_str, None)
+        if config_hash_str is None:
+            config_hash_str = ut.hash_data(config_str)
+            hash_dict[config_str] = config_hash_str
+
+        config_str_list.append(config_str)
+        config_hash_str_list.append(config_hash_str)
+
+    val_list = ((config_str,) for config_str in config_str_list)
+    ibs.db.set(const.IMAGE_TABLE, ('image_tile_config_json',), val_list, id_iter)
+
+    val_list = ((config_hash_str,) for config_hash_str in config_hash_str_list)
+    ibs.db.set(const.IMAGE_TABLE, ('image_tile_config_hashid',), val_list, id_iter)
+
+
+@register_ibs_method
+@register_api('/api/image/tile/', methods=['PUT'])
+def set_image_tile_source(ibs, gid_list, parent_gid_list, bbox_list,
+                          config_dict_list):
+    r"""
+    Returns:
+        list_ (list): all nids of known animals
+        (does not include unknown names)
+    """
+    ibs._set_image_tile_parent_gids(gid_list, parent_gid_list)
+    flag_list = [
+        parent_gid is not None
+        for parent_gid in parent_gid_list
+    ]
+    ibs._set_image_tile_flags(gid_list, flag_list)
+    ibs._set_image_tile_bboxes(gid_list, bbox_list)
+    ibs._set_image_tile_config(gid_list, config_dict_list)
 
 
 def testdata_ibs():

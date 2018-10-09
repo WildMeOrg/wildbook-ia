@@ -1836,6 +1836,104 @@ def compute_detections(depc, gid_list, config=None):
         yield tuple(result)
 
 
+class TileConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('tile_width',       256,),
+        ut.ParamInfo('tile_height',      256,),
+        ut.ParamInfo('tile_min_overlap', 16,),
+        ut.ParamInfo('tile_max_overlap', 128,),
+        ut.ParamInfo('ext',              '.png', hideif='.png'),
+        ut.ParamInfo('force_serial',     False,  hideif=False),
+    ]
+
+
+@register_preproc(
+    tablename='tiles', parents=['images'],
+    colnames=['img', 'width', 'height'],
+    coltypes=[('extern', vt.imread, vt.imwrite), int, int],
+    configclass=TileConfig,
+    fname='tilecache',
+    rm_extern_on_delete=True,
+    chunksize=256,
+)
+def compute_tiles(depc, gid_list, config=None):
+    r"""Compute the tile for a given input image.
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (uri, int, int): tup
+
+    CommandLine:
+        ibeis --tf compute_tiles --show --db PZ_MTEST
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> tiles = depc.get_property('tiles', gid_list, 'img', config={'tilesize': 221}, recompute=True)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(tiles, nPerPage=4)
+        >>> iteract_obj.start()
+        >>> pt.show_if_requested()
+    """
+    ibs = depc.controller
+    tile_width  = config['tile_width']
+    tile_height = config['tile_height']
+    tile_min_overlap = config['tile_min_overlap']
+    tile_max_overlap = config['tile_max_overlap']
+
+    tile_size = (tile_width, tile_height)
+    tile_size_list = [tile_size] * len(gid_list)
+
+    tile_overlap = (tile_min_overlap, tile_max_overlap)
+    tile_overlap_list = [tile_overlap] * len(gid_list)
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
+    # Execute all tasks in parallel
+    args_list = list(zip(tile_size_list, tile_overlap_list, gpath_list, orient_list))
+
+    genkw = {
+        'ordered': True,
+        'chunksize': 256,
+        'progkw': {'freq': 50},
+        #'adjust': True,
+        'futures_threaded': True,
+        'force_serial': ibs.force_serial or config['force_serial'],
+    }
+    gen = ut.generate2(draw_tile_helper, args_list, nTasks=len(args_list),
+                       **genkw)
+    for val in gen:
+        yield val
+
+
+def draw_tile_helper(tile_size, tile_overlap, gpath, orient):
+    # time consuming
+    img = vt.imread(gpath, orient=orient)
+    (gh, gw) = img.shape[0:2]
+    img_size = (gw, gh)
+    if isinstance(tilesize, int):
+        max_dsize = (tilesize, tilesize)
+        dsize, sx, sy = vt.resized_clamped_tile_dims(img_size, max_dsize)
+    elif isinstance(tilesize, tuple) and len(tilesize) == 2:
+        th, tw = tilesize
+        dsize, sx, sy = tilesize, tw / gw, th / gh
+    else:
+        raise ValueError('Incompatible tilesize')
+    width, height = dsize
+    return tile, width, height
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
