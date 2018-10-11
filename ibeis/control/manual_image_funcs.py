@@ -151,7 +151,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None,
 
 @register_ibs_method
 def filter_image_set(ibs, gid_list, require_unixtime=False, require_gps=None,
-                     is_tile=False, is_reviewed=None, sort=False, **kwargs):
+                     is_tile=False, is_tile_border=None, is_reviewed=None, sort=False, **kwargs):
     is_reviewed = kwargs.get('reviewed', is_reviewed)
 
     if require_unixtime:
@@ -170,6 +170,13 @@ def filter_image_set(ibs, gid_list, require_unixtime=False, require_gps=None,
     elif is_tile is False:
         flag_list = ibs.get_image_tile_flags(gid_list)
         gid_list  = ut.filterfalse_items(gid_list, flag_list)
+
+    if is_tile is not None and is_tile_border is not None:
+        border_flag_list = ibs.get_image_tile_border_flag(gid_list)
+        if is_tile_border:
+            gid_list  = ut.compress(gid_list, border_flag_list)
+        else:
+            gid_list  = ut.filterfalse_items(gid_list, border_flag_list)
 
     if is_reviewed is not None:
         reviewed_list = ibs.get_image_reviewed(gid_list)
@@ -2019,7 +2026,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, check_tiles=True):
         image_gid_dict = dict(zip(image_gid_list, image_aids_list))
 
         tile_gid_list   = ut.compress(gid_list, flag_list)
-        tile_aids_list  = ibs.get_tile_aids(tile_gid_list)
+        tile_aids_list  = ibs.get_image_tile_aids(tile_gid_list)
         tile_gid_dict = dict(zip(tile_gid_list, tile_aids_list))
 
         aids_list = []
@@ -2580,7 +2587,7 @@ def get_image_tile_parent_gids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/image/tile/parent/rowid/', methods=['GET'])
+@register_api('/api/image/tile/ancestor/rowid/', methods=['GET'])
 def get_image_tile_ancestor_gids(ibs, gid_list):
     parent_gid_list = ibs.get_image_tile_parent_gids(gid_list)
 
@@ -2590,6 +2597,42 @@ def get_image_tile_ancestor_gids(ibs, gid_list):
     ]
 
     return ancestor_gid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/children/rowid/', methods=['GET'])
+def get_image_tile_children_gids(ibs, gid_list):
+    params_iter = ((gid,) for gid in gid_list)
+    where_colnames = ('image_tile_parent_rowid', )
+    children_gid_list = ibs.db.get_where_eq(ibs.const.IMAGE_TABLE, (IMAGE_ROWID,),
+                                            params_iter, where_colnames, unpack_scalars=False)
+    return children_gid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/descendants/rowid/', methods=['GET'], __api_plural_check__=False)
+def get_image_tile_descendants_gids(ibs, gid_list):
+    children_gids_list = ibs.get_image_tile_children_gids(gid_list)
+
+    descendants_cache = {}
+
+    descendants_gids_list = []
+    for children_gid_list in children_gids_list:
+        descendants_gid_list = children_gid_list
+        for children_gid in children_gid_list:
+            if children_gid in descendants_cache:
+                descendants_gid_list_ = descendants_cache[children_gid]
+            else:
+                descendants_gid_list_ = ibs.get_image_tile_descendants_gids(children_gid)
+                descendants_cache[children_gid] = descendants_gid_list_
+            descendants_gid_list += descendants_gid_list_
+
+        descendants_gid_list = list(set(descendants_gid_list))
+        descendants_gids_list.append(descendants_gid_list)
+
+    return descendants_gids_list
 
 
 @register_ibs_method
@@ -2717,9 +2760,8 @@ def get_image_tile_config_hashid(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
 @register_api('/api/vulcan/tile/annot/rowid/', methods=['GET'])
-def get_tile_aids(ibs, gid_list, is_staged=False):
+def get_image_tile_aids(ibs, gid_list, is_staged=False):
     from shapely.geometry import Polygon
 
     flag_list = ibs.get_image_tile_flags(gid_list)
@@ -2854,6 +2896,18 @@ def set_image_tile_source(ibs, gid_list, parent_gid_list, bbox_list, border_list
     ibs._set_image_tile_parent_gids(gid_list, parent_gid_list)
     ibs._set_image_tile_bboxes(gid_list, bbox_list, border_list)
     ibs._set_image_tile_config(gid_list, config_dict_list, config_hashid_list)
+
+
+@register_ibs_method
+@register_api('/api/image/tile/', methods=['POST'])
+def compute_tiles(ibs, gid_list, **config):
+    r"""
+    Returns:
+        list_ (list): all nids of known animals
+        (does not include unknown names)
+    """
+    tile_gids_list = ibs.depc_image.get_property('tiles', gid_list, 'gids', config=config)
+    return tile_gids_list
 
 
 def testdata_ibs():

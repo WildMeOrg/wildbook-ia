@@ -1839,10 +1839,11 @@ def compute_detections(depc, gid_list, config=None):
 
 class TileConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('tile_width',    256),
-        ut.ParamInfo('tile_height',   256),
-        ut.ParamInfo('tile_overlap',  16),
+        ut.ParamInfo('tile_width',    512),
+        ut.ParamInfo('tile_height',   512),
+        ut.ParamInfo('tile_overlap',  32),
         ut.ParamInfo('allow_borders', True),
+        ut.ParamInfo('keep_extern',   False),
         ut.ParamInfo('force_serial',  False, hideif=False),
     ]
 
@@ -1878,15 +1879,21 @@ def compute_tiles(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:5]
-        >>> gids = depc.get_property('tiles', gid_list, 'gids', recompute=True)
-        >>> ut.embed()
+        >>> result = depc.get_property('tiles', gid_list, 'num')
+        >>> nums = list(map(len, ibs.get_image_tile_children_gids(gid_list)))
+        >>> nums_ = list(map(len, ibs.get_image_tile_descendants_gids(gid_list)))
+        >>> assert result == nums
+        >>> assert result == nums_
+        >>> print(result)
+        [285, 99, 285, 9, 35]
     """
     ibs = depc.controller
 
-    tile_width  = config['tile_width']
-    tile_height = config['tile_height']
-    tile_overlap = config['tile_overlap']
+    tile_width    = config['tile_width']
+    tile_height   = config['tile_height']
+    tile_overlap  = config['tile_overlap']
     allow_borders = config['allow_borders']
+    keep_extern   = config['keep_extern']
 
     config_dict = dict(config)
     config_hashid = config.get_hashid()
@@ -1932,7 +1939,7 @@ def compute_tiles(depc, gid_list, config=None):
     }
     gen = ut.generate2(draw_tile_helper, args_list, nTasks=len(args_list), **genkw)
     for val in gen:
-        gid, tile_filepath_list, bbox_list, border_list = val
+        gid, output_path, tile_filepath_list, bbox_list, border_list = val
 
         gids               = ibs.add_images(tile_filepath_list)
         num                = len(gids)
@@ -1943,10 +1950,14 @@ def compute_tiles(depc, gid_list, config=None):
         ibs.set_image_tile_source(gids, parent_gids, bbox_list, border_list,
                                   config_dict_list, config_hashid_list)
 
-        tile_relative_filepath_list_ = [
-            relpath(tile_filepath, start=depc.cache_dpath)
-            for tile_filepath in tile_filepath_list
-        ]
+        if keep_extern:
+            tile_relative_filepath_list_ = [
+                relpath(tile_filepath, start=depc.cache_dpath)
+                for tile_filepath in tile_filepath_list
+            ]
+        else:
+            ut.delete(output_path)
+            tile_relative_filepath_list_ = [None] * len(tile_filepath_list)
 
         yield tile_relative_filepath_list_, gids, num
 
@@ -1998,12 +2009,12 @@ def draw_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
             border = yb_ or xb_
 
             # Sanity
-            assert x1 - x0 == w
-            assert y1 - y0 == h
-            assert 0 <= x0 and x0 <= w_
-            assert 0 <= x1 and x1 <= w_
-            assert 0 <= y0 and y0 <= h_
-            assert 0 <= y1 and y1 <= h_
+            assert x1 - x0 == w, '%d, %d' % (x1 - x0, w, )
+            assert y1 - y0 == h, '%d, %d' % (y1 - y0, h, )
+            assert 0 <= x0 and x0 <= w_, '%d, %d' % (x0, w_, )
+            assert 0 <= x1 and x1 <= w_, '%d, %d' % (x1, w_, )
+            assert 0 <= y0 and y0 <= h_, '%d, %d' % (y0, h_, )
+            assert 0 <= y1 and y1 <= h_, '%d, %d' % (y1, h_, )
 
             args = (gid, x0, y0, w, h, ext, )
             tile_filename = 'tile_gid_%d_xtl_%d_ytl_%d_w_%d_h_%d%s' % args
@@ -2015,7 +2026,7 @@ def draw_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
             bbox_list.append(bbox)
             border_list.append(border)
 
-    return gid, tile_filepath_list, bbox_list, border_list
+    return gid, opath, tile_filepath_list, bbox_list, border_list
 
 
 if __name__ == '__main__':
