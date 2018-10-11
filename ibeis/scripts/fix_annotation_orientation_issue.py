@@ -4,7 +4,7 @@ import vtool as vt
 import numpy as np
 
 
-def fix_annotation_orientation(ibs, min_percentage=0.95):
+def fix_annotation_orientation(ibs, min_percentage=0.95, is_tile=False):
     """
     Fixes the annotations that are outside the bounds of the image due to a
     changed image orientation flag in the database
@@ -46,7 +46,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
     ]
     assert None not in good_orient_key_list
 
-    gid_list = ibs.get_valid_gids()
+    gid_list = ibs.get_valid_gids(is_tile=is_tile)
     orient_list = ibs.get_image_orientation(gid_list)
     flag_list = [ orient not in good_orient_key_list for orient in orient_list ]
 

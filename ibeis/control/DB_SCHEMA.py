@@ -1384,7 +1384,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
             return orient
 
         # Get images without orientations and add to the database
-        gid_list_all = ibs.get_valid_gids()
+        gid_list_all = ibs.get_valid_gids(is_tile=None)
         gpath_list = ibs.get_image_paths(gid_list_all)
         valid_list = [ exists(gpath) for gpath in gpath_list ]
         gid_list = ut.filter_items(gid_list_all, valid_list)
@@ -1397,7 +1397,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
         gpath_list_ = ibs.get_image_paths(gid_list_)
         orient_list_ = [ _parse_orient(gpath) for gpath in gpath_list_ ]
         ibs._set_image_orientation(gid_list_, orient_list_)
-        faoi.fix_annotation_orientation(ibs)
+        faoi.fix_annotation_orientation(ibs, is_tile=None)
 
 
 def update_1_5_3(db, ibs=None):
@@ -1656,14 +1656,14 @@ def update_1_8_1(db, ibs=None):
 
 def update_1_9_0_vulcan(db, ibs=None):
     db.modify_table(const.IMAGE_TABLE, (
-        (None, 'image_tile_flag',          'INTEGER DEFAULT 0', None),
-        (None, 'image_tile_parent_rowid',  'INTEGER',           None),
-        (None, 'image_tile_xtl',           'INTEGER',           None),
-        (None, 'image_tile_ytl',           'INTEGER',           None),
-        (None, 'image_tile_width',         'INTEGER',           None),
-        (None, 'image_tile_height',        'INTEGER',           None),
-        (None, 'image_tile_config_json',   'TEXT',              None),
-        (None, 'image_tile_config_hashid', 'TEXT',              None),
+        (None, 'image_tile_parent_rowid',    'INTEGER',           None),
+        (None, 'image_tile_xtl',             'INTEGER',           None),
+        (None, 'image_tile_ytl',             'INTEGER',           None),
+        (None, 'image_tile_width',           'INTEGER',           None),
+        (None, 'image_tile_height',          'INTEGER',           None),
+        (None, 'image_tile_border_flag',     'INTEGER',           None),
+        (None, 'image_tile_config_json',     'TEXT',              None),
+        (None, 'image_tile_config_hashid',   'TEXT',              None),
     ))
 
 

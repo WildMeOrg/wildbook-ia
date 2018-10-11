@@ -1967,7 +1967,7 @@ def get_image_imagesettext(ibs, gid_list):
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
 @register_api('/api/image/annot/rowid/', methods=['GET'])
-def get_image_aids(ibs, gid_list, is_staged=False):
+def get_image_aids(ibs, gid_list, is_staged=False, check_tiles=True):
     r"""
     Returns:
         list_ (list): a list of aids for each image by gid
@@ -2012,119 +2012,96 @@ def get_image_aids(ibs, gid_list, is_staged=False):
     """
     from ibeis.control.manual_annot_funcs import ANNOT_STAGED_FLAG
 
-    # FIXME: SLOW JUST LIKE GET_NAME_AIDS
-    # print('gid_list = %r' % (gid_list,))
-    # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    NEW_INDEX_HACK = True
-    USE_GROUPING_HACK = False
-    if NEW_INDEX_HACK:
-        # FIXME: This index should when the database is defined.
-        # Ensure that an index exists on the image column of the annotation table
+    flag_list = ibs.get_image_tile_flags(gid_list)
+    if check_tiles:
+        image_gid_list  = ut.filterfalse_items(gid_list, flag_list)
+        image_aids_list = ibs.get_image_aids(image_gid_list, check_tiles=False)
+        image_gid_dict = dict(zip(image_gid_list, image_aids_list))
 
-        ibs.db.connection.execute(
-            '''
-            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
-            ''').fetchall()
+        tile_gid_list   = ut.compress(gid_list, flag_list)
+        tile_aids_list  = ibs.get_tile_aids(tile_gid_list)
+        tile_gid_dict = dict(zip(tile_gid_list, tile_aids_list))
 
-        # The index maxes the following query very efficient
-        params_iter = ((gid, is_staged) for gid in gid_list)
-        where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
-        aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                                        params_iter, where_colnames, unpack_scalars=False)
-        #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
-        #    '''
-        #    SELECT annot_rowid
-        #    FROM annotations
-        #    WHERE image_rowid = ?''', (gid,)).fetchall()
-        #]
-        #    for gid in gid_list]
-
-    elif USE_GROUPING_HACK:
-        input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
-        # This code doesn't work because it doesn't respect empty names
-        input_str = ', '.join(list(map(str, input_list)))
-        opstr = '''
-        SELECT annot_rowid, image_rowid
-        FROM {ANNOTATION_TABLE}
-        WHERE image_rowid IN
-            ({input_str})
-            ORDER BY image_rowid ASC, annot_rowid ASC
-        '''.format(input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE)
-        pair_list = ibs.db.connection.execute(opstr).fetchall()
-        aidscol = np.array(ut.get_list_column(pair_list, 0))
-        gidscol = np.array(ut.get_list_column(pair_list, 1))
-        unique_gids, groupx = vt.group_indices(gidscol)
-        grouped_aids_ = vt.apply_grouping(aidscol, groupx)
-        #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
-        structured_aids_list = [arr.tolist() for arr in grouped_aids_]
-        with ut.EmbedOnException():
-            aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
+        aids_list = []
+        for gid in gid_list:
+            if gid in image_gid_dict:
+                assert gid not in tile_gid_list
+                aids_list.append(image_gid_dict[gid])
+            elif gid in tile_gid_dict:
+                assert gid not in image_gid_dict
+                aids_list.append(tile_gid_dict[gid])
+            else:
+                ValueError('Sanity check failed for get_image_aids')
     else:
-        USE_NUMPY_IMPL = True
-        # Use qt if getting one at a time otherwise perform bulk operation
-        USE_NUMPY_IMPL = len(gid_list) > 1
-        if USE_NUMPY_IMPL:
-            # This seems to be 30x faster for bigger inputs
-            valid_aids = np.array(ibs._get_all_aids())
-            valid_gids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, IMAGE_ROWID))
-            #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-            aids_list = [
-                valid_aids.take(
-                    np.flatnonzero(np.equal(valid_gids, gid))).tolist()
-                for gid in gid_list
-            ]
+        assert True not in flag_list
+
+        # FIXME: SLOW JUST LIKE GET_NAME_AIDS
+        # print('gid_list = %r' % (gid_list,))
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        NEW_INDEX_HACK = True
+        USE_GROUPING_HACK = False
+        if NEW_INDEX_HACK:
+            # FIXME: This index should when the database is defined.
+            # Ensure that an index exists on the image column of the annotation table
+
+            ibs.db.connection.execute(
+                '''
+                CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+                ''').fetchall()
+
+            # The index maxes the following query very efficient
+            params_iter = ((gid, is_staged) for gid in gid_list)
+            where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
+            aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                            params_iter, where_colnames, unpack_scalars=False)
+            #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
+            #    '''
+            #    SELECT annot_rowid
+            #    FROM annotations
+            #    WHERE image_rowid = ?''', (gid,)).fetchall()
+            #]
+            #    for gid in gid_list]
+
+        elif USE_GROUPING_HACK:
+            input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
+            # This code doesn't work because it doesn't respect empty names
+            input_str = ', '.join(list(map(str, input_list)))
+            opstr = '''
+            SELECT annot_rowid, image_rowid
+            FROM {ANNOTATION_TABLE}
+            WHERE image_rowid IN
+                ({input_str})
+                ORDER BY image_rowid ASC, annot_rowid ASC
+            '''.format(input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE)
+            pair_list = ibs.db.connection.execute(opstr).fetchall()
+            aidscol = np.array(ut.get_list_column(pair_list, 0))
+            gidscol = np.array(ut.get_list_column(pair_list, 1))
+            unique_gids, groupx = vt.group_indices(gidscol)
+            grouped_aids_ = vt.apply_grouping(aidscol, groupx)
+            #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
+            structured_aids_list = [arr.tolist() for arr in grouped_aids_]
+            with ut.EmbedOnException():
+                aids_list = np.array(structured_aids_list)[inverse_unique].tolist()
         else:
-            # SQL IMPL
-            aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
-                                   gid_list, id_colname=IMAGE_ROWID,
-                                   unpack_scalars=False)
-            #%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)
-
-    if False:
-        #cur = ibs.db.connection.execute(' .indices annotations;')
-        #cur.fetchall()
-        #aid_list3 = ibs.db.connection.execute('''
-        #                               SELECT annot_rowid
-        #                               FROM annotations
-        #                               WHERE image_rowid IN
-        #                               ({input_str})
-        #                               GROUP BY image_rowid
-        #                               '''.format(input_str=', '.join(list(map(str, gid_list))))
-        #                              ).fetchall()
-        #%timeit ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid IN ({input_str}) GROUP BY image_rowid'''.format(input_str=', '.join(list(map(str, gid_list))))).fetchall()
-        #aids_list3 = []
-        """
-        cur = ibs.db.connection.execute(
-            '''
-            SELECT * FROM sqlite_master WHERE type = 'index'
-            ''')
-        cur.fetchall()
-
-        cur = ibs.db.connection.execute(
-            '''
-            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
-            ''').fetchall()
-
-        gid_list = ibs.get_valid_gids()
-        gid_list_ = gid_list[0:15]
-        gid_list_ = gid_list
-        aids_list1 = ibs.get_image_aids(gid_list_)
-        aids_list2 = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
-            '''
-            SELECT annot_rowid
-            FROM annotations
-            WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
-
-        %timeit ibs.get_image_aids(gid_list_)
-
-        %timeit [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
-        """
-    #print('aids_list = %r' % (aids_list,))
-
-    # aids_list = [
-    #     ibs.filter_annotation_set(aid_list_, is_staged=is_staged)
-    #     for aid_list_ in aids_list
-    # ]
+            USE_NUMPY_IMPL = True
+            # Use qt if getting one at a time otherwise perform bulk operation
+            USE_NUMPY_IMPL = len(gid_list) > 1
+            if USE_NUMPY_IMPL:
+                # This seems to be 30x faster for bigger inputs
+                valid_aids = np.array(ibs._get_all_aids())
+                valid_gids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, IMAGE_ROWID))
+                #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
+                aids_list = [
+                    valid_aids.take(
+                        np.flatnonzero(np.equal(valid_gids, gid))).tolist()
+                    for gid in gid_list
+                ]
+            else:
+                # SQL IMPL
+                aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                       gid_list, id_colname=IMAGE_ROWID,
+                                       unpack_scalars=False)
+                #%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)
 
     return aids_list
 
@@ -2594,6 +2571,29 @@ def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/image/tile/parent/rowid/', methods=['GET'])
+def get_image_tile_parent_gids(ibs, gid_list):
+    parent_gid_list = ibs.db.get(const.IMAGE_TABLE,
+                                 ('image_tile_parent_rowid',), gid_list)
+    return parent_gid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/parent/rowid/', methods=['GET'])
+def get_image_tile_ancestor_gids(ibs, gid_list):
+    parent_gid_list = ibs.get_image_tile_parent_gids(gid_list)
+
+    ancestor_gid_list = [
+        gid if parent_gid is None else ibs.get_image_tile_ancestor_gids(parent_gid)
+        for gid, parent_gid in zip(gid_list, parent_gid_list)
+    ]
+
+    return ancestor_gid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/image/tile/', methods=['GET'])
 def get_image_tile_flags(ibs, gid_list):
     r"""
@@ -2623,18 +2623,12 @@ def get_image_tile_flags(ibs, gid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    image_tile_flag_list = ibs.db.get(const.IMAGE_TABLE,
-                                      (IMAGE_TILE_FLAG,), gid_list)
+    parent_gid_list = ibs.get_image_tile_parent_gids(gid_list)
+    image_tile_flag_list = [
+        parent_gid is not None
+        for parent_gid in parent_gid_list
+    ]
     return image_tile_flag_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/image/tile/parent/rowid/', methods=['GET'])
-def get_image_tile_parent_gids(ibs, gid_list):
-    parent_gid_list = ibs.db.get(const.IMAGE_TABLE,
-                                 ('image_tile_parent_rowid',), gid_list)
-    return parent_gid_list
 
 
 @register_ibs_method
@@ -2669,6 +2663,36 @@ def get_image_tile_bboxes(ibs, gid_list):
 
 
 @register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1toM
+@register_api('/api/image/tile/bbox/', methods=['GET'])
+def get_image_tile_verts(ibs, gid_list):
+    r"""
+    Returns:
+        bbox_list (list):  image bounding boxes in image space
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/bbox/
+    """
+    bbox_list = ibs.get_image_tile_bboxes(gid_list)
+    vert_list = [
+        [(xtl, ytl), (xtl + w, ytl), (xtl + w, ytl + h), (xtl, ytl + h), (xtl, ytl)]
+        for xtl, ytl, w, h in bbox_list
+    ]
+    return vert_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/tile/border/', methods=['GET'])
+def get_image_tile_border_flag(ibs, gid_list):
+    border_list = ibs.db.get(const.IMAGE_TABLE,
+                             ('image_tile_border_flag',), gid_list)
+    return border_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/image/tile/config/', methods=['GET'])
 def get_image_tile_config(ibs, gid_list, return_raw=False):
@@ -2692,19 +2716,47 @@ def get_image_tile_config_hashid(ibs, gid_list):
 
 
 @register_ibs_method
-@accessor_decors.setter
-@register_api('/api/image/tile/', methods=['PUT'])
-def _set_image_tile_flags(ibs, gid_list, flag_list):
-    r"""
-    Sets if an image is tile
+@accessor_decors.getter_1toM
+@accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
+@register_api('/api/vulcan/tile/annot/rowid/', methods=['GET'])
+def get_tile_aids(ibs, gid_list, is_staged=False):
+    from shapely.geometry import Polygon
 
-    RESTful:
-        Method: PUT
-        URL:    /api/image/tile/
-    """
-    id_iter = ((gid,) for gid in gid_list)
-    val_iter = ((flag,) for flag in flag_list)
-    ibs.db.set(const.IMAGE_TABLE, (IMAGE_TILE_FLAG,), val_iter, id_iter)
+    flag_list = ibs.get_image_tile_flags(gid_list)
+    assert False not in flag_list
+
+    # These most likely have shared ancestors, so build a
+    # dict of their Polygons for quicker lookup
+    ancestor_gid_list = ibs.get_image_tile_ancestor_gids(gid_list)
+
+    ancestor_gid_dict = {}
+    for ancestor_gid in set(ancestor_gid_list):
+        ancestor_aid_list = ibs.get_image_aids(ancestor_gid, check_tiles=False)
+        ancestor_vert_list = ibs.get_annot_rotated_verts(ancestor_aid_list)
+        ancestor_poly_list = [Polygon(ancestor_vert) for ancestor_vert in ancestor_vert_list]
+        ancestor_gid_dict[ancestor_gid] = {
+            'aids' : ancestor_aid_list,
+            'polys': ancestor_poly_list,
+        }
+
+    tile_vert_list = ibs.get_image_tile_verts(gid_list)
+    tile_poly_list = [Polygon(tile_vert) for tile_vert in tile_vert_list]
+
+    aids_list = []
+    zipped = zip(gid_list, ancestor_gid_list, tile_poly_list)
+    for gid, ancestor_gid, tile_poly in zipped:
+        aid_list = ancestor_gid_dict[ancestor_gid]['aids']
+        poly_list = ancestor_gid_dict[ancestor_gid]['polys']
+
+        aid_list_ = [
+            aid
+            for aid, poly in zip(aid_list, poly_list)
+            if tile_poly.intersects(poly)
+        ]
+
+        aids_list.append(aid_list_)
+
+    return aids_list
 
 
 @register_ibs_method
@@ -2723,11 +2775,17 @@ def _set_image_tile_parent_gids(ibs, gid_list, parent_gid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/image/tile/', methods=['PUT'])
-def _set_image_tile_bboxes(ibs, gid_list, bbox_list):
+def _set_image_tile_bboxes(ibs, gid_list, bbox_list, border_list):
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
-    val_iter = zip(xtl_list, ytl_list, width_list, height_list)
+    val_iter = zip(xtl_list, ytl_list, width_list, height_list, border_list)
     id_iter = ((aid,) for aid in gid_list)
-    colnames = ('image_tile_xtl', 'image_tile_ytl', 'image_tile_width', 'image_tile_height',)
+    colnames = (
+        'image_tile_xtl',
+        'image_tile_ytl',
+        'image_tile_width',
+        'image_tile_height',
+        'image_tile_border_flag',
+    )
     # SET BBOX in ANNOTATION_TABLE
     ibs.db.set(const.IMAGE_TABLE, colnames, val_iter, id_iter)
 
@@ -2735,7 +2793,7 @@ def _set_image_tile_bboxes(ibs, gid_list, bbox_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/image/tile/config/', methods=['PUT'])
-def _set_image_tile_config(ibs, gid_list, config_dict_list):
+def _set_image_tile_config(ibs, gid_list, config_dict_list, config_hashid_list):
     r"""
     Sets the image's config using a config dictionary
 
@@ -2769,47 +2827,33 @@ def _set_image_tile_config(ibs, gid_list, config_dict_list):
         >>> print(ut.repr2(config_str_list_))
         >>> assert config_str_list == config_str_list_
     """
+    assert len(config_dict_list) == len(config_hashid_list)
     id_iter = [(gid,) for gid in gid_list]
 
-    hash_dict = {}
-
     config_str_list = []
-    config_hash_str_list = []
     for config_dict in config_dict_list:
         config_str = ut.to_json(config_dict)
-
-        config_hash_str = hash_dict.get(config_str, None)
-        if config_hash_str is None:
-            config_hash_str = ut.hash_data(config_str)
-            hash_dict[config_str] = config_hash_str
-
         config_str_list.append(config_str)
-        config_hash_str_list.append(config_hash_str)
 
     val_list = ((config_str,) for config_str in config_str_list)
     ibs.db.set(const.IMAGE_TABLE, ('image_tile_config_json',), val_list, id_iter)
 
-    val_list = ((config_hash_str,) for config_hash_str in config_hash_str_list)
+    val_list = ((config_hashid,) for config_hashid in config_hashid_list)
     ibs.db.set(const.IMAGE_TABLE, ('image_tile_config_hashid',), val_list, id_iter)
 
 
 @register_ibs_method
 @register_api('/api/image/tile/', methods=['PUT'])
-def set_image_tile_source(ibs, gid_list, parent_gid_list, bbox_list,
-                          config_dict_list):
+def set_image_tile_source(ibs, gid_list, parent_gid_list, bbox_list, border_list,
+                          config_dict_list, config_hashid_list):
     r"""
     Returns:
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
     ibs._set_image_tile_parent_gids(gid_list, parent_gid_list)
-    flag_list = [
-        parent_gid is not None
-        for parent_gid in parent_gid_list
-    ]
-    ibs._set_image_tile_flags(gid_list, flag_list)
-    ibs._set_image_tile_bboxes(gid_list, bbox_list)
-    ibs._set_image_tile_config(gid_list, config_dict_list)
+    ibs._set_image_tile_bboxes(gid_list, bbox_list, border_list)
+    ibs._set_image_tile_config(gid_list, config_dict_list, config_hashid_list)
 
 
 def testdata_ibs():
