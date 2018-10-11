@@ -330,6 +330,9 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         print(ut.repr2(locals()))
         return []
 
+    tile_list = ibs.get_image_tile_flags(gid_list)
+    assert True not in tile_list, 'Cannot add annotations to tiles'
+
     preprocess_dict = ibs.compute_annot_visual_semantic_uuids(
         gid_list, include_preprocess=True,
         bbox_list=bbox_list, theta_list=theta_list, vert_list=vert_list,
@@ -1315,8 +1318,8 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
     if check_isect:
         import shapely.geometry
         # TODO: might not be accounting for rotated verticies
-        verts_list = ibs.get_annot_verts(aid_list)
-        other_verts_list = ibs.unflat_map(ibs.get_annot_verts, other_aids_list)
+        verts_list = ibs.get_annot_rotated_verts(aid_list)
+        other_verts_list = ibs.unflat_map(ibs.get_annot_rotated_verts, other_aids_list)
         poly_list = [shapely.geometry.Polygon(verts) for verts in verts_list]
         other_polys_list = [[shapely.geometry.Polygon(verts) for verts in _]
                             for _ in other_verts_list]

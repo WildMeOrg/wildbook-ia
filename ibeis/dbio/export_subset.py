@@ -102,7 +102,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     if rowid_subsets is not None and const.IMAGE_TABLE in rowid_subsets:
         gid_list = rowid_subsets[const.IMAGE_TABLE]
     else:
-        gid_list = ibs_src.get_valid_gids()
+        gid_list = ibs_src.get_valid_gids(is_tile=None)
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
     if localize_images:
