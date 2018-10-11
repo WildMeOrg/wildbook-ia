@@ -172,8 +172,10 @@ def view(**kwargs):
     ibs = current_app.ibs
 
     ibs.update_all_image_special_imageset()
+
     imgsetids_list = ibs.get_valid_imgsetids()
-    gid_list = ibs.get_valid_gids()
+    gid_list = ibs.get_valid_gids(is_tile=False)
+    tid_list = ibs.get_valid_gids(is_tile=True)
     aid_list = ibs.get_valid_aids()
     pid_list = ibs.get_valid_part_rowids()
     nid_list = ibs.get_valid_nids()
@@ -181,6 +183,7 @@ def view(**kwargs):
     return appf.template('view',
                          num_imgsetids=len(imgsetids_list),
                          num_gids=len(gid_list),
+                         num_tids=len(tid_list),
                          num_aids=len(aid_list),
                          num_pids=len(pid_list),
                          num_nids=len(nid_list))
@@ -1692,6 +1695,75 @@ def view_images(**kwargs):
                          page_next=page_next)
 
 
+@register_route('/view/tiles/', methods=['GET'])
+def view_tiles(**kwargs):
+    ibs = current_app.ibs
+    filtered = True
+    imgsetid_list = []
+    gid = request.args.get('gid', '')
+    imgsetid = request.args.get('imgsetid', '')
+    page = max(0, int(request.args.get('page', 1)))
+    if len(gid) > 0:
+        gid_list = gid.strip().split(',')
+        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list ])
+    else:
+        gid_list = ibs.get_valid_gids(is_tile=True)
+        filtered = False
+
+    assert False not in ibs.get_image_tile_flags(gid_list)
+
+    # Page
+    gid_list = sorted(gid_list)
+    page_start = min(len(gid_list), (page - 1) * appf.PAGE_SIZE)
+    page_end   = min(len(gid_list), page * appf.PAGE_SIZE)
+    page_total = int(math.ceil(len(gid_list) / appf.PAGE_SIZE))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(gid_list) else page + 1
+    gid_list = gid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
+    image_unixtime_list = ibs.get_image_unixtime(gid_list)
+    datetime_list = [
+        ut.unixtime_to_datetimestr(image_unixtime)
+        if image_unixtime is not None
+        else
+        'Unknown'
+        for image_unixtime in image_unixtime_list
+    ]
+    image_list = list(zip(
+        gid_list,
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_image_imgsetids(gid_list) ],
+        ibs.get_image_gnames(gid_list),
+        image_unixtime_list,
+        datetime_list,
+        ibs.get_image_gps(gid_list),
+        ibs.get_image_party_tag(gid_list),
+        ibs.get_image_contributor_tag(gid_list),
+        ibs.get_image_notes(gid_list),
+        appf.imageset_image_processed(ibs, gid_list),
+    ))
+    # image_list.sort(key=lambda t: t[3])
+    return appf.template('view', 'tiles',
+                         filtered=filtered,
+                         imgsetid_list=imgsetid_list,
+                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                         num_imgsetids=len(imgsetid_list),
+                         gid_list=gid_list,
+                         gid_list_str=','.join(map(str, gid_list)),
+                         num_gids=len(gid_list),
+                         image_list=image_list,
+                         num_images=len(image_list),
+                         page=page,
+                         page_start=page_start,
+                         page_end=page_end,
+                         page_total=page_total,
+                         page_previous=page_previous,
+                         page_next=page_next)
+
+
 @register_route('/view/annotations/', methods=['GET'])
 def view_annotations(**kwargs):
     ibs = current_app.ibs
@@ -2117,7 +2189,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
                 if staged_super or annot_user_id == staged_user_id
             ]
 
-        annot_bbox_list = ibs.get_annot_bboxes(aid_list)
+        annot_bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
         annot_theta_list = ibs.get_annot_thetas(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
