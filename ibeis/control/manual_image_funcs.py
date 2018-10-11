@@ -274,7 +274,7 @@ def compute_image_uuids(ibs, gpath_list, **kwargs):
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False,
-               auto_localize=None, location_for_names=None,
+               auto_localize=None, location_for_names=None, ensure_unique=False,
                **kwargs):
     r"""
     Adds a list of image paths to the database.
@@ -364,44 +364,50 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
 
-    gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
-                                  ibs.get_image_gids_from_uuid)
+    all_gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
+                                      ibs.get_image_gids_from_uuid)
 
-    none_idxs = ut.where(ut.flag_None_items(gid_list))
+    none_idxs = ut.where(ut.flag_None_items(all_gid_list))
     ut.take(params_list, none_idxs)
 
-    if ut.duplicates_exist(gid_list):
-        gpath_list = ibs.get_image_paths(gid_list)
-        guuid_list = ibs.get_image_uuids(gid_list)
-        gext_list  = ibs.get_image_exts(gid_list)
-        if ut.VERBOSE:
-            ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
+    gpath_list = ibs.get_image_paths(all_gid_list)
+    guuid_list = ibs.get_image_uuids(all_gid_list)
+    gext_list  = ibs.get_image_exts(all_gid_list)
+
+    has_duplicates = ut.duplicates_exist(all_gid_list)
+
+    if ensure_unique and has_duplicates:
+        ut.debug_duplicate_items(all_gid_list, gpath_list, guuid_list, gext_list)
 
     if not compute_params:
         # We need to double check that the UUIDs are valid, considering we received the UUIDs
         guuid_list_ = ibs.compute_image_uuids(gpath_list)
         assert guuid_list_ == guuid_list
 
-    if ut.VERBOSE:
-        uuid_list = [None if params_ is None else params_[0] for params_ in params_list]
-        gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
-        valid_gids = ibs.get_valid_gids()
-        valid_uuids = ibs.get_image_uuids(valid_gids)
-        print('[postadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
-        print('[postadd] uuid / gid = ' + ut.indentjoin(zip(uuid_list, gid_list)))
-        print('[postadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
+    if has_duplicates:
+        flag_list = []
+        seen_set = set([])
+        for gid in all_gid_list:
+            flag = gid is not None and gid not in seen_set
+            flag_list.append(flag)
+            if gid is not None:
+                seen_set.add(gid)
+        gid_list = ut.compress(all_gid_list, flag_list)
+        params_list = ut.compress(params_list, flag_list)
+    else:
+        gid_list = all_gid_list
 
     if auto_localize:
         # Move to ibeis database local cache
-        ibs.localize_images(ut.filter_Nones(gid_list))
+        ibs.localize_images(gid_list)
 
     if as_annots:
         # Add succesfull imports as annotations
-        notnone_list = [gid is None for gid in gid_list]
-        gid_list_ = ut.compress(gid_list, notnone_list)
         aid_list = ibs.use_images_as_annotations(gid_list)
         print('[ibs] added %d annotations' % (len(aid_list),))
-    return gid_list
+
+    assert len(gpath_list) == len(all_gid_list)
+    return all_gid_list
 
 
 @register_ibs_method

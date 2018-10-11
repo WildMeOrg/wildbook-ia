@@ -169,6 +169,11 @@ def convert_empty_images_to_annotations(ibs):
 
 
 @register_ibs_method
+def add_trivial_annotations(ibs, *args, **kwargs):
+    ibs.use_images_as_annotations(*args, **kwargs)
+
+
+@register_ibs_method
 def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                               notes_list=None, adjust_percent=0.0,
                               tags_list=None):
