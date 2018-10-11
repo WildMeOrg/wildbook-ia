@@ -106,6 +106,7 @@ class SQLExecutionContext(object):
         http://stackoverflow.com/questions/9573768/understand-sqlite-multi-module-envs
 
     """
+
     def __init__(context, db, operation, nInput=None, auto_commit=True,
                  start_transaction=False, keepwrap=False, verbose=VERBOSE_SQL, tablename=None):
         context.tablename = None
@@ -142,7 +143,11 @@ class SQLExecutionContext(object):
         #context.cur = context.db.cur  # OR USE DB CURSOR??
         if context.start_transaction:
             #context.cur.execute('BEGIN', ())
-            context.cur.execute('BEGIN')
+            try:
+                context.cur.execute('BEGIN')
+            except lite.OperationalError:
+                context.connection.rollback()
+                context.cur.execute('BEGIN')
         if context.verbose or VERBOSE_SQL:
             print(context.operation_lbl)
             if context.verbose:
