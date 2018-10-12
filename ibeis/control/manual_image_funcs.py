@@ -2833,12 +2833,14 @@ def set_image_tile_source(ibs, gid_list, parent_gid_list, bbox_list, border_list
 
 @register_ibs_method
 @register_api('/api/image/tile/', methods=['POST'])
-def compute_tiles(ibs, gid_list, **config):
+def compute_tiles(ibs, gid_list=None, **config):
     r"""
     Returns:
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(is_tile=False)
     tile_gids_list = ibs.depc_image.get_property('tiles', gid_list, 'gids', config=config)
     return tile_gids_list
 
