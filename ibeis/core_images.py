@@ -1855,7 +1855,7 @@ class TileConfig(dtool.Config):
     configclass=TileConfig,
     fname='tilecache',
     rm_extern_on_delete=True,
-    chunksize=256,
+    chunksize=16,
 )
 def compute_tiles(depc, gid_list, config=None):
     r"""Compute the tile for a given input image.
@@ -1937,7 +1937,7 @@ def compute_tiles(depc, gid_list, config=None):
         'futures_threaded': True,
         'force_serial': ibs.force_serial or config['force_serial'],
     }
-    gen = ut.generate2(draw_tile_helper, args_list, nTasks=len(args_list), **genkw)
+    gen = ut.generate2(compute_tile_helper, args_list, nTasks=len(args_list), **genkw)
     for val in gen:
         gid, output_path, tile_filepath_list, bbox_list, border_list = val
 
@@ -1962,7 +1962,7 @@ def compute_tiles(depc, gid_list, config=None):
         yield tile_relative_filepath_list_, gids, num
 
 
-def draw_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
+def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
 
     ext = '.png'
     w, h = size
