@@ -267,7 +267,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
         # ---
         ut.ParamInfo('pad', 0, hideif=0, type_=eval),
-        ut.ParamInfo('ext', '.png', hideif='.png'),
+        ut.ParamInfo('ext', '.jpg', hideif='.jpg'),
     ]
 
 ChipImgType = dtool.ExternType(vt.imread, vt.imwrite, extkey='ext')
@@ -568,7 +568,7 @@ def compute_annotmask(depc, aid_list, config=None):
     avuuid_list = ibs.get_annot_visual_uuids(aid_list)
 
     # TODO: just hash everything together
-    ext = '.png'
+    ext = '.jpg'
     _fmt = 'mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
     fname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
                   for aid, avuuid in zip(aid_list, avuuid_list)]
@@ -609,7 +609,7 @@ class ProbchipConfig(dtool.Config):
         ut.ParamInfo('smooth_thresh', 20, 'thresh='),
         ut.ParamInfo('smooth_ksize', 20, 'ksz=',
                      hideif=lambda cfg: cfg['smooth_thresh'] is None),
-        #ut.ParamInfo('ext', '.png'),
+        #ut.ParamInfo('ext', '.jpg'),
     ]
     #_sub_config_list = [
     #    ChipConfig
@@ -617,7 +617,7 @@ class ProbchipConfig(dtool.Config):
 
 
 ProbchipImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
-                                   vt.imwrite, extern_ext='.png')
+                                   vt.imwrite, extern_ext='.jpg')
 
 
 @derived_attribute(
@@ -682,7 +682,7 @@ def compute_probchip(depc, aid_list, config=None):
 
     # FIXME: The depcache should make it so this doesn't matter anymore
     ut.ensuredir(probchip_dir)
-    # _fmt = 'probchip_avuuid_{avuuid}_' + cfghashid + '.png'
+    # _fmt = 'probchip_avuuid_{avuuid}_' + cfghashid + '.jpg'
     # annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     # probchip_fpath_list = [ut.unixjoin(probchip_dir, _fmt.format(avuuid=avuuid))
     #                        for avuuid in annot_visual_uuid_list]
@@ -783,7 +783,7 @@ def rf_probchips(ibs, aids, species, inputchip_fpaths, pad,
     # Hack disk based output for RF detector.
     temp_output_fpaths = [
         # Give a reasonably distinctive name for parallel safety
-        join(cachedir, 'rf_{}_{}_margin.png'.format(species, aid))
+        join(cachedir, 'rf_{}_{}_margin.jpg'.format(species, aid))
         for aid in aids
     ]
     rfconfig = {'scale_list': [1.0], 'mode': 1,

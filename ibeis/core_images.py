@@ -51,7 +51,7 @@ class ThumbnailConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('draw_annots', True, hideif=True),
         ut.ParamInfo('thumbsize', None, type_=None, hideif=None),
-        ut.ParamInfo('ext', '.png', hideif='.png'),
+        ut.ParamInfo('ext', '.jpg', hideif='.jpg'),
         ut.ParamInfo('force_serial', False, hideif=False),
     ]
 
@@ -1964,7 +1964,7 @@ def compute_tiles(depc, gid_list, config=None):
 
 def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
 
-    ext = '.png'
+    ext = '.jpg'
     w, h = size
     o = overlap
 
