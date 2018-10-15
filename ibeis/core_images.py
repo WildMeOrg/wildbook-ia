@@ -1941,7 +1941,22 @@ def compute_tiles(depc, gid_list, config=None):
     for val in gen:
         gid, output_path, tile_filepath_list, bbox_list, border_list = val
 
-        gids               = ibs.add_images(tile_filepath_list)
+        gids = ibs.add_images(tile_filepath_list)
+
+        if ut.duplicates_exist(gids):
+            flag_list = []
+            seen_set = set([])
+            for gid in gids:
+                if gid is None:
+                    flag = False
+                else:
+                    flag = gid not in seen_set
+                    seen_set.add(gid)
+                flag_list.append(flag)
+            gids = ut.compress(gids, flag_list)
+            bbox_list = ut.compress(bbox_list, flag_list)
+            border_list = ut.compress(border_list, flag_list)
+
         num                = len(gids)
         parent_gids        = [gid] * num
         config_dict_list   = [config_dict] * num
