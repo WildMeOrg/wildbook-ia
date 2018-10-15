@@ -1049,6 +1049,7 @@ class SQLDatabaseController(object):
                 ut.debug_duplicate_items(id_list)
                 ut.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' %
                            (len(id_list), len(set(id_list))))
+                ut.print_traceback()
                 raise
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
