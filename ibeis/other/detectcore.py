@@ -28,6 +28,7 @@ import random
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
+register_api = controller_inject.get_ibeis_flask_api(__name__)
 
 
 def nms(dets, scores, thresh, use_cpu=True):
@@ -37,6 +38,13 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
+@register_api('/api/export/vulcan/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+def export_to_vulcan(ibs, *args, **kwargs):
+    pass
+
+
+@register_ibs_method
+@register_api('/api/export/pascal/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def export_to_pascal(ibs, *args, **kwargs):
     """Alias for export_to_xml"""
     return ibs.export_to_xml(*args, **kwargs)
@@ -233,6 +241,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
 
 @register_ibs_method
+@register_api('/api/export/coco/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                    use_maximum_linear_dimension=True,
                    use_existing_train_test=True, gid_list=None, **kwargs):

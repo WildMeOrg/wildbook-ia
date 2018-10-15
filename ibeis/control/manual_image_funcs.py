@@ -495,6 +495,7 @@ def localize_images(ibs, gid_list_=None):
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
+
     isvalid_list = [gid is not None for gid in gid_list_]
     gid_list = ut.unique(ut.compress(gid_list_, isvalid_list))
 
