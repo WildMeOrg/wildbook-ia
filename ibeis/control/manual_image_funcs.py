@@ -421,10 +421,12 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         flag_list = []
         seen_set = set([])
         for gid in all_gid_list:
-            flag = gid is not None and gid not in seen_set
-            flag_list.append(flag)
-            if gid is not None:
+            if gid is None:
+                flag = False
+            else:
+                flag = gid not in seen_set
                 seen_set.add(gid)
+            flag_list.append(flag)
         gid_list = ut.compress(all_gid_list, flag_list)
         params_list = ut.compress(params_list, flag_list)
     else:
