@@ -2893,9 +2893,12 @@ def set_image_tile_source(ibs, gid_list, parent_gid_list, bbox_list, border_list
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
-    ibs._set_image_tile_parent_gids(gid_list, parent_gid_list)
-    ibs._set_image_tile_bboxes(gid_list, bbox_list, border_list)
-    ibs._set_image_tile_config(gid_list, config_dict_list, config_hashid_list)
+    try:
+        ibs._set_image_tile_parent_gids(gid_list, parent_gid_list)
+        ibs._set_image_tile_bboxes(gid_list, bbox_list, border_list)
+        ibs._set_image_tile_config(gid_list, config_dict_list, config_hashid_list)
+    except Exception:
+        ut.embed()
 
 
 @register_ibs_method
