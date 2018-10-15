@@ -1002,7 +1002,7 @@ class SQLDatabaseController(object):
             return db.get_where(tblname, colnames, params_iter, where_clause, eager=eager, **kwargs)
 
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
-            duplicate_behavior='error', **kwargs):
+            duplicate_behavior='error', duplcate_auto_resolve=True, **kwargs):
         """
         setter
 
@@ -1044,9 +1044,34 @@ class SQLDatabaseController(object):
 
         if duplicate_behavior == 'error':
             try:
-                assert not ut.duplicates_exist(id_list), "Passing a not-unique list of ids"
+                has_duplicates = ut.duplicates_exist(id_list)
+
+                if duplcate_auto_resolve:
+                    # Check if values being set are equivalent
+                    if has_duplicates:
+
+                        debug_dict = ut.debug_duplicate_items(id_list)
+                        key_list = list(debug_dict.keys())
+                        assert len(key_list) > 0, 'has_duplicates sanity check failed'
+
+                        pop_list = []
+                        for key in key_list:
+                            index_list = debug_dict[key]
+                            assert len(index_list) > 1
+                            value_list = ut.take(val_list, index_list)
+                            assert all(value == value_list[0] for value in value_list), 'Passing a non-unique list of ids with different set values'
+                            pop_list += index_list[1:]
+
+                        for index in sorted(pop_list, reverse=True):
+                            del id_list[index]
+                            del val_list[index]
+                        print('[!set] Auto Resolution: Removed %d duplicate (id, value) pairs from the database operation' % (len(pop_list), ))
+
+                    has_duplicates = ut.duplicates_exist(id_list)
+
+                assert not has_duplicates, "Passing a not-unique list of ids"
             except Exception as ex:
-                ut.debug_duplicate_items(id_list)
+
                 ut.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' %
                            (len(id_list), len(set(id_list))))
                 ut.print_traceback()
