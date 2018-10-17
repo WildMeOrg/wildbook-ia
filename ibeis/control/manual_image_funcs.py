@@ -495,6 +495,7 @@ def localize_images(ibs, gid_list_=None):
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
+
     isvalid_list = [gid is not None for gid in gid_list_]
     gid_list = ut.unique(ut.compress(gid_list_, isvalid_list))
 
@@ -738,6 +739,71 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
     RESTful:
         Method: PUT
         URL:    /api/image/unixtime/
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-set_image_unixtime
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> import time
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:5]
+        >>> unixtime_list = [
+        >>>     random.randint(1, int(time.time()))
+        >>>     for _ in gid_list
+        >>> ]
+        >>> print(ut.repr2(unixtime_list))
+        >>> ibs.set_image_unixtime(gid_list, unixtime_list)
+        >>> # verify results
+        >>> unixtime_list_ = ibs.get_image_unixtime(gid_list)
+        >>> print(ut.repr2(unixtime_list_))
+        >>> assert unixtime_list == unixtime_list_
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> import time
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:5]
+        >>> gid_list = gid_list + gid_list
+        >>> unixtime_list = [
+        >>>     random.randint(1, int(time.time()))
+        >>>     for _ in gid_list
+        >>> ]
+        >>> try:
+        >>>     print(ut.repr2(unixtime_list))
+        >>>     ibs.set_image_unixtime(gid_list, unixtime_list)
+        >>> except AssertionError:
+        >>>     pass
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> import time
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:5]
+        >>> unixtime_list = [
+        >>>     random.randint(1, int(time.time()))
+        >>>     for _ in gid_list
+        >>> ]
+        >>> gid_list = gid_list + gid_list
+        >>> unixtime_list = unixtime_list + unixtime_list
+        >>> print(ut.repr2(unixtime_list))
+        >>> ibs.set_image_unixtime(gid_list, unixtime_list)
+        >>> # verify results
+        >>> unixtime_list_ = ibs.get_image_unixtime(gid_list)
+        >>> print(ut.repr2(unixtime_list_))
+        >>> assert unixtime_list == unixtime_list_
     """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((unixtime,) for unixtime in unixtime_list)
