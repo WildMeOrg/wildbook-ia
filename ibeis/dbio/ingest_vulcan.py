@@ -9,6 +9,22 @@ import ibeis
 import json
 
 
+SPECIES_MAPPING = {
+    'baby elephant'    : 'elephant_savanna_baby',
+    'carcasses'        : 'carcass_generic',
+    'cat'              : 'cat_domestic',
+    'cow'              : 'cow_domestic',
+    'elephant'         : 'elephant_savanna',
+    'elephant carcass' : 'elephant_savanna_carcass',
+    'giraffe'          : 'giraffe_generic',
+    'horse'            : 'horse_domestic',
+    'human'            : 'person',
+    'hut'              : 'building_hut',
+    'other animal'     : 'other',
+    'zebra'            : 'zebra_generic',
+}
+
+
 def convert_vulcan2018_to_ibeis(vulcan_path, dbdir=None, purge=True,
                                 dry_run=False, **kwargs):
     r"""Convert the raw Vulcan (2018) data to an ibeis database.
@@ -37,22 +53,6 @@ def convert_vulcan2018_to_ibeis(vulcan_path, dbdir=None, purge=True,
     direct = Directory(vulcan_path, recursive=True)
 
     global_dict = {}
-
-    species_mapping = {
-        'baby elephant'    : 'elephant_savanna_baby',
-        'carcasses'        : 'carcass_generic',
-        'cat'              : 'cat_domestic',
-        'cow'              : 'cow_domestic',
-        'elephant'         : 'elephant_savanna',
-        'elephant carcass' : 'elephant_savanna_carcass',
-        'giraffe'          : 'giraffe_generic',
-        'horse'            : 'horse_domestic',
-        'human'            : 'person',
-        'hut'              : 'building_hut',
-        'motorcycle_bike'  : 'motorcycle_bike',
-        'other animal'     : 'other',
-        'zebra'            : 'zebra_generic',
-    }
 
     key_list = ['annotations', 'config', 'ignoreFilenameList', 'metadata']
     for directory in direct.directory_list:
@@ -169,7 +169,7 @@ def convert_vulcan2018_to_ibeis(vulcan_path, dbdir=None, purge=True,
                     continue
 
                 bbox = (x0, y0, w, h)
-                species = species_mapping.get(species, species)
+                species = SPECIES_MAPPING.get(species, species)
 
                 bbox_list_.append(bbox)
                 species_list_.append(species)

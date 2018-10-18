@@ -75,6 +75,8 @@ def submit_detection(**kwargs):
     gid = int(request.form['detection-gid'])
     user_id = controller_inject.get_user().get('username', None)
 
+    assert not ibs.get_vulcan_image_tile_flags(gid)
+
     poor_boxes = method.lower() == 'poor boxes'
     if poor_boxes:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('POOR BOXES')
@@ -812,8 +814,6 @@ def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwa
 
 @register_route('/submit/splits/', methods=['POST'])
 def submit_splits(**kwargs):
-    ibs = current_app.ibs
-
     aid_list = kwargs['annotation-splits-aids']
     highlight_list = kwargs['annotation-splits-highlighted']
     assert len(aid_list) == len(highlight_list)

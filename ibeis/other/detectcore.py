@@ -11,7 +11,7 @@ TODO: need to split up into sub modules:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from os.path import exists, expanduser, join, abspath
+from os.path import exists, expanduser, join, abspath, basename
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -38,13 +38,136 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
-@register_api('/api/export/vulcan/', methods=['GET', 'POST', 'DELETE', 'PUT'])
-def export_to_vulcan(ibs, *args, **kwargs):
-    pass
+@register_api('/api/export/vulcan/', methods=['POST'])
+def export_to_vulcan(ibs, species_list=None, species_mapping=None, purge=True,
+                     use_existing_train_test=True, gid_list=None,
+                     use_original_uris=False, **kwargs):
+    """Create Vulcan format for database data"""
+    import json
+
+    export_path = join(ibs.get_cachedir(), 'VulcanExport')
+
+    if purge:
+        ut.delete(export_path)
+    ut.ensuredir(export_path)
+
+    # Get all gids and process them
+    if gid_list is None:
+        gid_list = sorted(ibs.get_valid_gids(is_tile=False))
+
+    if species_list is None:
+        aids_list = ibs.get_image_aids(gid_list)
+        aid_list = list(set(ut.flatten(aids_list)))
+        species_list = list(set(ibs.get_annot_species_texts(aid_list)))
+
+    if species_mapping is None:
+        from ibeis.dbio.ingest_vulcan import SPECIES_MAPPING
+        species_mapping = {}
+        for key in SPECIES_MAPPING:
+            value = SPECIES_MAPPING[key]
+            assert value not in species_mapping
+            species_mapping[value] = key
+
+    species_list = [
+        species_mapping.get(species, species)
+        for species in species_list
+    ]
+
+    if not use_existing_train_test:
+        ibs.imageset_train_test_split(**kwargs)
+
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
+
+    imageset_texts_list = ibs.get_image_imagesettext(gid_list)
+    imageset_dict = {}
+    for gid, imageset_text_list in zip(gid_list, imageset_texts_list):
+        for imageset_text in imageset_text_list:
+            if imageset_text.startswith('*') or imageset_text in ['TRAIN_SET', 'TEST_SET']:
+                continue
+            if imageset_text not in imageset_dict:
+                imageset_dict[imageset_text] = []
+            imageset_dict[imageset_text].append(gid)
+
+    imageset_text_list = sorted(imageset_dict.keys())
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    imageset_metadata_list = ibs.get_imageset_metadata(imageset_rowid_list)
+    zipped = zip(imageset_rowid_list, imageset_text_list, imageset_metadata_list)
+    for imageset_rowid, imageset_text, imageset_metadata in zipped:
+
+        imageset_path = join(export_path, imageset_text)
+        ut.ensuredir(imageset_path)
+
+        gid_list_ = sorted(imageset_dict[imageset_text])
+        image_filepath_list = ibs.get_image_paths(gid_list_)
+
+        if use_original_uris:
+            image_filepath_list_ = ibs.get_image_uris_original(gid_list_)
+        else:
+            image_filepath_list_ = image_filepath_list
+
+        image_filename_list = [
+            basename(image_filepath)
+            for image_filepath in image_filepath_list_
+        ]
+        output_filepath_list = [
+            join(imageset_path, image_filename)
+            for image_filename in image_filename_list
+        ]
+        for image_filepath, output_filepath in zip(image_filepath_list, output_filepath_list):
+            ut.copy(image_filepath, output_filepath)
+
+        data_dict = {
+            'config'             : imageset_metadata.get('config',   {}),
+            'metadata'           : imageset_metadata.get('metadata', {}),
+            'annotations'        : {},
+            'ignoreFilenameList' : [],
+            'trainSet'           : [],
+            'testSet'            : [],
+        }
+
+        aids_list = ibs.get_image_aids(gid_list_)
+        for gid, aid_list, image_filename in zip(gid_list_, aids_list, image_filename_list):
+            bbox_list = ibs.get_annot_bboxes(aid_list)
+            species_list_ = ibs.get_annot_species_texts(aid_list)
+            annotations = []
+            for aid, bbox, species in zip(aid_list, bbox_list, species_list_):
+                species = species_mapping.get(species, species)
+                if species not in species_list:
+                    continue
+                xtl, ytl, w, h = bbox
+                x0 = xtl
+                y0 = ytl
+                x1 = xtl + w
+                y1 = ytl + h
+                rectangle = ','.join(map(str, (x0, y0, x1, y1)))
+                annotation = {
+                    'user'      : None,
+                    'type'      : species,
+                    'rectangle' : rectangle,
+                    'updated'   : None,
+                }
+                annotations.append(annotation)
+            data_dict['annotations'][image_filename] = annotations
+            if gid in train_gid_set:
+                data_dict['trainSet'].append(image_filename)
+            if gid in test_gid_set:
+                data_dict['testSet'].append(image_filename)
+
+        data_dict['trainSet'].sort()
+        data_dict['testSet'].sort()
+
+        json_filepath = join(imageset_path, 'annotations.json')
+        with open(json_filepath, 'w') as json_file:
+            json.dump(data_dict, json_file, sort_keys=True, indent=4,
+                      separators=(',', ': '))
+
+    print('...completed')
+    return export_path
 
 
 @register_ibs_method
-@register_api('/api/export/pascal/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+@register_api('/api/export/pascal/', methods=['POST'])
 def export_to_pascal(ibs, *args, **kwargs):
     """Alias for export_to_xml"""
     return ibs.export_to_xml(*args, **kwargs)
@@ -241,7 +364,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
 
 @register_ibs_method
-@register_api('/api/export/coco/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+@register_api('/api/export/coco/', methods=['POST'])
 def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                    use_maximum_linear_dimension=True,
                    use_existing_train_test=True, gid_list=None, **kwargs):

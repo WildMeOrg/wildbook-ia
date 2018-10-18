@@ -1880,8 +1880,8 @@ def compute_tiles(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:5]
         >>> result = depc.get_property('tiles', gid_list, 'num')
-        >>> nums = list(map(len, ibs.get_image_tile_children_gids(gid_list)))
-        >>> nums_ = list(map(len, ibs.get_image_tile_descendants_gids(gid_list)))
+        >>> nums = list(map(len, ibs.get_vulcan_image_tile_children_gids(gid_list)))
+        >>> nums_ = list(map(len, ibs.get_vulcan_image_tile_descendants_gids(gid_list)))
         >>> assert result == nums
         >>> assert result == nums_
         >>> print(result)
@@ -1962,8 +1962,8 @@ def compute_tiles(depc, gid_list, config=None):
         config_dict_list   = [config_dict] * num
         config_hashid_list = [config_hashid] * num
 
-        ibs.set_image_tile_source(gids, parent_gids, bbox_list, border_list,
-                                  config_dict_list, config_hashid_list)
+        ibs.set_image_vulcan_tile_source(gids, parent_gids, bbox_list, border_list,
+                                         config_dict_list, config_hashid_list)
 
         if keep_extern:
             tile_relative_filepath_list_ = [
