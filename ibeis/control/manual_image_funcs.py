@@ -2612,10 +2612,26 @@ def get_vulcan_image_tile_ancestor_gids(ibs, gid_list):
 @accessor_decors.getter_1to1
 @register_api('/api/vulcan/image/tile/children/rowid/', methods=['GET'])
 def get_vulcan_image_tile_children_gids(ibs, gid_list):
-    params_iter = ((gid,) for gid in gid_list)
-    where_colnames = ('image_tile_parent_rowid', )
-    children_gid_list = ibs.db.get_where_eq(ibs.const.IMAGE_TABLE, (IMAGE_ROWID,),
-                                            params_iter, where_colnames, unpack_scalars=False)
+    # params_iter = ((gid,) for gid in gid_list)
+    # where_colnames = ('image_tile_parent_rowid', )
+    # children_gid_list = ibs.db.get_where_eq(ibs.const.IMAGE_TABLE, (IMAGE_ROWID,),
+    #                                         params_iter, where_colnames, unpack_scalars=False)
+    all_gid_list = ibs.get_valid_gids(is_tile=None)
+    parent_gid_list = ibs.get_vulcan_image_tile_parent_gids(all_gid_list)
+
+    children_gid_dict = {
+        parent_gid: []
+        for parent_gid in set(gid_list)
+    }
+    for gid, parent_gid in zip(all_gid_list, parent_gid_list):
+        if parent_gid is None:
+            continue
+        if parent_gid not in children_gid_dict:
+            continue
+        children_gid_dict[parent_gid].append(gid)
+
+    children_gid_list = ut.take(children_gid_dict, gid_list)
+
     return children_gid_list
 
 
