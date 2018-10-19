@@ -792,6 +792,57 @@ def check_name_mapping_consistency(ibs, nx2_aids):
 
 
 @register_ibs_method
+def check_tile_consistency(ibs, gid_list=None, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): (default = None)
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --exec-check_tile_consistency
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = None
+        >>> result = check_image_consistency(ibs, gid_list)
+        >>> print(result)
+    """
+    # TODO: more consistency checks
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(is_tile=False)
+
+    all_tile_gid_set = set(ibs.get_valid_gids(is_tile=True))
+
+    level_error_set = set([])
+    for tile_gid in all_tile_gid_set:
+        try:
+            ibs.get_vulcan_image_tile_level(tile_gid)
+        except RuntimeError:
+            level_error_set.add(tile_gid)
+
+    error_list = []
+    tile_gids_list = ibs.compute_tiles(gid_list, **kwargs)
+    for index, (gid, tile_gid_list) in enumerate(zip(gid_list, tile_gids_list)):
+        if index % 1000 == 0:
+            print('%d / %d' % (index, len(gid_list), ))
+
+        error = False
+        for tile_gid in tile_gid_list:
+            if tile_gid not in all_tile_gid_set:
+                error = True
+            if tile_gid in level_error_set:
+                error = True
+        if error:
+            error_list.append(gid)
+
+    print('Found %d error GIDs, fixing...' % (len(error_list), ))
+    ibs.depc_image.get_property('tiles', error_list, 'gids', recompute=True)
+
+
+@register_ibs_method
 def check_annot_size(ibs):
     print('Checking annot sizes')
     aid_list = ibs.get_valid_aids()

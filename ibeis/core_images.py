@@ -1939,7 +1939,7 @@ def compute_tiles(depc, gid_list, config=None):
     }
     gen = ut.generate2(compute_tile_helper, args_list, nTasks=len(args_list), **genkw)
     for val in gen:
-        gid, output_path, tile_filepath_list, bbox_list, border_list = val
+        parent_gid, output_path, tile_filepath_list, bbox_list, border_list = val
 
         gids = ibs.add_images(tile_filepath_list)
 
@@ -1958,7 +1958,7 @@ def compute_tiles(depc, gid_list, config=None):
             border_list = ut.compress(border_list, flag_list)
 
         num                = len(gids)
-        parent_gids        = [gid] * num
+        parent_gids        = [parent_gid] * num
         config_dict_list   = [config_dict] * num
         config_hashid_list = [config_hashid] * num
 
