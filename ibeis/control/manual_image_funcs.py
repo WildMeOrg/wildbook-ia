@@ -2251,11 +2251,11 @@ def delete_images(ibs, gid_list, trash_images=True):
     #ut.view_directory(trash_dir)
 
     # Delete tiles first, find any tiles that depend on these images as an ancestor
-    tile_gids_list = ibs.get_vulcan_image_tile_descendants_gids(gid_list)
-    tile_gid_list = list(set(ut.flatten(tile_gids_list)))
-    ibs.delete_images(tile_gid_list)
+    descendants_gids_list = ibs.get_vulcan_image_tile_descendants_gids(gid_list)
+    descendants_gid_list = list(set(ut.flatten(descendants_gids_list)))
+    ibs.delete_images(descendants_gid_list)
 
-    # Delete annotations second
+    # Delete annotations second (only for images not tiles)
     tile_flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
     image_gid_list = ut.filterfalse_items(gid_list, tile_flag_list)
     aid_list = ut.flatten(ibs.get_image_aids(image_gid_list))
