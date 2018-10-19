@@ -1962,7 +1962,7 @@ def compute_tiles(depc, gid_list, config=None):
         config_dict_list   = [config_dict] * num
         config_hashid_list = [config_hashid] * num
 
-        ibs.set_image_vulcan_tile_source(gids, parent_gids, bbox_list, border_list,
+        ibs.set_vulcan_image_tile_source(gids, parent_gids, bbox_list, border_list,
                                          config_dict_list, config_hashid_list)
 
         if keep_extern:
