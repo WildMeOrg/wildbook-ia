@@ -825,10 +825,7 @@ def check_tile_consistency(ibs, gid_list=None, **kwargs):
 
     error_list = []
     tile_gids_list = ibs.compute_tiles(gid_list, **kwargs)
-    for index, (gid, tile_gid_list) in enumerate(zip(gid_list, tile_gids_list)):
-        if index % 1000 == 0:
-            print('%d / %d' % (index, len(gid_list), ))
-
+    for gid, tile_gid_list in zip(gid_list, tile_gids_list):
         error = False
         for tile_gid in tile_gid_list:
             if tile_gid not in all_tile_gid_set:
@@ -838,8 +835,9 @@ def check_tile_consistency(ibs, gid_list=None, **kwargs):
         if error:
             error_list.append(gid)
 
-    print('Found %d error GIDs, fixing...' % (len(error_list), ))
-    ibs.depc_image.get_property('tiles', error_list, 'gids', recompute=True)
+    print('Found %d error GIDs' % (len(error_list), ))
+    if len(error_list) > 0:
+        ibs.depc_image.get_property('tiles', error_list, 'gids', recompute=True)
 
 
 @register_ibs_method

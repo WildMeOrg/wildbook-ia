@@ -1841,7 +1841,7 @@ class TileConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('tile_width',    512),
         ut.ParamInfo('tile_height',   512),
-        ut.ParamInfo('tile_overlap',  32),
+        ut.ParamInfo('tile_overlap',  64),
         ut.ParamInfo('allow_borders', True),
         ut.ParamInfo('keep_extern',   False),
         ut.ParamInfo('force_serial',  False, hideif=False),
