@@ -278,6 +278,67 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
 @register_ibs_method
 # @accessor_decors.default_decorator
+@register_api('/api/engine/query/graph/complete/', methods=['GET', 'POST'])
+def start_identify_annots_query_complete(ibs, annot_uuid_list=None,
+                                         annot_name_list=None,
+                                         matching_state_list=[],
+                                         query_config_dict={},
+                                         k=5,
+                                         echo_query_params=True,
+                                         callback_url=None,
+                                         callback_method=None):
+    r"""
+    REST:
+        Method: GET
+        URL: /api/engine/query/complete/
+
+    Args:
+        annot_uuid_list (list) : specifies the query annotations to
+            identify.
+        annot_name_list (list) : specifies the query annotation names
+        matching_state_list (list of tuple) : the list of matching state
+            3-tuples corresponding to the query_annot_uuid_list (default=None)
+        query_config_dict (dict) : dictionary of algorithmic configuration
+            arguments.  (default=None)
+        echo_query_params (bool) : flag for if to return the original query
+            parameters with the result
+    """
+    # Check inputs
+    if annot_uuid_list is not None and annot_name_list is not None:
+        assert len(annot_uuid_list) == len(annot_name_list)
+
+    # Check UUIDs
+    if annot_name_list is not None:
+        vals = web_check_annot_uuids_with_names(annot_uuid_list, annot_name_list)
+        annot_uuid_list, annot_name_list = vals
+    ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
+
+    annot_uuid_list = ensure_uuid_list(annot_uuid_list)
+
+    # Ensure annotations
+    if annot_uuid_list is None or (len(annot_uuid_list) == 1 and annot_uuid_list[0] is None):
+        aid_list = ibs.get_valid_aids()
+    else:
+        aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+
+    # Ensure names
+    # FIXME: THE QREQ STRUCTURE SHOULD HANDLE NAMES.
+    if annot_name_list is not None:
+        # Set names for query annotations
+        nid_list = ibs.add_names(annot_name_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list)
+
+    ibs.assert_valid_aids(aid_list, msg='error in start_identify qaids',
+                          auuid_list=annot_uuid_list)
+
+    args = (aid_list, query_config_dict, k, )
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph_complete', callback_url, callback_method, *args)
+    return jobid
+
+
+@register_ibs_method
+# @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
 def start_identify_annots_query(ibs,
                                 query_annot_uuid_list=None,

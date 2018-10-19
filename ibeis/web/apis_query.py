@@ -662,6 +662,31 @@ def query_chips_test(ibs, **kwargs):
 
 
 @register_ibs_method
+@register_api('/api/query/graph/complete/', methods=['GET', 'POST'])
+def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5):
+    import theano  # NOQA
+
+    cm_list, qreq_ = ibs.query_chips(qaid_list=aid_list, daid_list=aid_list,
+                                     cfgdict=query_config_dict, return_request=True)
+
+    result_dict = {}
+    for cm in cm_list:
+        key = str(ibs.get_annot_uuids(cm.qaid))
+        id_list = ibs.get_annot_uuids(cm.daid_list)
+        score_list = cm.annot_score_list
+        value_list = sorted(zip(score_list, id_list), reverse=True)
+        k_ = min(k, len(value_list))
+        value_list = value_list[:k_]
+        result = {
+            str(id_): score
+            for score, id_ in value_list
+        }
+        result_dict[key] = result
+
+    return result_dict
+
+
+@register_ibs_method
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
