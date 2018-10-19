@@ -2253,13 +2253,15 @@ def delete_images(ibs, gid_list, trash_images=True):
     # Delete tiles first, find any tiles that depend on these images as an ancestor
     descendants_gids_list = ibs.get_vulcan_image_tile_descendants_gids(gid_list)
     descendants_gid_list = list(set(ut.flatten(descendants_gids_list)))
-    ibs.delete_images(descendants_gid_list)
+    if len(descendants_gid_list) > 0:
+        ibs.delete_images(descendants_gid_list)
 
     # Delete annotations second (only for images not tiles)
     tile_flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
     image_gid_list = ut.filterfalse_items(gid_list, tile_flag_list)
     aid_list = ut.flatten(ibs.get_image_aids(image_gid_list))
-    ibs.delete_annots(aid_list)
+    if len(aid_list) > 0:
+        ibs.delete_annots(aid_list)
 
     # delete thumbs in case an annot doesnt delete them
     # TODO: pass flag to not delete them in delete_annots
@@ -2630,9 +2632,9 @@ def get_vulcan_image_tile_children_gids(ibs, gid_list):
             continue
         children_gid_dict[parent_gid].append(gid)
 
-    children_gid_list = ut.take(children_gid_dict, gid_list)
+    children_gids_list = ut.take(children_gid_dict, gid_list)
 
-    return children_gid_list
+    return children_gids_list
 
 
 @register_ibs_method
@@ -2644,7 +2646,7 @@ def get_vulcan_image_tile_descendants_gids(ibs, gid_list):
     descendants_cache = {}
 
     descendants_gids_list = []
-    for children_gid_list in children_gids_list:
+    for index, children_gid_list in enumerate(children_gids_list):
         descendants_gid_list = children_gid_list
         for children_gid in children_gid_list:
             if children_gid in descendants_cache:
