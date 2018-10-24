@@ -89,9 +89,9 @@
               <th class="no-items" colspan="99">Sorry, no annotations to display</th>
             </tr>
           {% else %}
-            {% for (aid, gid, imgsetid_list_str_, src, name, exemplar, species, viewpoint, quality, sex, age, reviewed) in annotation_list %}
+            {% for (aid, gid, imgsetid_list_str_, src, name, exemplar, species, viewpoint, quality, sex, age, reviewed, interest) in annotation_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
-              <th scope="row">{{ aid }}</th>
+              <th scope="row">{{ aid }}{% if interest %}*{% endif %}</th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
               <td>{{ src }}</td>
               <td>{{ name }}</td>

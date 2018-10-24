@@ -50,7 +50,8 @@ VIEWPOINT_MAPPING_INVERT = {
 class NavbarClass(object):
     def __init__(nav):
         nav.item_list = [
-            ('root', 'Home'),
+            # ('root', 'Home'),
+            ('upload', 'Upload'),
             ('view', 'View'),
             # ('view_imagesets', 'ImageSets'),
             # ('view_images', 'Images'),

@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="jumbotron" style="text-align: center; width: 500px; margin-left: auto; margin-right: auto;">
+    <h1>Import images</h1>
+
+    <form action="{{ url_for('image_upload_zip') }}" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
+        <div class="form-group">
+            <label for="image_zip_archive">Images (ZIP)</label>
+            <input type="file" name="image_zip_archive" id="image_zip_archive">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+  </div>
+{% endblock %}

@@ -951,9 +951,13 @@ def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
     target_names = ['healthy', 'injured']
     # confidence = clf.decision_function(data)
     # y_conf = predict_svc_ovr(clf, data)
-    y_pred = clf.predict(data)
+    scores = clf.decision_function(data)
+    y_pred = scores > 0.0
+    y_pred = y_pred.astype(np.int64)
+    # y_pred = clf.predict(data)
+    ut.embed()
     pred_nice = ut.take(target_names, y_pred)
-    return pred_nice
+    return list(zip(pred_nice, scores))
 
 
 def shark_svm():
