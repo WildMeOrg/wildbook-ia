@@ -3443,7 +3443,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                         view_orientation = request.args.get('view_orientation', 'vertical')
                         with ut.Timer('[web.routes.turk_identification] ... ... Render images2'):
                             try:
-                                image_matches = apis_query.ensure_review_image(
+                                image_matches, _ = apis_query.ensure_review_image(
                                     ibs, aid2, cm, qreq_,
                                     view_orientation=view_orientation)
                             except KeyError as ex:
@@ -3451,7 +3451,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                                            keys=['cm.qaid', 'aid1', 'aid2'],
                                            iswarning=True)
                             try:
-                                image_clean = apis_query.ensure_review_image(
+                                image_clean, _ = apis_query.ensure_review_image(
                                     ibs, aid2, cm, qreq_,
                                     view_orientation=view_orientation,
                                     draw_matches=False)

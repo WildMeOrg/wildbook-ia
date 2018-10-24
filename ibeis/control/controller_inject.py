@@ -267,6 +267,19 @@ class WebMultipleNamedDuplicateException(WebException):
         super(WebMultipleNamedDuplicateException, self).__init__(message, rawreturn, code)
 
 
+class WebMatchThumbException(WebException):
+    def __init__(self, reference, qannot_uuid, dannot_uuid, version, message):
+        rawreturn = {
+            'reference': reference,
+            'qannot_uuid': qannot_uuid,
+            'dannot_uuid': dannot_uuid,
+            'version': version,
+            'message': message,
+        }
+        code = 607
+        super(WebMatchThumbException, self).__init__(message, rawreturn, code)
+
+
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
                               jQuery_callback=None, cache=None):
     if code is None:

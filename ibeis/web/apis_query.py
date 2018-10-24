@@ -191,7 +191,7 @@ def process_graph_match_html(ibs, **kwargs):
 
 
 def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
-                        draw_matches=True, verbose=False):
+                        draw_matches=True, draw_heatmask=False, verbose=False):
     r""""
     Create the review image for a pair of annotations
 
@@ -206,7 +206,7 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> ibs = qreq_.ibs
         >>> aid = cm.get_top_aids()[0]
         >>> tt = ut.tic('make image')
-        >>> image = ensure_review_image(ibs, aid, cm, qreq_)
+        >>> image, _ = ensure_review_image(ibs, aid, cm, qreq_)
         >>> ut.toc(tt)
         >>> ut.quit_if_noshow()
         >>> print('image.shape = %r' % (image.shape,))
@@ -221,7 +221,8 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
     match_thumb_path = ibs.get_match_thumbdir()
     match_thumb_filename = id_review_api.get_match_thumb_fname(cm, aid, qreq_,
                                                                view_orientation=view_orientation,
-                                                               draw_matches=draw_matches)
+                                                               draw_matches=draw_matches,
+                                                               draw_heatmask=draw_heatmask)
     match_thumb_filepath = join(match_thumb_path, match_thumb_filename)
     if verbose:
         print('Checking: %r' % (match_thumb_filepath, ))
@@ -230,8 +231,15 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         image = cv2.imread(match_thumb_filepath)
     else:
         render_config = {
-            'dpi'              : 150,
-            'draw_fmatches'    : draw_matches,
+            'dpi'              : 300,
+            'overlay'          : True,
+            'draw_fmatches'    : True,
+            'draw_fmatch'      : draw_matches,
+            'show_matches'     : draw_matches,
+            'show_ell'         : draw_matches,
+            'show_lines'       : draw_matches,
+            'show_ori'         : False,
+            'heatmask'         : draw_heatmask,
             'vert'             : view_orientation == 'vertical',
             'show_aidstr'      : False,
             'show_name'        : False,
@@ -244,6 +252,7 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
             'show_name_score'  : False,
             'draw_lbl'         : False,
             'draw_border'      : False,
+            'white_background' : True,
         }
 
         if hasattr(qreq_, 'render_single_result'):
@@ -252,7 +261,7 @@ def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
             image = cm.render_single_annotmatch(qreq_, aid, **render_config)
         #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
         cv2.imwrite(match_thumb_filepath, image)
-    return image
+    return image, match_thumb_filepath
 
 
 @register_api('/api/review/query/graph/alias/', methods=['POST'], __api_plural_check__=False)
@@ -423,15 +432,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     #match_score = cm.aid2_score[aid_2]
 
     try:
-        image_matches = ensure_review_image(ibs, aid_2, cm, qreq_,
-                                            view_orientation=view_orientation)
+        image_matches, _ = ensure_review_image(ibs, aid_2, cm, qreq_,
+                                               view_orientation=view_orientation)
     except KeyError:
         image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
         traceback.print_exc()
     try:
-        image_clean = ensure_review_image(ibs, aid_2, cm, qreq_,
-                                          view_orientation=view_orientation,
-                                          draw_matches=False)
+        image_clean, _ = ensure_review_image(ibs, aid_2, cm, qreq_,
+                                             view_orientation=view_orientation,
+                                             draw_matches=False)
     except KeyError:
         image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
         traceback.print_exc()
@@ -610,13 +619,13 @@ def review_query_chips_best(ibs, aid, **kwargs):
     # match_score = cm.aid2_score[aid_2]
 
     # try:
-    #     image_matches = ensure_review_image(ibs, aid_2, cm, qreq_,
+    #     image_matches, _ = ensure_review_image(ibs, aid_2, cm, qreq_,
     #                                         view_orientation=view_orientation)
     # except KeyError:
     #     image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
     #     traceback.print_exc()
     # try:
-    #     image_clean = ensure_review_image(ibs, aid_2, cm, qreq_,
+    #     image_clean, _ = ensure_review_image(ibs, aid_2, cm, qreq_,
     #                                       view_orientation=view_orientation,
     #                                       draw_matches=False)
     # except KeyError:
@@ -663,7 +672,7 @@ def query_chips_test(ibs, **kwargs):
 
 @register_ibs_method
 @register_api('/api/query/graph/complete/', methods=['GET', 'POST'])
-def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5):
+def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwargs):
     import theano  # NOQA
 
     cm_list, qreq_ = ibs.query_chips(qaid_list=aid_list, daid_list=aid_list,
@@ -689,7 +698,9 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5):
 @register_ibs_method
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
-                      query_config_dict={}, echo_query_params=True):
+                      query_config_dict={}, echo_query_params=True,
+                      cache_images=True, n=12, view_orientation='horizontal',
+                      **kwargs):
     from ibeis.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
     import uuid
@@ -704,49 +715,204 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
     cm_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list,
                                      cfgdict=query_config_dict, return_request=True)
-    cm_dict = {
-        str(ibs.get_annot_uuids(cm.qaid)): {
-            # 'qaid'                  : cm.qaid,
-            'qannot_uuid'           : ibs.get_annot_uuids(cm.qaid),
-            # 'qnid'                  : cm.qnid,
-            'qname_uuid'            : convert_to_uuid(cm.qnid),
-            'qname'                 : ibs.get_name_texts(cm.qnid),
-            # 'daid_list'             : cm.daid_list,
-            'dannot_uuid_list'      : ibs.get_annot_uuids(cm.daid_list),
-            # 'dnid_list'             : cm.dnid_list,
-            'dname_uuid_list'       : [convert_to_uuid(nid) for nid in cm.dnid_list],
-            # FIXME: use qreq_ state not ibeis state
-            'dname_list'            : ibs.get_name_texts(cm.dnid_list),
-            'score_list'            : cm.score_list,
-            'annot_score_list'      : cm.annot_score_list,
-            'fm_list'               : cm.fm_list if hasattr(cm, 'fm_list') else None,
-            'fsv_list'              : cm.fsv_list if hasattr(cm, 'fsv_list') else None,
-            # Non-corresponding lists to above
-            # 'unique_nids'         : cm.unique_nids,
-            'unique_name_uuid_list' : [convert_to_uuid(nid) for nid in cm.unique_nids],
-            # FIXME: use qreq_ state not ibeis state
-            'unique_name_list'      : ibs.get_name_texts(cm.unique_nids),
-            'name_score_list'       : cm.name_score_list,
-            # Placeholders for the reinitialization of the ChipMatch object
-            'fk_list'               : None,
-            'H_list'                : None,
-            'fsv_col_lbls'          : None,
-            'filtnorm_aids'         : None,
-            'filtnorm_fxs'          : None,
-        }
-        for cm in cm_list
-    }
+
     annot_inference = OrigAnnotInference(qreq_, cm_list, user_feedback)
     inference_dict = annot_inference.make_annot_inference_dict()
+
+    cache_dir = join(ibs.cachedir, 'query_match')
+    ut.ensuredir(cache_dir)
+
+    cache_path = None
+    reference = None
+    if cache_images:
+        reference = ut.hashstr27(qreq_.get_cfgstr())
+        cache_path = join(cache_dir, 'qreq_cfgstr_%s' % (reference, ))
+        ut.ensuredir(cache_path)
+
+    cm_dict = {}
+    for cm in cm_list:
+        quuid = ibs.get_annot_uuids(cm.qaid)
+        cm_key = str(quuid)
+
+        args = (quuid, )
+        qannot_cache_filepath = join(cache_path, 'qannot_uuid_%s' % args)
+        ut.ensuredir(qannot_cache_filepath)
+
+        if cache_images:
+            assert cache_path is not None
+
+            score_list = cm.score_list
+            daid_list = cm.daid_list
+
+            zipped = sorted(zip(score_list, daid_list), reverse=True)
+            n_ = min(n, len(zipped))
+            zipped = zipped[:n_]
+            daid_set = set(ut.take_column(zipped, 1))
+
+            extern_flag_list = []
+            for daid in daid_list:
+                print('Rendering match images to disk for daid=%d' % (daid, ))
+                extern_flag = daid in daid_set
+
+                if extern_flag:
+                    duuid = ibs.get_annot_uuids(daid)
+
+                    args = (duuid, )
+                    dannot_cache_filepath = join(qannot_cache_filepath, 'dannot_uuid_%s' % args)
+                    ut.ensuredir(dannot_cache_filepath)
+
+                    cache_filepath_fmtstr = join(dannot_cache_filepath, 'version_%s_orient_%s.png')
+
+                    try:
+                        _, filepath_matches = ensure_review_image(
+                            ibs, daid, cm, qreq_,
+                            view_orientation=view_orientation,
+                            draw_matches=True,
+                            draw_heatmask=False)
+                    except KeyError:
+                        filepath_matches = None
+                        extern_flag = 'error'
+                    try:
+                        _, filepath_heatmask = ensure_review_image(
+                            ibs, daid, cm, qreq_,
+                            view_orientation=view_orientation,
+                            draw_matches=False,
+                            draw_heatmask=True)
+                    except KeyError:
+                        filepath_heatmask = None
+                        extern_flag = 'error'
+                    try:
+                        _, filepath_clean = ensure_review_image(
+                            ibs, daid, cm, qreq_,
+                            view_orientation=view_orientation,
+                            draw_matches=False,
+                            draw_heatmask=False)
+                    except KeyError:
+                        filepath_clean = None
+                        extern_flag = 'error'
+
+                if filepath_matches is not None:
+                    args = ('matches', view_orientation, )
+                    cache_filepath = cache_filepath_fmtstr % args
+                    ut.symlink(filepath_matches, cache_filepath)
+
+                if filepath_heatmask is not None:
+                    args = ('heatmask', view_orientation, )
+                    cache_filepath = cache_filepath_fmtstr % args
+                    ut.symlink(filepath_heatmask, cache_filepath)
+
+                if filepath_clean is not None:
+                    args = ('clean', view_orientation, )
+                    cache_filepath = cache_filepath_fmtstr % args
+                    ut.symlink(filepath_clean, cache_filepath)
+
+                extern_flag_list.append(extern_flag)
+        else:
+            extern_flag_list = None
+
+        cm_dict[cm_key] = {
+            # 'qaid'                    : cm.qaid,
+            'qannot_uuid'             : ibs.get_annot_uuids(cm.qaid),
+            # 'qnid'                    : cm.qnid,
+            'qname_uuid'              : convert_to_uuid(cm.qnid),
+            'qname'                   : ibs.get_name_texts(cm.qnid),
+            # 'daid_list'               : cm.daid_list,
+            'dannot_uuid_list'        : ibs.get_annot_uuids(cm.daid_list),
+            # 'dnid_list'               : cm.dnid_list,
+            'dname_uuid_list'         : [convert_to_uuid(nid) for nid in cm.dnid_list],
+            # FIXME: use qreq_ state not ibeis state
+            'dname_list'              : ibs.get_name_texts(cm.dnid_list),
+            'score_list'              : cm.score_list,
+            'annot_score_list'        : cm.annot_score_list,
+            'fm_list'                 : cm.fm_list if hasattr(cm, 'fm_list') else None,
+            'fsv_list'                : cm.fsv_list if hasattr(cm, 'fsv_list') else None,
+            # Non-corresponding lists to above
+            # 'unique_nids'             : cm.unique_nids,
+            'unique_name_uuid_list'   : [convert_to_uuid(nid) for nid in cm.unique_nids],
+            # FIXME: use qreq_ state not ibeis state
+            'unique_name_list'        : ibs.get_name_texts(cm.unique_nids),
+            'name_score_list'         : cm.name_score_list,
+            # Placeholders for the reinitialization of the ChipMatch object
+            'fk_list'                 : None,
+            'H_list'                  : None,
+            'fsv_col_lbls'            : None,
+            'filtnorm_aids'           : None,
+            'filtnorm_fxs'            : None,
+            'dannot_extern_reference' : reference,
+            'dannot_extern_list'      : extern_flag_list,
+        }
+
     result_dict = {
         'cm_dict'        : cm_dict,
         'inference_dict' : inference_dict,
     }
+
     if echo_query_params:
         result_dict['query_annot_uuid_list'] = ibs.get_annot_uuids(qaid_list)
         result_dict['database_annot_uuid_list'] = ibs.get_annot_uuids(daid_list)
         result_dict['query_config_dict'] = query_config_dict
     return result_dict
+
+
+@register_route('/api/query/graph/match/thumb/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
+def query_chips_graph_match_thumb(extern_reference, query_annot_uuid,
+                                  database_annot_uuid, version):
+    from PIL import Image  # NOQA
+    import vtool as vt
+    from io import BytesIO
+    from six.moves import cStringIO as StringIO
+    from flask import send_file
+
+    ibs = current_app.ibs
+    args = (extern_reference, query_annot_uuid, database_annot_uuid, version, )
+
+    cache_dir = join(ibs.cachedir, 'query_match')
+
+    reference_path = join(cache_dir, 'qreq_cfgstr_%s' % (extern_reference, ))
+    if not exists(reference_path):
+        message = 'dannot_extern_reference is unknown'
+        raise controller_inject.WebMatchThumbException(*args, message=message)
+
+    qannot_path = join(reference_path, 'qannot_uuid_%s' % (query_annot_uuid, ))
+    if not exists(qannot_path):
+        message = 'query_annot_uuid is unknown for the given reference %s' % (extern_reference, )
+        raise controller_inject.WebMatchThumbException(*args, message=message)
+
+    dannot_path = join(qannot_path, 'dannot_uuid_%s' % (database_annot_uuid, ))
+    if not exists(dannot_path):
+        message = 'database_annot_uuid is unknown for the given reference %s and query_annot_uuid %s' % (extern_reference, query_annot_uuid, )
+        raise controller_inject.WebMatchThumbException(*args, message=message)
+
+    version = version.lower()
+
+    alias_dict = {
+        None    : 'clean',
+        'match' : 'matches',
+        'mask'  : 'heatmask',
+    }
+    for alias in alias_dict:
+        version = alias_dict.get(version, version)
+
+    assert version in ['clean', 'matches', 'heatmask']
+
+    version_path = join(dannot_path, 'version_%s_orient_horizontal.png' % (version, ))
+    if not exists(version_path):
+        message = 'match thumb version is unknown for the given reference %s, query_annot_uuid %s, database_annot_uuid %s' % (extern_reference, query_annot_uuid, database_annot_uuid, )
+        raise controller_inject.WebMatchThumbException(*args, message=message)
+
+    # Load image
+    image = vt.imread(version_path, orient='auto')
+    image = image[:, :, ::-1]
+
+    # Encode image
+    image_pil = Image.fromarray(image)
+    if six.PY2:
+        img_io = StringIO()
+    else:
+        img_io = BytesIO()
+    image_pil.save(img_io, 'JPEG', quality=100)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
 
 
 @register_ibs_method
