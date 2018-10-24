@@ -713,7 +713,8 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('nms', True),
         ut.ParamInfo('nms_thresh', 0.2),
-        ut.ParamInfo('combined', False),
+        ut.ParamInfo('invalid', True),
+        ut.ParamInfo('invalid_margin', 0.25),
     ]
 
 
@@ -765,7 +766,10 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
     VERBOSE = False
 
-    for detect in zip(depc.get_native('localizations_original', loc_orig_id_list, None)):
+    ibs = depc.controller
+
+    zipped = zip(depc.get_native('localizations_original', loc_orig_id_list, None))
+    for loc_orig_id, detect in zip(loc_orig_id_list, zipped):
         score, bboxes, thetas, confs, classes = detect[0]
 
         # Apply Threshold
@@ -825,6 +829,49 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 count_new = len(bboxes)
                 if VERBOSE:
                     print('Filtered with nms_thresh = %0.02f (%d -> %d)' % (nms_thresh, count_old, count_new, ))
+
+        # Kill invalid images
+        if config['invalid']:
+            margin = config['invalid_margin']
+
+            count_old = len(bboxes)
+            if count_old > 0:
+                gid = depc.get_ancestor_rowids('localizations_original', [loc_orig_id], 'images')[0]
+                w, h = ibs.get_image_sizes(gid)
+
+                keep_list = []
+                for (xtl, ytl, width, height) in bboxes:
+                    xbr = xtl + width
+                    ybr = ytl + height
+
+                    x_margin = w * margin
+                    y_margin = h * margin
+                    x_min    = 0 - x_margin
+                    x_max    = w + x_margin
+                    y_min    = 0 - y_margin
+                    y_max    = h + y_margin
+
+                    keep = True
+                    if xtl < x_min or x_max < xtl or xbr < x_min or x_max < xbr:
+                        keep = False
+                    if ytl < y_min or y_max < ytl or ybr < y_min or y_max < ybr:
+                        keep = False
+                    keep_list.append(keep)
+
+                if len(keep_list) == 0:
+                    bboxes  = np.array([])
+                    thetas  = np.array([])
+                    confs   = np.array([])
+                    classes = np.array([])
+                else:
+                    bboxes  = bboxes[keep_list]
+                    thetas  = thetas[keep_list]
+                    confs   = confs[keep_list]
+                    classes = classes[keep_list]
+
+                count_new = len(bboxes)
+                if VERBOSE:
+                    print('Filtered invalid images (%d -> %d)' % (count_old, count_new, ))
 
         yield (score, bboxes, thetas, confs, classes, )
 
