@@ -2458,7 +2458,8 @@ def infer_vert(img1, img2, vert):
 
 
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
-                 use_larger=True, interpolation=None, overlap=0):
+                 use_larger=True, interpolation=None, white_background=False,
+                 overlap=0):
     r"""
 
     Args:
@@ -2566,6 +2567,12 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         newshape = (hB, wB)
     # Allocate new image for both
     imgB = np.zeros(newshape, dtype=dtype)
+
+    if white_background:
+        if dtype == np.uint8:
+            imgB += 255
+        else:
+            imgB += 1.0
 
     if overlap:
         if vert:
