@@ -102,6 +102,7 @@ def login(refer=None, *args, **kwargs):
             'Vulcan',
             [
                 'michael.elizarov',
+                'sam.mckennoch',
                 'kathleen.gobush',
                 'pooja.mathur',
             ],
