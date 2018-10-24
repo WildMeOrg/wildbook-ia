@@ -124,7 +124,8 @@ class MatchInteraction2(BASE_CLASS):
             draw_lines=draw_lines,
             draw_ell=draw_ell,
             colorbar_=True,
-            vert=self.vert)
+            vert=self.vert,
+            white_background=False)
         show_matches_kw.update(kwargs_)
 
         if verbose:
