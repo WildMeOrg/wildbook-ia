@@ -88,70 +88,22 @@ def login(refer=None, *args, **kwargs):
         'rpi': (
             'RPI',
             [
-                # 'jason.parham',
                 'chuck.stewart',
-                'hendrik.weideman',
-                'angela.su',
-                'joshua.beard',
             ]
-        ),
-        'uic': (
-            'UIC',
-            [
-                'tanya.berger-wolf',
-                'mosheh.berger-wolf',
-                'ivan.brugere',
-                'chainarong.amornbunchornvej',
-                'jia.li',
-                'aynaz.taheri',
-                'james.searing',
-                'lorenzo.semeria',
-                'matteo.foglio',
-                'eleonora.darnese ',
-                'guido.muscioni',
-                'riccardo.pressiani',
-                'krishna.chandu',
-                'mathew.yang',
-                'nathan.seitz',
-                'luis.love',
-                'ashley.riley',
-            ]
-        ),
-        'princeton': (
-            'Princeton',
-            [
-                'dan.rubenstein',
-                'kaia.tombak',
-                'andrew.gersick',
-                'ryan.herbert',
-                'joe.bakcoleman',
-                'lisa.pbryan',
-                'jackie.kariithi',
-                'megan.mcsherry',
-                'qing.cao',
-            ],
         ),
         'wildme': (
             'Wild Me',
             [
                 'jason.holmberg',
                 'jason.parham',
-                'jon.vanoast',
-                'colin.kingen',
-                'drew.blount',
             ],
         ),
-        'kitware': (
-            'Kitware',
+        'vulcan': (
+            'Vulcan',
             [
-                'jon.crall',
-            ],
-        ),
-        'ctrl-h': (
-            'CTRL-H',
-            [
-                'jon.hannis',
-                'melinda.hannis',
+                'michael.elizarov',
+                'kathleen.gobush',
+                'pooja.mathur',
             ],
         ),
     }
