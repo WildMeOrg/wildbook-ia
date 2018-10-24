@@ -1,14 +1,44 @@
 {% extends "layout.html" %}
 {% block content %}
-  <div class="jumbotron" style="text-align: center; width: 500px; margin-left: auto; margin-right: auto;">
-    <h1>Import images</h1>
+    <div id="content-container" style="position: relative;">
+        <div id="dropbox-container" class="hidden upload">
+            <div id="dropbox-container-inside">
+                <img id="dropbox" src="#">
+            </div>
 
-    <form action="{{ url_for('image_upload_zip') }}" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
-        <div class="form-group">
-            <label for="image_zip_archive">Images (ZIP)</label>
-            <input type="file" name="image_zip_archive" id="image_zip_archive">
+            <div id="dropbox-text" style="text-align: center;">
+                <br/>
+                <i style="color: #ccc; margin-top: 20px;">drag and drop images of animals</i>
+            </div>
+
+            <div id="progress" class="progress-global">
+              <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+            </div>
+
+            <div id="images-container">
+            </div>
         </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-    </form>
-  </div>
+    </div>
+
+
+{% endblock %}
+{% block content_custom_css %}
+{% endblock %}
+{% block content_custom_javascript %}
+    <script src="{{ url_for('static', filename='javascript/upload.js', version='20180905-0') }}" ia-dependency="javascript"></script>
+
+    <script type="text/javascript" ia-dependency="javascript">
+        var initialized = false;
+        var queue = {
+            upload: [],
+        };
+
+        var animations = {};
+        var registry = [];
+
+        $(document).ready(function() {
+            var image1 = '{{ url_for('static', filename='images/logo-wildbook-zebra.png') }}';
+            init(image1);
+        });
+    </script>
 {% endblock %}

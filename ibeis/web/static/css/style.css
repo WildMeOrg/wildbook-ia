@@ -425,6 +425,10 @@
   text-align: center;
 }
 
+#dropbox-container.upload {
+  position: relative;
+}
+
 .hidden {
     display: none;
 }
@@ -442,8 +446,17 @@
   width: 100%;
 }
 
+.progress.upload {
+  height: 3px !important;
+  border-radius: 2px;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 0px;
+}
+
 .progress-bar {
-    background-color: #eee;  /* #5aced0, #429798; */
+    background-color: #3f83c0;
+    /*background-color: #eee;  /* #5aced0, #429798; */
     /*background-image: linear-gradient(90deg, #c45b24, #eda641, #83ba56, #3f83c0)*/
 }
 
@@ -497,6 +510,18 @@
   padding-right: 20px;
 }
 
+.element-left.upload {
+  text-align: center;
+  height: inherit;
+  padding-bottom: 0px;
+}
+
+.element-right.upload {
+  text-align: center;
+  height: inherit;
+  padding-bottom: 0px;
+}
+
 .element-left img, .element-center img {
   margin-left: auto;
   margin-right: auto;
@@ -519,6 +544,10 @@
 .element-right .progress-container {
   padding: 0px;
   margin-top: 6px;
+}
+
+.element-right .progress-container.upload {
+  margin-top: 0px;
 }
 
 .element-right .id-container-labels {

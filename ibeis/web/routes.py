@@ -1738,6 +1738,7 @@ def view_annotations(**kwargs):
         ibs.get_annot_sex_texts(aid_list),
         ibs.get_annot_age_months_est(aid_list),
         ibs.get_annot_reviewed(aid_list),
+        ibs.get_annot_interest(aid_list),
         # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in list(zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list))) ],
     ))
     annotation_list.sort(key=lambda t: t[0])
@@ -4213,9 +4214,17 @@ def api_root(**kwargs):
                          rule_list=rule_dict)
 
 
-@register_route('/upload/', methods=['GET'])
-def upload(**kwargs):
-    return appf.template(None, 'upload')
+@register_route('/upload/', methods=['GET'], __route_authenticate__=False)
+def upload(*args, **kwargs):
+    # Return HTML
+
+    embedded = dict(globals(), **locals())
+    return appf.template(None, 'upload', **embedded)
+
+
+@register_route('/upload/zip/', methods=['GET'])
+def upload_zip(**kwargs):
+    return appf.template(None, 'zip')
 
 
 @register_route('/dbinfo/', methods=['GET'])
