@@ -929,7 +929,7 @@ def predict_svc_ovr(clf, data):
     return y_conf
 
 
-def predict_ws_injury_interim_svm(ibs, aids):
+def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
     """
     Returns relative confidence
     """

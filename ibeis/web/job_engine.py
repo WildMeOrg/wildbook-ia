@@ -1036,6 +1036,9 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         if VERBOSE_JOBS:
             print('resolving action=%r to ibeis function=%r' % (action, action_func))
     try:
+        key = '__jobid__'
+        assert key not in kwargs
+        kwargs[key] = jobid
         result = action_func(*args, **kwargs)
         exec_status = 'completed'
     except Exception as ex:
