@@ -194,8 +194,6 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             result_list_.append(result_dict)
         results_list_.append(result_list_)
 
-    ut.embed()
-
     if len(results_list_) != len(gpath_list):
         raise ValueError('Lightnet did not return valid data')
 

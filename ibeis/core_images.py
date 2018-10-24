@@ -714,7 +714,6 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('nms_thresh', 0.2),
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.25),
-        ut.ParamInfo('combined', False),
     ]
 
 
@@ -768,7 +767,8 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
     ibs = depc.controller
 
-    for detect in zip(depc.get_native('localizations_original', loc_orig_id_list, None)):
+    zipped = zip(depc.get_native('localizations_original', loc_orig_id_list, None))
+    for loc_orig_id, detect in zip(loc_orig_id_list, zipped):
         score, bboxes, thetas, confs, classes = detect[0]
 
         # Apply Threshold
@@ -835,11 +835,11 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
             count_old = len(bboxes)
             if count_old > 0:
-                gid_list = depc.get_ancestor_rowids('localizations_original', loc_orig_id_list, 'images')
-                size_list = ibs.get_image_sizes(gid_list)
+                gid = depc.get_ancestor_rowids('localizations_original', [loc_orig_id], 'images')[0]
+                w, h = ibs.get_image_sizes(gid)
 
                 keep_list = []
-                for (w, h), (xtl, ytl, width, height) in zip(size_list, bboxes):
+                for (xtl, ytl, width, height) in bboxes:
                     xbr = xtl + width
                     ybr = ytl + height
 
