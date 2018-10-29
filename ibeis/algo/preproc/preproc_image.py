@@ -75,7 +75,12 @@ def parse_imageinfo(gpath):
     with warnings.catch_warnings(record=True) as w:
         try:
             if isproto(gpath, valid_protos):
-                suffix = '.%s' % (basename(gpath), )
+                # suffix = '.%s' % (basename(gpath), )
+                filename = basename(gpath)
+                _, ext = splitext(filename)
+                # base = filename
+                base = ut.random_nonce(16)
+                suffix = '.%s.%s' % (base, ext, )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
                 args = (gpath, temp_filepath, )
                 print('[preproc] Caching remote %s file to temporary file %r' % args)
