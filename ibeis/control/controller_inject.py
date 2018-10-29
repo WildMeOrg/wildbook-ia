@@ -443,7 +443,10 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             for key_, type_, message_ in zipped:
                 key_ = key_.rjust(length1)
                 type_ = type_.ljust(length2)
-                print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_, ))
+                try:
+                    print('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_, ))
+                except UnicodeEncodeError:
+                    print('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
     except:
         print('[TRANSLATE] ERROR IN KWARGS PARSING')
 
@@ -465,6 +468,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             # msg_list.append('flask.request.args = %r' % (flask.request.args,))
             # msg_list.append('flask.request.form = %r' % (flask.request.form,))
             msg_list.append('%s: %s' % (type(ex2).__name__, ex2, ))
+            trace = str(traceback.format_exc())
+            msg_list.append(trace)
             msg = '\n'.join(msg_list)
             # error_msg = ut.formatex(ex2, msg, tb=True)
             # print(error_msg)

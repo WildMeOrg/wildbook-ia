@@ -140,7 +140,7 @@ def _convert_species_nice_to_text(species_nice_list):
     import re
     def _convert(nice):
         nice = re.sub(r'[ ]+', '_', nice)
-        nice = re.sub(r'[^a-zA-Z0-9_]+', '', nice)
+        nice = re.sub(r'[^a-zA-Z0-9_\+]+', '', nice)
         nice = re.sub(r'[_]+', '_', nice)
         nice = nice.lower()
         return nice
@@ -150,9 +150,9 @@ def _convert_species_nice_to_text(species_nice_list):
 def _convert_species_nice_to_code(species_nice_list):
     import re
     def _convert(text):
-        text = re.sub(r'[_\+]+', ' ', text)
+        text = re.sub(r'[_]+', ' ', text)
         text = text.title()
-        text = re.sub(r'[^A-Z0-9]+', '', text)
+        text = re.sub(r'[^A-Z0-9\+]+', '', text)
         return text
     species_text_list = _convert_species_nice_to_text(species_nice_list)
     return [ _convert(species_text) for species_text in species_text_list ]
@@ -185,7 +185,7 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_text_list = [
         ...     'jaguar', 'zebra_plains', 'zebra_plains', '____', 'TYPO',
-        ...     '____', 'zebra_grevys', 'bear_polar']
+        ...     '____', 'zebra_grevys', 'bear_polar+head']
         >>> species_rowid_list = ibs.add_species(species_text_list)
         >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
@@ -195,17 +195,15 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         >>> all_species_rowids = ibs._get_all_species_rowids()
         >>> result =  ut.repr2(species_text, nl=False) + '\n'
         >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
+        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False) + '\n'
+        >>> result += ut.repr2(ibs.get_species_codes(all_species_rowids), nl=False)
         >>> print(result)
-        ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
-        [1, 2, 3]
-        ['zebra_plains', 'zebra_grevys', 'bear_polar']
-
-    [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
-    [8, 9, 10]
-    [u'zebra_plains', u'zebra_grevys', u'bear_polar']
-
+        ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar+head']
+        [1, 2, 3, 6]
+        ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
+        ['PZ', 'GZ', 'PB', 'BP+H']
     """
+
     # Strip all spaces
     species_nice_list = [ const.UNKNOWN if _ is None else _.strip() for _ in species_nice_list ]
 
