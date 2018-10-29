@@ -80,7 +80,7 @@ def parse_imageinfo(gpath):
                 _, ext = splitext(filename)
                 # base = filename
                 base = ut.random_nonce(16)
-                suffix = '.%s.%s' % (base, ext, )
+                suffix = '.%s%s' % (base, ext, )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
                 args = (gpath, temp_filepath, )
                 print('[preproc] Caching remote %s file to temporary file %r' % args)
