@@ -51,7 +51,11 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
     bad_uuid_set = set([])
 
     annot_dict = {}
-    for annot_uuid, name in zip(annot_uuid_list, name_list):
+    zipped = zip(annot_uuid_list, name_list)
+    for index, (annot_uuid, name) in enumerate(zipped):
+        if not isinstance(annot_uuid, (uuid.UUID, six.string_types)):
+            raise ValueError('Received UUID %r that is not a UUID or string at index %s' % (annot_uuid, index, ))
+
         if annot_uuid not in annot_dict:
             annot_dict[annot_uuid] = []
 
