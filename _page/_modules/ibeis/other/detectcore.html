@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="ibeis.other" href="../other.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -147,8 +139,6 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
-        
       </li>
     
   </ul>
@@ -173,7 +163,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">basename</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
@@ -190,6 +180,7 @@
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">))</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="nms"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectcore.nms">[docs]</a><span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">dets</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">use_cpu</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -198,7 +189,137 @@
     <span class="k">return</span> <span class="n">py_cpu_nms</span><span class="p">(</span><span class="n">dets</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="export_to_vulcan"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectcore.export_to_vulcan">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/export/vulcan/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">export_to_vulcan</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">use_existing_train_test</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">use_original_uris</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create Vulcan format for database data&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+
+    <span class="n">export_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;VulcanExport&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">export_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">export_path</span><span class="p">)</span>
+
+    <span class="c1"># Get all gids and process them</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">species_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)))</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">species_mapping</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_vulcan</span> <span class="k">import</span> <span class="n">SPECIES_MAPPING</span>
+        <span class="n">species_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">SPECIES_MAPPING</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">SPECIES_MAPPING</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_mapping</span>
+            <span class="n">species_mapping</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+
+    <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_list</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_existing_train_test</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">imageset_train_test_split</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="n">imageset_texts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imagesettext</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">imageset_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">imageset_text_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">imageset_texts_list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">imageset_text</span> <span class="ow">in</span> <span class="n">imageset_text_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">imageset_text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">imageset_text</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">imageset_text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">imageset_dict</span><span class="p">:</span>
+                <span class="n">imageset_dict</span><span class="p">[</span><span class="n">imageset_text</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">imageset_dict</span><span class="p">[</span><span class="n">imageset_text</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">imageset_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">imageset_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text_list</span><span class="p">)</span>
+    <span class="n">imageset_metadata_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_metadata</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_text_list</span><span class="p">,</span> <span class="n">imageset_metadata_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">imageset_rowid</span><span class="p">,</span> <span class="n">imageset_text</span><span class="p">,</span> <span class="n">imageset_metadata</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+
+        <span class="n">imageset_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">export_path</span><span class="p">,</span> <span class="n">imageset_text</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">imageset_path</span><span class="p">)</span>
+
+        <span class="n">gid_list_</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">imageset_dict</span><span class="p">[</span><span class="n">imageset_text</span><span class="p">])</span>
+        <span class="n">image_filepath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">use_original_uris</span><span class="p">:</span>
+            <span class="n">image_filepath_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image_filepath_list_</span> <span class="o">=</span> <span class="n">image_filepath_list</span>
+
+        <span class="n">image_filename_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">basename</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">image_filepath</span> <span class="ow">in</span> <span class="n">image_filepath_list_</span>
+        <span class="p">]</span>
+        <span class="n">output_filepath_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">join</span><span class="p">(</span><span class="n">imageset_path</span><span class="p">,</span> <span class="n">image_filename</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">image_filename</span> <span class="ow">in</span> <span class="n">image_filename_list</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">image_filepath</span><span class="p">,</span> <span class="n">output_filepath</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_filepath_list</span><span class="p">,</span> <span class="n">output_filepath_list</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">)</span>
+
+        <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;config&#39;</span>             <span class="p">:</span> <span class="n">imageset_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;config&#39;</span><span class="p">,</span>   <span class="p">{}),</span>
+            <span class="s1">&#39;metadata&#39;</span>           <span class="p">:</span> <span class="n">imageset_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="s1">&#39;annotations&#39;</span>        <span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;ignoreFilenameList&#39;</span> <span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;trainSet&#39;</span>           <span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;testSet&#39;</span>            <span class="p">:</span> <span class="p">[],</span>
+        <span class="p">}</span>
+
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">image_filename</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">image_filename_list</span><span class="p">):</span>
+            <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">species_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">annotations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">species_list_</span><span class="p">):</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">bbox</span>
+                <span class="n">x0</span> <span class="o">=</span> <span class="n">xtl</span>
+                <span class="n">y0</span> <span class="o">=</span> <span class="n">ytl</span>
+                <span class="n">x1</span> <span class="o">=</span> <span class="n">xtl</span> <span class="o">+</span> <span class="n">w</span>
+                <span class="n">y1</span> <span class="o">=</span> <span class="n">ytl</span> <span class="o">+</span> <span class="n">h</span>
+                <span class="n">rectangle</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)))</span>
+                <span class="n">annotation</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;user&#39;</span>      <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s1">&#39;type&#39;</span>      <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+                    <span class="s1">&#39;rectangle&#39;</span> <span class="p">:</span> <span class="n">rectangle</span><span class="p">,</span>
+                    <span class="s1">&#39;updated&#39;</span>   <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">annotations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
+            <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;annotations&#39;</span><span class="p">][</span><span class="n">image_filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">annotations</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">train_gid_set</span><span class="p">:</span>
+                <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;trainSet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image_filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">test_gid_set</span><span class="p">:</span>
+                <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;testSet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image_filename</span><span class="p">)</span>
+
+        <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;trainSet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;testSet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">json_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">imageset_path</span><span class="p">,</span> <span class="s1">&#39;annotations.json&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">json_file</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                      <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...completed&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">export_path</span></div>
+
+
 <div class="viewcode-block" id="export_to_pascal"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectcore.export_to_pascal">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/export/pascal/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">export_to_pascal</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Alias for export_to_xml&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">export_to_xml</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -395,6 +516,7 @@
 
 
 <div class="viewcode-block" id="export_to_coco"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectcore.export_to_coco">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/export/coco/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">export_to_coco</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">species_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_size</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>
                    <span class="n">use_maximum_linear_dimension</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                    <span class="n">use_existing_train_test</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1025,7 +1147,7 @@
 
 
 <div class="viewcode-block" id="visualize_bounding_boxes"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.detectcore.visualize_bounding_boxes">[docs]</a><span class="k">def</span> <span class="nf">visualize_bounding_boxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                             <span class="n">num_images</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                             <span class="n">num_images</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
 
@@ -1051,9 +1173,10 @@
         <span class="n">output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">)))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
 
+    <span class="n">filepath_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">image_uuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
         <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">t_width</span><span class="p">)</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="n">val_list</span> <span class="o">=</span> <span class="n">val_dict</span><span class="p">[</span><span class="n">image_uuid</span><span class="p">]</span>
@@ -1068,7 +1191,11 @@
         <span class="n">write_filename</span> <span class="o">=</span> <span class="s1">&#39;bboxes_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="p">)</span>
         <span class="n">write_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">write_filename</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">)</span>
-        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span></div>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+        <span class="n">filepath_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_filepath</span>
+
+    <span class="k">return</span> <span class="n">filepath_dict</span></div>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1083,9 +1210,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -1094,11 +1219,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1113,35 +1238,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

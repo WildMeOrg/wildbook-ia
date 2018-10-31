@@ -24,27 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="next" title="ibeis.algo package" href="ibeis.algo.html"/>
-        <link rel="prev" title="Welcome to ibeis’s documentation!" href="index.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.algo package" href="ibeis.algo.html" />
+    <link rel="prev" title="Welcome to ibeis’s documentation!" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -139,7 +131,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -147,9 +139,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -4479,6 +4472,12 @@ ViewpointClassifier</dd>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dtool.base.Config</span></code></p>
 </dd></dl>
 
+<dl class="class">
+<dt id="ibeis.core_images.TileConfig">
+<em class="property">class </em><code class="descclassname">ibeis.core_images.</code><code class="descname">TileConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/core_images.html#TileConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.core_images.TileConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dtool.base.Config</span></code></p>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.core_images.compute_classifications">
 <code class="descclassname">ibeis.core_images.</code><code class="descname">compute_classifications</code><span class="sig-paren">(</span><em>depc</em>, <em>gid_list</em>, <em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/core_images.html#compute_classifications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.core_images.compute_classifications" title="Permalink to this definition">¶</a></dt>
@@ -5127,6 +5126,54 @@ ViewpointClassifier</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">interact_multi_image</span><span class="o">.</span><span class="n">MultiImageInteraction</span><span class="p">(</span><span class="n">thumbs</span><span class="p">,</span> <span class="n">nPerPage</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.core_images.compute_tile_helper">
+<code class="descclassname">ibeis.core_images.</code><code class="descname">compute_tile_helper</code><span class="sig-paren">(</span><em>gid</em>, <em>gpath</em>, <em>orient</em>, <em>size</em>, <em>overlap</em>, <em>opath</em>, <em>borders</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/core_images.html#compute_tile_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.core_images.compute_tile_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.core_images.compute_tiles">
+<code class="descclassname">ibeis.core_images.</code><code class="descname">compute_tiles</code><span class="sig-paren">(</span><em>depc</em>, <em>gid_list</em>, <em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/core_images.html#compute_tiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.core_images.compute_tiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the tile for a given input image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>depc</strong> (<em>ibeis.depends_cache.DependencyCache</em>) – </li>
+<li><strong>gid_list</strong> (<em>list</em>) – list of image rowids</li>
+<li><strong>config</strong> (<em>dict</em>) – (default = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first last"><em>(list, list, int)</em> – tup</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>ibeis –tf compute_tiles –db PZ_MTEST</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.core_images</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;tiles&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nums</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_children_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nums_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_descendants_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">nums</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">nums_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[285, 99, 285, 9, 35]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -6900,9 +6947,7 @@ BE VERY CAREFUL WITH THIS FUNCTION</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -6920,11 +6965,11 @@ BE VERY CAREFUL WITH THIS FUNCTION</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -6939,35 +6984,24 @@ BE VERY CAREFUL WITH THIS FUNCTION</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

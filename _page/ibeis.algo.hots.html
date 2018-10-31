@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
-        <link rel="next" title="ibeis.algo.preproc package" href="ibeis.algo.preproc.html"/>
-        <link rel="prev" title="ibeis.algo.graph.tests package" href="ibeis.algo.graph.tests.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.algo.preproc package" href="ibeis.algo.preproc.html" />
+    <link rel="prev" title="ibeis.algo.graph.tests package" href="ibeis.algo.graph.tests.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -146,7 +137,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -154,9 +145,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -961,7 +953,15 @@ currently a weight of zero is hacked in</p>
 <dl class="data">
 <dt id="ibeis.algo.hots.hstypes.PSEUDO_UINT8_MAX_SQRD">
 <code class="descclassname">ibeis.algo.hots.hstypes.</code><code class="descname">PSEUDO_UINT8_MAX_SQRD</code><em class="property"> = 262144.0</em><a class="headerlink" href="#ibeis.algo.hots.hstypes.PSEUDO_UINT8_MAX_SQRD" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>SeeAlso</em> – vt.distance.understanding_pseudomax_props</p>
+<dd><p>vt.distance.understanding_pseudomax_props</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">SeeAlso</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1832,7 +1832,7 @@ This function is often injected as rrr of classes</p>
 <dd><p>Bases: <a class="reference internal" href="#ibeis.algo.hots.neighbor_index.NeighborIndex" title="ibeis.algo.hots.neighbor_index.NeighborIndex"><code class="xref py py-class docutils literal notranslate"><span class="pre">ibeis.algo.hots.neighbor_index.NeighborIndex</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">utool.util_dev.NiceRepr</span></code></p>
 <dl class="staticmethod">
 <dt id="ibeis.algo.hots.neighbor_index.NeighborIndex2.get_support">
-<em class="property">static </em><code class="descname">get_support</code><span class="sig-paren">(</span><em>aid_list</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/hots/neighbor_index.html#NeighborIndex2.get_support"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.hots.neighbor_index.NeighborIndex2.get_support" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_support</code><span class="sig-paren">(</span><em>depc</em>, <em>aid_list</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/hots/neighbor_index.html#NeighborIndex2.get_support"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.hots.neighbor_index.NeighborIndex2.get_support" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -3214,7 +3214,7 @@ python -m ibeis build_chipmatches:2 –show</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fm</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">daid2_idx</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_matches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num_matches = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_matches</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_inbounds</span><span class="p">(</span><span class="n">num_matches</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="s1">&#39;vsmany nmatches out of bounds&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_inbounds</span><span class="p">(</span><span class="n">num_matches</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="s1">&#39;vsmany nmatches out of bounds&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="o">.</span><span class="n">score_annot_csum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
@@ -3887,7 +3887,15 @@ dependant on specifically where you are in the pipeline</p>
 <dl class="attribute">
 <dt id="ibeis.algo.hots.query_request.QueryRequest.dnids">
 <code class="descname">dnids</code><a class="headerlink" href="#ibeis.algo.hots.query_request.QueryRequest.dnids" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>TODO</em> – save dnids in <a href="#id25"><span class="problematic" id="id26">qreq_</span></a> state</p>
+<dd><p>save dnids in <a href="#id25"><span class="problematic" id="id26">qreq_</span></a> state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">TODO</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -4318,7 +4326,15 @@ are issued. They do not depened only on qparams</p>
 <dl class="attribute">
 <dt id="ibeis.algo.hots.query_request.QueryRequest.qnids">
 <code class="descname">qnids</code><a class="headerlink" href="#ibeis.algo.hots.query_request.QueryRequest.qnids" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>TODO</em> – save qnids in <a href="#id27"><span class="problematic" id="id28">qreq_</span></a> state</p>
+<dd><p>save qnids in <a href="#id27"><span class="problematic" id="id28">qreq_</span></a> state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">TODO</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -4885,8 +4901,16 @@ represents the classification surface.</p>
 <dl class="data">
 <dt id="ibeis.algo.hots.IMPORT_TUPLES">
 <code class="descclassname">ibeis.algo.hots.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('_pipeline_helpers', None), ('chip_match', None), ('exceptions', None), ('hstypes', None), ('match_chips4', None), ('name_scoring', None), ('neighbor_index', None), ('neighbor_index_cache', None), ('nn_weights', None), ('old_chip_match', None), ('pipeline', None), ('query_params', None), ('query_request', None), ('scoring', None)]</em><a class="headerlink" href="#ibeis.algo.hots.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Regen Command</em> – cd /home/joncrall/code/ibeis/ibeis/algo/hots
+<dd><p>cd /home/joncrall/code/ibeis/ibeis/algo/hots
 makeinit.py –modname=ibeis.algo.hots</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Regen Command</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -4912,9 +4936,7 @@ makeinit.py –modname=ibeis.algo.hots</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -4932,11 +4954,11 @@ makeinit.py –modname=ibeis.algo.hots</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -4951,35 +4973,24 @@ makeinit.py –modname=ibeis.algo.hots</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="up" title="ibeis package" href="ibeis.html"/>
-        <link rel="next" title="ibeis.web.futures_utils package" href="ibeis.web.futures_utils.html"/>
-        <link rel="prev" title="ibeis.viz.interact package" href="ibeis.viz.interact.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.web.futures_utils package" href="ibeis.web.futures_utils.html" />
+    <link rel="prev" title="ibeis.viz.interact package" href="ibeis.viz.interact.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -161,7 +152,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -169,9 +160,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -768,7 +760,7 @@ URL:    /api/detect/randomforest/</dd>
 
 <dl class="function">
 <dt id="ibeis.web.apis_detect.detection_yolo_test">
-<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">detection_yolo_test</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#detection_yolo_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.detection_yolo_test" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_detect.</code><code class="descname">detection_yolo_test</code><span class="sig-paren">(</span><em>ibs</em>, <em>config={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_detect.html#detection_yolo_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_detect.detection_yolo_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1198,6 +1190,35 @@ python -m ibeis.web.apis_engine start_identify_annots_query –show –domain=lo
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.apis_engine.start_identify_annots_query_complete">
+<code class="descclassname">ibeis.web.apis_engine.</code><code class="descname">start_identify_annots_query_complete</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid_list=None</em>, <em>annot_name_list=None</em>, <em>matching_state_list=[]</em>, <em>query_config_dict={}</em>, <em>k=5</em>, <em>echo_query_params=True</em>, <em>callback_url=None</em>, <em>callback_method=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_engine.html#start_identify_annots_query_complete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_engine.start_identify_annots_query_complete" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>REST:</dt>
+<dd>Method: GET
+URL: /api/engine/query/complete/</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>annot_uuid_list</strong> (<em>list</em>) – specifies the query annotations to
+identify.</li>
+<li><strong>annot_name_list</strong> (<em>list</em>) – specifies the query annotation names</li>
+<li><strong>matching_state_list</strong> (<em>list of tuple</em>) – the list of matching state
+3-tuples corresponding to the query_annot_uuid_list (default=None)</li>
+<li><strong>query_config_dict</strong> (<em>dict</em>) – dictionary of algorithmic configuration
+arguments.  (default=None)</li>
+<li><strong>echo_query_params</strong> (<em>bool</em>) – flag for if to return the original query
+parameters with the result</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.apis_engine.start_labeler_cnn">
 <code class="descclassname">ibeis.web.apis_engine.</code><code class="descname">start_labeler_cnn</code><span class="sig-paren">(</span><em>ibs</em>, <em>annot_uuid_list</em>, <em>callback_url=None</em>, <em>callback_method=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_engine.html#start_labeler_cnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_engine.start_labeler_cnn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1259,6 +1280,11 @@ URL: /api/engine/classify/whaleshark/injury/</dd>
 URL: /api/engine/query/web/</dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_engine.web_check_annot_uuids_with_names">
+<code class="descclassname">ibeis.web.apis_engine.</code><code class="descname">web_check_annot_uuids_with_names</code><span class="sig-paren">(</span><em>annot_uuid_list</em>, <em>name_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_engine.html#web_check_annot_uuids_with_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_engine.web_check_annot_uuids_with_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.web.apis_engine.web_check_uuids">
@@ -2531,7 +2557,7 @@ URL: /api/species/json/</dd>
 
 <dl class="function">
 <dt id="ibeis.web.apis_query.ensure_review_image">
-<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">ensure_review_image</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>cm</em>, <em>qreq_</em>, <em>view_orientation='vertical'</em>, <em>draw_matches=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#ensure_review_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.ensure_review_image" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">ensure_review_image</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>cm</em>, <em>qreq_</em>, <em>view_orientation='vertical'</em>, <em>draw_matches=True</em>, <em>draw_heatmask=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#ensure_review_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.ensure_review_image" title="Permalink to this definition">¶</a></dt>
 <dd><p>”
 Create the review image for a pair of annotations</p>
 <dl class="docutils">
@@ -2546,7 +2572,7 @@ Create the review image for a pair of annotations</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tic</span><span class="p">(</span><span class="s1">&#39;make image&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">image</span> <span class="o">=</span> <span class="n">ensure_review_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ensure_review_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;image.shape = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
@@ -2722,7 +2748,17 @@ URL:    /api/query/chip/dict/</dd>
 
 <dl class="function">
 <dt id="ibeis.web.apis_query.query_chips_graph">
-<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">query_chips_graph</code><span class="sig-paren">(</span><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>user_feedback=None</em>, <em>query_config_dict={}</em>, <em>echo_query_params=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#query_chips_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.query_chips_graph" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">query_chips_graph</code><span class="sig-paren">(</span><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>user_feedback=None</em>, <em>query_config_dict={}</em>, <em>echo_query_params=True</em>, <em>cache_images=True</em>, <em>n=12</em>, <em>view_orientation='horizontal'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#query_chips_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.query_chips_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_query.query_chips_graph_complete">
+<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">query_chips_graph_complete</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>query_config_dict={}</em>, <em>k=5</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#query_chips_graph_complete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.query_chips_graph_complete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.apis_query.query_chips_graph_match_thumb">
+<code class="descclassname">ibeis.web.apis_query.</code><code class="descname">query_chips_graph_match_thumb</code><span class="sig-paren">(</span><em>extern_reference</em>, <em>query_annot_uuid</em>, <em>database_annot_uuid</em>, <em>version</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/apis_query.html#query_chips_graph_match_thumb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.apis_query.query_chips_graph_match_thumb" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -3779,6 +3815,13 @@ python -m ibeis.web.job_engine –exec-get_job_metadata:0 –fg</p>
 <code class="descclassname">ibeis.web.job_engine.</code><code class="descname">get_job_status</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/job_engine.html#get_job_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.job_engine.get_job_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Web call that returns the status of a job</p>
 <dl class="docutils">
+<dt>Returns one of:</dt>
+<dd>received              - job has been received, but not ingested yet
+accepted              - job has been accepted (validated)
+queued                - job has been transferred to the engine queue
+working               - job is being worked on by the engine
+publishing            - job is done on the engine, pushing results to collector
+completed | exception - job is complete or has an error</dd>
 <dt>CommandLine:</dt>
 <dd><p class="first"># Run Everything together
 python -m ibeis.web.job_engine –exec-get_job_status</p>
@@ -4279,7 +4322,12 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 
 <dl class="function">
 <dt id="ibeis.web.routes.upload">
-<code class="descclassname">ibeis.web.routes.</code><code class="descname">upload</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.upload" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.web.routes.</code><code class="descname">upload</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.upload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.routes.upload_zip">
+<code class="descclassname">ibeis.web.routes.</code><code class="descname">upload_zip</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#upload_zip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.upload_zip" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -4345,6 +4393,11 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 <dl class="function">
 <dt id="ibeis.web.routes.view_parts">
 <code class="descclassname">ibeis.web.routes.</code><code class="descname">view_parts</code><span class="sig-paren">(</span><em>pid_list=None</em>, <em>aid_list=None</em>, <em>gid_list=None</em>, <em>imgsetid_list=None</em>, <em>page=1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#view_parts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.view_parts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.routes.view_tiles">
+<code class="descclassname">ibeis.web.routes.</code><code class="descname">view_tiles</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/routes.html#view_tiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.routes.view_tiles" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -4679,9 +4732,7 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -4699,11 +4750,11 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -4718,35 +4769,24 @@ python -m ibeis.web.app –exec-turk_quality –db GIRM_Master1</dd>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

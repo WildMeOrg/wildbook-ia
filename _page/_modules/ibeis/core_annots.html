@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../genindex.html"/>
-        <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../index.html"/>
-        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -144,8 +136,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -427,7 +417,7 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;medianblur_ksize2&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;medianblur&#39;</span><span class="p">]),</span>
         <span class="c1"># ---</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;pad&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">eval</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.png&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.jpg&#39;</span><span class="p">),</span>
     <span class="p">]</span></div>
 
 <span class="n">ChipImgType</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">ExternType</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">,</span> <span class="n">extkey</span><span class="o">=</span><span class="s1">&#39;ext&#39;</span><span class="p">)</span>
@@ -728,7 +718,7 @@
     <span class="n">avuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
     <span class="c1"># TODO: just hash everything together</span>
-    <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;.png&#39;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;.jpg&#39;</span>
     <span class="n">_fmt</span> <span class="o">=</span> <span class="s1">&#39;mask_aid_</span><span class="si">{aid}</span><span class="s1">_avuuid_</span><span class="si">{avuuid}</span><span class="s1">_</span><span class="si">{cfghashid}{ext}</span><span class="s1">&#39;</span>
     <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span> <span class="n">cfghashid</span><span class="o">=</span><span class="n">cfghashid</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">)]</span>
@@ -769,7 +759,7 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smooth_thresh&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;thresh=&#39;</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smooth_ksize&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;ksz=&#39;</span><span class="p">,</span>
                      <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;smooth_thresh&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="c1">#ut.ParamInfo(&#39;ext&#39;, &#39;.png&#39;),</span>
+        <span class="c1">#ut.ParamInfo(&#39;ext&#39;, &#39;.jpg&#39;),</span>
     <span class="p">]</span></div>
     <span class="c1">#_sub_config_list = [</span>
     <span class="c1">#    ChipConfig</span>
@@ -777,7 +767,7 @@
 
 
 <span class="n">ProbchipImgType</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">ExternType</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                                   <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">,</span> <span class="n">extern_ext</span><span class="o">=</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+                                   <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">,</span> <span class="n">extern_ext</span><span class="o">=</span><span class="s1">&#39;.jpg&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="compute_probchip"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_probchip">[docs]</a><span class="nd">@derived_attribute</span><span class="p">(</span>
@@ -842,7 +832,7 @@
 
     <span class="c1"># FIXME: The depcache should make it so this doesn&#39;t matter anymore</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">probchip_dir</span><span class="p">)</span>
-    <span class="c1"># _fmt = &#39;probchip_avuuid_{avuuid}_&#39; + cfghashid + &#39;.png&#39;</span>
+    <span class="c1"># _fmt = &#39;probchip_avuuid_{avuuid}_&#39; + cfghashid + &#39;.jpg&#39;</span>
     <span class="c1"># annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)</span>
     <span class="c1"># probchip_fpath_list = [ut.unixjoin(probchip_dir, _fmt.format(avuuid=avuuid))</span>
     <span class="c1">#                        for avuuid in annot_visual_uuid_list]</span>
@@ -943,7 +933,7 @@
     <span class="c1"># Hack disk based output for RF detector.</span>
     <span class="n">temp_output_fpaths</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># Give a reasonably distinctive name for parallel safety</span>
-        <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;rf_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_margin.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">aid</span><span class="p">))</span>
+        <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;rf_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_margin.jpg&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">aid</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aids</span>
     <span class="p">]</span>
     <span class="n">rfconfig</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;scale_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -1260,7 +1250,8 @@
         <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
         <span class="n">featgen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span>
             <span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">force_serial</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span><span class="p">,</span> <span class="n">progkw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">force_serial</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span><span class="p">,</span> <span class="n">progkw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="n">futures_threaded</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis_cnn</span> <span class="k">import</span> <span class="n">_plugin</span>
@@ -1998,9 +1989,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -2009,11 +1998,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -2028,35 +2017,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

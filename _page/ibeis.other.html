@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="up" title="ibeis package" href="ibeis.html"/>
-        <link rel="next" title="ibeis.scripts package" href="ibeis.scripts.html"/>
-        <link rel="prev" title="ibeis.init package" href="ibeis.init.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.scripts package" href="ibeis.scripts.html" />
+    <link rel="prev" title="ibeis.init package" href="ibeis.init.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -151,7 +142,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -159,9 +150,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -522,6 +514,12 @@ within this file</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.other.detectcore.export_to_vulcan">
+<code class="descclassname">ibeis.other.detectcore.</code><code class="descname">export_to_vulcan</code><span class="sig-paren">(</span><em>ibs</em>, <em>species_list=None</em>, <em>species_mapping=None</em>, <em>purge=True</em>, <em>use_existing_train_test=True</em>, <em>gid_list=None</em>, <em>use_original_uris=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#export_to_vulcan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.export_to_vulcan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create Vulcan format for database data</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.other.detectcore.export_to_xml">
 <code class="descclassname">ibeis.other.detectcore.</code><code class="descname">export_to_xml</code><span class="sig-paren">(</span><em>ibs</em>, <em>species_list</em>, <em>species_mapping=None</em>, <em>offset='auto'</em>, <em>enforce_viewpoint=False</em>, <em>target_size=900</em>, <em>purge=False</em>, <em>use_maximum_linear_dimension=True</em>, <em>use_existing_train_test=True</em>, <em>include_parts=False</em>, <em>gid_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#export_to_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.export_to_xml" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create training XML for training models.</p>
@@ -577,7 +575,7 @@ python -c “import utool, ibeis.algo; utool.view_directory(ibeis.algo.detect.gr
 
 <dl class="function">
 <dt id="ibeis.other.detectcore.visualize_bounding_boxes">
-<code class="descclassname">ibeis.other.detectcore.</code><code class="descname">visualize_bounding_boxes</code><span class="sig-paren">(</span><em>ibs</em>, <em>config</em>, <em>version</em>, <em>gid_list=None</em>, <em>randomize=False</em>, <em>num_images=10</em>, <em>output_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#visualize_bounding_boxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.visualize_bounding_boxes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.other.detectcore.</code><code class="descname">visualize_bounding_boxes</code><span class="sig-paren">(</span><em>ibs</em>, <em>config</em>, <em>version</em>, <em>gid_list=None</em>, <em>randomize=False</em>, <em>num_images=10</em>, <em>t_width=500</em>, <em>output_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/detectcore.html#visualize_bounding_boxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.detectcore.visualize_bounding_boxes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1045,6 +1043,11 @@ within this file</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.other.ibsfuncs.add_trivial_annotations">
+<code class="descclassname">ibeis.other.ibsfuncs.</code><code class="descname">add_trivial_annotations</code><span class="sig-paren">(</span><em>ibs</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/ibsfuncs.html#add_trivial_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.ibsfuncs.add_trivial_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.other.ibsfuncs.aidstr">
 <code class="descclassname">ibeis.other.ibsfuncs.</code><code class="descname">aidstr</code><span class="sig-paren">(</span><em>aid</em>, <em>ibs=None</em>, <em>notes=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/ibsfuncs.html#aidstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.ibsfuncs.aidstr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper to make a string from an aid</p>
@@ -1362,6 +1365,37 @@ python -m ibeis.other.ibsfuncs –test-check_image_uuid_consistency –db lynx</
 <dt id="ibeis.other.ibsfuncs.check_name_mapping_consistency">
 <code class="descclassname">ibeis.other.ibsfuncs.</code><code class="descname">check_name_mapping_consistency</code><span class="sig-paren">(</span><em>ibs</em>, <em>nx2_aids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/ibsfuncs.html#check_name_mapping_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.ibsfuncs.check_name_mapping_consistency" title="Permalink to this definition">¶</a></dt>
 <dd><p>checks that all the aids grouped in a name ahave the same name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.ibsfuncs.check_tile_consistency">
+<code class="descclassname">ibeis.other.ibsfuncs.</code><code class="descname">check_tile_consistency</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/ibsfuncs.html#check_tile_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.ibsfuncs.check_tile_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) – ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) – (default = None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.other.ibsfuncs –exec-check_tile_consistency</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.ibsfuncs</span> <span class="k">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">check_image_consistency</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -4470,8 +4504,16 @@ adjust_percent - shrinks the ANNOTATION by percentage on each side</p>
 <dl class="data">
 <dt id="ibeis.other.IMPORT_TUPLES">
 <code class="descclassname">ibeis.other.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('dbinfo', None), ('duct_tape', None), ('detectfuncs', None), ('detectcore', None), ('detectgrave', None), ('detecttrain', None), ('ibsfuncs', None)]</em><a class="headerlink" href="#ibeis.other.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Regen Command</em> – cd /home/joncrall/code/ibeis/ibeis/other
+<dd><p>cd /home/joncrall/code/ibeis/ibeis/other
 makeinit.py –modname=ibeis.other</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Regen Command</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -4497,9 +4539,7 @@ makeinit.py –modname=ibeis.other</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -4517,11 +4557,11 @@ makeinit.py –modname=ibeis.other</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -4536,35 +4576,24 @@ makeinit.py –modname=ibeis.other</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

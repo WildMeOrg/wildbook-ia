@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="ibeis.control" href="../control.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -146,8 +138,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -200,6 +190,7 @@
 <span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="n">IMAGE_TILE_FLAG</span>       <span class="o">=</span> <span class="s1">&#39;image_tile_flag&#39;</span>
 <span class="n">IMAGE_TIME_POSIX</span>      <span class="o">=</span> <span class="s1">&#39;image_time_posix&#39;</span>
 <span class="n">IMAGE_LOCATION_CODE</span>   <span class="o">=</span> <span class="s1">&#39;image_location_code&#39;</span>
 <span class="n">IMAGE_TIMEDELTA_POSIX</span> <span class="o">=</span> <span class="s1">&#39;image_timedelta_posix&#39;</span>
@@ -262,8 +253,8 @@
 <div class="viewcode-block" id="get_valid_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_gids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">get_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                   <span class="n">require_gps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reviewed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">is_tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_reviewed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
@@ -302,6 +293,19 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_image_set</span><span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="n">require_unixtime</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="n">require_gps</span><span class="p">,</span>
+        <span class="n">is_tile</span><span class="o">=</span><span class="n">is_tile</span><span class="p">,</span> <span class="n">is_reviewed</span><span class="o">=</span><span class="n">is_reviewed</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">gid_list</span></div>
+
+
+<div class="viewcode-block" id="filter_image_set"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.filter_image_set">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">filter_image_set</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">is_tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_tile_border</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_reviewed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">is_reviewed</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reviewed&#39;</span><span class="p">,</span> <span class="n">is_reviewed</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">require_unixtime</span><span class="p">:</span>
         <span class="c1"># Remove images without timestamps</span>
         <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -310,10 +314,29 @@
     <span class="k">if</span> <span class="n">require_gps</span><span class="p">:</span>
         <span class="n">isvalid_gps</span> <span class="o">=</span> <span class="p">[</span><span class="n">lat</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">lon</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_gps</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">is_tile</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># corresponding unoptimized hack for is_staged</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_flags</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">gid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">is_tile</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_flags</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">gid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_tile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">is_tile_border</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">border_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_border_flag</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_tile_border</span><span class="p">:</span>
+            <span class="n">gid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">border_flag_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">border_flag_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">reviewed</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">reviewed_list</span><span class="p">]</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">is_reviewed</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">reviewed_list</span><span class="p">]</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sort</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid_list</span></div>
 
 
@@ -436,7 +459,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">add_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_annots</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">auto_localize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location_for_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">auto_localize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location_for_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ensure_unique</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adds a list of image paths to the database.</span>
@@ -526,44 +549,52 @@
                         <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
                         <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params_list</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">)]</span>
 
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_list</span><span class="p">,</span>
-                                  <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">)</span>
+    <span class="n">all_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_list</span><span class="p">,</span>
+                                      <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">)</span>
 
-    <span class="n">none_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="n">none_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">))</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">params_list</span><span class="p">,</span> <span class="n">none_idxs</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">duplicates_exist</span><span class="p">(</span><span class="n">gid_list</span><span class="p">):</span>
-        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="n">guuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="n">gext_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">guuid_list</span><span class="p">,</span> <span class="n">gext_list</span><span class="p">)</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">)</span>
+    <span class="n">guuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">)</span>
+    <span class="n">gext_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">)</span>
+
+    <span class="n">has_duplicates</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">duplicates_exist</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ensure_unique</span> <span class="ow">and</span> <span class="n">has_duplicates</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">guuid_list</span><span class="p">,</span> <span class="n">gext_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">compute_params</span><span class="p">:</span>
         <span class="c1"># We need to double check that the UUIDs are valid, considering we received the UUIDs</span>
         <span class="n">guuid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">compute_image_uuids</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">guuid_list_</span> <span class="o">==</span> <span class="n">guuid_list</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">params_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">params_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">params_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span>
-        <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span>
-        <span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-        <span class="n">valid_uuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[postadd] uuid / gid_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[postadd] uuid / gid = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[postadd] valid uuid / gid = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">valid_uuids</span><span class="p">,</span> <span class="n">valid_gids</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">has_duplicates</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seen_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">all_gid_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_set</span>
+                <span class="n">seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">params_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">params_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">all_gid_list</span>
 
     <span class="k">if</span> <span class="n">auto_localize</span><span class="p">:</span>
         <span class="c1"># Move to ibeis database local cache</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">localize_images</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">localize_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">as_annots</span><span class="p">:</span>
         <span class="c1"># Add succesfull imports as annotations</span>
-        <span class="n">notnone_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">]</span>
-        <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">notnone_list</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">use_images_as_annotations</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] added </span><span class="si">%d</span><span class="s1"> annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
-    <span class="k">return</span> <span class="n">gid_list</span></div>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_gid_list</span></div>
 
 
 <div class="viewcode-block" id="localize_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.localize_images">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -616,6 +647,7 @@
     <span class="k">if</span> <span class="n">gid_list_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: you are localizing all gids&#39;</span><span class="p">)</span>
         <span class="n">gid_list_</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+
     <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list_</span><span class="p">]</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">))</span>
 
@@ -859,6 +891,71 @@
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/image/unixtime/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_image_funcs --test-set_image_unixtime</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; import time</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     random.randint(1, int(time.time()))</span>
+<span class="sd">        &gt;&gt;&gt;     for _ in gid_list</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(unixtime_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_image_unixtime(gid_list, unixtime_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list_ = ibs.get_image_unixtime(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(unixtime_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert unixtime_list == unixtime_list_</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; import time</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = gid_list + gid_list</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     random.randint(1, int(time.time()))</span>
+<span class="sd">        &gt;&gt;&gt;     for _ in gid_list</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     print(ut.repr2(unixtime_list))</span>
+<span class="sd">        &gt;&gt;&gt;     ibs.set_image_unixtime(gid_list, unixtime_list)</span>
+<span class="sd">        &gt;&gt;&gt; except AssertionError:</span>
+<span class="sd">        &gt;&gt;&gt;     pass</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; import time</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     random.randint(1, int(time.time()))</span>
+<span class="sd">        &gt;&gt;&gt;     for _ in gid_list</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = gid_list + gid_list</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list = unixtime_list + unixtime_list</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(unixtime_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_image_unixtime(gid_list, unixtime_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list_ = ibs.get_image_unixtime(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(unixtime_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert unixtime_list == unixtime_list_</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">unixtime</span><span class="p">,)</span> <span class="k">for</span> <span class="n">unixtime</span> <span class="ow">in</span> <span class="n">unixtime_list</span><span class="p">)</span>
@@ -2030,7 +2127,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">ANNOT_ROWIDS</span><span class="p">)</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">get_image_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_image_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">check_tiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): a list of aids for each image by gid</span>
@@ -2075,119 +2172,96 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control.manual_annot_funcs</span> <span class="k">import</span> <span class="n">ANNOT_STAGED_FLAG</span>
 
-    <span class="c1"># FIXME: SLOW JUST LIKE GET_NAME_AIDS</span>
-    <span class="c1"># print(&#39;gid_list = %r&#39; % (gid_list,))</span>
-    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-    <span class="n">NEW_INDEX_HACK</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">USE_GROUPING_HACK</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="n">NEW_INDEX_HACK</span><span class="p">:</span>
-        <span class="c1"># FIXME: This index should when the database is defined.</span>
-        <span class="c1"># Ensure that an index exists on the image column of the annotation table</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_flags</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">check_tiles</span><span class="p">:</span>
+        <span class="n">image_gid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">image_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">image_gid_list</span><span class="p">,</span> <span class="n">check_tiles</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">image_gid_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">image_gid_list</span><span class="p">,</span> <span class="n">image_aids_list</span><span class="p">))</span>
 
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-            <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);</span>
-<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">tile_gid_list</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">tile_aids_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_aids</span><span class="p">(</span><span class="n">tile_gid_list</span><span class="p">)</span>
+        <span class="n">tile_gid_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">tile_gid_list</span><span class="p">,</span> <span class="n">tile_aids_list</span><span class="p">))</span>
 
-        <span class="c1"># The index maxes the following query very efficient</span>
-        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,</span> <span class="n">is_staged</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
-        <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="n">ANNOT_STAGED_FLAG</span><span class="p">,</span> <span class="p">)</span>
-        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
-                                        <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_colnames</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1">#aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(</span>
-        <span class="c1">#    &#39;&#39;&#39;</span>
-        <span class="c1">#    SELECT annot_rowid</span>
-        <span class="c1">#    FROM annotations</span>
-        <span class="c1">#    WHERE image_rowid = ?&#39;&#39;&#39;, (gid,)).fetchall()</span>
-        <span class="c1">#]</span>
-        <span class="c1">#    for gid in gid_list]</span>
-
-    <span class="k">elif</span> <span class="n">USE_GROUPING_HACK</span><span class="p">:</span>
-        <span class="n">input_list</span><span class="p">,</span> <span class="n">inverse_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="c1"># This code doesn&#39;t work because it doesn&#39;t respect empty names</span>
-        <span class="n">input_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">input_list</span><span class="p">)))</span>
-        <span class="n">opstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        SELECT annot_rowid, image_rowid</span>
-<span class="s1">        FROM </span><span class="si">{ANNOTATION_TABLE}</span><span class="s1"></span>
-<span class="s1">        WHERE image_rowid IN</span>
-<span class="s1">            (</span><span class="si">{input_str}</span><span class="s1">)</span>
-<span class="s1">            ORDER BY image_rowid ASC, annot_rowid ASC</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_str</span><span class="o">=</span><span class="n">input_str</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
-        <span class="n">pair_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">opstr</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-        <span class="n">aidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-        <span class="n">gidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">unique_gids</span><span class="p">,</span> <span class="n">groupx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">gidscol</span><span class="p">)</span>
-        <span class="n">grouped_aids_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aidscol</span><span class="p">,</span> <span class="n">groupx</span><span class="p">)</span>
-        <span class="c1">#aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]</span>
-        <span class="n">structured_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">grouped_aids_</span><span class="p">]</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
-            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">structured_aids_list</span><span class="p">)[</span><span class="n">inverse_unique</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">image_gid_dict</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tile_gid_list</span>
+                <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image_gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">tile_gid_dict</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">image_gid_dict</span>
+                <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tile_gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Sanity check failed for get_image_aids&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="c1"># Use qt if getting one at a time otherwise perform bulk operation</span>
-        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">USE_NUMPY_IMPL</span><span class="p">:</span>
-            <span class="c1"># This seems to be 30x faster for bigger inputs</span>
-            <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
-            <span class="n">valid_gids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_col_rows</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">IMAGE_ROWID</span><span class="p">))</span>
-            <span class="c1">#np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
-            <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">valid_aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">,</span> <span class="n">gid</span><span class="p">)))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span>
-            <span class="p">]</span>
+        <span class="k">assert</span> <span class="kc">True</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">flag_list</span>
+
+        <span class="c1"># FIXME: SLOW JUST LIKE GET_NAME_AIDS</span>
+        <span class="c1"># print(&#39;gid_list = %r&#39; % (gid_list,))</span>
+        <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+        <span class="n">NEW_INDEX_HACK</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">USE_GROUPING_HACK</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">NEW_INDEX_HACK</span><span class="p">:</span>
+            <span class="c1"># FIXME: This index should when the database is defined.</span>
+            <span class="c1"># Ensure that an index exists on the image column of the annotation table</span>
+
+            <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);</span>
+<span class="sd">                &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+            <span class="c1"># The index maxes the following query very efficient</span>
+            <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,</span> <span class="n">is_staged</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+            <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="n">ANNOT_STAGED_FLAG</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+                                            <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_colnames</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="c1">#aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(</span>
+            <span class="c1">#    &#39;&#39;&#39;</span>
+            <span class="c1">#    SELECT annot_rowid</span>
+            <span class="c1">#    FROM annotations</span>
+            <span class="c1">#    WHERE image_rowid = ?&#39;&#39;&#39;, (gid,)).fetchall()</span>
+            <span class="c1">#]</span>
+            <span class="c1">#    for gid in gid_list]</span>
+
+        <span class="k">elif</span> <span class="n">USE_GROUPING_HACK</span><span class="p">:</span>
+            <span class="n">input_list</span><span class="p">,</span> <span class="n">inverse_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># This code doesn&#39;t work because it doesn&#39;t respect empty names</span>
+            <span class="n">input_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">input_list</span><span class="p">)))</span>
+            <span class="n">opstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">            SELECT annot_rowid, image_rowid</span>
+<span class="s1">            FROM </span><span class="si">{ANNOTATION_TABLE}</span><span class="s1"></span>
+<span class="s1">            WHERE image_rowid IN</span>
+<span class="s1">                (</span><span class="si">{input_str}</span><span class="s1">)</span>
+<span class="s1">                ORDER BY image_rowid ASC, annot_rowid ASC</span>
+<span class="s1">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_str</span><span class="o">=</span><span class="n">input_str</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+            <span class="n">pair_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">opstr</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="n">aidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">gidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">unique_gids</span><span class="p">,</span> <span class="n">groupx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">gidscol</span><span class="p">)</span>
+            <span class="n">grouped_aids_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aidscol</span><span class="p">,</span> <span class="n">groupx</span><span class="p">)</span>
+            <span class="c1">#aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]</span>
+            <span class="n">structured_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">grouped_aids_</span><span class="p">]</span>
+            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
+                <span class="n">aids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">structured_aids_list</span><span class="p">)[</span><span class="n">inverse_unique</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># SQL IMPL</span>
-            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
-                                   <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">IMAGE_ROWID</span><span class="p">,</span>
-                                   <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="c1">#%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)</span>
-
-    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="c1">#cur = ibs.db.connection.execute(&#39; .indices annotations;&#39;)</span>
-        <span class="c1">#cur.fetchall()</span>
-        <span class="c1">#aid_list3 = ibs.db.connection.execute(&#39;&#39;&#39;</span>
-        <span class="c1">#                               SELECT annot_rowid</span>
-        <span class="c1">#                               FROM annotations</span>
-        <span class="c1">#                               WHERE image_rowid IN</span>
-        <span class="c1">#                               ({input_str})</span>
-        <span class="c1">#                               GROUP BY image_rowid</span>
-        <span class="c1">#                               &#39;&#39;&#39;.format(input_str=&#39;, &#39;.join(list(map(str, gid_list))))</span>
-        <span class="c1">#                              ).fetchall()</span>
-        <span class="c1">#%timeit ibs.db.connection.execute(&#39;&#39;&#39;SELECT annot_rowid FROM annotations WHERE image_rowid IN ({input_str}) GROUP BY image_rowid&#39;&#39;&#39;.format(input_str=&#39;, &#39;.join(list(map(str, gid_list))))).fetchall()</span>
-        <span class="c1">#aids_list3 = []</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        cur = ibs.db.connection.execute(</span>
-<span class="sd">            &#39;&#39;&#39;</span>
-<span class="sd">            SELECT * FROM sqlite_master WHERE type = &#39;index&#39;</span>
-<span class="sd">            &#39;&#39;&#39;)</span>
-<span class="sd">        cur.fetchall()</span>
-
-<span class="sd">        cur = ibs.db.connection.execute(</span>
-<span class="sd">            &#39;&#39;&#39;</span>
-<span class="sd">            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);</span>
-<span class="sd">            &#39;&#39;&#39;).fetchall()</span>
-
-<span class="sd">        gid_list = ibs.get_valid_gids()</span>
-<span class="sd">        gid_list_ = gid_list[0:15]</span>
-<span class="sd">        gid_list_ = gid_list</span>
-<span class="sd">        aids_list1 = ibs.get_image_aids(gid_list_)</span>
-<span class="sd">        aids_list2 = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(</span>
-<span class="sd">            &#39;&#39;&#39;</span>
-<span class="sd">            SELECT annot_rowid</span>
-<span class="sd">            FROM annotations</span>
-<span class="sd">            WHERE image_rowid = ?&#39;&#39;&#39;, (gid,)).fetchall()] for gid in gid_list_]</span>
-
-<span class="sd">        %timeit ibs.get_image_aids(gid_list_)</span>
-
-<span class="sd">        %timeit [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(&#39;&#39;&#39;SELECT annot_rowid FROM annotations WHERE image_rowid = ?&#39;&#39;&#39;, (gid,)).fetchall()] for gid in gid_list_]</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-    <span class="c1">#print(&#39;aids_list = %r&#39; % (aids_list,))</span>
-
-    <span class="c1"># aids_list = [</span>
-    <span class="c1">#     ibs.filter_annotation_set(aid_list_, is_staged=is_staged)</span>
-    <span class="c1">#     for aid_list_ in aids_list</span>
-    <span class="c1"># ]</span>
+            <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># Use qt if getting one at a time otherwise perform bulk operation</span>
+            <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">USE_NUMPY_IMPL</span><span class="p">:</span>
+                <span class="c1"># This seems to be 30x faster for bigger inputs</span>
+                <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
+                <span class="n">valid_gids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_col_rows</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">IMAGE_ROWID</span><span class="p">))</span>
+                <span class="c1">#np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
+                <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">valid_aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">,</span> <span class="n">gid</span><span class="p">)))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># SQL IMPL</span>
+                <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+                                       <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">IMAGE_ROWID</span><span class="p">,</span>
+                                       <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="c1">#%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)</span>
 
     <span class="k">return</span> <span class="n">aids_list</span></div>
 
@@ -2328,9 +2402,19 @@
         <span class="c1"># raise NotImplementedError(&#39;must trash images for now&#39;)</span>
     <span class="c1">#ut.view_directory(trash_dir)</span>
 
-    <span class="c1"># Delete annotations first</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c1"># Delete tiles first, find any tiles that depend on these images as an ancestor</span>
+    <span class="n">descendants_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_descendants_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">descendants_gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">descendants_gids_list</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">descendants_gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">descendants_gid_list</span><span class="p">)</span>
+
+    <span class="c1"># Delete annotations second (only for images not tiles)</span>
+    <span class="n">tile_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_flags</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">image_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">tile_flag_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">image_gid_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
     <span class="c1"># delete thumbs in case an annot doesnt delete them</span>
     <span class="c1"># TODO: pass flag to not delete them in delete_annots</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -2655,6 +2739,355 @@
     <span class="k">return</span> <span class="n">contributor_tag_list</span></div>
 
 
+<div class="viewcode-block" id="get_vulcan_image_tile_parent_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_parent_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/parent/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="s1">&#39;image_tile_parent_rowid&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parent_gid_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_ancestor_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_ancestor_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/ancestor/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_ancestor_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">ancestor_gid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">gid</span> <span class="k">if</span> <span class="n">parent_gid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_ancestor_gids</span><span class="p">(</span><span class="n">parent_gid</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">parent_gid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">parent_gid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ancestor_gid_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_children_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_children_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/children/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_children_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="c1"># params_iter = ((gid,) for gid in gid_list)</span>
+    <span class="c1"># where_colnames = (&#39;image_tile_parent_rowid&#39;, )</span>
+    <span class="c1"># children_gid_list = ibs.db.get_where_eq(ibs.const.IMAGE_TABLE, (IMAGE_ROWID,),</span>
+    <span class="c1">#                                         params_iter, where_colnames, unpack_scalars=False)</span>
+    <span class="n">all_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">)</span>
+
+    <span class="n">children_gid_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">parent_gid</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">parent_gid</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">parent_gid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_gid_list</span><span class="p">,</span> <span class="n">parent_gid_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">parent_gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">parent_gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">children_gid_dict</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">children_gid_dict</span><span class="p">[</span><span class="n">parent_gid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="n">children_gids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">children_gid_dict</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">children_gids_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_descendants_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_descendants_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/descendants/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_descendants_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">children_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_children_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">descendants_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">descendants_gids_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">children_gid_list</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">children_gids_list</span><span class="p">):</span>
+        <span class="n">descendants_gid_list</span> <span class="o">=</span> <span class="n">children_gid_list</span>
+        <span class="k">for</span> <span class="n">children_gid</span> <span class="ow">in</span> <span class="n">children_gid_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">children_gid</span> <span class="ow">in</span> <span class="n">descendants_cache</span><span class="p">:</span>
+                <span class="n">descendants_gid_list_</span> <span class="o">=</span> <span class="n">descendants_cache</span><span class="p">[</span><span class="n">children_gid</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">descendants_gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_descendants_gids</span><span class="p">(</span><span class="n">children_gid</span><span class="p">)</span>
+                <span class="n">descendants_cache</span><span class="p">[</span><span class="n">children_gid</span><span class="p">]</span> <span class="o">=</span> <span class="n">descendants_gid_list_</span>
+            <span class="n">descendants_gid_list</span> <span class="o">+=</span> <span class="n">descendants_gid_list_</span>
+
+        <span class="n">descendants_gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">descendants_gid_list</span><span class="p">))</span>
+        <span class="n">descendants_gids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">descendants_gid_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">descendants_gids_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns if an image is tile</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        gid_list (int):  list of image ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: image_tile_flag_list - True if image is tile</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_image_funcs --test-get_vulcan_image_tile_flags</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/tile/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = get_vulcan_image_tile_flags(ibs, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">image_tile_flag_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">parent_gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">parent_gid</span> <span class="ow">in</span> <span class="n">parent_gid_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">image_tile_flag_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_level"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_level">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/level/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_level</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">parent_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">level_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">0</span> <span class="k">if</span> <span class="n">parent_gid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_level</span><span class="p">(</span><span class="n">parent_gid</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">parent_gid</span> <span class="ow">in</span> <span class="n">parent_gid_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">level_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_bboxes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_bboxes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/bbox/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_bboxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        bbox_list (list):  image bounding boxes in image space</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/bbox/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;image_tile_xtl&#39;</span><span class="p">,</span> <span class="s1">&#39;image_tile_ytl&#39;</span><span class="p">,</span> <span class="s1">&#39;image_tile_width&#39;</span><span class="p">,</span> <span class="s1">&#39;image_tile_height&#39;</span><span class="p">,)</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bbox_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_verts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_verts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/bbox/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_verts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        bbox_list (list):  image bounding boxes in image space</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/bbox/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_bboxes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">),</span> <span class="p">(</span><span class="n">xtl</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">ytl</span><span class="p">),</span> <span class="p">(</span><span class="n">xtl</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">ytl</span> <span class="o">+</span> <span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span> <span class="o">+</span> <span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">bbox_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">vert_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_border_flag"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_border_flag">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/border/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_border_flag</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">border_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
+                             <span class="p">(</span><span class="s1">&#39;image_tile_border_flag&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">border_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_config"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_config">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/config/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">config_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_tile_config_json&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">config_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">config_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">config_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_dict</span> <span class="o">=</span> <span class="n">config_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">config_str</span><span class="p">)</span>
+        <span class="n">config_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_config_hashid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_config_hashid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/config/hash/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_config_hashid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">config_hash_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_tile_config_hashid&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config_hash_list</span></div>
+
+
+<div class="viewcode-block" id="get_vulcan_image_tile_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_vulcan_image_tile_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/tile/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_vulcan_image_tile_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">Polygon</span>
+
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_flags</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">flag_list</span>
+
+    <span class="c1"># These most likely have shared ancestors, so build a</span>
+    <span class="c1"># dict of their Polygons for quicker lookup</span>
+    <span class="n">ancestor_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_ancestor_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">ancestor_gid_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ancestor_gid</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">ancestor_gid_list</span><span class="p">):</span>
+        <span class="n">ancestor_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">ancestor_gid</span><span class="p">,</span> <span class="n">check_tiles</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ancestor_vert_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">ancestor_aid_list</span><span class="p">)</span>
+        <span class="n">ancestor_poly_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">ancestor_vert</span><span class="p">)</span> <span class="k">for</span> <span class="n">ancestor_vert</span> <span class="ow">in</span> <span class="n">ancestor_vert_list</span><span class="p">]</span>
+        <span class="n">ancestor_gid_dict</span><span class="p">[</span><span class="n">ancestor_gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;aids&#39;</span> <span class="p">:</span> <span class="n">ancestor_aid_list</span><span class="p">,</span>
+            <span class="s1">&#39;polys&#39;</span><span class="p">:</span> <span class="n">ancestor_poly_list</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">tile_vert_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_verts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">tile_poly_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">tile_vert</span><span class="p">)</span> <span class="k">for</span> <span class="n">tile_vert</span> <span class="ow">in</span> <span class="n">tile_vert_list</span><span class="p">]</span>
+
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">ancestor_gid_list</span><span class="p">,</span> <span class="n">tile_poly_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">ancestor_gid</span><span class="p">,</span> <span class="n">tile_poly</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ancestor_gid_dict</span><span class="p">[</span><span class="n">ancestor_gid</span><span class="p">][</span><span class="s1">&#39;aids&#39;</span><span class="p">]</span>
+        <span class="n">poly_list</span> <span class="o">=</span> <span class="n">ancestor_gid_dict</span><span class="p">[</span><span class="n">ancestor_gid</span><span class="p">][</span><span class="s1">&#39;polys&#39;</span><span class="p">]</span>
+
+        <span class="n">aid_list_</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">aid</span>
+            <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">poly</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">poly_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tile_poly</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_set_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">parent_gid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">parent_gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">parent_gid</span> <span class="ow">in</span> <span class="n">parent_gid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_tile_parent_rowid&#39;</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="k">def</span> <span class="nf">_set_vulcan_image_tile_bboxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">border_list</span><span class="p">):</span>
+    <span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">bbox_list</span><span class="p">))</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span><span class="p">,</span> <span class="n">border_list</span><span class="p">)</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;image_tile_xtl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;image_tile_ytl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;image_tile_width&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;image_tile_height&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;image_tile_border_flag&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># SET BBOX in ANNOTATION_TABLE</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/config/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">_set_vulcan_image_tile_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_dict_list</span><span class="p">,</span> <span class="n">config_hashid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the image&#39;s config using a config dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/image/config/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_image_funcs --test-set_image_config</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; config_dict_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     {&#39;test&#39;: random.uniform(0.0, 1.0)},</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(config_dict_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_image_config(gid_list, config_dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; config_dict_list_ = ibs.get_image_config(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(config_dict_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert config_dict_list == config_dict_list_</span>
+<span class="sd">        &gt;&gt;&gt; config_str_list = [ut.to_json(config_dict) for config_dict in config_dict_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(config_str_list))</span>
+<span class="sd">        &gt;&gt;&gt; config_str_list_ = ibs.get_image_config(gid_list, return_raw=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(config_str_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert config_str_list == config_str_list_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_dict_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_hashid_list</span><span class="p">)</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">]</span>
+
+    <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">config_dict</span> <span class="ow">in</span> <span class="n">config_dict_list</span><span class="p">:</span>
+        <span class="n">config_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">config_dict</span><span class="p">)</span>
+        <span class="n">config_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config_str</span><span class="p">)</span>
+
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">config_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">config_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_tile_config_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">config_hashid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">config_hashid</span> <span class="ow">in</span> <span class="n">config_hashid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_tile_config_hashid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_vulcan_image_tile_source"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_vulcan_image_tile_source">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">set_vulcan_image_tile_source</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">parent_gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">border_list</span><span class="p">,</span>
+                                 <span class="n">config_dict_list</span><span class="p">,</span> <span class="n">config_hashid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_set_vulcan_image_tile_parent_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">parent_gid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_set_vulcan_image_tile_bboxes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">border_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_set_vulcan_image_tile_config</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">config_dict_list</span><span class="p">,</span> <span class="n">config_hashid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compute_tiles"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.compute_tiles">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/vulcan/image/tile/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">compute_tiles</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">tile_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;tiles&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;gids&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tile_gids_list</span></div>
+
+
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2678,9 +3111,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -2689,11 +3120,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -2708,35 +3139,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

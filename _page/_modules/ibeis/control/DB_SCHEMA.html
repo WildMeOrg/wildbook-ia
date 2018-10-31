@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="ibeis.control" href="../control.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -146,8 +138,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -1546,7 +1536,7 @@
             <span class="k">return</span> <span class="n">orient</span>
 
         <span class="c1"># Get images without orientations and add to the database</span>
-        <span class="n">gid_list_all</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+        <span class="n">gid_list_all</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">)</span>
         <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">exists</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span> <span class="p">]</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
@@ -1559,7 +1549,7 @@
         <span class="n">gpath_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
         <span class="n">orient_list_</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_parse_orient</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list_</span> <span class="p">]</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_set_image_orientation</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">orient_list_</span><span class="p">)</span>
-        <span class="n">faoi</span><span class="o">.</span><span class="n">fix_annotation_orientation</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span></div>
+        <span class="n">faoi</span><span class="o">.</span><span class="n">fix_annotation_orientation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">is_tile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="update_1_5_3"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_5_3">[docs]</a><span class="k">def</span> <span class="nf">update_1_5_3</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1816,6 +1806,19 @@
     <span class="p">))</span></div>
 
 
+<div class="viewcode-block" id="update_1_9_0_vulcan"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_9_0_vulcan">[docs]</a><span class="k">def</span> <span class="nf">update_1_9_0_vulcan</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_parent_rowid&#39;</span><span class="p">,</span>    <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_xtl&#39;</span><span class="p">,</span>             <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_ytl&#39;</span><span class="p">,</span>             <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_width&#39;</span><span class="p">,</span>           <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_height&#39;</span><span class="p">,</span>          <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_border_flag&#39;</span><span class="p">,</span>     <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_config_json&#39;</span><span class="p">,</span>     <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span>              <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image_tile_config_hashid&#39;</span><span class="p">,</span>   <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span>              <span class="kc">None</span><span class="p">),</span>
+    <span class="p">))</span></div>
+
+
 <span class="c1"># ========================</span>
 <span class="c1"># Valid Versions &amp; Mapping</span>
 <span class="c1"># ========================</span>
@@ -1825,55 +1828,56 @@
 
 <span class="n">base</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
 <span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
-    <span class="c1">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
-    <span class="p">(</span><span class="n">base</span>   <span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="kc">None</span><span class="p">,</span>               <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_0_0</span><span class="p">,</span>       <span class="n">post_1_0_0</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.0.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_0_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.0.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_0_2</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.1.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_1_0</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.1.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_1_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.2.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_2_0</span><span class="p">,</span>       <span class="n">post_1_2_0</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.2.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_2_1</span><span class="p">,</span>       <span class="n">post_1_2_1</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_0</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_3_1</span><span class="p">,</span>            <span class="n">update_1_3_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_2</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_3</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_4</span><span class="p">,</span>       <span class="n">post_1_3_4</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_5</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_6</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_7</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_8</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.3.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_9</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_0</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_2</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_3</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_4</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_5</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_6</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_7</span><span class="p">,</span>       <span class="n">post_1_4_7</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_4_8</span><span class="p">,</span>            <span class="n">update_1_4_8</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.4.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_4_9</span><span class="p">,</span>            <span class="n">update_1_4_9</span><span class="p">,</span>       <span class="n">post_1_4_9</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.5.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_0</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.5.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.5.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_2</span><span class="p">,</span>       <span class="n">post_1_5_2</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.5.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_3</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.5.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_4</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.5.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_5</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_0</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_1</span><span class="p">,</span>       <span class="n">post_1_6_1</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_2</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_3</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_4</span><span class="p">,</span>       <span class="n">post_1_6_4</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_5</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_6</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_7</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_8</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.6.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_9</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.7.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_7_0</span><span class="p">,</span>       <span class="n">post_1_7_0</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.7.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_7_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.8.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_8_0</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
-    <span class="p">(</span><span class="s1">&#39;1.8.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_8_1</span><span class="p">,</span>       <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="c1">#version:        (Pre-Update Function,  Update Function,     Post-Update Function)</span>
+    <span class="p">(</span><span class="n">base</span>   <span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="kc">None</span><span class="p">,</span>                <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_0_0</span><span class="p">,</span>        <span class="n">post_1_0_0</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.0.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_0_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.0.2&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_0_2</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.1.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_1_0</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.1.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_1_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.2.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_2_0</span><span class="p">,</span>        <span class="n">post_1_2_0</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.2.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_2_1</span><span class="p">,</span>        <span class="n">post_1_2_1</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_0</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="n">pre_1_3_1</span><span class="p">,</span>            <span class="n">update_1_3_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.2&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_2</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.3&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_3</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.4&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_4</span><span class="p">,</span>        <span class="n">post_1_3_4</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.5&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_5</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.6&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_6</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.7&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_7</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.8&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_8</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.3.9&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_3_9</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_0</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.2&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_2</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.3&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_3</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.4&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_4</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.5&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_5</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.6&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_6</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.7&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_4_7</span><span class="p">,</span>        <span class="n">post_1_4_7</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.8&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="n">pre_1_4_8</span><span class="p">,</span>            <span class="n">update_1_4_8</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.4.9&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="n">pre_1_4_9</span><span class="p">,</span>            <span class="n">update_1_4_9</span><span class="p">,</span>        <span class="n">post_1_4_9</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.5.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_0</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.5.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.5.2&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_2</span><span class="p">,</span>        <span class="n">post_1_5_2</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.5.3&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_3</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.5.4&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_4</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.5.5&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_5_5</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_0</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_1</span><span class="p">,</span>        <span class="n">post_1_6_1</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.2&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_2</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.3&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_3</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.4&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_4</span><span class="p">,</span>        <span class="n">post_1_6_4</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.5&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_5</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.6&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_6</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.7&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_7</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.8&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_8</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.6.9&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_6_9</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.7.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_7_0</span><span class="p">,</span>        <span class="n">post_1_7_0</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.7.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_7_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.8.0&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_8_0</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.8.1&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_8_1</span><span class="p">,</span>        <span class="kc">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;1.9.0.vulcan&#39;</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span>                 <span class="n">update_1_9_0_vulcan</span><span class="p">,</span> <span class="kc">None</span>                <span class="p">)),</span>
 <span class="p">])</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">SeeAlso:</span>
@@ -2009,9 +2013,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -2020,11 +2022,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -2039,35 +2041,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

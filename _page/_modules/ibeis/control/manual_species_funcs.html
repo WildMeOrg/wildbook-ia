@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="ibeis.control" href="../control.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -146,8 +138,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -302,7 +292,7 @@
     <span class="kn">import</span> <span class="nn">re</span>
     <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">nice</span><span class="p">):</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[ ]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
-        <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9_]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9_\+]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[_]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
         <span class="n">nice</span> <span class="o">=</span> <span class="n">nice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">nice</span>
@@ -314,7 +304,7 @@
     <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[_]+&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^A-Z0-9]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^A-Z0-9\+]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">text</span>
     <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span> <span class="n">_convert</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span> <span class="p">]</span>
@@ -347,7 +337,7 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; species_text_list = [</span>
 <span class="sd">        ...     &#39;jaguar&#39;, &#39;zebra_plains&#39;, &#39;zebra_plains&#39;, &#39;____&#39;, &#39;TYPO&#39;,</span>
-<span class="sd">        ...     &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;]</span>
+<span class="sd">        ...     &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar+head&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs.add_species(species_text_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(ut.repr2(list(zip(species_text_list, species_rowid_list))))</span>
 <span class="sd">        &gt;&gt;&gt; ibs.print_species_table()</span>
@@ -357,17 +347,15 @@
 <span class="sd">        &gt;&gt;&gt; all_species_rowids = ibs._get_all_species_rowids()</span>
 <span class="sd">        &gt;&gt;&gt; result =  ut.repr2(species_text, nl=False) + &#39;\n&#39;</span>
 <span class="sd">        &gt;&gt;&gt; result += ut.repr2(all_species_rowids, nl=False) + &#39;\n&#39;</span>
-<span class="sd">        &gt;&gt;&gt; result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(ibs.get_species_codes(all_species_rowids), nl=False)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        [&#39;jaguar&#39;, &#39;zebra_plains&#39;, &#39;zebra_plains&#39;, &#39;____&#39;, &#39;typo&#39;, &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;]</span>
-<span class="sd">        [1, 2, 3]</span>
-<span class="sd">        [&#39;zebra_plains&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;]</span>
-
-<span class="sd">    [u&#39;jaguar&#39;, u&#39;zebra_plains&#39;, u&#39;zebra_plains&#39;, &#39;____&#39;, &#39;____&#39;, &#39;____&#39;, u&#39;zebra_grevys&#39;, u&#39;bear_polar&#39;]</span>
-<span class="sd">    [8, 9, 10]</span>
-<span class="sd">    [u&#39;zebra_plains&#39;, u&#39;zebra_grevys&#39;, u&#39;bear_polar&#39;]</span>
-
+<span class="sd">        [&#39;jaguar&#39;, &#39;zebra_plains&#39;, &#39;zebra_plains&#39;, &#39;____&#39;, &#39;typo&#39;, &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">        [1, 2, 3, 6]</span>
+<span class="sd">        [&#39;zebra_plains&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">        [&#39;PZ&#39;, &#39;GZ&#39;, &#39;PB&#39;, &#39;BP+H&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="c1"># Strip all spaces</span>
     <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">species_nice_list</span> <span class="p">]</span>
 
@@ -758,9 +746,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -769,11 +755,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -788,35 +774,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

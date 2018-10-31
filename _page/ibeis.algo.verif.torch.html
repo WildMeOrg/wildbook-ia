@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="up" title="ibeis.algo.verif package" href="ibeis.algo.verif.html"/>
-        <link rel="next" title="ibeis.control package" href="ibeis.control.html"/>
-        <link rel="prev" title="ibeis.algo.verif package" href="ibeis.algo.verif.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.control package" href="ibeis.control.html" />
+    <link rel="prev" title="ibeis.algo.verif package" href="ibeis.algo.verif.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -146,7 +137,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -154,9 +145,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -388,7 +380,7 @@ registered hooks while the latter silently ignores them.</p>
 
 <dl class="staticmethod">
 <dt id="ibeis.algo.verif.torch.netmath.Criterions.cross_entropy2d">
-<em class="property">static </em><code class="descname">cross_entropy2d</code><span class="sig-paren">(</span><em>label</em>, <em>weight=None</em>, <em>size_average=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/netmath.html#Criterions.cross_entropy2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.netmath.Criterions.cross_entropy2d" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">cross_entropy2d</code><span class="sig-paren">(</span><em>output</em>, <em>label</em>, <em>weight=None</em>, <em>size_average=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/netmath.html#Criterions.cross_entropy2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.netmath.Criterions.cross_entropy2d" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="https://github.com/ycszen/pytorch-seg/blob/master/loss.py">https://github.com/ycszen/pytorch-seg/blob/master/loss.py</a></p>
 </dd></dl>
 
@@ -401,7 +393,7 @@ registered hooks while the latter silently ignores them.</p>
 <p>A collection of standard and custom learning rate schedulers</p>
 <dl class="staticmethod">
 <dt id="ibeis.algo.verif.torch.netmath.LRSchedules.exp">
-<em class="property">static </em><code class="descname">exp</code><span class="sig-paren">(</span><em>epoch</em>, <em>init_lr=0.001</em>, <em>lr_decay_epoch=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/netmath.html#LRSchedules.exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.netmath.LRSchedules.exp" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">exp</code><span class="sig-paren">(</span><em>optimizer</em>, <em>epoch</em>, <em>init_lr=0.001</em>, <em>lr_decay_epoch=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/netmath.html#LRSchedules.exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.netmath.LRSchedules.exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs.</p>
 </dd></dl>
 
@@ -413,7 +405,7 @@ registered hooks while the latter silently ignores them.</p>
 <dd><p>Bases: <a class="reference internal" href="#ibeis.algo.verif.torch.netmath.NetMathParams" title="ibeis.algo.verif.torch.netmath.NetMathParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">ibeis.algo.verif.torch.netmath.NetMathParams</span></code></a></p>
 <dl class="staticmethod">
 <dt id="ibeis.algo.verif.torch.netmath.Metrics.tpr">
-<em class="property">static </em><code class="descname">tpr</code><span class="sig-paren">(</span><em>label</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/netmath.html#Metrics.tpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.netmath.Metrics.tpr" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">tpr</code><span class="sig-paren">(</span><em>output</em>, <em>label</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/netmath.html#Metrics.tpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.netmath.Metrics.tpr" title="Permalink to this definition">¶</a></dt>
 <dd><p>true positive rate</p>
 </dd></dl>
 
@@ -530,7 +522,7 @@ p = p - lr * v
 </tt>)</p>
 latex exited with error
 [stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_0) (preloaded format=latex)
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_7) (preloaded format=latex)
  restricted \write18 enabled.
 entering extended mode
 (./math.tex
@@ -559,7 +551,7 @@ Transcript written on math.log.
 <p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\rho</tt>)</p>
 latex exited with error
 [stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_0) (preloaded format=latex)
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_7) (preloaded format=latex)
  restricted \write18 enabled.
 entering extended mode
 (./math.tex
@@ -595,7 +587,7 @@ p = p - v
 </tt>)</p>
 latex exited with error
 [stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_0) (preloaded format=latex)
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_7) (preloaded format=latex)
  restricted \write18 enabled.
 entering extended mode
 (./math.tex
@@ -661,7 +653,7 @@ and returns the loss.</td>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="staticmethod">
 <dt id="ibeis.algo.verif.torch.train_main.LRSchedule.exp">
-<em class="property">static </em><code class="descname">exp</code><span class="sig-paren">(</span><em>epoch</em>, <em>init_lr=0.001</em>, <em>lr_decay_epoch=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/train_main.html#LRSchedule.exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.train_main.LRSchedule.exp" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">exp</code><span class="sig-paren">(</span><em>optimizer</em>, <em>epoch</em>, <em>init_lr=0.001</em>, <em>lr_decay_epoch=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/verif/torch/train_main.html#LRSchedule.exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.verif.torch.train_main.LRSchedule.exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs.</p>
 </dd></dl>
 
@@ -732,9 +724,7 @@ torchvision.transforms.Normalize([0.5, 0.5, 0.5], [0.225, 0.225, 0.225])</div></
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -752,11 +742,11 @@ torchvision.transforms.Normalize([0.5, 0.5, 0.5], [0.225, 0.225, 0.225])</div></
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -771,35 +761,24 @@ torchvision.transforms.Normalize([0.5, 0.5, 0.5], [0.225, 0.225, 0.225])</div></
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
-        <link rel="next" title="ibeis.algo.graph.tests package" href="ibeis.algo.graph.tests.html"/>
-        <link rel="prev" title="ibeis.algo.detect.nms package" href="ibeis.algo.detect.nms.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.algo.graph.tests package" href="ibeis.algo.graph.tests.html" />
+    <link rel="prev" title="ibeis.algo.detect.nms package" href="ibeis.algo.detect.nms.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -146,7 +137,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -154,9 +145,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -396,7 +388,7 @@ The returned dict does not contain the prefix</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">subparams</span><span class="p">(</span><span class="s1">&#39;refresh&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">{&#39;method&#39;: &#39;binomial&#39;, &#39;patience&#39;: 72, &#39;thresh&#39;: 0.1, &#39;window&#39;: 20}</span>
+<span class="go">{&#39;method&#39;: &#39;binomial&#39;, &#39;patience&#39;: 72, &#39;thresh&#39;: 0.052, &#39;window&#39;: 20}</span>
 </pre></div>
 </div>
 </dd>
@@ -1220,12 +1212,12 @@ connection.</td>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">NEGTV</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">infr</span><span class="o">.</span><span class="n">is_recovering</span><span class="p">((</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="ow">is</span> <span class="kc">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">({</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;pccs&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">()),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;iccs&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">inconsistent_components</span><span class="p">()),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;pccs&#39;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">())),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;iccs&#39;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">inconsistent_components</span><span class="p">())),</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">},</span> <span class="n">nobr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">itemsep</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">iccs: [{1,2,3,4}],</span>
-<span class="go">pccs: [{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}],</span>
+<span class="go">pccs: [{5,6,7,8},{9,10,11,12},{13,14,15,16},{1,2,3,4}],</span>
 </pre></div>
 </div>
 </dd>
@@ -1511,7 +1503,7 @@ Edges are either removed or added to the queue appropriately.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="staticmethod">
 <dt id="ibeis.algo.graph.mixin_helpers.Convenience.e_">
-<em class="property">static </em><code class="descname">e_</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/graph/mixin_helpers.html#Convenience.e_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.graph.mixin_helpers.Convenience.e_" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">e_</code><span class="sig-paren">(</span><em>u</em>, <em>v</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/graph/mixin_helpers.html#Convenience.e_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.graph.mixin_helpers.Convenience.e_" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1916,7 +1908,8 @@ the <cite>new_name</cite> which is what we infer it should be renamed to.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">POSTV</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pccs2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pccs2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pccs2</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pccs2</span> <span class="o">==</span> <span class="p">[{</span><span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">},</span> <span class="p">{</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">},</span> <span class="p">{</span><span class="mi">9</span><span class="p">}]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pccs2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pccs2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pccs2</span> <span class="o">==</span> <span class="p">[{</span><span class="mi">9</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">},</span> <span class="p">{</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">}]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">gen_node_values</span><span class="p">(</span><span class="s1">&#39;name_label&#39;</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name_delta_df</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_ibeis_name_delta</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name_delta_df</span><span class="p">)</span>
@@ -2468,7 +2461,7 @@ this.</p>
 
 <dl class="method">
 <dt id="ibeis.algo.graph.mixin_matching.AnnotInfrMatching.exec_matching">
-<code class="descname">exec_matching</code><span class="sig-paren">(</span><em>qaids=None</em>, <em>daids=None</em>, <em>prog_hook=None</em>, <em>cfgdict=None</em>, <em>name_method='node'</em>, <em>use_cache=False</em>, <em>invalidate_supercache=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/graph/mixin_matching.html#AnnotInfrMatching.exec_matching"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.graph.mixin_matching.AnnotInfrMatching.exec_matching" title="Permalink to this definition">¶</a></dt>
+<code class="descname">exec_matching</code><span class="sig-paren">(</span><em>qaids=None</em>, <em>daids=None</em>, <em>prog_hook=None</em>, <em>cfgdict=None</em>, <em>name_method='node'</em>, <em>use_cache=True</em>, <em>invalidate_supercache=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/graph/mixin_matching.html#AnnotInfrMatching.exec_matching"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.graph.mixin_matching.AnnotInfrMatching.exec_matching" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads chip matches into the inference structure
 Uses graph name labeling and ignores ibeis labeling</p>
 </dd></dl>
@@ -2551,7 +2544,7 @@ This does not change the state of the queue.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span><span class="o">.</span><span class="n">ensure_mst</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span><span class="o">.</span><span class="n">load_published</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># infr.load_published()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">priority_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span><span class="o">.</span><span class="n">ensure_priority_scores</span><span class="p">(</span><span class="n">priority_edges</span><span class="p">)</span>
 </pre></div>
@@ -2578,7 +2571,8 @@ This gaurentees that infr.task_probs contains data for edges.
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.algo.graph.mixin_matching ensure_task_probs</dd>
 <dt>Doctest:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.graph.mixin_matching</span> <span class="k">import</span> <span class="o">*</span>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.graph.mixin_matching</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infr</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                            <span class="n">autoinit</span><span class="o">=</span><span class="s1">&#39;staging&#39;</span><span class="p">)</span>
@@ -2939,7 +2933,7 @@ This includes recordings measures used to generate plots in JC’s thesis.</p>
 
 <dl class="staticmethod">
 <dt id="ibeis.algo.graph.mixin_viz.GraphVisualization.make_viz_config">
-<em class="property">static </em><code class="descname">make_viz_config</code><span class="sig-paren">(</span><em>small_graph</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/graph/mixin_viz.html#GraphVisualization.make_viz_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.graph.mixin_viz.GraphVisualization.make_viz_config" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">make_viz_config</code><span class="sig-paren">(</span><em>use_image</em>, <em>small_graph</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/graph/mixin_viz.html#GraphVisualization.make_viz_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.graph.mixin_viz.GraphVisualization.make_viz_config" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -3543,6 +3537,24 @@ to attributes are reflected in the original graph.</p>
 G.subgraph(nodes).copy()</p>
 <p>For an inplace reduction of a graph to a subgraph you can remove nodes:
 G.remove_nodes_from([n for n in G if n not in set(nodes)])</p>
+<p>Subgraph views are sometimes NOT what you want. In most cases where
+you want to do more than simply look at the induced edges, it makes
+more sense to just create the subgraph as its own graph with code like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a subgraph SG based on a (possibly multigraph) G</span>
+<span class="n">SG</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="vm">__class__</span><span class="p">()</span>
+<span class="n">SG</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">largest_wcc</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">SG</span><span class="o">.</span><span class="n">is_multigraph</span><span class="p">:</span>
+    <span class="n">SG</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">largest_wcc</span>
+        <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">keydict</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">nbr</span> <span class="ow">in</span> <span class="n">largest_wcc</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">keydict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">SG</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">largest_wcc</span>
+        <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">nbr</span> <span class="ow">in</span> <span class="n">largest_wcc</span><span class="p">)</span>
+<span class="n">SG</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">path_graph</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>  <span class="c1"># or DiGraph, MultiGraph, MultiDiGraph, etc</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">H</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">subgraph</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
@@ -3957,7 +3969,7 @@ C contains q “isolated nodes” — nodes with no incident edges.</p>
 <p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">ceil(p / 2) + q</tt>)</p>
 latex exited with error
 [stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_0) (preloaded format=latex)
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_7) (preloaded format=latex)
  restricted \write18 enabled.
 entering extended mode
 (./math.tex
@@ -4076,7 +4088,7 @@ Runs in <div class="system-message">
 <p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">O(m + n log(n))</tt>)</p>
 latex exited with error
 [stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_0) (preloaded format=latex)
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/MacPorts 2018.47642_7) (preloaded format=latex)
  restricted \write18 enabled.
 entering extended mode
 (./math.tex
@@ -4944,8 +4956,16 @@ reviewing in a random order</p>
 <dl class="data">
 <dt id="ibeis.algo.graph.IMPORT_TUPLES">
 <code class="descclassname">ibeis.algo.graph.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = []</em><a class="headerlink" href="#ibeis.algo.graph.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Regen Command</em> – cd /home/joncrall/code/ibeis/ibeis/algo/graph
+<dd><p>cd /home/joncrall/code/ibeis/ibeis/algo/graph
 makeinit.py –modname=ibeis.algo.graph</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Regen Command</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -4972,9 +4992,7 @@ in the submodules.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -4992,11 +5010,11 @@ in the submodules.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -5011,35 +5029,24 @@ in the submodules.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

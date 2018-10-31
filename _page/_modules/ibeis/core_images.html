@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../genindex.html"/>
-        <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../index.html"/>
-        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -144,8 +136,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -193,6 +183,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">relpath</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">dtool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
@@ -210,7 +201,7 @@
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;draw_annots&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;thumbsize&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.png&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.jpg&#39;</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;force_serial&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
     <span class="p">]</span></div>
 
@@ -281,6 +272,7 @@
         <span class="s1">&#39;chunksize&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
         <span class="s1">&#39;progkw&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span>
         <span class="c1">#&#39;adjust&#39;: True,</span>
+        <span class="s1">&#39;futures_threaded&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
         <span class="s1">&#39;force_serial&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;force_serial&#39;</span><span class="p">],</span>
     <span class="p">}</span>
     <span class="n">gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span><span class="n">draw_thumb_helper</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span>
@@ -871,7 +863,8 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;sensitivity&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;nms_thresh&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;combined&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;invalid&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;invalid_margin&#39;</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">),</span>
     <span class="p">]</span></div>
 
 
@@ -923,7 +916,10 @@
 
     <span class="n">VERBOSE</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">for</span> <span class="n">detect</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;localizations_original&#39;</span><span class="p">,</span> <span class="n">loc_orig_id_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;localizations_original&#39;</span><span class="p">,</span> <span class="n">loc_orig_id_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">loc_orig_id</span><span class="p">,</span> <span class="n">detect</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">loc_orig_id_list</span><span class="p">,</span> <span class="n">zipped</span><span class="p">):</span>
         <span class="n">score</span><span class="p">,</span> <span class="n">bboxes</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">confs</span><span class="p">,</span> <span class="n">classes</span> <span class="o">=</span> <span class="n">detect</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="c1"># Apply Threshold</span>
@@ -983,6 +979,49 @@
                 <span class="n">count_new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bboxes</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Filtered with nms_thresh = </span><span class="si">%0.02f</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nms_thresh</span><span class="p">,</span> <span class="n">count_old</span><span class="p">,</span> <span class="n">count_new</span><span class="p">,</span> <span class="p">))</span>
+
+        <span class="c1"># Kill invalid images</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;invalid&#39;</span><span class="p">]:</span>
+            <span class="n">margin</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;invalid_margin&#39;</span><span class="p">]</span>
+
+            <span class="n">count_old</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bboxes</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">count_old</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">gid</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_ancestor_rowids</span><span class="p">(</span><span class="s1">&#39;localizations_original&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">loc_orig_id</span><span class="p">],</span> <span class="s1">&#39;images&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+                <span class="n">keep_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bboxes</span><span class="p">:</span>
+                    <span class="n">xbr</span> <span class="o">=</span> <span class="n">xtl</span> <span class="o">+</span> <span class="n">width</span>
+                    <span class="n">ybr</span> <span class="o">=</span> <span class="n">ytl</span> <span class="o">+</span> <span class="n">height</span>
+
+                    <span class="n">x_margin</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">margin</span>
+                    <span class="n">y_margin</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="n">margin</span>
+                    <span class="n">x_min</span>    <span class="o">=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">x_margin</span>
+                    <span class="n">x_max</span>    <span class="o">=</span> <span class="n">w</span> <span class="o">+</span> <span class="n">x_margin</span>
+                    <span class="n">y_min</span>    <span class="o">=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">y_margin</span>
+                    <span class="n">y_max</span>    <span class="o">=</span> <span class="n">h</span> <span class="o">+</span> <span class="n">y_margin</span>
+
+                    <span class="n">keep</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">if</span> <span class="n">xtl</span> <span class="o">&lt;</span> <span class="n">x_min</span> <span class="ow">or</span> <span class="n">x_max</span> <span class="o">&lt;</span> <span class="n">xtl</span> <span class="ow">or</span> <span class="n">xbr</span> <span class="o">&lt;</span> <span class="n">x_min</span> <span class="ow">or</span> <span class="n">x_max</span> <span class="o">&lt;</span> <span class="n">xbr</span><span class="p">:</span>
+                        <span class="n">keep</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="n">ytl</span> <span class="o">&lt;</span> <span class="n">y_min</span> <span class="ow">or</span> <span class="n">y_max</span> <span class="o">&lt;</span> <span class="n">ytl</span> <span class="ow">or</span> <span class="n">ybr</span> <span class="o">&lt;</span> <span class="n">y_min</span> <span class="ow">or</span> <span class="n">y_max</span> <span class="o">&lt;</span> <span class="n">ybr</span><span class="p">:</span>
+                        <span class="n">keep</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">keep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">keep</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keep_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">bboxes</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                    <span class="n">thetas</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                    <span class="n">confs</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                    <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">bboxes</span>  <span class="o">=</span> <span class="n">bboxes</span><span class="p">[</span><span class="n">keep_list</span><span class="p">]</span>
+                    <span class="n">thetas</span>  <span class="o">=</span> <span class="n">thetas</span><span class="p">[</span><span class="n">keep_list</span><span class="p">]</span>
+                    <span class="n">confs</span>   <span class="o">=</span> <span class="n">confs</span><span class="p">[</span><span class="n">keep_list</span><span class="p">]</span>
+                    <span class="n">classes</span> <span class="o">=</span> <span class="n">classes</span><span class="p">[</span><span class="n">keep_list</span><span class="p">]</span>
+
+                <span class="n">count_new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bboxes</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Filtered invalid images (</span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count_old</span><span class="p">,</span> <span class="n">count_new</span><span class="p">,</span> <span class="p">))</span>
 
         <span class="k">yield</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bboxes</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">confs</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="p">)</span></div>
 
@@ -1995,6 +2034,213 @@
         <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="TileConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.TileConfig">[docs]</a><span class="k">class</span> <span class="nc">TileConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;tile_width&#39;</span><span class="p">,</span>    <span class="mi">512</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;tile_height&#39;</span><span class="p">,</span>   <span class="mi">512</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;tile_overlap&#39;</span><span class="p">,</span>  <span class="mi">64</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;allow_borders&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;keep_extern&#39;</span><span class="p">,</span>   <span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;force_serial&#39;</span><span class="p">,</span>  <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="compute_tiles"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_tiles">[docs]</a><span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;tiles&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;paths&#39;</span><span class="p">,</span> <span class="s1">&#39;gids&#39;</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">TileConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;tilecache&#39;</span><span class="p">,</span>
+    <span class="n">rm_extern_on_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">compute_tiles</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the tile for a given input image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        gid_list (list):  list of image rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (list, list, int): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis --tf compute_tiles --db PZ_MTEST</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; result = depc.get_property(&#39;tiles&#39;, gid_list, &#39;num&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nums = list(map(len, ibs.get_vulcan_image_tile_children_gids(gid_list)))</span>
+<span class="sd">        &gt;&gt;&gt; nums_ = list(map(len, ibs.get_vulcan_image_tile_descendants_gids(gid_list)))</span>
+<span class="sd">        &gt;&gt;&gt; assert result == nums</span>
+<span class="sd">        &gt;&gt;&gt; assert result == nums_</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [285, 99, 285, 9, 35]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+
+    <span class="n">tile_width</span>    <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;tile_width&#39;</span><span class="p">]</span>
+    <span class="n">tile_height</span>   <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;tile_height&#39;</span><span class="p">]</span>
+    <span class="n">tile_overlap</span>  <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;tile_overlap&#39;</span><span class="p">]</span>
+    <span class="n">allow_borders</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;allow_borders&#39;</span><span class="p">]</span>
+    <span class="n">keep_extern</span>   <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;keep_extern&#39;</span><span class="p">]</span>
+
+    <span class="n">config_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">config_hashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
+
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">tile_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">tile_width</span><span class="p">,</span> <span class="n">tile_height</span><span class="p">)</span>
+    <span class="n">tile_size_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tile_size</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">tile_overlap_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tile_overlap</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">tile_output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s1">&#39;extern_tiles&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">tile_output_path</span><span class="p">)</span>
+
+    <span class="n">fmt_str</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tile_output_path</span><span class="p">,</span> <span class="s1">&#39;tiles_gid_</span><span class="si">%d</span><span class="s1">_w_</span><span class="si">%d</span><span class="s1">_h_</span><span class="si">%d</span><span class="s1">_o_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">output_path_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fmt_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">tile_width</span><span class="p">,</span> <span class="n">tile_height</span><span class="p">,</span> <span class="n">tile_overlap</span><span class="p">,</span> <span class="n">config_hashid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span>
+    <span class="p">]</span>
+    <span class="n">allow_border_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">allow_borders</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">output_path</span> <span class="ow">in</span> <span class="n">output_path_list</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+
+    <span class="c1"># Execute all tasks in parallel</span>
+    <span class="n">args_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">gpath_list</span><span class="p">,</span>
+        <span class="n">orient_list</span><span class="p">,</span>
+        <span class="n">tile_size_list</span><span class="p">,</span>
+        <span class="n">tile_overlap_list</span><span class="p">,</span>
+        <span class="n">output_path_list</span><span class="p">,</span>
+        <span class="n">allow_border_list</span><span class="p">,</span>
+    <span class="p">))</span>
+
+    <span class="n">genkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ordered&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;chunksize&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+        <span class="s1">&#39;progkw&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span>
+        <span class="c1">#&#39;adjust&#39;: True,</span>
+        <span class="s1">&#39;futures_threaded&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;force_serial&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;force_serial&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span><span class="n">compute_tile_helper</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="o">**</span><span class="n">genkw</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
+        <span class="n">parent_gid</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">tile_filepath_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">border_list</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="n">gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">tile_filepath_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">duplicates_exist</span><span class="p">(</span><span class="n">gids</span><span class="p">):</span>
+            <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">seen_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+            <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gids</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_set</span>
+                    <span class="n">seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+                <span class="n">flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+            <span class="n">gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gids</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+            <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+            <span class="n">border_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">border_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+        <span class="n">num</span>                <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span>
+        <span class="n">parent_gids</span>        <span class="o">=</span> <span class="p">[</span><span class="n">parent_gid</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
+        <span class="n">config_dict_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">config_dict</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
+        <span class="n">config_hashid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">config_hashid</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
+
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_vulcan_image_tile_source</span><span class="p">(</span><span class="n">gids</span><span class="p">,</span> <span class="n">parent_gids</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">border_list</span><span class="p">,</span>
+                                         <span class="n">config_dict_list</span><span class="p">,</span> <span class="n">config_hashid_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">keep_extern</span><span class="p">:</span>
+            <span class="n">tile_relative_filepath_list_</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">relpath</span><span class="p">(</span><span class="n">tile_filepath</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">tile_filepath</span> <span class="ow">in</span> <span class="n">tile_filepath_list</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+            <span class="n">tile_relative_filepath_list_</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tile_filepath_list</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="n">tile_relative_filepath_list_</span><span class="p">,</span> <span class="n">gids</span><span class="p">,</span> <span class="n">num</span></div>
+
+
+<div class="viewcode-block" id="compute_tile_helper"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_tile_helper">[docs]</a><span class="k">def</span> <span class="nf">compute_tile_helper</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">opath</span><span class="p">,</span> <span class="n">borders</span><span class="p">):</span>
+
+    <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;.jpg&#39;</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">size</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="n">overlap</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">orient</span><span class="p">)</span>
+    <span class="n">h_</span><span class="p">,</span> <span class="n">w_</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">y_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">h_</span> <span class="o">-</span> <span class="n">o</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">o</span><span class="p">)))</span>
+    <span class="n">x_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">w_</span> <span class="o">-</span> <span class="n">o</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="n">o</span><span class="p">)))</span>
+    <span class="n">iy</span> <span class="o">=</span> <span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">y_</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">o</span> <span class="o">*</span> <span class="p">(</span><span class="n">y_</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">ix</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">x_</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">o</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">oy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">h_</span> <span class="o">-</span> <span class="n">iy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">))</span>
+    <span class="n">ox</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">w_</span> <span class="o">-</span> <span class="n">ix</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">))</span>
+
+    <span class="n">miny</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">minx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">maxy</span> <span class="o">=</span> <span class="n">h_</span> <span class="o">-</span> <span class="n">h</span>
+    <span class="n">maxx</span> <span class="o">=</span> <span class="n">w_</span> <span class="o">-</span> <span class="n">w</span>
+
+    <span class="n">ys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">oy</span><span class="p">,</span> <span class="n">h_</span> <span class="o">-</span> <span class="n">h</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">h</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span>
+    <span class="n">yb</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span> <span class="n">w_</span> <span class="o">-</span> <span class="n">w</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">w</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span>
+    <span class="n">xb</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">borders</span> <span class="ow">and</span> <span class="n">oy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">miny</span><span class="p">]</span> <span class="o">+</span> <span class="n">ys</span> <span class="o">+</span> <span class="p">[</span><span class="n">maxy</span><span class="p">]</span>
+        <span class="n">yb</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">+</span> <span class="n">yb</span> <span class="o">+</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">borders</span> <span class="ow">and</span> <span class="n">ox</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">minx</span><span class="p">]</span> <span class="o">+</span> <span class="n">xs</span> <span class="o">+</span> <span class="p">[</span><span class="n">maxx</span><span class="p">]</span>
+        <span class="n">xb</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">+</span> <span class="n">xb</span> <span class="o">+</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
+
+    <span class="n">tile_filepath_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">border_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">y0</span><span class="p">,</span> <span class="n">yb_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">yb</span><span class="p">):</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">+</span> <span class="n">h</span>
+        <span class="k">for</span> <span class="n">x0</span><span class="p">,</span> <span class="n">xb_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">xb</span><span class="p">):</span>
+            <span class="n">x1</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">w</span>
+
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+            <span class="n">border</span> <span class="o">=</span> <span class="n">yb_</span> <span class="ow">or</span> <span class="n">xb_</span>
+
+            <span class="c1"># Sanity</span>
+            <span class="k">assert</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span> <span class="o">==</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">assert</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span> <span class="o">==</span> <span class="n">h</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x0</span> <span class="ow">and</span> <span class="n">x0</span> <span class="o">&lt;=</span> <span class="n">w_</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">w_</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x1</span> <span class="ow">and</span> <span class="n">x1</span> <span class="o">&lt;=</span> <span class="n">w_</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">w_</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">y0</span> <span class="ow">and</span> <span class="n">y0</span> <span class="o">&lt;=</span> <span class="n">h_</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">h_</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">y1</span> <span class="ow">and</span> <span class="n">y1</span> <span class="o">&lt;=</span> <span class="n">h_</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">h_</span><span class="p">,</span> <span class="p">)</span>
+
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">tile_filename</span> <span class="o">=</span> <span class="s1">&#39;tile_gid_</span><span class="si">%d</span><span class="s1">_xtl_</span><span class="si">%d</span><span class="s1">_ytl_</span><span class="si">%d</span><span class="s1">_w_</span><span class="si">%d</span><span class="s1">_h_</span><span class="si">%d%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+            <span class="n">file_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">opath</span><span class="p">,</span> <span class="n">tile_filename</span><span class="p">)</span>
+            <span class="n">tile</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">y0</span><span class="p">:</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x0</span><span class="p">:</span> <span class="n">x1</span><span class="p">]</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">file_filepath</span><span class="p">,</span> <span class="n">tile</span><span class="p">)</span>
+
+            <span class="n">tile_filepath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_filepath</span><span class="p">)</span>
+            <span class="n">bbox_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+            <span class="n">border_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">border</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">gid</span><span class="p">,</span> <span class="n">opath</span><span class="p">,</span> <span class="n">tile_filepath_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">border_list</span></div>
+
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -2008,9 +2254,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -2019,11 +2263,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -2038,35 +2282,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

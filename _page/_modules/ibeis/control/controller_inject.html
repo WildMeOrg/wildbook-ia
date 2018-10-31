@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="ibeis.control" href="../control.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -146,8 +138,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -355,7 +345,7 @@
 <div class="viewcode-block" id="WebDuplicateUUIDException"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.WebDuplicateUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebDuplicateUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qdup_pos_map</span><span class="o">=</span><span class="p">{},</span> <span class="n">ddup_pos_map</span><span class="o">=</span><span class="p">{}):</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Some UUIDs are specified more than once at positions:</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="s1">&#39;duplicate_data_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+                   <span class="s1">&#39;duplicate_database_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
                    <span class="s1">&#39;duplicate_query_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
                        <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">qdup_pos_map</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
                        <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ddup_pos_map</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
@@ -415,6 +405,31 @@
         <span class="p">}</span>
         <span class="n">code</span> <span class="o">=</span> <span class="mi">605</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WebReviewFinishedException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WebMultipleNamedDuplicateException"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.WebMultipleNamedDuplicateException">[docs]</a><span class="k">class</span> <span class="nc">WebMultipleNamedDuplicateException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bad_dict</span><span class="p">):</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Duplcate UUIDs are specified with more than one name:</span><span class="se">\n</span><span class="s1">&#39;</span>
+                   <span class="s1">&#39;bad_database_uuids=</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">bad_dict</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),)</span>
+        <span class="n">bad_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">bad_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;bad_dict&#39;</span> <span class="p">:</span> <span class="n">bad_dict</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="mi">606</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">WebMultipleNamedDuplicateException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WebMatchThumbException"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.WebMatchThumbException">[docs]</a><span class="k">class</span> <span class="nc">WebMatchThumbException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">qannot_uuid</span><span class="p">,</span> <span class="n">dannot_uuid</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">reference</span><span class="p">,</span>
+            <span class="s1">&#39;qannot_uuid&#39;</span><span class="p">:</span> <span class="n">qannot_uuid</span><span class="p">,</span>
+            <span class="s1">&#39;dannot_uuid&#39;</span><span class="p">:</span> <span class="n">dannot_uuid</span><span class="p">,</span>
+            <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="mi">607</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">WebMatchThumbException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">rawreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="translate_ibeis_webreturn"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.translate_ibeis_webreturn">[docs]</a><span class="k">def</span> <span class="nf">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -543,7 +558,7 @@
         <span class="n">type_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">message_list</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">values</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
@@ -580,7 +595,10 @@
             <span class="k">for</span> <span class="n">key_</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">message_</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
                 <span class="n">key_</span> <span class="o">=</span> <span class="n">key_</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="n">length1</span><span class="p">)</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="n">type_</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">length2</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">message_</span><span class="p">,</span> <span class="p">))</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">message_</span><span class="p">,</span> <span class="p">))</span>
+                <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : UNICODE ERROR&#39;</span><span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] ERROR IN KWARGS PARSING&#39;</span><span class="p">)</span>
 
@@ -602,6 +620,8 @@
             <span class="c1"># msg_list.append(&#39;flask.request.args = %r&#39; % (flask.request.args,))</span>
             <span class="c1"># msg_list.append(&#39;flask.request.form = %r&#39; % (flask.request.form,))</span>
             <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ex2</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list</span><span class="p">)</span>
             <span class="c1"># error_msg = ut.formatex(ex2, msg, tb=True)</span>
             <span class="c1"># print(error_msg)</span>
@@ -1252,9 +1272,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -1263,11 +1281,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1282,35 +1300,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

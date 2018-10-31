@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -103,7 +94,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">ibeis</a>
@@ -111,9 +102,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -144,8 +136,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -202,6 +192,47 @@
     <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">list_</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">list_</span></div>
+
+
+<div class="viewcode-block" id="web_check_annot_uuids_with_names"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_engine.web_check_annot_uuids_with_names">[docs]</a><span class="k">def</span> <span class="nf">web_check_annot_uuids_with_names</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
+
+    <span class="n">bad_uuid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+
+    <span class="n">annot_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">annot_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annot_dict</span><span class="p">:</span>
+            <span class="n">annot_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+            <span class="n">annot_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">bad_uuid_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_uuid_set</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">bad_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">bad_uuid</span><span class="p">:</span> <span class="n">annot_dict</span><span class="p">[</span><span class="n">bad_uuid</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">bad_uuid</span> <span class="ow">in</span> <span class="n">bad_uuid_set</span>
+        <span class="p">}</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebMultipleNamedDuplicateException</span><span class="p">(</span><span class="n">bad_dict</span><span class="p">)</span>
+
+    <span class="n">annot_uuid_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">name_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">annot_dict</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">annot_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Sanity check failed in web_check_annot_uuids_with_names&#39;</span><span class="p">)</span>
+
+        <span class="n">annot_uuid_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">name_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">annot_uuid_list_</span><span class="p">,</span> <span class="n">name_list_</span></div>
 
 
 <div class="viewcode-block" id="web_check_uuids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_engine.web_check_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
@@ -385,13 +416,76 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify daids&#39;</span><span class="p">,</span>
                           <span class="n">auuid_list</span><span class="o">=</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">pipecfg</span><span class="p">)</span>
-    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
-        <span class="s1">&#39;query_chips_simple_dict&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;query_chips_simple_dict&#39;</span><span class="p">,</span>
+                                               <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span>
+                                               <span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
     <span class="c1">#if callback_url is not None:</span>
     <span class="c1">#    #import requests</span>
     <span class="c1">#    #requests.</span>
     <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_identify_annots_query_complete"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_engine.start_identify_annots_query_complete">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/graph/complete/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_identify_annots_query_complete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">annot_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">matching_state_list</span><span class="o">=</span><span class="p">[],</span>
+                                         <span class="n">query_config_dict</span><span class="o">=</span><span class="p">{},</span>
+                                         <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                         <span class="n">echo_query_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                         <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/query/complete/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annot_uuid_list (list) : specifies the query annotations to</span>
+<span class="sd">            identify.</span>
+<span class="sd">        annot_name_list (list) : specifies the query annotation names</span>
+<span class="sd">        matching_state_list (list of tuple) : the list of matching state</span>
+<span class="sd">            3-tuples corresponding to the query_annot_uuid_list (default=None)</span>
+<span class="sd">        query_config_dict (dict) : dictionary of algorithmic configuration</span>
+<span class="sd">            arguments.  (default=None)</span>
+<span class="sd">        echo_query_params (bool) : flag for if to return the original query</span>
+<span class="sd">            parameters with the result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check inputs</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_name_list</span><span class="p">)</span>
+
+    <span class="c1"># Check UUIDs</span>
+    <span class="k">if</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">web_check_annot_uuids_with_names</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_name_list</span><span class="p">)</span>
+        <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_name_list</span> <span class="o">=</span> <span class="n">vals</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure annotations</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">annot_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure names</span>
+    <span class="c1"># FIXME: THE QREQ STRUCTURE SHOULD HANDLE NAMES.</span>
+    <span class="k">if</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Set names for query annotations</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">annot_name_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify qaids&#39;</span><span class="p">,</span>
+                          <span class="n">auuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">query_config_dict</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;query_chips_graph_complete&#39;</span><span class="p">,</span>
+                                               <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span>
+                                               <span class="o">*</span><span class="n">args</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">jobid</span></div>
 
 
@@ -496,12 +590,17 @@
 
     <span class="c1"># Check inputs</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Can only identify one query annotation at a time. Got </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">),)</span>
+    <span class="k">assert</span> <span class="n">database_annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Cannot specify an empty database_annot_uuid_list (e.g. []), specify or use None instead&#39;</span>
+
     <span class="k">if</span> <span class="n">qname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qname_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">database_annot_uuid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dname_list</span><span class="p">)</span>
 
     <span class="c1"># Check UUIDs</span>
+    <span class="k">if</span> <span class="n">dname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">web_check_annot_uuids_with_names</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">,</span> <span class="n">dname_list</span><span class="p">)</span>
+        <span class="n">database_annot_uuid_list</span><span class="p">,</span> <span class="n">dname_list</span> <span class="o">=</span> <span class="n">vals</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">([],</span> <span class="n">query_annot_uuid_list</span><span class="p">,</span> <span class="n">database_annot_uuid_list</span><span class="p">)</span>
 
     <span class="c1">#import ibeis</span>
@@ -551,8 +650,9 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify daids&#39;</span><span class="p">,</span>
                           <span class="n">auuid_list</span><span class="o">=</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">user_feedback</span><span class="p">,</span> <span class="n">query_config_dict</span><span class="p">,</span> <span class="n">echo_query_params</span><span class="p">)</span>
-    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
-        <span class="s1">&#39;query_chips_graph&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s1">&#39;query_chips_graph&#39;</span><span class="p">,</span>
+                                               <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span>
+                                               <span class="o">*</span><span class="n">args</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">jobid</span></div>
 
 
@@ -725,7 +825,7 @@
 <span class="sd">        &gt;&gt;&gt; ibs.close_job_manager()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Check UUIDs</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">([],</span> <span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
 
     <span class="c1">#import ibeis</span>
     <span class="c1">#from ibeis.web import apis_engine</span>
@@ -768,9 +868,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -779,11 +877,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -798,35 +896,24 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

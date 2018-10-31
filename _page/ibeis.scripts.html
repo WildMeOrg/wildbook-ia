@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ibeis 1.8.1 documentation" href="index.html"/>
-        <link rel="up" title="ibeis package" href="ibeis.html"/>
-        <link rel="next" title="ibeis.templates package" href="ibeis.templates.html"/>
-        <link rel="prev" title="ibeis.other package" href="ibeis.other.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ibeis.templates package" href="ibeis.templates.html" />
+    <link rel="prev" title="ibeis.other package" href="ibeis.other.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -156,7 +147,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ibeis</a>
@@ -164,9 +155,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -780,7 +772,7 @@ This function is often injected as rrr of classes</p>
 
 <dl class="function">
 <dt id="ibeis.scripts.classify_shark.predict_ws_injury_interim_svm">
-<code class="descclassname">ibeis.scripts.classify_shark.</code><code class="descname">predict_ws_injury_interim_svm</code><span class="sig-paren">(</span><em>ibs</em>, <em>aids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/classify_shark.html#predict_ws_injury_interim_svm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.classify_shark.predict_ws_injury_interim_svm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.scripts.classify_shark.</code><code class="descname">predict_ws_injury_interim_svm</code><span class="sig-paren">(</span><em>ibs</em>, <em>aids</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/classify_shark.html#predict_ws_injury_interim_svm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.classify_shark.predict_ws_injury_interim_svm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns relative confidence</p>
 </dd></dl>
 
@@ -828,7 +820,7 @@ python -m ibeis.scripts.classify_shark shark_svm</dd>
 <span id="ibeis-scripts-fix-annotation-orientation-issue-module"></span><h2>ibeis.scripts.fix_annotation_orientation_issue module<a class="headerlink" href="#module-ibeis.scripts.fix_annotation_orientation_issue" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.scripts.fix_annotation_orientation_issue.fix_annotation_orientation">
-<code class="descclassname">ibeis.scripts.fix_annotation_orientation_issue.</code><code class="descname">fix_annotation_orientation</code><span class="sig-paren">(</span><em>ibs</em>, <em>min_percentage=0.95</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/fix_annotation_orientation_issue.html#fix_annotation_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.fix_annotation_orientation_issue.fix_annotation_orientation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.scripts.fix_annotation_orientation_issue.</code><code class="descname">fix_annotation_orientation</code><span class="sig-paren">(</span><em>ibs</em>, <em>min_percentage=0.95</em>, <em>is_tile=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/fix_annotation_orientation_issue.html#fix_annotation_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.fix_annotation_orientation_issue.fix_annotation_orientation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fixes the annotations that are outside the bounds of the image due to a
 changed image orientation flag in the database</p>
 <dl class="docutils">
@@ -1676,7 +1668,7 @@ This function is often injected as rrr of classes</p>
 
 <dl class="attribute">
 <dt id="ibeis.scripts.postdoc.VerifierExpt.task_nice_lookup">
-<code class="descname">task_nice_lookup</code><em class="property"> = {'match_state': OrderedDict([('match', 'Positive'), ('nomatch', 'Negative'), ('notcomp', 'Incomparable'), ('unknown', 'Unknown'), ('unreviewed', 'Unreviewed')]), 'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb'}}</em><a class="headerlink" href="#ibeis.scripts.postdoc.VerifierExpt.task_nice_lookup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">task_nice_lookup</code><em class="property"> = {'match_state': {'match': 'Positive', 'nomatch': 'Negative', 'notcomp': 'Incomparable', 'unknown': 'Unknown', 'unreviewed': 'Unreviewed'}, 'photobomb_state': {'notpb': 'Not Photobomb', 'pb': 'Photobomb'}}</em><a class="headerlink" href="#ibeis.scripts.postdoc.VerifierExpt.task_nice_lookup" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -2577,7 +2569,7 @@ This function is often injected as rrr of classes</p>
 
 <dl class="attribute">
 <dt id="ibeis.scripts.thesis.Chap4.task_nice_lookup">
-<code class="descname">task_nice_lookup</code><em class="property"> = {'match_state': OrderedDict([('match', 'Positive'), ('nomatch', 'Negative'), ('notcomp', 'Incomparable'), ('unknown', 'Unknown'), ('unreviewed', 'Unreviewed')]), 'photobomb_state': {'pb': 'Photobomb', 'notpb': 'Not Photobomb'}}</em><a class="headerlink" href="#ibeis.scripts.thesis.Chap4.task_nice_lookup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">task_nice_lookup</code><em class="property"> = {'match_state': {'match': 'Positive', 'nomatch': 'Negative', 'notcomp': 'Incomparable', 'unknown': 'Unknown', 'unreviewed': 'Unreviewed'}, 'photobomb_state': {'notpb': 'Not Photobomb', 'pb': 'Photobomb'}}</em><a class="headerlink" href="#ibeis.scripts.thesis.Chap4.task_nice_lookup" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -2869,9 +2861,7 @@ python -m ibeis Chap5.draw error_tables GZ_Master1</dd>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -2889,11 +2879,11 @@ python -m ibeis Chap5.draw error_tables GZ_Master1</dd>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Wild Me.
+        &copy; Copyright 2018, Wild Me
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -2908,35 +2898,24 @@ python -m ibeis Chap5.draw error_tables GZ_Master1</dd>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.8.1',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
