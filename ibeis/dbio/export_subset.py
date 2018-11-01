@@ -119,7 +119,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     error_tables = [
         'imageset_image_relationship',
         'annotgroup_annotation_relationship',
-        # 'annotmatch',
+        'annotmatch',
     ]
     ignore_tables += error_tables
     ibs_dst.db.merge_databases_new(
