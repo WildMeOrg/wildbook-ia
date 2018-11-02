@@ -199,7 +199,7 @@ class SQLExecutionContext(object):
         while True:
             result = context.cur.fetchone()
             if not result:
-                raise StopIteration()
+                return
             if context.keepwrap:
                 # Results are always returned wraped in a tuple
                 yield result

@@ -1649,7 +1649,7 @@ class _TableComputeHelper(object):
             for dirty_chunk in prog_iter:
                 nChunkInput = len(dirty_chunk)
                 if nChunkInput == 0:
-                    raise StopIteration()
+                    return
                 dirty_parent_ids_chunk, dirty_preproc_args_chunk = zip(*dirty_chunk)
 
                 dirty_params_iter = table._compute_dirty_rows(
