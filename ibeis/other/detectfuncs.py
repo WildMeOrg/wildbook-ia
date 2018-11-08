@@ -920,12 +920,12 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
 
 @register_ibs_method
-def localizer_precision_recall(ibs, test_gid_list=None, config_dict=None,
-                               output_path=None, **kwargs):
-    if test_gid_list is not None:
-        print('Using %d test gids' % (len(test_gid_list), ))
-
+def localizer_precision_recall(ibs, config_dict=None, output_path=None,
+                               test_gid_list=None, **kwargs):
     if config_dict is None:
+        if test_gid_list is not None:
+            print('Using %d test gids' % (len(test_gid_list), ))
+
         species_mapping = {  # NOQA
             'giraffe_masai'       : 'giraffe',
             'giraffe_reticulated' : 'giraffe',
