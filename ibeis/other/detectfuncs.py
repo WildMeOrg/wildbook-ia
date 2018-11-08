@@ -925,14 +925,14 @@ def localizer_precision_recall(ibs, test_gid_list=None, config_dict=None,
     if test_gid_list is not None:
         print('Using %d test gids' % (len(test_gid_list), ))
 
-    species_mapping = {  # NOQA
-        'giraffe_masai'       : 'giraffe',
-        'giraffe_reticulated' : 'giraffe',
-        'zebra_grevys'        : 'zebra',
-        'zebra_plains'        : 'zebra',
-    }
-
     if config_dict is None:
+        species_mapping = {  # NOQA
+            'giraffe_masai'       : 'giraffe',
+            'giraffe_reticulated' : 'giraffe',
+            'zebra_grevys'        : 'zebra',
+            'zebra_plains'        : 'zebra',
+        }
+
         config_dict = {
             # 'seaturtle': (
             #     [
