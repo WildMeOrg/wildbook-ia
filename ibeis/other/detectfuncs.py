@@ -1255,6 +1255,9 @@ def localizer_precision_recall(ibs, test_gid_list=None, config_dict=None,
         for key in kwargs:
             config[key] = kwargs[key]
 
+        if test_gid_list is not None:
+            config['test_gid_list'] = test_gid_list
+
         ibs.localizer_precision_recall_algo_display(
             config_list,
             config_tag=config_key,
