@@ -3183,7 +3183,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True,
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
         ibs.delete_annot_imgthumbs(aid_list)
-    if update_annot_visual_uuids:
+    if update_visual_uuids:
         ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
 
