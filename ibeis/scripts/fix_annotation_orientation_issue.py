@@ -126,10 +126,10 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     transformed_vert_list = transformed_vert_list.T
                     # print(transformed_vert_list)
 
-                    ibs.set_annot_verts([aid], [transformed_vert_list])
+                    ibs.set_annot_verts([aid], [transformed_vert_list], update_visual_uuids=False)
                     current_theta = ibs.get_annot_thetas(aid)
                     new_theta = current_theta + theta
-                    ibs.set_annot_thetas(aid, new_theta)
+                    ibs.set_annot_thetas(aid, new_theta, update_visual_uuids=False)
 
                     fixed_vert_list = ibs.get_annot_rotated_verts(aid)
                     fixed_annot_bbox = vt.bbox_from_verts(fixed_vert_list)

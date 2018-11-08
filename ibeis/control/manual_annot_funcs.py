@@ -3074,7 +3074,8 @@ def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/theta/', methods=['PUT'])
-def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
+def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True,
+                     update_visual_uuids=True):
     r"""
     Sets thetas of a list of chips by aid
 
@@ -3088,7 +3089,8 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
         ibs.delete_annot_imgthumbs(aid_list)
-    ibs.update_annot_visual_uuids(aid_list)
+    if update_visual_uuids:
+        ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
 
 
@@ -3144,7 +3146,8 @@ def update_annot_rotate_right_90(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/vert/', methods=['PUT'])
-def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
+def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True,
+                    update_visual_uuids=True):
     r"""
     Sets the vertices [(x, y), ...] of a list of chips by aid
 
@@ -3180,7 +3183,8 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
         ibs.delete_annot_imgthumbs(aid_list)
-    ibs.update_annot_visual_uuids(aid_list)
+    if update_annot_visual_uuids:
+        ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
 
 
