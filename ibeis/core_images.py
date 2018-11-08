@@ -708,6 +708,7 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('nms_thresh', 0.2),
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.25),
+        ut.ParamInfo('boundary', True),
     ]
 
 
@@ -865,6 +866,27 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 count_new = len(bboxes)
                 if VERBOSE:
                     print('Filtered invalid images (%d -> %d)' % (count_old, count_new, ))
+
+        if config['boundary']:
+            gid = depc.get_ancestor_rowids('localizations_original', [loc_orig_id], 'images')[0]
+            w, h = ibs.get_image_sizes(gid)
+
+            for index, (xtl, ytl, width, height) in enumerate(bboxes):
+                xbr = xtl + width
+                ybr = ytl + height
+
+                xtl = min(max(0, xtl), w)
+                xbr = min(max(0, xbr), w)
+                ytl = min(max(0, ytl), h)
+                ybr = min(max(0, ybr), h)
+
+                width = xbr - xtl
+                height = ybr - ytl
+
+                bboxes[index][0] = xtl
+                bboxes[index][1] = ytl
+                bboxes[index][2] = width
+                bboxes[index][3] = height
 
         yield (score, bboxes, thetas, confs, classes, )
 
