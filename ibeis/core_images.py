@@ -628,12 +628,6 @@ def compute_localizations_original(depc, gid_list, config=None):
     elif config['algo'] in ['lightnet']:
         from ibeis.algo.detect import lightnet
         print('[ibs] detecting using Lightnet CNN YOLO v2')
-        if 'config_filepath' in config:
-            if 'weight_filepath' in config:
-                args = (config['weight_filepath'], config['config_filepath'], )
-                print('Overwriting weight_filepath %r with %r' % args)
-            config['weight_filepath'] = config['config_filepath']
-        config['config_filepath'] = None
         detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
     elif config['algo'] in ['azure']:
         from ibeis.algo.detect import azure
