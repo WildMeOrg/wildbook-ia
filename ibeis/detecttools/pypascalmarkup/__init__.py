@@ -15,7 +15,7 @@ def _kwargs(kwargs, key, value):
         kwargs[key] = value
 
 
-class PascalVOC_Markup_Annotation(object):
+class PascalVOC_Markup_Annotation(object):  # NOQA
 
     def __init__(an, fullpath, folder, filename, **kwargs):
         _kwargs(kwargs, 'database_name', 'Image Database')
@@ -89,17 +89,19 @@ class PascalVOC_Markup_Annotation(object):
         return template
 
 
-class PascalVOC_Markup_Object(object):
+class PascalVOC_Markup_Object(object):  # NOQA
 
     # take bounding box coordinates in the same order as PASCAL-VOC
     def __init__(ob, name, bbox_XxYy, **kwargs):
         (xmax, xmin, ymax, ymin) = bbox_XxYy
-        _kwargs(kwargs, 'pose', 'Unspecified')  # Left, Right, Frontal, Rear
+        _kwargs(kwargs, 'pose', 'Unspecified')  # Left, Right, Front, Rear
+        _kwargs(kwargs, 'interest', 'Unspecified')  # None
         _kwargs(kwargs, 'truncated', '0')  # boolean flag, if there exists a partial object in the image
         _kwargs(kwargs, 'difficult', '0')  # boolean flag, if difficult case from previous years
 
         ob.name = name
         ob.pose = kwargs['pose']
+        ob.interest = kwargs['interest']
         ob.truncated = kwargs['truncated']
         ob.difficult = kwargs['difficult']
 
@@ -129,6 +131,7 @@ class PascalVOC_Markup_Object(object):
 
         template = template.replace('_^_NAME_^_', ob.name)
         template = template.replace('_^_POSE_^_', ob.pose)
+        template = template.replace('_^_INTEREST_^_', ob.interest)
         template = template.replace('_^_TRUNCATED_^_', ob.truncated)
         template = template.replace('_^_DIFFICULT_^_', ob.difficult)
         template = template.replace('_^_XMIN_^_', ob.xmin)
@@ -145,7 +148,7 @@ class PascalVOC_Markup_Object(object):
         return template
 
 
-class PascalVOC_Markup_Part(object):
+class PascalVOC_Markup_Part(object):  # NOQA
 
     def __init__(pt, name, bbox):
         (xmin, ymin, xmax, ymax) = bbox
