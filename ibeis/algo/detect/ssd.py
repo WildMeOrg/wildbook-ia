@@ -46,20 +46,20 @@ VERBOSE_SS = ut.get_argflag('--verbssd') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'pretrained-300-pascal'      : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.300.pascal.prototxt',
-    'pretrained-512-pascal'      : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.512.pascal.prototxt',
+    'pretrained-300-pascal'      : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.300.pascal.prototxt',
+    'pretrained-512-pascal'      : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.512.pascal.prototxt',
 
-    'pretrained-300-pascal-plus' : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.300.pascal.plus.prototxt',
-    'pretrained-512-pascal-plus' : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.512.pascal.plus.prototxt',
+    'pretrained-300-pascal-plus' : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.300.pascal.plus.prototxt',
+    'pretrained-512-pascal-plus' : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.512.pascal.plus.prototxt',
 
-    'pretrained-300-coco'        : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.300.coco.prototxt',
-    'pretrained-512-coco'        : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.512.coco.prototxt',
+    'pretrained-300-coco'        : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.300.coco.prototxt',
+    'pretrained-512-coco'        : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.512.coco.prototxt',
 
-    'pretrained-300-ilsvrc'      : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.300.ilsvrc.prototxt',
-    'pretrained-500-ilsvrc'      : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.500.ilsvrc.prototxt',
+    'pretrained-300-ilsvrc'      : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.300.ilsvrc.prototxt',
+    'pretrained-500-ilsvrc'      : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.500.ilsvrc.prototxt',
 
-    'default'                    : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.512.pascal.plus.prototxt',
-    None                         : 'https://lev.cs.rpi.edu/public/models/pretrained.ssd.512.pascal.plus.prototxt',
+    'default'                    : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.512.pascal.plus.prototxt',
+    None                         : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.ssd.512.pascal.plus.prototxt',
 }
 
 

@@ -314,12 +314,12 @@ WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT
 
 
 class ZIPPED_URLS(object):
-    PZ_MTEST       = 'https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip'
-    NAUTS          = 'https://lev.cs.rpi.edu/public/databases/NAUT_test.zip'
-    WDS            = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
-    PZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip'  # DEPRICATE
-    GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
-    DF_CURVRANK    = 'https://lev.cs.rpi.edu/public/databases/testdb_curvrank.zip'
+    PZ_MTEST       = 'https://cthulhu.dyn.wildme.io/public/databases/PZ_MTEST.zip'
+    NAUTS          = 'https://cthulhu.dyn.wildme.io/public/databases/NAUT_test.zip'
+    WDS            = 'https://cthulhu.dyn.wildme.io/public/databases/wd_peter2.zip'
+    PZ_DISTINCTIVE = 'https://cthulhu.dyn.wildme.io/public/models/distinctivness_zebra_plains.zip'  # DEPRICATE
+    GZ_DISTINCTIVE = 'https://cthulhu.dyn.wildme.io/public/models/distinctivness_zebra_grevys.zip'  # DEPRICATE
+    DF_CURVRANK    = 'https://cthulhu.dyn.wildme.io/public/databases/testdb_curvrank.zip'
 
 
 # Turn off features at Lewa :(

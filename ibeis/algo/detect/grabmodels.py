@@ -16,7 +16,7 @@ MODEL_ALGO_SUBDIRS = {
 }
 
 MODEL_URLS = {
-    DETECTOR_KEY_RF: 'https://lev.cs.rpi.edu/public/models/rf.v3.zip',
+    DETECTOR_KEY_RF: 'https://cthulhu.dyn.wildme.io/public/models/rf.v3.zip',
 }
 
 

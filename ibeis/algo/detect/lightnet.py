@@ -26,17 +26,17 @@ VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    # 'OLD_seaturtle'      : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.OLD.weights',
-    # 'OLD_hammerhead'     : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.shark_hammerhead.OLD.weights',
-    # 'OLD_ggr2'           : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.OLD.weights',
-    # 'OLD_lynx'           : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.lynx.OLD.weights',
-    # 'OLD_jaguar'         : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.jaguar.OLD.weights',
-    # 'OLD_manta'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.manta_ray_giant.OLD.weights',
+    # 'OLD_seaturtle'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.OLD.weights',
+    # 'OLD_hammerhead'     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.OLD.weights',
+    # 'OLD_ggr2'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.OLD.weights',
+    # 'OLD_lynx'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.OLD.weights',
+    # 'OLD_jaguar'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.OLD.weights',
+    # 'OLD_manta'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.OLD.weights',
 
-    'candidacy'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.candidacy.py',
-    'hendrik_elephant'   : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.hendrik.elephant.py',
+    'candidacy'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    'hendrik_elephant'   : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
 
-    None                 : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.candidacy.py',
+    None                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
 }
 
 

@@ -1255,8 +1255,11 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
         for key in kwargs:
             config[key] = kwargs[key]
 
+        # Backwards compatibility hack
         if test_gid_list is not None:
-            config['test_gid_list'] = test_gid_list
+            for config_ in config_list:
+                if 'test_gid_list' not in config_:
+                    config_['test_gid_list'] = test_gid_list
 
         ibs.localizer_precision_recall_algo_display(
             config_list,

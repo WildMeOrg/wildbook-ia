@@ -5863,7 +5863,7 @@ def compute_ggr_path_dict(ibs):
         'Marsabit',
         'Meru',
     ]
-    county_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_counties_boundary_gps_coordinates.zip'
+    county_file_url = 'https://cthulhu.dyn.wildme.io/public/data/kenyan_counties_boundary_gps_coordinates.zip'
     unzipped_path = ut.grab_zipped_url(county_file_url)
     county_path = join(unzipped_path, 'County')
     counties = shapefile.Reader(county_path)
@@ -5879,7 +5879,7 @@ def compute_ggr_path_dict(ibs):
         ))
 
     # ADD LAND TENURES
-    land_tenure_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
+    land_tenure_file_url = 'https://cthulhu.dyn.wildme.io/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
     unzipped_path = ut.grab_zipped_url(land_tenure_file_url)
     land_tenure_path = join(unzipped_path, 'LandTenure')
     land_tenures = shapefile.Reader(land_tenure_path)

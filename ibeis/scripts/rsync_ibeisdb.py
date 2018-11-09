@@ -92,7 +92,7 @@ def rsync_ibsdb_main():
         'hyrule': 'hyrule.cs.rpi.edu',
         'pachy': 'pachy.cs.uic.edu',
         'lewa': '41.203.223.178',
-        'lev': 'lev.cs.rpi.edu',
+        'lev': 'cthulhu.dyn.wildme.io',
     }
     remote_workdir_map = {
         'hyrule': '/raid/work',
