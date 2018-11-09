@@ -377,7 +377,7 @@ def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3)
             reviewed = True if staged_user_id in user_ids else requirement_satisfied
             images_reviewed.append(reviewed)
 
-        ibs.set_image_reviewed(gid_list, update_reviewed_list)
+        # ibs.set_image_reviewed(gid_list, update_reviewed_list)
     else:
         images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
     return images_reviewed
