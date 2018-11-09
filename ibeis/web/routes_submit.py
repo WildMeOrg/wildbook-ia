@@ -68,6 +68,8 @@ def submit_cameratrap(**kwargs):
 def submit_detection(**kwargs):
     is_staged = kwargs.get('staged', False)
 
+    is_staged = is_staged and appf.ALLOW_STAGED
+
     ibs = current_app.ibs
     method = request.form.get('detection-submit', '')
     imgsetid = request.args.get('imgsetid', '')

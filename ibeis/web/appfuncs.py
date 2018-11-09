@@ -29,6 +29,9 @@ VALID_TURK_MODES = [
 ]
 
 
+ALLOW_STAGED = False
+
+
 VIEWPOINT_MAPPING = {
     None: None,
     -1: None,

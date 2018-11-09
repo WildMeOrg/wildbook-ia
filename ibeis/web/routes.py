@@ -2064,6 +2064,9 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
     config_str = '&'.join(config_str_list)
 
     is_staged = config['staged']
+
+    is_staged = is_staged and appf.ALLOW_STAGED
+
     staged_reviews_required = 3
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
