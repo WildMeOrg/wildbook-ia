@@ -33,9 +33,12 @@ CONFIG_URL_DICT = {
     # 'OLD_jaguar'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.OLD.weights',
     # 'OLD_manta'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.OLD.weights',
 
-    'candidacy'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
-    'hendrik_elephant'   : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
+    'seaturtle'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
 
+    'hendrik_elephant'   : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
+    'hendrik_dorsal'     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
+
+    'candidacy'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
     None                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
 }
 
