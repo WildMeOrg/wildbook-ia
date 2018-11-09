@@ -309,7 +309,7 @@ def get_orientation(exif_dict, default=0, on_error='fail'):
         >>> from vtool.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
-        >>> url = 'https://lev.cs.rpi.edu/public/models/orientation.zip'
+        >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
         >>> images_path = ut.grab_zipped_url(url)
         >>> result = []
         >>> for index in range(3):
@@ -354,7 +354,7 @@ def get_orientation_str(exif_dict):
         >>> from vtool.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
-        >>> url = 'https://lev.cs.rpi.edu/public/models/orientation.zip'
+        >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
         >>> images_path = ut.grab_zipped_url(url)
         >>> result = []
         >>> for index in range(3):
