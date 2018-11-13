@@ -180,8 +180,7 @@ class WebSrcConfig(dtool.Config):
     coltypes=[('extern', load_text, save_text)],
     configclass=WebSrcConfig,
     fname='webcache',
-    rm_extern_on_delete=True,
-    chunksize=256,
+    chunksize=1024,
 )
 def compute_web_src(depc, gid_list, config=None):
     r"""Compute the web src
@@ -216,9 +215,6 @@ def compute_web_src(depc, gid_list, config=None):
 
     genkw = {
         'ordered': True,
-        'chunksize': 256,
-        'progkw': {'freq': 50},
-        #'adjust': True,
         'futures_threaded': True,
         'force_serial': ibs.force_serial or config['force_serial'],
     }

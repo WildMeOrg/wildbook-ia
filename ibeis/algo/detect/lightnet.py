@@ -26,19 +26,18 @@ VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    # 'OLD_seaturtle'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.OLD.weights',
-    # 'OLD_hammerhead'     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.OLD.weights',
-    # 'OLD_ggr2'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.OLD.weights',
-    # 'OLD_lynx'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.OLD.weights',
-    # 'OLD_jaguar'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.OLD.weights',
-    # 'OLD_manta'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.OLD.weights',
-
+    'hammerhead'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
+    'jaguar'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.py',
+    'lynx'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
+    'manta'              : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
     'seaturtle'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
 
     'hendrik_elephant'   : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
     'hendrik_dorsal'     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
 
     'candidacy'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    'ggr2'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
+
     None                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
 }
 
