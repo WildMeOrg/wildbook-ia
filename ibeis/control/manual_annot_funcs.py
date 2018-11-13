@@ -2764,7 +2764,7 @@ def get_annot_images(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/bbox/', methods=['PUT'])
-def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
+def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True, **kwargs):
     r"""
     Sets bboxes of a list of annotations by aid,
 
@@ -2783,7 +2783,7 @@ def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
     # changing the bboxes also changes the bounding polygon
     vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
     # naively overwrite the bounding polygon with a rectangle - for now trust the user!
-    ibs.set_annot_verts(aid_list, vert_list, delete_thumbs=delete_thumbs)
+    ibs.set_annot_verts(aid_list, vert_list, delete_thumbs=delete_thumbs, **kwargs)
 
 
 @register_ibs_method
@@ -3075,7 +3075,7 @@ def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
 @accessor_decors.setter
 @register_api('/api/annot/theta/', methods=['PUT'])
 def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True,
-                     update_visual_uuids=True):
+                     update_visual_uuids=True, notify_root=True):
     r"""
     Sets thetas of a list of chips by aid
 
@@ -3091,7 +3091,8 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True,
         ibs.delete_annot_imgthumbs(aid_list)
     if update_visual_uuids:
         ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
+    if notify_root:
+        ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
 
 
 def _update_annot_rotate_fix_bbox(bbox):
@@ -3146,8 +3147,9 @@ def update_annot_rotate_right_90(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/vert/', methods=['PUT'])
-def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True,
-                    update_visual_uuids=True):
+def set_annot_verts(ibs, aid_list, verts_list, theta_list=None,
+                    delete_thumbs=True, update_visual_uuids=True,
+                    notify_root=True):
     r"""
     Sets the vertices [(x, y), ...] of a list of chips by aid
 
@@ -3180,12 +3182,19 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True,
     colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
     # SET BBOX in ANNOTATION_TABLE
     ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
+    if theta_list:
+        ibs.set_annot_thetas(aid_list, theta_list, delete_thumbs=False,
+                             update_visual_uuids=False, notify_root=False)
+
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
         ibs.delete_annot_imgthumbs(aid_list)
     if update_visual_uuids:
         ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
+    if notify_root:
+        ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
+        if theta_list:
+            ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
 
 
 # PROBCHIP

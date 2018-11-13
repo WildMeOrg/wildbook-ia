@@ -67,23 +67,22 @@ def submit_cameratrap(**kwargs):
 @register_route('/submit/detection/', methods=['POST'])
 def submit_detection(**kwargs):
     with ut.Timer('submit'):
-        with ut.Timer('submit...config'):
-            is_staged = kwargs.get('staged', False)
+        is_staged = kwargs.get('staged', False)
 
-            is_staged = is_staged and appf.ALLOW_STAGED
+        is_staged = is_staged and appf.ALLOW_STAGED
 
-            ibs = current_app.ibs
-            method = request.form.get('detection-submit', '')
-            imgsetid = request.args.get('imgsetid', '')
-            imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
-            gid = int(request.form['detection-gid'])
-            user_id = controller_inject.get_user().get('username', None)
+        ibs = current_app.ibs
+        method = request.form.get('detection-submit', '')
+        imgsetid = request.args.get('imgsetid', '')
+        imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+        gid = int(request.form['detection-gid'])
+        user_id = controller_inject.get_user().get('username', None)
 
-            poor_boxes = method.lower() == 'poor boxes'
-            if poor_boxes:
-                imgsetid_ = ibs.get_imageset_imgsetids_from_text('POOR BOXES')
-                ibs.set_image_imgsetids([gid], [imgsetid_])
-                method = 'accept'
+        poor_boxes = method.lower() == 'poor boxes'
+        if poor_boxes:
+            imgsetid_ = ibs.get_imageset_imgsetids_from_text('POOR BOXES')
+            ibs.set_image_imgsetids([gid], [imgsetid_])
+            method = 'accept'
 
         if method.lower() == 'delete':
             # ibs.delete_images(gid)
@@ -126,172 +125,171 @@ def submit_detection(**kwargs):
         else:
             with ut.Timer('submit...update'):
 
-                with ut.Timer('submit...update...config'):
+                with ut.Timer('submit...update...config0'):
                     current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
+                with ut.Timer('submit...update...config1'):
                     current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
 
-                    if is_staged:
-                        staged_uuid = uuid.uuid4()
-                        staged_user = controller_inject.get_user()
-                        staged_user_id = staged_user.get('username', None)
+                if is_staged:
+                    staged_uuid = uuid.uuid4()
+                    staged_user = controller_inject.get_user()
+                    staged_user_id = staged_user.get('username', None)
 
-                        # Filter aids for current user
-                        current_annot_user_id_list = ibs.get_annot_staged_user_ids(current_aid_list)
-                        current_aid_list = [
-                            current_aid
-                            for current_aid, current_annot_user_id in zip(current_aid_list, current_annot_user_id_list)
-                            if current_annot_user_id == staged_user_id
-                        ]
+                    # Filter aids for current user
+                    current_annot_user_id_list = ibs.get_annot_staged_user_ids(current_aid_list)
+                    current_aid_list = [
+                        current_aid
+                        for current_aid, current_annot_user_id in zip(current_aid_list, current_annot_user_id_list)
+                        if current_annot_user_id == staged_user_id
+                    ]
 
-                        # Filter part_rowids for current user
-                        current_part_user_id_list = ibs.get_part_staged_user_ids(current_part_rowid_list)
-                        current_part_rowid_list = [
-                            current_part_rowid
-                            for current_part_rowid, current_part_user_id in zip(current_part_rowid_list, current_part_user_id_list)
-                            if current_part_user_id == staged_user_id
-                        ]
-                    else:
-                        staged_uuid = None
-                        staged_user = None
-                        staged_user_id = None
+                    # Filter part_rowids for current user
+                    current_part_user_id_list = ibs.get_part_staged_user_ids(current_part_rowid_list)
+                    current_part_rowid_list = [
+                        current_part_rowid
+                        for current_part_rowid, current_part_user_id in zip(current_part_rowid_list, current_part_user_id_list)
+                        if current_part_user_id == staged_user_id
+                    ]
+                else:
+                    staged_uuid = None
+                    staged_user = None
+                    staged_user_id = None
 
-                    # Make new annotations
-                    width, height = ibs.get_image_sizes(gid)
+                # Make new annotations
+                width, height = ibs.get_image_sizes(gid)
 
-                    # Separate out annotations vs parts
-                    data_list = ut.from_json(request.form['ia-detection-data'])
-                    print(request.form['ia-detection-manifest'])
-                    raw_manifest = request.form['ia-detection-manifest'].strip()
-                    try:
-                        manifest_list = ut.from_json(raw_manifest)
-                    except ValueError:
-                        manifest_list = []
-                    test_truth = len(manifest_list) > 0
-                    test_challenge_list = [{
-                        'gid'           : gid,
-                        'manifest_list' : manifest_list,
-                    }]
-                    test_response_list = [{
-                        'poor_boxes'    : poor_boxes,
-                    }]
-                    test_result_list = [test_truth == poor_boxes]
-                    test_user_id_list = [None]
-                    ibs.add_test(test_challenge_list, test_response_list,
-                                 test_result_list=test_result_list,
-                                 test_user_identity_list=test_user_id_list)
+                # Separate out annotations vs parts
+                data_list = ut.from_json(request.form['ia-detection-data'])
+                print(request.form['ia-detection-manifest'])
+                raw_manifest = request.form['ia-detection-manifest'].strip()
+                try:
+                    manifest_list = ut.from_json(raw_manifest)
+                except ValueError:
+                    manifest_list = []
+                test_truth = len(manifest_list) > 0
+                test_challenge_list = [{
+                    'gid'           : gid,
+                    'manifest_list' : manifest_list,
+                }]
+                test_response_list = [{
+                    'poor_boxes'    : poor_boxes,
+                }]
+                test_result_list = [test_truth == poor_boxes]
+                test_user_id_list = [None]
+                ibs.add_test(test_challenge_list, test_response_list,
+                             test_result_list=test_result_list,
+                             test_user_identity_list=test_user_id_list)
 
                 if not test_truth:
-                    with ut.Timer('submit...update...primitives'):
-                        annotation_list = []
-                        part_list = []
-                        mapping_dict = {}
-                        for outer_index, data in enumerate(data_list):
-                            # Check for invalid NaN boxes, filter them out
-                            try:
-                                assert data['percent']['left']   is not None
-                                assert data['percent']['top']    is not None
-                                assert data['percent']['width']  is not None
-                                assert data['percent']['height'] is not None
-                            except:
-                                continue
+                    annotation_list = []
+                    part_list = []
+                    mapping_dict = {}
+                    for outer_index, data in enumerate(data_list):
+                        # Check for invalid NaN boxes, filter them out
+                        try:
+                            assert data['percent']['left']   is not None
+                            assert data['percent']['top']    is not None
+                            assert data['percent']['width']  is not None
+                            assert data['percent']['height'] is not None
+                        except:
+                            continue
 
-                            parent_index = data['parent']
-                            if parent_index is None:
-                                inner_index = len(annotation_list)
-                                annotation_list.append(data)
-                                mapping_dict[outer_index] = inner_index
-                            else:
-                                assert parent_index in mapping_dict
-                                part_list.append(data)
+                        parent_index = data['parent']
+                        if parent_index is None:
+                            inner_index = len(annotation_list)
+                            annotation_list.append(data)
+                            mapping_dict[outer_index] = inner_index
+                        else:
+                            assert parent_index in mapping_dict
+                            part_list.append(data)
 
-                        ##################################################################################
-                        # Get primatives
-                        bbox_list = [
-                            (
-                                int(np.round(width  * (annot['percent']['left']   / 100.0) )),
-                                int(np.round(height * (annot['percent']['top']    / 100.0) )),
-                                int(np.round(width  * (annot['percent']['width']  / 100.0) )),
-                                int(np.round(height * (annot['percent']['height'] / 100.0) )),
-                            )
-                            for annot in annotation_list
-                        ]
-                        theta_list = [
-                            float(annot['angles']['theta'])
-                            for annot in annotation_list
-                        ]
+                    ##################################################################################
+                    # Get primatives
+                    bbox_list = [
+                        (
+                            int(np.round(width  * (annot['percent']['left']   / 100.0) )),
+                            int(np.round(height * (annot['percent']['top']    / 100.0) )),
+                            int(np.round(width  * (annot['percent']['width']  / 100.0) )),
+                            int(np.round(height * (annot['percent']['height'] / 100.0) )),
+                        )
+                        for annot in annotation_list
+                    ]
+                    theta_list = [
+                        float(annot['angles']['theta'])
+                        for annot in annotation_list
+                    ]
 
-                        # Get metadata
-                        viewpoint1_list = [
-                            int(annot['metadata'].get('viewpoint1', -1))
-                            for annot in annotation_list
-                        ]
-                        viewpoint2_list = [
-                            int(annot['metadata'].get('viewpoint2', -1))
-                            for annot in annotation_list
-                        ]
-                        viewpoint3_list = [
-                            int(annot['metadata'].get('viewpoint3', -1))
-                            for annot in annotation_list
-                        ]
-                        zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
-                        viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+                    # Get metadata
+                    viewpoint1_list = [
+                        int(annot['metadata'].get('viewpoint1', -1))
+                        for annot in annotation_list
+                    ]
+                    viewpoint2_list = [
+                        int(annot['metadata'].get('viewpoint2', -1))
+                        for annot in annotation_list
+                    ]
+                    viewpoint3_list = [
+                        int(annot['metadata'].get('viewpoint3', -1))
+                        for annot in annotation_list
+                    ]
+                    zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
+                    viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
 
-                        quality_list = [
-                            int(annot['metadata'].get('quality', 0))
-                            for annot in annotation_list
-                        ]
-                        # Fix qualities
-                        for index, quality in enumerate(quality_list):
-                            if quality == 0:
-                                quality_list[index] = None
-                            elif quality == 1:
-                                quality_list[index] = 2
-                            elif quality == 2:
-                                quality_list[index] = 4
-                            else:
-                                raise ValueError('quality must be 0, 1 or 2')
+                    quality_list = [
+                        int(annot['metadata'].get('quality', 0))
+                        for annot in annotation_list
+                    ]
+                    # Fix qualities
+                    for index, quality in enumerate(quality_list):
+                        if quality == 0:
+                            quality_list[index] = None
+                        elif quality == 1:
+                            quality_list[index] = 2
+                        elif quality == 2:
+                            quality_list[index] = 4
+                        else:
+                            raise ValueError('quality must be 0, 1 or 2')
 
-                        multiple_list =  [
-                            annot['metadata'].get('multiple', False)
-                            for annot in annotation_list
-                        ]
-                        interest_list =  [
-                            annot['highlighted']
-                            for annot in annotation_list
-                        ]
-                        species_list = [
-                            annot['metadata'].get('species', const.UNKNOWN)
-                            for annot in annotation_list
-                        ]
+                    multiple_list =  [
+                        annot['metadata'].get('multiple', False)
+                        for annot in annotation_list
+                    ]
+                    interest_list =  [
+                        annot['highlighted']
+                        for annot in annotation_list
+                    ]
+                    species_list = [
+                        annot['metadata'].get('species', const.UNKNOWN)
+                        for annot in annotation_list
+                    ]
 
-                        # Process annotations
-                        survived_aid_list = [
-                            None if annot['label'] in [None, 'None'] else int(annot['label'])
-                            for annot in annotation_list
-                        ]
+                    # Process annotations
+                    survived_aid_list = [
+                        None if annot['label'] in [None, 'None'] else int(annot['label'])
+                        for annot in annotation_list
+                    ]
 
-                    with ut.Timer('submit...update...deletion'):
-                        # Delete annotations that didn't survive
-                        kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
-                        ibs.delete_annots(kill_aid_list)
+                    # Delete annotations that didn't survive
+                    kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
+                    ibs.delete_annots(kill_aid_list)
 
-                    with ut.Timer('submit...update...adding'):
+                    with ut.Timer('submit...update...adding/updating'):
                         staged_uuid_list = [staged_uuid] * len(survived_aid_list)
                         staged_user_id_list = [staged_user_id] * len(survived_aid_list)
 
                         aid_list = []
-                        zipped = zip(survived_aid_list, bbox_list, staged_uuid_list, staged_user_id_list)
-                        for aid, bbox, staged_uuid, staged_user_id in zipped:
+                        zipped = zip(survived_aid_list, bbox_list, theta_list, staged_uuid_list, staged_user_id_list)
+                        for aid, bbox, theta, staged_uuid, staged_user_id in zipped:
                             staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
                             staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
 
                             if aid is None:
-                                aid_ = ibs.add_annots([gid], [bbox],
+                                aid_ = ibs.add_annots([gid], [bbox], theta_list=[theta],
                                                       staged_uuid_list=staged_uuid_list_,
                                                       staged_user_id_list=staged_user_id_list_)
                                 aid_ = aid_[0]
                             else:
-                                ibs.set_annot_bboxes([aid], [bbox])
+                                ibs.set_annot_bboxes([aid], [bbox], theta_list=[theta])
                                 if staged_uuid_list_ is not None:
                                     ibs.set_annot_staged_uuids([aid], staged_uuid_list_)
                                 if staged_user_id_list_ is not None:
@@ -300,11 +298,7 @@ def submit_detection(**kwargs):
                             aid_list.append(aid_)
 
                     with ut.Timer('submit...update...setting'):
-                        print('aid_list = %r' % (aid_list, ))
-                        # Set annotation metadata
-                        ibs.set_annot_thetas(aid_list, theta_list)
                         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
-                        # TODO ibs.set_annot_viewpoint_code(aid_list, viewpoint_list)
                         ibs.set_annot_qualities(aid_list, quality_list)
                         ibs.set_annot_multiple(aid_list, multiple_list)
                         ibs.set_annot_interest(aid_list, interest_list)
@@ -315,143 +309,140 @@ def submit_detection(**kwargs):
 
                     ##################################################################################
                     # Process parts
-                    with ut.Timer('submit...update...parts'):
-                        survived_part_rowid_list = [
-                            None if part['label'] is None else int(part['label'])
-                            for part in part_list
-                        ]
+                    survived_part_rowid_list = [
+                        None if part['label'] is None else int(part['label'])
+                        for part in part_list
+                    ]
 
-                        # Get primatives
-                        aid_list = [
-                            mapping_dict[part['parent']]
-                            for part in part_list
-                        ]
-                        bbox_list = [
-                            (
-                                int(np.round(width  * (part['percent']['left']   / 100.0) )),
-                                int(np.round(height * (part['percent']['top']    / 100.0) )),
-                                int(np.round(width  * (part['percent']['width']  / 100.0) )),
-                                int(np.round(height * (part['percent']['height'] / 100.0) )),
-                            )
-                            for part in part_list
-                        ]
-                        theta_list = [
-                            float(part['angles']['theta'])
-                            for part in part_list
-                        ]
+                    # Get primatives
+                    aid_list = [
+                        mapping_dict[part['parent']]
+                        for part in part_list
+                    ]
+                    bbox_list = [
+                        (
+                            int(np.round(width  * (part['percent']['left']   / 100.0) )),
+                            int(np.round(height * (part['percent']['top']    / 100.0) )),
+                            int(np.round(width  * (part['percent']['width']  / 100.0) )),
+                            int(np.round(height * (part['percent']['height'] / 100.0) )),
+                        )
+                        for part in part_list
+                    ]
+                    theta_list = [
+                        float(part['angles']['theta'])
+                        for part in part_list
+                    ]
 
-                        # Get metadata
-                        viewpoint1_list = [
-                            int(part['metadata'].get('viewpoint1', -1))
-                            for part in part_list
-                        ]
-                        viewpoint2_list = [-1] * len(part_list)
-                        viewpoint3_list = [-1] * len(part_list)
-                        zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
-                        viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+                    # Get metadata
+                    viewpoint1_list = [
+                        int(part['metadata'].get('viewpoint1', -1))
+                        for part in part_list
+                    ]
+                    viewpoint2_list = [-1] * len(part_list)
+                    viewpoint3_list = [-1] * len(part_list)
+                    zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
+                    viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
 
-                        quality_list = [
-                            int(part['metadata'].get('quality', 0))
-                            for part in part_list
-                        ]
-                        # Fix qualities
-                        for index, quality in enumerate(quality_list):
-                            if quality == 0:
-                                quality_list[index] = None
-                            elif quality == 1:
-                                quality_list[index] = 2
-                            elif quality == 2:
-                                quality_list[index] = 4
-                            else:
-                                raise ValueError('quality must be 0, 1 or 2')
+                    quality_list = [
+                        int(part['metadata'].get('quality', 0))
+                        for part in part_list
+                    ]
+                    # Fix qualities
+                    for index, quality in enumerate(quality_list):
+                        if quality == 0:
+                            quality_list[index] = None
+                        elif quality == 1:
+                            quality_list[index] = 2
+                        elif quality == 2:
+                            quality_list[index] = 4
+                        else:
+                            raise ValueError('quality must be 0, 1 or 2')
 
-                        type_list = [
-                            part['metadata'].get('type', const.UNKNOWN)
-                            for part in part_list
-                        ]
+                    type_list = [
+                        part['metadata'].get('type', const.UNKNOWN)
+                        for part in part_list
+                    ]
 
-                        # Delete annotations that didn't survive
-                        kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
-                        ibs.delete_parts(kill_part_rowid_list)
+                    # Delete annotations that didn't survive
+                    kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
+                    ibs.delete_parts(kill_part_rowid_list)
 
-                        staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
-                        staged_user_id_list = [staged_user_id] * len(survived_part_rowid_list)
+                    staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
+                    staged_user_id_list = [staged_user_id] * len(survived_part_rowid_list)
 
-                        part_rowid_list = []
-                        zipped = zip(survived_part_rowid_list, aid_list, bbox_list, staged_uuid_list, staged_user_id_list)
-                        for part_rowid, aid, bbox, staged_uuid, staged_user_id in zipped:
-                            staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
-                            staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
+                    part_rowid_list = []
+                    zipped = zip(survived_part_rowid_list, aid_list, bbox_list, staged_uuid_list, staged_user_id_list)
+                    for part_rowid, aid, bbox, staged_uuid, staged_user_id in zipped:
+                        staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
+                        staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
 
-                            if part_rowid is None:
-                                part_rowid_ = ibs.add_parts([aid], [bbox],
-                                                            staged_uuid_list=staged_uuid_list_,
-                                                            staged_user_id_list=staged_user_id_list_)
-                                part_rowid_ = part_rowid_[0]
-                            else:
-                                ibs._set_part_aid([part_rowid], [aid])
-                                ibs.set_part_bboxes([part_rowid], [bbox])
-                                if staged_uuid_list_ is not None:
-                                    ibs.set_part_staged_uuids([part_rowid], staged_uuid_list_)
-                                if staged_user_id_list_ is not None:
-                                    ibs.set_part_staged_user_ids([part_rowid], staged_user_id_list_)
+                        if part_rowid is None:
+                            part_rowid_ = ibs.add_parts([aid], [bbox],
+                                                        staged_uuid_list=staged_uuid_list_,
+                                                        staged_user_id_list=staged_user_id_list_)
+                            part_rowid_ = part_rowid_[0]
+                        else:
+                            ibs._set_part_aid([part_rowid], [aid])
+                            ibs.set_part_bboxes([part_rowid], [bbox])
+                            if staged_uuid_list_ is not None:
+                                ibs.set_part_staged_uuids([part_rowid], staged_uuid_list_)
+                            if staged_user_id_list_ is not None:
+                                ibs.set_part_staged_user_ids([part_rowid], staged_user_id_list_)
 
-                                part_rowid_ = part_rowid
-                            part_rowid_list.append(part_rowid_)
+                            part_rowid_ = part_rowid
+                        part_rowid_list.append(part_rowid_)
 
-                        # Set part metadata
-                        print('part_rowid_list = %r' % (part_rowid_list, ))
-                        ibs.set_part_thetas(part_rowid_list, theta_list)
-                        ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
-                        ibs.set_part_qualities(part_rowid_list, quality_list)
-                        ibs.set_part_types(part_rowid_list, type_list)
+                    # Set part metadata
+                    print('part_rowid_list = %r' % (part_rowid_list, ))
+                    ibs.set_part_thetas(part_rowid_list, theta_list)
+                    ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
+                    ibs.set_part_qualities(part_rowid_list, quality_list)
+                    ibs.set_part_types(part_rowid_list, type_list)
 
                     ##################################################################################
                     # Process image
-                    with ut.Timer('submit...update...image'):
 
+                    if is_staged:
                         # Set image reviewed flag
-                        if is_staged:
-                            metadata_dict = ibs.get_image_metadata(gid)
-                            if 'staged' not in metadata_dict:
-                                metadata_dict['staged'] = {
-                                    'sessions': {
-                                        'uuids': [],
-                                        'user_ids': [],
-                                    }
+                        metadata_dict = ibs.get_image_metadata(gid)
+                        if 'staged' not in metadata_dict:
+                            metadata_dict['staged'] = {
+                                'sessions': {
+                                    'uuids': [],
+                                    'user_ids': [],
                                 }
-                            metadata_dict['staged']['sessions']['uuids'].append(str(staged_uuid))
-                            metadata_dict['staged']['sessions']['user_ids'].append(staged_user_id)
-                            ibs.set_image_metadata([gid], [metadata_dict])
-                        else:
-                            ibs.set_image_reviewed([gid], [1])
+                            }
+                        metadata_dict['staged']['sessions']['uuids'].append(str(staged_uuid))
+                        metadata_dict['staged']['sessions']['user_ids'].append(staged_user_id)
+                        ibs.set_image_metadata([gid], [metadata_dict])
+                    else:
+                        ibs.set_image_reviewed([gid], [1])
 
                         print('[web] user_id: %s, gid: %d, annots: %d, parts: %d' % (user_id, gid, len(annotation_list), len(part_list), ))
 
-        with ut.Timer('submit...cleanup'):
-            default_list = [
-                'autointerest',
-                'interest_bypass',
-                'metadata',
-                'metadata_viewpoint',
-                'metadata_quality',
-                'metadata_flags',
-                'metadata_flags_aoi',
-                'metadata_flags_multiple',
-                'metadata_species',
-                'metadata_label',
-                'metadata_quickhelp',
-                'parts',
-                'modes_rectangle',
-                'modes_diagonal',
-                'modes_diagonal2',
-                'staged',
-            ]
-            config = {
-                default: kwargs[default]
-                for default in default_list
-                if default in kwargs
-            }
+        default_list = [
+            'autointerest',
+            'interest_bypass',
+            'metadata',
+            'metadata_viewpoint',
+            'metadata_quality',
+            'metadata_flags',
+            'metadata_flags_aoi',
+            'metadata_flags_multiple',
+            'metadata_species',
+            'metadata_label',
+            'metadata_quickhelp',
+            'parts',
+            'modes_rectangle',
+            'modes_diagonal',
+            'modes_diagonal2',
+            'staged',
+        ]
+        config = {
+            default: kwargs[default]
+            for default in default_list
+            if default in kwargs
+        }
 
         # Return HTML
         refer = request.args.get('refer', '')
@@ -610,88 +601,87 @@ def submit_viewpoint2(**kwargs):
 
 @register_route('/submit/viewpoint3/', methods=['POST'])
 def submit_viewpoint3(**kwargs):
-    with ut.Timer('[submit_viewpoint3]'):
-        ibs = current_app.ibs
-        method = request.form.get('viewpoint-submit', '')
-        imgsetid = request.args.get('imgsetid', '')
-        imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+    ibs = current_app.ibs
+    method = request.form.get('viewpoint-submit', '')
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-        src_ag = request.args.get('src_ag', '')
-        src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
-        dst_ag = request.args.get('dst_ag', '')
-        dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+    src_ag = request.args.get('src_ag', '')
+    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+    dst_ag = request.args.get('dst_ag', '')
+    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
-        aid = int(request.form['viewpoint-aid'])
-        user_id = controller_inject.get_user().get('username', None)
+    aid = int(request.form['viewpoint-aid'])
+    user_id = controller_inject.get_user().get('username', None)
 
-        if method.lower() == 'delete':
-            ibs.delete_annots(aid)
-            print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
-            aid = None  # Reset AID to prevent previous
-        if method.lower() == 'make junk':
-            ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-            print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
-            redirection = request.referrer
-            if 'aid' not in redirection:
-                # Prevent multiple clears
-                if '?' in redirection:
-                    redirection = '%s&aid=%d' % (redirection, aid, )
-                else:
-                    redirection = '%s?aid=%d' % (redirection, aid, )
-            return redirect(redirection)
-        if method.lower() == 'rotate left':
-            ibs.update_annot_rotate_left_90([aid])
-            print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
-            redirection = request.referrer
-            if 'aid' not in redirection:
-                # Prevent multiple clears
-                if '?' in redirection:
-                    redirection = '%s&aid=%d' % (redirection, aid, )
-                else:
-                    redirection = '%s?aid=%d' % (redirection, aid, )
-            return redirect(redirection)
-        if method.lower() == 'rotate right':
-            ibs.update_annot_rotate_right_90([aid])
-            print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
-            redirection = request.referrer
-            if 'aid' not in redirection:
-                # Prevent multiple clears
-                if '?' in redirection:
-                    redirection = '%s&aid=%d' % (redirection, aid, )
-                else:
-                    redirection = '%s?aid=%d' % (redirection, aid, )
-            return redirect(redirection)
-        else:
-            if src_ag is not None and dst_ag is not None:
-                appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-
-            if method.lower() == 'ignore':
-                ibs.set_annot_viewpoints([aid], ['ignore'], only_allow_known=False, _code_update=False)
-                viewpoint = 'ignore'
+    if method.lower() == 'delete':
+        ibs.delete_annots(aid)
+        print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
+        aid = None  # Reset AID to prevent previous
+    if method.lower() == 'make junk':
+        ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
+        print('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
             else:
-                # Get metadata
-                viewpoint_str = kwargs.get('viewpoint-text-code', '')
-                if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
-                    viewpoint_str = None
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    if method.lower() == 'rotate left':
+        ibs.update_annot_rotate_left_90([aid])
+        print('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    if method.lower() == 'rotate right':
+        ibs.update_annot_rotate_right_90([aid])
+        print('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    else:
+        if src_ag is not None and dst_ag is not None:
+            appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
 
-                if viewpoint_str is None:
-                    viewpoint = const.VIEW.UNKNOWN
-                else:
-                    viewpoint = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
-                ibs.set_annot_viewpoint_int([aid], [viewpoint])
-
-            species_text = request.form['viewpoint-species']
-            ibs.set_annot_species([aid], [species_text])
-            ibs.set_annot_reviewed([aid], [1])
-            print('[web] user_id: %s, aid: %d, viewpoint: %s' % (user_id, aid, viewpoint))
-
-        # Return HTML
-        refer = request.args.get('refer', '')
-        if len(refer) > 0:
-            retval = redirect(appf.decode_refer_url(refer))
+        if method.lower() == 'ignore':
+            ibs.set_annot_viewpoints([aid], ['ignore'], only_allow_known=False, _code_update=False)
+            viewpoint = 'ignore'
         else:
-            retval = redirect(url_for('turk_viewpoint3', imgsetid=imgsetid, src_ag=src_ag,
-                                      dst_ag=dst_ag, previous=aid))
+            # Get metadata
+            viewpoint_str = kwargs.get('viewpoint-text-code', '')
+            if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
+                viewpoint_str = None
+
+            if viewpoint_str is None:
+                viewpoint = const.VIEW.UNKNOWN
+            else:
+                viewpoint = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
+            ibs.set_annot_viewpoint_int([aid], [viewpoint])
+
+        species_text = request.form['viewpoint-species']
+        ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_reviewed([aid], [1])
+        print('[web] user_id: %s, aid: %d, viewpoint: %s' % (user_id, aid, viewpoint))
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        retval = redirect(appf.decode_refer_url(refer))
+    else:
+        retval = redirect(url_for('turk_viewpoint3', imgsetid=imgsetid, src_ag=src_ag,
+                                  dst_ag=dst_ag, previous=aid))
 
     return retval
 
