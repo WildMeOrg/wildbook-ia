@@ -7,6 +7,7 @@ from flask import request, make_response, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
+import vtool as vt
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -38,7 +39,7 @@ def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
         ibs = current_app.ibs
 
     gid = int(gid)
-    image = None
+    gpath = None
 
     if 'thumbsize' not in kwargs:
         kwargs['thumbsize'] = max(
@@ -51,16 +52,23 @@ def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
 
     if thumbnail:
         try:
-            image = ibs.get_image_thumbnail(gid, **kwargs)
+            gpath = ibs.get_image_thumbpath(gid, ensure=True, **kwargs)
+            image = vt.imread(gpath, orient='auto')
             h, w = image.shape[:2]
             assert h > 0, 'Invalid image thumbnail'
             assert w > 0, 'Invalid image thumbnail'
         except AssertionError:
-            image = None
+            gpath = None
 
-    if image is None:
-        image = ibs.get_images(gid)
+    if gpath is None:
+        gpath = ibs.get_image_paths(gid)
 
+    image_src = image_src_path(gpath, **kwargs)
+    return image_src
+
+
+def image_src_path(gpath, **kwargs):
+    image = vt.imread(gpath, orient='auto')
     image_src = _resize_src(image, **kwargs)
     return image_src
 

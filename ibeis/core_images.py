@@ -156,6 +156,84 @@ def draw_thumb_helper(thumbsize, gpath, orient, bbox_list, theta_list, interest_
     return thumb, width, height
 
 
+def load_text(fpath):
+    with open(fpath, 'r') as file:
+        text = file.read()
+    return text
+
+
+def save_text(fpath, text):
+    with open(fpath, 'w') as file:
+        file.write(text)
+
+
+class WebSrcConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('ext', '.txt', hideif='.txt'),
+        ut.ParamInfo('force_serial', False, hideif=False),
+    ]
+
+
+@register_preproc(
+    tablename='web_src', parents=['images'],
+    colnames=['src'],
+    coltypes=[('extern', load_text, save_text)],
+    configclass=WebSrcConfig,
+    fname='webcache',
+    rm_extern_on_delete=True,
+    chunksize=256,
+)
+def compute_web_src(depc, gid_list, config=None):
+    r"""Compute the web src
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (str): tup
+
+    CommandLine:
+        ibeis --tf compute_web_src --show --db PZ_MTEST
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> thumbs = depc.get_property('web_src', gid_list, 'src', recompute=True)
+        >>> thumb = thumbs[0]
+        >>> assert ut.hash_data(thumb) == 'wjkpjrsmqzdhmqdxjbgomdmqxaxsckxn'
+    """
+    ibs = depc.controller
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    args_list = list(zip(gpath_list))
+
+    genkw = {
+        'ordered': True,
+        'chunksize': 256,
+        'progkw': {'freq': 50},
+        #'adjust': True,
+        'futures_threaded': True,
+        'force_serial': ibs.force_serial or config['force_serial'],
+    }
+    gen = ut.generate2(draw_web_src, args_list, nTasks=len(args_list),
+                       **genkw)
+    for val in gen:
+        yield (val, )
+
+
+def draw_web_src(gpath):
+    from ibeis.web.routes_ajax import image_src_path
+    image_src = image_src_path(gpath)
+    return image_src
+
+
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
