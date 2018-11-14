@@ -336,35 +336,41 @@ def submit_detection(**kwargs):
                             local_update_staged_uuid_list.append(staged_uuid)
                             local_update_staged_user_id_list.append(staged_user_id)
 
-                    add_aid_list = ibs.add_annots(local_add_gid_list,
-                                                  bbox_list=local_add_bbox_list,
-                                                  theta_list=local_add_theta_list,
-                                                  interest_list=local_add_interest_list,
-                                                  viewpoint_list=local_add_viewpoint_list,
-                                                  quality_list=local_add_quality_list,
-                                                  multiple_list=local_add_multiple_list,
-                                                  species_list=local_add_species_list,
-                                                  staged_uuid_list=local_add_staged_uuid_list,
-                                                  staged_user_id_list=local_add_staged_user_id_list,
-                                                  delete_thumb=False)
+                    if len(local_add_gid_list) > 0:
+                        add_aid_list = ibs.add_annots(local_add_gid_list,
+                                                      bbox_list=local_add_bbox_list,
+                                                      theta_list=local_add_theta_list,
+                                                      interest_list=local_add_interest_list,
+                                                      viewpoint_list=local_add_viewpoint_list,
+                                                      quality_list=local_add_quality_list,
+                                                      multiple_list=local_add_multiple_list,
+                                                      species_list=local_add_species_list,
+                                                      staged_uuid_list=local_add_staged_uuid_list,
+                                                      staged_user_id_list=local_add_staged_user_id_list,
+                                                      delete_thumb=False)
+                    else:
+                        add_aid_list = []
 
-                    with ut.Timer('submit...update...updating'):
-                        ibs.set_annot_bboxes(local_update_aid_list, local_update_bbox_list,
-                                             theta_list=local_update_theta_list,
-                                             interest_list=local_update_interest_list)
+                    if len(local_update_aid_list) > 0:
+                        with ut.Timer('submit...update...updating'):
+                            ibs.set_annot_bboxes(local_update_aid_list, local_update_bbox_list,
+                                                 theta_list=local_update_theta_list,
+                                                 interest_list=local_update_interest_list)
 
-                    with ut.Timer('submit...update...metadata0'):
-                        ibs.set_annot_viewpoints(local_update_aid_list,      local_update_viewpoint_list)
-                    with ut.Timer('submit...update...metadata1'):
-                        ibs.set_annot_qualities(local_update_aid_list,       local_update_quality_list)
-                    with ut.Timer('submit...update...metadata2'):
-                        ibs.set_annot_multiple(local_update_aid_list,        local_update_multiple_list)
-                    with ut.Timer('submit...update...metadata3'):
-                        ibs.set_annot_species(local_update_aid_list,         local_update_species_list)
-                    with ut.Timer('submit...update...metadata4'):
-                        ibs.set_annot_staged_uuids(local_update_aid_list,    local_update_staged_uuid_list)
-                    with ut.Timer('submit...update...metadata5'):
-                        ibs.set_annot_staged_user_ids(local_update_aid_list, local_update_staged_user_id_list)
+                        with ut.Timer('submit...update...metadata0'):
+                            ibs.set_annot_viewpoints(local_update_aid_list,      local_update_viewpoint_list)
+                        with ut.Timer('submit...update...metadata1'):
+                            ibs.set_annot_qualities(local_update_aid_list,       local_update_quality_list)
+                        with ut.Timer('submit...update...metadata2'):
+                            ibs.set_annot_multiple(local_update_aid_list,        local_update_multiple_list)
+                        with ut.Timer('submit...update...metadata3'):
+                            ibs.set_annot_species(local_update_aid_list,         local_update_species_list)
+                        with ut.Timer('submit...update...metadata4'):
+                            ibs.set_annot_staged_uuids(local_update_aid_list,    local_update_staged_uuid_list)
+                        with ut.Timer('submit...update...metadata5'):
+                            ibs.set_annot_staged_user_ids(local_update_aid_list, local_update_staged_user_id_list)
+                    else:
+                        local_update_aid_list = []
 
                     # Set the mapping dict to use aids now
                     aid_list = []

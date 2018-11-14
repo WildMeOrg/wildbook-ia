@@ -871,6 +871,8 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
                              num_images=10, t_width=500, output_path=None):
     if gid_list is None:
         gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **config)
+    else:
+        num_images = None
 
     if randomize:
         random.shuffle(gid_list)
