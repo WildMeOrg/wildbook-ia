@@ -274,93 +274,96 @@ def submit_detection(**kwargs):
                     kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
                     ibs.delete_annots(kill_aid_list)
 
-                    with ut.Timer('submit...update...records'):
-                        local_add_gid_list = []
-                        local_add_bbox_list = []
-                        local_add_theta_list = []
-                        local_add_interest_list = []
-                        local_add_viewpoint_list = []
-                        local_add_quality_list = []
-                        local_add_multiple_list = []
-                        local_add_species_list = []
-                        local_add_staged_uuid_list = []
-                        local_add_staged_user_id_list = []
+                    local_add_gid_list = []
+                    local_add_bbox_list = []
+                    local_add_theta_list = []
+                    local_add_interest_list = []
+                    local_add_viewpoint_list = []
+                    local_add_quality_list = []
+                    local_add_multiple_list = []
+                    local_add_species_list = []
+                    local_add_staged_uuid_list = []
+                    local_add_staged_user_id_list = []
 
-                        local_update_aid_list = []
-                        local_update_bbox_list = []
-                        local_update_theta_list = []
-                        local_update_interest_list = []
-                        local_update_viewpoint_list = []
-                        local_update_quality_list = []
-                        local_update_multiple_list = []
-                        local_update_species_list = []
-                        local_update_staged_uuid_list = []
-                        local_update_staged_user_id_list = []
+                    local_update_aid_list = []
+                    local_update_bbox_list = []
+                    local_update_theta_list = []
+                    local_update_interest_list = []
+                    local_update_viewpoint_list = []
+                    local_update_quality_list = []
+                    local_update_multiple_list = []
+                    local_update_species_list = []
+                    local_update_staged_uuid_list = []
+                    local_update_staged_user_id_list = []
 
-                        zipped = zip(
-                            survived_aid_list,
-                            bbox_list,
-                            theta_list,
-                            interest_list,
-                            viewpoint_list,
-                            quality_list,
-                            multiple_list,
-                            species_list,
-                        )
+                    zipped = zip(
+                        survived_aid_list,
+                        bbox_list,
+                        theta_list,
+                        interest_list,
+                        viewpoint_list,
+                        quality_list,
+                        multiple_list,
+                        species_list,
+                    )
 
-                        survived_flag_list = []
+                    survived_flag_list = []
 
-                        for values in zipped:
-                            aid, bbox, theta, interest, viewpoint, quality, multiple, species = values
-                            flag = aid is None
-                            survived_flag_list.append(flag)
-                            if flag:
-                                local_add_gid_list.append(gid)
-                                local_add_bbox_list.append(bbox)
-                                local_add_theta_list.append(theta)
-                                local_add_interest_list.append(interest)
-                                local_add_viewpoint_list.append(viewpoint)
-                                local_add_quality_list.append(quality)
-                                local_add_multiple_list.append(multiple)
-                                local_add_species_list.append(species)
-                                local_add_staged_uuid_list.append(staged_uuid)
-                                local_add_staged_user_id_list.append(staged_user_id)
-                            else:
-                                local_update_aid_list.append(aid)
-                                local_update_bbox_list.append(bbox)
-                                local_update_theta_list.append(theta)
-                                local_update_interest_list.append(interest)
-                                local_update_viewpoint_list.append(viewpoint)
-                                local_update_quality_list.append(quality)
-                                local_update_multiple_list.append(multiple)
-                                local_update_species_list.append(species)
-                                local_update_staged_uuid_list.append(staged_uuid)
-                                local_update_staged_user_id_list.append(staged_user_id)
+                    for values in zipped:
+                        aid, bbox, theta, interest, viewpoint, quality, multiple, species = values
+                        flag = aid is None
+                        survived_flag_list.append(flag)
+                        if flag:
+                            local_add_gid_list.append(gid)
+                            local_add_bbox_list.append(bbox)
+                            local_add_theta_list.append(theta)
+                            local_add_interest_list.append(interest)
+                            local_add_viewpoint_list.append(viewpoint)
+                            local_add_quality_list.append(quality)
+                            local_add_multiple_list.append(multiple)
+                            local_add_species_list.append(species)
+                            local_add_staged_uuid_list.append(staged_uuid)
+                            local_add_staged_user_id_list.append(staged_user_id)
+                        else:
+                            local_update_aid_list.append(aid)
+                            local_update_bbox_list.append(bbox)
+                            local_update_theta_list.append(theta)
+                            local_update_interest_list.append(interest)
+                            local_update_viewpoint_list.append(viewpoint)
+                            local_update_quality_list.append(quality)
+                            local_update_multiple_list.append(multiple)
+                            local_update_species_list.append(species)
+                            local_update_staged_uuid_list.append(staged_uuid)
+                            local_update_staged_user_id_list.append(staged_user_id)
 
-                    with ut.Timer('submit...update...adding'):
-                        add_aid_list = ibs.add_annots(local_add_gid_list,
-                                                      bbox_list=local_add_bbox_list,
-                                                      theta_list=local_add_theta_list,
-                                                      interest_list=local_add_interest_list,
-                                                      viewpoint_list=local_add_viewpoint_list,
-                                                      quality_list=local_add_quality_list,
-                                                      multiple_list=local_add_multiple_list,
-                                                      species_list=local_add_species_list,
-                                                      staged_uuid_list=local_add_staged_uuid_list,
-                                                      staged_user_id_list=local_add_staged_user_id_list,
-                                                      delete_thumb=False)
+                    add_aid_list = ibs.add_annots(local_add_gid_list,
+                                                  bbox_list=local_add_bbox_list,
+                                                  theta_list=local_add_theta_list,
+                                                  interest_list=local_add_interest_list,
+                                                  viewpoint_list=local_add_viewpoint_list,
+                                                  quality_list=local_add_quality_list,
+                                                  multiple_list=local_add_multiple_list,
+                                                  species_list=local_add_species_list,
+                                                  staged_uuid_list=local_add_staged_uuid_list,
+                                                  staged_user_id_list=local_add_staged_user_id_list,
+                                                  delete_thumb=False)
 
                     with ut.Timer('submit...update...updating'):
                         ibs.set_annot_bboxes(local_update_aid_list, local_update_bbox_list,
                                              theta_list=local_update_theta_list,
                                              interest_list=local_update_interest_list)
 
-                    with ut.Timer('submit...update...metadata'):
+                    with ut.Timer('submit...update...metadata0'):
                         ibs.set_annot_viewpoints(local_update_aid_list,      local_update_viewpoint_list)
+                    with ut.Timer('submit...update...metadata1'):
                         ibs.set_annot_qualities(local_update_aid_list,       local_update_quality_list)
+                    with ut.Timer('submit...update...metadata2'):
                         ibs.set_annot_multiple(local_update_aid_list,        local_update_multiple_list)
+                    with ut.Timer('submit...update...metadata3'):
                         ibs.set_annot_species(local_update_aid_list,         local_update_species_list)
+                    with ut.Timer('submit...update...metadata4'):
                         ibs.set_annot_staged_uuids(local_update_aid_list,    local_update_staged_uuid_list)
+                    with ut.Timer('submit...update...metadata5'):
                         ibs.set_annot_staged_user_ids(local_update_aid_list, local_update_staged_user_id_list)
 
                     # Set the mapping dict to use aids now
@@ -377,6 +380,7 @@ def submit_detection(**kwargs):
 
                     assert counter_add == len(add_aid_list)
                     assert counter_update == len(local_update_aid_list)
+                    assert counter_add + counter_update == len(survived_aid_list)
 
                     mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
 

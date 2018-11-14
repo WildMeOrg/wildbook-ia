@@ -3161,54 +3161,64 @@ def set_annot_verts(ibs, aid_list, verts_list,
         Method: PUT
         URL:    /api/annot/vert/
     """
-    from vtool import geometry
-    nInput = len(aid_list)
-    # Compute data to set
-    if isinstance(verts_list, np.ndarray):
-        verts_list = verts_list.tolist()
-    for index, vert_list in enumerate(verts_list):
-        if isinstance(vert_list, np.ndarray):
-            verts_list[index] = vert_list.tolist()
-    num_verts_list   = list(map(len, verts_list))
-    verts_as_strings = list(map(six.text_type, verts_list))
-    id_iter1 = ((aid,) for aid in aid_list)
-    # also need to set the internal number of vertices
-    val_iter1 = ((num_verts, verts) for (num_verts, verts)
-                 in zip(num_verts_list, verts_as_strings))
-    colnames = (ANNOT_NUM_VERTS, ANNOT_VERTS,)
-    # SET VERTS in ANNOTATION_TABLE
-    ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter1, id_iter1, nInput=nInput)
-    # changing the vertices also changes the bounding boxes
-    bbox_list = geometry.bboxes_from_vert_list(verts_list)      # new bboxes
-    xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
-    val_iter2 = zip(xtl_list, ytl_list, width_list, height_list)
-    id_iter2 = ((aid,) for aid in aid_list)
-    colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
-    # SET BBOX in ANNOTATION_TABLE
-    ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
+    with ut.Timer('set_annot_verts'):
 
-    if theta_list:
-        ibs.set_annot_thetas(aid_list, theta_list, delete_thumbs=False,
-                             update_visual_uuids=False, notify_root=False)
+        with ut.Timer('set_annot_verts...config'):
+            from vtool import geometry
+            nInput = len(aid_list)
+            # Compute data to set
+            if isinstance(verts_list, np.ndarray):
+                verts_list = verts_list.tolist()
+            for index, vert_list in enumerate(verts_list):
+                if isinstance(vert_list, np.ndarray):
+                    verts_list[index] = vert_list.tolist()
+            num_verts_list   = list(map(len, verts_list))
+            verts_as_strings = list(map(six.text_type, verts_list))
+            id_iter1 = ((aid,) for aid in aid_list)
+            # also need to set the internal number of vertices
+            val_iter1 = ((num_verts, verts) for (num_verts, verts)
+                         in zip(num_verts_list, verts_as_strings))
+            colnames = (ANNOT_NUM_VERTS, ANNOT_VERTS,)
+            # SET VERTS in ANNOTATION_TABLE
+            ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter1, id_iter1, nInput=nInput)
+            # changing the vertices also changes the bounding boxes
+            bbox_list = geometry.bboxes_from_vert_list(verts_list)      # new bboxes
+            xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
 
-    if interest_list:
-        ibs.set_annot_interest(aid_list, interest_list, delete_thumbs=False)
+        with ut.Timer('set_annot_verts...bbox'):
+            val_iter2 = zip(xtl_list, ytl_list, width_list, height_list)
+            id_iter2 = ((aid,) for aid in aid_list)
+            colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
+            # SET BBOX in ANNOTATION_TABLE
+            ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
 
-    if delete_thumbs:
-        ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
-        ibs.delete_annot_imgthumbs(aid_list)
+        with ut.Timer('set_annot_verts...theta'):
+            if theta_list:
+                ibs.set_annot_thetas(aid_list, theta_list, delete_thumbs=False,
+                                     update_visual_uuids=False, notify_root=False)
 
-        gid_list = list(set(ibs.get_annot_gids(aid_list)))
-        config2_ = {'thumbsize': 221}
-        ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
+        with ut.Timer('set_annot_verts...interest'):
+            if interest_list:
+                ibs.set_annot_interest(aid_list, interest_list, delete_thumbs=False)
 
-    if update_visual_uuids:
-        ibs.update_annot_visual_uuids(aid_list)
+        with ut.Timer('set_annot_verts...thumbs'):
+            if delete_thumbs:
+                ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
+                ibs.delete_annot_imgthumbs(aid_list)
 
-    if notify_root:
-        ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
-        if theta_list:
-            ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
+                gid_list = list(set(ibs.get_annot_gids(aid_list)))
+                config2_ = {'thumbsize': 221}
+                ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
+
+        with ut.Timer('set_annot_verts...uuids'):
+            if update_visual_uuids:
+                ibs.update_annot_visual_uuids(aid_list)
+
+        with ut.Timer('set_annot_verts...roots'):
+            if notify_root:
+                ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
+                if theta_list:
+                    ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
 
 
 # PROBCHIP
