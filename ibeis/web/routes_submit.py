@@ -7,6 +7,7 @@ from flask import request, redirect, url_for, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 from ibeis import constants as const
+from ibeis.web.routes import THROW_TEST_AOI_TURKING
 import utool as ut
 import numpy as np
 import uuid
@@ -124,11 +125,8 @@ def submit_detection(**kwargs):
             return redirect(redirection)
         else:
             with ut.Timer('submit...update'):
-
-                with ut.Timer('submit...update...config0'):
-                    current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
-                with ut.Timer('submit...update...config1'):
-                    current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
+                current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
+                current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
 
                 if is_staged:
                     staged_uuid = uuid.uuid4()
@@ -158,29 +156,32 @@ def submit_detection(**kwargs):
                 # Make new annotations
                 width, height = ibs.get_image_sizes(gid)
 
-                # Separate out annotations vs parts
-                data_list = ut.from_json(request.form['ia-detection-data'])
-                print(request.form['ia-detection-manifest'])
-                raw_manifest = request.form['ia-detection-manifest'].strip()
-                try:
-                    manifest_list = ut.from_json(raw_manifest)
-                except ValueError:
-                    manifest_list = []
-                test_truth = len(manifest_list) > 0
-                test_challenge_list = [{
-                    'gid'           : gid,
-                    'manifest_list' : manifest_list,
-                }]
-                test_response_list = [{
-                    'poor_boxes'    : poor_boxes,
-                }]
-                test_result_list = [test_truth == poor_boxes]
-                test_user_id_list = [None]
-                ibs.add_test(test_challenge_list, test_response_list,
-                             test_result_list=test_result_list,
-                             test_user_identity_list=test_user_id_list)
+                if THROW_TEST_AOI_TURKING:
+                    # Separate out annotations vs parts
+                    raw_manifest = request.form['ia-detection-manifest'].strip()
+                    try:
+                        manifest_list = ut.from_json(raw_manifest)
+                    except ValueError:
+                        manifest_list = []
+                    test_truth = len(manifest_list) > 0
+                    test_challenge_list = [{
+                        'gid'           : gid,
+                        'manifest_list' : manifest_list,
+                    }]
+                    test_response_list = [{
+                        'poor_boxes'    : poor_boxes,
+                    }]
+                    test_result_list = [test_truth == poor_boxes]
+                    test_user_id_list = [None]
+                    ibs.add_test(test_challenge_list, test_response_list,
+                                 test_result_list=test_result_list,
+                                 test_user_identity_list=test_user_id_list)
+                else:
+                    test_truth = False
 
                 if not test_truth:
+                    data_list = ut.from_json(request.form['ia-detection-data'])
+
                     annotation_list = []
                     part_list = []
                     mapping_dict = {}
@@ -273,39 +274,111 @@ def submit_detection(**kwargs):
                     kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
                     ibs.delete_annots(kill_aid_list)
 
-                    with ut.Timer('submit...update...adding/updating'):
-                        staged_uuid_list = [staged_uuid] * len(survived_aid_list)
-                        staged_user_id_list = [staged_user_id] * len(survived_aid_list)
+                    with ut.Timer('submit...update...records'):
+                        local_add_gid_list = []
+                        local_add_bbox_list = []
+                        local_add_theta_list = []
+                        local_add_interest_list = []
+                        local_add_viewpoint_list = []
+                        local_add_quality_list = []
+                        local_add_multiple_list = []
+                        local_add_species_list = []
+                        local_add_staged_uuid_list = []
+                        local_add_staged_user_id_list = []
 
-                        aid_list = []
-                        zipped = zip(survived_aid_list, bbox_list, theta_list, staged_uuid_list, staged_user_id_list)
-                        for aid, bbox, theta, staged_uuid, staged_user_id in zipped:
-                            staged_uuid_list_ = None if staged_uuid is None else [staged_uuid]
-                            staged_user_id_list_ = None if staged_user_id is None else [staged_user_id]
+                        local_update_aid_list = []
+                        local_update_bbox_list = []
+                        local_update_theta_list = []
+                        local_update_interest_list = []
+                        local_update_viewpoint_list = []
+                        local_update_quality_list = []
+                        local_update_multiple_list = []
+                        local_update_species_list = []
+                        local_update_staged_uuid_list = []
+                        local_update_staged_user_id_list = []
 
-                            if aid is None:
-                                aid_ = ibs.add_annots([gid], [bbox], theta_list=[theta],
-                                                      staged_uuid_list=staged_uuid_list_,
-                                                      staged_user_id_list=staged_user_id_list_)
-                                aid_ = aid_[0]
+                        zipped = zip(
+                            survived_aid_list,
+                            bbox_list,
+                            theta_list,
+                            interest_list,
+                            viewpoint_list,
+                            quality_list,
+                            multiple_list,
+                            species_list,
+                        )
+
+                        survived_flag_list = []
+
+                        for values in zipped:
+                            aid, bbox, theta, interest, viewpoint, quality, multiple, species = values
+                            flag = aid is None
+                            survived_flag_list.append(flag)
+                            if flag:
+                                local_add_gid_list.append(gid)
+                                local_add_bbox_list.append(bbox)
+                                local_add_theta_list.append(theta)
+                                local_add_interest_list.append(interest)
+                                local_add_viewpoint_list.append(viewpoint)
+                                local_add_quality_list.append(quality)
+                                local_add_multiple_list.append(multiple)
+                                local_add_species_list.append(species)
+                                local_add_staged_uuid_list.append(staged_uuid)
+                                local_add_staged_user_id_list.append(staged_user_id)
                             else:
-                                ibs.set_annot_bboxes([aid], [bbox], theta_list=[theta])
-                                if staged_uuid_list_ is not None:
-                                    ibs.set_annot_staged_uuids([aid], staged_uuid_list_)
-                                if staged_user_id_list_ is not None:
-                                    ibs.set_annot_staged_user_ids([aid], staged_user_id_list_)
-                                aid_ = aid
-                            aid_list.append(aid_)
+                                local_update_aid_list.append(aid)
+                                local_update_bbox_list.append(bbox)
+                                local_update_theta_list.append(theta)
+                                local_update_interest_list.append(interest)
+                                local_update_viewpoint_list.append(viewpoint)
+                                local_update_quality_list.append(quality)
+                                local_update_multiple_list.append(multiple)
+                                local_update_species_list.append(species)
+                                local_update_staged_uuid_list.append(staged_uuid)
+                                local_update_staged_user_id_list.append(staged_user_id)
 
-                    with ut.Timer('submit...update...setting'):
-                        ibs.set_annot_viewpoints(aid_list, viewpoint_list)
-                        ibs.set_annot_qualities(aid_list, quality_list)
-                        ibs.set_annot_multiple(aid_list, multiple_list)
-                        ibs.set_annot_interest(aid_list, interest_list)
-                        ibs.set_annot_species(aid_list, species_list)
+                    with ut.Timer('submit...update...adding'):
+                        add_aid_list = ibs.add_annots(local_add_gid_list,
+                                                      bbox_list=local_add_bbox_list,
+                                                      theta_list=local_add_theta_list,
+                                                      interest_list=local_add_interest_list,
+                                                      viewpoint_list=local_add_viewpoint_list,
+                                                      quality_list=local_add_quality_list,
+                                                      multiple_list=local_add_multiple_list,
+                                                      species_list=local_add_species_list,
+                                                      staged_uuid_list=local_add_staged_uuid_list,
+                                                      staged_user_id_list=local_add_staged_user_id_list,
+                                                      delete_thumb=False)
 
-                        # Set the mapping dict to use aids now
-                        mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
+                    with ut.Timer('submit...update...updating'):
+                        ibs.set_annot_bboxes(local_update_aid_list, local_update_bbox_list,
+                                             theta_list=local_update_theta_list,
+                                             interest_list=local_update_interest_list)
+
+                    with ut.Timer('submit...update...metadata'):
+                        ibs.set_annot_viewpoints(local_update_aid_list,      local_update_viewpoint_list)
+                        ibs.set_annot_qualities(local_update_aid_list,       local_update_quality_list)
+                        ibs.set_annot_multiple(local_update_aid_list,        local_update_multiple_list)
+                        ibs.set_annot_species(local_update_aid_list,         local_update_species_list)
+                        ibs.set_annot_staged_uuids(local_update_aid_list,    local_update_staged_uuid_list)
+                        ibs.set_annot_staged_user_ids(local_update_aid_list, local_update_staged_user_id_list)
+
+                    # Set the mapping dict to use aids now
+                    aid_list = []
+                    counter_add = 0
+                    counter_update = 0
+                    for flag in survived_flag_list:
+                        if flag:
+                            aid_list.append(add_aid_list[counter_add])
+                            counter_add += 1
+                        else:
+                            aid_list.append(local_update_aid_list[counter_update])
+                            counter_update += 1
+
+                    assert counter_add == len(add_aid_list)
+                    assert counter_update == len(local_update_aid_list)
+
+                    mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
 
                     ##################################################################################
                     # Process parts

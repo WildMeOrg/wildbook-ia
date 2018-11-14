@@ -198,7 +198,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
                 species_rowid_list=None, staged_uuid_list=None,
                 staged_user_id_list=None, quiet_delete_thumbs=False,
-                prevent_visual_duplicates=True, skip_cleaning=False, **kwargs):
+                prevent_visual_duplicates=True, skip_cleaning=False,
+                delete_thumb=True, **kwargs):
     r"""
     Adds an annotation to images
 
@@ -436,8 +437,10 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # ibs.update_annot_visual_uuids(aid_list)
 
     # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from ut
-    config2_ = {'thumbsize': 221}
-    ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
+    if delete_thumb:
+        config2_ = {'thumbsize': 221}
+        ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
+
     return aid_list
 
 
@@ -3147,7 +3150,8 @@ def update_annot_rotate_right_90(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/vert/', methods=['PUT'])
-def set_annot_verts(ibs, aid_list, verts_list, theta_list=None,
+def set_annot_verts(ibs, aid_list, verts_list,
+                    theta_list=None, interest_list=None,
                     delete_thumbs=True, update_visual_uuids=True,
                     notify_root=True):
     r"""
@@ -3182,15 +3186,25 @@ def set_annot_verts(ibs, aid_list, verts_list, theta_list=None,
     colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
     # SET BBOX in ANNOTATION_TABLE
     ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
+
     if theta_list:
         ibs.set_annot_thetas(aid_list, theta_list, delete_thumbs=False,
                              update_visual_uuids=False, notify_root=False)
 
+    if interest_list:
+        ibs.set_annot_interest(aid_list, interest_list, delete_thumbs=False)
+
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
         ibs.delete_annot_imgthumbs(aid_list)
+
+        gid_list = list(set(ibs.get_annot_gids(aid_list)))
+        config2_ = {'thumbsize': 221}
+        ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
+
     if update_visual_uuids:
         ibs.update_annot_visual_uuids(aid_list)
+
     if notify_root:
         ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
         if theta_list:
@@ -3956,7 +3970,7 @@ def get_annot_interest(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/interest/', methods=['PUT'])
-def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False):
+def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True):
     r"""
     Sets the annot all instances found bit
 
@@ -3967,9 +3981,10 @@ def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False):
     id_iter = ((aid,) for aid in aid_list)
     val_list = ((flag,) for flag in flag_list)
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_interest',), val_list, id_iter)
-    gid_list = list(set(ibs.get_annot_gids(aid_list)))
-    config2_ = {'thumbsize': 221}
-    ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
+    if delete_thumbs:
+        gid_list = list(set(ibs.get_annot_gids(aid_list)))
+        config2_ = {'thumbsize': 221}
+        ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
 
 
 @register_ibs_method
