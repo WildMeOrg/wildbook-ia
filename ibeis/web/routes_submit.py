@@ -369,8 +369,6 @@ def submit_detection(**kwargs):
                             ibs.set_annot_staged_uuids(local_update_aid_list,    local_update_staged_uuid_list)
                         with ut.Timer('submit...update...metadata5'):
                             ibs.set_annot_staged_user_ids(local_update_aid_list, local_update_staged_user_id_list)
-                    else:
-                        local_update_aid_list = []
 
                     # Set the mapping dict to use aids now
                     aid_list = []
