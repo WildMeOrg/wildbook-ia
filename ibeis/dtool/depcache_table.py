@@ -2220,8 +2220,12 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             uris = table.get_internal_columns(
                 rowid_list, extern_colnames, unpack_scalars=False, eager=True,
                 keepwrap=False)
-            absuris = (join(table.extern_dpath, uri)
-                       for uri in it.chain.from_iterable(uris))
+            absuris = []
+            for uri in it.chain.from_iterable(uris):
+                if not isinstance(uri, tuple):
+                    uri = [uri]
+                for uri_ in uri:
+                    absuris.append(join(table.extern_dpath, uri_))
             fpaths = [fpath for fpath in absuris if exists(fpath)]
             if delete_extern:
                 if ut.VERBOSE or len(fpaths) > 0:
