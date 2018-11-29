@@ -474,9 +474,9 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
 
 @register_ibs_method
-def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
+def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, **kwargs):
     from random import shuffle
-    gid_list = ibs.get_valid_gids()
+    gid_list = ibs.get_valid_gids(is_tile=is_tile)
     aids_list = ibs.get_image_aids(gid_list)
     distro_dict = {}
     for gid, aid_list in zip(gid_list, aids_list):

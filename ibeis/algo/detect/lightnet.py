@@ -26,19 +26,20 @@ VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'hammerhead'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
-    'jaguar'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.py',
-    'lynx'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
-    'manta'              : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
-    'seaturtle'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
+    'hammerhead'            : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
+    'jaguar'                : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.py',
+    'lynx'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
+    'manta'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
+    'seaturtle'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
 
-    'hendrik_elephant'   : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
-    'hendrik_dorsal'     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
+    'hendrik_elephant'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
+    'hendrik_elephant_ears' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.py',
+    'hendrik_dorsal'        : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
 
-    'candidacy'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
-    'ggr2'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
+    'candidacy'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    'ggr2'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
 
-    None                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    None                    : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
 }
 
 
