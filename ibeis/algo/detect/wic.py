@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
 from __future__ import absolute_import, division, print_function
-import matplotlib.pyplot as plt
 import utool as ut
 import numpy as np
 import cv2
@@ -12,6 +11,13 @@ import os
 import copy
 import PIL
 (print, rrr, profile) = ut.inject2(__name__, '[wic]')
+
+
+INPUT_SIZE = 224
+
+
+WEIGHT_URL_DICT = {
+}
 
 
 if not ut.get_argflag('--no-pytorch'):
@@ -30,26 +36,54 @@ if not ut.get_argflag('--no-pytorch'):
 
     try:
         import imgaug  # NOQA
+
+        class Augmentations(object):
+            def __call__(self, img):
+                img = np.array(img)
+                return self.aug.augment_image(img)
+
+        class TrainAugmentations(Augmentations):
+            def __init__(self):
+                from imgaug import augmenters as iaa
+                self.aug = iaa.Sequential([
+                    iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
+                    iaa.AddElementwise((-20, 20), per_channel=0.5),
+                    iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
+                    iaa.Grayscale(alpha=(0.0, 0.5)),
+                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
+                    iaa.Affine(rotate=(-30, 30), shear=(-14, 14), mode='symmetric'),
+                    iaa.Fliplr(0.5),
+                ])
+
+        class ValidAugmentations(Augmentations):
+            def __init__(self):
+                from imgaug import augmenters as iaa
+                self.aug = iaa.Sequential([
+                    iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
+                ])
+
+        AGUEMTNATION = {
+            'train': TrainAugmentations,
+            'val':   ValidAugmentations,
+            'test':  ValidAugmentations,
+        }
+
+        TRANSFORMS = {
+            phase: torchvision.transforms.Compose([
+                AGUEMTNATION[phase](),
+                lambda array: PIL.Image.fromarray(array),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+            for phase in AGUEMTNATION.keys()
+        }
     except ImportError:
+        AGUEMTNATION = {}
+        TRANSFORMS = {}
         print('WARNING Failed to import imgaug. '
               'install with pip install git+https://github.com/aleju/imgaug')
         if ut.SUPER_STRICT:
             raise
-
-
-INPUT_SIZE = 224
-
-
-WEIGHT_URL_DICT = {
-    'seaturtle'     : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
-    'hammerhead'    : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.shark_hammerhead.weights',
-    'ggr2'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
-    'lynx'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.lynx.weights',
-    'jaguar'        : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.jaguar.weights',
-    'manta'         : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.manta_ray_giant.weights',
-
-    None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
-}
 
 
 class ImageFilePathList(torch.utils.data.Dataset):
@@ -101,52 +135,6 @@ class ImageFilePathList(torch.utils.data.Dataset):
         tmp = '    Target Transforms (if any): '
         fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         return fmt_str
-
-
-class Augmentations(object):
-    def __call__(self, img):
-        img = np.array(img)
-        return self.aug.augment_image(img)
-
-
-class TrainAugmentations(Augmentations):
-    def __init__(self):
-        from imgaug import augmenters as iaa
-        self.aug = iaa.Sequential([
-            iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-            iaa.AddElementwise((-20, 20), per_channel=0.5),
-            iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-            iaa.Grayscale(alpha=(0.0, 0.5)),
-            iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
-            iaa.Affine(rotate=(-30, 30), shear=(-14, 14), mode='symmetric'),
-            iaa.Fliplr(0.5),
-        ])
-
-
-class ValidAugmentations(Augmentations):
-    def __init__(self):
-        from imgaug import augmenters as iaa
-        self.aug = iaa.Sequential([
-            iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-        ])
-
-
-AGUEMTNATION = {
-    'train': TrainAugmentations,
-    'val':   ValidAugmentations,
-    'test':  ValidAugmentations,
-}
-
-
-TRANSFORMS = {
-    phase: torchvision.transforms.Compose([
-        AGUEMTNATION[phase](),
-        lambda array: PIL.Image.fromarray(array),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
-    for phase in AGUEMTNATION.keys()
-}
 
 
 class StratifiedSampler(torch.utils.data.sampler.Sampler):
@@ -285,6 +273,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
 
 
 def visualize_augmentations(dataset, augmentation, tag, num_per_class=5):
+    import matplotlib.pyplot as plt
     samples = dataset.samples
     flags = np.array(ut.take_column(samples, 1))
     print('Dataset %r has %d samples' % (tag, len(flags), ))
