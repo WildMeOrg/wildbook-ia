@@ -636,8 +636,11 @@ def models_cnn_lightnet(ibs, **kwargs):
         Method: PUT, GET
         URL:    /api/labels/cnn/lightnet/
     """
-    from ibeis.algo.detect.lightnet import WEIGHT_URL_DICT, _parse_classes_from_weights, _parse_class_list
-    model_dict = ibs.models_cnn(WEIGHT_URL_DICT, _parse_classes_from_weights, _parse_class_list, **kwargs)
+    def identity(x):
+        return x
+
+    from ibeis.algo.detect.lightnet import CONFIG_URL_DICT, _parse_class_list
+    model_dict = ibs.models_cnn(CONFIG_URL_DICT, identity, _parse_class_list, **kwargs)
     return model_dict
 
 
@@ -665,7 +668,7 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
         config_url = config_dict[config_tag]
         classes_url = parse_classes_func(config_url)
         try:
-            classes_filepath = ut.grab_file_url(classes_url, appname='pydarknet',
+            classes_filepath = ut.grab_file_url(classes_url, appname='ibeis',
                                                 check_hash=check_hash)
             assert exists(classes_filepath)
         except (urllib.error.HTTPError, AssertionError):
