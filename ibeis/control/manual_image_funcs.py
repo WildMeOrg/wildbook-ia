@@ -2740,7 +2740,7 @@ def get_vulcan_image_tile_bboxes(ibs, gid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1toM
-@register_api('/api/vulcan/image/tile/verts/', methods=['GET'])
+@register_api('/api/vulcan/image/tile/verts/', methods=['GET'], __api_plural_check__=False)
 def get_vulcan_image_tile_verts(ibs, gid_list):
     r"""
     Returns:
