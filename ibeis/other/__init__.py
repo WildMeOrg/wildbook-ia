@@ -9,6 +9,7 @@ from ibeis.other import detectcore
 from ibeis.other import detectfuncs
 from ibeis.other import detecttrain
 from ibeis.other import ibsfuncs
+from ibeis.other import vulcanfuncs
 import utool
 print, rrr, profile = utool.inject2(__name__, '[ibeis.other]')
 
@@ -69,6 +70,7 @@ def reload_subs(verbose=True):
     get_rrr(detectgrave)(verbose=verbose)
     get_rrr(detecttrain)(verbose=verbose)
     get_rrr(ibsfuncs)(verbose=verbose)
+    get_rrr(vulcanfuncs)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -85,6 +87,7 @@ IMPORT_TUPLES = [
     ('detectgrave', None),
     ('detecttrain', None),
     ('ibsfuncs', None),
+    ('vulcanfuncs', None),
 ]
 """
 Regen Command:

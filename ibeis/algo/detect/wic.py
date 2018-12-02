@@ -121,8 +121,8 @@ class ImageFilePathList(torch.utils.data.Dataset):
         if target is not None and self.target_transform is not None:
             target = self.target_transform(target)
 
-        retval = (sample, ) if target is None else (sample, target, )
-        return retval
+        result = (sample, ) if target is None else (sample, target, )
+        return result
 
     def __len__(self):
         return len(self.samples)
@@ -381,7 +381,7 @@ def train(data_path, output_path, batch_size=32):
     print('Start Training...')
 
     # Train and evaluate
-    model = finetune(dataloaders, model, criterion, optimizer, scheduler, device)
+    model = finetune(model, dataloaders, criterion, optimizer, scheduler, device)
 
     weights_path = os.path.join(output_path, 'classifier.weights')
     weights = {
@@ -450,9 +450,30 @@ def test(filepath_list, weights_path, batch_size=32):
     time_elapsed = time.time() - start
     print('Testing complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
-    retval_list = []
+    result_list = []
     for output in outputs:
-        retval = dict(zip(classes, output))
-        retval_list.append(retval)
+        result = dict(zip(classes, output))
+        result_list.append(result)
 
-    return outputs
+    return result_list
+
+
+def ensemble(filepath_list, weights_path_list, **kwargs):
+
+    results_list = []
+    for weights_path in zip(weights_path_list):
+        result_list = test(filepath_list, weights_path, **kwargs)
+        results_list.append(result_list)
+
+    for result_list in zip(*results_list):
+        merged = {}
+        for result in result_list:
+            for key in result:
+                if key not in merged:
+                    merged[key] = []
+                merged[key].append(result[key])
+        for key in merged:
+            value_list = merged[key]
+            merged[key] = sum(value_list) / len(value_list)
+
+        yield merged
