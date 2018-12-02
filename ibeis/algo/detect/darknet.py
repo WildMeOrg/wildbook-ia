@@ -31,16 +31,16 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    # 'pretrained-v1-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v1.pascal.cfg',
-    'pretrained-v2-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.pascal.cfg',
-    'pretrained-v2-large-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.pascal.cfg',
-    'pretrained-tiny-pascal'     : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.tiny.pascal.cfg',
+    # 'pretrained-v1-pascal'       : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.v1.pascal.cfg',
+    'pretrained-v2-pascal'       : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.v2.pascal.cfg',
+    'pretrained-v2-large-pascal' : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.v2.large.pascal.cfg',
+    'pretrained-tiny-pascal'     : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.tiny.pascal.cfg',
 
-    'pretrained-v2-large-coco'   : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.coco.cfg',
-    'pretrained-tiny-coco'       : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.tiny.coco.cfg',
+    'pretrained-v2-large-coco'   : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.v2.large.coco.cfg',
+    'pretrained-tiny-coco'       : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.tiny.coco.cfg',
 
-    'default'                    : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.coco.cfg',
-    None                         : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.coco.cfg',
+    'default'                    : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.v2.large.coco.cfg',
+    None                         : 'https://cthulhu.dyn.wildme.io/public/models/pretrained.darknet.v2.large.coco.cfg',
 }
 
 

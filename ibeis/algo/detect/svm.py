@@ -13,21 +13,21 @@ VERBOSE_SVM = ut.get_argflag('--verbsvm') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    # 'localizer-zebra-10'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.10.zip',
-    # 'localizer-zebra-20'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.20.zip',
-    # 'localizer-zebra-30'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.30.zip',
-    # 'localizer-zebra-40'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.40.zip',
-    # 'localizer-zebra-50'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.50.zip',
-    # 'localizer-zebra-60'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.60.zip',
-    # 'localizer-zebra-70'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.70.zip',
-    # 'localizer-zebra-80'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.80.zip',
-    # 'localizer-zebra-90'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.90.zip',
-    # 'localizer-zebra-100' : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.100.zip',
+    # 'localizer-zebra-10'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.10.zip',
+    # 'localizer-zebra-20'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.20.zip',
+    # 'localizer-zebra-30'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.30.zip',
+    # 'localizer-zebra-40'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.40.zip',
+    # 'localizer-zebra-50'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.50.zip',
+    # 'localizer-zebra-60'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.60.zip',
+    # 'localizer-zebra-70'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.70.zip',
+    # 'localizer-zebra-80'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.80.zip',
+    # 'localizer-zebra-90'  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.90.zip',
+    # 'localizer-zebra-100' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.localization.zebra.100.zip',
 
-    # 'image-zebra'         : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
+    # 'image-zebra'         : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.image.zebra.pkl',
 
-    # 'default'             : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
-    # None                  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
+    # 'default'             : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.image.zebra.pkl',
+    # None                  : 'https://cthulhu.dyn.wildme.io/public/models/classifier.svm.image.zebra.pkl',
 }
 
 

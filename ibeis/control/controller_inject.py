@@ -91,10 +91,10 @@ GLOBAL_CORS = None
 GLOBAL_CAS = None
 #JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
-# REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
 REMOTE_PROXY_URL = None
 REMOTE_PROXY_PORT = 5001
 
+WEB_DEBUG_INCLUDE_TRACE = True
 
 CONTROLLER_CLASSNAME = 'IBEISController'
 
@@ -468,9 +468,11 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             # msg_list.append('flask.request.args = %r' % (flask.request.args,))
             # msg_list.append('flask.request.form = %r' % (flask.request.form,))
             msg_list.append('%s: %s' % (type(ex2).__name__, ex2, ))
-            trace = str(traceback.format_exc())
-            msg_list.append(trace)
+            if WEB_DEBUG_INCLUDE_TRACE:
+                trace = str(traceback.format_exc())
+                msg_list.append(trace)
             msg = '\n'.join(msg_list)
+            print(msg)
             # error_msg = ut.formatex(ex2, msg, tb=True)
             # print(error_msg)
             # error_msg = ut.strip_ansi(error_msg)

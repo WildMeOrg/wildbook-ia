@@ -941,7 +941,7 @@ def predict_ws_injury_interim_svm(ibs, aids, **kwargs):
 
     # Load the SVM
     model_fname = 'interim_svc_injur-shark-hog_12559_224x224x3_ldhhxnxo.cPkl'
-    model_url = 'https://lev.cs.rpi.edu/public/models/{}'.format(model_fname)
+    model_url = 'https://cthulhu.dyn.wildme.io/public/models/{}'.format(model_fname)
     model_fpath = ut.grab_file_url(model_url, check_hash=False)
     clf = ut.load_cPkl(model_fpath)
 
@@ -1016,7 +1016,7 @@ def shark_svm():
         run script lev:/media/hdd/PUBLIC/hash.py to refresh hashes
         """
         user = ut.get_user_name()
-        host = 'lev.cs.rpi.edu'
+        host = 'cthulhu.dyn.wildme.io'
         remote_path = '/media/hdd/PUBLIC/models/' + model_fname
         remote_uri = user + '@' + host + ':' + remote_path
         ut.rsync(model_fpath, remote_uri)

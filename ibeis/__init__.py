@@ -38,7 +38,7 @@ if ut.is_developer():
 #import plottool
 
 
-ENABLE_WILDBOOK_SIGNAL = True
+ENABLE_WILDBOOK_SIGNAL = False
 
 
 try:

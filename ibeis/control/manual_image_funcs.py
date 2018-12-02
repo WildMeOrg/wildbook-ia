@@ -1975,7 +1975,7 @@ def get_image_imagesettext(ibs, gid_list):
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
 @register_api('/api/image/annot/rowid/', methods=['GET'])
-def get_image_aids(ibs, gid_list, is_staged=False, check_tiles=True):
+def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True, check_tiles=True):
     r"""
     Returns:
         list_ (list): a list of aids for each image by gid
@@ -2021,6 +2021,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, check_tiles=True):
     from ibeis.control.manual_annot_funcs import ANNOT_STAGED_FLAG
 
     flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
+
     if check_tiles:
         image_gid_list  = ut.filterfalse_items(gid_list, flag_list)
         image_aids_list = ibs.get_image_aids(image_gid_list, check_tiles=False)
@@ -2058,8 +2059,12 @@ def get_image_aids(ibs, gid_list, is_staged=False, check_tiles=True):
                 ''').fetchall()
 
             # The index maxes the following query very efficient
-            params_iter = ((gid, is_staged) for gid in gid_list)
-            where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
+            if __check_staged__:
+                params_iter = ((gid, is_staged) for gid in gid_list)
+                where_colnames = (IMAGE_ROWID, ANNOT_STAGED_FLAG, )
+            else:
+                params_iter = ((gid, ) for gid in gid_list)
+                where_colnames = (IMAGE_ROWID, )
             aids_list = ibs.db.get_where_eq(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
                                             params_iter, where_colnames, unpack_scalars=False)
             #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(

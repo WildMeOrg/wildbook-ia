@@ -920,332 +920,334 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
 
 @register_ibs_method
-def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
-    if test_gid_list is not None:
-        print('Using %d test gids' % (len(test_gid_list), ))
+def localizer_precision_recall(ibs, config_dict=None, output_path=None,
+                               test_gid_list=None, **kwargs):
+    if config_dict is None:
+        if test_gid_list is not None:
+            print('Using %d test gids' % (len(test_gid_list), ))
 
-    species_mapping = {  # NOQA
-        'giraffe_masai'       : 'giraffe',
-        'giraffe_reticulated' : 'giraffe',
-        'zebra_grevys'        : 'zebra',
-        'zebra_plains'        : 'zebra',
-    }
+        species_mapping = {  # NOQA
+            'giraffe_masai'       : 'giraffe',
+            'giraffe_reticulated' : 'giraffe',
+            'zebra_grevys'        : 'zebra',
+            'zebra_plains'        : 'zebra',
+        }
 
-    config_dict = {
-        # 'seaturtle': (
-        #     [
-        #         {'label': 'Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
-        #         {'label': 'Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head', 'turtle_hawksbill+head'])},
-        #         {'label': 'Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
-        #         {'label': 'Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
-        #         {'label': 'Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
-        #     ],
-        #     {'BEST_INDEX': 0},
-        # ),
+        config_dict = {
+            # 'seaturtle': (
+            #     [
+            #         {'label': 'Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green', 'turtle_hawksbill'])},
+            #         {'label': 'Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head', 'turtle_hawksbill+head'])},
+            #         {'label': 'Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green'])},
+            #         {'label': 'Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_green+head'])},
+            #         {'label': 'Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['turtle_hawksbill+head'])},
+            #     ],
+            #     {'BEST_INDEX': 0},
+            # ),
 
-        # '!seaturtle': (
-        #     [
-        #         {'label': '! Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green', '!turtle_hawksbill'])},
-        #         {'label': '! Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head', '!turtle_hawksbill+head'])},
-        #         {'label': '! Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green'])},
-        #         {'label': '! Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head'])},
-        #         {'label': '! Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill'])},
-        #         {'label': '! Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill+head'])},
-        #     ],
-        #     {'BEST_INDEX': 0},
-        # ),
+            # '!seaturtle': (
+            #     [
+            #         {'label': '! Sea Turtle',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green', '!turtle_hawksbill'])},
+            #         {'label': '! Sea Turtle Heads',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head', '!turtle_hawksbill+head'])},
+            #         {'label': '! Green',             'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green'])},
+            #         {'label': '! Green Heads',       'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_green+head'])},
+            #         {'label': '! Hawksbill',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill'])},
+            #         {'label': '! Hawksbill Heads',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.2, 'species_set' : set(['!turtle_hawksbill+head'])},
+            #     ],
+            #     {'BEST_INDEX': 0},
+            # ),
 
-        # 'hawksbills': (
-        #     [
-        #         {'label': 'Hawksbill NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill'])},
-        #         {'label': 'Hawksbill NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill'])},
-        #     ],
-        #     {},
-        # ),
+            # 'hawksbills': (
+            #     [
+            #         {'label': 'Hawksbill NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill'])},
+            #         {'label': 'Hawksbill NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'hawsbills+heads': (
-        #     [
-        #         {'label': 'Hawksbill Head NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill+head'])},
-        #         {'label': 'Hawksbill Head NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill+head'])},
-        #     ],
-        #     {},
-        # ),
+            # 'hawsbills+heads': (
+            #     [
+            #         {'label': 'Hawksbill Head NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['turtle_hawksbill+head'])},
+            #         {'label': 'Hawksbill Head NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['turtle_hawksbill+head'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'hammerhead': (
-        #     [
-        #         {'label': 'Hammerhead NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['shark_hammerhead'])},
-        #     ],
-        #     {},
-        # ),
+            # 'hammerhead': (
+            #     [
+            #         {'label': 'Hammerhead NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['shark_hammerhead'])},
+            #     ],
+            #     {},
+            # ),
 
-        # '!hammerhead': (
-        #     [
-        #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
-        #         {'label': 'Hammerhead ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
-        #     ],
-        #     {'offset_color': 1},
-        # ),
+            # '!hammerhead': (
+            #     [
+            #         {'label': 'Hammerhead NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!shark_hammerhead'])},
+            #         {'label': 'Hammerhead ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'hammerhead', 'weight_filepath' : 'hammerhead', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!shark_hammerhead'])},
+            #     ],
+            #     {'offset_color': 1},
+            # ),
 
-        # 'ggr2-giraffe-lightnet': (
-        #     [
-        #         {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-giraffe-lightnet': (
+            #     [
+            #         {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-zebra-lightnet': (
-        #     [
-        #         {'label': 'Zebra NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-zebra-lightnet': (
+            #     [
+            #         {'label': 'Zebra NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-!giraffe-lightnet': (
-        #     [
-        #         {'label': 'Giraffe ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-!giraffe-lightnet': (
+            #     [
+            #         {'label': 'Giraffe ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-!zebra-lightnet': (
-        #     [
-        #         {'label': 'Zebra ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-!zebra-lightnet': (
+            #     [
+            #         {'label': 'Zebra ! NMS 0%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 10%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 20%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 30%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 40%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 50%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 60%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 70%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 80%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 90%',         'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 100%',        'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'ggr2', 'weight_filepath' : 'ggr2', 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-giraffe-azure': (
-        #     [
-        #         {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #         {'label': 'Giraffe NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-giraffe-azure': (
+            #     [
+            #         {'label': 'Giraffe NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #         {'label': 'Giraffe NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['giraffe'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-zebra-azure': (
-        #     [
-        #         {'label': 'Zebra NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #         {'label': 'Zebra NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-zebra-azure': (
+            #     [
+            #         {'label': 'Zebra NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #         {'label': 'Zebra NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['zebra'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-!giraffe-azure': (
-        #     [
-        #         {'label': 'Giraffe ! NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #         {'label': 'Giraffe ! NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-!giraffe-azure': (
+            #     [
+            #         {'label': 'Giraffe ! NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #         {'label': 'Giraffe ! NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!giraffe'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'ggr2-!zebra-azure': (
-        #     [
-        #         {'label': 'Zebra ! NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #         {'label': 'Zebra ! NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
-        #     ],
-        #     {},
-        # ),
+            # 'ggr2-!zebra-azure': (
+            #     [
+            #         {'label': 'Zebra ! NMS 0%',          'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 10%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.10, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 20%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.20, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 30%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.30, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 40%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.40, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 50%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.50, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 60%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.60, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 70%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.70, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 80%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.80, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 90%',         'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 0.90, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #         {'label': 'Zebra ! NMS 100%',        'grid' : False, 'algo': 'azure', 'config_filepath' : None, 'weight_filepath' : None, 'nms': True, 'nms_thresh': 1.00, 'test_gid_list': test_gid_list, 'species_mapping': species_mapping, 'species_set': set(['!zebra'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'lynx': (
-        #     [
-        #         {'label': 'Lynx NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['lynx'])},
-        #         {'label': 'Lynx NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['lynx'])},
-        #     ],
-        #     {},
-        # ),
+            # 'lynx': (
+            #     [
+            #         {'label': 'Lynx NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['lynx'])},
+            #         {'label': 'Lynx NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['lynx'])},
+            #     ],
+            #     {},
+            # ),
 
-        # 'jaguar': (
-        #     [
-        #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['jaguar'])},
-        #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['jaguar'])},
-        #     ],
-        #     {},
-        # ),
+            # 'jaguar': (
+            #     [
+            #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['jaguar'])},
+            #     ],
+            #     {},
+            # ),
 
-        # '!jaguar': (
-        #     [
-        #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!jaguar'])},
-        #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!jaguar'])},
-        #     ],
-        #     {},
-        # ),
+            # '!jaguar': (
+            #     [
+            #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar', 'weight_filepath' : 'jaguar', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!jaguar'])},
+            #     ],
+            #     {},
+            # ),
 
-        'manta': (
-            [
-                {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['manta_ray_giant'])},
-                {'label': 'Manta NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['manta_ray_giant'])},
-            ],
-            {},
-        ),
+            'manta': (
+                [
+                    {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['manta_ray_giant'])},
+                    {'label': 'Manta NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['manta_ray_giant'])},
+                ],
+                {},
+            ),
 
-        '!manta': (
-            [
-                {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!manta_ray_giant'])},
-                {'label': 'Manta NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!manta_ray_giant'])},
-            ],
-            {},
-        ),
-    }
+            '!manta': (
+                [
+                    {'label': 'Manta NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!manta_ray_giant'])},
+                    {'label': 'Manta NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'manta', 'weight_filepath' : 'manta', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!manta_ray_giant'])},
+                ],
+                {},
+            ),
+        }
 
     for config_key in config_dict:
         config_list, config = config_dict[config_key]
@@ -1253,15 +1255,29 @@ def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
         for key in kwargs:
             config[key] = kwargs[key]
 
-        ibs.localizer_precision_recall_algo_display(config_list, config_tag=config_key, **config)
+        # Backwards compatibility hack
+        if test_gid_list is not None:
+            for config_ in config_list:
+                if 'test_gid_list' not in config_:
+                    config_['test_gid_list'] = test_gid_list
+
+        ibs.localizer_precision_recall_algo_display(
+            config_list,
+            config_tag=config_key,
+            output_path=output_path,
+            **config
+        )
 
 
 @register_ibs_method
 def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(30, 9),
                                             target_recall=0.8, BEST_INDEX=None, offset_color=0,
-                                            write_images=False, plot_point=True, **kwargs):
+                                            write_images=False, plot_point=True, output_path=None, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
+
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop')))
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
@@ -1373,8 +1389,10 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         config_tag = '%s-' % (config_tag, )
 
     fig_filename = '%slocalizer-precision-recall-%0.2f.png' % (config_tag, min_overlap, )
-    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    fig_path = join(output_path, fig_filename)
     plt.savefig(fig_path, bbox_inches='tight')
+
+    return fig_path
 
 
 @register_ibs_method

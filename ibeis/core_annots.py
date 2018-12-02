@@ -1706,6 +1706,7 @@ def compute_classifications(depc, aid_list, config=None):
 
 class LabelerConfig(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'pipeline']),
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -1715,8 +1716,7 @@ class LabelerConfig(dtool.Config):
 
 @derived_attribute(
     tablename='labeler', parents=['annotations'],
-    colnames=['score', 'species', 'viewpoint',
-              'quality', 'orientation', 'probs'],
+    colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
     coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
@@ -1745,6 +1745,10 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
+        >>> config = {'labeler_algo': 'azure'}
+        >>> # depc.delete_property('labeler', aid_list)
+        >>> results = depc.get_property('labeler', aid_list, None, config=config)
+        >>> print(results)
         >>> # depc.delete_property('labeler', aid_list)
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
@@ -1754,14 +1758,24 @@ def compute_labels_annotations(depc, aid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
-    config_ = {
-        'dim_size': (128, 128),
-        'resize_dim': 'wh',
-    }
-    chip_list = depc.get_property('chips', aid_list, 'img', config=config_)
-    result_list = ibs.generate_chip_label_list(chip_list, **config)
+
+    if config['labeler_algo'] in ['pipeline']:
+        print('[ibs] labeling using Detection Pipeline Labeler')
+        config_ = {
+            'dim_size': (128, 128),
+            'resize_dim': 'wh',
+        }
+        chip_list = depc.get_property('chips', aid_list, 'img', config=config_)
+        result_gen = ibs.generate_chip_label_list(chip_list, **config)
+    elif config['labeler_algo'] in ['azure']:
+        from ibeis.algo.detect import azure
+        print('[ibs] detecting using Azure AI for Earth Species Classification API')
+        result_gen = azure.label_aid_list(ibs, aid_list, **config)
+    else:
+        raise ValueError('specified labeler algo is not supported in config = %r' % (config, ))
+
     # yield detections
-    for result in result_list:
+    for result in result_gen:
         yield result
 
 

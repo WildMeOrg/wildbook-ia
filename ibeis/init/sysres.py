@@ -399,7 +399,7 @@ def ensure_wd_peter2():
         >>> fpath_list += ut.ls(join(ibsdb_dpath, 'images'))
         >>> archive_name = dbname + '.zip'
         >>> ut.archive_files(archive_name, fpath_list, common_prefix=dbdir)
-        >>> ut.rsync(archive_name, 'joncrall@lev.cs.rpi.edu:/media/hdd/PUBLIC/databases')
+        >>> ut.rsync(archive_name, 'joncrall@cthulhu.dyn.wildme.io:/media/hdd/PUBLIC/databases')
 
     CommandLine:
         python -m ibeis.init.sysres --exec-ensure_wd_peter2
@@ -409,7 +409,7 @@ def ensure_wd_peter2():
         >>> from ibeis.init.sysres import *  # NOQA
         >>> ensure_wd_peter2()
     """
-    zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
+    zipped_db_url = 'https://cthulhu.dyn.wildme.io/public/databases/wd_peter2.zip'
     return ensure_db_from_url(zipped_db_url)
 
 
@@ -786,7 +786,7 @@ def ensure_nauts():
 
 
 def ensure_testdb2():
-    zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
+    zipped_db_url = 'https://cthulhu.dyn.wildme.io/public/databases/testdb2.tar.gz'
     return ensure_db_from_url(zipped_db_url)
 
 

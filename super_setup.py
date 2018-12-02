@@ -369,9 +369,6 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     # else:
     #     jon_repo_base = 'https://github.com/wildme'
     #     jason_repo_base = 'https://github.com/wildme'
-    # else:
-    #     jon_repo_base = 'git@hyrule.cs.rpi.edu
-    #     jason_repo_base = 'git@hyrule.cs.rpi.edu
 
     ibeis_rman = ut.RepoManager([
         'https://github.com/WildbookOrg/utool.git',
@@ -409,7 +406,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         ibeis_rman.add_repos([
             'https://github.com/WildbookOrg/ibeis_cnn.git',
             'https://github.com/WildbookOrg/pydarknet.git',
-            'https://github.com/WildbookOrg/lightnet.git',
+            'https://gitlab.com/bluemellophone/lightnet.git',
         ])
         # NEW CNN Dependencies
         tpl_rman.add_repos([

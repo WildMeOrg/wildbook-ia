@@ -7,7 +7,7 @@ from ibeis.scripts import classify_shark
 import numpy as np
 import vtool as vt
 
-modelStateLocation = "https://lev.cs.rpi.edu/public/models/classifier.lenet.whale_shark.pkl"
+modelStateLocation = "https://cthulhu.dyn.wildme.io/public/models/classifier.lenet.whale_shark.pkl"
 
 
 def classifyShark(ibs, gid_list):
@@ -26,7 +26,7 @@ def classifyShark(ibs, gid_list):
     model.load_model_state(fpath=filep)
     model.rrr()
 
-    
+
     config = {
         'algo'            : 'yolo',
         'sensitivity'     :  0.2,

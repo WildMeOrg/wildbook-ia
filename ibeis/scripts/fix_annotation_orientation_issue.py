@@ -56,7 +56,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95, is_tile=False):
     if len(gid_list) > 0:
         args = (len(gid_list), )
         print('Found %d images with non-standard orientations' % args)
-        aids_list = ibs.get_image_aids(gid_list)
+        aids_list = ibs.get_image_aids(gid_list, is_staged=None, __check_staged__=False)
         size_list = ibs.get_image_sizes(gid_list)
         invalid_gid_list = []
         zipped = zip(gid_list, orient_list, aids_list, size_list)
@@ -87,7 +87,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95, is_tile=False):
             args = (len(invalid_gid_list), len(gid_list), invalid_gid_list, )
             print('Found %d / %d images with invalid annotations = %r' % args)
             orient_list = ibs.get_image_orientation(invalid_gid_list)
-            aids_list = ibs.get_image_aids(invalid_gid_list)
+            aids_list = ibs.get_image_aids(invalid_gid_list, is_staged=None, __check_staged__=False)
             size_list = ibs.get_image_sizes(invalid_gid_list)
             zipped = zip(invalid_gid_list, orient_list, aids_list, size_list)
             for invalid_gid, orient, aid_list, (w, h) in zipped:
@@ -126,10 +126,10 @@ def fix_annotation_orientation(ibs, min_percentage=0.95, is_tile=False):
                     transformed_vert_list = transformed_vert_list.T
                     # print(transformed_vert_list)
 
-                    ibs.set_annot_verts([aid], [transformed_vert_list])
+                    ibs.set_annot_verts([aid], [transformed_vert_list], update_visual_uuids=False)
                     current_theta = ibs.get_annot_thetas(aid)
                     new_theta = current_theta + theta
-                    ibs.set_annot_thetas(aid, new_theta)
+                    ibs.set_annot_thetas(aid, new_theta, update_visual_uuids=False)
 
                     fixed_vert_list = ibs.get_annot_rotated_verts(aid)
                     fixed_annot_bbox = vt.bbox_from_verts(fixed_vert_list)

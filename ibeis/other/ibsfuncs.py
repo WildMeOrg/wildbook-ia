@@ -398,8 +398,9 @@ def assert_images_exist(ibs, gid_list=None, verbose=True):
         print(ut.truncate_str(ut.repr2(bad_gpaths), maxlen=500))
         print('Bad GIDs:')
         print(bad_gids)
-    assert num_bad_gids == 0, '%d images dont exist' % (num_bad_gids,)
+    print('%d images dont exist' % (num_bad_gids,))
     print('[check] checked %d images exist' % len(gid_list))
+    return num_bad_gids
 
 
 @register_ibs_method
@@ -564,6 +565,7 @@ def check_image_consistency(ibs, gid_list=None):
     #check_image_uuid_consistency(ibs, gid_list)
 
 
+@register_ibs_method
 def check_image_uuid_consistency(ibs, gid_list):
     """
     Checks to make sure image uuids are computed detemenistically
@@ -594,17 +596,21 @@ def check_image_uuid_consistency(ibs, gid_list):
         >>> ibeis.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
-    import ibeis.algo.preproc.preproc_image as preproc_image
-    images = ibs.images(gid_list)
-    for gx in ut.ProgIter(range(len(images)), label='check uuids'):
-        image = images[gx]
-        uuid = image.uuids
-        gpath = image.paths
-        param_tup = preproc_image.parse_imageinfo(gpath)
-        guuid_computed = param_tup[0]
-        assert uuid == guuid_computed, 'image={} has a bad uuid'.format(gpath)
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+    uuid_list = ibs.get_image_uuids(gid_list)
+    gpath_list = ibs.get_image_paths(gid_list)
+    uuid_list_ = ibs.compute_image_uuids(gpath_list)
+
+    bad_list = []
+    for gid, uuid, uuid_ in zip(gid_list, uuid_list, uuid_list_):
+        if uuid != uuid_:
+            bad_list.append(gid)
+
+    return bad_list
 
 
+@register_ibs_method
 def check_image_corruption(ibs, gid_list):
     """
     Checks to make sure image uuids are computed detemenistically
@@ -5906,7 +5912,7 @@ def compute_ggr_path_dict(ibs):
         'Marsabit',
         'Meru',
     ]
-    county_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_counties_boundary_gps_coordinates.zip'
+    county_file_url = 'https://cthulhu.dyn.wildme.io/public/data/kenyan_counties_boundary_gps_coordinates.zip'
     unzipped_path = ut.grab_zipped_url(county_file_url)
     county_path = join(unzipped_path, 'County')
     counties = shapefile.Reader(county_path)
@@ -5922,7 +5928,7 @@ def compute_ggr_path_dict(ibs):
         ))
 
     # ADD LAND TENURES
-    land_tenure_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
+    land_tenure_file_url = 'https://cthulhu.dyn.wildme.io/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
     unzipped_path = ut.grab_zipped_url(land_tenure_file_url)
     land_tenure_path = join(unzipped_path, 'LandTenure')
     land_tenures = shapefile.Reader(land_tenure_path)

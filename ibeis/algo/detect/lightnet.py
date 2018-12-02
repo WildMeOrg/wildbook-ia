@@ -4,9 +4,9 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 from six.moves import zip
 import numpy as np
-from os.path import abspath, dirname, expanduser, join, exists  # NOQA
-import cv2
+from os.path import abspath, dirname, expanduser, join, exists, splitext  # NOQA
 from tqdm import tqdm
+import cv2
 (print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
 
 
@@ -25,31 +25,32 @@ if not ut.get_argflag('--no-lightnet'):
 VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 
-WEIGHT_URL_DICT = {
-    'seaturtle'     : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.sea_turtle.weights',
-    'hammerhead'    : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.shark_hammerhead.weights',
-    'ggr2'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
-    'lynx'          : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.lynx.weights',
-    'jaguar'        : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.jaguar.weights',
-    'manta'         : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.manta_ray_giant.weights',
+CONFIG_URL_DICT = {
+    'hammerhead'            : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
+    'jaguar'                : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.py',
+    'lynx'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
+    'manta'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
+    'seaturtle'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
 
-    None            : 'https://lev.cs.rpi.edu/public/models/detect.lightnet.ggr2.weights',
+    'hendrik_elephant'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
+    'hendrik_elephant_ears' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.py',
+    'hendrik_dorsal'        : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
+
+    'candidacy'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    'ggr2'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
+
+    None                    : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
 }
 
 
-def _parse_classes_from_weights(url):
-    return url.replace('.weights', '.classes')
+def _parse_weights_from_cfg(url):
+    return url.replace('.py', '.weights')
 
 
-def _parse_class_list(classes_filepath):
+def _parse_class_list(config_filepath):
     # Load classes from file into the class list
-    assert exists(classes_filepath)
-    class_list = []
-    with open(classes_filepath) as classes:
-        for line in classes.readlines():
-            line = line.strip()
-            if len(line) > 0:
-                class_list.append(line)
+    params = ln.engine.HyperParameters.from_file(config_filepath)
+    class_list = params.class_label_map
     return class_list
 
 
@@ -66,7 +67,7 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
         gid_list (list of int): the list of IBEIS image_rowids that need detection
 
     Kwargs:
-        detector, config_filepath, weights_filepath, verbose
+        detector, config_filepath, weight_filepath, verbose
 
     Yields:
         tuple: (gid, gpath, result_list)
@@ -88,46 +89,60 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
         yield (gid, gpath, result_list)
 
 
-def _create_network(weight_filepath, class_list, conf_thresh, nms_thresh, network_size):
+def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh):
     """Create the lightnet network."""
-    net = ln.models.Yolo(len(class_list), weight_filepath, conf_thresh, nms_thresh)
-    net.postprocess.append(ln.data.transform.TensorToBrambox(network_size, class_list))
-
-    net.eval()
+    device = torch.device('cpu')
     if torch.cuda.is_available():
-        net.cuda()
+        print('[lightnet] CUDA enabled')
+        device = torch.device('cuda')
+    else:
+        print('[lightnet] CUDA not available')
 
-    return net
+    params = ln.engine.HyperParameters.from_file(config_filepath)
+    params.load(weight_filepath)
+    params.device = device
+
+    # Update conf_thresh and nms_thresh in postpsocess
+    params.network.postprocess[0].conf_thresh = conf_thresh
+    params.network.postprocess[1].nms_thresh = nms_thresh
+
+    params.network.eval()
+    params.network.to(params.device)
+
+    return params
 
 
-def _detect(net, img_path, network_size):
+def _detect(params, gpath):
     """Perform a detection."""
     # Load image
-    img = cv2.imread(img_path)
-    im_h, im_w = img.shape[:2]
+    img = cv2.imread(gpath)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    img_tf = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_tf = ln.data.transform.Letterbox.apply(img_tf, dimension=network_size)
-    img_tf = tf.ToTensor()(img_tf)
-    img_tf.unsqueeze_(0)
+    img_h, img_w = img.shape[:2]
+    img_size = (img_w, img_h, )
+
+    img = ln.data.transform.Letterbox.apply(img, dimension=params.input_dimension)
+    img = tf.ToTensor()(img)
+    img.unsqueeze_(0)
 
     if torch.cuda.is_available():
-        img_tf = img_tf.cuda()
+        img = img.cuda()
 
     # Run detector
     if torch.__version__.startswith('0.3'):
-        img_tf = torch.autograd.Variable(img_tf, volatile=True)
-        out = net(img_tf)
+        img_tf = torch.autograd.Variable(img, volatile=True)
+        out = params.network(img_tf)
     else:
         with torch.no_grad():
-            out = net(img_tf)
-    out = ln.data.transform.ReverseLetterbox.apply(out, network_size, (im_w, im_h))
+            out = params.network(img)
+
+    out = ln.data.transform.ReverseLetterbox.apply(out, params.input_dimension, img_size)
 
     return img, out
 
 
-def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
-           verbose=VERBOSE_LN, **kwargs):
+def detect(gpath_list, config_filepath=None, weight_filepath=None,
+           classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:
@@ -138,41 +153,37 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     Returns:
         iter
     """
-    assert config_filepath is None, 'lightnet does not have a config file'
-
     # Get correct weight if specified with shorthand
-    weight_url = None
-    if weight_filepath in WEIGHT_URL_DICT:
-        weight_url = WEIGHT_URL_DICT[weight_filepath]
-        weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
+    config_url = None
+    if config_filepath in CONFIG_URL_DICT:
+        config_url = CONFIG_URL_DICT[config_filepath]
+        config_filepath = ut.grab_file_url(config_url, appname='lightnet',
                                            check_hash=True)
 
-    if class_filepath in WEIGHT_URL_DICT:
-        if class_filepath is None and weight_url is not None:
-            weight_url_ = weight_url
+    # Get correct weights if specified with shorthand
+    if weight_filepath in CONFIG_URL_DICT:
+        if weight_filepath is None and config_url is not None:
+            config_url_ = config_url
         else:
-            weight_url_ = WEIGHT_URL_DICT[weight_filepath]
-        class_url = _parse_classes_from_weights(weight_url_)
-        class_filepath = ut.grab_file_url(class_url, appname='ibeis',
-                                          check_hash=True, verbose=verbose)
+            config_url_ = CONFIG_URL_DICT[weight_filepath]
+        weight_url = _parse_weights_from_cfg(config_url_)
+        weight_filepath = ut.grab_file_url(weight_url, appname='lightnet',
+                                            check_hash=True)
 
+    assert exists(config_filepath)
+    config_filepath = ut.truepath(config_filepath)
     assert exists(weight_filepath)
     weight_filepath = ut.truepath(weight_filepath)
-    assert exists(class_filepath)
-    class_filepath = ut.truepath(class_filepath)
 
-    class_list = _parse_class_list(class_filepath)
-
-    network_size = (416, 416)
     conf_thresh = sensitivity
-    nms_thresh = 1.0  # Turn off NMS
-    network = _create_network(weight_filepath, class_list, conf_thresh,
-                              nms_thresh, network_size)
+    nms_thresh = 1.0           # Turn off NMS
+
+    params = _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh)
 
     # Execute detector for each image
     results_list_ = []
     for gpath in tqdm(gpath_list):
-        image, output_list = _detect(network, gpath, network_size)
+        image, output_list = _detect(params, gpath)
         output_list = output_list[0]
 
         result_list_ = []

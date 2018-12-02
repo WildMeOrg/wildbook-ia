@@ -186,7 +186,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
         print('Received species_mapping = %r' % (species_mapping, ))
         print('Using species_list = %r' % (species_list, ))
 
-    def _add_annotation(bbox, theta, species_name, viewpoint, decrease,
+    def _add_annotation(bbox, theta, species_name, viewpoint, interest, decrease,
                         part_name=None):
         if species_name is not None:
             if species_name not in species_list:
@@ -216,6 +216,9 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
         if viewpoint != -1 and viewpoint is not None:
             info['pose'] = viewpoint
 
+        if interest is not None:
+            info['interest'] = '1' if interest else '0'
+
         if part_name is not None:
             species_name = '%s+%s' % (species_name, part_name, )
 
@@ -243,6 +246,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
     if purge:
         ut.delete(datadir)
+
     ut.ensuredir(datadir)
     ut.ensuredir(imagedir)
     ut.ensuredir(annotdir)
@@ -306,13 +310,14 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             theta_list = ibs.get_annot_thetas(aid_list)
             species_name_list = ibs.get_annot_species_texts(aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+            interest_list = ibs.get_annot_interest(aid_list)
             part_rowids_list = ibs.get_annot_part_rowids(aid_list)
-            zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, part_rowids_list)
-            for bbox, theta, species_name, viewpoint, part_rowid_list in zipped:
+            zipped = zip(bbox_list, theta_list, species_name_list, viewpoint_list, interest_list, part_rowids_list)
+            for bbox, theta, species_name, viewpoint, interest, part_rowid_list in zipped:
                 if species_mapping is not None:
                     species_name = species_mapping.get(species_name, species_name)
 
-                _add_annotation(bbox, theta, species_name, viewpoint, decrease)
+                _add_annotation(bbox, theta, species_name, viewpoint, interest, decrease)
                 if include_parts and len(part_rowid_list) > 0:
                     part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
                     part_theta_list = ibs.get_part_thetas(part_rowid_list)
@@ -320,7 +325,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                     part_zipped = zip(part_bbox_list, part_theta_list, part_name_list)
                     for part_bbox, part_theta, part_name in part_zipped:
                         _add_annotation(part_bbox, part_theta, species_name,
-                                        viewpoint, decrease, part_name=part_name)
+                                        viewpoint, None, decrease, part_name=part_name)
 
             dst_annot = annotdir + out_name  + '.xml'
 
@@ -601,9 +606,9 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
 
 @register_ibs_method
-def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
+def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, **kwargs):
     from random import shuffle
-    gid_list = ibs.get_valid_gids()
+    gid_list = ibs.get_valid_gids(is_tile=is_tile)
     aids_list = ibs.get_image_aids(gid_list)
     distro_dict = {}
     for gid, aid_list in zip(gid_list, aids_list):
@@ -998,6 +1003,8 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
                              num_images=10, t_width=500, output_path=None):
     if gid_list is None:
         gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **config)
+    else:
+        num_images = None
 
     if randomize:
         random.shuffle(gid_list)
