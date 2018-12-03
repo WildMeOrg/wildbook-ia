@@ -213,15 +213,19 @@ def vulcan_background_train(ibs):
     data_path = join(ibs.get_cachedir(), 'extracted')
     output_path = join(ibs.get_cachedir(), 'training', 'background')
 
+    patch_size = annot_size // 2
+
     species = 'elephant_savanna'
     extracted_path = get_background_training_patches2(ibs, species, data_path,
-                                                      patch_size=48,
-                                                      global_limit=500000,
+                                                      patch_size=patch_size,
                                                       annot_size=annot_size,
-                                                      patches_per_annotation=30,
+                                                      patch_size_min=0.9,
+                                                      patch_size_max=1.1,
+                                                      patches_per_annotation=10,
                                                       train_gid_set=train_gid_set,
                                                       visualize=True,
-                                                      tiles=True)
+                                                      tiles=True,
+                                                      inside_boundary=False)
 
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     model_path = train_background(output_path, X_file, y_file)
