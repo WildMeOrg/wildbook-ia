@@ -178,21 +178,18 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
         else:
             raise ValueError()
 
-    import random
-    index_list = list(range(len(test_tile_list)))
-    random.shuffle(index_list)
-    index_list = index_list[:10]
-
-    test_tile_list  = ut.take(test_tile_list, index_list)
-    test_label_list = ut.take(test_label_list, index_list)
-
     config = {
-        'classifier_two_algo': 'wic',
-        'classifier_two_weight_filepath': model_tag,
+        'classifier_algo': 'wic',
+        'classifier_weight_filepath': model_tag,
     }
-    scores = ibs.depc_image.get_property('classifier_two', test_tile_list, 'scores', config=config)
+    prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
+    confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
 
-    return scores
+    return confidence_list, test_label_list
 
 
 if __name__ == '__main__':

@@ -483,17 +483,17 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
         yield merged
 
 
-def test(gpath_list, classifier_two_weight_filepath=None, **kwargs):
+def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     # Get correct weight if specified with shorthand
     archive_url = None
-    if classifier_two_weight_filepath in ARCHIVE_URL_DICT:
-        archive_url = ARCHIVE_URL_DICT[classifier_two_weight_filepath]
+    if classifier_weight_filepath in ARCHIVE_URL_DICT:
+        archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
         archive_path = ut.grab_file_url(archive_url, appname='vulcan', check_hash=True)
     else:
-        print('classifier_two_weight_filepath %r not recognized' % (classifier_two_weight_filepath, ))
+        print('classifier_weight_filepath %r not recognized' % (classifier_weight_filepath, ))
         raise RuntimeError
 
-    kwargs.pop('classifier_two_algo', None)
+    kwargs.pop('classifier_algo', None)
 
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)
