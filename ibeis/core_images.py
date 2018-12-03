@@ -313,7 +313,7 @@ def compute_classifications(depc, gid_list, config=None):
 
 class Classifier2Config(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn', 'rf']),
+        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn', 'rf', 'wic']),
         ut.ParamInfo('classifier_two_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -374,7 +374,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'draw_annots' : False,
             'thumbsize'   : (wic.INPUT_SIZE, wic.INPUT_SIZE),
         }
-        thumbpath_list = ibs.depc_iamge.get('thumbnails', gid_list, 'img', config=config_,
+        thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
         result_list = wic.test(thumbpath_list, **config)
     elif config['classifier_algo'] in ['rf']:

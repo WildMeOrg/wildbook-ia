@@ -103,7 +103,6 @@ def vulcan_wic_train(ibs, ensembles=5):
 
     weights_path_list = []
     for index in range(ensembles):
-        pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
         data_path = join(ibs.get_cachedir(), 'extracted-%d' % (index, ))
         output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-%d' % (index, ))
 
@@ -140,7 +139,7 @@ def vulcan_wic_deploy(ibs, weights_path_list):
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, model_tag, imageset_text_list=None):
+def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
     if imageset_text_list is None:
         imageset_text_list = [
             'elephant',
@@ -161,13 +160,47 @@ def vulcan_wic_validate(ibs, model_tag, imageset_text_list=None):
     tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
     tile_list = ut.flatten(tiles_list)
 
-    ut.embed()
+    test_imgsetid = ibs.add_imagesets('TEST_SET')
+    test_gid_list = ibs.get_imageset_gids(test_imgsetid)
+
+    test_tile_list = list(set(tile_list) & set(test_gid_list))
+
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+    positive_gid_set = set(ibs.get_imageset_gids(pid))
+    negative_gid_set = set(ibs.get_imageset_gids(nid))
+
+    test_label_list = []
+    for test_tile in test_tile_list:
+        if test_tile in positive_gid_set:
+            test_label_list.append('positive')
+        elif test_tile in negative_gid_set:
+            test_label_list.append('negative')
+        else:
+            raise ValueError()
+
+    import random
+    index_list = list(range(len(test_tile_list)))
+    random.shuffle(index_list)
+    index_list = index_list[:10]
+
+    test_tile_list  = ut.take(test_tile_list, index_list)
+    test_label_list = ut.take(test_label_list, index_list)
+
+        from ibeis.algo.detect import wic
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (wic.INPUT_SIZE, wic.INPUT_SIZE),
+        }
+        thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
+                                            read_extern=False, ensure=True)
+        result_list = wic.test(thumbpath_list, **config)
+
 
     config = {
         'classifier_two_algo': 'wic',
         'classifier_two_weight_filepath': model_tag,
     }
-    scores = ibs.depc_image.get_property('classifier_two', gid_list, 'score', config=config)
+    scores = ibs.depc_image.get_property('classifier_two', test_tile_list, 'scores', config=config)
 
     return scores
 
