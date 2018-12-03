@@ -203,17 +203,18 @@ def vulcan_background_train(ibs):
     import numpy as np
 
     pid, = ibs.get_imageset_imgsetids_from_text(['POSITIVE'])
-    train_gid_set = set(ibs.get_imageset_gids(pid))
+    train_tile_set = set(ibs.get_imageset_gids(pid))
+    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(train_tile_set)
+    train_gid_set = list(set(ancestor_gid_list))
 
     aid_list = ut.flatten(ibs.get_image_aids(train_gid_set))
     bbox_list = ibs.get_annot_bboxes(aid_list)
     w_list = ut.take_column(bbox_list, 2)
     annot_size = int(np.around(np.mean(w_list) + np.std(w_list)))
+    patch_size = annot_size // 2
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     output_path = join(ibs.get_cachedir(), 'training', 'background')
-
-    patch_size = annot_size // 2
 
     species = 'elephant_savanna'
     extracted_path = get_background_training_patches2(ibs, species, data_path,
@@ -224,8 +225,8 @@ def vulcan_background_train(ibs):
                                                       patches_per_annotation=10,
                                                       train_gid_set=train_gid_set,
                                                       visualize=True,
-                                                      tiles=True,
-                                                      inside_boundary=False)
+                                                      inside_boundary=False,
+                                                      purge=True)
 
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     model_path = train_background(output_path, X_file, y_file)
