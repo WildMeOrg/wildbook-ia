@@ -509,6 +509,8 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     ensemble_path = os.path.join(ensemble_path, 'ensemble', '*.weights')
     weights_path_list = ut.glob(ensemble_path)
 
+    weights_path_list = sorted(weights_path_list)
+
     if ensemble_index is not None:
         assert 0 <= ensemble_index and ensemble_index < len(weights_path_list)
         weights_path_list = [ weights_path_list[ensemble_index] ]
