@@ -466,7 +466,7 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
 
     results_list = []
     for weights_path in weights_path_list:
-        result_list = test(filepath_list, weights_path, **kwargs)
+        result_list = test_single(filepath_list, weights_path, **kwargs)
         results_list.append(result_list)
 
     for result_list in zip(*results_list):
@@ -500,6 +500,7 @@ def test(gpath_list, classifier_two_weight_filepath=None, **kwargs):
     ensemble_path = os.path.join(ensemble_path, 'ensemble', '*.weights')
     weights_path_list = ut.glob(ensemble_path)
 
+    print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
         prediction = [
