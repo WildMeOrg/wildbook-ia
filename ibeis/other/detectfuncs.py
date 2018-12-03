@@ -1597,17 +1597,20 @@ def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
 #         ibs.localizer_classifications_confusion_matrix_algo_display(conf, **kwargs)
 
 
-def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id,
+                                                test_gid_list=None, **kwargs):
     depc = ibs.depc_image
-    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-    test_gid_set_ = list(test_gid_set_)
+
+    if test_gid_list is None:
+        test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_list = list(test_gid_set_)
 
     positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
     negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
 
     test_gid_set = []
     label_list = []
-    for gid in test_gid_set_:
+    for gid in test_gid_list:
         if gid in positive_gid_set:
             label = 'positive'
         elif gid in negative_gid_set:

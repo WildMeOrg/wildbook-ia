@@ -166,30 +166,36 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
     test_tile_list = list(set(tile_list) & set(test_gid_list))
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
-    positive_gid_set = set(ibs.get_imageset_gids(pid))
-    negative_gid_set = set(ibs.get_imageset_gids(nid))
+    # positive_gid_set = set(ibs.get_imageset_gids(pid))
+    # negative_gid_set = set(ibs.get_imageset_gids(nid))
 
-    test_label_list = []
-    for test_tile in test_tile_list:
-        if test_tile in positive_gid_set:
-            test_label_list.append('positive')
-        elif test_tile in negative_gid_set:
-            test_label_list.append('negative')
-        else:
-            raise ValueError()
+    # test_label_list = []
+    # for test_tile in test_tile_list:
+    #     if test_tile in positive_gid_set:
+    #         test_label_list.append('positive')
+    #     elif test_tile in negative_gid_set:
+    #         test_label_list.append('negative')
+    #     else:
+    #         raise ValueError()
+
+    # config = {
+    #     'classifier_algo': 'wic',
+    #     'classifier_weight_filepath': model_tag,
+    # }
+    # prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
+    # confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config)
+    # confidence_list = [
+    #     confidence if prediction == 'positive' else 1.0 - confidence
+    #     for prediction, confidence in zip(prediction_list, confidence_list)
+    # ]
+
+    # return confidence_list, test_label_list
 
     config = {
         'classifier_algo': 'wic',
         'classifier_weight_filepath': model_tag,
     }
-    prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
-    confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config)
-    confidence_list = [
-        confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence in zip(prediction_list, confidence_list)
-    ]
-
-    return confidence_list, test_label_list
+    ibs.classifier_cameratrap_precision_recall_algo(pid, nid, test_gid_list=test_tile_list, **config)
 
 
 if __name__ == '__main__':
