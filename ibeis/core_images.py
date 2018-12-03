@@ -1982,6 +1982,215 @@ def compute_detections(depc, gid_list, config=None):
         yield tuple(result)
 
 
+class TileConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('tile_width',    512),
+        ut.ParamInfo('tile_height',   512),
+        ut.ParamInfo('tile_overlap',  64),
+        ut.ParamInfo('allow_borders', True),
+        ut.ParamInfo('keep_extern',   False),
+        ut.ParamInfo('force_serial',  False, hideif=False),
+    ]
+
+
+@register_preproc(
+    tablename='tiles', parents=['images'],
+    colnames=['paths', 'gids', 'num'],
+    coltypes=[list, list, int],
+    configclass=TileConfig,
+    fname='tilecache',
+    rm_extern_on_delete=True,
+    chunksize=16,
+)
+def compute_tiles(depc, gid_list, config=None):
+    r"""Compute the tile for a given input image.
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (list, list, int): tup
+
+    CommandLine:
+        ibeis --tf compute_tiles --db PZ_MTEST
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:5]
+        >>> result = depc.get_property('tiles', gid_list, 'num')
+        >>> nums = list(map(len, ibs.get_vulcan_image_tile_children_gids(gid_list)))
+        >>> nums_ = list(map(len, ibs.get_vulcan_image_tile_descendants_gids(gid_list)))
+        >>> assert result == nums
+        >>> assert result == nums_
+        >>> print(result)
+        [285, 99, 285, 9, 35]
+    """
+    from os.path import abspath, join, relpath
+    ibs = depc.controller
+
+    tile_width    = config['tile_width']
+    tile_height   = config['tile_height']
+    tile_overlap  = config['tile_overlap']
+    allow_borders = config['allow_borders']
+    keep_extern   = config['keep_extern']
+
+    config_dict = dict(config)
+    config_hashid = config.get_hashid()
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
+    tile_size = (tile_width, tile_height)
+    tile_size_list = [tile_size] * len(gid_list)
+    tile_overlap_list = [tile_overlap] * len(gid_list)
+
+    tile_output_path = abspath(join(depc.cache_dpath, 'extern_tiles'))
+    ut.ensuredir(tile_output_path)
+
+    fmt_str = join(tile_output_path, 'tiles_gid_%d_w_%d_h_%d_o_%d_%s')
+    output_path_list = [
+        fmt_str % (gid, tile_width, tile_height, tile_overlap, config_hashid, )
+        for gid in gid_list
+    ]
+    allow_border_list = [allow_borders] * len(gid_list)
+
+    for output_path in output_path_list:
+        ut.ensuredir(output_path)
+
+    # Execute all tasks in parallel
+    args_list = list(zip(
+        gid_list,
+        gpath_list,
+        orient_list,
+        tile_size_list,
+        tile_overlap_list,
+        output_path_list,
+        allow_border_list,
+    ))
+
+    genkw = {
+        'ordered': True,
+        'chunksize': 256,
+        'progkw': {'freq': 50},
+        #'adjust': True,
+        'futures_threaded': True,
+        'force_serial': ibs.force_serial or config['force_serial'],
+    }
+    gen = ut.generate2(compute_tile_helper, args_list, nTasks=len(args_list), **genkw)
+    for val in gen:
+        parent_gid, output_path, tile_filepath_list, bbox_list, border_list = val
+
+        gids = ibs.add_images(tile_filepath_list)
+
+        if ut.duplicates_exist(gids):
+            flag_list = []
+            seen_set = set([])
+            for gid in gids:
+                if gid is None:
+                    flag = False
+                else:
+                    flag = gid not in seen_set
+                    seen_set.add(gid)
+                flag_list.append(flag)
+            gids = ut.compress(gids, flag_list)
+            bbox_list = ut.compress(bbox_list, flag_list)
+            border_list = ut.compress(border_list, flag_list)
+
+        num                = len(gids)
+        parent_gids        = [parent_gid] * num
+        config_dict_list   = [config_dict] * num
+        config_hashid_list = [config_hashid] * num
+
+        ibs.set_vulcan_image_tile_source(gids, parent_gids, bbox_list, border_list,
+                                         config_dict_list, config_hashid_list)
+
+        if keep_extern:
+            tile_relative_filepath_list_ = [
+                relpath(tile_filepath, start=depc.cache_dpath)
+                for tile_filepath in tile_filepath_list
+            ]
+        else:
+            ut.delete(output_path)
+            tile_relative_filepath_list_ = [None] * len(tile_filepath_list)
+
+        yield tile_relative_filepath_list_, gids, num
+
+
+def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
+    from os.path import join
+
+    ext = '.jpg'
+    w, h = size
+    o = overlap
+
+    image = vt.imread(gpath, orient=orient)
+    h_, w_ = image.shape[:2]
+
+    y_ = int(np.floor((h_ - o) / (h - o)))
+    x_ = int(np.floor((w_ - o) / (w - o)))
+    iy = (h * y_) - (o * (y_ - 1))
+    ix = (w * x_) - (o * (x_ - 1))
+    oy = int(np.floor((h_ - iy) * 0.5))
+    ox = int(np.floor((w_ - ix) * 0.5))
+
+    miny = 0
+    minx = 0
+    maxy = h_ - h
+    maxx = w_ - w
+
+    ys = list(range(oy, h_ - h + 1, h - o))
+    yb = [False] * len(ys)
+    xs = list(range(ox, w_ - w + 1, w - o))
+    xb = [False] * len(xs)
+
+    if borders and oy > 0:
+        ys = [miny] + ys + [maxy]
+        yb = [True] + yb + [True]
+
+    if borders and ox > 0:
+        xs = [minx] + xs + [maxx]
+        xb = [True] + xb + [True]
+
+    tile_filepath_list = []
+    bbox_list = []
+    border_list = []
+
+    for y0, yb_ in zip(ys, yb):
+        y1 = y0 + h
+        for x0, xb_ in zip(xs, xb):
+            x1 = x0 + w
+
+            bbox = (x0, y0, w, h)
+            border = yb_ or xb_
+
+            # Sanity
+            assert x1 - x0 == w, '%d, %d' % (x1 - x0, w, )
+            assert y1 - y0 == h, '%d, %d' % (y1 - y0, h, )
+            assert 0 <= x0 and x0 <= w_, '%d, %d' % (x0, w_, )
+            assert 0 <= x1 and x1 <= w_, '%d, %d' % (x1, w_, )
+            assert 0 <= y0 and y0 <= h_, '%d, %d' % (y0, h_, )
+            assert 0 <= y1 and y1 <= h_, '%d, %d' % (y1, h_, )
+
+            args = (gid, x0, y0, w, h, ext, )
+            tile_filename = 'tile_gid_%d_xtl_%d_ytl_%d_w_%d_h_%d%s' % args
+            file_filepath = join(opath, tile_filename)
+            tile = image[y0: y1, x0: x1]
+            vt.imwrite(file_filepath, tile)
+
+            tile_filepath_list.append(file_filepath)
+            bbox_list.append(bbox)
+            border_list.append(border)
+
+    return gid, opath, tile_filepath_list, bbox_list, border_list
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
