@@ -226,7 +226,8 @@ def vulcan_background_train(ibs):
                                                       train_gid_set=train_gid_set,
                                                       visualize=True,
                                                       inside_boundary=False,
-                                                      purge=True)
+                                                      purge=True,
+                                                      supercharge_negative_multiplier=10.0)
 
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     model_path = train_background(output_path, X_file, y_file)
