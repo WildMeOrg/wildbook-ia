@@ -121,7 +121,7 @@ def vulcan_wic_train(ibs, ensembles=5):
 
 
 @register_ibs_method
-def vulcan_wic_deploy(ibs, weights_path_list)
+def vulcan_wic_deploy(ibs, weights_path_list):
     ensemble_path = join(ibs.get_cachedir(), 'training', 'ensemble')
     ut.ensuredir(ensemble_path)
 
@@ -140,15 +140,36 @@ def vulcan_wic_deploy(ibs, weights_path_list)
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, model_tag):
+def vulcan_wic_validate(ibs, model_tag, imageset_text_list=None):
+    if imageset_text_list is None:
+        imageset_text_list = [
+            'elephant',
+            'RR18_BIG_2015_09_23_R_AM',
+            'TA24_TPM_L_2016-10-30-A',
+            'TA24_TPM_R_2016-10-30-A',
+        ]
+
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
+    gid_list = ut.flatten(gids_list)
+
+    config = {
+        'tile_width':   256,
+        'tile_height':  256,
+        'tile_overlap': 64,
+    }
+    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
+    tile_list = ut.flatten(tiles_list)
+
+    ut.embed()
+
     config = {
         'classifier_two_algo': 'wic',
         'classifier_two_weight_filepath': model_tag,
     }
-    scores = depc.get_property('classifier_two', gid_list, 'score', config=config)
+    scores = ibs.depc_image.get_property('classifier_two', gid_list, 'score', config=config)
 
     return scores
-
 
 
 if __name__ == '__main__':
