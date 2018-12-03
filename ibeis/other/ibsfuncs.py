@@ -28,6 +28,7 @@ from ibeis import constants as const
 from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
+from skimage import io
 import xml.etree.ElementTree as ET
 
 # Inject utool functions
@@ -611,7 +612,7 @@ def check_image_uuid_consistency(ibs, gid_list=None):
 
 
 @register_ibs_method
-def check_image_loadable(ibs, gid_list=None):
+def check_image_loadable(ibs, gid_list=None, force_orient=True):
     print('checking image loadable')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -619,6 +620,7 @@ def check_image_loadable(ibs, gid_list=None):
     gpath_list = ibs.get_image_paths(gid_list)
     arg_iter = list(zip(
         gpath_list,
+
     ))
     flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter)
     flag_list = [not flag for flag in flag_list]
@@ -629,7 +631,7 @@ def check_image_loadable(ibs, gid_list=None):
 
 def check_image_loadable_worker(gpath):
     try:
-        vt.imread(gpath)
+        io.imread(gpath)
         return True
     except:
         return False
