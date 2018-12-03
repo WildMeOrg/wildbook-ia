@@ -612,7 +612,7 @@ def check_image_uuid_consistency(ibs, gid_list=None):
 
 
 @register_ibs_method
-def check_image_loadable(ibs, gid_list=None, force_orient=True):
+def check_image_loadable(ibs, gid_list=None):
     print('checking image loadable')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -620,7 +620,6 @@ def check_image_loadable(ibs, gid_list=None, force_orient=True):
     gpath_list = ibs.get_image_paths(gid_list)
     arg_iter = list(zip(
         gpath_list,
-
     ))
     flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter)
     flag_list = [not flag for flag in flag_list]
@@ -632,9 +631,9 @@ def check_image_loadable(ibs, gid_list=None, force_orient=True):
 def check_image_loadable_worker(gpath):
     try:
         io.imread(gpath)
-        return True
     except:
         return False
+    return True
 
 
 @register_ibs_method
