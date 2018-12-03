@@ -486,6 +486,13 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
 def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     # Get correct weight if specified with shorthand
     archive_url = None
+
+    ensemble_index = None
+    if classifier_weight_filepath is not None and ':' in classifier_weight_filepath:
+        assert classifier_weight_filepath.count(':') == 1
+        classifier_weight_filepath, ensemble_index = classifier_weight_filepath.split(':')
+        ensemble_index = int(ensemble_index)
+
     if classifier_weight_filepath in ARCHIVE_URL_DICT:
         archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
         archive_path = ut.grab_file_url(archive_url, appname='vulcan', check_hash=True)
@@ -501,6 +508,10 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     ensemble_path = ut.unarchive_file(archive_path)
     ensemble_path = os.path.join(ensemble_path, 'ensemble', '*.weights')
     weights_path_list = ut.glob(ensemble_path)
+
+    if ensemble_index is not None:
+        assert 0 <= ensemble_index and ensemble_index < len(weights_path_list)
+        weights_path_list = [ weights_path_list[ensemble_index] ]
 
     print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)

@@ -1723,7 +1723,12 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
     config_list = [
-        {'label': 'ELPH WIC', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
+        {'label': 'ELPH WIC Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
+        {'label': 'ELPH WIC 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:0'},
+        {'label': 'ELPH WIC 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:1'},
+        {'label': 'ELPH WIC 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:2'},
+        {'label': 'ELPH WIC 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:3'},
+        {'label': 'ELPH WIC 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:4'},
 
         # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
 
