@@ -466,7 +466,7 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
 
     results_list = []
     for weights_path in weights_path_list:
-        result_list = test_single(filepath_list, weights_path, **kwargs)
+        result_list = test_single(filepath_list, weights_path)
         results_list.append(result_list)
 
     for result_list in zip(*results_list):
@@ -492,6 +492,8 @@ def test(gpath_list, classifier_two_weight_filepath=None, **kwargs):
     else:
         print('classifier_two_weight_filepath %r not recognized' % (classifier_two_weight_filepath, ))
         raise RuntimeError
+
+    kwargs.pop('classifier_two_algo', None)
 
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)

@@ -178,15 +178,13 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
         else:
             raise ValueError()
 
-    ut.embed()
+    import random
+    index_list = list(range(len(test_tile_list)))
+    random.shuffle(index_list)
+    index_list = index_list[:10]
 
-    # import random
-    # index_list = list(range(len(test_tile_list)))
-    # random.shuffle(index_list)
-    # index_list = index_list[:10]
-
-    # test_tile_list  = ut.take(test_tile_list, index_list)
-    # test_label_list = ut.take(test_label_list, index_list)
+    test_tile_list  = ut.take(test_tile_list, index_list)
+    test_label_list = ut.take(test_label_list, index_list)
 
     config = {
         'classifier_two_algo': 'wic',
