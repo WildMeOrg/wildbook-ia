@@ -1645,18 +1645,20 @@ def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
                                   target=(0.0, 1.0), **kwargs)
 
 
-def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
+def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, test_gid_list=None, output_cases=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
-    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-    test_gid_set_ = list(test_gid_set_)
+
+    if test_gid_list is None:
+        test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_list = list(test_gid_set_)
 
     positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
     negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
 
     test_gid_set = []
     label_list = []
-    for gid in test_gid_set_:
+    for gid in test_gid_list:
         if gid in positive_gid_set:
             label = 'positive'
         elif gid in negative_gid_set:
@@ -1711,19 +1713,26 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
 
 
 @register_ibs_method
-def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id, negative_imageset_id, figsize=(20, 20)):
+def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_id,
+                                                        negative_imageset_id,
+                                                        test_gid_list=None,
+                                                        figsize=(20, 20),):
     import matplotlib.pyplot as plt
     import plottool as pt
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
     config_list = [
-        {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
-        {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
-        {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
-        {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan2.4'},
-        {'label': 'Retrained Model (4%)', 'classifier_weight_filepath': 'megan2.5'},
-        {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan2.6'},
+        {'label': 'ELPH WIC', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
+
+        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
+
+        # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan2.1'},
+        # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan2.2'},
+        # {'label': 'Retrained Model (2%)', 'classifier_weight_filepath': 'megan2.3'},
+        # {'label': 'Retrained Model (3%)', 'classifier_weight_filepath': 'megan2.4'},
+        # {'label': 'Retrained Model (4%)', 'classifier_weight_filepath': 'megan2.5'},
+        # {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan2.6'},
 
         # {'label': 'Initial Model   (0%)', 'classifier_weight_filepath': 'megan1.1'},
         # {'label': 'Retrained Model (1%)', 'classifier_weight_filepath': 'megan1.2'},
@@ -1745,6 +1754,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
         classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
                                                          positive_imageset_id=positive_imageset_id,
                                                          negative_imageset_id=negative_imageset_id,
+                                                         test_gid_list=test_gid_list,
                                                          **config)
         for color, config in zip(color_list, config_list)
     ]
@@ -1772,6 +1782,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
         classifier_cameratrap_roc_algo_plot(ibs, color=color,
                                             positive_imageset_id=positive_imageset_id,
                                             negative_imageset_id=negative_imageset_id,
+                                            test_gid_list=test_gid_list,
                                             **config)
         for color, config in zip(color_list, config_list)
     ]
@@ -1796,6 +1807,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        conf=best_conf1, fig_=fig_, axes_=axes_,
                                                                        positive_imageset_id=positive_imageset_id,
                                                                        negative_imageset_id=negative_imageset_id,
+                                                                       test_gid_list=test_gid_list,
                                                                        output_cases=True, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
@@ -1809,6 +1821,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        conf=best_conf2, fig_=fig_, axes_=axes_,
                                                                        positive_imageset_id=positive_imageset_id,
                                                                        negative_imageset_id=negative_imageset_id,
+                                                                       test_gid_list=test_gid_list,
                                                                        **best_config2)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')

@@ -191,11 +191,7 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
 
     # return confidence_list, test_label_list
 
-    config = {
-        'classifier_algo': 'wic',
-        'classifier_weight_filepath': model_tag,
-    }
-    ibs.classifier_cameratrap_precision_recall_algo(pid, nid, test_gid_list=test_tile_list, **config)
+    ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list)
 
 
 if __name__ == '__main__':
