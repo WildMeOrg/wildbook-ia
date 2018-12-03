@@ -368,7 +368,7 @@ def compute_classifications2(depc, gid_list, config=None):
         # depc.delete_property('thumbnails', gid_list, config=config_)
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
-    elif config['classifier_algo'] in ['vulcan']:
+    elif config['classifier_algo'] in ['wic']:
         from ibeis.algo.detect import wic
         config_ = {
             'draw_annots' : False,
@@ -376,9 +376,7 @@ def compute_classifications2(depc, gid_list, config=None):
         }
         thumbpath_list = ibs.depc_iamge.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
-        ibs.vulcan_wic_test(gid_list)
-
-        result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
+        result_list = wic.test(thumbpath_list, **config)
     elif config['classifier_algo'] in ['rf']:
         from ibeis.algo.detect.rf import classify
         config_ = {

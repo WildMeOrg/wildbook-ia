@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images_pytorch
 from ibeis.control import controller_inject
-from os.path import join
+from os.path import join, exists
 import utool as ut
 from ibeis.algo.detect import wic
 
@@ -118,6 +118,37 @@ def vulcan_wic_train(ibs, ensembles=5):
         weights_path_list.append(weights_path)
 
     return weights_path_list
+
+
+@register_ibs_method
+def vulcan_wic_deploy(ibs, weights_path_list)
+    ensemble_path = join(ibs.get_cachedir(), 'training', 'ensemble')
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.tar' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'classifier.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True)
+    ut.copy(archive_path, '/data/public/models/classifier2.vulcan.tar')
+    return archive_path
+
+
+@register_ibs_method
+def vulcan_wic_validate(ibs, model_tag):
+    config = {
+        'classifier_two_algo': 'wic',
+        'classifier_two_weight_filepath': model_tag,
+    }
+    scores = depc.get_property('classifier_two', gid_list, 'score', config=config)
+
+    return scores
+
 
 
 if __name__ == '__main__':

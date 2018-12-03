@@ -16,8 +16,10 @@ import PIL
 INPUT_SIZE = 224
 
 
-ENSEMBLE_URL_DICT = {
-    'vulcan': '',
+ARCHIVE_URL_DICT = {
+    'vulcan': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
+
+    None:     'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
 }
 
 
@@ -395,7 +397,7 @@ def train(data_path, output_path, batch_size=32):
     return weights_path
 
 
-def test(filepath_list, weights_path, batch_size=32):
+def test_single(filepath_list, weights_path, batch_size=32):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -460,10 +462,10 @@ def test(filepath_list, weights_path, batch_size=32):
     return result_list
 
 
-def ensemble(filepath_list, weights_path_list, **kwargs):
+def test_ensemble(filepath_list, weights_path_list, **kwargs):
 
     results_list = []
-    for weights_path in zip(weights_path_list):
+    for weights_path in weights_path_list:
         result_list = test(filepath_list, weights_path, **kwargs)
         results_list.append(result_list)
 
@@ -479,3 +481,27 @@ def ensemble(filepath_list, weights_path_list, **kwargs):
             merged[key] = sum(value_list) / len(value_list)
 
         yield merged
+
+
+def test(gpath_list, classifier_two_weight_filepath=None, **kwargs):
+    # Get correct weight if specified with shorthand
+    archive_url = None
+    if classifier_two_weight_filepath in ARCHIVE_URL_DICT:
+        archive_url = ARCHIVE_URL_DICT[classifier_two_weight_filepath]
+        archive_path = ut.grab_file_url(archive_url, appname='vulcan')
+
+    assert os.path.exists(archive_path)
+    archive_path = ut.truepath(archive_path)
+
+    ensemble_path = ut.unarchive_file(archive_path)
+    ensemble_path = os.path.join(ensemble_path, 'ensemble', '*.weights')
+    weights_path_list = ut.glob(ensemble_path)
+
+    result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
+    for result in result_list:
+        prediction = [
+            key
+            for key in result
+            if result[key] >= 0.5
+        ]
+        yield result, prediction
