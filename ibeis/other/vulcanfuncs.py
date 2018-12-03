@@ -186,16 +186,6 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
     test_tile_list  = ut.take(test_tile_list, index_list)
     test_label_list = ut.take(test_label_list, index_list)
 
-        from ibeis.algo.detect import wic
-        config_ = {
-            'draw_annots' : False,
-            'thumbsize'   : (wic.INPUT_SIZE, wic.INPUT_SIZE),
-        }
-        thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
-                                            read_extern=False, ensure=True)
-        result_list = wic.test(thumbpath_list, **config)
-
-
     config = {
         'classifier_two_algo': 'wic',
         'classifier_two_weight_filepath': model_tag,
