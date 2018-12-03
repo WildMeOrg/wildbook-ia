@@ -505,9 +505,10 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
-        prediction = [
-            key
-            for key in result
-            if result[key] >= 0.5
-        ]
-        yield result, prediction
+        if result['positive'] > 0.5:
+            cls = 'positive'
+        else:
+            cls = 'negative'
+        score = result[cls]
+
+        yield score, cls
