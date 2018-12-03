@@ -1070,7 +1070,7 @@ def get_annot_bboxes(ibs, aid_list, reference_tile_gid=None):
     if reference_tile_gid is not None:
         is_tile = ibs.get_vulcan_image_tile_flags(reference_tile_gid)
         if is_tile:
-            tile_bbox = ibs.get_image_vulcan_tile_bboxes(reference_tile_gid)
+            tile_bbox = ibs.get_vulcan_image_tile_bboxes(reference_tile_gid)
             tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
             bbox_list = [
                 (xtl - tile_xtl, ytl - tile_ytl, w, h)

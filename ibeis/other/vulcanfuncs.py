@@ -194,6 +194,45 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
     ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list)
 
 
+@register_ibs_method
+def vulcan_background_train(ibs):
+    from ibeis_cnn.ingest_ibeis import get_background_training_patches2
+    from ibeis_cnn.process import numpy_processed_directory2
+    from ibeis_cnn.models.background import train_background
+    from ibeis_cnn.utils import save_model
+    import numpy as np
+
+    pid, = ibs.get_imageset_imgsetids_from_text(['POSITIVE'])
+    train_gid_set = set(ibs.get_imageset_gids(pid))
+
+    aid_list = ut.flatten(ibs.get_image_aids(train_gid_set))
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    w_list = ut.take_column(bbox_list, 2)
+    annot_size = int(np.around(np.mean(w_list) + np.std(w_list)))
+
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    output_path = join(ibs.get_cachedir(), 'training', 'background')
+
+    species = 'elephant_savanna'
+    extracted_path = get_background_training_patches2(ibs, species, data_path,
+                                                      patch_size=48,
+                                                      global_limit=500000,
+                                                      annot_size=annot_size,
+                                                      patches_per_annotation=30,
+                                                      train_gid_set=train_gid_set,
+                                                      visualize=True,
+                                                      tiles=True)
+
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
+    model_path = train_background(output_path, X_file, y_file)
+    model_state = ut.load_cPkl(model_path)
+    assert 'species' not in model_state
+    model_state['species'] = species
+    save_model(model_state, model_path)
+
+    return model_path
+
+
 if __name__ == '__main__':
     """
     CommandLine:
