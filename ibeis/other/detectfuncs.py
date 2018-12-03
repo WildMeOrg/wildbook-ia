@@ -1746,7 +1746,9 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
         # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
         # {'label': 'Retrained Model (5%)', 'classifier_weight_filepath': 'megan1.6'},
     ]
-    color_list = pt.distinct_colors(len(config_list), randomize=False)
+    # color_list = pt.distinct_colors(len(config_list), randomize=False)
+    color_list = [(0, 0, 0)]
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
