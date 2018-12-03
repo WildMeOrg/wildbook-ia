@@ -488,7 +488,7 @@ def test(gpath_list, classifier_two_weight_filepath=None, **kwargs):
     archive_url = None
     if classifier_two_weight_filepath in ARCHIVE_URL_DICT:
         archive_url = ARCHIVE_URL_DICT[classifier_two_weight_filepath]
-        archive_path = ut.grab_file_url(archive_url, appname='vulcan')
+        archive_path = ut.grab_file_url(archive_url, appname='vulcan', check_hash=True)
     else:
         print('classifier_two_weight_filepath %r not recognized' % (classifier_two_weight_filepath, ))
         raise RuntimeError

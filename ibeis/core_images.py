@@ -313,7 +313,7 @@ def compute_classifications(depc, gid_list, config=None):
 
 class Classifier2Config(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn', 'rf', 'wic']),
+        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn', 'wic']),
         ut.ParamInfo('classifier_two_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -368,7 +368,7 @@ def compute_classifications2(depc, gid_list, config=None):
         # depc.delete_property('thumbnails', gid_list, config=config_)
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
-    elif config['classifier_algo'] in ['wic']:
+    elif config['classifier_two_algo'] in ['wic']:
         from ibeis.algo.detect import wic
         config_ = {
             'draw_annots' : False,
@@ -377,14 +377,6 @@ def compute_classifications2(depc, gid_list, config=None):
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
         result_list = wic.test(thumbpath_list, **config)
-    elif config['classifier_algo'] in ['rf']:
-        from ibeis.algo.detect.rf import classify
-        config_ = {
-            'algo': 'resnet'
-        }
-        vector_list = depc.get_property('features', gid_list, 'vector', config=config_)
-        classifier_weight_filepath = config['classifier_weight_filepath']
-        result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
     else:
         raise ValueError('specified classifier_two algo is not supported in config = %r' % (config, ))
 
