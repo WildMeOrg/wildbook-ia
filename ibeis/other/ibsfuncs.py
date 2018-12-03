@@ -566,7 +566,7 @@ def check_image_consistency(ibs, gid_list=None):
 
 
 @register_ibs_method
-def check_image_uuid_consistency(ibs, gid_list):
+def check_image_uuid_consistency(ibs, gid_list=None):
     """
     Checks to make sure image uuids are computed detemenistically
     by recomputing all guuids and checking that they are equal to
@@ -611,48 +611,28 @@ def check_image_uuid_consistency(ibs, gid_list):
 
 
 @register_ibs_method
-def check_image_corruption(ibs, gid_list):
-    """
-    Checks to make sure image uuids are computed detemenistically
-    by recomputing all guuids and checking that they are equal to
-    what is already there.
+def check_image_loadable(ibs, gid_list=None):
+    print('checking image loadable')
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
 
-    VERY SLOW
+    gpath_list = ibs.get_image_paths(gid_list)
+    arg_iter = list(zip(
+        gpath_list,
+    ))
+    flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter)
+    flag_list = [not flag for flag in flag_list]
 
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
+    bad_list = ut.compress(gid_list, flag_list)
+    return bad_list
 
-    Example:
-        >>> # SCRIPT
-        >>> import ibeis
-        >>> import utool as ut
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> images = ibs.images()
-        >>> # Check only very the largest files
-        >>> #bytes_list_ = [
-        >>> #    ut.get_file_nBytes(path)
-        >>> #    for path in ut.ProgIter(images.paths, lbl='reading nbytes')]
-        >>> #sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
-        >>> #images = images.take(sortx)
-        >>> gid_list = list(images)
-        >>> ibeis.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
-    """
-    print('checking image uuid consistency')
-    import ibeis.algo.preproc.preproc_image as preproc_image
-    import imghdr
-    images = ibs.images(gid_list)
 
-    for gx in ut.ProgIter(range(len(images)), label='check uuids'):
-        image = images[gx]
-        uuid = image.uuid
-        gpath = image.paths
-        print(imghdr.what(gpath))
-        param_tup = preproc_image.parse_imageinfo(gpath)
-        guuid_computed = param_tup[0]
-        assert uuid == guuid_computed, 'image={} has a bad uuid'.format(gpath)
+def check_image_loadable_worker(gpath):
+    try:
+        vt.imread(gpath)
+        return True
+    except:
+        return False
 
 
 @register_ibs_method
@@ -795,6 +775,55 @@ def check_name_mapping_consistency(ibs, nx2_aids):
             else:
                 bad += 1
         ut.printex(ex, keys=['good', 'bad', 'huh'])
+
+
+@register_ibs_method
+def check_tile_consistency(ibs, gid_list=None, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): (default = None)
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --exec-check_tile_consistency
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = None
+        >>> result = check_image_consistency(ibs, gid_list)
+        >>> print(result)
+    """
+    # TODO: more consistency checks
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(is_tile=False)
+
+    all_tile_gid_set = set(ibs.get_valid_gids(is_tile=True))
+
+    level_error_set = set([])
+    for tile_gid in all_tile_gid_set:
+        try:
+            ibs.get_vulcan_image_tile_level(tile_gid)
+        except RuntimeError:
+            level_error_set.add(tile_gid)
+
+    error_list = []
+    tile_gids_list = ibs.compute_tiles(gid_list, **kwargs)
+    for gid, tile_gid_list in zip(gid_list, tile_gids_list):
+        error = False
+        for tile_gid in tile_gid_list:
+            if tile_gid not in all_tile_gid_set:
+                error = True
+            if tile_gid in level_error_set:
+                error = True
+        if error:
+            error_list.append(gid)
+
+    print('Found %d error GIDs' % (len(error_list), ))
+    if len(error_list) > 0:
+        ibs.depc_image.get_property('tiles', error_list, 'gids', recompute=True)
 
 
 @register_ibs_method
@@ -5934,7 +5963,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
         for note in note_list
     ]
 
-    special_zone_map = {
+    special_zone_map = {  # NOQA
         'GGR,3,A'   : 'Zone 1,County Laikipia,Zone Core',
         'GGR,8,A'   : 'Zone 3,County Isiolo,Zone Core',
         'GGR,10,A'  : 'Zone 1,County Laikipia,Zone Core',
@@ -6048,7 +6077,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
         for zone in sorted(path_dict.keys()):
             path = path_dict[zone]
             if path.contains_point(point):
-                found = True
+                found = True  # NOQA
                 imageset_dict[zone].append(gid)
         # if not found:
         #     imageset_dict['Zone 7'].append(gid)
