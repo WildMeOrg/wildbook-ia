@@ -1765,8 +1765,9 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     ]
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    index = np.argmax(area_list)
-    # index = 0
+    # index = np.argmax(area_list)
+    index = 0
+
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
     best_color1 = color_list[index]
@@ -1793,8 +1794,9 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     ]
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    index = np.argmax(area_list)
-    # index = 0
+    # index = np.argmax(area_list)
+    index = 0
+
     best_label2 = config_list[index]['label']
     best_config2 = config_list[index]
     best_color2 = color_list[index]
