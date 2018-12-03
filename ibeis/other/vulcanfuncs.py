@@ -96,12 +96,12 @@ def vulcan_imageset_train_test_split(ibs, imageset_text_list=None):
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, imageset_text_list=None, ensembles=5):
+def vulcan_wic_train(ibs, ensembles=5):
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
 
     skip_rate_neg = 1.0 - (1.0 / ensembles)
 
-    model_path_list = []
+    weights_path_list = []
     for index in range(ensembles):
         pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
         data_path = join(ibs.get_cachedir(), 'extracted-%d' % (index, ))
@@ -114,10 +114,10 @@ def vulcan_wic_train(ibs, imageset_text_list=None, ensembles=5):
             dest_path=data_path,
             skip_rate_neg=skip_rate_neg,
         )
-        model_path = wic.train(extracted_path, output_path)
-        model_path_list.append(model_path)
+        weights_path = wic.train(extracted_path, output_path)
+        weights_path_list.append(weights_path)
 
-    return model_path_list
+    return weights_path_list
 
 
 if __name__ == '__main__':

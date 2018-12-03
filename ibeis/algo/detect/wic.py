@@ -16,7 +16,8 @@ import PIL
 INPUT_SIZE = 224
 
 
-WEIGHT_URL_DICT = {
+ENSEMBLE_URL_DICT = {
+    'vulcan': '',
 }
 
 
@@ -383,6 +384,7 @@ def train(data_path, output_path, batch_size=32):
     # Train and evaluate
     model = finetune(model, dataloaders, criterion, optimizer, scheduler, device)
 
+    ut.ensuredir(output_path)
     weights_path = os.path.join(output_path, 'classifier.weights')
     weights = {
         'state':   copy.deepcopy(model.state_dict()),
