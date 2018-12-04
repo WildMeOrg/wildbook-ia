@@ -5,7 +5,6 @@ from ibeis.algo.detect import wic
 from os.path import join, exists
 import numpy as np
 import utool as ut
-import random
 import cv2
 
 
@@ -336,8 +335,6 @@ def vulcan_background_validate(ibs, imageset_text_list=None, output_path=None,
 
     flag_list = [test_label == 'positive' for test_label in test_label_list]
     test_tile_list = ut.compress(test_tile_list, flag_list)
-
-    random.shuffle(test_tile_list)
 
     masks = ibs.vulcan_background_compute(test_tile_list, model_tag=model_tag)
     masks = list(masks)
