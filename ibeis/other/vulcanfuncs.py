@@ -210,15 +210,14 @@ def vulcan_background_train(ibs):
     aid_list = ut.flatten(ibs.get_image_aids(train_gid_set))
     bbox_list = ibs.get_annot_bboxes(aid_list)
     w_list = ut.take_column(bbox_list, 2)
-    annot_size = int(np.around(np.mean(w_list) + np.std(w_list)))
-    patch_size = annot_size // 2
+    annot_size = int(np.around(np.mean(w_list)))
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     output_path = join(ibs.get_cachedir(), 'training', 'background')
 
     species = 'elephant_savanna'
     extracted_path = get_background_training_patches2(ibs, species, data_path,
-                                                      patch_size=patch_size,
+                                                      patch_size=50,
                                                       annot_size=annot_size,
                                                       patch_size_min=0.9,
                                                       patch_size_max=1.1,
@@ -229,6 +228,8 @@ def vulcan_background_train(ibs):
                                                       purge=True,
                                                       supercharge_negative_multiplier=10.0)
 
+    # rm -rf /data/ibeis/ELPH_Vulcan/_ibsdb/_ibeis_cache/training/background/
+
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     model_path = train_background(output_path, X_file, y_file)
     model_state = ut.load_cPkl(model_path)
@@ -237,6 +238,62 @@ def vulcan_background_train(ibs):
     save_model(model_state, model_path)
 
     return model_path
+
+
+@register_ibs_method
+def vulcan_background_deploy(ibs, model_path):
+    ut.copy(model_path, '/data/public/models/background.vulcan.pkl')
+    return model_path
+
+
+def vulcan_background_validate(ibs, imageset_text_list=None, config={}):
+    if imageset_text_list is None:
+        imageset_text_list = [
+            'elephant',
+            'RR18_BIG_2015_09_23_R_AM',
+            'TA24_TPM_L_2016-10-30-A',
+            'TA24_TPM_R_2016-10-30-A',
+        ]
+
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
+    gid_list = ut.flatten(gids_list)
+
+    config = {
+        'tile_width':   256,
+        'tile_height':  256,
+        'tile_overlap': 64,
+    }
+    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
+    tile_list = ut.flatten(tiles_list)
+
+    test_imgsetid = ibs.add_imagesets('TEST_SET')
+    test_gid_list = ibs.get_imageset_gids(test_imgsetid)
+
+    test_tile_list = list(set(tile_list) & set(test_gid_list))
+
+    ut.embed()
+
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+    positive_gid_set = set(ibs.get_imageset_gids(pid))
+    negative_gid_set = set(ibs.get_imageset_gids(nid))
+
+    test_label_list = []
+    for test_tile in test_tile_list:
+        if test_tile in positive_gid_set:
+            test_label_list.append('positive')
+        elif test_tile in negative_gid_set:
+            test_label_list.append('negative')
+        else:
+            raise ValueError()
+
+    flag_list = [test_label == 'positive' for test_label in test_label_list]
+    test_tile_list = ut.compress(test_tile_list, flag_list)
+
+    test_tile_list = test_tile_list[:10]
+
+    masks = ibs.depc_image.get('tilemasks', test_tile_list, 'img', config=config)
+    print(masks)
 
 
 if __name__ == '__main__':
