@@ -2183,58 +2183,6 @@ def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
     return gid, opath, tile_filepath_list, bbox_list, border_list
 
 
-class TileMaskConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('smooth_thresh', 20, 'thresh='),
-        ut.ParamInfo('smooth_ksize', 20, 'ksz=',
-                     hideif=lambda cfg: cfg['smooth_thresh'] is None),
-    ]
-
-
-TileMaskImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
-                                   vt.imwrite, extern_ext='.jpg')
-
-
-@register_preproc(
-    tablename='tilemasks', parents=['tiles'],
-    colnames=['img'],
-    coltypes=[TileMaskImgType],
-    configclass=TileMaskConfig,
-    fname='tilemaskcache',
-    # isinteractive=True,
-)
-def compute_tilemask(depc, tile_rowid_list, config=None):
-    """ Computes tile probability masks."""
-    print('[core] COMPUTING TILEMASKS')
-    print('config = %r' % (config,))
-    from ibeis.core_annots import postprocess_mask
-    import os
-
-    ibs = depc.controller
-
-    smooth_thresh = config['smooth_thresh']
-    smooth_ksize = config['smooth_ksize']
-
-    tilemask_dir = os.path.join(ibs.get_cachedir(), 'tilemasks')
-    ut.ensuredir(tilemask_dir)
-
-    tile_gids = depc.get_native('tiles', tile_rowid_list, 'gids')
-    tile_path_list = ibs.get_image_paths(tile_gids)
-
-    # dont use extrmargin here (for now)
-    mask_gen = ibs.generate_species_background_mask(tile_path_list, 'vulcan')
-    for chunk in ut.ichunks(mask_gen, 256):
-        _progiter = ut.ProgIter(
-            chunk, lbl='compute tilemask chunk',
-            adjust=True, time_thresh=30.0, bs=True)
-        for mask in _progiter:
-            if smooth_thresh is not None and smooth_ksize is not None:
-                tilemask = postprocess_mask(mask, smooth_thresh, smooth_ksize)
-            else:
-                tilemask = mask
-            yield (tilemask, )
-
-
 if __name__ == '__main__':
     r"""
     CommandLine:

@@ -4,6 +4,8 @@ from ibeis.control import controller_inject
 from os.path import join, exists
 import utool as ut
 from ibeis.algo.detect import wic
+import os
+import cv2
 
 
 PYTORCH = True
@@ -246,6 +248,46 @@ def vulcan_background_deploy(ibs, model_path):
     return model_path
 
 
+@register_ibs_method
+def vulcan_background_compute(ibs, tile_rowid_list, smooth_thresh=20,
+                              smooth_ksize=20, model_tag='vulcan'):
+    """ Computes tile probability masks."""
+    from ibeis.core_annots import postprocess_mask
+
+    tilemask_dir = os.path.join(ibs.get_cachedir(), 'tilemasks')
+    ut.ensuredir(tilemask_dir)
+
+    # dont use extrmargin here (for now)
+    for chunk in ut.ichunks(tile_rowid_list, 256):
+        output_path_list = [
+            join(tilemask_dir, 'tilemask_tile_id_%d_model_%s' % (tile_id, model_tag, ))
+            for tile_id in chunk
+        ]
+        dirty_list = [
+            not os.path.exists(output_path)
+            for output_path in output_path_list
+        ]
+        if len(dirty_list) > 0:
+            chunk_ =  ut.compress(chunk, dirty_list)
+            output_path_list_ = ut.compress(output_path_list, dirty_list)
+
+            tile_path_list = ibs.get_image_paths(chunk_)
+            mask_gen = ibs.generate_species_background_mask(tile_path_list, model_tag)
+
+            args_list = list(zip(list(mask_gen), output_path_list_))
+            for mask, output_path in args_list:
+                if smooth_thresh is not None and smooth_ksize is not None:
+                    tilemask = postprocess_mask(mask, smooth_thresh, smooth_ksize)
+                else:
+                    tilemask = mask
+                cv2.imwrite(output_path, tilemask)
+
+        for output_path in output_path_list:
+            assert exists(output_path)
+            tilemask = cv2.imread(output_path)
+            yield (tilemask, )
+
+
 def vulcan_background_validate(ibs, imageset_text_list=None, config={}):
     if imageset_text_list is None:
         imageset_text_list = [
@@ -272,8 +314,6 @@ def vulcan_background_validate(ibs, imageset_text_list=None, config={}):
 
     test_tile_list = list(set(tile_list) & set(test_gid_list))
 
-    ut.embed()
-
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
     positive_gid_set = set(ibs.get_imageset_gids(pid))
     negative_gid_set = set(ibs.get_imageset_gids(nid))
@@ -292,7 +332,7 @@ def vulcan_background_validate(ibs, imageset_text_list=None, config={}):
 
     test_tile_list = test_tile_list[:10]
 
-    masks = ibs.depc_image.get('tilemasks', test_tile_list, 'img', config=config)
+    masks = ibs.vulcan_background_compute(test_tile_list)
     print(masks)
 
 
