@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images_pytorch
 from ibeis.control import controller_inject
-from os.path import join, exists
-import utool as ut
 from ibeis.algo.detect import wic
-import os
+from os.path import join, exists
+import numpy as np
+import utool as ut
+import random
 import cv2
 
 
@@ -254,17 +255,17 @@ def vulcan_background_compute(ibs, tile_rowid_list, smooth_thresh=20,
     """ Computes tile probability masks."""
     from ibeis.core_annots import postprocess_mask
 
-    tilemask_dir = os.path.join(ibs.get_cachedir(), 'tilemasks')
+    tilemask_dir = join(ibs.get_cachedir(), 'tilemasks')
     ut.ensuredir(tilemask_dir)
 
     # dont use extrmargin here (for now)
     for chunk in ut.ichunks(tile_rowid_list, 256):
         output_path_list = [
-            join(tilemask_dir, 'tilemask_tile_id_%d_model_%s' % (tile_id, model_tag, ))
+            join(tilemask_dir, 'tilemask_tile_id_%d_model_%s.png' % (tile_id, model_tag, ))
             for tile_id in chunk
         ]
         dirty_list = [
-            not os.path.exists(output_path)
+            not exists(output_path)
             for output_path in output_path_list
         ]
         if len(dirty_list) > 0:
@@ -285,10 +286,15 @@ def vulcan_background_compute(ibs, tile_rowid_list, smooth_thresh=20,
         for output_path in output_path_list:
             assert exists(output_path)
             tilemask = cv2.imread(output_path)
-            yield (tilemask, )
+            yield tilemask
 
 
-def vulcan_background_validate(ibs, imageset_text_list=None, config={}):
+def vulcan_background_validate(ibs, imageset_text_list=None, output_path=None,
+                               model_tag='vulcan'):
+    if output_path is None:
+        output_path = join(ibs.get_cachedir(), 'tilemasks_combined')
+        ut.ensuredir(output_path)
+
     if imageset_text_list is None:
         imageset_text_list = [
             'elephant',
@@ -330,10 +336,20 @@ def vulcan_background_validate(ibs, imageset_text_list=None, config={}):
     flag_list = [test_label == 'positive' for test_label in test_label_list]
     test_tile_list = ut.compress(test_tile_list, flag_list)
 
-    test_tile_list = test_tile_list[:10]
+    random.shuffle(test_tile_list)
 
-    masks = ibs.vulcan_background_compute(test_tile_list)
-    print(masks)
+    masks = ibs.vulcan_background_compute(test_tile_list, model_tag=model_tag)
+    masks = list(masks)
+
+    images = ibs.get_images(test_tile_list)
+    for test_tile, image, mask in zip(test_tile_list, images, masks):
+        output_filename = 'tilemask_combined_tile_id_%d_model_%s.png' % (test_tile, model_tag, )
+        output_filepath = join(output_path, output_filename)
+
+        combined = np.around(image.astype(np.float32) * mask.astype(np.float32) / 255.0).astype(np.uint8)
+        canvas = np.hstack((image, mask, combined))
+
+        cv2.imwrite(output_filepath, canvas)
 
 
 if __name__ == '__main__':
