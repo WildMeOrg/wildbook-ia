@@ -289,6 +289,7 @@ def vulcan_background_compute(ibs, tile_rowid_list, smooth_thresh=20,
             yield tilemask
 
 
+@register_ibs_method
 def vulcan_background_validate(ibs, imageset_text_list=None, output_path=None,
                                model_tag='vulcan'):
     if output_path is None:
