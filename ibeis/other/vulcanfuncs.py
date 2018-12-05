@@ -24,8 +24,7 @@ register_api = controller_inject.get_ibeis_flask_api(__name__)
 
 
 @register_ibs_method
-def vulcan_imageset_train_test_split(ibs, imageset_text_list=None):
-
+def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None):
     if imageset_text_list is None:
         imageset_text_list = [
             'elephant',
@@ -45,6 +44,13 @@ def vulcan_imageset_train_test_split(ibs, imageset_text_list=None):
     }
     tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
     tile_list = ut.flatten(tiles_list)
+
+    return tile_list
+
+
+@register_ibs_method
+def vulcan_imageset_train_test_split(ibs, **kwargs):
+    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
     aids_list = ibs.get_vulcan_image_tile_aids(tile_list)
     species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
@@ -98,15 +104,18 @@ def vulcan_imageset_train_test_split(ibs, imageset_text_list=None):
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, ensembles=5):
-    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+def vulcan_wic_train(ibs, ensembles=5, negative_imageset_text='NEGATIVE', round_num=0, hashstr=None):
+    if hashstr is None:
+        hashstr = ut.random_nonce()[:8]
+
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', negative_imageset_text])
 
     skip_rate_neg = 1.0 - (1.0 / ensembles)
 
     weights_path_list = []
     for index in range(ensembles):
-        data_path = join(ibs.get_cachedir(), 'extracted-%d' % (index, ))
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-%d' % (index, ))
+        data_path = join(ibs.get_cachedir(), 'extracted-%d-%d' % (index, round_num, ))
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-%d-%d' % (index, round_num, ))
 
         extracted_path = get_cnn_classifier_cameratrap_binary_training_images_pytorch(
             ibs,
@@ -118,12 +127,14 @@ def vulcan_wic_train(ibs, ensembles=5):
         weights_path = wic.train(extracted_path, output_path)
         weights_path_list.append(weights_path)
 
-    return weights_path_list
+    return weights_path_list, hashstr
 
 
 @register_ibs_method
-def vulcan_wic_deploy(ibs, weights_path_list):
-    ensemble_path = join(ibs.get_cachedir(), 'training', 'ensemble')
+def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0):
+    args = (hashstr, round_num, )
+    ensemble_name = 'ensemble-hashstr-%s-round-%r' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', ensemble_name)
     ut.ensuredir(ensemble_path)
 
     archive_path = '%s.tar' % (ensemble_path)
@@ -136,31 +147,75 @@ def vulcan_wic_deploy(ibs, weights_path_list):
         ensemble_weights_path_list.append(ensemble_weights_path)
 
     ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True)
-    ut.copy(archive_path, '/data/public/models/classifier2.vulcan.tar')
+
+    output_path = '/data/public/models/classifier2.vulcan.%s.%d.tar' % args
+    ut.copy(archive_path, output_path)
     return archive_path
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
-    if imageset_text_list is None:
-        imageset_text_list = [
-            'elephant',
-            'RR18_BIG_2015_09_23_R_AM',
-            'TA24_TPM_L_2016-10-30-A',
-            'TA24_TPM_R_2016-10-30-A',
-        ]
-
-    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
-    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
-    gid_list = ut.flatten(gids_list)
-
+def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
     config = {
-        'tile_width':   256,
-        'tile_height':  256,
-        'tile_overlap': 64,
+        'classifier_algo': 'wic',
+        'classifier_weight_filepath': model_tag,
     }
-    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-    tile_list = ut.flatten(tiles_list)
+    prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
+    confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
+
+    return confidence_list
+
+
+@register_ibs_method
+def vulcan_wic_boost(ibs, model_tag=None, ensembles=5, round_num=1,
+                     confidence_thresh=0.1, **kwargs):
+
+    ut.embed()
+
+    assert round_num >= 1
+    test_tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
+
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+    positive_gid_set = set(ibs.get_imageset_gids(pid))
+    negative_gid_set = set(ibs.get_imageset_gids(nid))
+
+    test_label_list = []
+    for test_tile in test_tile_list:
+        if test_tile in positive_gid_set:
+            test_label_list.append('positive')
+        elif test_tile in negative_gid_set:
+            test_label_list.append('negative')
+        else:
+            raise ValueError()
+
+    flag_list = [test_label == 'negative' for test_label in test_label_list]
+    test_tile_list = ut.compress(test_tile_list, flag_list)
+
+    confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=model_tag)
+
+    boost_imageset_text = 'NEGATIVE-BOOST-%d' % (round_num, )
+    boost_id, = ibs.get_imageset_imgsetids_from_text([boost_imageset_text])
+    gid_all_list = ibs.get_valid_gids(is_tile=None)
+    ibs.unrelate_images_and_imagesets(gid_all_list, [boost_id] * len(gid_all_list))
+
+    flag_list = [confidence >= confidence_thresh for confidence in confidence_list]
+    test_tile_list = ut.compress(test_tile_list, flag_list)
+    print('Using %d / %d boosted negatives' % (len(test_tile_list), len(flag_list), ))
+    ibs.set_image_imagesettext(test_tile_list, [boost_imageset_text] * len(test_tile_list))
+
+    weights_path_list = ibs.vulcan_wic_train(ensembles=ensembles,
+                                             negative_imageset_text=boost_imageset_text,
+                                             round_num=round_num)
+
+    return weights_path_list
+
+
+@register_ibs_method
+def vulcan_wic_validate(ibs, model_tag=None, **kwargs):
+    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
     test_imgsetid = ibs.add_imagesets('TEST_SET')
     test_gid_list = ibs.get_imageset_gids(test_imgsetid)
@@ -168,32 +223,19 @@ def vulcan_wic_validate(ibs, model_tag=None, imageset_text_list=None):
     test_tile_list = list(set(tile_list) & set(test_gid_list))
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
-    # positive_gid_set = set(ibs.get_imageset_gids(pid))
-    # negative_gid_set = set(ibs.get_imageset_gids(nid))
-
-    # test_label_list = []
-    # for test_tile in test_tile_list:
-    #     if test_tile in positive_gid_set:
-    #         test_label_list.append('positive')
-    #     elif test_tile in negative_gid_set:
-    #         test_label_list.append('negative')
-    #     else:
-    #         raise ValueError()
-
-    # config = {
-    #     'classifier_algo': 'wic',
-    #     'classifier_weight_filepath': model_tag,
-    # }
-    # prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
-    # confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config)
-    # confidence_list = [
-    #     confidence if prediction == 'positive' else 1.0 - confidence
-    #     for prediction, confidence in zip(prediction_list, confidence_list)
-    # ]
 
     # return confidence_list, test_label_list
+    config_list = [
+        {'label': 'ELPH WIC Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
+        {'label': 'ELPH WIC 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:0'},
+        {'label': 'ELPH WIC 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:1'},
+        {'label': 'ELPH WIC 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:2'},
+        {'label': 'ELPH WIC 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:3'},
+        {'label': 'ELPH WIC 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:4'},
+    ]
 
-    ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list)
+    ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
+                                                            config_list=config_list, offset_black=1)
 
 
 @register_ibs_method
@@ -289,31 +331,12 @@ def vulcan_background_compute(ibs, tile_rowid_list, smooth_thresh=20,
 
 
 @register_ibs_method
-def vulcan_background_validate(ibs, imageset_text_list=None, output_path=None,
-                               model_tag='vulcan'):
+def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwargs):
     if output_path is None:
         output_path = join(ibs.get_cachedir(), 'tilemasks_combined')
         ut.ensuredir(output_path)
 
-    if imageset_text_list is None:
-        imageset_text_list = [
-            'elephant',
-            'RR18_BIG_2015_09_23_R_AM',
-            'TA24_TPM_L_2016-10-30-A',
-            'TA24_TPM_R_2016-10-30-A',
-        ]
-
-    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
-    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
-    gid_list = ut.flatten(gids_list)
-
-    config = {
-        'tile_width':   256,
-        'tile_height':  256,
-        'tile_overlap': 64,
-    }
-    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-    tile_list = ut.flatten(tiles_list)
+    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
     test_imgsetid = ibs.add_imagesets('TEST_SET')
     test_gid_list = ibs.get_imageset_gids(test_imgsetid)

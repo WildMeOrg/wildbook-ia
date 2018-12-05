@@ -18,7 +18,6 @@ INPUT_SIZE = 224
 
 ARCHIVE_URL_DICT = {
     'vulcan': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
-
     None:     'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
 }
 
