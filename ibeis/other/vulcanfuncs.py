@@ -135,11 +135,11 @@ def vulcan_wic_train(ibs, ensembles=5, negative_imageset_text='NEGATIVE', round_
 @register_ibs_method
 def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=True):
     args = (hashstr, round_num, )
-    ensemble_name = 'ensemble-hashstr-%s-round-%r' % args
-    ensemble_path = join(ibs.get_cachedir(), 'training', ensemble_name)
+    output_name = 'classifier2.vulcan.%s.%d' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
 
-    archive_path = '%s.tar' % (ensemble_path)
+    archive_path = '%s.zip' % (ensemble_path)
     ensemble_weights_path_list = []
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
@@ -149,18 +149,18 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
         ensemble_weights_path_list.append(ensemble_weights_path)
 
     ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True)
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
 
-    output_filename = 'classifier2.vulcan.%s.%d.tar' % args
-    output_path = '/data/public/models/%s' % (output_filename, )
+    output_path = '/data/public/models/%s.zip' % (output_name, )
     ut.copy(archive_path, output_path)
 
     if temporary:
         from ibeis.algo.detect import wic
         key = 'vulcan-boost%s' % (round_num, )
-        wic.ARCHIVE_URL_DICT[key] = 'https://cthulhu.dyn.wildme.io/public/models/%s' % (output_filename, )
+        wic.ARCHIVE_URL_DICT[key] = 'https://cthulhu.dyn.wildme.io/public/models/%s.zip' % (output_name, )
+        print(ut.repr3(wic.ARCHIVE_URL_DICT))
 
-    return output_filename
+    return output_name
 
 
 @register_ibs_method
@@ -229,17 +229,17 @@ def vulcan_wic_validate(ibs, **kwargs):
 
     # return confidence_list, test_label_list
     # config_list = [
-    #     {'label': 'ELPH WIC Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
-    #     {'label': 'ELPH WIC 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:0'},
-    #     {'label': 'ELPH WIC 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:1'},
-    #     {'label': 'ELPH WIC 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:2'},
-    #     {'label': 'ELPH WIC 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:3'},
-    #     {'label': 'ELPH WIC 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:4'},
+    #     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0'},
+    #     {'label': 'ELPH WIC B0 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0:0'},
+    #     {'label': 'ELPH WIC B0 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0:1'},
+    #     {'label': 'ELPH WIC B0 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0:2'},
+    #     {'label': 'ELPH WIC B0 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0:3'},
+    #     {'label': 'ELPH WIC B0 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0:4'},
     # ]
 
     config_list = [
-        {'label': 'ELPH WIC Ensemble (B1)', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1'},
-        {'label': 'ELPH WIC Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
+        {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0'},
+        {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1'},
     ]
 
     ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,

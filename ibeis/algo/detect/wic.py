@@ -17,10 +17,8 @@ INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    'vulcan': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
-    None:     'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
-
-    'vulcan-boost1': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.8d5734ac.1.tar',
+    'vulcan-boost0': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.8d5734ac.0.zip',
+    'vulcan-boost1': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.8d5734ac.1.zip',
 }
 
 
@@ -501,22 +499,25 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
         print('classifier_weight_filepath %r not recognized' % (classifier_weight_filepath, ))
         raise RuntimeError
 
-    kwargs.pop('classifier_algo', None)
-
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)
 
-    ut.unarchive_file(archive_path)
+    ensemble_path = archive_path.strip('.zip')
+    if not os.path.exists(ensemble_path):
+        ut.unarchive_file(archive_path)
 
-    ensemble_path = archive_path.strip('.tar')
+    assert os.path.exists(ensemble_path)
     ensemble_path = os.path.join(ensemble_path, '*.weights')
     weights_path_list = ut.glob(ensemble_path)
-
     weights_path_list = sorted(weights_path_list)
+    assert len(weights_path_list) > 0
 
     if ensemble_index is not None:
         assert 0 <= ensemble_index and ensemble_index < len(weights_path_list)
         weights_path_list = [ weights_path_list[ensemble_index] ]
+        assert len(weights_path_list) > 0
+
+    kwargs.pop('classifier_algo', None)
 
     print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
