@@ -107,6 +107,7 @@ def vulcan_imageset_train_test_split(ibs, **kwargs):
 def vulcan_wic_train(ibs, ensembles=5, negative_imageset_text='NEGATIVE', round_num=0, hashstr=None):
     if hashstr is None:
         hashstr = ut.random_nonce()[:8]
+    print('Using hashstr=%r' % (hashstr, ))
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', negative_imageset_text])
 
@@ -114,8 +115,9 @@ def vulcan_wic_train(ibs, ensembles=5, negative_imageset_text='NEGATIVE', round_
 
     weights_path_list = []
     for index in range(ensembles):
-        data_path = join(ibs.get_cachedir(), 'extracted-%d-%d' % (index, round_num, ))
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-%d-%d' % (index, round_num, ))
+        args = (hashstr, round_num, index, )
+        data_path = join(ibs.get_cachedir(), 'extracted-%s-%d-%d' % args)
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-%s-%d-%d' % args)
 
         extracted_path = get_cnn_classifier_cameratrap_binary_training_images_pytorch(
             ibs,
@@ -146,10 +148,11 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0):
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True)
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
 
     output_path = '/data/public/models/classifier2.vulcan.%s.%d.tar' % args
     ut.copy(archive_path, output_path)
+
     return archive_path
 
 
@@ -176,24 +179,16 @@ def vulcan_wic_boost(ibs, model_tag=None, ensembles=5, round_num=1,
     ut.embed()
 
     assert round_num >= 1
-    test_tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
 
-    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
-    positive_gid_set = set(ibs.get_imageset_gids(pid))
+    train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
+    train_gid_set = all_tile_set & train_gid_set
+
+    nid, = ibs.get_imageset_imgsetids_from_text(['NEGATIVE'])
     negative_gid_set = set(ibs.get_imageset_gids(nid))
+    negative_gid_set = negative_gid_set & train_gid_set
 
-    test_label_list = []
-    for test_tile in test_tile_list:
-        if test_tile in positive_gid_set:
-            test_label_list.append('positive')
-        elif test_tile in negative_gid_set:
-            test_label_list.append('negative')
-        else:
-            raise ValueError()
-
-    flag_list = [test_label == 'negative' for test_label in test_label_list]
-    test_tile_list = ut.compress(test_tile_list, flag_list)
-
+    test_tile_list = list(negative_gid_set)
     confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=model_tag)
 
     boost_imageset_text = 'NEGATIVE-BOOST-%d' % (round_num, )

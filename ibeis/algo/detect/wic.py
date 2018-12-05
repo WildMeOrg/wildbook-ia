@@ -505,7 +505,7 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     archive_path = ut.truepath(archive_path)
 
     ensemble_path = ut.unarchive_file(archive_path)
-    ensemble_path = os.path.join(ensemble_path, 'ensemble', '*.weights')
+    ensemble_path = os.path.join(ensemble_path, '*', '*.weights')
     weights_path_list = ut.glob(ensemble_path)
 
     weights_path_list = sorted(weights_path_list)
