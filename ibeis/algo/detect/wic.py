@@ -19,6 +19,8 @@ INPUT_SIZE = 224
 ARCHIVE_URL_DICT = {
     'vulcan': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
     None:     'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.tar',
+
+    'vulcan-boost1': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.vulcan.8d5734ac.1.tar',
 }
 
 
@@ -504,8 +506,10 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)
 
-    ensemble_path = ut.unarchive_file(archive_path)
-    ensemble_path = os.path.join(ensemble_path, '*', '*.weights')
+    ut.unarchive_file(archive_path)
+
+    ensemble_path = archive_path.strip('.tar')
+    ensemble_path = os.path.join(ensemble_path, '*.weights')
     weights_path_list = ut.glob(ensemble_path)
 
     weights_path_list = sorted(weights_path_list)

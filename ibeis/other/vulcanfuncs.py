@@ -133,7 +133,7 @@ def vulcan_wic_train(ibs, ensembles=5, negative_imageset_text='NEGATIVE', round_
 
 
 @register_ibs_method
-def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0):
+def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=True):
     args = (hashstr, round_num, )
     ensemble_name = 'ensemble-hashstr-%s-round-%r' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', ensemble_name)
@@ -148,12 +148,19 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0):
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
-    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True)
 
-    output_path = '/data/public/models/classifier2.vulcan.%s.%d.tar' % args
+    output_filename = 'classifier2.vulcan.%s.%d.tar' % args
+    output_path = '/data/public/models/%s' % (output_filename, )
     ut.copy(archive_path, output_path)
 
-    return archive_path
+    if temporary:
+        from ibeis.algo.detect import wic
+        key = 'vulcan-boost%s' % (round_num, )
+        wic.ARCHIVE_URL_DICT[key] = 'https://cthulhu.dyn.wildme.io/public/models/%s' % (output_filename, )
+
+    return output_filename
 
 
 @register_ibs_method
@@ -201,15 +208,16 @@ def vulcan_wic_boost(ibs, model_tag=None, ensembles=5, round_num=1,
     print('Using %d / %d boosted negatives' % (len(test_tile_list), len(flag_list), ))
     ibs.set_image_imagesettext(test_tile_list, [boost_imageset_text] * len(test_tile_list))
 
-    weights_path_list = ibs.vulcan_wic_train(ensembles=ensembles,
-                                             negative_imageset_text=boost_imageset_text,
-                                             round_num=round_num)
+    values = ibs.vulcan_wic_train(ensembles=ensembles,
+                                  negative_imageset_text=boost_imageset_text,
+                                  round_num=round_num)
+    weights_path_list, hashstr = values
 
     return weights_path_list
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, model_tag=None, **kwargs):
+def vulcan_wic_validate(ibs, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
     test_imgsetid = ibs.add_imagesets('TEST_SET')
@@ -220,17 +228,22 @@ def vulcan_wic_validate(ibs, model_tag=None, **kwargs):
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
 
     # return confidence_list, test_label_list
+    # config_list = [
+    #     {'label': 'ELPH WIC Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
+    #     {'label': 'ELPH WIC 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:0'},
+    #     {'label': 'ELPH WIC 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:1'},
+    #     {'label': 'ELPH WIC 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:2'},
+    #     {'label': 'ELPH WIC 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:3'},
+    #     {'label': 'ELPH WIC 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:4'},
+    # ]
+
     config_list = [
+        {'label': 'ELPH WIC Ensemble (B1)', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1'},
         {'label': 'ELPH WIC Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan'},
-        {'label': 'ELPH WIC 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:0'},
-        {'label': 'ELPH WIC 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:1'},
-        {'label': 'ELPH WIC 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:2'},
-        {'label': 'ELPH WIC 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:3'},
-        {'label': 'ELPH WIC 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan:4'},
     ]
 
     ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
-                                                            config_list=config_list, offset_black=1)
+                                                            config_list=config_list, offset_black=0)
 
 
 @register_ibs_method
