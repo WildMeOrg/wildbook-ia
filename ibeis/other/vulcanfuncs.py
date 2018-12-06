@@ -24,7 +24,7 @@ register_api = controller_inject.get_ibeis_flask_api(__name__)
 
 
 @register_ibs_method
-def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None):
+def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False):
     if imageset_text_list is None:
         imageset_text_list = [
             'elephant',
@@ -43,9 +43,12 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None):
         'tile_overlap': 64,
     }
     tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-    tile_list = ut.flatten(tiles_list)
 
-    return tile_list
+    if return_gids:
+        return gid_list, tiles_list
+    else:
+        tile_list = ut.flatten(tiles_list)
+        return tile_list
 
 
 @register_ibs_method
@@ -183,8 +186,6 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 def vulcan_wic_boost(ibs, model_tag=None, ensembles=5, round_num=1,
                      confidence_thresh=0.1, **kwargs):
 
-    ut.embed()
-
     assert round_num >= 1
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
 
@@ -238,12 +239,48 @@ def vulcan_wic_validate(ibs, **kwargs):
     # ]
 
     config_list = [
-        {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0'},
         {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1'},
+        {'label': 'ELPH WIC B1 0',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1:0'},
+        {'label': 'ELPH WIC B1 1',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1:1'},
+        {'label': 'ELPH WIC B1 2',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1:2'},
+        {'label': 'ELPH WIC B1 3',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1:3'},
+        {'label': 'ELPH WIC B1 4',        'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1:4'},
     ]
 
+    # config_list = [
+    #     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0'},
+    #     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1'},
+    # ]
+
     ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
-                                                            config_list=config_list, offset_black=0)
+                                                            config_list=config_list, offset_black=1)
+
+
+@register_ibs_method
+def vulcan_wic_validate_image(ibs, model_tag=None, **kwargs):
+    from functools import partial
+
+    gid_list, tiles_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
+
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    gid_list = list(set(gid_list) & test_gid_set)
+    tiles_list = [
+        set(tile_list) & test_gid_set
+        for tile_list in tiles_list
+    ]
+
+    ut.embed()
+
+    # Pre-compute and cache
+    tile_list = ut.flatten(tiles_list)
+    ibs.vulcan_wic_test(tile_list, model_tag)
+
+    aids_list = ibs.get_image_aids(gid_list)
+    length_list = list(map(len, aids_list))
+    flag_list = [0 < length for length in length_list]
+
+    compute_func = partial(ibs.vulcan_wic_test, model_tag=model_tag)
+    confidence_list = list(map(compute_func, tiles_list))
 
 
 @register_ibs_method
