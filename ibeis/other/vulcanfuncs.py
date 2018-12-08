@@ -107,7 +107,7 @@ def vulcan_imageset_train_test_split(ibs, **kwargs):
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.5,
+def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.1,
                      hashstr=None, **kwargs):
     import random
 
