@@ -139,11 +139,11 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.1,
 
     for round_num in [2, 3, 4, 5, 6, 7, 8, 9]:
         if round_num == 0:
-            assert latest_model_tag is not None
+            assert latest_model_tag is None
             skip_rate_neg = 1.0 - (1.0 / ensembles)
             confidence_list = [confidence_thresh] * len(test_tile_list)
         else:
-            assert latest_model_tag is None
+            assert latest_model_tag is not None
             skip_rate_neg = 0.0
             confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=latest_model_tag)
 
