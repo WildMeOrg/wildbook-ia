@@ -107,7 +107,7 @@ def vulcan_imageset_train_test_split(ibs, **kwargs):
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.1,
+def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.2,
                      hashstr=None, **kwargs):
     import random
 
@@ -133,11 +133,12 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.1,
     hashstr = '8d5734ac'
     config_list = [
         {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0', 'label': 'WIC Round 0 Ensbl.'},
-        {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1', 'label': 'WIC Round 1 Ensbl.'}
+        {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1', 'label': 'WIC Round 1 Ensbl.'},
+        {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost2', 'label': 'WIC Round 2 Ensbl.'},
     ]
     latest_model_tag = 'vulcan-boost1'
 
-    for round_num in [2, 3, 4, 5, 6, 7, 8, 9]:
+    for round_num in [3, 4, 5, 6, 7, 8, 9]:
         if round_num == 0:
             assert latest_model_tag is None
             skip_rate_neg = 1.0 - (1.0 / ensembles)
@@ -182,9 +183,9 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.1,
             weights_path = wic.train(extracted_path, output_path)
             weights_path_list.append(weights_path)
 
-        model_key, latest_model_tag = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
+        latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
         config_list.append(
-            {'label': 'WIC Round %d Ensbl.' % (round_num, ), 'classifier_algo': 'wic', 'classifier_weight_filepath': model_key},
+            {'label': 'WIC Round %d Ensbl.' % (round_num, ), 'classifier_algo': 'wic', 'classifier_weight_filepath': latest_model_tag},
         )
         ibs.vulcan_wic_validate(config_list)
 
@@ -215,11 +216,10 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
     output_path = '/data/public/models/%s.zip' % (output_name, )
     ut.copy(archive_path, output_path)
 
-    if temporary:
-        from ibeis.algo.detect import wic
-        model_key = 'vulcan-boost%s' % (round_num, )
-        wic.ARCHIVE_URL_DICT[model_key] = 'https://cthulhu.dyn.wildme.io/public/models/%s.zip' % (output_name, )
-        print(ut.repr3(wic.ARCHIVE_URL_DICT))
+    from ibeis.algo.detect import wic
+    model_key = 'vulcan-boost%s' % (round_num, )
+    wic.ARCHIVE_URL_DICT[model_key] = 'https://cthulhu.dyn.wildme.io/public/models/%s.zip' % (output_name, )
+    print(ut.repr3(wic.ARCHIVE_URL_DICT))
 
     return model_key, output_name
 
