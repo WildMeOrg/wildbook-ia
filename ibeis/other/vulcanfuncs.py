@@ -134,11 +134,10 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10, confidence_thresh=0.2,
     config_list = [
         {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost0', 'label': 'WIC Round 0 Ensbl.'},
         {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost1', 'label': 'WIC Round 1 Ensbl.'},
-        {'classifier_algo': 'wic', 'classifier_weight_filepath': 'vulcan-boost2', 'label': 'WIC Round 2 Ensbl.'},
     ]
     latest_model_tag = 'vulcan-boost1'
 
-    for round_num in [3, 4, 5, 6, 7, 8, 9]:
+    for round_num in [2, 3, 4, 5, 6, 7, 8, 9]:
         if round_num == 0:
             assert latest_model_tag is None
             skip_rate_neg = 1.0 - (1.0 / ensembles)
