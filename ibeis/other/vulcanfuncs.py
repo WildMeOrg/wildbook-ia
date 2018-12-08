@@ -47,7 +47,8 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     if return_gids:
         return gid_list
     else:
-        return tiles_list
+        tile_list = ut.flatten(tiles_list)
+        return tile_list
 
 
 @register_ibs_method
