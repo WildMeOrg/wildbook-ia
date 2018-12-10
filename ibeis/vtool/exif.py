@@ -288,7 +288,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
                 if gps_longitude_ref != 'E':
                     lon = 0 - lon
                 return lat, lon
-            except ZeroDivisionError:
+            except (ZeroDivisionError, TypeError):
                 # FIXME: -1, -1 is not a good invalid GPS
                 # Find out what the divide by zero really means
                 # currently we think it just is bad gps data
