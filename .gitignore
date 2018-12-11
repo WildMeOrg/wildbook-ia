@@ -86,6 +86,7 @@ run_cyth_benchmarks.py
 *.orig
 *.h5
 _grave.py
+_doc/_build/
 
 ibeis/control/_grave_template.py
 ibeis/model/hots/smk/_smk_core_docs.txt
