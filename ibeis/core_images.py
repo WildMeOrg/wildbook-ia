@@ -497,12 +497,13 @@ def compute_features(depc, gid_list, config=None):
 
 class LocalizerOriginalConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['azure', 'yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
-        ut.ParamInfo('species', None),
+        ut.ParamInfo('algo',            'yolo', valid_values=['azure', 'yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
+        ut.ParamInfo('species',         None),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
-        ut.ParamInfo('class_filepath', None),
-        ut.ParamInfo('grid', False),
+        ut.ParamInfo('class_filepath',  None),
+        ut.ParamInfo('flip',            False, hideif=False),  # True will horizontally flip all images before being sent to the localizer and will flip the results back
+        ut.ParamInfo('grid',            False),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -687,6 +688,10 @@ def compute_localizations_original(depc, gid_list, config=None):
 
     config = dict(config)
     config['sensitivity'] = 0.0
+
+    flip = config.get('flip', False)
+    if flip:
+        assert config['algo'] == 'lightnet', 'config "flip" is only supported by the "lightnet" algo'
 
     # Normal computations
     base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
