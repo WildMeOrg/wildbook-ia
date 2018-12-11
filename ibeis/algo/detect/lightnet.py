@@ -26,20 +26,21 @@ VERBOSE_LN = ut.get_argflag('--verbln') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'hammerhead'            : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
-    'jaguar'                : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.py',
-    'lynx'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
-    'manta'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
-    'seaturtle'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
+    'hammerhead'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.shark_hammerhead.py',
+    'jaguar'                     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.py',
+    'lynx'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
+    'manta'                      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
+    'seaturtle'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
 
-    'hendrik_elephant'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
-    'hendrik_elephant_ears' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.py',
-    'hendrik_dorsal'        : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
+    'hendrik_elephant'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
+    'hendrik_elephant_ears'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.py',
+    'hendrik_elephant_ears_left' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.left.py',
+    'hendrik_dorsal'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
 
-    'candidacy'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
-    'ggr2'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
+    'candidacy'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    'ggr2'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
 
-    None                    : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    None                         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
 }
 
 
@@ -112,37 +113,52 @@ def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh):
     return params
 
 
-def _detect(params, gpath):
+def _detect(params, gpath_list, flip=False):
     """Perform a detection."""
     # Load image
-    img = cv2.imread(gpath)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    imgs = []
+    img_sizes = []
+    for gpath in gpath_list:
+        img = cv2.imread(gpath)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        if flip:
+            img = cv2.flip(img, 1)
 
-    img_h, img_w = img.shape[:2]
-    img_size = (img_w, img_h, )
+        img_h, img_w = img.shape[:2]
+        img_size = (img_w, img_h, )
+        img_sizes.append(img_size)
 
-    img = ln.data.transform.Letterbox.apply(img, dimension=params.input_dimension)
-    img = tf.ToTensor()(img)
-    img.unsqueeze_(0)
+        img = ln.data.transform.Letterbox.apply(img, dimension=params.input_dimension)
+        img = tf.ToTensor()(img)
+        imgs.append(img)
+
+    imgs = torch.stack(imgs)
+    if len(imgs.shape) != 4:
+        imgs.unsqueeze_(0)
 
     if torch.cuda.is_available():
-        img = img.cuda()
+        imgs = imgs.cuda()
 
     # Run detector
     if torch.__version__.startswith('0.3'):
-        img_tf = torch.autograd.Variable(img, volatile=True)
-        out = params.network(img_tf)
+        imgs_tf = torch.autograd.Variable(imgs, volatile=True)
+        out = params.network(imgs_tf)
     else:
         with torch.no_grad():
-            out = params.network(img)
+            out = params.network(imgs)
 
-    out = ln.data.transform.ReverseLetterbox.apply(out, params.input_dimension, img_size)
+    result_list = []
+    for result, img_size in zip(out, img_sizes):
+        result = ln.data.transform.ReverseLetterbox.apply([result], params.input_dimension, img_size)
+        result = result[0]
+        result_list.append(result)
 
-    return img, out
+    return result_list, img_sizes
 
 
 def detect(gpath_list, config_filepath=None, weight_filepath=None,
-           classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN, **kwargs):
+           classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN,
+           flip=False, batch_size=8, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:
@@ -182,28 +198,37 @@ def detect(gpath_list, config_filepath=None, weight_filepath=None,
 
     # Execute detector for each image
     results_list_ = []
-    for gpath in tqdm(gpath_list):
-        image, output_list = _detect(params, gpath)
-        output_list = output_list[0]
+    for gpath_batch_list in tqdm(ut.ichunks(gpath_list, batch_size)):
+        try:
+            result_list, img_sizes = _detect(params, gpath_batch_list, flip=flip)
+        except cv2.error:
+            result_list, img_sizes = [], []
 
-        result_list_ = []
-        for output in list(output_list):
-            xtl = int(np.around(float(output.x_top_left)))
-            ytl = int(np.around(float(output.y_top_left)))
-            xbr = int(np.around(float(output.x_top_left + output.width)))
-            ybr = int(np.around(float(output.y_top_left + output.height)))
-            class_ = output.class_label
-            conf = float(output.confidence)
-            result_dict = {
-                'xtl'        : xtl,
-                'ytl'        : ytl,
-                'width'      : xbr - xtl,
-                'height'     : ybr - ytl,
-                'class'      : class_,
-                'confidence' : conf,
-            }
-            result_list_.append(result_dict)
-        results_list_.append(result_list_)
+        for result, img_size in zip(result_list, img_sizes):
+            img_w, img_h = img_size
+
+            result_list_ = []
+            for output in list(result):
+                xtl = int(np.around(float(output.x_top_left)))
+                ytl = int(np.around(float(output.y_top_left)))
+                xbr = int(np.around(float(output.x_top_left + output.width)))
+                ybr = int(np.around(float(output.y_top_left + output.height)))
+                width = xbr - xtl
+                height = ybr - ytl
+                class_ = output.class_label
+                conf = float(output.confidence)
+                if flip:
+                    xtl = img_w - xbr
+                result_dict = {
+                    'xtl'        : xtl,
+                    'ytl'        : ytl,
+                    'width'      : width,
+                    'height'     : height,
+                    'class'      : class_,
+                    'confidence' : conf,
+                }
+                result_list_.append(result_dict)
+            results_list_.append(result_list_)
 
     if len(results_list_) != len(gpath_list):
         raise ValueError('Lightnet did not return valid data')
