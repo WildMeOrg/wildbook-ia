@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.other.vulcanfuncs &mdash; ibeis 1.9.0.vulcan documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.9.0.vulcan
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ibeis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+        
+          <li><a href="../other.html">ibeis.other</a> &raquo;</li>
+        
+      <li>ibeis.other.vulcanfuncs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.other.vulcanfuncs</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">ibeis_cnn.ingest_ibeis</span> <span class="k">import</span> <span class="n">get_cnn_classifier_cameratrap_binary_training_images_pytorch</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="k">import</span> <span class="n">wic</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+
+<span class="n">PYTORCH</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="c1"># Inject utool functions</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[vulcanfuncs]&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># Must import class before injection</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">))</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="vulcan_get_valid_tile_rowids"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_get_valid_tile_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_get_valid_tile_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_text_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_gids</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">imageset_text_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;elephant&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;RR18_BIG_2015_09_23_R_AM&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TA24_TPM_L_2016-10-30-A&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TA24_TPM_R_2016-10-30-A&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+    <span class="n">imageset_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text_list</span><span class="p">)</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gids_list</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;tile_width&#39;</span><span class="p">:</span>   <span class="mi">256</span><span class="p">,</span>
+        <span class="s1">&#39;tile_height&#39;</span><span class="p">:</span>  <span class="mi">256</span><span class="p">,</span>
+        <span class="s1">&#39;tile_overlap&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">tiles_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">compute_tiles</span><span class="p">(</span><span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_gids</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gid_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tile_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tiles_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tile_list</span></div>
+
+
+<div class="viewcode-block" id="vulcan_imageset_train_test_split"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_imageset_train_test_split">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_imageset_train_test_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">tile_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_get_valid_tile_rowids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_aids</span><span class="p">(</span><span class="n">tile_list</span><span class="p">)</span>
+    <span class="n">species_list_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;elephant_savanna&#39;</span> <span class="ow">in</span> <span class="n">species_list</span>
+        <span class="k">for</span> <span class="n">species_list</span> <span class="ow">in</span> <span class="n">species_list_list</span>
+    <span class="p">]</span>
+
+    <span class="n">pid</span><span class="p">,</span> <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">,</span> <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">])</span>
+    <span class="n">gid_all_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="n">gid_all_list</span><span class="p">,</span> <span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_all_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="n">gid_all_list</span><span class="p">,</span> <span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_all_list</span><span class="p">))</span>
+
+    <span class="n">gids</span> <span class="o">=</span> <span class="p">[</span> <span class="n">gid</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tile_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imagesettext</span><span class="p">(</span><span class="n">gids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">))</span>
+
+    <span class="n">gids</span> <span class="o">=</span> <span class="p">[</span> <span class="n">gid</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tile_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imagesettext</span><span class="p">(</span><span class="n">gids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NEGATIVE&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">))</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">([</span><span class="n">pid</span><span class="p">,</span> <span class="n">nid</span><span class="p">])))</span>
+    <span class="n">num_pos</span><span class="p">,</span> <span class="n">num_neg</span> <span class="o">=</span> <span class="n">x</span>
+
+    <span class="n">train_imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)</span>
+    <span class="n">test_imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="s1">&#39;TEST_SET&#39;</span><span class="p">)</span>
+
+    <span class="n">train_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">train_imgsetid</span><span class="p">)</span>
+    <span class="n">test_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">test_imgsetid</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">train_gid_list</span><span class="p">)</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">)</span>
+
+    <span class="n">ancestor_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_ancestor_gids</span><span class="p">(</span><span class="n">tile_list</span><span class="p">)</span>
+
+    <span class="n">tile_train_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tile_test_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">tile_id</span><span class="p">,</span> <span class="n">ancestor_gid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tile_list</span><span class="p">,</span> <span class="n">ancestor_gid_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ancestor_gid</span> <span class="ow">in</span> <span class="n">train_gid_set</span><span class="p">:</span>
+            <span class="n">tile_train_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tile_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ancestor_gid</span> <span class="ow">in</span> <span class="n">test_gid_set</span><span class="p">:</span>
+            <span class="n">tile_test_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tile_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imgsetids</span><span class="p">(</span><span class="n">tile_train_list</span><span class="p">,</span> <span class="p">[</span><span class="n">train_imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tile_train_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imgsetids</span><span class="p">(</span><span class="n">tile_test_list</span><span class="p">,</span> <span class="p">[</span><span class="n">test_imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tile_test_list</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">tile_list</span></div>
+
+
+<div class="viewcode-block" id="vulcan_wic_train"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_wic_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_wic_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ensembles</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">rounds</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">confidence_thresh</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                     <span class="n">hashstr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+
+    <span class="k">if</span> <span class="n">hashstr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hashstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">()[:</span><span class="mi">8</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using hashstr=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hashstr</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="n">all_tile_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_get_valid_tile_rowids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)))</span>
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="n">all_tile_set</span> <span class="o">&amp;</span> <span class="n">train_gid_set</span>
+
+    <span class="n">nid</span><span class="p">,</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="s1">&#39;NEGATIVE&#39;</span><span class="p">])</span>
+    <span class="n">negative_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">nid</span><span class="p">))</span>
+    <span class="n">negative_gid_set</span> <span class="o">=</span> <span class="n">negative_gid_set</span> <span class="o">&amp;</span> <span class="n">train_gid_set</span>
+
+    <span class="n">test_tile_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">negative_gid_set</span><span class="p">)</span>
+
+    <span class="c1"># config_list = []</span>
+    <span class="c1"># latest_model_tag = None</span>
+    <span class="c1"># for round_num in range(rounds):</span>
+
+    <span class="n">hashstr</span> <span class="o">=</span> <span class="s1">&#39;8d5734ac&#39;</span>
+    <span class="n">config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;wic&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;vulcan-boost0&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;WIC Round 0 Ensbl.&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;wic&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;vulcan-boost1&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;WIC Round 1 Ensbl.&#39;</span><span class="p">},</span>
+    <span class="p">]</span>
+    <span class="n">latest_model_tag</span> <span class="o">=</span> <span class="s1">&#39;vulcan-boost1&#39;</span>
+
+    <span class="k">for</span> <span class="n">round_num</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">round_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">latest_model_tag</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="n">skip_rate_neg</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">ensembles</span><span class="p">)</span>
+            <span class="n">confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">confidence_thresh</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">latest_model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">skip_rate_neg</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_wic_test</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="n">latest_model_tag</span><span class="p">)</span>
+
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">confidence</span> <span class="o">&gt;=</span> <span class="n">confidence_thresh</span> <span class="k">for</span> <span class="n">confidence</span> <span class="ow">in</span> <span class="n">confidence_list</span><span class="p">]</span>
+        <span class="n">hard_neg_test_tile_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">soft_neg_test_tile_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+        <span class="n">num_hard</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hard_neg_test_tile_list</span><span class="p">)</span>
+
+        <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ensemble_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ensembles</span><span class="p">):</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">soft_neg_test_tile_list</span><span class="p">)</span>
+            <span class="n">ensemble_test_tile_list</span> <span class="o">=</span> <span class="n">hard_neg_test_tile_list</span> <span class="o">+</span> <span class="n">soft_neg_test_tile_list</span><span class="p">[:</span><span class="n">num_hard</span><span class="p">]</span>
+
+            <span class="n">boost_imageset_text</span> <span class="o">=</span> <span class="s1">&#39;NEGATIVE-BOOST-</span><span class="si">%d</span><span class="s1">-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">round_num</span><span class="p">,</span> <span class="n">ensemble_num</span><span class="p">)</span>
+            <span class="n">boost_id</span><span class="p">,</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="n">boost_imageset_text</span><span class="p">])</span>
+            <span class="n">gid_all_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="n">gid_all_list</span><span class="p">,</span> <span class="p">[</span><span class="n">boost_id</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_all_list</span><span class="p">))</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> boosted negatives&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ensemble_test_tile_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">),</span> <span class="p">))</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imagesettext</span><span class="p">(</span><span class="n">ensemble_test_tile_list</span><span class="p">,</span> <span class="p">[</span><span class="n">boost_imageset_text</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">ensemble_test_tile_list</span><span class="p">))</span>
+
+            <span class="n">pid</span><span class="p">,</span> <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">,</span> <span class="n">boost_imageset_text</span><span class="p">])</span>
+
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">hashstr</span><span class="p">,</span> <span class="n">round_num</span><span class="p">,</span> <span class="n">ensemble_num</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%d</span><span class="s1">-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier-cameratrap-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%d</span><span class="s1">-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+            <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_cameratrap_binary_training_images_pytorch</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="p">,</span>
+                <span class="n">pid</span><span class="p">,</span>
+                <span class="n">nid</span><span class="p">,</span>
+                <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+                <span class="n">skip_rate_neg</span><span class="o">=</span><span class="n">skip_rate_neg</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">weights_path</span> <span class="o">=</span> <span class="n">wic</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+            <span class="n">weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+        <span class="n">latest_model_tag</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_wic_deploy</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">,</span> <span class="n">round_num</span><span class="p">)</span>
+        <span class="n">config_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;WIC Round </span><span class="si">%d</span><span class="s1"> Ensbl.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">round_num</span><span class="p">,</span> <span class="p">),</span> <span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;wic&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="n">latest_model_tag</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_wic_validate</span><span class="p">(</span><span class="n">config_list</span><span class="p">)</span>
+
+    <span class="n">models</span> <span class="o">=</span> <span class="n">wic</span><span class="o">.</span><span class="n">ARCHIVE_URL_DICT</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">models</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">models</span></div>
+
+
+<div class="viewcode-block" id="vulcan_wic_deploy"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_wic_deploy">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_wic_deploy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">weights_path_list</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">,</span> <span class="n">round_num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">temporary</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">hashstr</span><span class="p">,</span> <span class="n">round_num</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">output_name</span> <span class="o">=</span> <span class="s1">&#39;classifier2.vulcan.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">ensemble_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+
+    <span class="n">archive_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.zip&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">weights_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">)):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="s1">&#39;classifier.</span><span class="si">%d</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">ensemble_weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ensemble_weights_path</span><span class="p">)</span>
+
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ensemble_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">ensemble_weights_path_list</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="n">ensemble_weights_path_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">output_path</span> <span class="o">=</span> <span class="s1">&#39;/data/public/models/</span><span class="si">%s</span><span class="s1">.zip&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="k">import</span> <span class="n">wic</span>
+    <span class="n">model_key</span> <span class="o">=</span> <span class="s1">&#39;vulcan-boost</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">round_num</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">wic</span><span class="o">.</span><span class="n">ARCHIVE_URL_DICT</span><span class="p">[</span><span class="n">model_key</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;https://cthulhu.dyn.wildme.io/public/models/</span><span class="si">%s</span><span class="s1">.zip&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">wic</span><span class="o">.</span><span class="n">ARCHIVE_URL_DICT</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">model_key</span><span class="p">,</span> <span class="n">output_name</span></div>
+
+
+<div class="viewcode-block" id="vulcan_wic_test"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_wic_test">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_wic_test</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_tile_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;wic&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="n">model_tag</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">prediction_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">test_tile_list</span><span class="p">,</span> <span class="s1">&#39;class&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">test_tile_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">confidence_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">confidence</span> <span class="k">if</span> <span class="n">prediction</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="k">else</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">confidence</span>
+        <span class="k">for</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">confidence</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">prediction_list</span><span class="p">,</span> <span class="n">confidence_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">confidence_list</span></div>
+
+
+<div class="viewcode-block" id="vulcan_wic_validate"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_wic_validate">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_wic_validate</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset_black</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">tile_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_get_valid_tile_rowids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">test_imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="s1">&#39;TEST_SET&#39;</span><span class="p">)</span>
+    <span class="n">test_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">test_imgsetid</span><span class="p">)</span>
+
+    <span class="n">test_tile_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tile_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">))</span>
+
+    <span class="n">pid</span><span class="p">,</span> <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">,</span> <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">config_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># config_list = [</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B0 Ensemble&#39;, &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost0&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B0 0&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost0:0&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B0 1&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost0:1&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B0 2&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost0:2&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B0 3&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost0:3&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B0 4&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost0:4&#39;},</span>
+        <span class="c1"># ]</span>
+        <span class="c1"># offset_black = 1</span>
+
+        <span class="c1"># config_list = [</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B1 Ensemble&#39;, &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost1&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B1 0&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost1:0&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B1 1&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost1:1&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B1 2&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost1:2&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B1 3&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost1:3&#39;},</span>
+        <span class="c1">#     {&#39;label&#39;: &#39;ELPH WIC B1 4&#39;,        &#39;classifier_algo&#39;: &#39;wic&#39;, &#39;classifier_weight_filepath&#39;: &#39;vulcan-boost1:4&#39;},</span>
+        <span class="c1"># ]</span>
+        <span class="c1"># offset_black = 1</span>
+
+        <span class="n">config_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;ELPH WIC B0 Ensemble&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;wic&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;vulcan-boost0&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;ELPH WIC B1 Ensemble&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;wic&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;vulcan-boost1&#39;</span><span class="p">},</span>
+        <span class="p">]</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">classifier_cameratrap_precision_recall_algo_display</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">test_tile_list</span><span class="p">,</span>
+                                                            <span class="n">config_list</span><span class="o">=</span><span class="n">config_list</span><span class="p">,</span>
+                                                            <span class="n">offset_black</span><span class="o">=</span><span class="n">offset_black</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="vulcan_wic_validate_image"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_wic_validate_image">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_wic_validate_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">strategy</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;thresh&#39;</span><span class="p">]</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_get_valid_tile_rowids</span><span class="p">(</span><span class="n">return_gids</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;TEST_SET&#39;</span><span class="p">)))</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">test_gid_set</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;tile_width&#39;</span><span class="p">:</span>   <span class="mi">256</span><span class="p">,</span>
+        <span class="s1">&#39;tile_height&#39;</span><span class="p">:</span>  <span class="mi">256</span><span class="p">,</span>
+        <span class="s1">&#39;tile_overlap&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">tiles_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">compute_tiles</span><span class="p">(</span><span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">tile_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tiles_list</span><span class="p">)</span>
+
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">length_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="k">for</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">length_list</span><span class="p">]</span>
+
+    <span class="n">confidences_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tile_list</span> <span class="ow">in</span> <span class="n">tiles_list</span><span class="p">:</span>
+        <span class="n">confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_wic_test</span><span class="p">(</span><span class="n">tile_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="n">model_tag</span><span class="p">)</span>
+        <span class="n">confidences_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">confidence_list</span><span class="p">)</span>
+
+    <span class="n">best_accuracy</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">best_thresh</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">confidence_thresh</span> <span class="o">=</span> <span class="n">index</span> <span class="o">/</span> <span class="mf">100.0</span>
+
+        <span class="n">correct</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">flag</span><span class="p">,</span> <span class="n">confidence_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">flag_list</span><span class="p">,</span> <span class="n">confidences_list</span><span class="p">):</span>
+            <span class="c1"># confidence = sum(confidence_list) / len(confidence_list)</span>
+            <span class="n">confidence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">confidence_list</span><span class="p">)</span>
+            <span class="n">flag_</span> <span class="o">=</span> <span class="n">confidence</span> <span class="o">&gt;=</span> <span class="n">confidence_thresh</span>
+            <span class="n">correct</span> <span class="o">+=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="n">flag_</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="n">correct</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">accuracy</span> <span class="o">&gt;</span> <span class="n">best_accuracy</span><span class="p">:</span>
+            <span class="n">best_accuracy</span> <span class="o">=</span> <span class="n">accuracy</span>
+            <span class="n">best_thresh</span> <span class="o">=</span> <span class="n">confidence_thresh</span>
+
+    <span class="k">return</span> <span class="n">best_thresh</span><span class="p">,</span> <span class="n">best_accuracy</span></div>
+
+
+<div class="viewcode-block" id="vulcan_background_train"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_background_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_background_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis_cnn.ingest_ibeis</span> <span class="k">import</span> <span class="n">get_background_training_patches2</span>
+    <span class="kn">from</span> <span class="nn">ibeis_cnn.process</span> <span class="k">import</span> <span class="n">numpy_processed_directory2</span>
+    <span class="kn">from</span> <span class="nn">ibeis_cnn.models.background</span> <span class="k">import</span> <span class="n">train_background</span>
+    <span class="kn">from</span> <span class="nn">ibeis_cnn.utils</span> <span class="k">import</span> <span class="n">save_model</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">pid</span><span class="p">,</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">])</span>
+    <span class="n">train_tile_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+    <span class="n">ancestor_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_vulcan_image_tile_ancestor_gids</span><span class="p">(</span><span class="n">train_tile_set</span><span class="p">)</span>
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ancestor_gid_list</span><span class="p">))</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">train_gid_set</span><span class="p">))</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">w_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">annot_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">w_list</span><span class="p">)))</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">)</span>
+
+    <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;elephant_savanna&#39;</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_background_training_patches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span>
+                                                      <span class="n">patch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                                                      <span class="n">annot_size</span><span class="o">=</span><span class="n">annot_size</span><span class="p">,</span>
+                                                      <span class="n">patch_size_min</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                                                      <span class="n">patch_size_max</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span>
+                                                      <span class="n">patches_per_annotation</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                                      <span class="n">train_gid_set</span><span class="o">=</span><span class="n">train_gid_set</span><span class="p">,</span>
+                                                      <span class="n">visualize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                      <span class="n">inside_boundary</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                                      <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                      <span class="n">supercharge_negative_multiplier</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+
+    <span class="c1"># rm -rf /data/ibeis/ELPH_Vulcan/_ibsdb/_ibeis_cache/training/background/</span>
+
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory2</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_background</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;species&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="vulcan_background_deploy"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_background_deploy">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_background_deploy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">model_path</span><span class="p">):</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="s1">&#39;/data/public/models/background.vulcan.pkl&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="vulcan_background_compute"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_background_compute">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_background_compute</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tile_rowid_list</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                              <span class="n">smooth_ksize</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;vulcan&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Computes tile probability masks.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.core_annots</span> <span class="k">import</span> <span class="n">postprocess_mask</span>
+
+    <span class="n">tilemask_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;tilemasks&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">tilemask_dir</span><span class="p">)</span>
+
+    <span class="c1"># dont use extrmargin here (for now)</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">tile_rowid_list</span><span class="p">,</span> <span class="mi">256</span><span class="p">):</span>
+        <span class="n">output_path_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">join</span><span class="p">(</span><span class="n">tilemask_dir</span><span class="p">,</span> <span class="s1">&#39;tilemask_tile_id_</span><span class="si">%d</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tile_id</span><span class="p">,</span> <span class="n">model_tag</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">for</span> <span class="n">tile_id</span> <span class="ow">in</span> <span class="n">chunk</span>
+        <span class="p">]</span>
+        <span class="n">dirty_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">output_path</span> <span class="ow">in</span> <span class="n">output_path_list</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">chunk_</span> <span class="o">=</span>  <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">dirty_list</span><span class="p">)</span>
+            <span class="n">output_path_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">output_path_list</span><span class="p">,</span> <span class="n">dirty_list</span><span class="p">)</span>
+
+            <span class="n">tile_path_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">chunk_</span><span class="p">)</span>
+            <span class="n">mask_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">generate_species_background_mask</span><span class="p">(</span><span class="n">tile_path_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="p">)</span>
+
+            <span class="n">args_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mask_gen</span><span class="p">),</span> <span class="n">output_path_list_</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">mask</span><span class="p">,</span> <span class="n">output_path</span> <span class="ow">in</span> <span class="n">args_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">smooth_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">smooth_ksize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">tilemask</span> <span class="o">=</span> <span class="n">postprocess_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tilemask</span> <span class="o">=</span> <span class="n">mask</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">tilemask</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">output_path</span> <span class="ow">in</span> <span class="n">output_path_list</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+            <span class="n">tilemask</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">tilemask</span></div>
+
+
+<div class="viewcode-block" id="vulcan_background_validate"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.vulcanfuncs.vulcan_background_validate">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">vulcan_background_validate</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;vulcan&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;tilemasks_combined&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+
+    <span class="n">tile_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_get_valid_tile_rowids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">test_imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="s1">&#39;TEST_SET&#39;</span><span class="p">)</span>
+    <span class="n">test_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">test_imgsetid</span><span class="p">)</span>
+
+    <span class="n">test_tile_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tile_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">test_gid_list</span><span class="p">))</span>
+
+    <span class="n">pid</span><span class="p">,</span> <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">,</span> <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">])</span>
+    <span class="n">positive_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+    <span class="n">negative_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">nid</span><span class="p">))</span>
+
+    <span class="n">test_label_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">test_tile</span> <span class="ow">in</span> <span class="n">test_tile_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">test_tile</span> <span class="ow">in</span> <span class="n">positive_gid_set</span><span class="p">:</span>
+            <span class="n">test_label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;positive&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">test_tile</span> <span class="ow">in</span> <span class="n">negative_gid_set</span><span class="p">:</span>
+            <span class="n">test_label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;negative&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_label</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="k">for</span> <span class="n">test_label</span> <span class="ow">in</span> <span class="n">test_label_list</span><span class="p">]</span>
+    <span class="n">test_tile_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+    <span class="n">masks</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">vulcan_background_compute</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="n">model_tag</span><span class="p">)</span>
+    <span class="n">masks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span>
+
+    <span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">test_tile</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">test_tile_list</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">masks</span><span class="p">):</span>
+        <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;tilemask_combined_tile_id_</span><span class="si">%d</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">test_tile</span><span class="p">,</span> <span class="n">model_tag</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">*</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">canvas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">combined</span><span class="p">))</span>
+
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">canvas</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.other.vulcanfuncs</span>
+<span class="sd">        python -m ibeis.other.vulcanfuncs --allexamples</span>
+<span class="sd">        python -m ibeis.other.vulcanfuncs --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Wild Me
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
