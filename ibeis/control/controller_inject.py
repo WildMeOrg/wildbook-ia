@@ -99,7 +99,7 @@ WEB_DEBUG_INCLUDE_TRACE = True
 CONTROLLER_CLASSNAME = 'IBEISController'
 
 MICROSOFT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag('--microsoft')  # True == Microsoft Deployment (i.e., only allow MICROSOFT_API_PREFIX prefix below)
-MICROSOFT_API_PREFIX  = '/v0.1/'
+MICROSOFT_API_PREFIX  = '/v0.1/wildbook/'
 MICROSOFT_API_DEBUG   = True
 
 if MICROSOFT_API_ENABLED:
