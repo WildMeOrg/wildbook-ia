@@ -18,3 +18,9 @@ from ibeis.web import routes_csv
 from ibeis.web import routes_experiments
 from ibeis.web import routes_submit
 from ibeis.web import routes
+
+
+from ibeis.control import controller_inject
+if controller_inject.MICROSOFT_API_ENABLED:
+    from ibeis.web import apis_microsoft
+

@@ -240,7 +240,8 @@ def image_upload(cleanup=True, **kwargs):
 
     filestore = request.files.get('image', None)
     if filestore is None:
-        raise IOError('Image not given')
+        raise controller_inject.WebMissingInput('Missing required image parameter', 'image')
+        # raise IOError('Image not given')
 
     uploads_path = ibs.get_uploadsdir()
     ut.ensuredir(uploads_path)
