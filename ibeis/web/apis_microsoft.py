@@ -9,6 +9,9 @@ import utool as ut
 import uuid
 
 
+CLASS_INJECT_KEY, register_ibs_method = (
+    controller_inject.make_ibs_register_decorator(__name__))
+
 PREFIX         = controller_inject.MICROSOFT_API_PREFIX
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
@@ -49,7 +52,13 @@ def _detection(ibs, aid):
     }
 
 
-@register_route(_prefix('core/specification'), methods=['GET'])
+def _task(ibs, taskid):
+    return {
+        'uuid': taskid,
+    }
+
+
+@register_route(_prefix('swagger'), methods=['GET'])
 def microsoft_core_specification_swagger(*args, **kwargs):
     r"""
     Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.
@@ -119,6 +128,15 @@ def microsoft_core_specification_swagger(*args, **kwargs):
           class:
             description: The semantic classification (class label) of the bounding box
             type: string
+    - schema:
+        id: Task
+        required:
+          - uuid
+        properties:
+          uuid:
+            description: a random UUID to identify a given asynchronous call, used to check status and results of a background task
+            type: string
+            format: uuid
     produces:
     - application/json
     responses:
@@ -169,10 +187,10 @@ def microsoft_core_specification_swagger(*args, **kwargs):
     return response
 
 
-@register_api(_prefix('core/status'), methods=['GET'], __api_plural_check__=False)
+@register_api(_prefix('status'), methods=['GET'], __api_plural_check__=False)
 def microsoft_core_status(*args, **kwargs):
     r"""
-    Returns the health status of the API back-end, functioning as well as a heat beat.
+    Returns the health status of the API back-end; optionally can be used as a service heatbeat.
     ---
     produces:
     - application/json
@@ -196,10 +214,10 @@ def microsoft_core_status(*args, **kwargs):
     return {'status': status}
 
 
-@register_api(_prefix('image/upload'), methods=['POST'])
+@register_api(_prefix('image'), methods=['POST'])
 def microsoft_image_upload(ibs, *args, **kwargs):
     r"""
-    Returns the available models and their supported species for detection.
+    Returns the available detection models and their supported species
     ---
     parameters:
     - name: image
@@ -218,6 +236,8 @@ def microsoft_image_upload(ibs, *args, **kwargs):
         description: Returns an Image model with an ID
         schema:
           $ref: '#/definitions/Image'
+      400:
+        description: Invalid input parameter
     """
     from ibeis.web.apis import image_upload
     try:
@@ -226,11 +246,11 @@ def microsoft_image_upload(ibs, *args, **kwargs):
     except controller_inject.WebException:
         raise
     except:
-        raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported:image/png, image/jpeg, image/tiff)', 'image')
+        raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: mage/png, image/jpeg, image/tiff)', 'image')
     return _image(ibs, gid)
 
 
-@register_api(_prefix('detect/model'), methods=['GET'])
+@register_api(_prefix('detect'), methods=['GET'])
 def microsoft_detect_model(ibs, *args, **kwargs):
     r"""
     Returns the available models and their supported species for detection.
@@ -246,12 +266,8 @@ def microsoft_detect_model(ibs, *args, **kwargs):
     return ibs.models_cnn_lightnet()
 
 
-def microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold):
+def microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold):
     from ibeis.algo.detect.lightnet import CONFIG_URL_DICT
-
-    depc = ibs.depc_image
-
-    # Input argument validation
     try:
         parameter = 'model'
         assert model in CONFIG_URL_DICT, 'Specified model is not supported'
@@ -269,27 +285,48 @@ def microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold
     except AssertionError as ex:
         raise controller_inject.WebInvalidInput(str(ex), parameter)
 
+
+@register_ibs_method
+def microsoft_detect(ibs, images, model, score_threshold=0.0, use_nms=True,
+                     nms_threshold=0.4, __jobid__=None, *args, **kwargs):
+    depc = ibs.depc_image
+
     uuid_list = [
         uuid.UUID(image['uuid'])
         for image in images
     ]
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
 
-    config = {
-        'algo'            : 'lightnet',
-        'config_filepath' : model,
-        'weight_filepath' : model,
-        'sensitivity'     : score_threshold,
-        'nms'             : use_nms,
-        'nms_thresh'      : nms_threshold,
+    try:
+        config = {
+            'algo'            : 'lightnet',
+            'config_filepath' : model,
+            'weight_filepath' : model,
+            'sensitivity'     : score_threshold,
+            'nms'             : use_nms,
+            'nms_thresh'      : nms_threshold,
+        }
+        results_list = depc.get_property('localizations', gid_list, None, config=config)
+        aids_list = ibs.commit_localization_results(gid_list, results_list)
+    except:
+        raise controller_inject.WebException('Detection process failed for an unknown reason')
+
+    detections_list = {
+        'detections_list': [
+            {
+                'detections' : [
+                    _detection(ibs, aid)
+                    for aid in aid_list
+                ],
+            }
+            for aid_list in aids_list
+        ]
     }
-    results_list = depc.get_property('localizations', gid_list, None, config=config)
-    aids_list = ibs.commit_localization_results(gid_list, results_list)
 
-    return aids_list
+    return detections_list
 
 
-@register_api(_prefix('detect/upload'), methods=['POST'])
+@register_api(_prefix('detect'), methods=['POST'])
 def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
                             nms_threshold=0.4, *args, **kwargs):
     r"""
@@ -341,35 +378,37 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
           type: array
           items:
             $ref: "#/definitions/Detection"
+      400:
+        description: Invalid input parameter
     """
     ibs = current_app.ibs
 
-    # Input validation is done in the next two functions
+    # Input argument validation
     image = microsoft_image_upload(ibs)
-    images = [image]
+
+    microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold)
 
     try:
-        aids_list = microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold)
-    except controller_inject.WebException:
-        raise
+        images = [image]
+        detections_list = microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold)
+    except:
+        raise controller_inject.WebException('Detection process failed for an unknown reason')
 
-    assert len(aids_list) == 1
-    aid_list = aids_list[0]
+    detections_list = detections_list.get('detections_list')
+    assert len(detections_list) == 1
+    detections = detections_list[0]
 
-    detections = {
-        'detections' : [
-            _detection(ibs, aid)
-            for aid in aid_list
-        ],
-    }
+    print(detections)
     return detections
 
 
-@register_api(_prefix('detect/image'), methods=['POST'])
-def microsoft_detect_image(ibs, images, model, score_threshold=0.0, use_nms=True,
-                            nms_threshold=0.4, *args, **kwargs):
+@register_api(_prefix('detect/batch'), methods=['POST'])
+def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True,
+                           nms_threshold=0.4, async=True,
+                           callback_url=None, callback_method=None,
+                           *args, **kwargs):
     r"""
-    Returns batched detection results for a list of uploaded Image models and a provided model configuration.
+    The asynchronous variant of POST 'detect' that takes in a list of Image models and returns a task ID
     ---
     parameters:
     - name: images
@@ -408,9 +447,32 @@ def microsoft_detect_image(ibs, images, model, score_threshold=0.0, use_nms=True
       default: 0.0
       minimum: 0.0
       maximum: 1.0
+    - name: callback_url
+      in: body
+      description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a 'body' parameter called `task` which will provide a Task model
+      required: false
+      type: string
+      format: url
+    - name: callback_method
+      in: body
+      description: The HTTP method for which to make the callback
+      required: false
+      default: post
+      type: string
+      enum:
+      - get
+      - post
+      - put
+      - delete
     responses:
       200:
-        description: Returns an array of arrays of Detection models, in parallel lists with the provided Image models
+        description: Returns a Task model
+        schema:
+          $ref: "#/definitions/Task"
+      400:
+        description: Invalid input parameter
+      x-task-response:
+        description: The task returns an array of arrays of Detection models, in parallel lists with the provided Image models
         schema:
           type: array
           items:
@@ -418,36 +480,135 @@ def microsoft_detect_image(ibs, images, model, score_threshold=0.0, use_nms=True
               type: array
               items:
                 $ref: "#/definitions/Detection"
+
     """
     ibs = current_app.ibs
 
+    # Input argument validation
     for index, image in enumerate(images):
         try:
             parameter = 'images:%d' % (index, )
-            assert 'uuid' in image, 'Image Model provided is invalid, missing key "uuid"'
+            assert 'uuid' in image, 'Image Model provided is invalid, missing UUID key'
         except AssertionError as ex:
             raise controller_inject.WebInvalidInput(str(ex), parameter)
 
-    try:
-        aids_list = microsoft_detect(ibs, images, model, score_threshold, use_nms, nms_threshold)
-    except controller_inject.WebException:
-        raise
-    except:
-        raise controller_inject.WebException('Detection process failed for an unknown reason')
+    microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold)
 
-    detections_list = {
-        'detections_list': [
-            {
-                'detections' : [
-                    _detection(ibs, aid)
-                    for aid in aid_list
-                ],
-            }
-            for aid_list in aids_list
-        ]
+    try:
+        parameter = 'async'
+        assert isinstance(async, bool), 'Asynchronous flag must be a boolean'
+
+        parameter = 'callback_url'
+        assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
+        if callback_url is not None:
+            assert callback_url.startswith('http://') or callback_url.startswith('https://'), 'Callback URL must start with http:// or https://'
+
+        parameter = 'callback_method'
+        assert callback_method is None or isinstance(callback_method, str), 'Callback URL must be a string'
+        if callback_method is not None:
+            callback_method = callback_method.lower()
+            assert callback_method in ['get', 'post', 'put', 'delete'], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
+    except AssertionError as ex:
+        raise controller_inject.WebInvalidInput(str(ex), parameter)
+
+    args = (images, model, )
+    kwargs = {
+        'score_threshold': score_threshold,
+        'use_nms'        : use_nms,
+        'nms_threshold'  : nms_threshold,
     }
 
-    return detections_list
+    if async:
+        taskid = ibs.job_manager.jobiface.queue_job('microsoft_detect',
+                                                    callback_url, callback_method,
+                                                    *args, **kwargs)
+        response = _task(ibs, taskid)
+    else:
+        response = ibs.microsoft_detect(*args, **kwargs)
+
+    return response
+
+
+@register_api(_prefix('task'), methods=['GET'])
+def microsoft_task_status(ibs, task):
+    r"""
+    Check the status of an asynchronous Task
+    ---
+    parameters:
+    - name: task
+      in: body
+      description: A Task model
+      required: true
+      schema:
+        $ref: "#/definitions/Task"
+    responses:
+      200:
+        description: Returns the status of the provided Task
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - received
+              - accepted
+              - queued
+              - working
+              - publishing
+              - completed
+              - exception
+              - unknown
+      400:
+        description: Invalid input parameter
+    """
+    ibs = current_app.ibs
+
+    # Input argument validation
+    try:
+        parameter = 'task'
+        assert 'uuid' in task, 'Task Model provided is invalid, missing UUID key'
+    except AssertionError as ex:
+        raise controller_inject.WebInvalidInput(str(ex), parameter)
+
+    uuid_ = task.get('uuid', None)
+    assert uuid_ is not None
+    status = ibs.get_job_status(uuid_)
+    status = status.get('jobstatus', None)
+    return {'status': status}
+
+
+@register_api(_prefix('task'), methods=['POST'])
+def microsoft_task_result(ibs, task):
+    r"""
+    Retrieve the result of a completed asynchronous Task
+    ---
+    parameters:
+    - name: task
+      in: body
+      description: A Task model
+      required: true
+      schema:
+        $ref: "#/definitions/Task"
+    responses:
+      200:
+        description: Returns the result of the provided Task
+      400:
+        description: Invalid input parameter
+    """
+    ibs = current_app.ibs
+
+    # Input argument validation
+    try:
+        parameter = 'task'
+        assert 'uuid' in task, 'Task Model provided is invalid, missing UUID key'
+    except AssertionError as ex:
+        raise controller_inject.WebInvalidInput(str(ex), parameter)
+
+    uuid_ = task.get('uuid', None)
+    assert uuid_ is not None
+    result = ibs.get_job_result(uuid_)
+    result = result.get('json_result', None)
+    return result
 
 
 if __name__ == '__main__':
