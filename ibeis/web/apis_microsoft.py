@@ -156,7 +156,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
         'name': 'Apache 2.0',
         'url':  'http://www.apache.org/licenses/LICENSE-2.0.html'
     }
-    swag['host'] = 'demo.wildme.org:6000'
+    swag['host'] = 'demo.wildbook.org:5010'
     swag['schemes'] = [
         'http',
     ]
