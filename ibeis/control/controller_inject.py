@@ -298,7 +298,7 @@ class WebMissingInput(WebException):
 
 
 class WebInvalidInput(WebException):
-    def __init__(self, message, key=None, value=None):
+    def __init__(self, message, key=None, value=None, image=False):
         rawreturn = {}
         if key is not None:
             rawreturn['parameter'] = key
@@ -306,7 +306,7 @@ class WebInvalidInput(WebException):
             rawreturn['value'] = value
         if message is not None:
             rawreturn['message'] = message
-        code = 400
+        code = 415 if image else 400
         super(WebInvalidInput, self).__init__(message, rawreturn, code)
 
 

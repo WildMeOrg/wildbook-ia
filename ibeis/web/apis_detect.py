@@ -626,11 +626,15 @@ def models_cnn_yolo(ibs, **kwargs):
 
 
 @register_ibs_method
-def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash=False, **kwargs):
+def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash=False,
+               hidden_models=[], **kwargs):
     import urllib
 
     model_dict = {}
     for config_tag in config_dict:
+        if config_tag in hidden_models:
+            continue
+
         config_url = config_dict[config_tag]
         classes_url = parse_classes_func(config_url)
         try:

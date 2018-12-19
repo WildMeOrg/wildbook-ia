@@ -62,10 +62,15 @@ def _task(ibs, taskid):
 def microsoft_core_specification_swagger(*args, **kwargs):
     r"""
     Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.
+
+    The Swagger API specification (https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) provides a standardized method to export REST API documentation and examples.  Our documentation is built on-demand with the help of the Python package flask-swagger (https://github.com/gangverk/flask-swagger).
+
+    The API specification includes GET, POST, PUT, and DELETE methods and Model definitions.
     ---
     definitions:
     - schema:
         id: Image
+        description: An Image is a semantic construct that represents an uploaded image.  Images can be uploaded for later processing or be used immediately for detection.  Object detection will create Annotation models, which have a required Image parent.  An Image can have multiple detections (i.e. Annotation models).
         required:
           - uuid
         properties:
@@ -75,6 +80,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
             format: uuid
     - schema:
         id: Annotation
+        description: An Annotation is a semantic construct that represents a *committed* detection, with a bounding box and species classification assigned as stored attributes.  An Annotation is required to have a parent Image.  All bounding box coordinates are relative to the size of the parent Image that was uploaded.
         required:
           - uuid
         properties:
@@ -84,6 +90,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
             format: uuid
     - schema:
         id: Detection
+        description: A Detection is a semantic constrict that represents an *un-committed* detection.  A Detection can be committed to an Annotation to be stored permanently on the parent Image.
         required:
           - _image
           - _annotation
@@ -130,6 +137,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
             type: string
     - schema:
         id: Task
+        description: A Task is a semantic construct that represents a background task (i.e. detection) in an asynchronous call.  A Task has an optional callback on completion or the status (and result) can be checked via the API
         required:
           - uuid
         properties:
@@ -206,7 +214,7 @@ def microsoft_core_status(*args, **kwargs):
               - healthy
               - warning
               - critical
-        example:
+        examples:
         - application/json:
             status: healthy
     """
@@ -217,7 +225,7 @@ def microsoft_core_status(*args, **kwargs):
 @register_api(_prefix('image'), methods=['POST'])
 def microsoft_image_upload(ibs, *args, **kwargs):
     r"""
-    Returns the available detection models and their supported species
+    Returns the available detection models and their supported species.
     ---
     parameters:
     - name: image
@@ -238,6 +246,8 @@ def microsoft_image_upload(ibs, *args, **kwargs):
           $ref: '#/definitions/Image'
       400:
         description: Invalid input parameter
+      415:
+        description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.
     """
     from ibeis.web.apis import image_upload
     try:
@@ -246,14 +256,22 @@ def microsoft_image_upload(ibs, *args, **kwargs):
     except controller_inject.WebException:
         raise
     except:
-        raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: mage/png, image/jpeg, image/tiff)', 'image')
+        raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)', 'image', image=True)
     return _image(ibs, gid)
 
 
 @register_api(_prefix('detect'), methods=['GET'])
 def microsoft_detect_model(ibs, *args, **kwargs):
     r"""
-    Returns the available models and their supported species for detection.
+    Returns the available models and their supported species for detection.  These models are pre-trained and are downloaded as needed on first start-up.
+
+    The current model names that are supported for demoing and their species:
+    - hammerhead -> shark_hammerhead
+    - jaguar     -> jaguar
+    - lynx       -> lynx
+    - manta      -> manta_ray_giant
+    - seaturtle  -> fish, ignore, person, turtle_green, turtle_green+head, turtle_hawksbill, turtle_hawksbill+head
+    - ggr2       -> giraffe, zebra
     ---
     produces:
     - application/json
@@ -263,7 +281,15 @@ def microsoft_detect_model(ibs, *args, **kwargs):
         schema:
           type: object
     """
-    return ibs.models_cnn_lightnet()
+    hidden_models = [
+        'hendrik_elephant',
+        'hendrik_elephant_ears',
+        'hendrik_elephant_ears_left',
+        'hendrik_dorsal',
+        'candidacy',
+        None,
+    ]
+    return ibs.models_cnn_lightnet(hidden_models=hidden_models)
 
 
 def microsoft_detect_input_validation(model, score_threshold, use_nms, nms_threshold):
@@ -331,6 +357,8 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
                             nms_threshold=0.4, *args, **kwargs):
     r"""
     Returns the detection results for an uploaded image and a provided model configuration.
+
+    The uploaded image will be used to perform object detection for a given model.  A detection will return at most 845 Detections (13 x 13 grid of 5 bounding boxes based on the YOLO v2 by Redmon et al.).
     ---
     parameters:
     - name: image
@@ -380,6 +408,8 @@ def microsoft_detect_upload(ibs, model, score_threshold=0.0, use_nms=True,
             $ref: "#/definitions/Detection"
       400:
         description: Invalid input parameter
+      415:
+        description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.
     """
     ibs = current_app.ibs
 
@@ -408,7 +438,9 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
                            callback_url=None, callback_method=None,
                            *args, **kwargs):
     r"""
-    The asynchronous variant of POST 'detect' that takes in a list of Image models and returns a task ID
+    The asynchronous variant of POST 'detect' that takes in a list of Image models and returns a task ID.
+
+    It may be more ideal for a particular application to upload many images at one time and perform processing later in a large batch.  This type of batch detection is certainly much more efficient because the detection on GPU can process more images in parallel.  However, if you intend to run the detector on an upload as quickly as possible, please use the on-demand, non-batched API.
     ---
     parameters:
     - name: images
@@ -532,7 +564,21 @@ def microsoft_detect_batch(ibs, images, model, score_threshold=0.0, use_nms=True
 @register_api(_prefix('task'), methods=['GET'])
 def microsoft_task_status(ibs, task):
     r"""
-    Check the status of an asynchronous Task
+    Check the status of an asynchronous Task.
+
+    A Task is an asynchronous task that was launched as a background process with an optional callback.  The status of a given Task with a UUID can be checked with this call.  The status of the call depends on where in the execution queue the Task is currently, which will be processed in a first-come-first-serve list and only one Task at a time to present atomicity of the API.
+
+    The status can be one of the following:
+    - received   -> The Task request was received but has not passed any input validation.
+    - accepted   -> The Task request has passed basic input validation and will be queued soon for execution.
+    - queued     -> The Task is queued in the execution list and will be processed in order and one at a time.
+    - working    -> The Task is being processed, awaiting completed results or an error exception
+    - publishing -> The Task is publishing the results of the background API call.
+    - completed  -> One of two end states: the Task is complete, completed results available for downloading with the REST API.
+    - exception  -> One of two end states: the Task has encountered an error, an error message can be received using the results REST API.
+    - unknown    -> The Task you asked for is not known, indicating that the either UUID is not recognized (i.e. a Task with that ID was never currently created) or the server has been restarted.
+
+    **Important: when the API server is restarted, all queued and running background Tasks are killed and all Task requests and cached results are deleted.**
     ---
     parameters:
     - name: task
