@@ -260,7 +260,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
 
 
 def imread(img_fpath, grayscale=False, orient=False, flags=None,
-           force_pil=None, delete_if_corrupted=False):
+           force_pil=None, delete_if_corrupted=False, **kwargs):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.
 
@@ -356,7 +356,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
                 #print("USE PIL")
                 with Image.open(img_fpath) as pil_img:
                     imgBGR = _fix_orient_pil_img(pil_img, grayscale=grayscale,
-                                                 orient=orient_)
+                                                 orient=orient_, **kwargs)
                 #with Image.open(img_fpath) as pil_img: # breaks?
                 #pil_img.close()  # breaks?
             else:
@@ -470,10 +470,10 @@ def _imread_bytesio(image_stream, use_pil=False, flags=None, **kwargs):
     return imgBGR
 
 
-def _fix_orient_pil_img(pil_img, grayscale=False, orient=False):
+def _fix_orient_pil_img(pil_img, grayscale=False, orient=False, **kwargs):
     if orient == 'auto':
         exif_dict = exif.get_exif_dict(pil_img)
-        orient = exif.get_orientation(exif_dict)
+        orient = exif.get_orientation(exif_dict, **kwargs)
     #if pil_img.format in ['MPO', 'GIF']:
     np_img = np.array(pil_img.convert('RGB'))
     #else:

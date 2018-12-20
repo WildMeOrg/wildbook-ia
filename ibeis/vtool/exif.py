@@ -296,7 +296,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
     return default
 
 
-def get_orientation(exif_dict, default=0, on_error='fail'):
+def get_orientation(exif_dict, default=0, on_error='warn'):
     r"""
     Returns the image orientation, if available, from the provided
     exif_data2 (obtained through exif_data2 above)
@@ -341,7 +341,7 @@ def get_orientation(exif_dict, default=0, on_error='fail'):
     return default
 
 
-def get_orientation_str(exif_dict):
+def get_orientation_str(exif_dict, **kwargs):
     r"""
     Returns the image orientation strings, if available, from the provided
     exif_data2 (obtained through exif_data2 above)
@@ -371,7 +371,7 @@ def get_orientation_str(exif_dict):
         exif_dict[ORIENTATION_CODE]
         PIL.ExifTags.TAGS[ORIENTATION_CODE]
     """
-    orient = get_orientation(exif_dict)
+    orient = get_orientation(exif_dict, **kwargs)
     orient_str = ORIENTATION_DICT[orient]
     return orient_str
 
