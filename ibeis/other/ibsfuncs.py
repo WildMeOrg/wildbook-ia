@@ -649,7 +649,7 @@ def check_image_loadable_worker(gpath, orient):
 
 
 @register_ibs_method
-def check_image_duplcates(ibs, gid_list=None)
+def check_image_duplcates(ibs, gid_list=None):
     print('checking image duplcates')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -688,7 +688,6 @@ def check_image_duplcates(ibs, gid_list=None)
 
         assert keep_index is not None
 
-
         delete_gid_list_ = []
         for index, duplcate_gid in enumerate(duplcate_gid_list):
             if index == keep_index:
@@ -718,7 +717,7 @@ def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
         if not reviewed:
             continue
         bbox_list = ibs.get_annot_bboxes(aids)
-        x = np.array(bbox_list)
+        bbox_list = np.array(bbox_list)
         mean = np.mean(bbox_list, axis=0)
         std = np.mean(np.abs(bbox_list - mean), axis=0)
         a = sum(std <= PIXELS)
