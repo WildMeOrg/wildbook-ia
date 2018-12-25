@@ -618,22 +618,147 @@ def check_image_loadable(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
 
     gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
     arg_iter = list(zip(
         gpath_list,
+        orient_list,
     ))
     flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter)
-    flag_list = [not flag for flag in flag_list]
+    loadable_list = ut.take_column(flag_list, 0)
+    exif_list = ut.take_column(flag_list, 1)
 
-    bad_list = ut.compress(gid_list, flag_list)
-    return bad_list
+    bad_loadable_list = ut.filterfalse_items(gid_list, loadable_list)
+    bad_exif_list = ut.filterfalse_items(gid_list, exif_list)
+    return bad_loadable_list, bad_exif_list
 
 
-def check_image_loadable_worker(gpath):
+def check_image_loadable_worker(gpath, orient):
+    loadable, exif = True, True
     try:
+        print(gpath)
         io.imread(gpath)
+        vt.imread(gpath, orient=orient)
     except:
-        return False
-    return True
+        loadable = False
+    try:
+        vt.imread(gpath, orient='auto', on_error='fail')
+    except:
+        exif = False
+    return loadable, exif
+
+
+@register_ibs_method
+def check_image_duplcates(ibs, gid_list=None):
+    print('checking image duplcates')
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    uuid_list = ibs.compute_image_uuids(gpath_list)
+
+    duplcate_dict = {}
+    for gid, uuid in zip(gid_list, uuid_list):
+        if uuid not in duplcate_dict:
+            duplcate_dict[uuid] = []
+        duplcate_dict[uuid].append(gid)
+
+    delete_gid_list = []
+    for uuid in duplcate_dict:
+        duplcate_gid_list = duplcate_dict[uuid]
+        length = len(duplcate_gid_list)
+
+        assert length > 0
+        if length == 1:
+            continue
+
+        print(uuid, duplcate_gid_list)
+        keep_index = None
+
+        uuid_list = ibs.get_image_uuids(duplcate_gid_list)
+        if uuid in uuid_list:
+            keep_index = uuid_list.index(uuid)
+        else:
+            reviewed_list = ibs.get_image_reviewed(duplcate_gid_list)
+            aids_list     = ibs.get_image_aids(duplcate_gid_list)
+            length_list   = list(map(len, aids_list))
+            index_list    = list(range(len(duplcate_gid_list)))
+            zipped        = sorted(list(zip(reviewed_list, length_list, index_list)))
+            keep_index    = zipped[-1][2]
+
+        assert keep_index is not None
+
+        delete_gid_list_ = []
+        for index, duplcate_gid in enumerate(duplcate_gid_list):
+            if index == keep_index:
+                continue
+            delete_gid_list_.append(duplcate_gid)
+        print(keep_index, delete_gid_list_)
+
+        delete_gid_list += delete_gid_list_
+
+
+def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
+    from ibeis.other.detectfuncs import general_overlap
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    reviewed_list = ibs.get_image_reviewed(gid_list)
+    aid_list = ibs.get_image_aids(gid_list)
+    zipped = list(zip(gid_list, reviewed_list, aid_list))
+
+    bad_gid_list = []
+
+    # Criteria 1 - Absolute Standard Deviation
+    for gid, reviewed, aids in zipped:
+        if len(aids) <= 1:
+            continue
+        if not reviewed:
+            continue
+        bbox_list = ibs.get_annot_bboxes(aids)
+        bbox_list = np.array(bbox_list)
+        mean = np.mean(bbox_list, axis=0)
+        std = np.mean(np.abs(bbox_list - mean), axis=0)
+        a = sum(std <= PIXELS)
+        if a == 4:
+            print(gid)
+            print(bbox_list)
+            print(std)
+            bad_gid_list.append(gid)
+
+    # Criteria 2 - IoU
+    for gid, reviewed, aids in zip(gid_list, reviewed_list, aid_list):
+        if len(aids) <= 1:
+            continue
+        if not reviewed:
+            continue
+        bbox_list = ibs.get_annot_bboxes(aids)
+        bbox_dict_list = [
+            {
+                'xtl': xtl,
+                'ytl': ytl,
+                'xbr': xtl + width,
+                'ybr': ytl + height,
+                'width': width,
+                'height': height,
+            }
+            for xtl, ytl, width, height in bbox_list
+        ]
+        if len(aids) > 2:
+            overlap = general_overlap(bbox_dict_list, bbox_dict_list)
+            triangle = np.tri(overlap.shape[0]).astype(np.bool)
+            indices = np.where(triangle)
+            overlap[indices] = 0.0
+            overlap_flag = overlap >= IOU
+            total = np.sum(overlap_flag)
+            if total > 0:
+                print(gid)
+                print(overlap)
+                bad_gid_list.append(gid)
+
+    # ibs.set_image_reviewed(bad_gid_list, [0] * len(bad_gid_list))
+    return bad_gid_list
 
 
 @register_ibs_method

@@ -36,3 +36,4 @@ pathlib
 delorean
 ubelt
 futures_actors
+flask-swagger

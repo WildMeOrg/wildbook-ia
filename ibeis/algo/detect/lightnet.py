@@ -198,7 +198,7 @@ def detect(gpath_list, config_filepath=None, weight_filepath=None,
 
     # Execute detector for each image
     results_list_ = []
-    for gpath_batch_list in tqdm(ut.ichunks(gpath_list, batch_size)):
+    for gpath_batch_list in tqdm(list(ut.ichunks(gpath_list, batch_size))):
         try:
             result_list, img_sizes = _detect(params, gpath_batch_list, flip=flip)
         except cv2.error:

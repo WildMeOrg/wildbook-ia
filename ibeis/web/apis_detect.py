@@ -515,40 +515,6 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
                            config=config, **kwargs)
 
 
-@register_api('/api/upload/image/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
-def image_upload_detect(cleanup=True, config={}, **kwargs):
-    r"""
-    Returns the detection results for an uploaded image.
-
-    Args:
-        image (image binary): the POST variable containing the binary
-            (multi-form) image data
-        config (dict): the detection configuration arguments
-        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to
-            the add_images and detect_cnn_json functions
-
-    Returns:
-        results_dict (dict): dict of detection results (not annotations)
-
-    RESTful:
-        Method: POST
-        URL:    /api/upload/image/detect/cnn/yolo/
-    """
-    from ibeis.web.apis import image_upload
-
-    ibs = current_app.ibs
-    gid = image_upload(cleanup=cleanup, **kwargs)
-
-    gid_list = [gid]
-    results = ibs.detect_cnn_json(gid_list, ibs.detect_cnn_yolo,
-                                  config=config, **kwargs)
-    result = {
-        key.split('_list')[0]: results[key][0]
-        for key in results
-    }
-    return result
-
-
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
@@ -660,11 +626,15 @@ def models_cnn_yolo(ibs, **kwargs):
 
 
 @register_ibs_method
-def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash=False, **kwargs):
+def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash=False,
+               hidden_models=[], **kwargs):
     import urllib
 
     model_dict = {}
     for config_tag in config_dict:
+        if config_tag in hidden_models:
+            continue
+
         config_url = config_dict[config_tag]
         classes_url = parse_classes_func(config_url)
         try:

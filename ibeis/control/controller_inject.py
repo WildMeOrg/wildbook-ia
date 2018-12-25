@@ -98,8 +98,12 @@ WEB_DEBUG_INCLUDE_TRACE = True
 
 CONTROLLER_CLASSNAME = 'IBEISController'
 
+MICROSOFT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag('--microsoft')  # True == Microsoft Deployment (i.e., only allow MICROSOFT_API_PREFIX prefix below)
+MICROSOFT_API_PREFIX  = '/v0.1/wildbook/'
+MICROSOFT_API_DEBUG   = True
 
-STRICT_VERSION_API = False  # True == Microsoft Deployment (i.e., only allow /wildme/v0.1/ prefixes)
+if MICROSOFT_API_ENABLED:
+    WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG
 
 
 def get_flask_app(templates_auto_reload=True):
@@ -173,7 +177,7 @@ class WebException(ut.NiceRepr, Exception):
             if debug_stack_trace:
                 return str(traceback.format_exc())
             else:
-                return ''
+                return None
         else:
             return self.rawreturn
 
@@ -277,30 +281,67 @@ class WebMatchThumbException(WebException):
             'qannot_uuid': qannot_uuid,
             'dannot_uuid': dannot_uuid,
             'version': version,
-            'message': message,
         }
         code = 607
         super(WebMatchThumbException, self).__init__(message, rawreturn, code)
 
 
+class WebMissingInput(WebException):
+    def __init__(self, message, key=None):
+        rawreturn = {}
+        if key is not None:
+            rawreturn['parameter'] = key
+        if message is not None:
+            rawreturn['message'] = message
+        code = 400
+        super(WebMissingInput, self).__init__(message, rawreturn, code)
+
+
+class WebInvalidInput(WebException):
+    def __init__(self, message, key=None, value=None, image=False):
+        rawreturn = {}
+        if key is not None:
+            rawreturn['parameter'] = key
+        if value is not None:
+            rawreturn['value'] = value
+        if message is not None:
+            rawreturn['message'] = message
+        code = 415 if image else 400
+        super(WebInvalidInput, self).__init__(message, rawreturn, code)
+
+
+class WebRuntimeException(WebException):
+    def __init__(self, message):
+        rawreturn = {
+            'message': message
+        }
+        code = 500
+        super(WebRuntimeException, self).__init__(message, rawreturn, code)
+
+
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
-                              jQuery_callback=None, cache=None):
-    if code is None:
-        code = ''
-    if message is None:
-        message = ''
-    if cache is None:
-        cache = -1
-    template = {
-        'status': {
-            'success': success,
-            'code':    code,
-            'message': message,
-            'cache':   cache,
-            #'debug': {}  # TODO
-        },
-        'response' : rawreturn
-    }
+                              jQuery_callback=None, cache=None, __skip_microsoft_validation__=False):
+    if MICROSOFT_API_ENABLED and not __skip_microsoft_validation__:
+        if rawreturn is not None:
+            assert isinstance(rawreturn, dict), 'Microsoft APIs must return a Python dictionary'
+        template = rawreturn
+    else:
+        if code is None:
+            code = ''
+        if message is None:
+            message = ''
+        if cache is None:
+            cache = -1
+        template = {
+            'status': {
+                'success': success,
+                'code':    code,
+                'message': message,
+                'cache':   cache,
+                #'debug': {}  # TODO
+            },
+            'response' : rawreturn
+        }
     response = ut.to_json(template)
 
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
@@ -462,19 +503,28 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         except WebException:
             raise
         except Exception as ex2:  # NOQA
-            msg_list = []
-            # msg_list.append('Error in translate_ibeis_webcall')
-            msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
-            msg_list.append('Received Function Definition: %s' % (funcstr,))
-            msg_list.append('Received Function Parameters: %r' % (kwargs,))
-            # msg_list.append('\targs = %r' % (args,))
-            # msg_list.append('flask.request.args = %r' % (flask.request.args,))
-            # msg_list.append('flask.request.form = %r' % (flask.request.form,))
-            msg_list.append('%s: %s' % (type(ex2).__name__, ex2, ))
-            if WEB_DEBUG_INCLUDE_TRACE:
-                trace = str(traceback.format_exc())
-                msg_list.append(trace)
-            msg = '\n'.join(msg_list)
+            if MICROSOFT_API_ENABLED:
+                if isinstance(ex2, TypeError) and 'required positional' in str(ex2):
+                    parameter = str(ex2).split(':')[1].strip().strip('\'')
+                    raise WebMissingInput('Missing required parameter', parameter)
+                elif isinstance(ex2, WebException):
+                    raise
+                else:
+                    raise WebRuntimeException('An unknown error has occurred, please contact the API administrator at dev@wildme.org.')
+            else:
+                msg_list = []
+                # msg_list.append('Error in translate_ibeis_webcall')
+                msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
+                msg_list.append('Received Function Definition: %s' % (funcstr,))
+                msg_list.append('Received Function Parameters: %r' % (kwargs,))
+                # msg_list.append('\targs = %r' % (args,))
+                # msg_list.append('flask.request.args = %r' % (flask.request.args,))
+                # msg_list.append('flask.request.form = %r' % (flask.request.form,))
+                msg_list.append('%s: %s' % (type(ex2).__name__, ex2, ))
+                if WEB_DEBUG_INCLUDE_TRACE:
+                    trace = str(traceback.format_exc())
+                    msg_list.append(trace)
+                msg = '\n'.join(msg_list)
             print(msg)
             # error_msg = ut.formatex(ex2, msg, tb=True)
             # print(error_msg)
@@ -677,7 +727,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_api(rule, __api_plural_check__=True, **options):
+        def register_api(rule,
+                         __api_plural_check__=True,
+                         __api_microsoft_check__=True,
+                         **options):
             global API_SEEN_SET
             assert rule.endswith('/'), 'An API should always end in a forward-slash'
             assert 'methods' in options, 'An api should always have a specified methods list'
@@ -688,6 +741,15 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                 return ut.identity
                 # raise AssertionError(msg)
             API_SEEN_SET.add(rule_)
+
+            if MICROSOFT_API_ENABLED and __api_microsoft_check__:
+                if not rule.startswith(MICROSOFT_API_PREFIX):
+                    # msg = 'API rule=%r is does not adhere to the Microsoft format, ignoring.' % (rule_, )
+                    # warnings.warn(msg)
+                    return ut.identity
+                else:
+                    print('Registering API rule=%r' % (rule_, ))
+
             try:
                 assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'
                 assert 'imgset' not in rule, 'An API should use "imageset" instead of imgset(s)"'
@@ -767,13 +829,14 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         rawreturn, success, code, message = resp_tup
                     except WebException as webex:
                         # ut.printex(webex)
-                        rawreturn = webex.get_rawreturn(
-                            DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE)
+                        print('CAUGHT2: %r' % (webex, ))
+                        rawreturn = webex.get_rawreturn(DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE)
                         success = False
                         code = webex.code
                         message = webex.message
                         jQuery_callback = None
                     except Exception as ex:
+                        print('CAUGHT2: %r' % (ex, ))
                         # ut.printex(ex)
                         rawreturn = None
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
@@ -821,6 +884,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         webreturn = ut.strip_ansi(webreturn)
 
                     resp = flask.make_response(webreturn, code)
+                    resp.status_code = code
+                    resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+                    resp.headers['mimetype']     = 'application/json'
+
                     if not ignore_cookie_set:
                         if __format__:
                             resp.set_cookie('__format__', 'enabled')
@@ -896,7 +963,18 @@ def get_ibeis_flask_route(__name__):
                            __route_prefix_check__=True,
                            __route_postfix_check__=True,
                            __route_authenticate__=True,
+                           __route_microsoft_check__=True,
                            **options):
+
+            if MICROSOFT_API_ENABLED and __route_microsoft_check__:
+                __route_authenticate__ = False
+                if not rule.startswith(MICROSOFT_API_PREFIX):
+                    # msg = 'Route rule=%r not allowed with the Microsoft format, ignoring.' % (rule, )
+                    # warnings.warn(msg)
+                    return ut.identity
+                else:
+                    print('Registering Route rule=%r' % (rule, ))
+
             if __route_prefix_check__:
                 assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
             else:
@@ -956,7 +1034,8 @@ def get_ibeis_flask_route(__name__):
                         jQuery_callback = None
                         result = translate_ibeis_webreturn(rawreturn, success,
                                                            code, message,
-                                                           jQuery_callback)
+                                                           jQuery_callback,
+                                                           __skip_microsoft_validation__=True)
                     return result
                 #wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
                 # return the original unmodified function
