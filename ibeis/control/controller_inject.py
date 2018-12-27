@@ -885,8 +885,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
 
                     resp = flask.make_response(webreturn, code)
                     resp.status_code = code
-                    resp.headers['Content-Type'] = 'application/json; charset=utf-8'
-                    resp.headers['mimetype']     = 'application/json'
+
+                    if not __format__:
+                        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+                        resp.headers['mimetype']     = 'application/json'
 
                     if not ignore_cookie_set:
                         if __format__:

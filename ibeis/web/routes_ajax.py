@@ -52,7 +52,7 @@ def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
 
     if thumbnail:
         try:
-            gpath = ibs.get_image_thumbpath(gid, ensure=True, **kwargs)
+            gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, **kwargs)
             image = vt.imread(gpath, orient='auto')
             h, w = image.shape[:2]
             assert h > 0, 'Invalid image thumbnail'

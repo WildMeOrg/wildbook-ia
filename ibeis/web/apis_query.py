@@ -758,10 +758,10 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
             extern_flag_list = []
             for daid in daid_list:
-                print('Rendering match images to disk for daid=%d' % (daid, ))
                 extern_flag = daid in daid_set
 
                 if extern_flag:
+                    print('Rendering match images to disk for daid=%d' % (daid, ))
                     duuid = ibs.get_annot_uuids(daid)
 
                     args = (duuid, )
