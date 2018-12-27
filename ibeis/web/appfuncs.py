@@ -159,6 +159,7 @@ def decode_refer_url(encoded):
 
 
 def template(template_directory=None, template_filename=None, **kwargs):
+    ibs = current_app.ibs
     global_args = {
         'NAVBAR'             : NavbarClass(),
         'YEAR'               : date.today().year,
@@ -168,6 +169,8 @@ def template(template_directory=None, template_filename=None, **kwargs):
         '__wrapper__'        : True,
         '__wrapper_header__' : True,
         '__wrapper_footer__' : True,
+        '__containerized__'  : ibs.containerized,
+        '__https__'          : ibs.https,
         'user'               : controller_inject.get_user(),
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])

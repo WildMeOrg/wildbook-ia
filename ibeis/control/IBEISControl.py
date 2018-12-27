@@ -312,6 +312,9 @@ class IBEISController(BASE_CLASS):
         if ibs.containerized:
             print('[ibs.__init__] CONTAINERIZED: True\n')
 
+        # Hack to store HTTPS flag (deliver secure content in web)
+        ibs.https = False
+
         print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):

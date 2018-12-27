@@ -57,6 +57,9 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         browser = ut.get_argflag('--browser')
     if url_suffix is None:
         url_suffix = ut.get_argval('--url', default='')
+
+    ibs.https = ut.get_argflag('--https')
+
     def _start_tornado(ibs_, port_):
         # Get Flask app
         app = controller_inject.get_flask_app()
