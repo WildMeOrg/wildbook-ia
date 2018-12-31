@@ -1654,6 +1654,12 @@ def update_1_8_1(db, ibs=None):
     ))
 
 
+def update_1_8_2(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (17, 'annot_toggle_canonical', 'INTEGER DEFAULT NULL', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1712,6 +1718,7 @@ VALID_VERSIONS = ut.odict([
     ('1.7.1',    (None,                 update_1_7_1,       None                )),
     ('1.8.0',    (None,                 update_1_8_0,       None                )),
     ('1.8.1',    (None,                 update_1_8_1,       None                )),
+    ('1.8.2',    (None,                 update_1_8_2,       None                )),
 ])
 """
 SeeAlso:

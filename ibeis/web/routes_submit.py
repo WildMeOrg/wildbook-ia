@@ -856,8 +856,8 @@ def submit_annotation(**kwargs):
                                 dst_ag=dst_ag, previous=aid))
 
 
-@register_route('/submit/annotation/grid/', methods=['POST'])
-def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwargs):
+@register_route('/submit/annotation/canonical/', methods=['POST'])
+def submit_annotation_canonical(samples=200, species=None, version=1, **kwargs):
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
@@ -865,34 +865,46 @@ def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwa
 
     assert version in [1, 2, 3]
 
-    aid_list = kwargs['annotation-grid-aids']
-    highlight_list = kwargs['annotation-grid-highlighted']
-    assert len(aid_list) == len(highlight_list)
+    aid_list = kwargs['annotation-canonical-aids']
+    canonical_list = kwargs['annotation-canonical-highlighted']
+    assert len(aid_list) == len(canonical_list)
 
-    metadata_list = ibs.get_annot_metadata(aid_list)
-    metadata_list_ = []
-    for metadata, highlight in zip(metadata_list, highlight_list):
-        if 'turk' not in metadata:
-            metadata['turk'] = {}
+    # metadata_list = ibs.get_annot_metadata(aid_list)
+    # metadata_list_ = []
+    # for metadata, highlight in zip(metadata_list, highlight_list):
+    #     if 'turk' not in metadata:
+    #         metadata['turk'] = {}
 
+    #     if version == 1:
+    #         value = highlight
+    #     elif version == 2:
+    #         value = not highlight
+    #     elif version == 3:
+    #         value = highlight
+
+    #     metadata['turk']['canonical'] = value
+    #     metadata_list_.append(metadata)
+
+    # ibs.set_annot_metadata(aid_list, metadata_list_)
+
+    value_list = []
+    for canonical in canonical_list:
         if version == 1:
-            value = highlight
+            value = canonical
         elif version == 2:
-            value = not highlight
+            value = not canonical
         elif version == 3:
-            value = highlight
+            value = canonical
+        value_list.append(value)
 
-        metadata['turk']['grid'] = value
-        metadata_list_.append(metadata)
-
-    ibs.set_annot_metadata(aid_list, metadata_list_)
+    ibs.set_annot_canonical(aid_list, value_list)
 
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_annotation_grid',
+        return redirect(url_for('turk_annotation_canonical',
                                 imgsetid=imgsetid,
                                 samples=samples, species=species,
                                 version=version))

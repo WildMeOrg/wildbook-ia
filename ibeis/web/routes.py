@@ -2643,8 +2643,8 @@ def turk_annotation_dynamic(**kwargs):
                          __wrapper__=False)
 
 
-@register_route('/turk/annotation/grid/', methods=['GET'])
-def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', version=1, **kwargs):
+@register_route('/turk/annotation/canonical/', methods=['GET'])
+def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=1, **kwargs):
     import random
 
     ibs = current_app.ibs
@@ -2654,32 +2654,36 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
 
-    enable_grid = version == 1
-    aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75, enable_grid=enable_grid)
-    metadata_list = ibs.get_annot_metadata(aid_list)
-    highlighted_list = [
-        metadata.get('turk', {}).get('grid', None)
-        for metadata in metadata_list
-    ]
-    reviewed_list = []
-    for highlighted in highlighted_list:
-        if version == 1:
-            reviewed = highlighted in [True, False]
-        elif version == 2:
-            reviewed = highlighted in [None, False]
-        elif version == 3:
-            reviewed = highlighted in [None, True]
-        reviewed_list.append(reviewed)
+    if species is not None:
+        aid_list = ibs.filter_annotation_set(aid_list, species=species)
 
-    kwargs = {
-        'aoi_two_weight_filepath': 'ggr2',
-    }
-    prediction_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'class', config=kwargs)
-    confidence_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'score', config=kwargs)
-    confidence_list = [
-        confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence in zip(prediction_list, confidence_list)
-    ]
+    # enable_canonical = version == 1
+    # aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75, enable_canonical=enable_canonical)
+
+    # metadata_list = ibs.get_annot_metadata(aid_list)
+    # canonical_flag_list = []
+    # for metadata in metadata_list:
+    #     turk = metadata.get('turk', {})
+    #     canonical = turk.get('canonical', turk.get('grid', None))
+    #     canonical_flag_list.append(canonical)
+
+    canonical_flag_list = ibs.get_annot_canonical(aid_list)
+
+    reviewed_list = []
+    for canonical_flag in canonical_flag_list:
+        if version in [1, 'set']:
+            # Version 1 - Annotations that are unreviewed
+            reviewed = canonical_flag in [True, False]
+            version = 1
+        elif version in [2, 'yes']:
+            # Version 2 - Annotations that are marked YES as CA
+            reviewed = canonical_flag in [None, False]
+            version = 2
+        elif version in [3, 'no']:
+            # Version 2 - Annotations that are marked NO as CA
+            reviewed = canonical_flag in [None, True]
+            version = 3
+        reviewed_list.append(reviewed)
 
     try:
         print('Total len(reviewed_list) = %d' % (len(reviewed_list), ))
@@ -2687,7 +2691,21 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     except ZeroDivisionError:
         progress = '100.0'
 
-    zipped = list(zip(aid_list, highlighted_list, confidence_list))
+    COMPARE_TO_AOI = False
+    if COMPARE_TO_AOI:
+        kwargs = {
+            'aoi_two_weight_filepath': 'ggr2',
+        }
+        prediction_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'class', config=kwargs)
+        confidence_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'score', config=kwargs)
+        confidence_list = [
+            confidence if prediction == 'positive' else 1.0 - confidence
+            for prediction, confidence in zip(prediction_list, confidence_list)
+        ]
+    else:
+        confidence_list = [1.0] * len(aid_list)
+
+    zipped = list(zip(aid_list, reviewed_list, confidence_list))
     values_list = ut.filterfalse_items(zipped, reviewed_list)
 
     aid_list_ = []
@@ -2706,7 +2724,6 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
 
     finished = len(aid_list_) == 0
 
-    highlighted_list = [False] * len(aid_list_)
     annotation_list = list(zip(
         aid_list_,
         highlighted_list_,
@@ -2715,9 +2732,9 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     aid_list_str = ','.join(map(str, aid_list_))
 
     annotation_list.sort(key=lambda t: t[0])
-    args = (url_for('submit_annotation_grid'), imgsetid, version, samples, species, )
+    args = (url_for('submit_annotation_canonical'), imgsetid, version, samples, species, )
     callback_url = '%s?imgsetid=%s&version=%d&samples=%d&species=%s' % args
-    return appf.template('turk', 'grid_annotation',
+    return appf.template('turk', 'canonical',
                          imgsetid=imgsetid,
                          aid_list=aid_list_,
                          aid_list_str=aid_list_str,
@@ -3585,7 +3602,7 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     config = {
         'species':     species,
         'threshold':   0.75,
-        'enable_grid': True,
+        'enable_canonical': True,
     }
     return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                      creation_imageset_rowid_list=[imgsetid], **config)
