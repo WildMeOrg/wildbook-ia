@@ -2669,6 +2669,20 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
 
     canonical_flag_list = ibs.get_annot_canonical(aid_list)
 
+    canonical_str = None
+    if species == 'zebra_grevys':
+        canonical_str = 'right side + shoulder chevron, side stripes, and hip chevron'
+    elif species == 'zebra_plains':
+        canonical_str = 'left side + shoulder chevron, side stripes, and entire hip'
+    elif species == 'giraffe_reticulated':
+        canonical_str = 'left side + entire body center mass, neck'
+    elif species == 'giraffe_masai':
+        canonical_str = 'right side + entire body center mass, neck'
+    elif species == 'turtle_sea':
+        canonical_str = 'right size + side of head'
+    elif species == 'whale_fluke':
+        canonical_str = 'top or bottom + trailing edge entirely out of water'
+
     reviewed_list = []
     for canonical_flag in canonical_flag_list:
         if version in [1, 'set']:
@@ -2736,6 +2750,7 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
     callback_url = '%s?imgsetid=%s&version=%d&samples=%d&species=%s' % args
     return appf.template('turk', 'canonical',
                          imgsetid=imgsetid,
+                         canonical_str=canonical_str,
                          aid_list=aid_list_,
                          aid_list_str=aid_list_str,
                          num_aids=len(aid_list_),

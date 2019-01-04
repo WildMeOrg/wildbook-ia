@@ -876,7 +876,6 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
             count_old = len(bboxes)
             if count_old > 0:
                 coord_list = []
-                confs_list = []
                 for (xtl, ytl, width, height) in bboxes:
                     xbr = xtl + width
                     ybr = ytl + height
