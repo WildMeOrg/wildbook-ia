@@ -2671,17 +2671,17 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
 
     canonical_str = None
     if species == 'zebra_grevys':
-        canonical_str = 'right side + shoulder chevron, side stripes, and hip chevron'
+        canonical_str = 'Grevy\'s Zebra - right side + shoulder chevron, side stripes, and hip chevron'
     elif species == 'zebra_plains':
-        canonical_str = 'left side + shoulder chevron, side stripes, and entire hip'
+        canonical_str = 'Plains Zebra - left side + shoulder chevron, side stripes, and entire hip'
     elif species == 'giraffe_reticulated':
-        canonical_str = 'left side + entire body center mass, neck'
+        canonical_str = 'Reticulated Giraffe - left side + entire body center mass, neck'
     elif species == 'giraffe_masai':
-        canonical_str = 'right side + entire body center mass, neck'
+        canonical_str = 'Masai Giraffe - right side + entire body center mass, neck'
     elif species == 'turtle_sea':
-        canonical_str = 'right size + side of head'
+        canonical_str = 'Sea Turtle - right size + side of head'
     elif species == 'whale_fluke':
-        canonical_str = 'top or bottom + trailing edge entirely out of water'
+        canonical_str = 'Whale Fluke - top or bottom + trailing edge entirely out of water'
 
     reviewed_list = []
     for canonical_flag in canonical_flag_list:
