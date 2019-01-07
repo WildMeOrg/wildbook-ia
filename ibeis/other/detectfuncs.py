@@ -88,7 +88,7 @@ def simple_code(label):
     label = label.replace('cat_domestic',        'DOMC')
     label = label.replace('airplane',            'PLANE')
     label = label.replace('manta_ray_giant',     'MM')
-    label = label.replace('manta_ray_giant',     'DOR')
+    label = label.replace('dolphin_bottlenose_fin', 'DOR')
 
     for key in sorted(YAWALIAS.keys(), key=len, reverse=True):
         value = YAWALIAS[key]
@@ -2331,7 +2331,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
-    kwargs['labeler_weight_filepath'] = 'manta'
+    kwargs['labeler_weight_filepath'] = 'hendrik_dorsal'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,
                                      **kwargs)
