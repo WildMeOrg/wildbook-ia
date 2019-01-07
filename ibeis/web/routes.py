@@ -2679,7 +2679,7 @@ def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=
     elif species == 'giraffe_masai':
         canonical_str = 'Masai Giraffe - right side + entire body center mass, neck'
     elif species == 'turtle_sea':
-        canonical_str = 'Sea Turtle - right size + side of head'
+        canonical_str = 'Sea Turtle - right size + entire side of head'
     elif species == 'whale_fluke':
         canonical_str = 'Whale Fluke - top or bottom + trailing edge entirely out of water'
 
