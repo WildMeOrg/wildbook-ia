@@ -1195,6 +1195,7 @@ TODO
         }
 
         BBoxAnnotator.prototype.update_mode = function(proposed_mode) {
+            console.log(proposed_mode)
             this.selector_cancel(null)
             this.options.mode = this.bbs.update_mode(proposed_mode)
         }
@@ -1788,29 +1789,32 @@ TODO
                         this.hover_entry(this.state.hover)
                     }
                 } else {
+                    enabled = true
                     if (this.options.actions.entry.defocus == false) {
-                        return
+                        enabled = false
                     }
 
-                    // Un-hover all of the sub-entries
-                    for (var index_entry = 0; index_entry < this.elements.entries.length; index_entry++) {
-                        entry = this.entries[index_entry]
-                        if(entry.parent != null && entry.parent == this.state.focus) {
-                            this.entry_style_default(index_entry)
+                    if (enabled) {
+                        // Un-hover all of the sub-entries
+                        for (var index_entry = 0; index_entry < this.elements.entries.length; index_entry++) {
+                            entry = this.entries[index_entry]
+                            if(entry.parent != null && entry.parent == this.state.focus) {
+                                this.entry_style_default(index_entry)
+                            }
                         }
+
+                        // Unset the state of the hover index
+                        this.state.focus = null
+
+                        // Set the style of the un-focused entry back to hover
+                        this.hover_entry(this.state.hover)
+
+                        // Un-hide all the rest of the bounding boxes
+                        this.entries_style_visible(index)
+
+                        // Show the required sub-entries as well
+                        this.subentries_style_visible(index)
                     }
-
-                    // Unset the state of the hover index
-                    this.state.focus = null
-
-                    // Set the style of the un-focused entry back to hover
-                    this.hover_entry(this.state.hover)
-
-                    // Un-hide all the rest of the bounding boxes
-                    this.entries_style_visible(index)
-
-                    // Show the required sub-entries as well
-                    this.subentries_style_visible(index)
                 }
             }
 
@@ -2001,14 +2005,15 @@ TODO
             var handle, offset, diff_x, diff_y, dist
 
             index = this.state.hover
+            entry = this.entries[index]
+            element = this.elements.entries[index]
 
             // Do not update if there is a focused entry
             if (this.state.focus != null) {
-                return
+                if (entry.parent != null && entry.parent != this.state.focus) {
+                    return
+                }
             }
-
-            entry = this.entries[index]
-            element = this.elements.entries[index]
 
             if (entry === undefined || element === undefined) {
                 return
@@ -2148,41 +2153,44 @@ TODO
                 return
             }
 
+            var enabled = true;
             if (entry.parent == null) {
                 if (this.options.actions.entry.translation == false) {
-                    return
+                    enabled = false;
                 }
             } else {
                 if (this.options.actions.subentry.translation == false) {
-                    return
+                    enabled = false;
                 }
             }
 
-            offset = this.elements.container.offset()
+            if(enabled) {
+                offset = this.elements.container.offset()
 
-            offset = {
-                x: event.pageX - offset.left - this.state.anchors.cursor.x,
-                y: event.pageY - offset.top - this.state.anchors.cursor.y,
+                offset = {
+                    x: event.pageX - offset.left - this.state.anchors.cursor.x,
+                    y: event.pageY - offset.top - this.state.anchors.cursor.y,
+                }
+
+                entry.pixels.left = this.state.anchors.element.x + offset.x,
+                entry.pixels.top = this.state.anchors.element.y + offset.y,
+
+                width = this.elements.frame.width()
+                height = this.elements.frame.height()
+
+                // Calculate the final values in percentage space
+                entry.percent.left = 100.0 * entry.pixels.left / width
+                entry.percent.top = 100.0 * entry.pixels.top / height
+
+                // // If the shift is held, move parts as well
+                // if(event.shiftKey) {
+                // }
+
+                element.bbox.css({
+                    "top": entry.percent.top + "%",
+                    "left": entry.percent.left + "%",
+                })
             }
-
-            entry.pixels.left = this.state.anchors.element.x + offset.x,
-            entry.pixels.top = this.state.anchors.element.y + offset.y,
-
-            width = this.elements.frame.width()
-            height = this.elements.frame.height()
-
-            // Calculate the final values in percentage space
-            entry.percent.left = 100.0 * entry.pixels.left / width
-            entry.percent.top = 100.0 * entry.pixels.top / height
-
-            // // If the shift is held, move parts as well
-            // if(event.shiftKey) {
-            // }
-
-            element.bbox.css({
-                "top": entry.percent.top + "%",
-                "left": entry.percent.left + "%",
-            })
 
             // Update the assignments, if needed
             this.assignment_entry(index)
@@ -2260,41 +2268,44 @@ TODO
             element = this.elements.entries[index]
             offset = this.elements.container.offset()
 
-            center = {
-                x: this.state.anchors.element.x + this.state.anchors.element.width * 0.5,
-                y: this.state.anchors.element.y + this.state.anchors.element.height * 0.5,
-            }
-            cursor = {
-                x: event.pageX - offset.left,
-                y: event.pageY - offset.top,
-            }
-
-            angles = {}
-            angles.anchor = calculate_angle(center, this.state.anchors.cursor)
-            angles.cursor = calculate_angle(center, cursor)
-
-            delta = angles.cursor - angles.anchor
-            correction = this.state.anchors.element.theta + delta
-
-            // If the Shift key is pressed, block to steps
-            if (event.shiftKey) {
-                correction /= this.options.steps.rotate
-                correction = Math.round(correction)
-                correction *= this.options.steps.rotate
-            }
-
+            var enabled = true;
             if (entry.parent == null) {
                 if (this.options.actions.entry.rotation == false) {
-                    return
+                    enabled = false;
                 }
             } else {
                 if (this.options.actions.subentry.rotation == false) {
-                    return
+                    enabled = false;
                 }
             }
 
-            entry.angles.theta = correction
-            this.rotate_element(element.bbox, entry.angles.theta)
+            if (enabled) {
+                center = {
+                    x: this.state.anchors.element.x + this.state.anchors.element.width * 0.5,
+                    y: this.state.anchors.element.y + this.state.anchors.element.height * 0.5,
+                }
+                cursor = {
+                    x: event.pageX - offset.left,
+                    y: event.pageY - offset.top,
+                }
+
+                angles = {}
+                angles.anchor = calculate_angle(center, this.state.anchors.cursor)
+                angles.cursor = calculate_angle(center, cursor)
+
+                delta = angles.cursor - angles.anchor
+                correction = this.state.anchors.element.theta + delta
+
+                // If the Shift key is pressed, block to steps
+                if (event.shiftKey) {
+                    correction /= this.options.steps.rotate
+                    correction = Math.round(correction)
+                    correction *= this.options.steps.rotate
+                }
+
+                entry.angles.theta = correction
+                this.rotate_element(element.bbox, entry.angles.theta)
+            }
 
             // Update the assignments, if needed
             this.assignment_entry(index)
@@ -2755,64 +2766,67 @@ TODO
                 return
             }
 
+            var enabled = true;
             if (entry.parent == null) {
-                if (this.options.actions.entry.scaling == false) {
-                    return
+                if (this.options.actions.entry.rotation == false) {
+                    enabled = false;
                 }
             } else {
-                if (this.options.actions.subentry.scaling == false) {
-                    return
+                if (this.options.actions.subentry.rotation == false) {
+                    enabled = false;
                 }
             }
 
-            // entry.pixels.top = top
-            // entry.pixels.left = left
-            entry.pixels.width = width
-            entry.pixels.height = height
+            if (enabled) {
+                // entry.pixels.top = top
+                // entry.pixels.left = left
+                entry.pixels.width = width
+                entry.pixels.height = height
 
-            width = this.elements.frame.width()
-            height = this.elements.frame.height()
+                width = this.elements.frame.width()
+                height = this.elements.frame.height()
 
-            // Calculate the final values in percentage space
-            entry.percent.top = 100.0 * entry.pixels.top / height
-            entry.percent.left = 100.0 * entry.pixels.left / width
-            entry.percent.width = 100.0 * entry.pixels.width / width
-            entry.percent.height = 100.0 * entry.pixels.height / height
+                // Calculate the final values in percentage space
+                entry.percent.top = 100.0 * entry.pixels.top / height
+                entry.percent.left = 100.0 * entry.pixels.left / width
+                entry.percent.width = 100.0 * entry.pixels.width / width
+                entry.percent.height = 100.0 * entry.pixels.height / height
 
-            element.bbox.css({
-                "top": entry.percent.top + "%",
-                "left": entry.percent.left + "%",
-                "width": entry.percent.width + "%",
-                "height": entry.percent.height + "%",
-            })
+                element.bbox.css({
+                    "top": entry.percent.top + "%",
+                    "left": entry.percent.left + "%",
+                    "width": entry.percent.width + "%",
+                    "height": entry.percent.height + "%",
+                })
 
-            ////////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////////
 
-            // Calculate drift offset and correction
-            position = element.bbox.position()
-            position_resize = element.resize[anchor].position()
+                // Calculate drift offset and correction
+                position = element.bbox.position()
+                position_resize = element.resize[anchor].position()
 
-            temp = {
-                    x: position.left + position_resize.left,
-                    y: position.top + position_resize.top,
+                temp = {
+                        x: position.left + position_resize.left,
+                        y: position.top + position_resize.top,
+                    }
+                    // Get current location
+                correction = {
+                    x: temp.x - this.state.anchors.resize[anchor].x,
+                    y: temp.y - this.state.anchors.resize[anchor].y,
                 }
-                // Get current location
-            correction = {
-                x: temp.x - this.state.anchors.resize[anchor].x,
-                y: temp.y - this.state.anchors.resize[anchor].y,
+
+                entry.pixels.left -= correction.x
+                entry.pixels.top -= correction.y
+
+                // Calculate the final values in percentage space
+                entry.percent.left = 100.0 * entry.pixels.left / width
+                entry.percent.top = 100.0 * entry.pixels.top / height
+
+                element.bbox.css({
+                    "top": entry.percent.top + "%",
+                    "left": entry.percent.left + "%",
+                })
             }
-
-            entry.pixels.left -= correction.x
-            entry.pixels.top -= correction.y
-
-            // Calculate the final values in percentage space
-            entry.percent.left = 100.0 * entry.pixels.left / width
-            entry.percent.top = 100.0 * entry.pixels.top / height
-
-            element.bbox.css({
-                "top": entry.percent.top + "%",
-                "left": entry.percent.left + "%",
-            })
 
             ////////////////////////////////////////////////////////////////////////////////////
 

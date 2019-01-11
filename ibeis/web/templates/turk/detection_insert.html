@@ -311,8 +311,8 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20190110-0') }}" ia-dependency="javascript"></script>
-    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20190110-0') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20190110-2') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20190110-2') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
@@ -390,7 +390,7 @@
 
         var entry = {
           addition: false,
-          parts: true,
+          parts: false,
           translation: false,
           scaling: false,
           rotation: false,
@@ -420,6 +420,10 @@
           assignments: assignments,
         },
         callbacks: {
+          onload: function() {
+            bba.hover_entry(0)
+            bba.focus_entry(0)
+          },
           onchange: function(entries) {
             $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));
           },
@@ -723,10 +727,6 @@
 
       {% if display_new_features %}
         $('#turk-new-features').modal('show');
-      {% endif %}
-
-      {% if is_canonical %}
-        bba.focus_entry(0)
       {% endif %}
     });
   </script>
