@@ -1768,7 +1768,7 @@ def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
 
     filtered = True
     if imgsetid_list is not None:
-        gid_list = ibs.get_imageset_gids(imgsetid_list)
+        gid_list = ut.flatten(ibs.get_imageset_gids(imgsetid_list))
     if gid_list is not None:
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     if aid_list is not None:
