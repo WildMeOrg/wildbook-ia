@@ -1076,6 +1076,12 @@ def get_image_paths_json(ibs, image_uuid_list):
     return ibs.get_image_paths(gid_list)
 
 
+@register_api('/api/image/file/hash/json/', methods=['GET'])
+def get_image_hash_json(ibs, image_uuid_list, **kwargs):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.get_image_hash(gid_list, **kwargs)
+
+
 @register_api('/api/image/file/name/json/', methods=['GET'])
 def get_image_gnames_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)

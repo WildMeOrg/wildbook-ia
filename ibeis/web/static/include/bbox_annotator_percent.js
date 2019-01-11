@@ -542,6 +542,7 @@ TODO
             options.actions.entry.scaling        !== undefined || (options.actions.entry.scaling = true)
             options.actions.entry.rotation       !== undefined || (options.actions.entry.rotation = true)
             options.actions.entry.deletion       !== undefined || (options.actions.entry.deletion = true)
+            options.actions.entry.defocus        !== undefined || (options.actions.entry.defocus = true)
             options.actions.subentry             !== undefined || (options.actions.subentry = {})
             options.actions.subentry.addition    !== undefined || (options.actions.subentry.addition = true)
             options.actions.subentry.parts       !== undefined || (options.actions.subentry.parts = true)
@@ -730,6 +731,10 @@ TODO
             entry = bba.entries[index]
 
             if(event.shiftKey && entry.parent == null) {
+                if (this.options.actions.subentry.deletion == false) {
+                    return
+                }
+
                 if (this.options.confirm.delete) {
                     response = confirm("Are you sure you want to delete all sub-entries?")
                      if ( ! response) {
@@ -748,6 +753,16 @@ TODO
                     }
                 }
             } else {
+                if (entry.parent == null) {
+                    if (this.options.actions.entry.deletion == false) {
+                        return
+                    }
+                } else {
+                    if (this.options.actions.subentry.deletion == false) {
+                        return
+                    }
+                }
+
                 if (this.options.confirm.delete && entry.parent == null && entry.label != null) {
                     response = confirm("Are you sure you want to delete this box?")
                     if ( ! response) {
@@ -1773,7 +1788,10 @@ TODO
                         this.hover_entry(this.state.hover)
                     }
                 } else {
-                    // Un-hover all of the sub-entries
+                    if (this.options.actions.entry.defocus == false) {
+                        return
+                    }
+                                        // Un-hover all of the sub-entries
                     for (var index_entry = 0; index_entry < this.elements.entries.length; index_entry++) {
                         entry = this.entries[index_entry]
                         if(entry.parent != null && entry.parent == this.state.focus) {
@@ -2129,6 +2147,16 @@ TODO
                 return
             }
 
+            if (entry.parent == null) {
+                if (this.options.actions.entry.translation == false) {
+                    return
+                }
+            } else {
+                if (this.options.actions.subentry.translation == false) {
+                    return
+                }
+            }
+
             offset = this.elements.container.offset()
 
             offset = {
@@ -2230,6 +2258,16 @@ TODO
             entry = this.entries[index]
             element = this.elements.entries[index]
             offset = this.elements.container.offset()
+
+            if (entry.parent == null) {
+                if (this.options.actions.entry.rotation == false) {
+                    return
+                }
+            } else {
+                if (this.options.actions.subentry.rotation == false) {
+                    return
+                }
+            }
 
             center = {
                 x: this.state.anchors.element.x + this.state.anchors.element.width * 0.5,
@@ -2573,6 +2611,16 @@ TODO
             entry = this.entries[index]
             element = this.elements.entries[index]
             offset = this.elements.container.offset()
+
+            if (entry.parent == null) {
+                if (this.options.actions.entry.scaling == false) {
+                    return
+                }
+            } else {
+                if (this.options.actions.subentry.scaling == false) {
+                    return
+                }
+            }
 
             cursor = {
                 x: event.pageX - offset.left,

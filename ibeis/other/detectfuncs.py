@@ -2338,9 +2338,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
 
     config_list = [
         # {'label': 'All Species',         'category_list': None},
-        # {'label': 'Jaguar',              'category_list': ['jaguar']},
+        {'label': 'Jaguar',              'category_list': ['jaguar_v2']},
         # {'label': 'Manta',               'category_list': ['manta_ray_giant']},
-        {'label': 'Dorsal Fin',            'category_list': ['dolphin_bottlenose_fin']},
+        # {'label': 'Dorsal Fin',            'category_list': ['dolphin_bottlenose_fin']},
         # {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
         # {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
         # {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},

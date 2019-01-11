@@ -625,6 +625,7 @@ def check_image_loadable(ibs, gid_list=None):
         orient_list,
     ))
     flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter)
+    flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
     exif_list = ut.take_column(flag_list, 1)
 
@@ -696,6 +697,8 @@ def check_image_duplcates(ibs, gid_list=None):
         print(keep_index, delete_gid_list_)
 
         delete_gid_list += delete_gid_list_
+
+    return delete_gid_list
 
 
 def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):

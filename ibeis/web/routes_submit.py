@@ -69,6 +69,7 @@ def submit_cameratrap(**kwargs):
 def submit_detection(**kwargs):
     with ut.Timer('submit'):
         is_staged = kwargs.get('staged', False)
+        is_canonical = kwargs.get('canonical', False)
 
         is_staged = is_staged and appf.ALLOW_STAGED
 
@@ -77,7 +78,15 @@ def submit_detection(**kwargs):
         imgsetid = request.args.get('imgsetid', '')
         imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
         gid = int(request.form['detection-gid'])
+        only_aid = request.form['detection-only-aid']
+        only_aid = None if only_aid == 'None' or only_aid == '' else int(only_aid)
         user_id = controller_inject.get_user().get('username', None)
+
+        if is_canonical:
+            assert only_aid is not None
+            assert not is_staged
+        if only_aid is not None:
+            assert is_canonical
 
         poor_boxes = method.lower() == 'poor boxes'
         if poor_boxes:
@@ -127,6 +136,23 @@ def submit_detection(**kwargs):
             with ut.Timer('submit...update'):
                 current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
                 current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
+
+                if is_canonical:
+                    assert only_aid in current_aid_list, 'Specified only_aid is not in this image'
+                    current_aid_list = [only_aid]
+
+                    current_part_type_list = ibs.get_part_types(current_part_rowid_list)
+                    zipped = zip(current_part_rowid_list, current_part_type_list)
+
+                    current_part_rowid_list_ = []
+                    for current_part_rowid, current_part_type in zipped:
+                        if current_part_type != appf.CANONICAL_PART_TYPE:
+                            continue
+                        current_part_rowid_list_.append(current_part_rowid)
+                    current_part_rowid_list = current_part_rowid_list_
+
+                    assert len(current_aid_list) == 1, 'Must have an canonical annotation to focus on in this mode'
+                    assert len(current_part_rowid_list) <= 1, 'An annotation cannot have more than one canonical part (for now)'
 
                 if is_staged:
                     staged_uuid = uuid.uuid4()
@@ -272,6 +298,11 @@ def submit_detection(**kwargs):
 
                     # Delete annotations that didn't survive
                     kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
+
+                    if is_canonical:
+                        assert len(survived_aid_list) == 1, 'Cannot add or delete annotations in this mode'
+                        assert len(kill_aid_list) == 0, 'Cannot kill a canonical annotation in this mode'
+
                     ibs.delete_annots(kill_aid_list)
 
                     local_add_gid_list = []
@@ -446,6 +477,13 @@ def submit_detection(**kwargs):
 
                     # Delete annotations that didn't survive
                     kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
+
+                    if is_canonical:
+                        assert len(survived_part_rowid_list) <= 1, 'Cannot add more than one canonical part in this mode'
+                        assert len(kill_part_rowid_list) <= 1, 'Cannot delete two or more canonical parts in this mode'
+                        assert len(survived_part_rowid_list) == len(type_list)
+                        type_list = [appf.CANONICAL_PART_TYPE] * len(survived_part_rowid_list)
+
                     ibs.delete_parts(kill_part_rowid_list)
 
                     staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
@@ -518,6 +556,7 @@ def submit_detection(**kwargs):
             'modes_diagonal',
             'modes_diagonal2',
             'staged',
+            'canonical',
         ]
         config = {
             default: kwargs[default]
@@ -530,7 +569,8 @@ def submit_detection(**kwargs):
         if len(refer) > 0:
             return redirect(appf.decode_refer_url(refer))
         else:
-            return redirect(url_for('turk_detection', imgsetid=imgsetid, previous=gid, **config))
+            signature = 'turk_detection_canonical' if is_canonical else 'turk_detection'
+            return redirect(url_for(signature, imgsetid=imgsetid, previous=gid, previous_only_aid=only_aid, **config))
 
 
 @register_route('/submit/viewpoint/', methods=['POST'])
@@ -917,8 +957,6 @@ def submit_splits(**kwargs):
     aid_list = kwargs['annotation-splits-aids']
     highlight_list = kwargs['annotation-splits-highlighted']
     assert len(aid_list) == len(highlight_list)
-
-    ut.embed()
 
     # Return HTML
     refer = request.args.get('refer', '')

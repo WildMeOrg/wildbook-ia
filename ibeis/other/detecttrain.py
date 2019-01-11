@@ -197,7 +197,7 @@ def aoi_train(ibs, species_list=None):
 
 
 @register_ibs_method
-def aoi2_train(ibs, species_list=None, train_gid_list=None):
+def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=False):
     from ibeis_cnn.ingest_ibeis import get_aoi2_training_data
     from ibeis_cnn.process import numpy_processed_directory5
     from ibeis_cnn.models.aoi2 import train_aoi2
@@ -205,7 +205,9 @@ def aoi2_train(ibs, species_list=None, train_gid_list=None):
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_aoi2_training_data(ibs, dest_path=data_path,
                                             target_species_list=species_list,
-                                            train_gid_list=train_gid_list)
+                                            train_gid_list=train_gid_list,
+                                            purge=purge,
+                                            cache=cache)
     id_file, X_file, y_file = numpy_processed_directory5(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'aoi2')
     model_path = train_aoi2(output_path, X_file, y_file)

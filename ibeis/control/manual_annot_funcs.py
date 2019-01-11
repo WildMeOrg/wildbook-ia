@@ -320,7 +320,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     """
     assert yaw_list is None, 'yaw is depricated'
 
-    #ut.embed()
     if ut.VERBOSE:
         print('[ibs] adding annotations')
 
@@ -760,7 +759,8 @@ def annotation_src_api(rowid=None):
 def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
                           yaw='no-filter', is_exemplar=None, is_staged=False,
                           species=None, is_known=None, hasgt=None, minqual=None,
-                          has_timestamp=None, sort=False, min_timedelta=None):
+                          has_timestamp=None, sort=False, is_canonical=None,
+                          min_timedelta=None):
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
@@ -778,6 +778,14 @@ def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
         aid_list  = ut.compress(aid_list, flag_list)
     elif is_staged is False:
         flag_list = ibs.get_annot_staged_flags(aid_list)
+        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+
+    # filter by is_canonical
+    if is_canonical is True:
+        flag_list = ibs.get_annot_canonical(aid_list)
+        aid_list  = ut.compress(aid_list, flag_list)
+    elif is_canonical is False:
+        flag_list = ibs.get_annot_canonical(aid_list)
         aid_list  = ut.filterfalse_items(aid_list, flag_list)
 
     if include_only_gid_list is not None:

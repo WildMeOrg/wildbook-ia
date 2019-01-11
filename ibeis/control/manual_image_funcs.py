@@ -1372,6 +1372,74 @@ def get_image_paths(ibs, gid_list):
     gpath_list = [None if uri is None else join(ibs.imgdir, uri) for uri in uri_list]
     return gpath_list
 
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/file/hash/', methods=['GET'])
+def get_image_hash(ibs, gid_list=None, algo='md5'):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): a list of image absolute paths to img_dir
+
+    Returns:
+        list: hash_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_hash
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/file/hash/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[:1]
+        >>> image_path = ibs.get_image_paths(gid_list)
+        >>> print('Hashing: %r' % (image_path, ))
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='md5')
+        >>> assert hash_list == ['ab31dc5e1355247a0ea5ec940802a468']
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='sha1')
+        >>> assert hash_list == ['66ec193a1619b3b6216d1784b4833b6194b13384']
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='sha256')
+        >>> assert hash_list == ['fd09d22ec18c32d9db2cd026a9511ab228aadf0e5f7271760413448ddd16d483']
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='sha512')
+        >>> assert hash_list == ['81d1d8ee4c8640b9aad26e4cc03536ed30a43b69e166748ec940a8f00e4776be93f4ac6367a06d92b772a9a60dc104c6f999e7197c2584fdc4cffcac2da71506']
+    """
+    import hashlib
+
+    assert isinstance(algo, six.string_types)
+    algo = algo.lower()
+    assert algo in ['md5', 'sha1', 'sha256', 'sha512']
+
+    image_path_list = ibs.get_image_paths(gid_list)
+
+    if algo == 'md5':
+        hash_func = hashlib.md5
+    elif algo == 'sha1':
+        hash_func = hashlib.sha1
+    elif algo == 'sha256':
+        hash_func = hashlib.sha256
+    elif algo == 'sha512':
+        hash_func = hashlib.sha512
+    else:
+        raise ValueError('algo must be in %r' % (algo, ))
+
+    hash_list = []
+    for image_path in image_path_list:
+        if not exists(image_path):
+            hash_ = None
+        else:
+            hash_ = hash_func(open(image_path, 'rb').read()).hexdigest()
+        hash_list.append(hash_)
+
+    return hash_list
+
+
 # TODO make this actually return a uri format
 #get_image_absolute_uri = get_image_paths
 
