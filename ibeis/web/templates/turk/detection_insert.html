@@ -532,10 +532,6 @@
         });
       {% endfor %}
 
-      {% if is_canonical %}
-        bba.focus_entry(0)
-      {% endif %}
-
       {% if EMBEDDED %}
         // Create the toggle's user interaction
         toggle = $('#ia-detection-setting-toggle');
@@ -727,6 +723,10 @@
 
       {% if display_new_features %}
         $('#turk-new-features').modal('show');
+      {% endif %}
+
+      {% if is_canonical %}
+        bba.focus_entry(0)
       {% endif %}
     });
   </script>

@@ -1791,7 +1791,8 @@ TODO
                     if (this.options.actions.entry.defocus == false) {
                         return
                     }
-                                        // Un-hover all of the sub-entries
+
+                    // Un-hover all of the sub-entries
                     for (var index_entry = 0; index_entry < this.elements.entries.length; index_entry++) {
                         entry = this.entries[index_entry]
                         if(entry.parent != null && entry.parent == this.state.focus) {
@@ -2259,16 +2260,6 @@ TODO
             element = this.elements.entries[index]
             offset = this.elements.container.offset()
 
-            if (entry.parent == null) {
-                if (this.options.actions.entry.rotation == false) {
-                    return
-                }
-            } else {
-                if (this.options.actions.subentry.rotation == false) {
-                    return
-                }
-            }
-
             center = {
                 x: this.state.anchors.element.x + this.state.anchors.element.width * 0.5,
                 y: this.state.anchors.element.y + this.state.anchors.element.height * 0.5,
@@ -2290,6 +2281,16 @@ TODO
                 correction /= this.options.steps.rotate
                 correction = Math.round(correction)
                 correction *= this.options.steps.rotate
+            }
+
+            if (entry.parent == null) {
+                if (this.options.actions.entry.rotation == false) {
+                    return
+                }
+            } else {
+                if (this.options.actions.subentry.rotation == false) {
+                    return
+                }
             }
 
             entry.angles.theta = correction
@@ -2612,16 +2613,6 @@ TODO
             element = this.elements.entries[index]
             offset = this.elements.container.offset()
 
-            if (entry.parent == null) {
-                if (this.options.actions.entry.scaling == false) {
-                    return
-                }
-            } else {
-                if (this.options.actions.subentry.scaling == false) {
-                    return
-                }
-            }
-
             cursor = {
                 x: event.pageX - offset.left,
                 y: event.pageY - offset.top,
@@ -2762,6 +2753,16 @@ TODO
             // If the width and height of the new location is negative
             if (width < 0 || height < 0) {
                 return
+            }
+
+            if (entry.parent == null) {
+                if (this.options.actions.entry.scaling == false) {
+                    return
+                }
+            } else {
+                if (this.options.actions.subentry.scaling == false) {
+                    return
+                }
             }
 
             // entry.pixels.top = top
