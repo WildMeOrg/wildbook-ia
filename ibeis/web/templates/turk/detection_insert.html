@@ -421,7 +421,7 @@
         },
         callbacks: {
           onload: function() {
-            {% is_canonical %}
+            {% if is_canonical %}
               bba.hover_entry(0)
               bba.focus_entry(0)
             {% endif %}
