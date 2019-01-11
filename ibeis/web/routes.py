@@ -1772,7 +1772,7 @@ def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
     if gid_list is not None:
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     if aid_list is not None:
-        pid_list = ut.flatten(ibs.get_image_aids(aid_list))
+        pid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list))
     else:
         pid_list = ibs.get_valid_part_rowids()
         filtered = False
