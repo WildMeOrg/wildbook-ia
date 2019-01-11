@@ -2516,7 +2516,7 @@ def turk_detection_canonical(aid=None, imgsetid=None, previous=None, previous_on
     print('CANONICAL IMAGESETID: %s GID: %s AID: %s (PROG = %s, PREV GID = %s, PREV AID = %s)' % args)
 
     kwargs['canonical'] = True
-    return turk_detection(gid, only_aid=aid, progress=progress, previous=previous,
+    return turk_detection(gid, only_aid=aid, imgsetid=imgsetid, progress=progress, previous=previous,
                           previous_only_aid=previous_only_aid, **kwargs)
 
 
