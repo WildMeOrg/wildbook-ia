@@ -989,7 +989,8 @@ def set_part_thetas(ibs, part_rowid_list, theta_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/part/vert/', methods=['PUT'])
-def set_part_verts(ibs, part_rowid_list, verts_list):
+def set_part_verts(ibs, part_rowid_list, verts_list,
+                   delete_thumbs=True, notify_root=True):
     r"""
     Sets the vertices [(x, y), ...] of a list of part_rowid_list
 
@@ -1022,6 +1023,14 @@ def set_part_verts(ibs, part_rowid_list, verts_list):
     colnames = ('part_xtl', 'part_ytl', 'part_width', 'part_height',)
     # SET BBOX in PART_TABLE
     ibs.db.set(const.PART_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
+
+    with ut.Timer('set_annot_verts...thumbs'):
+        if delete_thumbs:
+            ibs.delete_part_chips(part_rowid_list)  # INVALIDATE THUMBNAILS
+
+    with ut.Timer('set_annot_verts...roots'):
+        if notify_root:
+            ibs.depc_part.notify_root_changed(part_rowid_list, 'verts', force_delete=True)
 
 
 @register_ibs_method

@@ -2509,6 +2509,7 @@ def turk_detection_canonical(aid=None, imgsetid=None, previous=None, previous_on
 
     gid = None
     finished = aid is None
+
     if not finished:
         gid = ibs.get_annot_gids(aid)
 

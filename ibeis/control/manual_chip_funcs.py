@@ -346,6 +346,21 @@ def get_part_chips(ibs, part_rowid_list, config2_=None, ensure=True, verbose=Fal
                               ensure=ensure)
 
 
+@register_ibs_method
+@accessor_decors.deleter
+# @register_api('/api/chip/', methods=['DELETE'])
+def delete_part_chips(ibs, part_rowid_list, config2_=None):
+    r"""
+    Clears part data
+
+    RESTful:
+        Method: DELETE
+        URL:    /api/pchip/
+    """
+    ibs.depc_part.delete_property('pchips', part_rowid_list, config=config2_)
+    return
+
+
 def testdata_ibs():
     r"""
     """

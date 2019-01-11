@@ -421,8 +421,10 @@
         },
         callbacks: {
           onload: function() {
-            bba.hover_entry(0)
-            bba.focus_entry(0)
+            {% is_canonical %}
+              bba.hover_entry(0)
+              bba.focus_entry(0)
+            {% endif %}
           },
           onchange: function(entries) {
             $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));

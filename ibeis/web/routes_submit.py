@@ -135,12 +135,14 @@ def submit_detection(**kwargs):
         else:
             with ut.Timer('submit...update'):
                 current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
-                current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
 
                 if is_canonical:
                     assert only_aid in current_aid_list, 'Specified only_aid is not in this image'
                     current_aid_list = [only_aid]
 
+                current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
+
+                if is_canonical:
                     current_part_type_list = ibs.get_part_types(current_part_rowid_list)
                     zipped = zip(current_part_rowid_list, current_part_type_list)
 
