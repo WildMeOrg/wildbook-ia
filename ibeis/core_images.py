@@ -232,7 +232,7 @@ def draw_web_src(gpath):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -303,6 +303,15 @@ def compute_classifications(depc, gid_list, config=None):
         vector_list = depc.get_property('features', gid_list, 'vector', config=config_)
         classifier_weight_filepath = config['classifier_weight_filepath']
         result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
+    elif config['classifier_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+        }
+        thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
+                                            read_extern=False, ensure=True)
+        result_list = densenet.test(thumbpath_list, **config)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 

@@ -1645,6 +1645,7 @@ if testmode:
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'densenet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -1692,13 +1693,25 @@ def compute_classifications(depc, aid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
-    config = {
-        # 'dim_size' : (128, 128),
-        'dim_size': (192, 192),
-        'resize_dim': 'wh',
-    }
-    chip_list = depc.get_property('chips', aid_list, 'img', config=config)
-    result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
+    if config['classifier_algo'] in ['cnn']:
+        config = {
+            'dim_size': (192, 192),
+            'resize_dim': 'wh',
+        }
+        chip_list = depc.get_property('chips', aid_list, 'img', config=config)
+        result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
+    elif config['classifier_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        config = {
+            'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+            'resize_dim': 'wh',
+        }
+        chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config,
+                                               read_extern=False, ensure=True)
+        result_list = densenet.test(chip_filepath_list, **config)    # yield detections
+    else:
+        raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
+
     # yield detections
     for result in result_list:
         yield result

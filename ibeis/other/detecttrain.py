@@ -10,9 +10,9 @@ TODO: need to split up into sub modules:
     within this file
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import join
-import utool as ut
 from ibeis.control import controller_inject
+from os.path import join, exists
+import utool as ut
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detecttrain]')
@@ -92,6 +92,51 @@ def classifier2_train(ibs, species_list=None, species_mapping={}, train_gid_set=
 @register_ibs_method
 def classifier_train(ibs, **kwargs):
     return ibs.classifier2_train(**kwargs)
+
+
+@register_ibs_method
+def canonical_classifier_train(ibs, species, ensembles=3, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_canonical_training_images_pytorch
+    from ibeis.algo.detect import densenet
+
+    aid_list = ibs.get_valid_aids()
+    aid_list = ibs.filter_annotation_set(aid_list, species=species)
+    flag_list = ibs.get_annot_canonical(aid_list)
+
+    args = (species, )
+    data_path = join(ibs.get_cachedir(), 'extracted-canonical-%s' % args)
+    extracted_path = get_cnn_canonical_training_images_pytorch(
+        ibs,
+        aid_list,
+        flag_list,
+        dest_path=data_path,
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (species, ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        weights_path = densenet.train(extracted_path, output_path)
+        weights_path_list.append(weights_path)
+
+    args = (species, )
+    output_name = 'classifier.canonical.%s' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.zip' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
 
 
 @register_ibs_method
