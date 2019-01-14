@@ -99,16 +99,11 @@ def canonical_classifier_train(ibs, species, ensembles=3, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_canonical_training_images_pytorch
     from ibeis.algo.detect import densenet
 
-    aid_list = ibs.get_valid_aids()
-    aid_list = ibs.filter_annotation_set(aid_list, species=species)
-    flag_list = ibs.get_annot_canonical(aid_list)
-
     args = (species, )
     data_path = join(ibs.get_cachedir(), 'extracted-canonical-%s' % args)
     extracted_path = get_cnn_canonical_training_images_pytorch(
         ibs,
-        aid_list,
-        flag_list,
+        species,
         dest_path=data_path,
     )
 

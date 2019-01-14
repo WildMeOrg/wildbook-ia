@@ -2422,6 +2422,207 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     plt.savefig(fig_path, bbox_inches='tight')
 
 
+def canonical_precision_recall_algo(ibs, species, **kwargs):
+    depc = ibs.depc_annot
+
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_list_ = list(test_gid_set_)
+    test_aid_list_ = ut.flatten(ibs.get_image_aids(test_gid_list_))
+    test_aid_list_ = ibs.filter_annotation_set(test_aid_list_, species=species)
+    test_flag_list_ = ibs.get_annot_canonical(test_aid_list_)
+
+    test_aid_set = []
+    label_list = []
+    for aid, flag in zip(test_aid_list_, test_flag_list_):
+        if flag:
+            label = 'positive'
+        else:
+            label = 'negative'
+        test_aid_set.append(aid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('classifier', test_aid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_aid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
+    return general_precision_recall_algo(ibs, label_list, confidence_list)
+
+
+def canonical_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+
+
+def canonical_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
+                                  target=(0.0, 1.0), **kwargs)
+
+
+def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, output_cases=False, **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    depc = ibs.depc_anot
+
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_list_ = list(test_gid_set_)
+    test_aid_list_ = ut.flatten(ibs.get_image_aids(test_gid_list_))
+    test_aid_list_ = ibs.filter_annotation_set(test_aid_list_, species=species)
+    test_flag_list_ = ibs.get_annot_canonical(test_aid_list_)
+
+    test_aid_set = []
+    label_list = []
+    for aid, flag in zip(test_aid_list_, test_flag_list_):
+        if flag:
+            label = 'positive'
+        else:
+            label = 'negative'
+        test_aid_set.append(aid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('classifier', test_aid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_aid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
+
+    if output_cases:
+        output_path = 'canonical-confusion-incorrect'
+        output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
+        positive_path = join(output_path, 'positive')
+        negative_path = join(output_path, 'negative')
+        ut.ensuredir(output_path)
+        ut.ensuredir(positive_path)
+        ut.ensuredir(negative_path)
+
+        config = {
+            'dim_size': (192, 192),
+            'resize_dim': 'wh',
+        }
+        chip_list = ibs.depc_annot.get_property('chips', test_aid_set, 'img', config=config)
+
+        zipped = zip(test_aid_set, chip_list, label_list, prediction_list)
+        for aid, chip, label, prediction in zipped:
+            if label == prediction:
+                continue
+            # Get path
+            image_path = positive_path if label == 'positive' else negative_path
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (aid, prediction, )
+            image_filepath = join(image_path, image_filename)
+            # Save path
+            cv2.imwrite(image_filepath, chip)
+
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
+
+
+@register_ibs_method
+def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=figsize, dpi=400)
+
+    config_list = [
+        {'label': 'CA Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys',   'species': 'zebra_grevys'},
+        {'label': 'CA Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys:0', 'species': 'zebra_grevys'},
+        {'label': 'CA Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys:1', 'species': 'zebra_grevys'},
+        {'label': 'CA Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys:2', 'species': 'zebra_grevys'},
+    ]
+    # color_list = []
+    color_list = [(0, 0, 0)]
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        canonical_precision_recall_algo_plot(ibs, color=color, **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    # index = np.argmax(area_list)
+    index = 0
+    best_label1 = config_list[index]['label']
+    best_config1 = config_list[index]
+    best_color1 = color_list[index]
+    best_area1 = area_list[index]
+    best_conf1 = conf_list[index]
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        canonical_roc_algo_plot(ibs, color=color, **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    # index = np.argmax(area_list)
+    index = 0
+    best_label2 = config_list[index]['label']
+    best_config2 = config_list[index]
+    best_color2 = color_list[index]
+    best_area2 = area_list[index]
+    best_conf2 = conf_list[index]
+    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(223)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = canonical_confusion_matrix_algo_plot(ibs, color=best_color1,
+                                                           conf=best_conf1, fig_=fig_, axes_=axes_,
+                                                           output_cases=True, **best_config1)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = canonical_confusion_matrix_algo_plot(ibs, color=best_color2,
+                                                           conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                           **best_config2)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+
+    fig_filename = 'canonical-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
 @register_ibs_method
 def background_accuracy_display(ibs, category_list, test_gid_set=None,
                                 output_path=None):
