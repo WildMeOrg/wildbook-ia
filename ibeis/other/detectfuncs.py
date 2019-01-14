@@ -2467,7 +2467,7 @@ def canonical_roc_algo_plot(ibs, **kwargs):
 
 def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, output_cases=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
-    depc = ibs.depc_anot
+    depc = ibs.depc_annot
 
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_list_ = list(test_gid_set_)
