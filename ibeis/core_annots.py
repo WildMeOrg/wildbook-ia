@@ -1694,19 +1694,19 @@ def compute_classifications(depc, aid_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_annot
     if config['classifier_algo'] in ['cnn']:
-        config = {
+        config2 = {
             'dim_size': (192, 192),
             'resize_dim': 'wh',
         }
-        chip_list = depc.get_property('chips', aid_list, 'img', config=config)
+        chip_list = depc.get_property('chips', aid_list, 'img', config=config2)
         result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
     elif config['classifier_algo'] in ['densenet']:
         from ibeis.algo.detect import densenet
-        config = {
+        config2 = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
         }
-        chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config,
+        chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config2,
                                                read_extern=False, ensure=True)
         result_list = densenet.test(chip_filepath_list, **config)    # yield detections
     else:
