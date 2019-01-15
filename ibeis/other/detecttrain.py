@@ -96,12 +96,12 @@ def classifier_train(ibs, **kwargs):
 
 @register_ibs_method
 def canonical_classifier_train(ibs, species, ensembles=3, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_canonical_training_images_pytorch
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_canonical_training_images_pytorch
     from ibeis.algo.detect import densenet
 
     args = (species, )
-    data_path = join(ibs.get_cachedir(), 'extracted-canonical-%s' % args)
-    extracted_path = get_cnn_canonical_training_images_pytorch(
+    data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
+    extracted_path = get_cnn_classifier_canonical_training_images_pytorch(
         ibs,
         species,
         dest_path=data_path,
@@ -125,6 +125,46 @@ def canonical_classifier_train(ibs, species, ensembles=3, **kwargs):
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
         ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
+
+
+@register_ibs_method
+def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_localizer_canonical_training_images_pytorch
+    from ibeis.algo.detect import canonical
+
+    args = (species, )
+    data_path = join(ibs.get_cachedir(), 'extracted-localizer-canonical-%s' % args)
+    extracted_path = get_cnn_localizer_canonical_training_images_pytorch(
+        ibs,
+        species,
+        dest_path=data_path,
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (species, ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'localizer-canonical-%s-ensemble-%d' % args)
+        weights_path = canonical.train(extracted_path, output_path)
+        weights_path_list.append(weights_path)
+
+    args = (species, )
+    output_name = 'localizer.canonical.%s' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.zip' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'localizer.canonical.%d.weights' % (index, ))
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 

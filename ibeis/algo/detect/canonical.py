@@ -11,14 +11,14 @@ import time
 import os
 import copy
 import PIL
-(print, rrr, profile) = ut.inject2(__name__, '[densenet]')
+(print, rrr, profile) = ut.inject2(__name__, '[canonical]')
 
 
 INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    'canonical_zebra_grevys': 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip'
+    # 'canonical_zebra_grevys': 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip'
 }
 
 
@@ -51,8 +51,8 @@ if not ut.get_argflag('--no-pytorch'):
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-                    # iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
-                    iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
+                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
+                    # iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
                     # iaa.Fliplr(0.5),
                 ])
 
@@ -89,22 +89,23 @@ if not ut.get_argflag('--no-pytorch'):
 
 class ImageFilePathList(torch.utils.data.Dataset):
 
-    def __init__(self, filepaths, targets=None, transform=None, target_transform=None):
+    def __init__(self, filepaths, targets=True, transform=None, target_transform=None):
         from torchvision.datasets.folder import default_loader
 
-        self.targets = targets is not None
-
-        args = (filepaths, targets, ) if self.targets else (filepaths, )
-        self.samples = list(zip(*args))
+        self.targets = targets
 
         if self.targets:
-            self.classes = sorted(set(ut.take_column(self.targets, 1)))
-            self.class_to_idx = {
-                self.classes[i]: i
-                for i in range(len(self.classes))
-            }
+            targets = []
+            for filepath in filepaths:
+                path, ext = os.path.splitext(filepath)
+                target = '%s.csv' % (path, )
+                assert os.path.exists(target), 'Missing target %s for %s' % (target, filepath, )
+                targets.append(target)
+            args = (filepaths, targets, )
         else:
-            self.classes, self.class_to_idx = None, None
+            args = (filepaths, )
+
+        self.samples = list(zip(*args))
 
         self.loader = default_loader
         self.transform = transform
@@ -121,6 +122,10 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
         if self.targets:
             path, target = sample
+            with open(target, 'r') as target_file:
+                target_str = target_file.readline().strip().split(',')
+            assert len(target_str) == 4
+            target = list(map(float, target_str))
         else:
             path = sample[0]
             target = None
@@ -134,7 +139,6 @@ class ImageFilePathList(torch.utils.data.Dataset):
             target = self.target_transform(target)
 
         result = (sample, target, ) if self.targets else (sample, )
-
         return result
 
     def __len__(self):
@@ -150,54 +154,11 @@ class ImageFilePathList(torch.utils.data.Dataset):
         return fmt_str
 
 
-class StratifiedSampler(torch.utils.data.sampler.Sampler):
-    def __init__(self, dataset, phase):
-        self.dataset = dataset
-        self.phase = phase
-        self.training = self.phase == 'train'
-
-        self.labels = np.array(ut.take_column(dataset.samples, 1))
-        self.classes = set(self.labels)
-
-        self.indices = {
-            cls: list(np.where(self.labels == cls)[0])
-            for cls in self.classes
-        }
-        self.counts = {
-            cls: len(self.indices[cls])
-            for cls in self.classes
-        }
-        self.min = min(self.counts.values())
-
-        if self.training:
-            self.total = self.min * len(self.classes)
-        else:
-            self.total = len(self.labels)
-
-        args = (self.phase, len(self.labels), len(self.classes), self.min, self.total, )
-        print('Initialized Sampler for %r (sampling %d for %d classes | min %d per class, %d total)' % args)
-
-    def __iter__(self):
-        if self.training:
-            ret_list = []
-            for cls in self.indices:
-                ret_list += random.sample(self.indices[cls], self.min)
-            random.shuffle(ret_list)
-        else:
-            ret_list = range(self.total)
-        assert len(ret_list) == self.total
-        return iter(ret_list)
-
-    def __len__(self):
-        return self.total
-
-
-def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=64):
+def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=64):
     phases = ['train', 'val']
 
     start = time.time()
 
-    best_accuracy = 0.0
     best_model_state = copy.deepcopy(model.state_dict())
 
     last_loss = {}
@@ -217,12 +178,15 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
             else:
                 model.eval()   # Set model to evaluate mode
 
+            running_loss_ = np.zeros((1, 4))
             running_loss = 0.0
-            running_corrects = 0
 
             # Iterate over data.
             seen = 0
             for inputs, labels in tqdm.tqdm(dataloaders[phase], desc=phase):
+
+                labels = torch.tensor(list(zip(*labels)), dtype=torch.float32)
+
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -234,9 +198,9 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
                     outputs = model(inputs)
-                    loss = criterion(outputs, labels)
-
-                    _, preds = torch.max(outputs, 1)
+                    error = outputs - labels
+                    loss_ = torch.mean(error * error, 0)
+                    loss = torch.sum(loss_)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -246,26 +210,27 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
                 # statistics
                 seen += len(inputs)
                 running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                running_loss_ += np.array(loss_.tolist()) * inputs.size(0)
 
             epoch_loss = running_loss / seen
-            epoch_acc = running_corrects.double() / seen
 
             last_loss[phase] = epoch_loss
+
             if phase not in best_loss:
                 best_loss[phase] = np.inf
 
-            flag = epoch_loss < best_loss[phase]
-            if flag:
+            best = epoch_loss < best_loss[phase]
+            if best:
                 best_loss[phase] = epoch_loss
 
-            print('{:<5} Loss: {:.4f} Acc: {:.4f} {}'.format(phase, epoch_loss, epoch_acc, '!' if flag else ''))
+            x0, y0, x1, y1 = running_loss_[0]
+            best_str = '!' if best else ''
+            print('{:<5} Loss: {:.4f}\t(X0: {:.4f} Y0: {:.4f} X1: {:.4f} Y1: {:.4f})\t{}'.format(phase, epoch_loss, x0, y0, x1, y1, best_str))
 
-            # deep copy the model
-            if phase == 'val' and epoch_acc > best_accuracy:
-                best_accuracy = epoch_acc
-                best_model_state = copy.deepcopy(model.state_dict())
             if phase == 'val':
+                if best:
+                    best_model_state = copy.deepcopy(model.state_dict())
+
                 scheduler.step(epoch_loss)
 
                 time_elapsed_batch = time.time() - start_batch
@@ -278,38 +243,47 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_accuracy))
 
     # load best model weights
     model.load_state_dict(best_model_state)
     return model
 
 
-def visualize_augmentations(dataset, augmentation, tag, num_per_class=5):
+def visualize_augmentations(dataset, augmentation, tag, num=10):
     import matplotlib.pyplot as plt
     samples = dataset.samples
-    flags = np.array(ut.take_column(samples, 1))
-    print('Dataset %r has %d samples' % (tag, len(flags), ))
+    print('Dataset %r has %d samples' % (tag, len(samples), ))
 
-    indices = []
-    for flag in set(flags):
-        index_list = list(np.where(flags == flag)[0])
-        random.shuffle(index_list)
-        indices += index_list[:num_per_class]
+    index_list = list(range(len(samples)))
+    random.shuffle(index_list)
+    indices = index_list[:num]
 
     samples = ut.take(samples, indices)
-    paths = ut.take_column(samples, 0)
-    flags = ut.take_column(samples, 1)
+    image_paths = ut.take_column(samples, 0)
+    bbox_paths = ut.take_column(samples, 1)
 
-    images = [np.array(cv2.imread(path)) for path in paths]
+    images = [np.array(cv2.imread(image_path)) for image_path in image_paths]
     images = [image[:, :, ::-1] for image in images]
 
     images_ = []
-    for image, flag in zip(images, flags):
+    for image, bbox_path in zip(images, bbox_paths):
+        with open(bbox_path, 'r') as bbox_file:
+            bbox_str = bbox_file.readline().strip().split(',')
+
+        assert len(bbox_str) == 4
+        bbox = list(map(float, bbox_str))
+        x0, y0, x1, y1 = bbox
+
+        x0 = int(np.around(x0 * INPUT_SIZE))
+        y0 = int(np.around(y0 * INPUT_SIZE))
+        x1 = int(np.around(x1 * INPUT_SIZE))
+        y1 = int(np.around(y1 * INPUT_SIZE))
+
         image_ = image.copy()
-        color = (0, 255, 0) if flag else (255, 0, 0)
-        cv2.rectangle(image_, (1, 1), (INPUT_SIZE - 1, INPUT_SIZE - 1), color, 3)
+        color = (0, 255, 0)
+        cv2.rectangle(image_, (x0, y0), (INPUT_SIZE - x1, INPUT_SIZE - y1), color, 3)
         images_.append(image_)
+
     canvas = np.hstack(images_)
     canvas_list = [canvas]
 
@@ -321,12 +295,13 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5):
         canvas_list.append(canvas)
     canvas = np.vstack(canvas_list)
 
-    canvas_filepath = expanduser(join('~', 'Desktop', 'densenet-augmentation-%s.png' % (tag, )))
+    canvas_filepath = expanduser(join('~', 'Desktop', 'canonical-augmentation-%s.png' % (tag, )))
     plt.imsave(canvas_filepath, canvas)
 
 
 def train(data_path, output_path, batch_size=32):
     # Detect if we have a GPU available
+
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
 
@@ -335,8 +310,13 @@ def train(data_path, output_path, batch_size=32):
     print('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
+    filepaths = {
+        phase: ut.glob(os.path.join(data_path, phase, '*.png'))
+        for phase in phases
+    }
+
     datasets = {
-        phase: torchvision.datasets.ImageFolder(os.path.join(data_path, phase), TRANSFORMS[phase])
+        phase: ImageFilePathList(filepaths[phase], transform=TRANSFORMS[phase])
         for phase in phases
     }
 
@@ -344,7 +324,6 @@ def train(data_path, output_path, batch_size=32):
     dataloaders = {
         phase: torch.utils.data.DataLoader(
             datasets[phase],
-            sampler=StratifiedSampler(datasets[phase], phase),
             batch_size=batch_size,
             num_workers=batch_size // 8,
             pin_memory=using_gpu
@@ -352,18 +331,12 @@ def train(data_path, output_path, batch_size=32):
         for phase in phases
     }
 
-    train_classes = datasets['train'].classes
-    val_classes = datasets['val'].classes
-
-    assert len(train_classes) == len(val_classes)
-    num_classes = len(train_classes)
-
     print('Initializing Model...')
 
     # Initialize the model for this run
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, num_classes)
+    model.classifier = nn.Linear(num_ftrs, 4)
 
     # Send the model to GPU
     model = model.to(device)
@@ -387,19 +360,15 @@ def train(data_path, output_path, batch_size=32):
 
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10, min_lr=1e-5)
 
-    # Setup the loss fxn
-    criterion = nn.CrossEntropyLoss()
-
     print('Start Training...')
 
     # Train and evaluate
-    model = finetune(model, dataloaders, criterion, optimizer, scheduler, device)
+    model = finetune(model, dataloaders, optimizer, scheduler, device)
 
     ut.ensuredir(output_path)
-    weights_path = os.path.join(output_path, 'classifier.densenet.weights')
+    weights_path = os.path.join(output_path, 'localizer.canonical.weights')
     weights = {
         'state':   copy.deepcopy(model.state_dict()),
-        'classes': train_classes,
     }
     torch.save(weights, weights_path)
 
@@ -415,12 +384,11 @@ def test_single(filepath_list, weights_path, batch_size=512):
     print('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
-    dataset = ImageFilePathList(filepath_list, transform=TRANSFORMS['test'])
+    dataset = ImageFilePathList(filepath_list, transform=TRANSFORMS['test'], targets=False)
 
     # Create training and validation dataloaders
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        sampler=StratifiedSampler(dataset, 'test'),
         batch_size=batch_size,
         num_workers=batch_size // 8,
         pin_memory=using_gpu
@@ -429,14 +397,11 @@ def test_single(filepath_list, weights_path, batch_size=512):
     print('Initializing Model...')
     weights = torch.load(weights_path)
     state   = weights['state']
-    classes = weights['classes']
-
-    num_classes = len(classes)
 
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, num_classes)
+    model.classifier = nn.Linear(num_ftrs, 4)
 
     model.load_state_dict(state)
 
@@ -463,6 +428,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     time_elapsed = time.time() - start
     print('Testing complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
+    classes = ['x0', 'y0', 'x1', 'y1']
     result_list = []
     for output in outputs:
         result = dict(zip(classes, output))
