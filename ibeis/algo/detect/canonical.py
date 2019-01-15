@@ -253,7 +253,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=64):
     return model
 
 
-def visualize_augmentations(dataset, augmentation, tag, num=10):
+def visualize_augmentations(dataset, augmentation, tag, num=20):
     import matplotlib.pyplot as plt
     samples = dataset.samples
     print('Dataset %r has %d samples' % (tag, len(samples), ))
