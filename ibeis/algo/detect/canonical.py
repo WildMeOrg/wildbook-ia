@@ -49,9 +49,12 @@ if not ut.get_argflag('--no-pytorch'):
                 from imgaug import augmenters as iaa
                 self.aug = iaa.Sequential([
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                    iaa.AddElementwise((-20, 20), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
+                    iaa.AddElementwise((-40, 40), per_channel=0.5),
+                    iaa.AddToHueAndSaturation(value=(-40, 40), per_channel=True),
+                    iaa.ContrastNormalization((0.005, 0.02)),
+                    iaa.PiecewiseAffine(scale=(0.001, 0.005)),
+                    iaa.Dropout(p=(0, 0.1)),
+                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
                     # iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
                     # iaa.Fliplr(0.5),
                 ])
@@ -213,6 +216,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=64):
                 running_loss_ += np.array(loss_.tolist()) * inputs.size(0)
 
             epoch_loss = running_loss / seen
+            epoch_loss_ = running_loss_[0] / seen
 
             last_loss[phase] = epoch_loss
 
@@ -223,7 +227,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=64):
             if best:
                 best_loss[phase] = epoch_loss
 
-            x0, y0, x1, y1 = running_loss_[0]
+            x0, y0, x1, y1 = epoch_loss_
             best_str = '!' if best else ''
             print('{:<5} Loss: {:.4f}\t(X0: {:.4f} Y0: {:.4f} X1: {:.4f} Y1: {:.4f})\t{}'.format(phase, epoch_loss, x0, y0, x1, y1, best_str))
 
@@ -336,7 +340,10 @@ def train(data_path, output_path, batch_size=32):
     # Initialize the model for this run
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, 4)
+    model.classifier = nn.Sequential(
+        nn.AlphaDropout(p=0.25),
+        nn.Linear(num_ftrs, 4)
+    )
 
     # Send the model to GPU
     model = model.to(device)
