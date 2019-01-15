@@ -418,6 +418,8 @@ def test_single(filepath_list, weights_path, batch_size=512):
 
     start = time.time()
 
+    ut.embed()
+
     outputs = []
     for inputs, in tqdm.tqdm(dataloader, desc='test'):
         inputs = inputs.to(device)
