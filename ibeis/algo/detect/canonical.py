@@ -49,12 +49,11 @@ if not ut.get_argflag('--no-pytorch'):
                 from imgaug import augmenters as iaa
                 self.aug = iaa.Sequential([
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                    iaa.AddElementwise((-40, 40), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-40, 40), per_channel=True),
-                    iaa.ContrastNormalization((0.005, 0.02)),
+                    iaa.AddElementwise((-30, 30), per_channel=0.5),
+                    iaa.AddToHueAndSaturation(value=(-30, 30), per_channel=True),
+                    iaa.Dropout(p=(0.0, 0.1)),
+                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
                     iaa.PiecewiseAffine(scale=(0.001, 0.005)),
-                    iaa.Dropout(p=(0, 0.1)),
-                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
                     # iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
                     # iaa.Fliplr(0.5),
                 ])
