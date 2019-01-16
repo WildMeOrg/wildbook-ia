@@ -318,7 +318,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=32):
+def train(data_path, output_path, batch_size=4):
     # Detect if we have a GPU available
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -364,8 +364,8 @@ def train(data_path, output_path, batch_size=32):
 
     print('Print Examples of Training Augmentation...')
 
-    for phase in phases:
-        visualize_augmentations(datasets[phase], AGUEMTNATION[phase], phase)
+    # for phase in phases:
+    #     visualize_augmentations(datasets[phase], AGUEMTNATION[phase], phase)
 
     print('Initializing Optimizer...')
 
@@ -377,9 +377,9 @@ def train(data_path, output_path, batch_size=32):
             # print('\t', name)
 
     # Observe that all parameters are being optimized
-    optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(params_to_update, lr=0.0005, momentum=0.9)
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=10, min_lr=1e-5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=10, min_lr=1e-6)
 
     print('Start Training...')
 
