@@ -356,6 +356,7 @@ def train(data_path, output_path, batch_size=4):
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
+        nn.Dropout(0.5),
         nn.Linear(num_ftrs, 4),
     )
 
@@ -426,6 +427,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
+        nn.Dropout(0.5),
         nn.Linear(num_ftrs, 4),
     )
 
