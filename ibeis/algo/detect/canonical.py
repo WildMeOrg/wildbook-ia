@@ -156,7 +156,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         return fmt_str
 
 
-def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
+def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=64):
     phases = ['train', 'val']
 
     start = time.time()
@@ -380,7 +380,7 @@ def train(data_path, output_path, batch_size=32):
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=30, min_lr=1e-5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=10, min_lr=1e-5)
 
     print('Start Training...')
 
