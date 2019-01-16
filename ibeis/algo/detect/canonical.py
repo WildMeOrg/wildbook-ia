@@ -358,7 +358,7 @@ def train(data_path, output_path, batch_size=32):
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
         nn.Linear(num_ftrs, 4),
-        nn.RELU()
+        nn.ReLU()
     )
 
     # Send the model to GPU
@@ -429,7 +429,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
         nn.Linear(num_ftrs, 4),
-        nn.RELU()
+        nn.ReLU()
     )
 
     model.load_state_dict(state)
