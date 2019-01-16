@@ -51,10 +51,10 @@ if not ut.get_argflag('--no-pytorch'):
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-                    iaa.Dropout(p=(0.0, 0.1)),
-                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
-                    iaa.PiecewiseAffine(scale=(0.001, 0.005)),
-                    iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
+                    # iaa.Dropout(p=(0.0, 0.1)),
+                    # iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
+                    iaa.PiecewiseAffine(scale=(0.0001, 0.0005)),
+                    # iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
                 ])
 
         class ValidAugmentations(Augmentations):
