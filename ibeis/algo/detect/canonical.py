@@ -200,8 +200,13 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
                     outputs = model(inputs)
+
+                    ut.embed()
+
                     error = outputs - labels
                     loss_ = torch.mean(error * error, 0)
+                    loss_sorted, indices = torch.sort(loss_)
+                    loss_sorted *= torch.tensor([1, 2, 3, 4], type=loss_sorted.dtype)
                     loss = torch.sum(loss_)
 
                     # backward + optimize only if in training phase

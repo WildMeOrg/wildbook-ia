@@ -2734,11 +2734,14 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     min_, max_ = -1 * canonical.INPUT_SIZE, canonical.INPUT_SIZE
 
     axes_ = plt.subplot(321)
+    axes_.grid(True, which='major')
+    axes_.grid(False, which='minor')
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Deviation')
+    axes_.set_ylabel('Deviation')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
+    axes_.get_xaxis().set_ticks([])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x0', color=color, index=index, **config)
 
@@ -2749,7 +2752,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_ = plt.subplot(322)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Deviation')
+    axes_.set_ylabel('Deviation')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2762,7 +2765,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_ = plt.subplot(323)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Deviation')
+    axes_.set_ylabel('Deviation')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2775,7 +2778,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_ = plt.subplot(324)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Deviation')
+    axes_.set_ylabel('Deviation')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2788,7 +2791,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_ = plt.subplot(325)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Deviation')
+    axes_.set_ylabel('Deviation')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
 
