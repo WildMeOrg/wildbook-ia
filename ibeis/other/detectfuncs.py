@@ -2623,6 +2623,192 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     plt.savefig(fig_path, bbox_inches='tight')
 
 
+def _canonical_get_boxes(ibs, gid_list, species):
+    from ibeis.web.appfuncs import CANONICAL_PART_TYPE
+
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    aid_list = ibs.filter_annotation_set(aid_list, species=species)
+    flag_list = ibs.get_annot_canonical(aid_list)
+    part_rowids_list = ibs.get_annot_part_rowids(aid_list)
+    part_types_list = list(map(ibs.get_part_types, part_rowids_list))
+
+    aid_set = []
+    bbox_set = []
+    zipped = zip(aid_list, flag_list, part_rowids_list, part_types_list)
+    for aid, flag, part_rowid_list, part_type_list in zipped:
+        part_rowid_ = None
+        if flag:
+            for part_rowid, part_type in zip(part_rowid_list, part_type_list):
+                if part_type == CANONICAL_PART_TYPE:
+                    assert part_rowid_ is None, 'Cannot have multiple CA for one image'
+                    part_rowid_ = part_rowid
+
+        if part_rowid_ is not None:
+            axtl, aytl, aw, ah = ibs.get_annot_bboxes(aid)
+            axbr, aybr = axtl + aw, aytl + ah
+            pxtl, pytl, pw, ph = ibs.get_part_bboxes(part_rowid_)
+            pxbr, pybr = pxtl + pw, pytl + ph
+            x0 = pxtl - axtl
+            y0 = pytl - aytl
+            x1 = axbr - pxbr
+            y1 = aybr - pybr
+            x0 = max(x0 / aw, 0.0)
+            y0 = max(y0 / ah, 0.0)
+            x1 = max(x1 / aw, 0.0)
+            y1 = max(y1 / ah, 0.0)
+            assert x0 + x1 < 0.99
+            assert y0 + y1 < 0.99
+            bbox = (x0, y0, x1, y1)
+            aid_set.append(aid)
+            bbox_set.append(bbox)
+
+    return aid_set, bbox_set
+
+
+def canonical_localization_deviation_plot(ibs, attribute, color, index,
+                                          label=None, species=None, marker='o',
+                                          **kwargs):
+    import random
+    import matplotlib.pyplot as plt
+    from ibeis.algo.detect import canonical
+
+    assert None not in [label, species]
+    print('Processing Deviation for: %r' % (label, ))
+    depc = ibs.depc_annot
+
+    if attribute == 'x0':
+        take_index = 0
+    elif attribute == 'y0':
+        take_index = 1
+    elif attribute == 'x1':
+        take_index = 2
+    elif attribute == 'y1':
+        take_index = 3
+    else:
+        raise ValueError('attribute not valid')
+
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_list_ = list(test_gid_set_)
+    test_aid_set, test_bbox_set = _canonical_get_boxes(ibs, test_gid_list_, species)
+
+    value_list = ut.take_column(test_bbox_set, take_index)
+    prediction_list = depc.get_property('canonical', test_aid_set, attribute, config=kwargs)
+
+    x_list = []
+    y_list = []
+    for value, prediction in zip(value_list, prediction_list):
+        x = random.uniform(index, index + 1)
+        y = (value - prediction) * canonical.INPUT_SIZE
+        x_list.append(x)
+        y_list.append(y)
+    plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+
+    mean = np.mean(y_list)
+    std = np.std(y_list)
+    color = 'xkcd:gold'
+    marker = 'D'
+    plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999)
+    # plt.plot([index + 0.5], [mean], color=color, marker=marker)
+
+    return value_list
+
+
+@register_ibs_method
+def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+    from ibeis.algo.detect import canonical
+
+    fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
+
+    config_list = [
+        {'label': 'CA Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys',   'species': 'zebra_grevys'},
+        {'label': 'CA Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys:0', 'species': 'zebra_grevys'},
+        {'label': 'CA Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys:1', 'species': 'zebra_grevys'},
+        {'label': 'CA Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys:2', 'species': 'zebra_grevys'},
+    ]
+    # color_list = []
+    color_list = [(0, 0, 0)]
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
+
+    min_, max_ = -1 * canonical.INPUT_SIZE, canonical.INPUT_SIZE
+
+    axes_ = plt.subplot(321)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Deviation')
+    axes_.set_xlim([0.0, len(config_list)])
+    axes_.set_ylim([min_, max_])
+    for index, (color, config) in enumerate(zip(color_list, config_list)):
+        canonical_localization_deviation_plot(ibs, 'x0', color=color, index=index, **config)
+
+    plt.title('X0 Deviation Scatter Plot')
+    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(322)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Deviation')
+    axes_.set_xlim([0.0, len(config_list)])
+    axes_.set_ylim([min_, max_])
+    for index, (color, config) in enumerate(zip(color_list, config_list)):
+        canonical_localization_deviation_plot(ibs, 'x1', color=color, index=index, **config)
+
+    plt.title('Y0 Deviation Scatter Plot')
+    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(323)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Deviation')
+    axes_.set_xlim([0.0, len(config_list)])
+    axes_.set_ylim([min_, max_])
+    for index, (color, config) in enumerate(zip(color_list, config_list)):
+        canonical_localization_deviation_plot(ibs, 'y0', color=color, index=index, **config)
+
+    plt.title('X1 Deviation Scatter Plot')
+    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(324)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Deviation')
+    axes_.set_xlim([0.0, len(config_list)])
+    axes_.set_ylim([min_, max_])
+    for index, (color, config) in enumerate(zip(color_list, config_list)):
+        canonical_localization_deviation_plot(ibs, 'y1', color=color, index=index, **config)
+
+    plt.title('Y1 Deviation Scatter Plot')
+    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(325)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Deviation')
+    axes_.set_xlim([0.0, len(config_list)])
+    axes_.set_ylim([min_, max_])
+
+    config = config_list[0]
+    attribute_list = ['x0', 'y0', 'x1', 'y1']
+    color_list_ = pt.distinct_colors(len(attribute_list), randomize=False)
+    for index, (attribute, color_) in enumerate(zip(attribute_list, color_list_)):
+        config_ = config.copy()
+        config_['label'] = '%s %s' % (config_['label'], attribute, )
+        canonical_localization_deviation_plot(ibs, attribute, color=color_, index=index, **config_)
+
+    plt.title('Ensemble Deviation Scatter Plot')
+    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    fig_filename = 'canonical-localization-deviance.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
 @register_ibs_method
 def background_accuracy_display(ibs, category_list, test_gid_set=None,
                                 output_path=None):

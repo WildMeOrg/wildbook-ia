@@ -240,7 +240,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 @register_ibs_method
 def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                    use_maximum_linear_dimension=True,
-                   use_existing_train_test=True, gid_list=None, **kwargs):
+                   use_existing_train_test=True, gid_list=None,
+                   include_reviews=False, **kwargs):
     """Create training COCO dataset for training models."""
     from datetime import date
     import datetime
@@ -269,8 +270,9 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
         ut.ensuredir(image_dir_dict[dataset])
 
     info = {
-        'description'         : 'Wild Me GGR-2018 Dataset',
-        'url'                 : 'http://www.greatgrevysrally.com',
+        'description'         : 'Wild Me %s Dataset' % (ibs.dbname, ),
+        # 'url'                 : 'http://www.greatgrevysrally.com',
+        'url'                 : 'http://www.wildme.org',
         'version'             : '1.0',
         'year'                : current_year,
         'contributor'         : 'Wild Me, Jason Parham <parham@wildme.org>',
@@ -429,19 +431,31 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                 ids.append(match[0])
                 decisions.append(decision.lower())
 
-            output_dict[dataset]['annotations'].append({
+            xtl_, ytl_, w_, h_ = bbox
+            xtl_ *= decrease
+            ytl_ *= decrease
+            w_ *= decrease
+            h_ *= decrease
+
+            annot = {
+                'bbox'              : [xtl_, ytl_, w_, h_],
+                'theta'             : theta,
+                'viewpoint'         : viewpoint,
                 'segmentation'      : [segmentation],
+                'segmentation_bbox' : [xmin, ymin, w, h],
                 'area'              : area,
                 'iscrowd'           : 0,
                 'image_id'          : image_index,
-                'bbox'              : [xmin, ymin, w, h],
                 'category_id'       : category_dict[species_name],
                 'id'                : annot_index,
-                'viewpoint'         : viewpoint,
                 'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
                 'individual_ids'    : individuals,
-                'review_ids'        : list(zip(ids, decisions)),
-            })
+            }
+            if include_reviews:
+                annot['review_ids'] = list(zip(ids, decisions))
+
+            output_dict[dataset]['annotations'].append(annot)
+
             print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
             aid_dict[aid] = annot_index
@@ -452,15 +466,17 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
     for dataset in output_dict:
         for index in range(len(output_dict[dataset]['annotations'])):
             individual_ids = output_dict[dataset]['annotations'][index]['individual_ids']
-            review_ids     = output_dict[dataset]['annotations'][index]['review_ids']
             individual_ids = [aid_dict[aid] for aid in individual_ids if aid in aid_dict]
-            review_ids     = [
-                (aid_dict[aid], decision)
-                for aid, decision in review_ids
-                if aid in aid_dict
-            ]
             output_dict[dataset]['annotations'][index]['individual_ids'] = individual_ids
-            output_dict[dataset]['annotations'][index]['review_ids']     = review_ids
+
+            if include_reviews:
+                review_ids     = output_dict[dataset]['annotations'][index]['review_ids']
+                review_ids     = [
+                    (aid_dict[aid], decision)
+                    for aid, decision in review_ids
+                    if aid in aid_dict
+                ]
+                output_dict[dataset]['annotations'][index]['review_ids'] = review_ids
 
     for dataset in output_dict:
         json_filename = 'instances_%s%s.json' % (dataset, current_year, )

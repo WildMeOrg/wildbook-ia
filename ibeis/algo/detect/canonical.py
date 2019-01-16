@@ -18,7 +18,7 @@ INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    # 'canonical_zebra_grevys': 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip'
+    'canonical_zebra_grevys': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.zip'
 }
 
 
@@ -49,10 +49,10 @@ if not ut.get_argflag('--no-pytorch'):
                 from imgaug import augmenters as iaa
                 self.aug = iaa.Sequential([
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                    iaa.AddElementwise((-30, 30), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-30, 30), per_channel=True),
-                    iaa.Dropout(p=(0.0, 0.1)),
-                    iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
+                    iaa.AddElementwise((-20, 20), per_channel=0.5),
+                    iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
+                    # iaa.Dropout(p=(0.0, 0.1)),
+                    # iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
                     iaa.PiecewiseAffine(scale=(0.001, 0.005)),
                     # iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
                     # iaa.Fliplr(0.5),
@@ -227,8 +227,13 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=64):
                 best_loss[phase] = epoch_loss
 
             x0, y0, x1, y1 = epoch_loss_
+            x0 *= INPUT_SIZE
+            y0 *= INPUT_SIZE
+            x1 *= INPUT_SIZE
+            y1 *= INPUT_SIZE
+
             best_str = '!' if best else ''
-            print('{:<5} Loss: {:.4f}\t(X0: {:.4f} Y0: {:.4f} X1: {:.4f} Y1: {:.4f})\t{}'.format(phase, epoch_loss, x0, y0, x1, y1, best_str))
+            print('{:<5} Loss: {:.4f}\t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)\t{}'.format(phase, epoch_loss, x0, y0, x1, y1, best_str))
 
             if phase == 'val':
                 if best:
@@ -340,8 +345,11 @@ def train(data_path, output_path, batch_size=32):
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
-        nn.AlphaDropout(p=0.25),
-        nn.Linear(num_ftrs, 4)
+        nn.AlphaDropout(p=0.5),
+        nn.Linear(num_ftrs, 128),
+        nn.SELU(),
+        nn.Linear(128, 4),
+        nn.SELU()
     )
 
     # Send the model to GPU
@@ -401,22 +409,26 @@ def test_single(filepath_list, weights_path, batch_size=512):
     )
 
     print('Initializing Model...')
-    weights = torch.load(weights_path)
-    state   = weights['state']
+    try:
+        weights = torch.load(weights_path)
+    except RuntimeError:
+        weights = torch.load(weights_path, map_location='cpu')
+    state = weights['state']
 
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, 4)
+    model.classifier = nn.Sequential(
+        nn.AlphaDropout(p=0.5),
+        nn.Linear(num_ftrs, 128),
+        nn.SELU(),
+        nn.Linear(128, 4),
+        nn.SELU()
+    )
 
     model.load_state_dict(state)
 
     # Add LogSoftmax and Softmax to network output
-    model.classifier = nn.Sequential(
-        model.classifier,
-        nn.LogSoftmax(),
-        nn.Softmax()
-    )
 
     # Send the model to GPU
     model = model.to(device)
@@ -424,14 +436,14 @@ def test_single(filepath_list, weights_path, batch_size=512):
 
     start = time.time()
 
-    ut.embed()
-
     outputs = []
     for inputs, in tqdm.tqdm(dataloader, desc='test'):
         inputs = inputs.to(device)
         with torch.set_grad_enabled(False):
             output = model(inputs)
-            outputs += output.tolist()
+            outputs.append(np.array(output))
+
+    outputs = np.vstack(outputs)
 
     time_elapsed = time.time() - start
     print('Testing complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
@@ -466,22 +478,21 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
         yield merged
 
 
-def test(gpath_list, classifier_weight_filepath=None, **kwargs):
+def test(gpath_list, canonical_weight_filepath=None, **kwargs):
     # Get correct weight if specified with shorthand
     archive_url = None
 
     ensemble_index = None
-    if classifier_weight_filepath is not None and ':' in classifier_weight_filepath:
-        assert classifier_weight_filepath.count(':') == 1
-        classifier_weight_filepath, ensemble_index = classifier_weight_filepath.split(':')
+    if canonical_weight_filepath is not None and ':' in canonical_weight_filepath:
+        assert canonical_weight_filepath.count(':') == 1
+        canonical_weight_filepath, ensemble_index = canonical_weight_filepath.split(':')
         ensemble_index = int(ensemble_index)
 
-    if classifier_weight_filepath in ARCHIVE_URL_DICT:
-        archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
+    if canonical_weight_filepath in ARCHIVE_URL_DICT:
+        archive_url = ARCHIVE_URL_DICT[canonical_weight_filepath]
         archive_path = ut.grab_file_url(archive_url, appname='ibeis', check_hash=True)
     else:
-        print('classifier_weight_filepath %r not recognized' % (classifier_weight_filepath, ))
-        raise RuntimeError
+        raise RuntimeError('canonical_weight_filepath %r not recognized' % (canonical_weight_filepath, ))
 
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)
@@ -501,15 +512,11 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
         weights_path_list = [ weights_path_list[ensemble_index] ]
         assert len(weights_path_list) > 0
 
-    kwargs.pop('classifier_algo', None)
-
     print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
-        if result['positive'] > 0.5:
-            cls = 'positive'
-        else:
-            cls = 'negative'
-        score = result[cls]
-
-        yield score, cls
+        x0 = result['x0']
+        y0 = result['y0']
+        x1 = result['x1']
+        y1 = result['y1']
+        yield (x0, y0, x1, y1, )
