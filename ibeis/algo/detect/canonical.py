@@ -165,6 +165,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
 
     last_loss = {}
     best_loss = {}
+    best_correction = None
 
     for epoch in range(num_epochs):
         start_batch = time.time()
@@ -208,10 +209,10 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
                     loss_index += 1
                     loss_index = torch.tensor(loss_index, dtype=loss_.dtype)
                     loss_index = loss_index.to(device)
-                    loss_ = loss_ * loss_index
+                    loss_weighted = loss_ * loss_index
 
                     # Sum loss
-                    loss = torch.sum(loss_)
+                    loss = torch.sum(loss_weighted)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -247,6 +248,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
             if phase == 'val':
                 if best:
                     best_model_state = copy.deepcopy(model.state_dict())
+                    best_correction = (x0, y0, x1, y1, )
 
                 scheduler.step(epoch_loss)
 
@@ -260,6 +262,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
 
     time_elapsed = time.time() - start
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Suggested correction offsets: %r' % (best_correction, ))
 
     # load best model weights
     model.load_state_dict(best_model_state)
@@ -354,11 +357,8 @@ def train(data_path, output_path, batch_size=32):
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
-        nn.AlphaDropout(p=0.5),
-        nn.Linear(num_ftrs, 128),
-        nn.SELU(),
-        nn.Linear(128, 4),
-        nn.SELU()
+        nn.Linear(num_ftrs, 4),
+        nn.RELU()
     )
 
     # Send the model to GPU
@@ -428,11 +428,8 @@ def test_single(filepath_list, weights_path, batch_size=512):
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
-        nn.AlphaDropout(p=0.5),
-        nn.Linear(num_ftrs, 128),
-        nn.SELU(),
-        nn.Linear(128, 4),
-        nn.SELU()
+        nn.Linear(num_ftrs, 4),
+        nn.RELU()
     )
 
     model.load_state_dict(state)
