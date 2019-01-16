@@ -205,14 +205,14 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=512):
                     loss_ = torch.mean(error * error, 0)
 
                     # Bias towards bad instances
-                    loss_sorted, loss_index = torch.sort(loss_)
-                    loss_index += 1
-                    loss_index = torch.tensor(loss_index, dtype=loss_.dtype)
-                    loss_index = loss_index.to(device)
-                    loss_weighted = loss_ * loss_index
+                    # loss_sorted, loss_index = torch.sort(loss_)
+                    # loss_index += 1
+                    # loss_index = torch.tensor(loss_index, dtype=loss_.dtype)
+                    # loss_index = loss_index.to(device)
+                    # loss_weighted = loss_ * loss_index
+                    # loss = torch.sum(loss_weighted)
 
-                    # Sum loss
-                    loss = torch.sum(loss_weighted)
+                    loss = torch.sum(loss_)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -358,7 +358,6 @@ def train(data_path, output_path, batch_size=32):
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
         nn.Linear(num_ftrs, 4),
-        nn.ReLU()
     )
 
     # Send the model to GPU
@@ -429,7 +428,6 @@ def test_single(filepath_list, weights_path, batch_size=512):
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Sequential(
         nn.Linear(num_ftrs, 4),
-        nn.ReLU()
     )
 
     model.load_state_dict(state)
@@ -521,8 +519,8 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
     print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
-        x0 = result['x0']
-        y0 = result['y0']
-        x1 = result['x1']
-        y1 = result['y1']
+        x0 = max(result['x0'], 0.0)
+        y0 = max(result['y0'], 0.0)
+        x1 = max(result['x1'], 0.0)
+        y1 = max(result['y1'], 0.0)
         yield (x0, y0, x1, y1, )
