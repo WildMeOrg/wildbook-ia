@@ -2126,7 +2126,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
+def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=None, viewpoint_mapping=None,
                         samples=SAMPLES, **kwargs):
 
     def errors(zipped, conf, category):
@@ -2154,6 +2154,10 @@ def labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=None,
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     # Filter aids with species of interest and undefined viewpoints
 
+    species_list = [
+        species_mapping.get(species, species)
+        for species in species_list
+    ]
     viewpoint_list = [
         viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint)
         for species, viewpoint in zip(species_list, viewpoint_list)
@@ -2268,7 +2272,7 @@ def labeler_roc_algo_plot(ibs, **kwargs):
                                   target=(0.0, 1.0), **kwargs)
 
 
-def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, category_mapping=None, **kwargs):
+def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={}, viewpoint_mapping={}, category_mapping=None, **kwargs):
     print('Processing Confusion Matrix')
     depc = ibs.depc_annot
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2279,7 +2283,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     label_list = [
         '%s:%s' % (
-            species,
+            species_mapping.get(species, species),
             viewpoint_mapping.get(species, {}).get(viewpoint, viewpoint),
         )
         for species, viewpoint in zip(species_list, viewpoint_list)
@@ -2316,7 +2320,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, viewpoint_mapping, ca
 
 
 @register_ibs_method
-def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_mapping=None,
+def labeler_precision_recall_algo_display(ibs, category_list=None, species_mapping=None, viewpoint_mapping=None,
                                           category_mapping=None, fuzzy_dict=None,
                                           figsize=(30, 9), **kwargs):
     import matplotlib.pyplot as plt
@@ -2328,12 +2332,17 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
         aids_list = ibs.get_image_aids(test_gid_set)
         aid_list = ut.flatten(aids_list)
         species_list = ibs.get_annot_species_texts(aid_list)
+        if species_mapping is not None:
+            species_list = [
+                species_mapping.get(species, species)
+                for species in species_list
+            ]
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
     kwargs['labeler_weight_filepath'] = 'seaturtle'
 
-    label_dict = labeler_tp_tn_fp_fn(ibs, category_list, viewpoint_mapping=viewpoint_mapping,
+    label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      **kwargs)
 
     config_list = [
@@ -2404,7 +2413,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, viewpoint_map
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, key_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping, category_mapping=category_mapping, fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, **kwargs)
 
     if fuzzy:
         axes_.set_xlabel('Predicted (Correct = %0.02f%%, Fuzzy = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
