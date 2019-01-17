@@ -365,8 +365,8 @@ def train(data_path, output_path, batch_size=4):
 
     print('Print Examples of Training Augmentation...')
 
-    # for phase in phases:
-    #     visualize_augmentations(datasets[phase], AGUEMTNATION[phase], phase)
+    for phase in phases:
+        visualize_augmentations(datasets[phase], AGUEMTNATION[phase], phase)
 
     print('Initializing Optimizer...')
 
