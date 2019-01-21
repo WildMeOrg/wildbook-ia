@@ -238,19 +238,22 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
 
 @register_ibs_method
-def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
+def export_to_coco(ibs, species_list, species_mapping={}, target_size=1200,
                    use_maximum_linear_dimension=True,
                    use_existing_train_test=True, gid_list=None,
-                   include_reviews=False, **kwargs):
+                   include_reviews=False, require_named=True, **kwargs):
     """Create training COCO dataset for training models."""
     from datetime import date
     import datetime
     import random
     import json
 
-    if species_mapping is not None:
-        print('Received species_mapping = %r' % (species_mapping, ))
-        print('Using species_list = %r' % (species_list, ))
+    ut.embed()
+
+    species_list = ['zebra_grevys']
+
+    print('Received species_mapping = %r' % (species_mapping, ))
+    print('Using species_list = %r' % (species_list, ))
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
@@ -294,8 +297,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
     categories = []
     for index, species in enumerate(sorted(species_list)):
 
-        if species_mapping is not None:
-            species = species_mapping.get(species, species)
+        species = species_mapping.get(species, species)
 
         categories.append({
             'id'           : index,
@@ -316,7 +318,21 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
     # Get all gids and process them
     if gid_list is None:
-        gid_list = sorted(ibs.get_valid_gids())
+        aid_list = ibs.get_valid_aids()
+        species_list_ = ibs.get_annot_species(aid_list)
+        flag_list = [
+            species_mapping.get(species_, species_) in species_list
+            for species_ in species_list_
+        ]
+        aid_list = ut.compress(aid_list, flag_list)
+        if require_named:
+            nid_list = ibs.get_annot_nids(aid_list)
+            flag_list = [
+                nid >= 0
+                for nid in nid_list
+            ]
+            aid_list = ut.compress(aid_list, flag_list)
+        gid_list = sorted(list(set(ibs.get_annot_gids(aid_list))))
 
     # Make a preliminary train / test split as imagesets or use the existing ones
     if not use_existing_train_test:
@@ -384,15 +400,21 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
         theta_list = ibs.get_annot_thetas(aid_list)
         species_name_list = ibs.get_annot_species_texts(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        nid_list = ibs.get_annot_nids(aid_list)
 
-        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list)
-        for aid, bbox, theta, species_name, viewpoint in zipped:
-            if species_mapping is not None:
-                species_name = species_mapping.get(species_name, species_name)
+        seen = 0
+        zipped = zip(aid_list, bbox_list, theta_list, species_name_list, viewpoint_list, nid_list)
+        for aid, bbox, theta, species_name, viewpoint, nid in zipped:
+            species_name = species_mapping.get(species_name, species_name)
 
-            if species_name is not None:
-                if species_name not in species_list:
-                    continue
+            if species_name is None:
+                continue
+
+            if species_name not in species_list:
+                continue
+
+            if require_named and nid < 0:
+                continue
 
             # Transformation matrix
             R = vt.rotation_around_bbox_mat3x3(theta, bbox)
@@ -455,12 +477,14 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                 annot['review_ids'] = list(zip(ids, decisions))
 
             output_dict[dataset]['annotations'].append(annot)
+            seen += 1
 
             print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
             aid_dict[aid] = annot_index
             annot_index += 1
 
+        assert seen > 0
         image_index += 1
 
     for dataset in output_dict:

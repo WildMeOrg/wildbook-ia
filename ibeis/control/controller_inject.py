@@ -516,7 +516,12 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                 # msg_list.append('Error in translate_ibeis_webcall')
                 msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
                 msg_list.append('Received Function Definition: %s' % (funcstr,))
-                msg_list.append('Received Function Parameters: %r' % (kwargs,))
+                msg_list.append('Received Function Parameters:')
+                for key in kwargs:
+                    value = kwargs[key]
+                    value_str = '%r' % (value, )
+                    value_str = ut.truncate_str(value_str, maxlen=256)
+                    msg_list.append('\t%r: %s' % (key, value_str, ))
                 # msg_list.append('\targs = %r' % (args,))
                 # msg_list.append('flask.request.args = %r' % (flask.request.args,))
                 # msg_list.append('flask.request.form = %r' % (flask.request.form,))

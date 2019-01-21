@@ -29,9 +29,9 @@
             <th>Number</th>
             <th>Entry Point</th>
             <th>Status</th>
-            <th>Received Time</th>
-            <th>Status Time</th>
-            <th>Completed Time</th>
+            <th>Received</th>
+            <th>Started</th>
+            <th>Completed</th>
             <th>Results</th>
           </tr>
         </thead>
@@ -41,16 +41,28 @@
               <th class="no-items" colspan="99">Sorry, no jobs to display</th>
             </tr>
           {% else %}
-            {% for (job_uuid, job_number, job_action, job_endpoint, job_function, job_status, job_state, job_time_requested_str, job_time_status_str, job_time_completed_str) in job_list %}
+            {% for (job_uuid, job_number, job_action, job_endpoint, job_function, job_status, job_state, job_time_requested_str, job_time_started_str, job_time_completed_str, job_runtime_str) in job_list %}
             <tr {% if job_state == 1 %}class="success"{% endif %} {% if job_state == -1 %}class="danger"{% endif %}>
               <th scope="row">{{ job_uuid }}</th>
               <th scope="row">{{ job_number }}</th>
-              <td><a href="/api/engine/job/metadata/?jobid={{ job_uuid }}&__format__=true" target="_blank">{{ job_endpoint }}</a></td>
+              <td>
+                <a href="/api/engine/job/metadata/?jobid={{ job_uuid }}&__format__=true" target="_blank">{{ job_endpoint }}</a>
+              </td>
               <td>{{ job_status }}</td>
               <td>{{ job_time_requested_str }}</td>
-              <td>{{ job_time_status_str }}</td>
-              <td>{{ job_time_completed_str }}</td>
-              <td>{% if job_state != 0 %}<a href="/api/engine/job/result/?jobid={{ job_uuid }}&__format__=true" target="_blank">{% if job_state == 1 %}Results{% endif %}{% if job_state == -1 %}Trace{% endif %}</td></a>{% endif %}</td>
+              <td>{{ job_time_started_str }}</td>
+              <td>
+                {{ job_time_completed_str }}
+                </br>
+                <b>Runtime: {{ job_runtime_str }}</b>
+              </td>
+              <td>
+                {% if job_state != 0 %}
+                  <a href="/api/engine/job/result/?jobid={{ job_uuid }}&__format__=true" target="_blank">
+                    {% if job_state == 1 %}Results{% endif %}{% if job_state == -1 %}Trace{% endif %}
+                  </a>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           {% endif %}

@@ -2126,7 +2126,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=None, viewpoint_mapping=None,
+def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping={}, viewpoint_mapping={},
                         samples=SAMPLES, **kwargs):
 
     def errors(zipped, conf, category):

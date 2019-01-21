@@ -2126,8 +2126,8 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/viewpoint/', methods=['PUT'])
-def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
-                         _yaw_update=False, _code_update=True):
+def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
+                         only_allow_known=True, _yaw_update=False, _code_update=True):
     r"""
     Sets the viewpoint of the annotation
 
@@ -2142,9 +2142,20 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
         aid_list = ut.compress(aid_list, isvalid)
         viewpoint_list = ut.compress(viewpoint_list, isvalid)
 
+    if purge_cache:
+        current_viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+
     val_iter = zip(viewpoint_list)
     id_iter = zip(aid_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
+
+    if purge_cache:
+        flag_list = [
+            viewpoint != current_viewpoint
+            for viewpoint, current_viewpoint in zip(viewpoint_list, current_viewpoint_list)
+        ]
+        update_aid_list = ut.compress(aid_list, flag_list)
+        ibs.depc_annot.delete_root(update_aid_list)
 
     # oops didn't realize there was a structure already here for this
     if _code_update:

@@ -1601,8 +1601,9 @@ def view_jobs(**kwargs):
             jov_status,
             job_state,
             job['time_received'],
-            job['time_updated'],
+            job['time_started'],
             job['time_completed'],
+            job['time_runtime'],
         ))
 
     num_jobs = len(job_list)
