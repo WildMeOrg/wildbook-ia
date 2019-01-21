@@ -2155,7 +2155,12 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
             for viewpoint, current_viewpoint in zip(viewpoint_list, current_viewpoint_list)
         ]
         update_aid_list = ut.compress(aid_list, flag_list)
-        ibs.depc_annot.delete_root(update_aid_list)
+        try:
+            ibs.ibeis_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankDorsal')
+        except:
+            message = 'Could not purge CurvRankDorsal cache for viewpoint'
+            # raise RuntimeError(message)
+            print(message)
 
     # oops didn't realize there was a structure already here for this
     if _code_update:

@@ -306,7 +306,8 @@ class IBEISController(BASE_CLASS):
 
         # Hack for changing the way chips compute
         # by default use serial because warpAffine is weird with multiproc
-        ibs._parallel_chips = False
+        is_mac = 'macosx' in ut.get_plat_specifier().lower()
+        ibs._parallel_chips = not ibs.force_serial and not is_mac
 
         ibs.containerized = ut.get_argflag('--containerized')
         if ibs.containerized:
