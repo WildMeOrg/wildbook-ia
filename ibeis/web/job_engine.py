@@ -1158,8 +1158,9 @@ def on_collect_request(collect_request, collecter_data, status_data,
                 completed = times.get('completed', None)
                 runtime   = times.get('runtime', None)
 
-                if None not in [started, completed, runtime]:
+                if None not in [started, completed]:
                     try:
+                        assert runtime is None
                         TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
                         started = ' '.join(started.split(' ')[:-1])
                         completed = ' '.join(completed.split(' ')[:-1])
