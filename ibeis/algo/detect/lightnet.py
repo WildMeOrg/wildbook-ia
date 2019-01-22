@@ -30,6 +30,7 @@ CONFIG_URL_DICT = {
     'lynx'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.lynx.py',
     'manta'                      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.manta_ray_giant.py',
     'seaturtle'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle.py',
+    'rightwhale'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.rightwhale.py',
 
     'jaguar_v1'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v1.py',
     'jaguar_v2'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v2.py',
