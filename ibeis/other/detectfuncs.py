@@ -2680,7 +2680,6 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
                                           **kwargs):
     import random
     import matplotlib.pyplot as plt
-    from ibeis.algo.detect import canonical
 
     assert None not in [label, species]
     print('Processing Deviation for: %r' % (label, ))
@@ -2708,7 +2707,7 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
     y_list = []
     for value, prediction in zip(value_list, prediction_list):
         x = random.uniform(index, index + 1)
-        y = (value - prediction) * canonical.INPUT_SIZE
+        y = (value - prediction)
         x_list.append(x)
         y_list.append(y)
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
@@ -2727,7 +2726,6 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
 def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     import matplotlib.pyplot as plt
     import plottool as pt
-    from ibeis.algo.detect import canonical
 
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
@@ -2741,7 +2739,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     color_list = [(0, 0, 0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
-    min_, max_ = -1 * canonical.INPUT_SIZE, canonical.INPUT_SIZE
+    min_, max_ = -1.0, 1.0
 
     axes_ = plt.subplot(321)
     axes_.grid(True, which='major')

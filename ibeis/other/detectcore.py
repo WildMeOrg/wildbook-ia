@@ -248,10 +248,6 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=1200,
     import random
     import json
 
-    ut.embed()
-
-    species_list = ['zebra_grevys']
-
     print('Received species_mapping = %r' % (species_mapping, ))
     print('Using species_list = %r' % (species_list, ))
 
@@ -488,19 +484,35 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=1200,
         image_index += 1
 
     for dataset in output_dict:
-        for index in range(len(output_dict[dataset]['annotations'])):
-            individual_ids = output_dict[dataset]['annotations'][index]['individual_ids']
-            individual_ids = [aid_dict[aid] for aid in individual_ids if aid in aid_dict]
-            output_dict[dataset]['annotations'][index]['individual_ids'] = individual_ids
+        annots = output_dict[dataset]['annotations']
+        for index in range(len(annots)):
+            annot = annots[index]
 
+            # Map internal aids to external annot index
+            individual_ids = annot['individual_ids']
+            individual_ids_ = []
+            for individual_id in individual_ids:
+                if individual_id not in aid_dict:
+                    continue
+                individual_id_ = aid_dict[individual_id]
+                individual_ids_.append(individual_id_)
+            annot['individual_ids'] = individual_ids_
+
+            # Map reviews
             if include_reviews:
-                review_ids     = output_dict[dataset]['annotations'][index]['review_ids']
-                review_ids     = [
-                    (aid_dict[aid], decision)
-                    for aid, decision in review_ids
-                    if aid in aid_dict
-                ]
-                output_dict[dataset]['annotations'][index]['review_ids'] = review_ids
+                review_ids = annot['review_ids']
+                review_ids_ = []
+                for review in review_ids:
+                    review_id, review_decision = review
+                    if review_id not in aid_dict:
+                        continue
+                    review_id_ = aid_dict[review_id]
+                    review_ = (review_id_, review_decision, )
+                    review_ids_.append(review_)
+                annot['review_ids'] = review_ids_
+
+            # Store
+            output_dict[dataset]['annotations'][index] = annot
 
     for dataset in output_dict:
         json_filename = 'instances_%s%s.json' % (dataset, current_year, )
