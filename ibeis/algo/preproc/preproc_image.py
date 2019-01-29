@@ -101,6 +101,7 @@ def parse_imageinfo(gpath):
                     uri_path = urlquote(uri_.path.encode('utf8'))
                     uri_ = uri_._replace(path=uri_path)
                     uri_ = uri_.geturl()
+                    ut.embed()
                     six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                 gpath_ = temp_filepath
             else:
