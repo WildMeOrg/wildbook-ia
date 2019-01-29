@@ -54,11 +54,14 @@ def parse_imageinfo(gpath):
     from PIL import Image
     import tempfile
     if six.PY2:
+        import urllib
         import urlparse
         urlsplit = urlparse.urlsplit
+        urlquote = urllib.quote
     else:
         import urllib
         urlsplit = urllib.parse.urlsplit
+        urlquote = urllib.parse.quote
 
     gpath = gpath.strip()
 
@@ -85,6 +88,7 @@ def parse_imageinfo(gpath):
                 args = (gpath, temp_filepath, )
                 print('[preproc] Caching remote %s file to temporary file %r' % args)
 
+                ut.embed()
                 if isproto(gpath, s3_proto):
                     s3_dict = ut.s3_str_decode_to_dict(gpath)
                     ut.grab_s3_contents(temp_filepath, **s3_dict)

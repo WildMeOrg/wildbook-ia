@@ -2710,16 +2710,137 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
         y = (value - prediction)
         x_list.append(x)
         y_list.append(y)
-    plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
-
     mean = np.mean(y_list)
     std = np.std(y_list)
+
+    label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
+    plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+
     color = 'xkcd:gold'
     marker = 'D'
-    plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999)
+    plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999, barsabove=True)
     # plt.plot([index + 0.5], [mean], color=color, marker=marker)
 
-    return value_list
+
+def canonical_localization_iou_plot(ibs, color, index,
+                                    label=None, species=None, marker='o',
+                                    **kwargs):
+    import random
+    import matplotlib.pyplot as plt
+
+    def _convert(bbox):
+        x0, y0, x1, y1 = bbox
+        retval = {
+            'xtl' : x0,
+            'ytl' : y0,
+            'xbr' : 1.0 - x1,
+            'ybr' : 1.0 - y1,
+        }
+        retval['width'] = retval['xbr'] - retval['xtl']
+        retval['height'] = retval['ybr'] - retval['ytl']
+        return retval
+
+    assert None not in [label, species]
+    print('Processing IoU for: %r' % (label, ))
+    depc = ibs.depc_annot
+
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_list_ = list(test_gid_set_)
+    test_aid_set, test_bbox_set = _canonical_get_boxes(ibs, test_gid_list_, species)
+
+    prediction_list = depc.get_property('canonical', test_aid_set, None, config=kwargs)
+
+    gt_list = [_convert(test_bbox) for test_bbox in test_bbox_set]
+    pred_list = [_convert(prediction) for prediction in prediction_list]
+
+    x_list = []
+    y_list = []
+    for gt, pred in zip(gt_list, pred_list):
+        overlap = general_overlap([gt], [pred])
+        x = random.uniform(index, index + 1)
+        y = overlap[0][0]
+        x_list.append(x)
+        y_list.append(y)
+    mean = np.mean(y_list)
+    std = np.std(y_list)
+
+    label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
+    plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+
+    color = 'xkcd:gold'
+    marker = 'D'
+    plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999, barsabove=True)
+    # plt.plot([index + 0.5], [mean], color=color, marker=marker)
+
+    return test_aid_set, test_bbox_set, prediction_list, y_list
+
+
+@register_ibs_method
+def canonical_localization_iou_visualize(ibs, test_aid_set, test_bbox_set, prediction_list,
+                                         overlap_list, color_list, label=None, species=None,
+                                         **kwargs):
+    assert None not in [label, species]
+    assert len(color_list) == 4
+    print('Processing Renderings for: %r' % (label, ))
+
+    color_list_ = []
+    for color in color_list:
+        color_ = []
+        for value in color:
+            value_ = int(np.around(255.0 * value))
+            color_ = [value_] + color_
+        color_ = tuple(color_)
+        color_list_.append(color_)
+    color_list = color_list_
+
+    output_path = expanduser(join('~', 'Desktop', 'canonical-regression'))
+    ut.ensuredir(output_path)
+
+    config = {
+        'dim_size': 600,
+        'resize_dim': 'maxwh',
+    }
+    chip_list = ibs.depc_annot.get_property('chips', test_aid_set, 'img', config=config)
+    zipped = list(zip(test_aid_set, chip_list, test_bbox_set, prediction_list, overlap_list))
+
+    for test_aid, chip, test_bbox, prediction, overlap in zipped:
+        h, w = chip.shape[:2]
+
+        chipa = chip.copy()
+        chipb = chip.copy()
+
+        x0a, y0a, x1a, y1a = test_bbox
+        x0b, y0b, x1b, y1b = prediction
+
+        x0a = int(np.around(x0a * w))
+        y0a = int(np.around(y0a * h))
+        x1a = int(np.around(x1a * w))
+        y1a = int(np.around(y1a * h))
+
+        x0b = int(np.around(x0b * w))
+        y0b = int(np.around(y0b * h))
+        x1b = int(np.around(x1b * w))
+        y1b = int(np.around(y1b * h))
+
+        x1a = w - x1a
+        x1b = w - x1b
+        y1a = h - y1a
+        y1b = h - y1b
+
+        chipa = cv2.line(chipa, (x0a, y0a), (x0a, y1a), color_list[0], 3)
+        chipa = cv2.line(chipa, (x0a, y0a), (x1a, y0a), color_list[1], 3)
+        chipa = cv2.line(chipa, (x1a, y0a), (x1a, y1a), color_list[2], 3)
+        chipa = cv2.line(chipa, (x0a, y1a), (x1a, y1a), color_list[3], 3)
+
+        chipb = cv2.line(chipb, (x0b, y0b), (x0b, y1b), color_list[0], 3)
+        chipb = cv2.line(chipb, (x0b, y0b), (x1b, y0b), color_list[1], 3)
+        chipb = cv2.line(chipb, (x1b, y0b), (x1b, y1b), color_list[2], 3)
+        chipb = cv2.line(chipb, (x0b, y1b), (x1b, y1b), color_list[3], 3)
+
+        canvas = np.hstack((chipa, chipb))
+
+        canvas_filepath = join(output_path, 'canonical-regression-iou-%0.02f-aid-%s.jpg' % (overlap, test_aid, ))
+        cv2.imwrite(canvas_filepath, canvas)
 
 
 @register_ibs_method
@@ -2747,7 +2868,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in pixels)')
+    axes_.set_ylabel('Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2763,7 +2884,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in pixels)')
+    axes_.set_ylabel('Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2779,7 +2900,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in pixels)')
+    axes_.set_ylabel('Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2795,7 +2916,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in pixels)')
+    axes_.set_ylabel('Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2811,7 +2932,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in pixels)')
+    axes_.set_ylabel('Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
 
@@ -2826,6 +2947,32 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     plt.title('Ensemble Deviation Scatter Plot')
     plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
+
+    axes_ = plt.subplot(326)
+    axes_.grid(True, which='major')
+    axes_.grid(False, which='minor')
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.get_xaxis().set_ticks([])
+    axes_.set_ylabel('IoU')
+    axes_.set_xlim([0.0, len(config_list)])
+    axes_.set_ylim([0.0, 1.0])
+
+    values = None
+    for index, (color, config) in enumerate(zip(color_list, config_list)):
+        values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
+        if index == 0:
+            values = values_
+
+    plt.title('IoU Scatter Plot')
+    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    config = config_list[0]
+    test_aid_set, test_bbox_set, prediction_list, y_list = values
+    ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
+                                             prediction_list, y_list, color_list_,
+                                             **config)
 
     fig_filename = 'canonical-localization-deviance.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
