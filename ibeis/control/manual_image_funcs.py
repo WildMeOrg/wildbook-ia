@@ -453,12 +453,18 @@ def localize_images(ibs, gid_list_=None):
     """
     #from os.path import isabs
     import six
+
     if six.PY2:
+        import urllib
         import urlparse
         urlsplit = urlparse.urlsplit
+        urlquote = urllib.quote
     else:
         import urllib
         urlsplit = urllib.parse.urlsplit
+        urlquote = urllib.parse.quote
+        urlunquote = urllib.parse.unquote
+
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
@@ -495,11 +501,12 @@ def localize_images(ibs, gid_list_=None):
             elif isproto(uri, url_protos):
                 print('\tURL Download')
                 # Ensure that the Unicode string is properly encoded for web requests
-                uri_ = urlsplit(uri)
-                uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                uri_ = urlunquote(uri)
+                uri_ = urlsplit(uri_, allow_fragments=False)
+                uri_path = urlquote(uri_.path.encode('utf8'))
                 uri_ = uri_._replace(path=uri_path)
-                uri = uri_.geturl()
-                six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
+                uri_ = uri_.geturl()
+                six.moves.urllib.request.urlretrieve(uri_, filename=loc_gpath)
             else:
                 raise ValueError('Sanity check failed')
         else:
