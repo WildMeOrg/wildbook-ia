@@ -101,7 +101,6 @@ def parse_imageinfo(gpath):
                     uri_path = urlquote(uri_.path.encode('utf8'))
                     uri_ = uri_._replace(path=uri_path)
                     uri_ = uri_.geturl()
-                    ut.embed()
                     six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                 gpath_ = temp_filepath
             else:
@@ -113,7 +112,7 @@ def parse_imageinfo(gpath):
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except (IOError, requests.HTTPError, urllib.error.HTTPError) as ex:
-            ut.embed()
+            # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
         if len(w) > 0:
