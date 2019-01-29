@@ -111,7 +111,7 @@ def parse_imageinfo(gpath):
             pil_img = Image.open(gpath_, 'r')
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
-        except (IOError, requests.HTTPError) as ex:
+        except (IOError, requests.HTTPError, urllib.error.HTTPError) as ex:
             ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
