@@ -53,6 +53,8 @@ def parse_imageinfo(gpath):
     # Try to open the image
     from PIL import Image
     import tempfile
+    import requests
+
     if six.PY2:
         import urllib
         import urlparse
@@ -62,6 +64,7 @@ def parse_imageinfo(gpath):
         import urllib
         urlsplit = urllib.parse.urlsplit
         urlquote = urllib.parse.quote
+        urlunquote = urllib.parse.unquote
 
     gpath = gpath.strip()
 
@@ -88,14 +91,14 @@ def parse_imageinfo(gpath):
                 args = (gpath, temp_filepath, )
                 print('[preproc] Caching remote %s file to temporary file %r' % args)
 
-                ut.embed()
                 if isproto(gpath, s3_proto):
                     s3_dict = ut.s3_str_decode_to_dict(gpath)
                     ut.grab_s3_contents(temp_filepath, **s3_dict)
                 if isproto(gpath, url_protos):
                     # Ensure that the Unicode string is properly encoded for web requests
-                    uri_ = urlsplit(gpath)
-                    uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                    uri_ = urlunquote(gpath)
+                    uri_ = urlsplit(uri_, allow_fragments=False)
+                    uri_path = urlquote(uri_.path.encode('utf8'))
                     uri_ = uri_._replace(path=uri_path)
                     uri_ = uri_.geturl()
                     six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
@@ -108,7 +111,7 @@ def parse_imageinfo(gpath):
             pil_img = Image.open(gpath_, 'r')
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
-        except IOError as ex:
+        except (IOError, requests.HTTPError) as ex:
             # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
