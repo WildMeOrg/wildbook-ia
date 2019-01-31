@@ -18,7 +18,8 @@ INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    'canonical_zebra_grevys': 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip'
+    'canonical_zebra_grevys' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip',
+    'ryan.densenet.v1'       : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
 }
 
 
@@ -401,7 +402,7 @@ def train(data_path, output_path, batch_size=32, **kwargs):
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10, min_lr=1e-5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10, min_lr=1e-6)
 
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss()
