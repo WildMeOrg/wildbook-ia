@@ -361,7 +361,6 @@ def train(data_path, output_path, batch_size=32, **kwargs):
     dataloaders = {
         phase: torch.utils.data.DataLoader(
             datasets[phase],
-            sampler=StratifiedSampler(datasets[phase], phase),
             batch_size=batch_size,
             num_workers=batch_size // 8,
             pin_memory=using_gpu
