@@ -2695,7 +2695,7 @@ class ChipMatch(_ChipMatchVisualization,
 
     @classmethod
     def load_from_fpath(ChipMatch, fpath, verbose=None):
-        #state_dict = ut.load_data(fpath, verbose=verbose)
+        # state_dict = ut.load_data(fpath, verbose=verbose)
         state_dict = ut.load_cPkl(fpath, verbose=verbose)
         if 'filtnorm_aids' not in state_dict:
             raise NeedRecomputeError('old version of chipmatch')

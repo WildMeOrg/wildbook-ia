@@ -45,46 +45,61 @@ if not ut.get_argflag('--no-pytorch'):
                 return self.aug.augment_image(img)
 
         class TrainAugmentations(Augmentations):
-            def __init__(self):
+            def __init__(self, blur=False, flip=True, **kwargs):
                 from imgaug import augmenters as iaa
-                self.aug = iaa.Sequential([
+                sequence = []
+
+                sequence += [
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-                    # iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
+                ]
+                if blur:
+                    sequence += [
+                        iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
+                    ]
+                sequence += [
                     iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
-                    # iaa.Fliplr(0.5),
-                ])
+                ]
+                if flip:
+                    sequence += [
+                        iaa.Fliplr(0.5),
+                    ]
+
+                self.aug = iaa.Sequential(sequence)
 
         class ValidAugmentations(Augmentations):
-            def __init__(self):
+            def __init__(self, **kwargs):
                 from imgaug import augmenters as iaa
                 self.aug = iaa.Sequential([
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                 ])
 
-        AGUEMTNATION = {
+        AUGMENTATION = {
             'train': TrainAugmentations,
             'val':   ValidAugmentations,
             'test':  ValidAugmentations,
         }
-
-        TRANSFORMS = {
-            phase: torchvision.transforms.Compose([
-                AGUEMTNATION[phase](),
-                lambda array: PIL.Image.fromarray(array),
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
-            for phase in AGUEMTNATION.keys()
-        }
     except ImportError:
-        AGUEMTNATION = {}
-        TRANSFORMS = {}
+        AUGMENTATION = {}
         print('WARNING Failed to import imgaug. '
               'install with pip install git+https://github.com/aleju/imgaug')
         if ut.SUPER_STRICT:
             raise
+
+
+def _init_transforms(**kwargs):
+    TRANSFORMS = {
+        phase: torchvision.transforms.Compose([
+            AUGMENTATION[phase](**kwargs),
+            lambda array: PIL.Image.fromarray(array),
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        for phase in AUGMENTATION.keys()
+    }
+
+    return TRANSFORMS
 
 
 class ImageFilePathList(torch.utils.data.Dataset):
@@ -285,7 +300,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
     return model
 
 
-def visualize_augmentations(dataset, augmentation, tag, num_per_class=5):
+def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwargs):
     import matplotlib.pyplot as plt
     samples = dataset.samples
     flags = np.array(ut.take_column(samples, 1))
@@ -313,7 +328,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5):
     canvas = np.hstack(images_)
     canvas_list = [canvas]
 
-    augment = augmentation()
+    augment = augmentation(**kwargs)
     for index in range(len(indices) - 1):
         print(index)
         images_ = [augment(image.copy()) for image in images]
@@ -325,7 +340,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5):
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=32):
+def train(data_path, output_path, batch_size=32, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -335,8 +350,9 @@ def train(data_path, output_path, batch_size=32):
     print('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
+    transforms = _init_transforms(**kwargs)
     datasets = {
-        phase: torchvision.datasets.ImageFolder(os.path.join(data_path, phase), TRANSFORMS[phase])
+        phase: torchvision.datasets.ImageFolder(os.path.join(data_path, phase), transforms[phase])
         for phase in phases
     }
 
@@ -371,7 +387,7 @@ def train(data_path, output_path, batch_size=32):
     print('Print Examples of Training Augmentation...')
 
     for phase in phases:
-        visualize_augmentations(datasets[phase], AGUEMTNATION[phase], phase)
+        visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
 
     print('Initializing Optimizer...')
 
@@ -406,7 +422,7 @@ def train(data_path, output_path, batch_size=32):
     return weights_path
 
 
-def test_single(filepath_list, weights_path, batch_size=512):
+def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -415,7 +431,8 @@ def test_single(filepath_list, weights_path, batch_size=512):
     print('Initializing Datasets and Dataloaders...')
 
     # Create training and validation datasets
-    dataset = ImageFilePathList(filepath_list, transform=TRANSFORMS['test'])
+    transforms = _init_transforms(**kwargs)
+    dataset = ImageFilePathList(filepath_list, transform=transforms['test'])
 
     # Create training and validation dataloaders
     dataloader = torch.utils.data.DataLoader(
