@@ -532,7 +532,7 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
 
     ensemble_path = archive_path.strip('.zip')
     if not os.path.exists(ensemble_path):
-        ut.unarchive_file(archive_path)
+        ut.unarchive_file(archive_path, output_dir=ensemble_path)
 
     assert os.path.exists(ensemble_path)
     ensemble_path = os.path.join(ensemble_path, '*.weights')

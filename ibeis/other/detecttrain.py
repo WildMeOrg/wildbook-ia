@@ -63,20 +63,16 @@ def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_ima
         weights_path = densenet.train(extracted_path, output_path, blur=True, flip=True)
         weights_path_list.append(weights_path)
 
-    output_name = 'classifier.cameratrap'
-    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
-    ut.ensuredir(ensemble_path)
-
-    archive_path = '%s.zip' % (ensemble_path)
+    archive_name = 'classifier.cameratrap.zip'
+    archive_path = join(ibs.get_cachedir(), 'training', archive_name)
     ensemble_weights_path_list = []
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = join(ensemble_path, 'classifier.cameratrap.%d.weights' % (index, ))
+        ensemble_weights_path = 'classifier.cameratrap.%d.weights' % (index, )
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
-    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
     ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
 
     return archive_path
