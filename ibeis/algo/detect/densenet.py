@@ -20,6 +20,7 @@ INPUT_SIZE = 224
 ARCHIVE_URL_DICT = {
     'canonical_zebra_grevys' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip',
     'ryan.densenet.v1'       : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
+    'ryan.densenet.v2'       : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
 }
 
 
