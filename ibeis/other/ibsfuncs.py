@@ -8033,27 +8033,26 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
     status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy(gid_list=gid_list[:10])
     '''
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(**kwargs)
-    status_list = [0, 0, 0, 0, 0, 0]
+    key_list = ['temp', 'date', 'time', 'datetime', 'sequence']
+    status_dict = {
+        'success': 0,
+    }
+    status_dict['failure'] = {
+        key: 0
+        for key in key_list
+    }
     for value_dict in value_dict_list:
-        if 'temp' not in value_dict:
-            # We must have either F or C
-            status_list[0] += 1
-            continue
-        if 'date' not in value_dict:
-            status_list[1] += 1
-            continue
-        if 'time' not in value_dict:
-            status_list[2] += 1
-            continue
-        if 'datetime' not in value_dict:
-            status_list[3] += 1
-            continue
-        if 'sequence' not in value_dict:
-            status_list[4] += 1
-            continue
-        status_list[5] += 1
-    print(status_list)
-    return status_list
+        success = True
+        for key in key_list:
+            if key not in value_dict:
+                success = False
+                status_dict['failure'][key] += 1
+        if success:
+            status_dict['success'] += 1
+        else:
+            print('Failed: %r' % (value_dict.get('parsed', None), ))
+    print(ut.repr3(status_dict))
+    return status_dict
 
 
 @register_ibs_method
@@ -8090,15 +8089,18 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
         config += ['--psm', '7' '--oem' '1', '-c', 'tessedit_char_whitelist=0123456789°CF/:']
         config = ' '.join(config)
         values = pytesseract.image_to_string(img, config=config)
+        value_dict['raw'] = values
         assert len(values) > 0
         value_list = values.split(' ')
+        value_dict['split'] = value_list
         assert len(values) > 0
         value_list = [value.strip() for value in value_list]
         value_list = [value for value in value_list if len(value) > 0]
         assert len(value_list) >= 5
         value_list_ = value_list[-5:]
         assert len(value_list_) == 5
-        print('Parsed: %s' % (value_list_, ))
+        value_dict['parsed'] = value_list_
+        # print('Parsed: %s' % (value_list_, ))
         tempc, tempf, date, time, sequence = value_list_
 
         try:
