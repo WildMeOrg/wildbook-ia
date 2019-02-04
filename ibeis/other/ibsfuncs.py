@@ -8030,9 +8030,10 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 @register_ibs_method
 def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
     '''
-    status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy(gid_list=gid_list[:1000])
+    status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy(gid_list=gid_list[:10])
     '''
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(**kwargs)
+    value_dict_list = list(value_dict_list)
     key_list = ['temp', 'date', 'time', 'datetime', 'sequence']
     status_dict = {
         'success': 0,
@@ -8134,7 +8135,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             pass
         try:
             time = time.strip().replace(':', '')
-            if len(time) == 8 and time[2] == 1 and time[5] == 1:
+            if len(time) == 8 and time[2] == '1' and time[5] == '1':
                 time = time[0:2] + time[3:5] + time[6:8]
             assert len(time) == 6
             hour   = time[0:2]
