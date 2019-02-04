@@ -8044,18 +8044,23 @@ def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
     return value_dict_list
 
 
-def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient):
+def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
     import pytesseract
 
     img = vt.imread(gpath, orient=orient)
     value_dict = {}
     try:
+        if config is None:
+            config = []
+        assert isinstance(config, list)
         img = img[-80:, :, :]
         if sys.platform.startswith('darwin'):
-            tessdata_dir_config = r'--tessdata-dir "/opt/local/share/"'
+            config += ['--tessdata-dir', '"/opt/local/share/"']
         else:
-            tessdata_dir_config = r'--tessdata-dir "/usr/share/tesseract-ocr/"'
-        values = pytesseract.image_to_string(img, config=tessdata_dir_config)
+            config += ['--tessdata-dir', '"/usr/share/tesseract-ocr/"']
+        config += ['--psm', '7' '--oem' '1', '-c', 'tessedit_char_whitelist=0123456789cfCF/:']
+        config = ' '.join(config)
+        values = pytesseract.image_to_string(img, config=config)
         assert len(values) > 0
         value_list = values.split(' ')
         assert len(values) > 0
