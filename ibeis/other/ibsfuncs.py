@@ -8028,6 +8028,32 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
 
 @register_ibs_method
+def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
+    value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(**kwargs)
+    status_list = [0, 0, 0, 0, 0, 0]
+    for value_dict in value_dict_list:
+        if 'temp' not in value_dict:
+            # We must have either F or C
+            status_list[0] += 1
+            continue
+        if 'date' not in value_dict:
+            status_list[1] += 1
+            continue
+        if 'time' not in value_dict:
+            status_list[2] += 1
+            continue
+        if 'datetime' not in value_dict:
+            status_list[3] += 1
+            continue
+        if 'sequence' not in value_dict:
+            status_list[4] += 1
+            continue
+        status_list[5] += 1
+    print(status_list)
+    return status_list
+
+
+@register_ibs_method
 def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
     print('OCR Camera Trap Bottom Bar')
     if gid_list is None:
@@ -8063,7 +8089,6 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
         values = pytesseract.image_to_string(img, config=config)
         assert len(values) > 0
         value_list = values.split(' ')
-        print(values)
         assert len(values) > 0
         value_list = [value.strip() for value in value_list]
         value_list = [value for value in value_list if len(value) > 0]
@@ -8097,6 +8122,11 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             month = int(month)
             day   = int(day)
             year  = int(year)
+            value_dict['date'] = tuple(year, month, day, )
+        except:
+            month, day, year = None, None, None
+            pass
+        try:
             time = time.strip().replace(':', '')
             assert len(time) == 6
             hour   = time[0:2]
@@ -8105,6 +8135,12 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             hour   = int(hour)
             minute = int(minute)
             second = int(second)
+            value_dict['time'] = tuple(hour, minute, second, )
+        except:
+            hour, minute, second = None, None, None
+            pass
+        try:
+            assert None not in [month, day, year, hour, minute, second]
             value_dict['datetime'] = datetime.datetime(year, month, day, hour, minute, second)
         except:
             pass
