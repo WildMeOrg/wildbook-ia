@@ -30,6 +30,8 @@ from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
 from skimage import io
 import xml.etree.ElementTree as ET
+import datetime
+import sys
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
@@ -8023,6 +8025,83 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             ibs.set_annot_age_months_est_min(aid_list_, [age_tuple[0]] * len(aid_list_))
             ibs.set_annot_age_months_est_max(aid_list_, [age_tuple[1]] * len(aid_list_))
         ibs.set_annot_species(aid_list_, species_text_)
+
+
+@register_ibs_method
+def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
+    print('OCR Camera Trap Bottom Bar')
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
+    arg_iter = list(zip(
+        gpath_list,
+        orient_list,
+    ))
+    value_dict_list = ut.util_parallel.generate2(princeton_cameratrap_ocr_bottom_bar_worker, arg_iter)
+    return value_dict_list
+
+
+def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient):
+    import pytesseract
+
+    img = vt.imread(gpath, orient=orient)
+    value_dict = {}
+    try:
+        img = img[-80:, :, :]
+        if sys.platform.startswith('darwin'):
+            tessdata_dir_config = r'--tessdata-dir "/opt/local/share/"'
+        else:
+            tessdata_dir_config = r'--tessdata-dir "/usr/share/tesseract-ocr/"'
+        values = pytesseract.image_to_string(img, config=tessdata_dir_config)
+        assert len(values) > 0
+        value_list = values.split(' ')
+        assert len(values) > 0
+        value_list = [value.strip() for value in value_list]
+        value_list = [value for value in value_list if len(value) > 0]
+        assert len(value_list) >= 5
+        value_list_ = value_list[-5:]
+        assert len(value_list_) == 5
+        tempc, tempf, date, time, sequence = value_list_
+
+        try:
+            tempc = tempc.strip('C').strip(u'\N{DEGREE SIGN}')
+            if 'temp' not in value_dict:
+                value_dict['temp'] = {}
+            value_dict['temp']['c'] = tempc
+        except:
+            pass
+        try:
+            tempf = tempf.strip('F').strip(u'\N{DEGREE SIGN}')
+            if 'temp' not in value_dict:
+                value_dict['temp'] = {}
+            value_dict['temp']['f'] = tempf
+        except:
+            pass
+        try:
+            date = date.split('/')
+            assert len(date) == 3
+            date = tuple(map(int, date))
+            month, day, year = date
+            time = time.split(':')
+            assert len(time) == 3
+            time = tuple(map(int, time))
+            hour, minute, second = time
+            value_dict['datetime'] = datetime.datetime(year, month, day, hour, minute, second)
+        except:
+            pass
+        try:
+            assert len(sequence) == 4
+            sequence = int(sequence)
+            value_dict['sequence'] = sequence
+        except:
+            pass
+    except:
+        pass
+
+    return value_dict
 
 
 if __name__ == '__main__':
