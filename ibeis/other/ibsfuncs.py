@@ -8106,6 +8106,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
 
         try:
             tempc = tempc.strip('C').strip('°')
+            assert len(tempc) > 0
             tempc = int(tempc)
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
@@ -8114,6 +8115,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             pass
         try:
             tempf = tempf.strip('F').strip('°')
+            assert len(tempf) > 0
             tempf = int(tempf)
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
