@@ -8029,6 +8029,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
 @register_ibs_method
 def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
+    '''
+    status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy(gid_list=gid_list[:10])
+    '''
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(**kwargs)
     status_list = [0, 0, 0, 0, 0, 0]
     for value_dict in value_dict_list:
@@ -8095,6 +8098,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
         assert len(value_list) >= 5
         value_list_ = value_list[-5:]
         assert len(value_list_) == 5
+        print('Parsed: %s' % (value_list_, ))
         tempc, tempf, date, time, sequence = value_list_
 
         try:
@@ -8122,7 +8126,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             month = int(month)
             day   = int(day)
             year  = int(year)
-            value_dict['date'] = tuple(year, month, day, )
+            value_dict['date'] = (year, month, day, )
         except:
             month, day, year = None, None, None
             pass
@@ -8135,7 +8139,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             hour   = int(hour)
             minute = int(minute)
             second = int(second)
-            value_dict['time'] = tuple(hour, minute, second, )
+            value_dict['time'] = (hour, minute, second, )
         except:
             hour, minute, second = None, None, None
             pass
