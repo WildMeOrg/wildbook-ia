@@ -8074,6 +8074,7 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
 
         try:
             tempc = tempc.strip('C').strip('°')
+            tempc = int(tempc)
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
             value_dict['temp']['c'] = tempc
@@ -8081,20 +8082,29 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             pass
         try:
             tempf = tempf.strip('F').strip('°')
+            tempf = int(tempf)
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
             value_dict['temp']['f'] = tempf
         except:
             pass
         try:
-            date = date.split('/')
-            assert len(date) == 3
-            date = tuple(map(int, date))
-            month, day, year = date
-            time = time.split(':')
-            assert len(time) == 3
-            time = tuple(map(int, time))
-            hour, minute, second = time
+            date = date.strip().replace('/', '')
+            assert len(date) == 8
+            month = date[0:2]
+            day   = date[2:4]
+            year  = date[4:8]
+            month = int(month)
+            day   = int(day)
+            year  = int(year)
+            time = time.strip().replace(':', '')
+            assert len(time) == 6
+            hour   = time[0:2]
+            minute = time[2:4]
+            second = time[4:6]
+            hour   = int(hour)
+            minute = int(minute)
+            second = int(second)
             value_dict['datetime'] = datetime.datetime(year, month, day, hour, minute, second)
         except:
             pass
