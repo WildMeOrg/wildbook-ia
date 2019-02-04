@@ -8058,11 +8058,12 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
             config += ['--tessdata-dir', '"/opt/local/share/"']
         else:
             config += ['--tessdata-dir', '"/usr/share/tesseract-ocr/"']
-        config += ['--psm', '7' '--oem' '1', '-c', 'tessedit_char_whitelist=0123456789cfCF/:']
+        config += ['--psm', '7' '--oem' '1', '-c', 'tessedit_char_whitelist=0123456789°CF/:']
         config = ' '.join(config)
         values = pytesseract.image_to_string(img, config=config)
         assert len(values) > 0
         value_list = values.split(' ')
+        print(values)
         assert len(values) > 0
         value_list = [value.strip() for value in value_list]
         value_list = [value for value in value_list if len(value) > 0]
@@ -8072,14 +8073,14 @@ def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
         tempc, tempf, date, time, sequence = value_list_
 
         try:
-            tempc = tempc.strip('C').strip(u'\N{DEGREE SIGN}')
+            tempc = tempc.strip('C').strip('°')
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
             value_dict['temp']['c'] = tempc
         except:
             pass
         try:
-            tempf = tempf.strip('F').strip(u'\N{DEGREE SIGN}')
+            tempf = tempf.strip('F').strip('°')
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
             value_dict['temp']['f'] = tempf
