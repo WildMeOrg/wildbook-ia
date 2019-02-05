@@ -2023,7 +2023,6 @@ def compute_cameratrap_exif(depc, gid_list, config=None):
 def compute_cameratrap_exif_worker(gpath, orient, bottom=80, psm=7, oem=1, whitelist='0123456789°CF/:'):
     import pytesseract
 
-    print('Computing %r (%r, %r, %r, %r %r)' % (gpath, orient, bottom, psm, oem, whitelist))
     img = vt.imread(gpath, orient=orient)
     # Crop
     img = img[-1 * bottom:, :, :]

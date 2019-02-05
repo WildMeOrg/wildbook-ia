@@ -8042,12 +8042,21 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
         key: 0
         for key in key_list
     }
+    status_dict['failure']['tempc'] = 0
+    status_dict['failure']['tempf'] = 0
     for value_dict in value_dict_list:
         success = True
         for key in key_list:
             if key not in value_dict:
                 success = False
                 status_dict['failure'][key] += 1
+            else:
+                if key == 'temp':
+                    temp = status_dict['failure'][key]
+                    if 'c' not in temp:
+                        status_dict['failure']['tempc'] += 1
+                    if 'f' not in temp:
+                        status_dict['failure']['tempf'] += 1
         if success:
             status_dict['success'] += 1
         else:
@@ -8062,6 +8071,7 @@ def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
+    gid_list = ibs.get_valid_gids()
     raw_list = ibs.depc_image.get_property('cameratrap_exif', gid_list, 'raw')
 
     value_dict_list = []
@@ -8085,6 +8095,11 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         if value_list[-2] == '0000':
             value_list[-2] = ''
         value_list = [value for value in value_list if len(value) > 0]
+        if len(value_list[-2]) == 18:
+            temp = value_list[-2]
+            temp_date = temp[:10]
+            temp_time = temp[10:]
+            value_list = value_list[:-2] + [temp_date] + [temp_time] + value_list[-1:]
         assert len(value_list) >= 5
         value_list_ = value_list[-5:]
         assert len(value_list_) == 5
