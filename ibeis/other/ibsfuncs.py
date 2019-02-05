@@ -8028,12 +8028,15 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
 
 @register_ibs_method
-def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
+def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
     '''
     status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy()
     '''
-    value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(**kwargs)
+    gid_list = ibs.get_valid_gids()
+    value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
     value_dict_list = list(value_dict_list)
+    datetime_list = ibs.get_image_datetime(gid_list)
+
     key_list = ['temp', 'date', 'time', 'datetime', 'sequence']
     status_dict = {
         'success': 0,
@@ -8042,10 +8045,19 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
         key: 0
         for key in key_list
     }
+    status_dict['sanity'] = {
+        key: 0
+        for key in key_list
+    }
     status_dict['failure']['tempc'] = 0
     status_dict['failure']['tempf'] = 0
-    for value_dict in value_dict_list:
+    status_dict['sanity']['tempc'] = 0
+    status_dict['sanity']['tempf'] = 0
+
+    difference_list = []
+    for value_dict, datetime_ in zip(value_dict_list, datetime_list):
         success = True
+        printing = False
         for key in key_list:
             if key not in value_dict:
                 success = False
@@ -8061,7 +8073,52 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
                         status_dict['failure']['tempf'] += 1
         if success:
             status_dict['success'] += 1
+
+            temp = value_dict['temp']
+            tempc = temp.get('c')
+            tempf = temp.get('f')
+
+            tempc_ = (tempf - 32) * 5.0 / 9.0
+            if abs(tempc_ - tempc) > 1:
+                status_dict['sanity']['tempc'] += 1
+                printing = True
+
+            tempf_ = ((9.0 / 5.0) * tempc) + 32
+            if abs(tempf_ - tempf) > 1:
+                status_dict['sanity']['tempf'] += 1
+                printing = True
+
+            date = datetime.date(*value_dict['date'])
+            date_ = datetime_.date()
+            delta = date_ - date
+            if delta.days > 0:
+                printing = True
+                status_dict['sanity']['date'] += 1
+
+            time = datetime.time(*value_dict['time'])
+            time_ = datetime_.time()
+            time = datetime.datetime.combine(datetime.date.today(), time)
+            time_ = datetime.datetime.combine(datetime.date.today(), time_)
+            delta = time_ - time
+            if (delta.seconds - offset) > 1:
+                printing = True
+                status_dict['sanity']['time'] += 1
+                difference_list.append('%0.02f' % (delta.seconds, ))
+
+            delta = datetime_ - value_dict['datetime']
+            if (delta.seconds - offset) > 1:
+                printing = True
+                status_dict['sanity']['datetime'] += 1
+                difference_list.append('%0.02f' % (delta.seconds, ))
+
+            sequence = value_dict['sequence']
+            if sequence < 0 or 10000 < sequence:
+                printing = True
+                status_dict['sanity']['sequence'] += 1
         else:
+            printing = True
+
+        if printing:
             print('Failed: %r' % (value_dict.get('split', None), ))
     print(ut.repr3(status_dict))
     return status_dict
@@ -8114,6 +8171,8 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
 
         try:
             assert len(tempc) > 0
+            if len(tempc) > 2:
+                tempc = tempc[2:]
             tempc = int(tempc)
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
