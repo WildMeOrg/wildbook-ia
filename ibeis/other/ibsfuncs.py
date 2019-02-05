@@ -8172,7 +8172,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         try:
             assert len(tempc) > 0
             if len(tempc) > 2:
-                tempc = tempc[2:]
+                tempc = tempc[-2:]
             tempc = int(tempc)
             if 'temp' not in value_dict:
                 value_dict['temp'] = {}
