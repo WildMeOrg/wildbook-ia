@@ -8032,11 +8032,12 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
     gid_list = ibs.get_valid_gids()
     gid_list = sorted(gid_list)
 
+    uuid_list = ibs.get_image_uuids(gid_list)
     uri_original_list = ibs.get_image_uris_original(gid_list)
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
 
     header_list = [
-        'IMAGE_ID',
+        'IMAGE_UUID',
         'FILEPATH',
         'TEMP_CELSIUS',
         'TEMP_FAHRENHEIT',
@@ -8046,15 +8047,15 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
         'TIME_HOUR',
         'TIME_MINUTE',
         'TIME_SECOND',
-        'SEQUENCE',
+        'SEQUENCE_NUMBER',
     ]
     line_list = [','.join(header_list)]
 
-    zipped = zip(gid_list, uri_original_list, value_dict_list)
-    for gid, uri_original, value_dict in zipped:
+    zipped = zip(uuid_list, uri_original_list, value_dict_list)
+    for uuid_, uri_original, value_dict in zipped:
         datetime = value_dict.get('datetime')
         line = [
-            gid,
+            uuid_,
             uri_original.replace(prefix, ''),
             value_dict.get('temp').get('c'),
             value_dict.get('temp').get('f'),
@@ -8066,10 +8067,10 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
             datetime.second,
             value_dict.get('sequence'),
         ]
-        line = ','.join(line)
+        line = ','.join(map(str, line))
         line_list.append(line)
 
-    with open('export.csv') as export_file:
+    with open('export.csv', 'w') as export_file:
         export_file.write('\n'.join(line_list))
 
 
