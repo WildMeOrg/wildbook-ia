@@ -8028,13 +8028,44 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
 
 @register_ibs_method
-def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/horses/'):
+def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/horses/', threshold=0.39):
     gid_list = ibs.get_valid_gids()
     gid_list = sorted(gid_list)
 
     uuid_list = ibs.get_image_uuids(gid_list)
     uri_original_list = ibs.get_image_uris_original(gid_list)
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
+
+    groundtruth_list_ = ibs.get_image_cameratrap(gid_list)
+    groundtruth_list = []
+    for groundtruth in groundtruth_list_:
+        if groundtruth == 1:
+            label = 'positive'
+        elif groundtruth == 0:
+            label = 'negative'
+        else:
+            label = ''
+        groundtruth_list.append(label)
+
+    config = {'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan.densenet.v2'}
+    prediction_list = ibs.depc_image.get_property('classifier', gid_list, 'class', config=config)
+    confidence_list = ibs.depc_image.get_property('classifier', gid_list, 'score', config=config)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= threshold else 'negative'
+        for confidence in confidence_list
+    ]
+
+    same_list = []
+    for gt, pred in zip(groundtruth_list, prediction_list):
+        if len(gt) > 0:
+            same = 'true' if gt == pred else 'false'
+        else:
+            same = ''
+        same_list.append(same)
 
     header_list = [
         'IMAGE_UUID',
@@ -8048,11 +8079,14 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
         'TIME_MINUTE',
         'TIME_SECOND',
         'SEQUENCE_NUMBER',
+        'CLASSIFY_HUMAN_LABEL',
+        'CLASSIFY_COMPUTER_LABEL',
+        'CLASSIFY_AGREEANCE',
     ]
     line_list = [','.join(header_list)]
 
-    zipped = zip(uuid_list, uri_original_list, value_dict_list)
-    for uuid_, uri_original, value_dict in zipped:
+    zipped = zip(uuid_list, uri_original_list, value_dict_list, groundtruth_list, prediction_list, same_list)
+    for uuid_, uri_original, value_dict, groundtruth, prediction, same in zipped:
         datetime = value_dict.get('datetime')
         line = [
             uuid_,
@@ -8066,6 +8100,9 @@ def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/h
             datetime.minute,
             datetime.second,
             value_dict.get('sequence'),
+            groundtruth,
+            prediction,
+            same,
         ]
         line = ','.join(map(str, line))
         line_list.append(line)
