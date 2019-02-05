@@ -2014,9 +2014,7 @@ def compute_cameratrap_exif(depc, gid_list, config=None):
         gpath_list,
         orient_list,
     ))
-    kwargs_iter = list(zip(
-        [config] * len(gid_list)
-    ))
+    kwargs_iter = [config] * len(gid_list)
     raw_list = ut.util_parallel.generate2(compute_cameratrap_exif_worker, arg_iter, kwargs_iter)
     for raw in raw_list:
         yield (raw, )
