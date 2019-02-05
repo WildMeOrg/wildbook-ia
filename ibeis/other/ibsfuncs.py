@@ -8094,7 +8094,7 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         value_dict['split'] = value_list
         assert len(values) > 0
         value_list = [
-            value.strip().strip('°').strip('C').strip('F')
+            value.strip().replace('C', '').replace('F', '').replace('°', '')
             for value in value_list
         ]
         if value_list[-2] == '0000':
