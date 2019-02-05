@@ -8093,7 +8093,10 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         value_list = values.split(' ')
         value_dict['split'] = value_list
         assert len(values) > 0
-        value_list = [value.strip() for value in value_list]
+        value_list = [
+            value.strip().strip('°').strip('C').strip('F')
+            for value in value_list
+        ]
         if value_list[-2] == '0000':
             value_list[-2] = ''
         value_list = [value for value in value_list if len(value) > 0]
@@ -8110,7 +8113,6 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         tempc, tempf, date, time, sequence = value_list_
 
         try:
-            tempc = tempc.strip('C').strip('°')
             assert len(tempc) > 0
             tempc = int(tempc)
             if 'temp' not in value_dict:
@@ -8119,7 +8121,6 @@ def princeton_cameratrap_ocr_bottom_bar_parser(raw):
         except:
             pass
         try:
-            tempf = tempf.strip('F').strip('°')
             assert len(tempf) > 0
             tempf = int(tempf)
             if 'temp' not in value_dict:
