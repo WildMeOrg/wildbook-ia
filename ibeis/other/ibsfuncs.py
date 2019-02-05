@@ -8052,7 +8052,7 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
                 status_dict['failure'][key] += 1
             else:
                 if key == 'temp':
-                    temp = status_dict['failure'][key]
+                    temp = value_dict[key]
                     if 'c' not in temp:
                         status_dict['failure']['tempc'] += 1
                     if 'f' not in temp:
