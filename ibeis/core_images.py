@@ -40,6 +40,7 @@ import numpy as np
 import vtool as vt
 import cv2
 from ibeis.control.controller_inject import register_preprocs
+import sys
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
 
@@ -1985,6 +1986,64 @@ def compute_detections(depc, gid_list, config=None):
         # cv2.waitKey(0)
         yield tuple(result)
 
+
+class CameraTrapEXIFConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('bottom',    80),
+        ut.ParamInfo('psm',       7),
+        ut.ParamInfo('osm',       1),
+        ut.ParamInfo('whitelist', '0123456789°CF/:'),
+    ]
+
+
+@register_preproc(
+    tablename='cameratrap_exif', parents=['images'],
+    colnames=['raw'],
+    coltypes=[str],
+    configclass=CameraTrapEXIFConfig,
+    fname='exifcache',
+    chunksize=1024,
+)
+def compute_cameratrap_exif(depc, gid_list, config=None):
+    ibs = depc.controller
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
+    arg_iter = list(zip(
+        gpath_list,
+        orient_list,
+    ))
+    kwargs_iter = list(zip(
+        [config] * len(gid_list)
+    ))
+    raw_list = ut.util_parallel.generate2(compute_cameratrap_exif_worker, arg_iter, kwargs_iter)
+    for raw in raw_list:
+        yield (raw, )
+
+
+def compute_cameratrap_exif_worker(gpath, orient, bottom=80, psm=7, oem=1, whitelist='0123456789°CF/:'):
+    import pytesseract
+
+    print('Computing %r (%r, %r, %r, %r %r)' % (gpath, orient, bottom, psm, oem, whitelist))
+    img = vt.imread(gpath, orient=orient)
+    # Crop
+    img = img[-1 * bottom:, :, :]
+
+    config = []
+    if sys.platform.startswith('darwin'):
+        config += ['--tessdata-dir', '"/opt/local/share/"']
+    else:
+        config += ['--tessdata-dir', '"/usr/share/tesseract-ocr/"']
+    config += ['--psm', str(psm), '--oem', str(oem), '-c', 'tessedit_char_whitelist=%s' % (whitelist, )]
+    config = ' '.join(config)
+
+    try:
+        raw = pytesseract.image_to_string(img, config=config)
+    except:
+        raw = None
+
+    return raw
 
 if __name__ == '__main__':
     r"""

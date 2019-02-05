@@ -31,7 +31,7 @@ from ibeis import annotmatch_funcs  # NOQA
 from skimage import io
 import xml.etree.ElementTree as ET
 import datetime
-import sys
+
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
@@ -8030,7 +8030,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 @register_ibs_method
 def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
     '''
-    status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy(gid_list=gid_list[:1000])
+    status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy()
     '''
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(**kwargs)
     value_dict_list = list(value_dict_list)
@@ -8062,40 +8062,28 @@ def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
-    gpath_list = ibs.get_image_paths(gid_list)
-    orient_list = ibs.get_image_orientation(gid_list)
+    raw_list = ibs.depc_image.get_property('cameratrap_exif', gid_list, 'raw')
 
-    arg_iter = list(zip(
-        gpath_list,
-        orient_list,
-    ))
-    value_dict_list = ut.util_parallel.generate2(princeton_cameratrap_ocr_bottom_bar_worker, arg_iter)
+    value_dict_list = []
+    for raw in raw_list:
+        value_dict = princeton_cameratrap_ocr_bottom_bar_parser(raw)
+        value_dict_list.append(value_dict)
+
     return value_dict_list
 
 
-def princeton_cameratrap_ocr_bottom_bar_worker(gpath, orient, config=None):
-    import pytesseract
-
-    img = vt.imread(gpath, orient=orient)
+def princeton_cameratrap_ocr_bottom_bar_parser(raw):
     value_dict = {}
     try:
-        if config is None:
-            config = []
-        assert isinstance(config, list)
-        img = img[-80:, :, :]
-        if sys.platform.startswith('darwin'):
-            config += ['--tessdata-dir', '"/opt/local/share/"']
-        else:
-            config += ['--tessdata-dir', '"/usr/share/tesseract-ocr/"']
-        config += ['--psm', '7' '--oem' '1', '-c', 'tessedit_char_whitelist=0123456789°CF/:']
-        config = ' '.join(config)
-        values = pytesseract.image_to_string(img, config=config)
+        values = raw
         value_dict['raw'] = values
         assert len(values) > 0
         value_list = values.split(' ')
         value_dict['split'] = value_list
         assert len(values) > 0
         value_list = [value.strip() for value in value_list]
+        if value_list[-2] == '0000':
+            value_list[-2] = ''
         value_list = [value for value in value_list if len(value) > 0]
         assert len(value_list) >= 5
         value_list_ = value_list[-5:]
