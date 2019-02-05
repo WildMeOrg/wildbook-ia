@@ -8028,10 +8028,54 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
 
 @register_ibs_method
+def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/horses/'):
+    gid_list = ibs.get_valid_gids()
+    gid_list = sorted(gid_list)
+
+    uri_original_list = ibs.get_image_uris_original(gid_list)
+    value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
+
+    header_list = [
+        'IMAGE_ID',
+        'FILEPATH',
+        'TEMP_CELSIUS',
+        'TEMP_FAHRENHEIT',
+        'DATE_MONTH',
+        'DATE_DAY',
+        'DATE_YEAR',
+        'TIME_HOUR',
+        'TIME_MINUTE',
+        'TIME_SECOND',
+        'SEQUENCE',
+    ]
+    line_list = [','.join(header_list)]
+
+    zipped = zip(gid_list, uri_original_list, value_dict_list)
+    for gid, uri_original, value_dict in zipped:
+        datetime = value_dict.get('datetime')
+        line = [
+            gid,
+            uri_original.replace(prefix, ''),
+            value_dict.get('temp').get('c'),
+            value_dict.get('temp').get('f'),
+            datetime.month,
+            datetime.day,
+            datetime.year,
+            datetime.hour,
+            datetime.minute,
+            datetime.second,
+            value_dict.get('sequence'),
+        ]
+        line = ','.join(line)
+        line_list.append(line)
+
+    with open('export.csv') as export_file:
+        export_file.write('\n'.join(line_list))
+
+
+@register_ibs_method
 def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
-    '''
-    status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy()
-    '''
+    # status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy()
     gid_list = ibs.get_valid_gids()
     value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
     value_dict_list = list(value_dict_list)
