@@ -8054,13 +8054,15 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, **kwargs):
                 if key == 'temp':
                     temp = value_dict[key]
                     if 'c' not in temp:
+                        success = False
                         status_dict['failure']['tempc'] += 1
                     if 'f' not in temp:
+                        success = False
                         status_dict['failure']['tempf'] += 1
         if success:
             status_dict['success'] += 1
         else:
-            print('Failed: %r' % (value_dict.get('parsed', None), ))
+            print('Failed: %r' % (value_dict.get('split', None), ))
     print(ut.repr3(status_dict))
     return status_dict
 
