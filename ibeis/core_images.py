@@ -1991,7 +1991,7 @@ class CameraTrapEXIFConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('bottom',    80),
         ut.ParamInfo('psm',       7),
-        ut.ParamInfo('osm',       1),
+        ut.ParamInfo('oem',       1),
         ut.ParamInfo('whitelist', '0123456789°CF/:'),
     ]
 
