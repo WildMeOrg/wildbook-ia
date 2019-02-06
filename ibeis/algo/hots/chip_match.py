@@ -2696,14 +2696,11 @@ class ChipMatch(_ChipMatchVisualization,
     @classmethod
     def load_from_fpath(ChipMatch, fpath, verbose=None):
         # state_dict = ut.load_data(fpath, verbose=verbose)
+        state_dict = ut.load_cPkl(fpath, verbose=verbose)
+        if 'filtnorm_aids' not in state_dict:
+            raise NeedRecomputeError('old version of chipmatch')
         cm = ChipMatch()
-        try:
-            state_dict = ut.load_cPkl(fpath, verbose=verbose)
-            if 'filtnorm_aids' not in state_dict:
-                raise NeedRecomputeError('old version of chipmatch')
-            cm.__setstate__(state_dict)
-        except EOFError:
-            print('Could not open ChipMatch from path = %r' % (fpath, ))
+        cm.__setstate__(state_dict)
         return cm
 
 
