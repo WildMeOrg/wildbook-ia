@@ -747,6 +747,7 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> assert len(infr.task_probs['match_state']) == 3
 
         Doctest:
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_matching import *
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=6, p_incon=.5, size_std=2)

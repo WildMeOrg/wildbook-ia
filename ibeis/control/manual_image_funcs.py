@@ -425,7 +425,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
                 print('Loadable EXIF Validation:  Failed to load %r' % (gpath, ))
                 gid_ = None
             gid_list_.append(gid_)
-            if gid_ is None:
+            if gid is not None and gid_ is None:
                 delete_gid_list.append(gid)
 
         ibs.delete_images(delete_gid_list, trash_images=False)

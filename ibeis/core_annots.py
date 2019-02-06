@@ -1225,7 +1225,8 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     featweight_gen = ut.generate2(
         gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True,
         force_serial=ibs.force_serial,
-        progkw={'freq': 1}
+        progkw={'freq': 1},
+        futures_threaded=True,
     )
     featweight_list = list(featweight_gen)
     print('[compute_fgweights] Done computing %d fgweights' % (nTasks,))

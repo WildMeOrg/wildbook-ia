@@ -207,7 +207,7 @@ def compute_web_src(depc, gid_list, config=None):
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> thumbs = depc.get_property('web_src', gid_list, 'src', recompute=True)
         >>> thumb = thumbs[0]
-        >>> assert ut.hash_data(thumb) == 'wjkpjrsmqzdhmqdxjbgomdmqxaxsckxn'
+        >>> assert ut.hash_data(thumb) in ['wcuppmpowkvhfmfcnrxdeedommihexfu', 'wjkpjrsmqzdhmqdxjbgomdmqxaxsckxn']
     """
     ibs = depc.controller
 
