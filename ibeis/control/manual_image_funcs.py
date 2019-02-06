@@ -409,30 +409,30 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         print('[ibs] added %d annotations' % (len(aid_list),))
 
     # Check loadable
-    if ensure_loadable:
-        bad_loadable_list, bad_exif_list = ibs.check_image_loadable(gid_list)
-        bad_loadable_set = set(bad_loadable_list)
-        bad_loadable_set = set(bad_exif_list)
+    if ensure_loadable or ensure_exif:
+        bad_load_list, bad_exif_list = ibs.check_image_loadable(gid_list)
+        bad_load_set = set(bad_load_list)
+        bad_exif_set = set(bad_exif_list)
 
-        gid_list_ = []
+        all_gid_list_ = []
         delete_gid_list = []
-        for gid, gpath in zip(gid_list, gpath_list):
+        for gid, gpath in zip(all_gid_list, gpath_list):
             gid_ = gid
-            if gid in bad_loadable_set:
+            if gid in bad_load_set:
                 print('Loadable Image Validation: Failed to load %r' % (gpath, ))
                 gid_ = None
-            if ensure_exif and gid in bad_exif_list:
+            if gid_ is not None and gid in bad_exif_set and ensure_exif:
                 print('Loadable EXIF Validation:  Failed to load %r' % (gpath, ))
                 gid_ = None
-            gid_list_.append(gid_)
+            all_gid_list_.append(gid_)
             if gid is not None and gid_ is None:
                 delete_gid_list.append(gid)
 
         ibs.delete_images(delete_gid_list, trash_images=False)
-        gid_list = gid_list_
+        all_gid_list = all_gid_list_
 
-    assert len(gpath_list) == len(gid_list)
-    return gid_list
+    assert len(gpath_list) == len(all_gid_list)
+    return all_gid_list
 
 
 @register_ibs_method
