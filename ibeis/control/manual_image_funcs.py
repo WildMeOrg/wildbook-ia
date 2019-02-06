@@ -275,7 +275,7 @@ def compute_image_uuids(ibs, gpath_list, **kwargs):
 @register_api('/api/image/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False,
                auto_localize=None, location_for_names=None, ensure_unique=False,
-               **kwargs):
+               ensure_loadable=True, ensure_exif=True, **kwargs):
     r"""
     Adds a list of image paths to the database.
 
@@ -408,8 +408,31 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         aid_list = ibs.use_images_as_annotations(gid_list)
         print('[ibs] added %d annotations' % (len(aid_list),))
 
-    assert len(gpath_list) == len(all_gid_list)
-    return all_gid_list
+    # Check loadable
+    if ensure_loadable:
+        bad_loadable_list, bad_exif_list = ibs.check_image_loadable(gid_list)
+        bad_loadable_set = set(bad_loadable_list)
+        bad_loadable_set = set(bad_exif_list)
+
+        gid_list_ = []
+        delete_gid_list = []
+        for gid, gpath in zip(gid_list, gpath_list):
+            gid_ = gid
+            if gid in bad_loadable_set:
+                print('Loadable Image Validation: Failed to load %r' % (gpath, ))
+                gid_ = None
+            if ensure_exif and gid in bad_exif_list:
+                print('Loadable EXIF Validation:  Failed to load %r' % (gpath, ))
+                gid_ = None
+            gid_list_.append(gid_)
+            if gid_ is None:
+                delete_gid_list.append(gid)
+
+        ibs.delete_images(delete_gid_list, trash_images=False)
+        gid_list = gid_list_
+
+    assert len(gpath_list) == len(gid_list)
+    return gid_list
 
 
 @register_ibs_method
