@@ -488,7 +488,7 @@ def add_images_json(ibs, image_uri_list,
 
         flag_list = [
             None not in [gid, image_gps_lat_, image_gps_lon_]
-            for image_gps_lat_, image_gps_lon_ in zip(gid_list, image_gps_lat_list, image_gps_lon_list)
+            for gid, image_gps_lat_, image_gps_lon_ in zip(gid_list, image_gps_lat_list, image_gps_lon_list)
         ]
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_gps_lat_list_ = ut.filter_items(image_gps_lat_list, flag_list)
