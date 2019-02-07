@@ -308,7 +308,7 @@ def image_upload(cleanup=True, **kwargs):
     gid = gid_list[0]
 
     if cleanup and exists(upload_filepath):
-        ut.remove_dirs(upload_filepath)
+        ut.delete(upload_filepath)
 
     return gid
 

@@ -1728,26 +1728,29 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         if gid not in group_dict:
             group_dict[gid] = []
         group_dict[gid].append(result)
-    message = 'len(set(gid_list_)) = %d, len(group_dict.keys()) = %d\nset(gid_list_) = %r\ngroup_dict.keys() = %r' % (
-        len(set(gid_list_)),
-        len(group_dict.keys()),
-        list(set(gid_list_)),
-        list(group_dict.keys()),
-    )
-    assert len(set(gid_list_)) == len(group_dict.keys()), message
 
     # Return the results
     for gid in gid_list_:
-        result_list = group_dict[gid]
-        zipped_list = list(zip(*result_list))
-        ret_tuple = (
-            np.array(zipped_list[0]),
-            np.array(zipped_list[1]),
-            np.array(zipped_list[2]),
-            np.array(zipped_list[3]),
-            np.array(zipped_list[4]),
-            list(zipped_list[5]),
-        )
+        result_list = group_dict.get(gid, None)
+        if result_list is None:
+            ret_tuple = (
+                np.array([]),
+                np.array([]),
+                np.array([]),
+                np.array([]),
+                np.array([]),
+                []
+            )
+        else:
+            zipped_list = list(zip(*result_list))
+            ret_tuple = (
+                np.array(zipped_list[0]),
+                np.array(zipped_list[1]),
+                np.array(zipped_list[2]),
+                np.array(zipped_list[3]),
+                np.array(zipped_list[4]),
+                list(zipped_list[5]),
+            )
         yield ret_tuple
 
 
