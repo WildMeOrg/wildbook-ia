@@ -31,6 +31,8 @@ from ibeis import annotmatch_funcs  # NOQA
 from skimage import io
 import xml.etree.ElementTree as ET
 import datetime
+from PIL import Image
+import cv2
 
 
 # Inject utool functions
@@ -640,13 +642,19 @@ def check_image_loadable(ibs, gid_list=None):
 def check_image_loadable_worker(gpath, orient):
     loadable, exif = True, True
     try:
-        print(gpath)
-        io.imread(gpath)
-        vt.imread(gpath, orient=orient)
+        img = Image.open(gpath, 'r')
+        assert img is not None
+        img = cv2.imread(gpath)
+        assert img is not None
+        img = io.imread(gpath)
+        assert img is not None
+        img = vt.imread(gpath, orient=orient)
+        assert img is not None
     except:
         loadable = False
     try:
-        vt.imread(gpath, orient='auto', on_error='fail')
+        img = vt.imread(gpath, orient='auto', on_error='fail')
+        assert img is not None
     except:
         exif = False
     return loadable, exif

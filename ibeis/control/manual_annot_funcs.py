@@ -3597,10 +3597,10 @@ def get_annot_age_months_est(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_min_list = ibs.get_annot_age_months_est_min(aid_list)
     annot_age_months_est_max_list = ibs.get_annot_age_months_est_max(aid_list)
-    annot_age_months_est_list = zip(
+    annot_age_months_est_list = list(zip(
         annot_age_months_est_min_list,
         annot_age_months_est_max_list
-    )
+    ))
     return annot_age_months_est_list
 
 
