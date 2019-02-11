@@ -133,22 +133,25 @@ def classifier_train(ibs, **kwargs):
 
 
 @register_ibs_method
-def canonical_classifier_train(ibs, species, ensembles=3, **kwargs):
+def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_canonical_training_images_pytorch
     from ibeis.algo.detect import densenet
 
     args = (species, )
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
-    extracted_path = get_cnn_classifier_canonical_training_images_pytorch(
-        ibs,
-        species,
-        dest_path=data_path,
-    )
+    if extracted_path is None:
+        extracted_path = get_cnn_classifier_canonical_training_images_pytorch(
+            ibs,
+            species,
+            dest_path=data_path,
+        )
 
     weights_path_list = []
     for ensemble_num in range(ensembles):
         args = (species, ensemble_num, )
         output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        if exists(output_path):
+            ut.delete(output_path)
         weights_path = densenet.train(extracted_path, output_path)
         weights_path_list.append(weights_path)
 
