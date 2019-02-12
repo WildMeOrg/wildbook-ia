@@ -155,7 +155,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         return fmt_str
 
 
-def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128):
+def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=256):
     phases = ['train', 'val']
 
     start = time.time()
@@ -318,7 +318,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=4):
+def train(data_path, output_path, batch_size=8):
     # Detect if we have a GPU available
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

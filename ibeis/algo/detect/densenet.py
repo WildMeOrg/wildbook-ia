@@ -209,7 +209,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
         return self.total
 
 
-def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=64):
+def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=256):
     phases = ['train', 'val']
 
     start = time.time()
@@ -342,7 +342,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwarg
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=32, **kwargs):
+def train(data_path, output_path, batch_size=64, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
