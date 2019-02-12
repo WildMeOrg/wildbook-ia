@@ -286,6 +286,16 @@ class WebMatchThumbException(WebException):
         super(WebMatchThumbException, self).__init__(message, rawreturn, code)
 
 
+class WebInvalidUUIDException(WebException):
+    def __init__(self, invalid_image_uuid_list=[], invalid_annot_uuid_list=[]):
+        rawreturn = {
+            'invalid_image_uuid_list' : invalid_image_uuid_list,
+            'invalid_annot_uuid_list' : invalid_annot_uuid_list,
+        }
+        code = 608
+        super(WebInvalidUUIDException, self).__init__(message, rawreturn, code)
+
+
 class WebMissingInput(WebException):
     def __init__(self, message, key=None):
         rawreturn = {}
