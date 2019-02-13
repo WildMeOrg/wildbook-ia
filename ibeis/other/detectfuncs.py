@@ -2996,7 +2996,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 32)):
     config = config_list[0]
     test_aid_set, test_bbox_set, prediction_list, y_list = values
     ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
-                                             prediction_list, y_list, color_list_,
+                                             prediction_list, y_list, colors,
                                              **config)
 
     fig_filename = 'canonical-localization-deviance.png'
