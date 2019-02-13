@@ -18,9 +18,10 @@ INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    'canonical_zebra_grevys' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.zip',
-    'ryan.densenet.v1'       : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
-    'ryan.densenet.v2'       : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
+    'canonical_zebra_grevys_v1' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v1.zip',
+    'canonical_zebra_grevys_v2' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v2.zip',
+    'ryan.densenet.v1'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
+    'ryan.densenet.v2'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
 }
 
 
@@ -209,7 +210,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
         return self.total
 
 
-def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=256):
+def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=128):
     phases = ['train', 'val']
 
     start = time.time()
@@ -342,7 +343,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwarg
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=64, **kwargs):
+def train(data_path, output_path, batch_size=32, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -403,7 +404,7 @@ def train(data_path, output_path, batch_size=64, **kwargs):
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10, min_lr=1e-6)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=10, min_lr=1e-6)
 
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss()

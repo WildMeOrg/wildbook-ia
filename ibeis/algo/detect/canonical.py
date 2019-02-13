@@ -18,7 +18,8 @@ INPUT_SIZE = 224
 
 
 ARCHIVE_URL_DICT = {
-    'canonical_zebra_grevys': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.zip'
+    'canonical_zebra_grevys_v1': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v1.zip',
+    'canonical_zebra_grevys_v2': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v2.zip',
 }
 
 
