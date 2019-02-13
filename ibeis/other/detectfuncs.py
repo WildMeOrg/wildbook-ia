@@ -2953,6 +2953,8 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 32)):
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
 
+    ut.embed()
+
     assert len(config_list) % 4 == 0
     rounds = len(config_list) // 4
     colors = pt.distinct_colors(4, randomize=False)
