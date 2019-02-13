@@ -2959,7 +2959,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 32)):
 
     attribute_list = []
     color_list_ = []
-    for _ in rounds:
+    for _ in range(rounds):
         attribute_list += ['x0', 'y0', 'x1', 'y1']
         color_list += colors
 
