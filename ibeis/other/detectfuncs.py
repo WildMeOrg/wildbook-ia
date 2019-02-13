@@ -2857,7 +2857,7 @@ def canonical_localization_iou_visualize(ibs, test_aid_set, test_bbox_set, predi
 
 
 @register_ibs_method
-def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
+def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 32)):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2953,11 +2953,19 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 30)):
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
 
-    config = config_list[0]
-    attribute_list = ['x0', 'y0', 'x1', 'y1']
-    color_list_ = pt.distinct_colors(len(attribute_list), randomize=False)
+    assert len(config_list) % 4 == 0
+    rounds = len(config_list) // 4
+    colors = pt.distinct_colors(4, randomize=False)
+
+    attribute_list = []
+    color_list_ = []
+    for _ in rounds:
+        attribute_list += ['x0', 'y0', 'x1', 'y1']
+        color_list += colors
+
     for index, (attribute, color_) in enumerate(zip(attribute_list, color_list_)):
-        config_ = config.copy()
+        index_ = index // 4
+        config_ = config_list[index_].copy()
         config_['label'] = '%s %s' % (config_['label'], attribute, )
         canonical_localization_deviation_plot(ibs, attribute, color=color_, index=index, **config_)
 

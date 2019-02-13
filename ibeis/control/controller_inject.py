@@ -288,6 +288,8 @@ class WebMatchThumbException(WebException):
 
 class WebInvalidUUIDException(WebException):
     def __init__(self, invalid_image_uuid_list=[], invalid_annot_uuid_list=[]):
+        args = (len(invalid_image_uuid_list), len(invalid_annot_uuid_list), )
+        message = 'Invalid image and/or annotation UUIDs (%d, %d)' % args
         rawreturn = {
             'invalid_image_uuid_list' : invalid_image_uuid_list,
             'invalid_annot_uuid_list' : invalid_annot_uuid_list,
