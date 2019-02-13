@@ -512,6 +512,7 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
 
 
 def test(gpath_list, classifier_weight_filepath=None, **kwargs):
+    from detecttools.directory import Directory
     # Get correct weight if specified with shorthand
     archive_url = None
 
@@ -536,8 +537,8 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
         ut.unarchive_file(archive_path, output_dir=ensemble_path)
 
     assert os.path.exists(ensemble_path)
-    ensemble_path = os.path.join(ensemble_path, '*.weights')
-    weights_path_list = ut.glob(ensemble_path)
+    direct = Directory(ensemble_path, include_file_extensions=['weights'], recursive=True)
+    weights_path_list = direct.files()
     weights_path_list = sorted(weights_path_list)
     assert len(weights_path_list) > 0
 
