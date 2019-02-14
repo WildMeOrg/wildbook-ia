@@ -476,6 +476,7 @@ def localize_images(ibs, gid_list_=None):
     """
     #from os.path import isabs
     import six
+    import requests
 
     if six.PY2:
         import urllib
@@ -529,7 +530,13 @@ def localize_images(ibs, gid_list_=None):
                 uri_path = urlquote(uri_.path.encode('utf8'))
                 uri_ = uri_._replace(path=uri_path)
                 uri_ = uri_.geturl()
-                six.moves.urllib.request.urlretrieve(uri_, filename=loc_gpath)
+                # six.moves.urllib.request.urlretrieve(uri_, filename=loc_gpath)
+                response = requests.get(uri_, stream=True, allow_redirects=True)
+                assert response.status_code == 200, '200 code not received on download'
+                # Save
+                with open(loc_gpath, 'wb') as temp_file_:
+                    for chunk in response.iter_content(1024):
+                        temp_file_.write(chunk)
             else:
                 raise ValueError('Sanity check failed')
         else:
