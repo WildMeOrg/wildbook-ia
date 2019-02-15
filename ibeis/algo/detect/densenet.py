@@ -48,7 +48,7 @@ if not ut.get_argflag('--no-pytorch'):
                 return self.aug.augment_image(img)
 
         class TrainAugmentations(Augmentations):
-            def __init__(self, blur=False, flip=True, **kwargs):
+            def __init__(self, blur=False, flip=False, **kwargs):
                 from imgaug import augmenters as iaa
                 sequence = []
 

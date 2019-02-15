@@ -228,7 +228,7 @@ def localizer_train(ibs, species_list=None, **kwargs):
 
 
 @register_ibs_method
-def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs):
+def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
@@ -250,6 +250,51 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
     model_state['viewpoint_mapping'] = viewpoint_mapping
     save_model(model_state, model_path)
     return model_path
+
+
+@register_ibs_method
+def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, ensembles=3, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images_pytorch
+    from ibeis.algo.detect import densenet
+
+    species = '-'.join(species_list)
+    args = (species, )
+    data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
+    extracted_path = get_cnn_labeler_training_images_pytorch(
+        ibs,
+        category_list=species_list,
+        category_mapping=species_mapping,
+        viewpoint_mapping=viewpoint_mapping,
+        dest_path=data_path,
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (species, ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        if exists(output_path):
+            ut.delete(output_path)
+        weights_path = densenet.train(extracted_path, output_path)
+        weights_path_list.append(weights_path)
+
+    args = (species, )
+    output_name = 'classifier.canonical.%s' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.zip' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
 
 
 # @register_ibs_method
