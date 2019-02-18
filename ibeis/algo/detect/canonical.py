@@ -156,7 +156,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         return fmt_str
 
 
-def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=256):
+def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=256, under=1.0, over=2.0):
     phases = ['train', 'val']
 
     start = time.time()
@@ -201,10 +201,27 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=256):
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
                     outputs = model(inputs)
-                    import utool as ut
-                    ut.embed()
-                    error = outputs - labels
-                    loss_ = torch.mean(error * error, 0)
+
+                    undershoots = labels - outputs
+                    overshoots = outputs - labels
+
+                    #partition
+                    undershoots[undershoots < 0] = 0
+                    overshoots[overshoots < 0] = 0
+
+                    # Square
+                    undershoots = undershoots * undershoots
+                    overshoots = overshoots * overshoots
+
+                    # Weighted
+                    undershoots *= under
+                    overshoots *= over
+
+                    # Sum
+                    error = undershoots + overshoots
+
+                    # error = outputs - labels
+                    # error = error * error
 
                     # Bias towards bad instances
                     # loss_sorted, loss_index = torch.sort(loss_)
@@ -214,6 +231,7 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=256):
                     # loss_weighted = loss_ * loss_index
                     # loss = torch.sum(loss_weighted)
 
+                    loss_ = torch.mean(error, 0)
                     loss = torch.sum(loss_)
 
                     # backward + optimize only if in training phase
