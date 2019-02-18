@@ -132,6 +132,12 @@ def get_flask_app(templates_auto_reload=True):
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
 
+        # Add more verbose logging
+        import logging
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        GLOBAL_APP.logger.addHandler(stream_handler)
+
         if ut.VERBOSE:
             print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET, ))
         GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
