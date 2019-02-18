@@ -2559,13 +2559,14 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
 
     config_list = [
         {'label': 'CA V1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},
-        {'label': 'CA V1 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V1 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V1 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1:2', 'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1:0', 'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1:1', 'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1:2', 'species': 'zebra_grevys'},
         {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
-        {'label': 'CA V2 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V2 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V2 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2:2', 'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2:0', 'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2:1', 'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2:2', 'species': 'zebra_grevys'},
+        {'label': 'CA V3 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},
     ]
     # color_list = []
     color_list = [(0, 0, 0)]

@@ -201,6 +201,8 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=256):
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
                     outputs = model(inputs)
+                    import utool as ut
+                    ut.embed()
                     error = outputs - labels
                     loss_ = torch.mean(error * error, 0)
 
