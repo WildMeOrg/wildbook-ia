@@ -2729,6 +2729,7 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
 
     label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+    plt.plot([index, 0.0], [index + 1, 0.0], color=(0.2, 0.2, 0.2), linestyle='-')
 
     color = 'xkcd:gold'
     marker = 'D'
@@ -2738,7 +2739,7 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
 
 def canonical_localization_iou_plot(ibs, color, index,
                                     label=None, species=None, marker='o',
-                                    **kwargs):
+                                    threshold=0.75, **kwargs):
     import random
     import matplotlib.pyplot as plt
 
@@ -2767,26 +2768,33 @@ def canonical_localization_iou_plot(ibs, color, index,
     gt_list = [_convert(test_bbox) for test_bbox in test_bbox_set]
     pred_list = [_convert(prediction) for prediction in prediction_list]
 
+    correct = 0.0
     x_list = []
     y_list = []
     for gt, pred in zip(gt_list, pred_list):
         overlap = general_overlap([gt], [pred])
         x = random.uniform(index, index + 1)
         y = overlap[0][0]
+        if y > threshold:
+            correct += 1
         x_list.append(x)
         y_list.append(y)
+    accuracy = correct / len(y_list)
     mean = np.mean(y_list)
     std = np.std(y_list)
 
-    label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
+    label = '%s (mean: %0.01f, std: %0.01f, acc: %0.01f)' % (label, mean, std, accuracy, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
+
+    for y_value in [0.5, 0.75, 0.9]:
+        plt.plot([index, y_value], [index + 1, y_value], color=(0.2, 0.2, 0.2), linestyle='-')
 
     color = 'xkcd:gold'
     marker = 'D'
     plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999, barsabove=True)
     # plt.plot([index + 0.5], [mean], color=color, marker=marker)
 
-    return test_aid_set, test_bbox_set, prediction_list, y_list
+    return test_aid_set, test_bbox_set, prediction_list, y_list, accuracy
 
 
 @register_ibs_method
@@ -2874,8 +2882,8 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
         {'label': 'CA V2 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:1', 'species': 'zebra_grevys'},
         {'label': 'CA V2 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:2', 'species': 'zebra_grevys'},
     ]
-    # color_list = []
-    color_list = [(0, 0, 0)]
+    color_list = []
+    # color_list = [(0, 0, 0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     min_, max_ = -1.0, 1.0
@@ -2995,7 +3003,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
                borderaxespad=0.0)
 
     config = config_list[0]
-    test_aid_set, test_bbox_set, prediction_list, y_list = values
+    test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = values
     ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
                                              prediction_list, y_list, colors,
                                              **config)
