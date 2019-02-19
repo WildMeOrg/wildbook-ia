@@ -1681,6 +1681,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
         output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
         positive_path = join(output_path, 'positive')
         negative_path = join(output_path, 'negative')
+        ut.delete(output_path)
         ut.ensuredir(output_path)
         ut.ensuredir(positive_path)
         ut.ensuredir(negative_path)
@@ -2520,6 +2521,7 @@ def canonical_confusion_matrix_algo_plot(ibs, label, color, conf, species, outpu
         output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
         positive_path = join(output_path, 'positive')
         negative_path = join(output_path, 'negative')
+        ut.delete(output_path)
         ut.ensuredir(output_path)
         ut.ensuredir(positive_path)
         ut.ensuredir(negative_path)
@@ -2562,12 +2564,12 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
         {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
         {'label': 'CA V3 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},
         {'label': 'CA V4 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},
-        {'label': 'CA V4 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V4 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V4 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
+        # {'label': 'CA V4 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
+        # {'label': 'CA V4 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
+        # {'label': 'CA V4 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
     ]
-    # color_list = []
-    color_list = [(0, 0, 0)]
+    color_list = []
+    # color_list = [(0, 0, 0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     axes_ = plt.subplot(221)
@@ -2584,7 +2586,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     # index = np.argmax(area_list)
-    index = 0
+    index = -1
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
     best_color1 = color_list[index]
@@ -2608,7 +2610,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     # index = np.argmax(area_list)
-    index = 0
+    index = -1
     best_label2 = config_list[index]['label']
     best_config2 = config_list[index]
     best_color2 = color_list[index]
