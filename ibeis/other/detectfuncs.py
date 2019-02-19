@@ -2728,6 +2728,9 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
     plt.plot([index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.5)
 
+    if index % 4 == 3:
+        plt.plot([index + 1, index + 1], [0.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.5)
+
     color = 'xkcd:gold'
     marker = 'D'
     plt.errorbar([index + 0.5], [mean], [std], linestyle='None', color=color, marker=marker, zorder=999, barsabove=True)
@@ -2780,11 +2783,14 @@ def canonical_localization_iou_plot(ibs, color, index,
     mean = np.mean(y_list)
     std = np.std(y_list)
 
-    label = '%s (%0.02f, %0.02f +/- %0.02f)' % (label, accuracy, mean, std, )
+    label = '%s (Acc: %0.02f, %0.02f+/-%0.02f)' % (label, accuracy, mean, std, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
 
     for y_value in [0.5, 0.75, 0.9]:
         plt.plot([index, index + 1], [y_value, y_value], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.5)
+
+    if index % 4 == 3:
+        plt.plot([index + 1, index + 1], [0.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.5)
 
     color = 'xkcd:gold'
     marker = 'D'
@@ -2795,7 +2801,7 @@ def canonical_localization_iou_plot(ibs, color, index,
 
 
 @register_ibs_method
-def canonical_localization_iou_visualize(ibs, test_aid_set, test_bbox_set, prediction_list,
+def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set, prediction_list,
                                          overlap_list, color_list, label=None, species=None,
                                          **kwargs):
     assert None not in [label, species]
@@ -2812,7 +2818,7 @@ def canonical_localization_iou_visualize(ibs, test_aid_set, test_bbox_set, predi
         color_list_.append(color_)
     color_list = color_list_
 
-    output_path = expanduser(join('~', 'Desktop', 'canonical-regression'))
+    output_path = expanduser(join('~', 'Desktop', 'canonical-regression-%d'))
     ut.delete(output_path)
     ut.ensuredir(output_path)
 
@@ -2994,29 +3000,19 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([0.0, 1.0])
 
-    best_index = None
-    best_accuracy = 0.0
-    best_values = None
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         print(index, config)
         values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
         if index % 4 == 0:
-            accuracy = values_[-1]
-            print(accuracy)
-            if accuracy > best_accuracy:
-                best_index = index
-                best_accuracy = accuracy
-                best_values = values_
+            config_ = config_list[index]
+            test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = values_
+            ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
+                                                     prediction_list, y_list, colors,
+                                                     **config_)
 
     plt.title('IoU Scatter Plot')
     plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
-
-    best_config = config_list[best_index]
-    test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = best_values
-    ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
-                                             prediction_list, y_list, colors,
-                                             **best_config)
 
     fig_filename = 'canonical-localization-deviance.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
