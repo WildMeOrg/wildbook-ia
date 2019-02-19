@@ -50,12 +50,14 @@ if not ut.get_argflag('--no-pytorch'):
                 from imgaug import augmenters as iaa
                 self.aug = iaa.Sequential([
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
+                    iaa.ContrastNormalization((0.5, 1.5)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
+                    iaa.Multiply((0.5, 1.5)),
                     # iaa.Dropout(p=(0.0, 0.1)),
-                    # iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 1.0))),
-                    iaa.PiecewiseAffine(scale=(0.0001, 0.0005)),
-                    # iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
+                    iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
+                    iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
+                    iaa.Grayscale(alpha=(0.5, 1.0)),
                 ])
 
         class ValidAugmentations(Augmentations):
@@ -339,7 +341,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=32):
+def train(data_path, output_path, batch_size=48):
     # Detect if we have a GPU available
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

@@ -55,21 +55,24 @@ if not ut.get_argflag('--no-pytorch'):
 
                 sequence += [
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
+                    iaa.ContrastNormalization((0.5, 1.5)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
+                    iaa.Multiply((0.5, 1.5)),
                 ]
-                if blur:
-                    sequence += [
-                        iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
-                    ]
                 sequence += [
+                    iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
                     iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
+                    iaa.Grayscale(alpha=(0.5, 1.0))
                 ]
                 if flip:
                     sequence += [
                         iaa.Fliplr(0.5),
                     ]
-
+                if blur:
+                    sequence += [
+                        iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
+                    ]
                 self.aug = iaa.Sequential(sequence)
 
         class ValidAugmentations(Augmentations):
@@ -344,7 +347,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwarg
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=64, **kwargs):
+def train(data_path, output_path, batch_size=48, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
