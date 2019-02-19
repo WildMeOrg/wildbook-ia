@@ -272,14 +272,14 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
     weights_path_list = []
     for ensemble_num in range(ensembles):
         args = (species, ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        output_path = join(ibs.get_cachedir(), 'training', 'labeler-%s-ensemble-%d' % args)
         if exists(output_path):
             ut.delete(output_path)
         weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
         weights_path_list.append(weights_path)
 
     args = (species, )
-    output_name = 'classifier.canonical.%s' % args
+    output_name = 'labeler.%s' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
 
@@ -288,7 +288,7 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ensemble_weights_path = join(ensemble_path, 'labeler.%d.weights' % (index, ))
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
