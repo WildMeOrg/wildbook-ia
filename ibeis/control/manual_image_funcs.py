@@ -1036,18 +1036,8 @@ def update_image_rotate_90(ibs, gid_list, direction):
         else:
             ibs.update_annot_rotate_right_90(aid_list)
 
-    ibs.depc_image.delete_property('thumbnails', gid_list)
-    ibs.depc_image.delete_property('web_src',    gid_list)
-
-    # Delete web thumbnails
-    from ibeis.web import appfuncs as appf
-    config_ = {
-        'thumbsize': max(
-            int(appf.TARGET_WIDTH),
-            int(appf.TARGET_HEIGHT),
-        ),
-    }
-    ibs.depc_image.delete_property('thumbnails', gid_list, config=config_)
+    ibs.depc_image.delete_property_all('thumbnails', gid_list)
+    ibs.depc_image.delete_property_all('web_src',    gid_list)
 
 
 @register_ibs_method
