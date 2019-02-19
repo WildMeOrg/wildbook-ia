@@ -34,7 +34,7 @@ def _resize_src(image, resize=False, **kwargs):
 
 
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
-def image_src(gid=None, thumbnail=False, ibs=None, orient='auto', **kwargs):
+def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
     if ibs is None:
         ibs = current_app.ibs
 
@@ -53,6 +53,7 @@ def image_src(gid=None, thumbnail=False, ibs=None, orient='auto', **kwargs):
     if thumbnail:
         try:
             gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, **kwargs)
+            orient = ibs.get_image_orientation(gid)
             image = vt.imread(gpath, orient=orient)
             h, w = image.shape[:2]
             assert h > 0, 'Invalid image thumbnail'
