@@ -12,3 +12,4 @@ ut.noinject(__name__, '[ibeis.dbio.__init__]', DEBUG=False)
 from ibeis.dbio import ingest_hsdb
 from ibeis.dbio import ingest_database
 from ibeis.dbio import export_subset
+from ibeis.dbio import ingest_vulcan
