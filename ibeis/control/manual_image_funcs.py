@@ -1036,17 +1036,27 @@ def update_image_rotate_90(ibs, gid_list, direction):
         else:
             ibs.update_annot_rotate_right_90(aid_list)
 
+    ibs.depc_image.delete_property('thumbnails', gid_list)
+    ibs.depc_image.delete_property('web_src',    gid_list)
+
 
 @register_ibs_method
 @register_api('/api/image/rotate/left/', methods=['POST'])
 def update_image_rotate_left_90(ibs, gid_list):
-    return update_image_rotate_90(ibs, gid_list, 'left')
+    update_image_rotate_90(ibs, gid_list, 'left')
 
 
 @register_ibs_method
 @register_api('/api/image/rotate/right/', methods=['POST'])
 def update_image_rotate_right_90(ibs, gid_list):
-    return update_image_rotate_90(ibs, gid_list, 'right')
+    update_image_rotate_90(ibs, gid_list, 'right')
+
+
+@register_ibs_method
+@register_api('/api/image/rotate/180/', methods=['POST'])
+def update_image_rotate_180(ibs, gid_list):
+    update_image_rotate_90(ibs, gid_list, 'right')
+    update_image_rotate_90(ibs, gid_list, 'right')
 
 
 #
