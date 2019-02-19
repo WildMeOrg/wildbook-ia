@@ -31,9 +31,9 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
             'RR18_BIG_2015_09_23_R_AM',
             'TA24_TPM_L_2016-10-30-A',
             'TA24_TPM_R_2016-10-30-A',
-            # '2012-08-16_AM_L_Azohi',
-            # '2012-08-15_AM_R_Marealle',
-            # '2012-08-14_PM_R_Chediel',
+            '2012-08-16_AM_L_Azohi',
+            '2012-08-15_AM_R_Marealle',
+            '2012-08-14_PM_R_Chediel',
         ]
 
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
