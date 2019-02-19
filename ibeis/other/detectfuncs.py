@@ -2559,11 +2559,12 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
 
     config_list = [
         {'label': 'CA V1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},
-        # {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
+        {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
         {'label': 'CA V3 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},
-        {'label': 'CA V3 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V3 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V3 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3:2', 'species': 'zebra_grevys'},
+        {'label': 'CA V4 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},
+        {'label': 'CA V4 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
+        {'label': 'CA V4 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
+        {'label': 'CA V4 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
     ]
     # color_list = []
     color_list = [(0, 0, 0)]
@@ -2716,15 +2717,19 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
 
     x_list = []
     y_list = []
+    overshoot = 0.0
     for value, prediction in zip(value_list, prediction_list):
         x = random.uniform(index, index + 1)
         y = (value - prediction)
+        if y < 0:
+            overshoot += 1
         x_list.append(x)
         y_list.append(y)
     mean = np.mean(y_list)
     std = np.std(y_list)
+    overshoot /= len(y_list)
 
-    label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
+    label = '%s (Over: %0.02f, %0.02f+/-%0.02f)' % (label, overshoot, mean, std, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
 
     plt.plot([index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.3)
@@ -2881,14 +2886,18 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
         {'label': 'CA V1 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:0', 'species': 'zebra_grevys'},
         {'label': 'CA V1 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:1', 'species': 'zebra_grevys'},
         {'label': 'CA V1 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:2', 'species': 'zebra_grevys'},
-        {'label': 'CA V2 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
-        {'label': 'CA V2 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V2 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V2 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:2', 'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:0', 'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:1', 'species': 'zebra_grevys'},
+        # {'label': 'CA V2 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:2', 'species': 'zebra_grevys'},
         {'label': 'CA V3 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},
         {'label': 'CA V3 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:0', 'species': 'zebra_grevys'},
         {'label': 'CA V3 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:1', 'species': 'zebra_grevys'},
         {'label': 'CA V3 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:2', 'species': 'zebra_grevys'},
+        {'label': 'CA V4 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},
+        {'label': 'CA V4 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
+        {'label': 'CA V4 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
+        {'label': 'CA V4 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
     ]
     color_list = []
     # color_list = [(0, 0, 0)]
