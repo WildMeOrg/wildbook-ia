@@ -275,7 +275,7 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
         output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
         if exists(output_path):
             ut.delete(output_path)
-        weights_path = densenet.train(extracted_path, output_path)
+        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
         weights_path_list.append(weights_path)
 
     args = (species, )
