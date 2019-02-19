@@ -2163,47 +2163,48 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                     if staged_super or annot_user_id == staged_user_id
                 ]
 
-                annot_bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
-                annot_theta_list = ibs.get_annot_thetas(aid_list)
-                species_list = ibs.get_annot_species_texts(aid_list)
-                viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-                quality_list = ibs.get_annot_qualities(aid_list)
-                multiple_list = ibs.get_annot_multiple(aid_list)
-                interest_list = ibs.get_annot_interest(aid_list)
-                # Get annotation bounding boxes
-                mapping_dict = {}
-                annotation_list = []
-                zipped = list(zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list))
-                for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
-                    if quality in [-1, None]:
-                        quality = 0
-                    elif quality <= 2:
-                        quality = 1
-                    elif quality > 2:
-                        quality = 2
+            annot_bbox_list = ibs.get_annot_bboxes(aid_list)
+            annot_theta_list = ibs.get_annot_thetas(aid_list)
+            species_list = ibs.get_annot_species_texts(aid_list)
+            viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+            quality_list = ibs.get_annot_qualities(aid_list)
+            multiple_list = ibs.get_annot_multiple(aid_list)
+            interest_list = ibs.get_annot_interest(aid_list)
 
-                    viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+            # Get annotation bounding boxes
+            mapping_dict = {}
+            annotation_list = []
+            zipped = list(zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list))
+            for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
+                if quality in [-1, None]:
+                    quality = 0
+                elif quality <= 2:
+                    quality = 1
+                elif quality > 2:
+                    quality = 2
 
-                    temp = {}
-                    temp['id']         = aid
-                    temp['left']       = 100.0 * (annot_bbox[0] / width)
-                    temp['top']        = 100.0 * (annot_bbox[1] / height)
-                    temp['width']      = 100.0 * (annot_bbox[2] / width)
-                    temp['height']     = 100.0 * (annot_bbox[3] / height)
-                    temp['theta']      = float(annot_theta)
-                    temp['viewpoint1'] = viewpoint1
-                    temp['viewpoint2'] = viewpoint2
-                    temp['viewpoint3'] = viewpoint3
-                    temp['quality']    = quality
-                    temp['multiple']   = 'true' if multiple == 1 else 'false'
-                    temp['interest']   = 'true' if interest == 1 else 'false'
-                    temp['species']    = species
+                viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
 
-                    mapping_dict[aid] = len(annotation_list)
-                    annotation_list.append(temp)
+                temp = {}
+                temp['id']         = aid
+                temp['left']       = 100.0 * (annot_bbox[0] / width)
+                temp['top']        = 100.0 * (annot_bbox[1] / height)
+                temp['width']      = 100.0 * (annot_bbox[2] / width)
+                temp['height']     = 100.0 * (annot_bbox[3] / height)
+                temp['theta']      = float(annot_theta)
+                temp['viewpoint1'] = viewpoint1
+                temp['viewpoint2'] = viewpoint2
+                temp['viewpoint3'] = viewpoint3
+                temp['quality']    = quality
+                temp['multiple']   = 'true' if multiple == 1 else 'false'
+                temp['interest']   = 'true' if interest == 1 else 'false'
+                temp['species']    = species
 
-                # Get parts
-                part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list, is_staged=is_staged))
+                mapping_dict[aid] = len(annotation_list)
+                annotation_list.append(temp)
+
+            # Get parts
+            part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list, is_staged=is_staged))
 
             if is_staged:
                 # Filter part_rowids for current user
