@@ -20,6 +20,7 @@ INPUT_SIZE = 224
 ARCHIVE_URL_DICT = {
     'canonical_zebra_grevys_v1': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v1.zip',
     'canonical_zebra_grevys_v2': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v2.zip',
+    'canonical_zebra_grevys_v3': 'https://cthulhu.dyn.wildme.io/public/models/localizer.canonical.zebra_grevys.v3.zip',
 }
 
 
@@ -50,14 +51,14 @@ if not ut.get_argflag('--no-pytorch'):
                 from imgaug import augmenters as iaa
                 self.aug = iaa.Sequential([
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                    iaa.ContrastNormalization((0.5, 1.5)),
+                    iaa.ContrastNormalization((0.9, 1.1)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-                    iaa.Multiply((0.5, 1.5)),
+                    iaa.Multiply((0.9, 1.1)),
                     # iaa.Dropout(p=(0.0, 0.1)),
                     iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
                     iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
-                    iaa.Grayscale(alpha=(0.5, 1.0)),
+                    iaa.Grayscale(alpha=(0.8, 1.0)),
                 ])
 
         class ValidAugmentations(Augmentations):

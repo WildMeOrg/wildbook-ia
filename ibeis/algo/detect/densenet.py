@@ -55,15 +55,15 @@ if not ut.get_argflag('--no-pytorch'):
 
                 sequence += [
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
-                    iaa.ContrastNormalization((0.5, 1.5)),
+                    iaa.ContrastNormalization((0.9, 1.1)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
                     iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
-                    iaa.Multiply((0.5, 1.5)),
+                    iaa.Multiply((0.9, 1.1)),
                 ]
                 sequence += [
                     iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
                     iaa.Affine(rotate=(-20, 20), shear=(-20, 20), mode='symmetric'),
-                    iaa.Grayscale(alpha=(0.5, 1.0))
+                    iaa.Grayscale(alpha=(0.8, 1.0))
                 ]
                 if flip:
                     sequence += [
