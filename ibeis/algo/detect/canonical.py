@@ -341,7 +341,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=48):
+def train(data_path, output_path, batch_size=32):
     # Detect if we have a GPU available
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
