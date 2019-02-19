@@ -53,11 +53,11 @@ if not ut.get_argflag('--no-pytorch'):
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                     iaa.ContrastNormalization((0.75, 1.25)),
                     iaa.AddElementwise((-20, 20), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-20, 20), per_channel=True),
+                    iaa.AddToHueAndSaturation(value=(-5, 5), per_channel=True),
                     iaa.Multiply((0.75, 1.25)),
                     # iaa.Dropout(p=(0.0, 0.1)),
                     iaa.PiecewiseAffine(scale=(0.0001, 0.0005)),
-                    iaa.Affine(rotate=(-2, 2), shear=(-2, 2), mode='symmetric'),
+                    iaa.Affine(rotate=(-1, 1), shear=(-1, 1), mode='symmetric'),
                     iaa.Grayscale(alpha=(0.0, 0.25)),
                 ])
 

@@ -2726,7 +2726,7 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
 
     label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
-    plt.plot([index, 0.0], [index + 1, 0.0], color=(0.2, 0.2, 0.2), linestyle='-')
+    plt.plot([index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.5)
 
     color = 'xkcd:gold'
     marker = 'D'
@@ -2780,11 +2780,11 @@ def canonical_localization_iou_plot(ibs, color, index,
     mean = np.mean(y_list)
     std = np.std(y_list)
 
-    label = '%s (mean: %0.01f, std: %0.01f, acc: %0.01f)' % (label, mean, std, accuracy, )
+    label = '%s (mean: %0.02f, std: %0.02f, acc: %0.02f)' % (label, mean, std, accuracy, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
 
     for y_value in [0.5, 0.75, 0.9]:
-        plt.plot([index, y_value], [index + 1, y_value], color=(0.2, 0.2, 0.2), linestyle='-')
+        plt.plot([index, index + 1], [y_value, y_value], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.5)
 
     color = 'xkcd:gold'
     marker = 'D'
