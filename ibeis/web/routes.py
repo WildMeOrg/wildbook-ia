@@ -517,8 +517,6 @@ def view_advanced0(**kwargs):
         for gps_list_track in gps_list_tracks
     ]
 
-    # ut.embed()
-
     ALLOW_IMAGE_DATE_COLOR = False
     VERSION = 1
     # Colors for GPS
@@ -1559,8 +1557,9 @@ def view_jobs(**kwargs):
             jov_status,
             job_state,
             job['time_received'],
-            job['time_updated'],
+            job['time_started'],
             job['time_completed'],
+            job['time_runtime'],
         ))
 
     num_jobs = len(job_list)
@@ -1795,11 +1794,11 @@ def view_parts(pid_list=None, aid_list=None, gid_list=None, imgsetid_list=None,
 
     filtered = True
     if imgsetid_list is not None:
-        gid_list = ibs.get_imageset_gids(imgsetid_list)
+        gid_list = ut.flatten(ibs.get_imageset_gids(imgsetid_list))
     if gid_list is not None:
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     if aid_list is not None:
-        pid_list = ut.flatten(ibs.get_image_aids(aid_list))
+        pid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list))
     else:
         pid_list = ibs.get_valid_part_rowids()
         filtered = False
@@ -2056,10 +2055,14 @@ def precompute_web_viewpoint_thumbnails(ibs, aid_list=None, **kwargs):
 
 
 @register_route('/turk/detection/', methods=['GET'])
-def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, staged_super=False, **kwargs):
+def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
+                   previous=None, previous_only_aid=None, staged_super=False,
+                   progress=None, **kwargs):
 
     with ut.Timer('load'):
         ibs = current_app.ibs
+
+        staged_reviews_required = 3
 
         default_list = [
             ('autointerest',            False),
@@ -2078,6 +2081,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
             ('modes_diagonal',          True),
             ('modes_diagonal2',         True),
             ('staged',                  False),
+            ('canonical',               False),
         ]
 
         config_kwargs = kwargs.get('config', {})
@@ -2092,40 +2096,43 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
         config_str = '&'.join(config_str_list)
 
         is_staged = config['staged']
-
         is_staged = is_staged and appf.ALLOW_STAGED
 
-        staged_reviews_required = 3
+        is_canonical = config['canonical']
 
         imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
-        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
-                                                      reviews_required=staged_reviews_required)
+        imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
 
-        try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
-        except ZeroDivisionError:
-            progress = '100.0'
+        if not is_canonical:
+            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+            reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
+                                                          reviews_required=staged_reviews_required)
 
-        if is_staged:
-            staged_progress = appf.imageset_image_staged_progress(
-                ibs,
-                gid_list,
-                reviews_required=staged_reviews_required
-            )
-            staged_progress = '%0.2f' % (100.0 * staged_progress, )
+            try:
+                progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+            except ZeroDivisionError:
+                progress = '100.0'
+
+            if is_staged:
+                staged_progress = appf.imageset_image_staged_progress(
+                    ibs,
+                    gid_list,
+                    reviews_required=staged_reviews_required
+                )
+                staged_progress = '%0.2f' % (100.0 * staged_progress, )
+            else:
+                staged_progress = None
+
+            if gid is None:
+                gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
+                if len(gid_list_) == 0:
+                    gid = None
+                else:
+                    # gid = gid_list_[0]
+                    gid = random.choice(gid_list_)
         else:
             staged_progress = None
 
-        imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
-
-        if gid is None:
-            gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
-            if len(gid_list_) == 0:
-                gid = None
-            else:
-                # gid = gid_list_[0]
-                gid = random.choice(gid_list_)
         finished = gid is None
         review = 'review' in request.args.keys()
         display_instructions = False  # request.cookies.get('ia-detection_instructions_seen', 1) == 1
@@ -2142,6 +2149,10 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
 
             # Get annotations
             aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
+
+            if is_canonical:
+                assert only_aid in aid_list, 'Specified only_aid is not in this image'
+                aid_list = [only_aid]
 
             if is_staged:
                 # Filter aids for current user
@@ -2214,6 +2225,11 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
             part_list = []
             zipped = list(zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list))
             for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
+
+                if is_canonical:
+                    if part_type != appf.CANONICAL_PART_TYPE:
+                        continue
+
                 if part_quality in [-1, None]:
                     part_quality = 0
                 elif part_quality <= 2:
@@ -2451,16 +2467,21 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
             for (settings_key, settings_default) in settings_key_list
         }
 
+        if is_canonical:
+            settings['ia-detection-setting-parts-show'] = True
+
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
                          gid=gid,
+                         only_aid=only_aid,
                          config_str=config_str,
                          config=config,
                          refer_aid=refer_aid,
                          species=species,
                          image_src=image_src,
                          previous=previous,
+                         previous_only_aid=previous_only_aid,
                          imagesettext=imagesettext,
                          progress=progress,
                          staged_progress=staged_progress,
@@ -2476,6 +2497,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
                          THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
                          THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
                          is_staged=is_staged,
+                         is_canonical=is_canonical,
                          num_staged_aids=num_staged_aids,
                          num_staged_part_rowids=num_staged_part_rowids,
                          num_staged_sessions=num_staged_sessions,
@@ -2486,6 +2508,42 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, stage
                          EMBEDDED_CSS=None,
                          EMBEDDED_JAVASCRIPT=None,
                          review=review)
+
+
+@register_route('/turk/detection/canonical/', methods=['GET'])
+def turk_detection_canonical(aid=None, imgsetid=None, previous=None, previous_only_aid=None, **kwargs):
+    ibs = current_app.ibs
+
+    imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    aid_list = ibs.filter_annotation_set(aid_list, is_canonical=True)
+
+    reviewed_list = appf.imageset_annot_canonical(ibs, aid_list)
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '100.0'
+
+    if aid is None:
+        aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+        if len(aid_list_) == 0:
+            aid = None
+        else:
+            aid = random.choice(aid_list_)
+
+    gid = None
+    finished = aid is None
+
+    if not finished:
+        gid = ibs.get_annot_gids(aid)
+
+    args = (imgsetid, gid, aid, progress, previous, previous_only_aid, )
+    print('CANONICAL IMAGESETID: %s GID: %s AID: %s (PROG = %s, PREV GID = %s, PREV AID = %s)' % args)
+
+    kwargs['canonical'] = True
+    return turk_detection(gid, only_aid=aid, imgsetid=imgsetid, progress=progress, previous=previous,
+                          previous_only_aid=previous_only_aid, **kwargs)
 
 
 @register_route('/turk/detection/dynamic/', methods=['GET'])
@@ -2667,8 +2725,8 @@ def turk_annotation_dynamic(**kwargs):
                          __wrapper__=False)
 
 
-@register_route('/turk/annotation/grid/', methods=['GET'])
-def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', version=1, **kwargs):
+@register_route('/turk/annotation/canonical/', methods=['GET'])
+def turk_annotation_canonical(imgsetid=None, samples=200, species=None, version=1, **kwargs):
     import random
 
     ibs = current_app.ibs
@@ -2678,32 +2736,50 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
 
-    enable_grid = version == 1
-    aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75, enable_grid=enable_grid)
-    metadata_list = ibs.get_annot_metadata(aid_list)
-    highlighted_list = [
-        metadata.get('turk', {}).get('grid', None)
-        for metadata in metadata_list
-    ]
-    reviewed_list = []
-    for highlighted in highlighted_list:
-        if version == 1:
-            reviewed = highlighted in [True, False]
-        elif version == 2:
-            reviewed = highlighted in [None, False]
-        elif version == 3:
-            reviewed = highlighted in [None, True]
-        reviewed_list.append(reviewed)
+    if species is not None:
+        aid_list = ibs.filter_annotation_set(aid_list, species=species)
 
-    kwargs = {
-        'aoi_two_weight_filepath': 'ggr2',
-    }
-    prediction_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'class', config=kwargs)
-    confidence_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'score', config=kwargs)
-    confidence_list = [
-        confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence in zip(prediction_list, confidence_list)
-    ]
+    # enable_canonical = version == 1
+    # aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75, enable_canonical=enable_canonical)
+
+    # metadata_list = ibs.get_annot_metadata(aid_list)
+    # canonical_flag_list = []
+    # for metadata in metadata_list:
+    #     turk = metadata.get('turk', {})
+    #     canonical = turk.get('canonical', turk.get('grid', None))
+    #     canonical_flag_list.append(canonical)
+
+    canonical_flag_list = ibs.get_annot_canonical(aid_list)
+
+    canonical_str = None
+    if species == 'zebra_grevys':
+        canonical_str = 'Grevy\'s Zebra - right side + shoulder chevron, side stripes, and hip chevron'
+    elif species == 'zebra_plains':
+        canonical_str = 'Plains Zebra - left side + shoulder chevron, side stripes, and entire hip'
+    elif species == 'giraffe_reticulated':
+        canonical_str = 'Reticulated Giraffe - left side + entire body center mass, neck'
+    elif species == 'giraffe_masai':
+        canonical_str = 'Masai Giraffe - right side + entire body center mass, neck'
+    elif species == 'turtle_sea':
+        canonical_str = 'Sea Turtle - right size + entire side of head'
+    elif species == 'whale_fluke':
+        canonical_str = 'Whale Fluke - top or bottom + trailing edge entirely out of water'
+
+    reviewed_list = []
+    for canonical_flag in canonical_flag_list:
+        if version in [1, 'set']:
+            # Version 1 - Annotations that are unreviewed
+            reviewed = canonical_flag in [True, False]
+            version = 1
+        elif version in [2, 'yes']:
+            # Version 2 - Annotations that are marked YES as CA
+            reviewed = canonical_flag in [None, False]
+            version = 2
+        elif version in [3, 'no']:
+            # Version 2 - Annotations that are marked NO as CA
+            reviewed = canonical_flag in [None, True]
+            version = 3
+        reviewed_list.append(reviewed)
 
     try:
         print('Total len(reviewed_list) = %d' % (len(reviewed_list), ))
@@ -2711,7 +2787,21 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     except ZeroDivisionError:
         progress = '100.0'
 
-    zipped = list(zip(aid_list, highlighted_list, confidence_list))
+    COMPARE_TO_AOI = False
+    if COMPARE_TO_AOI:
+        kwargs = {
+            'aoi_two_weight_filepath': 'ggr2',
+        }
+        prediction_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'class', config=kwargs)
+        confidence_list = ibs.depc_annot.get_property('aoi_two', aid_list, 'score', config=kwargs)
+        confidence_list = [
+            confidence if prediction == 'positive' else 1.0 - confidence
+            for prediction, confidence in zip(prediction_list, confidence_list)
+        ]
+    else:
+        confidence_list = [1.0] * len(aid_list)
+
+    zipped = list(zip(aid_list, reviewed_list, confidence_list))
     values_list = ut.filterfalse_items(zipped, reviewed_list)
 
     aid_list_ = []
@@ -2730,7 +2820,6 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
 
     finished = len(aid_list_) == 0
 
-    highlighted_list = [False] * len(aid_list_)
     annotation_list = list(zip(
         aid_list_,
         highlighted_list_,
@@ -2739,10 +2828,11 @@ def turk_annotation_grid(imgsetid=None, samples=200, species='zebra_grevys', ver
     aid_list_str = ','.join(map(str, aid_list_))
 
     annotation_list.sort(key=lambda t: t[0])
-    args = (url_for('submit_annotation_grid'), imgsetid, version, samples, species, )
+    args = (url_for('submit_annotation_canonical'), imgsetid, version, samples, species, )
     callback_url = '%s?imgsetid=%s&version=%d&samples=%d&species=%s' % args
-    return appf.template('turk', 'grid_annotation',
+    return appf.template('turk', 'canonical',
                          imgsetid=imgsetid,
+                         canonical_str=canonical_str,
                          aid_list=aid_list_,
                          aid_list_str=aid_list_str,
                          num_aids=len(aid_list_),
@@ -3609,7 +3699,7 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     config = {
         'species':     species,
         'threshold':   0.75,
-        'enable_grid': True,
+        'enable_canonical': True,
     }
     return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                      creation_imageset_rowid_list=[imgsetid], **config)

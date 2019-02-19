@@ -34,7 +34,7 @@
 {% block content %}
   {% if num_annotations == 0 %}
     <div class="alert alert-info text-center" role="alert">
-      Congratulations, annotation grid turking is completed.  Thank you!
+      Congratulations, canonical annotation turking is completed.  Thank you!
       <br/>
       <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View completed annotations</a>
     </div>
@@ -54,6 +54,14 @@
     </div>
 
     <div class="row">
+      <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align: center;">
+        <!-- Reference: https://stackoverflow.com/a/14115340 -->
+        <img class="ajax-image ajax-image-highlighted" src="data:image/gif;base64,R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=" style="margin: 0px;"/> Census Annotation
+        {% if canonical_str %}<br/><i>({{canonical_str}})</i>{% endif %}
+      </div>
+    </div>
+
+    <div class="row">
       {% for (aid, highlighted, confidence) in annotation_list %}
         <div class="ajax-image-container col-lg-3 col-md-3 col-sm-4 col-xs-6">
           <img class="ajax-image ajax-image-load ajax-image-unloaded {% if highlighted %}ajax-image-highlighted{% endif %}" src="" aid="{{ aid }}" confidence="{{ confidence }}" />
@@ -63,10 +71,10 @@
 
     <div class="row">
       <div class="col-lg-12" style="text-align: center; margin-top: 20px;">
-        <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}" onsubmit="return check_form();" id="ia-annotation-grid-form">
-          <input type="text" name="annotation-grid-aids" style="display: none" value="" readonly>
-          <input type="text" name="annotation-grid-highlighted" style="display: none" value="" readonly>
-          <input type="submit" name="annotation-grid-submit" id="ia-turk-submit-accept" class="btn btn-primary" value="Accept">
+        <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}" onsubmit="return check_form();" id="ia-annotation-canonical-form">
+          <input type="text" name="annotation-canonical-aids" style="display: none" value="" readonly>
+          <input type="text" name="annotation-canonical-highlighted" style="display: none" value="" readonly>
+          <input type="submit" name="annotation-canonical-submit" id="ia-turk-submit-accept" class="btn btn-primary" value="Accept">
         </form>
       </div>
     </div>
@@ -93,8 +101,8 @@
       highlights.push(highlighted)
     }
 
-    $('input[name="annotation-grid-aids"]').val(JSON.stringify(aids))
-    $('input[name="annotation-grid-highlighted"]').val(JSON.stringify(highlights))
+    $('input[name="annotation-canonical-aids"]').val(JSON.stringify(aids))
+    $('input[name="annotation-canonical-highlighted"]').val(JSON.stringify(highlights))
   }
 
   function lazy_load_images()

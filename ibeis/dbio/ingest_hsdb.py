@@ -146,6 +146,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     """
     from ibeis.control import IBEISControl
     import utool as ut
+
     if dbdir is None:
         dbdir = hsdir
     print('[ingest] Ingesting hsdb: %r -> %r' % (hsdir, dbdir))
@@ -164,7 +165,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     # READ NAME TABLE
     name_text_list = ['____']
     name_hs_nid_list = [0]
-    with open(nametbl_fpath, 'rb') as nametbl_file:
+    with open(nametbl_fpath, 'r') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
         for ix, row in enumerate(name_reader):
             #if ix >= 3:
@@ -180,7 +181,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     iamge_hs_gid_list   = []
     image_gname_list = []
     image_reviewed_list   = []
-    with open(imgtbl_fpath, 'rb') as imgtb_file:
+    with open(imgtbl_fpath, 'r') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
         for ix, row in enumerate(image_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):
@@ -242,7 +243,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     chip_hs_nid_list = []
     chip_hs_gid_list = []
     chip_note_list   = []
-    with open(chiptbl_fpath, 'rb') as chiptbl_file:
+    with open(chiptbl_fpath, 'r') as chiptbl_file:
         chip_reader = csv.reader(chiptbl_file)
         for ix, row in enumerate(chip_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):
@@ -285,7 +286,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
         'note': chip_note_list,
     })
 
-    IGNORE_MISSING_IMAGES = False
+    IGNORE_MISSING_IMAGES = True
     if IGNORE_MISSING_IMAGES:
         # Ignore missing information
         print('pre')

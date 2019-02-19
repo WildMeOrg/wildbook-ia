@@ -337,12 +337,8 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
         ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
-        [1, 2, 3]
-        ['zebra_plains', 'zebra_grevys', 'bear_polar']
-
-    [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
-    [8, 9, 10]
-    [u'zebra_plains', u'zebra_grevys', u'bear_polar']
+        [1, 2, 3, 6]
+        ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -438,7 +434,7 @@ def get_species_texts(ibs, species_rowid_list):
         >>> result = get_species_texts(ibs, species_rowid_list)
         >>> result = ut.repr2(result)
         >>> print(result)
-        ['zebra_plains', 'zebra_grevys', 'bear_polar']
+        ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
     """
     # FIXME: use standalone species table
     #species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -476,15 +472,15 @@ def get_species_nice(ibs, species_rowid_list):
         >>> result = get_species_nice(ibs, species_rowid_list)
         >>> result = ut.repr2(result)
         >>> print(result)
-        ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear']
+        ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear', 'bear_polar+head']
     """
     # FIXME: use standalone species table
     #species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
     species_nice_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_NICE,), species_rowid_list)
-    species_nice_list = [const.UNKNOWN
-                         if rowid == const.UNKNOWN_SPECIES_ROWID else species_nice
-                         for species_nice, rowid in zip(species_nice_list, species_rowid_list)]
-
+    species_nice_list = [
+        const.UNKNOWN if rowid == const.UNKNOWN_SPECIES_ROWID else species_nice
+        for species_nice, rowid in zip(species_nice_list, species_rowid_list)
+    ]
     species_nice_list = [ 'Unknown' if code is None else code for code in species_nice_list ]
     return species_nice_list
 

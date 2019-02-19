@@ -463,7 +463,10 @@ def add_images_json(ibs, image_uri_list,
         image_unixtime_list = _rectify(image_unixtime_list, -1, expected_length, float)
         image_unixtime_list = _verify(image_unixtime_list, 'image_unixtime_list', expected_length, allow_none=True)
 
-        flag_list = [image_unixtime is not None for image_unixtime in image_unixtime_list]
+        flag_list = [
+            None not in [gid, image_unixtime]
+            for gid, image_unixtime in zip(gid_list, image_unixtime_list)
+        ]
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_unixtime_list_ = ut.filter_items(image_unixtime_list, flag_list)
 
@@ -484,8 +487,8 @@ def add_images_json(ibs, image_uri_list,
                 assert image_gps_lat is not None, 'Cannot specify a longitude without a latitude, index %d' % (index, )
 
         flag_list = [
-            image_gps_lat_ is not None and image_gps_lon_ is not None
-            for image_gps_lat_, image_gps_lon_ in zip(image_gps_lat_list, image_gps_lon_list)
+            None not in [gid, image_gps_lat_, image_gps_lon_]
+            for gid, image_gps_lat_, image_gps_lon_ in zip(gid_list, image_gps_lat_list, image_gps_lon_list)
         ]
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_gps_lat_list_ = ut.filter_items(image_gps_lat_list, flag_list)
@@ -1074,6 +1077,12 @@ def get_image_uris_original_json(ibs, image_uuid_list):
 def get_image_paths_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     return ibs.get_image_paths(gid_list)
+
+
+@register_api('/api/image/file/hash/json/', methods=['GET'])
+def get_image_hash_json(ibs, image_uuid_list, **kwargs):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.get_image_hash(gid_list, **kwargs)
 
 
 @register_api('/api/image/file/name/json/', methods=['GET'])

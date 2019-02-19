@@ -10,9 +10,9 @@ TODO: need to split up into sub modules:
     within this file
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import join
-import utool as ut
 from ibeis.control import controller_inject
+from os.path import join, exists
+import utool as ut
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detecttrain]')
@@ -38,6 +38,44 @@ def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id,
     model_path = train_classifier(output_path, X_file, y_file)
     # Return model path
     return model_path
+
+
+@register_ibs_method
+def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_imageset_id,
+                                         ensembles=3, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images_pytorch
+    from ibeis.algo.detect import densenet
+
+    data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
+    extracted_path = get_cnn_classifier_cameratrap_binary_training_images_pytorch(
+        ibs,
+        positive_imageset_id,
+        negative_imageset_id,
+        dest_path=data_path,
+        image_size=densenet.INPUT_SIZE,
+        **kwargs
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-ensemble-%d' % args)
+        weights_path = densenet.train(extracted_path, output_path, blur=True, flip=True)
+        weights_path_list.append(weights_path)
+
+    archive_name = 'classifier.cameratrap.zip'
+    archive_path = join(ibs.get_cachedir(), 'training', archive_name)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = 'classifier.cameratrap.%d.weights' % (index, )
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
 
 
 @register_ibs_method
@@ -95,6 +133,89 @@ def classifier_train(ibs, **kwargs):
 
 
 @register_ibs_method
+def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_canonical_training_images_pytorch
+    from ibeis.algo.detect import densenet
+
+    args = (species, )
+    data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
+    if extracted_path is None:
+        extracted_path = get_cnn_classifier_canonical_training_images_pytorch(
+            ibs,
+            species,
+            dest_path=data_path,
+        )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (species, ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        if exists(output_path):
+            ut.delete(output_path)
+        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
+        weights_path_list.append(weights_path)
+
+    args = (species, )
+    output_name = 'classifier.canonical.%s' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.zip' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
+
+
+@register_ibs_method
+def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_localizer_canonical_training_images_pytorch
+    from ibeis.algo.detect import canonical
+
+    args = (species, )
+    data_path = join(ibs.get_cachedir(), 'extracted-localizer-canonical-%s' % args)
+    extracted_path = get_cnn_localizer_canonical_training_images_pytorch(
+        ibs,
+        species,
+        dest_path=data_path,
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (species, ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'localizer-canonical-%s-ensemble-%d' % args)
+        weights_path = canonical.train(extracted_path, output_path)
+        weights_path_list.append(weights_path)
+
+    args = (species, )
+    output_name = 'localizer.canonical.%s' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.zip' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'localizer.canonical.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
+
+
+@register_ibs_method
 def localizer_train(ibs, species_list=None, **kwargs):
     from pydarknet import Darknet_YOLO_Detector
     data_path = ibs.export_to_xml(species_list=species_list, **kwargs)
@@ -107,7 +228,7 @@ def localizer_train(ibs, species_list=None, **kwargs):
 
 
 @register_ibs_method
-def labeler_train(ibs, species_list=None, viewpoint_mapping=None, **kwargs):
+def labeler_train_ibeis_cnn(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
@@ -115,6 +236,7 @@ def labeler_train(ibs, species_list=None, viewpoint_mapping=None, **kwargs):
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_labeler_training_images(ibs, data_path,
                                                      category_list=species_list,
+                                                     category_mapping=species_mapping,
                                                      viewpoint_mapping=viewpoint_mapping,
                                                      **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
@@ -128,6 +250,52 @@ def labeler_train(ibs, species_list=None, viewpoint_mapping=None, **kwargs):
     model_state['viewpoint_mapping'] = viewpoint_mapping
     save_model(model_state, model_path)
     return model_path
+
+
+@register_ibs_method
+def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, ensembles=3, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images_pytorch
+    from ibeis.algo.detect import densenet
+
+    species = '-'.join(species_list)
+    args = (species, )
+    data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
+    extracted_path = get_cnn_labeler_training_images_pytorch(
+        ibs,
+        category_list=species_list,
+        category_mapping=species_mapping,
+        viewpoint_mapping=viewpoint_mapping,
+        dest_path=data_path,
+        **kwargs
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (species, ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-canonical-%s-ensemble-%d' % args)
+        if exists(output_path):
+            ut.delete(output_path)
+        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
+        weights_path_list.append(weights_path)
+
+    args = (species, )
+    output_name = 'classifier.canonical.%s' % args
+    ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
+    ut.ensuredir(ensemble_path)
+
+    archive_path = '%s.zip' % (ensemble_path)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = join(ensemble_path, 'classifier.canonical.%d.weights' % (index, ))
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ensemble_weights_path_list = [ensemble_path] + ensemble_weights_path_list
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
 
 
 # @register_ibs_method
@@ -197,7 +365,7 @@ def aoi_train(ibs, species_list=None):
 
 
 @register_ibs_method
-def aoi2_train(ibs, species_list=None, train_gid_list=None):
+def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=False):
     from ibeis_cnn.ingest_ibeis import get_aoi2_training_data
     from ibeis_cnn.process import numpy_processed_directory5
     from ibeis_cnn.models.aoi2 import train_aoi2
@@ -205,7 +373,9 @@ def aoi2_train(ibs, species_list=None, train_gid_list=None):
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_aoi2_training_data(ibs, dest_path=data_path,
                                             target_species_list=species_list,
-                                            train_gid_list=train_gid_list)
+                                            train_gid_list=train_gid_list,
+                                            purge=purge,
+                                            cache=cache)
     id_file, X_file, y_file = numpy_processed_directory5(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'aoi2')
     model_path = train_aoi2(output_path, X_file, y_file)

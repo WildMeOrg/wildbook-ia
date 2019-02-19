@@ -308,7 +308,7 @@ def compute_image_uuids(ibs, gpath_list, **kwargs):
 @register_api('/api/image/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False,
                auto_localize=None, location_for_names=None, ensure_unique=False,
-               **kwargs):
+               ensure_loadable=True, ensure_exif=True, **kwargs):
     r"""
     Adds a list of image paths to the database.
 
@@ -441,6 +441,29 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         aid_list = ibs.use_images_as_annotations(gid_list)
         print('[ibs] added %d annotations' % (len(aid_list),))
 
+    # Check loadable
+    if ensure_loadable or ensure_exif:
+        bad_load_list, bad_exif_list = ibs.check_image_loadable(gid_list)
+        bad_load_set = set(bad_load_list)
+        bad_exif_set = set(bad_exif_list)
+
+        all_gid_list_ = []
+        delete_gid_list = []
+        for gid, gpath in zip(all_gid_list, gpath_list):
+            gid_ = gid
+            if gid in bad_load_set:
+                print('Loadable Image Validation: Failed to load %r' % (gpath, ))
+                gid_ = None
+            if gid_ is not None and gid in bad_exif_set and ensure_exif:
+                print('Loadable EXIF Validation:  Failed to load %r' % (gpath, ))
+                gid_ = None
+            all_gid_list_.append(gid_)
+            if gid is not None and gid_ is None:
+                delete_gid_list.append(gid)
+
+        ibs.delete_images(delete_gid_list, trash_images=False)
+        all_gid_list = all_gid_list_
+
     assert len(gpath_list) == len(all_gid_list)
     return all_gid_list
 
@@ -486,12 +509,19 @@ def localize_images(ibs, gid_list_=None):
     """
     #from os.path import isabs
     import six
+    import requests
+
     if six.PY2:
+        import urllib
         import urlparse
         urlsplit = urlparse.urlsplit
+        urlquote = urllib.quote
     else:
         import urllib
         urlsplit = urllib.parse.urlsplit
+        urlquote = urllib.parse.quote
+        urlunquote = urllib.parse.unquote
+
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
@@ -529,11 +559,18 @@ def localize_images(ibs, gid_list_=None):
             elif isproto(uri, url_protos):
                 print('\tURL Download')
                 # Ensure that the Unicode string is properly encoded for web requests
-                uri_ = urlsplit(uri)
-                uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                uri_ = urlunquote(uri)
+                uri_ = urlsplit(uri_, allow_fragments=False)
+                uri_path = urlquote(uri_.path.encode('utf8'))
                 uri_ = uri_._replace(path=uri_path)
-                uri = uri_.geturl()
-                six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
+                uri_ = uri_.geturl()
+                # six.moves.urllib.request.urlretrieve(uri_, filename=loc_gpath)
+                response = requests.get(uri_, stream=True, allow_redirects=True)
+                assert response.status_code == 200, '200 code not received on download'
+                # Save
+                with open(loc_gpath, 'wb') as temp_file_:
+                    for chunk in response.iter_content(1024):
+                        temp_file_.write(chunk)
             else:
                 raise ValueError('Sanity check failed')
         else:
@@ -1405,6 +1442,74 @@ def get_image_paths(ibs, gid_list):
     # Note: join does not prepend anything if the uri is absolute
     gpath_list = [None if uri is None else join(ibs.imgdir, uri) for uri in uri_list]
     return gpath_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/file/hash/', methods=['GET'])
+def get_image_hash(ibs, gid_list=None, algo='md5'):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): a list of image absolute paths to img_dir
+
+    Returns:
+        list: hash_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_hash
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/file/hash/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[:1]
+        >>> image_path = ibs.get_image_paths(gid_list)
+        >>> print('Hashing: %r' % (image_path, ))
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='md5')
+        >>> assert hash_list == ['ab31dc5e1355247a0ea5ec940802a468']
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='sha1')
+        >>> assert hash_list == ['66ec193a1619b3b6216d1784b4833b6194b13384']
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='sha256')
+        >>> assert hash_list == ['fd09d22ec18c32d9db2cd026a9511ab228aadf0e5f7271760413448ddd16d483']
+        >>> hash_list = ibs.get_image_hash(gid_list, algo='sha512')
+        >>> assert hash_list == ['81d1d8ee4c8640b9aad26e4cc03536ed30a43b69e166748ec940a8f00e4776be93f4ac6367a06d92b772a9a60dc104c6f999e7197c2584fdc4cffcac2da71506']
+    """
+    import hashlib
+
+    assert isinstance(algo, six.string_types)
+    algo = algo.lower()
+    assert algo in ['md5', 'sha1', 'sha256', 'sha512']
+
+    image_path_list = ibs.get_image_paths(gid_list)
+
+    if algo == 'md5':
+        hash_func = hashlib.md5
+    elif algo == 'sha1':
+        hash_func = hashlib.sha1
+    elif algo == 'sha256':
+        hash_func = hashlib.sha256
+    elif algo == 'sha512':
+        hash_func = hashlib.sha512
+    else:
+        raise ValueError('algo must be in %r' % (algo, ))
+
+    hash_list = []
+    for image_path in image_path_list:
+        if not exists(image_path):
+            hash_ = None
+        else:
+            hash_ = hash_func(open(image_path, 'rb').read()).hexdigest()
+        hash_list.append(hash_)
+
+    return hash_list
+
 
 # TODO make this actually return a uri format
 #get_image_absolute_uri = get_image_paths

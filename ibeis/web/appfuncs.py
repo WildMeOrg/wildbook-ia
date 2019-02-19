@@ -30,6 +30,7 @@ VALID_TURK_MODES = [
 
 
 ALLOW_STAGED = False
+CANONICAL_PART_TYPE = '__CANONICAL__'
 
 
 VIEWPOINT_MAPPING = {
@@ -402,6 +403,21 @@ def imageset_image_staged_progress(ibs, gid_list, reviews_required=3):
 
     staged_progress = total / (reviews_required * len(gid_list))
     return staged_progress
+
+
+def imageset_annot_canonical(ibs, aid_list, canonical_part_type=CANONICAL_PART_TYPE):
+    part_rowids_list = ibs.get_annot_part_rowids(aid_list)
+    part_types_list = list(map(ibs.get_part_types, part_rowids_list))
+
+    annots_reviewed = []
+    for aid, part_rowid_list, part_type_list in zip(aid_list, part_rowids_list, part_types_list):
+        reviewed = False
+        for part_rowid, part_type in zip(part_rowid_list, part_type_list):
+            if part_type == canonical_part_type:
+                reviewed = True
+                break
+        annots_reviewed.append(reviewed)
+    return annots_reviewed
 
 
 def imageset_image_cameratrap_processed(ibs, gid_list):

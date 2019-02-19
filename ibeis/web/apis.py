@@ -216,6 +216,54 @@ def image_src_api_json(uuid=None, **kwargs):
     return image_src_api(gid, **kwargs)
 
 
+def _image_conv_feature(ibs, gid, model):
+    model = model.lower()
+    model_list = ['vgg16', 'vgg19', 'resnet50', 'inception_v3']
+    assert model in model_list, 'model must be one of %s' % (model_list, )
+    config = {'algo': model}
+
+    gid_list = [gid]
+    feature_list = ibs.depc_image.get_property('features', gid_list, 'vector', config=config)
+    feature = feature_list[0]
+    byte_str = feature.tobytes()
+    return byte_str
+
+
+@register_api('/api/image/feature/<rowid>/', methods=['GET'])
+def image_conv_feature_api(rowid=None, model='resnet50', **kwargs):
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/image/feature/json/<uuid>/
+    """
+    ibs = current_app.ibs
+
+    gid = rowid
+    assert gid is not None
+    return _image_conv_feature(ibs, gid, model)
+
+
+@register_api('/api/image/feature/json/<uuid>/', methods=['GET'])
+def image_conv_feature_api_json(uuid=None, model='resnet50', **kwargs):
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/image/feature/json/<uuid>/
+    """
+    ibs = current_app.ibs
+
+    try:
+        if isinstance(uuid, six.string_types):
+            uuid = uuid_module.UUID(uuid)
+        assert uuid is not None
+    except:
+        from ibeis.control.controller_inject import translate_ibeis_webreturn
+        return translate_ibeis_webreturn(None, success=False, code=500,
+                                         message='Invalid image UUID')
+    gid = ibs.get_image_gids_from_uuid(uuid)
+    return _image_conv_feature(ibs, gid, model)
+
+
 @register_api('/api/upload/image/', methods=['POST'])
 def image_upload(cleanup=True, **kwargs):
     r"""
@@ -260,7 +308,7 @@ def image_upload(cleanup=True, **kwargs):
     gid = gid_list[0]
 
     if cleanup and exists(upload_filepath):
-        ut.remove_dirs(upload_filepath)
+        ut.delete(upload_filepath)
 
     return gid
 

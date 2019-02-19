@@ -40,6 +40,7 @@ import numpy as np
 import vtool as vt
 import cv2
 from ibeis.control.controller_inject import register_preprocs
+import sys
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
 
@@ -206,7 +207,7 @@ def compute_web_src(depc, gid_list, config=None):
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> thumbs = depc.get_property('web_src', gid_list, 'src', recompute=True)
         >>> thumb = thumbs[0]
-        >>> assert ut.hash_data(thumb) == 'wjkpjrsmqzdhmqdxjbgomdmqxaxsckxn'
+        >>> assert ut.hash_data(thumb) in ['wcuppmpowkvhfmfcnrxdeedommihexfu', 'wjkpjrsmqzdhmqdxjbgomdmqxaxsckxn']
     """
     ibs = depc.controller
 
@@ -232,7 +233,7 @@ def draw_web_src(gpath):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'wic']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'wic', 'densenet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -312,6 +313,15 @@ def compute_classifications(depc, gid_list, config=None):
         vector_list = depc.get_property('features', gid_list, 'vector', config=config_)
         classifier_weight_filepath = config['classifier_weight_filepath']
         result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
+    elif config['classifier_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+        }
+        thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
+                                            read_extern=False, ensure=True)
+        result_list = densenet.test(thumbpath_list, **config)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
@@ -877,7 +887,6 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
             count_old = len(bboxes)
             if count_old > 0:
                 coord_list = []
-                confs_list = []
                 for (xtl, ytl, width, height) in bboxes:
                     xbr = xtl + width
                     ybr = ytl + height
@@ -1660,6 +1669,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
 
 class LabelerConfig(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
 
@@ -1684,7 +1694,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_localizations_labels
+        python -m ibeis.core_images --exec-compute_localizations_labels
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1693,22 +1703,50 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:100]
-        >>> depc.delete_property('labeler', gid_list)
-        >>> results = depc.get_property('labeler', gid_list, None)
-        >>> results = depc.get_property('labeler', gid_list, 'species')
+        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'giraffe_v1'}
+        >>> # depc.delete_property('localizations_labeler', aid_list)
+        >>> results = depc.get_property('localizations_labeler', gid_list, None, config=config)
+        >>> print(results)
+        >>> config = {'labeler_weight_filepath': 'candidacy'}
+        >>> # depc.delete_property('localizations_labeler', aid_list)
+        >>> results = depc.get_property('localizations_labeler', gid_list, None, config=config)
         >>> print(results)
     """
+    from os.path import join, exists
     print('[ibs] Process Localization Labels')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
 
-    gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
-                                                            target_size=(128, 128))
+    if config['labeler_algo'] in ['pipeline', 'cnn']:
+        gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
+                                                                target_size=(128, 128))
+        result_list = ibs.generate_chip_label_list(chip_list, **config)
+    elif config['labeler_algo'] in ['azure']:
+        raise NotImplementedError('Azure is not implemented for images')
+    elif config['labeler_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        target_size = (densenet.INPUT_SIZE, densenet.INPUT_SIZE, )
+        gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
+                                                                target_size=target_size)
+        config = dict(config)
+        config['classifier_weight_filepath'] = config['labeler_weight_filepath']
+        ut.embed()
+        nonce = ut.random_nonce()[:16]
+        cache_path = join(ibs.cachedir, 'localization_labels_%s' % (nonce, ))
+        assert not exists(cache_path)
+        ut.ensuredir(cache_path)
+        chip_filepath_list = []
+        for index, chip in enumerate(chip_list):
+            chip_filepath = join(cache_path, 'chip_%08d.png' % (index, ))
+            cv2.imwrite(chip_filepath, chip)
+            assert exists(chip_filepath)
+            chip_filepath_list.append(chip_filepath)
+        result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
+        result_list = list(result_gen)
+        ut.delete(cache_path)
 
-    # Get the results from the algorithm
-    result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
 
     # Release chips
@@ -1720,20 +1758,29 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         if gid not in group_dict:
             group_dict[gid] = []
         group_dict[gid].append(result)
-    assert len(set(gid_list_)) == len(group_dict.keys())
 
     # Return the results
     for gid in gid_list_:
-        result_list = group_dict[gid]
-        zipped_list = list(zip(*result_list))
-        ret_tuple = (
-            np.array(zipped_list[0]),
-            np.array(zipped_list[1]),
-            np.array(zipped_list[2]),
-            np.array(zipped_list[3]),
-            np.array(zipped_list[4]),
-            list(zipped_list[5]),
-        )
+        result_list = group_dict.get(gid, None)
+        if result_list is None:
+            ret_tuple = (
+                np.array([]),
+                np.array([]),
+                np.array([]),
+                np.array([]),
+                np.array([]),
+                []
+            )
+        else:
+            zipped_list = list(zip(*result_list))
+            ret_tuple = (
+                np.array(zipped_list[0]),
+                np.array(zipped_list[1]),
+                np.array(zipped_list[2]),
+                np.array(zipped_list[3]),
+                np.array(zipped_list[4]),
+                list(zipped_list[5]),
+            )
         yield ret_tuple
 
 
@@ -2186,6 +2233,62 @@ def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
             border_list.append(border)
 
     return gid, opath, tile_filepath_list, bbox_list, border_list
+
+
+class CameraTrapEXIFConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('bottom',    80),
+        ut.ParamInfo('psm',       7),
+        ut.ParamInfo('oem',       1),
+        ut.ParamInfo('whitelist', '0123456789°CF/:'),
+    ]
+
+
+@register_preproc(
+    tablename='cameratrap_exif', parents=['images'],
+    colnames=['raw'],
+    coltypes=[str],
+    configclass=CameraTrapEXIFConfig,
+    fname='exifcache',
+    chunksize=1024,
+)
+def compute_cameratrap_exif(depc, gid_list, config=None):
+    ibs = depc.controller
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
+    arg_iter = list(zip(
+        gpath_list,
+        orient_list,
+    ))
+    kwargs_iter = [config] * len(gid_list)
+    raw_list = ut.util_parallel.generate2(compute_cameratrap_exif_worker, arg_iter, kwargs_iter)
+    for raw in raw_list:
+        yield (raw, )
+
+
+def compute_cameratrap_exif_worker(gpath, orient, bottom=80, psm=7, oem=1, whitelist='0123456789°CF/:'):
+    import pytesseract
+
+    img = vt.imread(gpath, orient=orient)
+    # Crop
+    img = img[-1 * bottom:, :, :]
+
+    config = []
+    if sys.platform.startswith('darwin'):
+        config += ['--tessdata-dir', '"/opt/local/share/"']
+    else:
+        config += ['--tessdata-dir', '"/usr/share/tesseract-ocr/"']
+    config += ['--psm', str(psm), '--oem', str(oem), '-c', 'tessedit_char_whitelist=%s' % (whitelist, )]
+    config = ' '.join(config)
+
+    try:
+        raw = pytesseract.image_to_string(img, config=config)
+    except:
+        raw = None
+
+    return raw
 
 
 if __name__ == '__main__':

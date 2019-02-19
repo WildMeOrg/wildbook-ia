@@ -30,6 +30,10 @@ from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
 from skimage import io
 import xml.etree.ElementTree as ET
+import datetime
+from PIL import Image
+import cv2
+
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
@@ -624,7 +628,9 @@ def check_image_loadable(ibs, gid_list=None):
         gpath_list,
         orient_list,
     ))
-    flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter)
+    flag_list = ut.util_parallel.generate2(check_image_loadable_worker, arg_iter,
+                                           futures_threaded=True)
+    flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
     exif_list = ut.take_column(flag_list, 1)
 
@@ -636,13 +642,19 @@ def check_image_loadable(ibs, gid_list=None):
 def check_image_loadable_worker(gpath, orient):
     loadable, exif = True, True
     try:
-        print(gpath)
-        io.imread(gpath)
-        vt.imread(gpath, orient=orient)
+        img = Image.open(gpath, 'r')
+        assert img is not None
+        img = cv2.imread(gpath)
+        assert img is not None
+        img = io.imread(gpath)
+        assert img is not None
+        img = vt.imread(gpath, orient=orient)
+        assert img is not None
     except:
         loadable = False
     try:
-        vt.imread(gpath, orient='auto', on_error='fail')
+        img = vt.imread(gpath, orient='auto', on_error='fail')
+        assert img is not None
     except:
         exif = False
     return loadable, exif
@@ -696,6 +708,8 @@ def check_image_duplcates(ibs, gid_list=None):
         print(keep_index, delete_gid_list_)
 
         delete_gid_list += delete_gid_list_
+
+    return delete_gid_list
 
 
 def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
@@ -8069,6 +8083,301 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             ibs.set_annot_age_months_est_min(aid_list_, [age_tuple[0]] * len(aid_list_))
             ibs.set_annot_age_months_est_max(aid_list_, [age_tuple[1]] * len(aid_list_))
         ibs.set_annot_species(aid_list_, species_text_)
+
+
+@register_ibs_method
+def princeton_cameratrap_ocr_bottom_bar_csv(ibs, prefix='/data/raw/unprocessed/horses/', threshold=0.39):
+    gid_list = ibs.get_valid_gids()
+    gid_list = sorted(gid_list)
+
+    uuid_list = ibs.get_image_uuids(gid_list)
+    uri_original_list = ibs.get_image_uris_original(gid_list)
+    value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
+
+    groundtruth_list_ = ibs.get_image_cameratrap(gid_list)
+    groundtruth_list = []
+    for groundtruth in groundtruth_list_:
+        if groundtruth == 1:
+            label = 'positive'
+        elif groundtruth == 0:
+            label = 'negative'
+        else:
+            label = ''
+        groundtruth_list.append(label)
+
+    config = {'classifier_algo': 'densenet', 'classifier_weight_filepath': 'ryan.densenet.v2'}
+    prediction_list = ibs.depc_image.get_property('classifier', gid_list, 'class', config=config)
+    confidence_list = ibs.depc_image.get_property('classifier', gid_list, 'score', config=config)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= threshold else 'negative'
+        for confidence in confidence_list
+    ]
+
+    same_list = []
+    for gt, pred in zip(groundtruth_list, prediction_list):
+        if len(gt) > 0:
+            same = 'true' if gt == pred else 'false'
+        else:
+            same = ''
+        same_list.append(same)
+
+    header_list = [
+        'IMAGE_UUID',
+        'FILEPATH',
+        'TEMP_CELSIUS',
+        'TEMP_FAHRENHEIT',
+        'DATE_MONTH',
+        'DATE_DAY',
+        'DATE_YEAR',
+        'TIME_HOUR',
+        'TIME_MINUTE',
+        'TIME_SECOND',
+        'SEQUENCE_NUMBER',
+        'CLASSIFY_HUMAN_LABEL',
+        'CLASSIFY_COMPUTER_LABEL',
+        'CLASSIFY_AGREEANCE',
+    ]
+    line_list = [','.join(header_list)]
+
+    zipped = zip(uuid_list, uri_original_list, value_dict_list, groundtruth_list, prediction_list, same_list)
+    for uuid_, uri_original, value_dict, groundtruth, prediction, same in zipped:
+        datetime = value_dict.get('datetime')
+        line = [
+            uuid_,
+            uri_original.replace(prefix, ''),
+            value_dict.get('temp').get('c'),
+            value_dict.get('temp').get('f'),
+            datetime.month,
+            datetime.day,
+            datetime.year,
+            datetime.hour,
+            datetime.minute,
+            datetime.second,
+            value_dict.get('sequence'),
+            groundtruth,
+            prediction,
+            same,
+        ]
+        line = ','.join(map(str, line))
+        line_list.append(line)
+
+    with open('export.csv', 'w') as export_file:
+        export_file.write('\n'.join(line_list))
+
+
+@register_ibs_method
+def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
+    # status_list = ibs.princeton_cameratrap_ocr_bottom_bar_accuracy()
+    gid_list = ibs.get_valid_gids()
+    value_dict_list = ibs.princeton_cameratrap_ocr_bottom_bar(gid_list=gid_list)
+    value_dict_list = list(value_dict_list)
+    datetime_list = ibs.get_image_datetime(gid_list)
+
+    key_list = ['temp', 'date', 'time', 'datetime', 'sequence']
+    status_dict = {
+        'success': 0,
+    }
+    status_dict['failure'] = {
+        key: 0
+        for key in key_list
+    }
+    status_dict['sanity'] = {
+        key: 0
+        for key in key_list
+    }
+    status_dict['failure']['tempc'] = 0
+    status_dict['failure']['tempf'] = 0
+    status_dict['sanity']['tempc'] = 0
+    status_dict['sanity']['tempf'] = 0
+
+    difference_list = []
+    for value_dict, datetime_ in zip(value_dict_list, datetime_list):
+        success = True
+        printing = False
+        for key in key_list:
+            if key not in value_dict:
+                success = False
+                status_dict['failure'][key] += 1
+            else:
+                if key == 'temp':
+                    temp = value_dict[key]
+                    if 'c' not in temp:
+                        success = False
+                        status_dict['failure']['tempc'] += 1
+                    if 'f' not in temp:
+                        success = False
+                        status_dict['failure']['tempf'] += 1
+        if success:
+            status_dict['success'] += 1
+
+            temp = value_dict['temp']
+            tempc = temp.get('c')
+            tempf = temp.get('f')
+
+            tempc_ = (tempf - 32) * 5.0 / 9.0
+            if abs(tempc_ - tempc) > 1:
+                status_dict['sanity']['tempc'] += 1
+                printing = True
+
+            tempf_ = ((9.0 / 5.0) * tempc) + 32
+            if abs(tempf_ - tempf) > 1:
+                status_dict['sanity']['tempf'] += 1
+                printing = True
+
+            date = datetime.date(*value_dict['date'])
+            date_ = datetime_.date()
+            delta = date_ - date
+            if delta.days > 0:
+                printing = True
+                status_dict['sanity']['date'] += 1
+
+            time = datetime.time(*value_dict['time'])
+            time_ = datetime_.time()
+            time = datetime.datetime.combine(datetime.date.today(), time)
+            time_ = datetime.datetime.combine(datetime.date.today(), time_)
+            delta = time_ - time
+            if (delta.seconds - offset) > 1:
+                printing = True
+                status_dict['sanity']['time'] += 1
+                difference_list.append('%0.02f' % (delta.seconds, ))
+
+            delta = datetime_ - value_dict['datetime']
+            if (delta.seconds - offset) > 1:
+                printing = True
+                status_dict['sanity']['datetime'] += 1
+                difference_list.append('%0.02f' % (delta.seconds, ))
+
+            sequence = value_dict['sequence']
+            if sequence < 0 or 10000 < sequence:
+                printing = True
+                status_dict['sanity']['sequence'] += 1
+        else:
+            printing = True
+
+        if printing:
+            print('Failed: %r' % (value_dict.get('split', None), ))
+    print(ut.repr3(status_dict))
+    return status_dict
+
+
+@register_ibs_method
+def princeton_cameratrap_ocr_bottom_bar(ibs, gid_list=None):
+    print('OCR Camera Trap Bottom Bar')
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    gid_list = ibs.get_valid_gids()
+    raw_list = ibs.depc_image.get_property('cameratrap_exif', gid_list, 'raw')
+
+    value_dict_list = []
+    for raw in raw_list:
+        value_dict = princeton_cameratrap_ocr_bottom_bar_parser(raw)
+        value_dict_list.append(value_dict)
+
+    return value_dict_list
+
+
+def princeton_cameratrap_ocr_bottom_bar_parser(raw):
+    value_dict = {}
+    try:
+        values = raw
+        value_dict['raw'] = values
+        assert len(values) > 0
+        value_list = values.split(' ')
+        value_dict['split'] = value_list
+        assert len(values) > 0
+        value_list = [
+            value.strip().replace('C', '').replace('F', '').replace('°', '')
+            for value in value_list
+        ]
+        if value_list[-2] == '0000':
+            value_list[-2] = ''
+        value_list = [value for value in value_list if len(value) > 0]
+        if len(value_list[-2]) == 18:
+            temp = value_list[-2]
+            temp_date = temp[:10]
+            temp_time = temp[10:]
+            value_list = value_list[:-2] + [temp_date] + [temp_time] + value_list[-1:]
+        assert len(value_list) >= 5
+        value_list_ = value_list[-5:]
+        assert len(value_list_) == 5
+        value_dict['parsed'] = value_list_
+        # print('Parsed: %s' % (value_list_, ))
+        tempc, tempf, date, time, sequence = value_list_
+
+        try:
+            assert len(tempc) > 0
+            if len(tempc) > 2:
+                tempc = tempc[-2:]
+            tempc = int(tempc)
+            if 'temp' not in value_dict:
+                value_dict['temp'] = {}
+            value_dict['temp']['c'] = tempc
+        except:
+            pass
+        try:
+            assert len(tempf) > 0
+            tempf = int(tempf)
+            if 'temp' not in value_dict:
+                value_dict['temp'] = {}
+            value_dict['temp']['f'] = tempf
+        except:
+            pass
+        try:
+            date = date.strip().replace('/', '')
+            assert len(date) == 8
+            month = date[0:2]
+            day   = date[2:4]
+            year  = date[4:8]
+            month = int(month)
+            day   = int(day)
+            year  = int(year)
+            value_dict['date'] = (year, month, day, )
+        except:
+            month, day, year = None, None, None
+            pass
+        try:
+            time = time.strip().replace(':', '')
+            if len(time) == 8 and time[2] in ['1', '3'] and time[5] in ['1', '3']:
+                time = time[0:2] + time[3:5] + time[6:8]
+            assert len(time) == 6
+            hour   = time[0:2]
+            minute = time[2:4]
+            second = time[4:6]
+            hour   = int(hour)
+            minute = int(minute)
+            second = int(second)
+            value_dict['time'] = (hour, minute, second, )
+        except:
+            hour, minute, second = None, None, None
+            pass
+        try:
+            assert None not in [month, day, year, hour, minute, second]
+            value_dict['datetime'] = datetime.datetime(year, month, day, hour, minute, second)
+        except:
+            pass
+        try:
+            assert len(sequence) == 4
+            sequence = int(sequence)
+            value_dict['sequence'] = sequence
+        except:
+            pass
+    except:
+        pass
+
+    return value_dict
+
+
+@register_ibs_method
+def import_folder(ibs, path, recursive=True, **kwargs):
+    from detecttools.directory import Directory
+    direct = Directory(path, recursive=recursive, images=True)
+    gid_list = ibs.add_images(direct.files(), **kwargs)
+    return gid_list
 
 
 if __name__ == '__main__':

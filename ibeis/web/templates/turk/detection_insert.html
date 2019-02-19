@@ -69,6 +69,7 @@
     </div>
 
     <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
+    <input type="text" name="detection-only-aid" value="{{ only_aid }}" style="display: none;" readonly>
     <input type="text" name="detection-image-uuid" value="{{ image_uuid }}" style="display: none;" readonly>
     <div class="row">
       <div class="col-lg-2"></div>
@@ -84,7 +85,15 @@
       <div class="col-lg-12" style="text-align: center;">
         <div style="margin-top: -27px;">
           {% if previous %}
-            <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}&gid={{ previous }}&{{ config_str }}">Previous {{ previous }}</a>
+            {% if is_canonical %}
+              <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_detection_canonical') }}?imgsetid={{ imgsetid }}&aid={{ previous_only_aid }}&{{ config_str }}">
+                Previous GID {{ previous }}, AID {{ previous_only_aid }}
+              </a>
+            {% else %}
+              <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}&gid={{ previous }}&only_aid={{ previous_only_aid }}&{{ config_str }}">
+                Previous GID {{ previous }}
+              </a>
+            {% endif %}
           {% endif %}
         </div>
 
@@ -302,8 +311,8 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20180502-0') }}" ia-dependency="javascript"></script>
-    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20180502-0') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20190110-2') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20190110-2') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
@@ -376,6 +385,22 @@
         console.log('[Detection] Overriding all mode options, always using: ' + mode)
       }
 
+      {% if is_canonical %}
+        config_interest_bypass = true
+
+        var entry = {
+          addition: false,
+          parts: false,
+          translation: false,
+          scaling: false,
+          rotation: false,
+          deletion: false,
+          defocus: false,
+        }
+      {% else %}
+        var entry = {}
+      {% endif %}
+
       // Initialize the bounding-box annotator.
       bba = new BBoxAnnotator("{{ image_src }}", {
         prefix: "ia-",
@@ -385,6 +410,7 @@
           // anchor: "#FFFFFF",
         },
         actions: {
+          entry: entry,
           subentry: {
             addition: config_parts,
           },
@@ -394,6 +420,12 @@
           assignments: assignments,
         },
         callbacks: {
+          onload: function() {
+            {% if is_canonical %}
+              bba.hover_entry(0)
+              bba.focus_entry(0)
+            {% endif %}
+          },
           onchange: function(entries) {
             $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));
           },

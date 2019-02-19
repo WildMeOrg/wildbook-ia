@@ -132,6 +132,12 @@ def get_flask_app(templates_auto_reload=True):
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
 
+        # Add more verbose logging
+        import logging
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        GLOBAL_APP.logger.addHandler(stream_handler)
+
         if ut.VERBOSE:
             print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET, ))
         GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
@@ -284,6 +290,18 @@ class WebMatchThumbException(WebException):
         }
         code = 607
         super(WebMatchThumbException, self).__init__(message, rawreturn, code)
+
+
+class WebInvalidUUIDException(WebException):
+    def __init__(self, invalid_image_uuid_list=[], invalid_annot_uuid_list=[]):
+        args = (len(invalid_image_uuid_list), len(invalid_annot_uuid_list), )
+        message = 'Invalid image and/or annotation UUIDs (%d, %d)' % args
+        rawreturn = {
+            'invalid_image_uuid_list' : invalid_image_uuid_list,
+            'invalid_annot_uuid_list' : invalid_annot_uuid_list,
+        }
+        code = 608
+        super(WebInvalidUUIDException, self).__init__(message, rawreturn, code)
 
 
 class WebMissingInput(WebException):
@@ -516,7 +534,12 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                 # msg_list.append('Error in translate_ibeis_webcall')
                 msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
                 msg_list.append('Received Function Definition: %s' % (funcstr,))
-                msg_list.append('Received Function Parameters: %r' % (kwargs,))
+                msg_list.append('Received Function Parameters:')
+                for key in kwargs:
+                    value = kwargs[key]
+                    value_str = '%r' % (value, )
+                    value_str = ut.truncate_str(value_str, maxlen=256)
+                    msg_list.append('\t%r: %s' % (key, value_str, ))
                 # msg_list.append('\targs = %r' % (args,))
                 # msg_list.append('flask.request.args = %r' % (flask.request.args,))
                 # msg_list.append('flask.request.form = %r' % (flask.request.form,))

@@ -193,7 +193,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
                 vert_list=None, annot_uuid_list=None,
                 yaw_list=None, viewpoint_list=None, quality_list=None,
-                multiple_list=None, interest_list=None,
+                multiple_list=None, interest_list=None, canonical_list=None,
                 detect_confidence_list=None, notes_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
                 species_rowid_list=None, staged_uuid_list=None,
@@ -320,7 +320,6 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     """
     assert yaw_list is None, 'yaw is depricated'
 
-    #ut.embed()
     if ut.VERBOSE:
         print('[ibs] adding annotations')
 
@@ -374,6 +373,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         multiple_list = [False] * len(gid_list)
     if interest_list is None:
         interest_list = [False] * len(gid_list)
+    if canonical_list is None:
+        canonical_list = [False] * len(gid_list)
 
     nVert_list = [len(verts) for verts in vert_list]
     vertstr_list = [six.text_type(verts) for verts in vert_list]
@@ -404,6 +405,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         ('annot_quality', quality_list),
         ('annot_toggle_multiple', multiple_list),
         ('annot_toggle_interest', interest_list),
+        ('annot_toggle_canonical', canonical_list),
         ('annot_detect_confidence', detect_confidence_list),
         ('annot_note', notes_list),
         ('name_rowid', nid_list),
@@ -760,7 +762,8 @@ def annotation_src_api(rowid=None):
 def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
                           yaw='no-filter', is_exemplar=None, is_staged=False,
                           species=None, is_known=None, hasgt=None, minqual=None,
-                          has_timestamp=None, sort=False, min_timedelta=None):
+                          has_timestamp=None, sort=False, is_canonical=None,
+                          min_timedelta=None):
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
@@ -778,6 +781,14 @@ def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
         aid_list  = ut.compress(aid_list, flag_list)
     elif is_staged is False:
         flag_list = ibs.get_annot_staged_flags(aid_list)
+        aid_list  = ut.filterfalse_items(aid_list, flag_list)
+
+    # filter by is_canonical
+    if is_canonical is True:
+        flag_list = ibs.get_annot_canonical(aid_list)
+        aid_list  = ut.compress(aid_list, flag_list)
+    elif is_canonical is False:
+        flag_list = ibs.get_annot_canonical(aid_list)
         aid_list  = ut.filterfalse_items(aid_list, flag_list)
 
     if include_only_gid_list is not None:
@@ -2150,8 +2161,8 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/viewpoint/', methods=['PUT'])
-def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
-                         _yaw_update=False, _code_update=True):
+def set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True,
+                         only_allow_known=True, _yaw_update=False, _code_update=True):
     r"""
     Sets the viewpoint of the annotation
 
@@ -2166,9 +2177,25 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
         aid_list = ut.compress(aid_list, isvalid)
         viewpoint_list = ut.compress(viewpoint_list, isvalid)
 
+    if purge_cache:
+        current_viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+
     val_iter = zip(viewpoint_list)
     id_iter = zip(aid_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
+
+    if purge_cache:
+        flag_list = [
+            viewpoint != current_viewpoint
+            for viewpoint, current_viewpoint in zip(viewpoint_list, current_viewpoint_list)
+        ]
+        update_aid_list = ut.compress(aid_list, flag_list)
+        try:
+            ibs.ibeis_plugin_curvrank_delete_cache_optimized(update_aid_list, 'CurvRankDorsal')
+        except:
+            message = 'Could not purge CurvRankDorsal cache for viewpoint'
+            # raise RuntimeError(message)
+            print(message)
 
     # oops didn't realize there was a structure already here for this
     if _code_update:
@@ -3186,7 +3213,7 @@ def update_annot_rotate_right_90(ibs, aid_list):
 @accessor_decors.setter
 @register_api('/api/annot/vert/', methods=['PUT'])
 def set_annot_verts(ibs, aid_list, verts_list,
-                    theta_list=None, interest_list=None,
+                    theta_list=None, interest_list=None, canonical_list=None,
                     delete_thumbs=True, update_visual_uuids=True,
                     notify_root=True):
     r"""
@@ -3235,6 +3262,10 @@ def set_annot_verts(ibs, aid_list, verts_list,
         with ut.Timer('set_annot_verts...interest'):
             if interest_list:
                 ibs.set_annot_interest(aid_list, interest_list, delete_thumbs=False)
+
+        with ut.Timer('set_annot_verts...canonical'):
+            if canonical_list:
+                ibs.set_annot_canonical(aid_list, canonical_list, delete_thumbs=False)
 
         with ut.Timer('set_annot_verts...thumbs'):
             if delete_thumbs:
@@ -3601,10 +3632,10 @@ def get_annot_age_months_est(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_min_list = ibs.get_annot_age_months_est_min(aid_list)
     annot_age_months_est_max_list = ibs.get_annot_age_months_est_max(aid_list)
-    annot_age_months_est_list = zip(
+    annot_age_months_est_list = list(zip(
         annot_age_months_est_min_list,
         annot_age_months_est_max_list
-    )
+    ))
     return annot_age_months_est_list
 
 
@@ -4013,6 +4044,33 @@ def get_annot_interest(ibs, aid_list):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/canonical/', methods=['GET'])
+def get_annot_canonical(ibs, aid_list):
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/annot/canonical/
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> flag_list = get_annot_canonical(ibs, aid_list)
+        >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
+        >>> print(result)
+    """
+    flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list)
+    flag_list = [
+        None if flag is None else bool(flag)
+        for flag in flag_list
+    ]
+    return flag_list
+
+
+@register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/interest/', methods=['PUT'])
 def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True):
@@ -4030,6 +4088,22 @@ def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, dele
         gid_list = list(set(ibs.get_annot_gids(aid_list)))
         config2_ = {'thumbsize': 221}
         ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/canonical/', methods=['PUT'])
+def set_annot_canonical(ibs, aid_list, flag_list):
+    r"""
+    Sets the annot all instances found bit
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/canonical/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_list = ((flag,) for flag in flag_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_canonical',), val_list, id_iter)
 
 
 @register_ibs_method

@@ -706,8 +706,8 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True,
-                      cache_images=True, n=12, view_orientation='horizontal',
-                      **kwargs):
+                      cache_images=True, n=50, view_orientation='horizontal',
+                      return_summary=True, **kwargs):
     from ibeis.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
     import uuid
@@ -858,6 +858,40 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
         result_dict['query_annot_uuid_list'] = ibs.get_annot_uuids(qaid_list)
         result_dict['database_annot_uuid_list'] = ibs.get_annot_uuids(daid_list)
         result_dict['query_config_dict'] = query_config_dict
+
+    if return_summary:
+        summary_list = [
+            ('summary_annot', cm.annot_score_list),
+            ('summary_name', cm.name_score_list),
+        ]
+        for summary_key, summary_score_list in summary_list:
+            value_list = sorted(list(zip(
+                summary_score_list,
+                cm.daid_list,
+            )), reverse=True)
+            n_ = min(len(value_list), n)
+            value_list = value_list[:n_]
+
+            dscore_list = ut.take_column(value_list, 0)
+            daid_list = ut.take_column(value_list, 1)
+            duuid_list = ibs.get_annot_uuids(daid_list)
+            dnid_list = ibs.get_annot_nids(daid_list)
+            species_list = ibs.get_annot_species(daid_list)
+            viewpoint_list = ibs.get_annot_viewpoints(daid_list)
+            values_list = list(zip(
+                dscore_list,
+                duuid_list,
+                daid_list,
+                dnid_list,
+                species_list,
+                viewpoint_list,
+            ))
+            key_list = ['score', 'duuid', 'daid', 'dnid', 'species', 'viewpoint']
+            result_dict[summary_key] = [
+                dict(zip(key_list, value_list_))
+                for value_list_ in values_list
+            ]
+
     return result_dict
 
 

@@ -69,6 +69,7 @@ def submit_cameratrap(**kwargs):
 def submit_detection(**kwargs):
     with ut.Timer('submit'):
         is_staged = kwargs.get('staged', False)
+        is_canonical = kwargs.get('canonical', False)
 
     is_staged = is_staged and appf.ALLOW_STAGED
 
@@ -92,7 +93,15 @@ def submit_detection(**kwargs):
         imgsetid = request.args.get('imgsetid', '')
         imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
         gid = int(request.form['detection-gid'])
+        only_aid = request.form['detection-only-aid']
+        only_aid = None if only_aid == 'None' or only_aid == '' else int(only_aid)
         user_id = controller_inject.get_user().get('username', None)
+
+        if is_canonical:
+            assert only_aid is not None
+            assert not is_staged
+        if only_aid is not None:
+            assert is_canonical
 
         poor_boxes = method.lower() == 'poor boxes'
         if poor_boxes:
@@ -141,7 +150,26 @@ def submit_detection(**kwargs):
         else:
             with ut.Timer('submit...update'):
                 current_aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
+
+                if is_canonical:
+                    assert only_aid in current_aid_list, 'Specified only_aid is not in this image'
+                    current_aid_list = [only_aid]
+
                 current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list, is_staged=is_staged))
+
+                if is_canonical:
+                    current_part_type_list = ibs.get_part_types(current_part_rowid_list)
+                    zipped = zip(current_part_rowid_list, current_part_type_list)
+
+                    current_part_rowid_list_ = []
+                    for current_part_rowid, current_part_type in zipped:
+                        if current_part_type != appf.CANONICAL_PART_TYPE:
+                            continue
+                        current_part_rowid_list_.append(current_part_rowid)
+                    current_part_rowid_list = current_part_rowid_list_
+
+                    assert len(current_aid_list) == 1, 'Must have an canonical annotation to focus on in this mode'
+                    assert len(current_part_rowid_list) <= 1, 'An annotation cannot have more than one canonical part (for now)'
 
                 if is_staged:
                     staged_uuid = uuid.uuid4()
@@ -287,6 +315,11 @@ def submit_detection(**kwargs):
 
                     # Delete annotations that didn't survive
                     kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
+
+                    if is_canonical:
+                        assert len(survived_aid_list) == 1, 'Cannot add or delete annotations in this mode'
+                        assert len(kill_aid_list) == 0, 'Cannot kill a canonical annotation in this mode'
+
                     ibs.delete_annots(kill_aid_list)
 
                     local_add_gid_list = []
@@ -461,6 +494,13 @@ def submit_detection(**kwargs):
 
                     # Delete annotations that didn't survive
                     kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
+
+                    if is_canonical:
+                        assert len(survived_part_rowid_list) <= 1, 'Cannot add more than one canonical part in this mode'
+                        assert len(kill_part_rowid_list) <= 1, 'Cannot delete two or more canonical parts in this mode'
+                        assert len(survived_part_rowid_list) == len(type_list)
+                        type_list = [appf.CANONICAL_PART_TYPE] * len(survived_part_rowid_list)
+
                     ibs.delete_parts(kill_part_rowid_list)
 
                     staged_uuid_list = [staged_uuid] * len(survived_part_rowid_list)
@@ -533,6 +573,7 @@ def submit_detection(**kwargs):
             'modes_diagonal',
             'modes_diagonal2',
             'staged',
+            'canonical',
         ]
         config = {
             default: kwargs[default]
@@ -545,7 +586,8 @@ def submit_detection(**kwargs):
         if len(refer) > 0:
             return redirect(appf.decode_refer_url(refer))
         else:
-            return redirect(url_for('turk_detection', imgsetid=imgsetid, previous=gid, **config))
+            signature = 'turk_detection_canonical' if is_canonical else 'turk_detection'
+            return redirect(url_for(signature, imgsetid=imgsetid, previous=gid, previous_only_aid=only_aid, **config))
 
 
 @register_route('/submit/viewpoint/', methods=['POST'])
@@ -871,8 +913,8 @@ def submit_annotation(**kwargs):
                                 dst_ag=dst_ag, previous=aid))
 
 
-@register_route('/submit/annotation/grid/', methods=['POST'])
-def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwargs):
+@register_route('/submit/annotation/canonical/', methods=['POST'])
+def submit_annotation_canonical(samples=200, species=None, version=1, **kwargs):
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
@@ -880,34 +922,46 @@ def submit_annotation_grid(samples=200, species='zebra_grevys', version=1, **kwa
 
     assert version in [1, 2, 3]
 
-    aid_list = kwargs['annotation-grid-aids']
-    highlight_list = kwargs['annotation-grid-highlighted']
-    assert len(aid_list) == len(highlight_list)
+    aid_list = kwargs['annotation-canonical-aids']
+    canonical_list = kwargs['annotation-canonical-highlighted']
+    assert len(aid_list) == len(canonical_list)
 
-    metadata_list = ibs.get_annot_metadata(aid_list)
-    metadata_list_ = []
-    for metadata, highlight in zip(metadata_list, highlight_list):
-        if 'turk' not in metadata:
-            metadata['turk'] = {}
+    # metadata_list = ibs.get_annot_metadata(aid_list)
+    # metadata_list_ = []
+    # for metadata, highlight in zip(metadata_list, highlight_list):
+    #     if 'turk' not in metadata:
+    #         metadata['turk'] = {}
 
+    #     if version == 1:
+    #         value = highlight
+    #     elif version == 2:
+    #         value = not highlight
+    #     elif version == 3:
+    #         value = highlight
+
+    #     metadata['turk']['canonical'] = value
+    #     metadata_list_.append(metadata)
+
+    # ibs.set_annot_metadata(aid_list, metadata_list_)
+
+    value_list = []
+    for canonical in canonical_list:
         if version == 1:
-            value = highlight
+            value = canonical
         elif version == 2:
-            value = not highlight
+            value = not canonical
         elif version == 3:
-            value = highlight
+            value = canonical
+        value_list.append(value)
 
-        metadata['turk']['grid'] = value
-        metadata_list_.append(metadata)
-
-    ibs.set_annot_metadata(aid_list, metadata_list_)
+    ibs.set_annot_canonical(aid_list, value_list)
 
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_annotation_grid',
+        return redirect(url_for('turk_annotation_canonical',
                                 imgsetid=imgsetid,
                                 samples=samples, species=species,
                                 version=version))

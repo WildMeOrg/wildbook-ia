@@ -61,6 +61,8 @@ import uuid  # NOQA
 import numpy as np
 import shelve
 import random
+from datetime import datetime
+import pytz
 from os.path import join, exists, abspath
 from functools import partial
 from ibeis.control import controller_inject
@@ -77,6 +79,10 @@ ctx = zmq.Context.instance()
 URL = 'tcp://127.0.0.1'
 NUM_ENGINES = 1
 VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
+
+
+TIMESTAMP_FMTSTR = '%Y-%m-%d %H:%M:%S %Z'
+TIMESTAMP_TIMEZONE = 'US/Pacific'
 
 
 def update_proctitle(procname):
@@ -866,7 +872,9 @@ def engine_queue_loop(port_dict):
                             'callback_method' : callback_method,
                             'request'         : request,
                             'times'           : {
-                                'received'    : ut.timestamp(),
+                                'received'    : _timestamp(),
+                                'started'     : None,
+                                'runtime'     : None,
                                 'updated'     : None,
                                 'completed'   : None,
                             }
@@ -1102,10 +1110,18 @@ def collector_loop(port_dict, dbdir, containerized):
             print('Exiting collector')
 
 
+def _timestamp():
+    timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
+    now = datetime.now(timezone)
+    timestamp = now.strftime(TIMESTAMP_FMTSTR)
+    return timestamp
+
+
 def on_collect_request(collect_request, collecter_data, status_data,
                        shelve_path, containerized=False):
     """ Run whenever the collector recieves a message """
     import requests
+
     reply = {
         'status': 'ok',
     }
@@ -1131,9 +1147,38 @@ def on_collect_request(collect_request, collecter_data, status_data,
             if 'input' in collecter_data[jobid]:
                 times = collecter_data[jobid]['input'].get('times', None)
                 assert times is not None
-                times['updated'] = ut.timestamp()
+                times['updated'] = _timestamp()
+                if status == 'working':
+                    times['started'] = _timestamp()
                 if status == 'completed':
-                    times['completed'] = ut.timestamp()
+                    times['completed'] = _timestamp()
+
+                # Calculate runtime
+                started   = times.get('started', None)
+                completed = times.get('completed', None)
+                runtime   = times.get('runtime', None)
+
+                if None not in [started, completed]:
+                    try:
+                        assert runtime is None
+                        TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
+                        started = ' '.join(started.split(' ')[:-1])
+                        completed = ' '.join(completed.split(' ')[:-1])
+                        started_date = datetime.strptime(started, TIMESTAMP_FMTSTR_)
+                        completed_date = datetime.strptime(completed, TIMESTAMP_FMTSTR_)
+                        delta = completed_date - started_date
+                        total_seconds = int(delta.total_seconds())
+                        total_seconds_ = total_seconds
+                        hours = total_seconds // (60 * 60)
+                        total_seconds -= hours * 60 * 60
+                        minutes = total_seconds // 60
+                        total_seconds -= minutes * 60
+                        seconds = total_seconds
+                        args = (hours, minutes, seconds, total_seconds_, )
+                        times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                    except:
+                        times['runtime'] = 'ERROR'
+
     elif action == 'metadata':
         # From the Engine
         jobid    = collect_request['jobid']
@@ -1240,6 +1285,8 @@ def on_collect_request(collect_request, collecter_data, status_data,
                 'endpoint'       : request.get('endpoint', None),
                 'function'       : request.get('function', None),
                 'time_received'  : times.get('received', None),
+                'time_started'   : times.get('started', None),
+                'time_runtime'   : times.get('runtime', None),
                 'time_updated'   : times.get('updated', None),
                 'time_completed' : times.get('completed', None),
             }

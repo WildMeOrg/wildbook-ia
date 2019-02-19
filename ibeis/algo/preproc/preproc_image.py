@@ -53,12 +53,18 @@ def parse_imageinfo(gpath):
     # Try to open the image
     from PIL import Image
     import tempfile
+    import requests
+
     if six.PY2:
+        import urllib
         import urlparse
         urlsplit = urlparse.urlsplit
+        urlquote = urllib.quote
     else:
         import urllib
         urlsplit = urllib.parse.urlsplit
+        urlquote = urllib.parse.quote
+        urlunquote = urllib.parse.unquote
 
     gpath = gpath.strip()
 
@@ -90,11 +96,18 @@ def parse_imageinfo(gpath):
                     ut.grab_s3_contents(temp_filepath, **s3_dict)
                 if isproto(gpath, url_protos):
                     # Ensure that the Unicode string is properly encoded for web requests
-                    uri_ = urlsplit(gpath)
-                    uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                    uri_ = urlunquote(gpath)
+                    uri_ = urlsplit(uri_, allow_fragments=False)
+                    uri_path = urlquote(uri_.path.encode('utf8'))
                     uri_ = uri_._replace(path=uri_path)
                     uri_ = uri_.geturl()
-                    six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
+                    # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
+                    response = requests.get(uri_, stream=True, allow_redirects=True)
+                    assert response.status_code == 200, '200 code not received on download'
+                    # Save
+                    with open(temp_filepath, 'wb') as temp_file_:
+                        for chunk in response.iter_content(1024):
+                            temp_file_.write(chunk)
                 gpath_ = temp_filepath
             else:
                 temp_file, temp_filepath = None, None
@@ -104,10 +117,11 @@ def parse_imageinfo(gpath):
             pil_img = Image.open(gpath_, 'r')
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
-        except IOError as ex:
+        except (AssertionError, IOError, requests.HTTPError, urllib.error.HTTPError, Image.DecompressionBombError) as ex:
             # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
+
         if len(w) > 0:
             # for warn in w:
             #     warnings.showwarning(warn.message, warn.category,

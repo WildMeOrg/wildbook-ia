@@ -127,13 +127,42 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
         >>>     raise AssertionError('Should have gotten WebMissingUUIDException')
         >>> print('Successfully reported errors')
     """
+    import uuid
+
     # Unique list
-    image_uuid_list = list(set(image_uuid_list))
     if qannot_uuid_list is None:
         qannot_uuid_list = []
     if dannot_uuid_list is None:
         dannot_uuid_list = []
-    annot_uuid_list = list(set(qannot_uuid_list + dannot_uuid_list))
+
+    annot_uuid_list = qannot_uuid_list + dannot_uuid_list
+
+    # UUID parse check
+    invalid_image_uuid_list = []
+    for index, image_uuid in enumerate(image_uuid_list):
+        try:
+            assert isinstance(image_uuid, uuid.UUID)
+        except Exception:
+            value = (index, image_uuid, )
+            invalid_image_uuid_list.append(value)
+
+    invalid_annot_uuid_list = []
+    for index, annot_uuid in enumerate(annot_uuid_list):
+        try:
+            assert isinstance(annot_uuid, uuid.UUID)
+        except Exception:
+            value = (index, annot_uuid, )
+            invalid_annot_uuid_list.append(value)
+
+    if len(invalid_image_uuid_list) > 0 or len(invalid_annot_uuid_list) > 0:
+        kwargs = {
+            'invalid_image_uuid_list' : invalid_image_uuid_list,
+            'invalid_annot_uuid_list' : invalid_annot_uuid_list,
+        }
+        raise controller_inject.WebInvalidUUIDException(**kwargs)
+
+    image_uuid_list = list(set(image_uuid_list))
+    annot_uuid_list = list(set(annot_uuid_list))
     # Check for all annot UUIDs exist
     missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
     missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
@@ -143,8 +172,8 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
             'missing_annot_uuid_list' : missing_annot_uuid_list,
         }
         raise controller_inject.WebMissingUUIDException(**kwargs)
-    qdup_pos_map = ut.find_duplicate_items(dannot_uuid_list)
     ddup_pos_map = ut.find_duplicate_items(qannot_uuid_list)
+    qdup_pos_map = ut.find_duplicate_items(dannot_uuid_list)
     if len(ddup_pos_map) + len(qdup_pos_map) > 0:
         raise controller_inject.WebDuplicateUUIDException(qdup_pos_map, qdup_pos_map)
 
