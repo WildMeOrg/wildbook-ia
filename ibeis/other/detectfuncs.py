@@ -2905,7 +2905,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x0', color=color, index=index, **config)
 
@@ -2922,7 +2922,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x1', color=color, index=index, **config)
 
@@ -2939,7 +2939,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'y0', color=color, index=index, **config)
 
@@ -2956,7 +2956,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'y1', color=color, index=index, **config)
 
@@ -2973,7 +2973,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
 
     assert len(config_list) % 4 == 0
     rounds = len(config_list) // 4
