@@ -22,8 +22,10 @@ ARCHIVE_URL_DICT = {
     'canonical_zebra_grevys_v2' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v2.zip',
     'canonical_zebra_grevys_v3' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v3.zip',
     'canonical_zebra_grevys_v4' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v4.zip',
-    'ryan.densenet.v1'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
-    'ryan.densenet.v2'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
+    'ryan_densenet_v1'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
+    'ryan_densenet_v2'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
+
+    'giraffe_v1'                : 'https://cthulhu.dyn.wildme.io/public/models/labeler.giraffe.v1.zip',
 }
 
 
@@ -451,7 +453,10 @@ def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
     )
 
     print('Initializing Model...')
-    weights = torch.load(weights_path)
+    try:
+        weights = torch.load(weights_path)
+    except RuntimeError:
+        weights = torch.load(weights_path, map_location='cpu')
     state   = weights['state']
     classes = weights['classes']
 
@@ -516,7 +521,7 @@ def test_ensemble(filepath_list, weights_path_list, **kwargs):
         yield merged
 
 
-def test(gpath_list, classifier_weight_filepath=None, **kwargs):
+def test(gpath_list, classifier_weight_filepath=None, return_dict=False, **kwargs):
     from detecttools.directory import Directory
     # Get correct weight if specified with shorthand
     archive_url = None
@@ -557,10 +562,43 @@ def test(gpath_list, classifier_weight_filepath=None, **kwargs):
     print('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
-        if result['positive'] > 0.5:
-            cls = 'positive'
+        best_key = None
+        best_score = -1.0
+        for key, score in result.items():
+            if score > best_score:
+                best_key = key
+                best_score = score
+        assert best_score >= 0.0 and best_key is not None
+        if return_dict:
+            yield best_score, best_key, result
         else:
-            cls = 'negative'
-        score = result[cls]
+            yield best_score, best_key
 
-        yield score, cls
+
+def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **kwargs):
+    result_gen = test(
+        gpath_list,
+        classifier_weight_filepath=classifier_weight_filepath,
+        return_dict=True,
+        **kwargs
+    )
+
+    for result in result_gen:
+        best_score, best_key, result_dict = result
+        best_key = best_key.split(':')
+        if len(best_key) == 1:
+            best_species = best_key
+            best_viewpoint = None
+        elif len(best_key) == 2:
+            best_species, best_viewpoint = best_key
+        else:
+            raise ValueError('Invalid key %r' % (best_key, ))
+
+        yield (
+            best_score,
+            best_species,
+            best_viewpoint,
+            'UNKNOWN',
+            0.0,
+            result_dict,
+        )

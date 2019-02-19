@@ -1668,6 +1668,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
 
 class LabelerConfig(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
 
@@ -1692,7 +1693,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_localizations_labels
+        python -m ibeis.core_images --exec-compute_localizations_labels
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1701,22 +1702,50 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:100]
-        >>> depc.delete_property('labeler', gid_list)
-        >>> results = depc.get_property('labeler', gid_list, None)
-        >>> results = depc.get_property('labeler', gid_list, 'species')
+        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'giraffe_v1'}
+        >>> # depc.delete_property('localizations_labeler', aid_list)
+        >>> results = depc.get_property('localizations_labeler', gid_list, None, config=config)
+        >>> print(results)
+        >>> config = {'labeler_weight_filepath': 'candidacy'}
+        >>> # depc.delete_property('localizations_labeler', aid_list)
+        >>> results = depc.get_property('localizations_labeler', gid_list, None, config=config)
         >>> print(results)
     """
+    from os.path import join, exists
     print('[ibs] Process Localization Labels')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
 
-    gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
-                                                            target_size=(128, 128))
+    if config['labeler_algo'] in ['pipeline', 'cnn']:
+        gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
+                                                                target_size=(128, 128))
+        result_list = ibs.generate_chip_label_list(chip_list, **config)
+    elif config['labeler_algo'] in ['azure']:
+        raise NotImplementedError('Azure is not implemented for images')
+    elif config['labeler_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        target_size = (densenet.INPUT_SIZE, densenet.INPUT_SIZE, )
+        gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
+                                                                target_size=target_size)
+        config = dict(config)
+        config['classifier_weight_filepath'] = config['labeler_weight_filepath']
+        ut.embed()
+        nonce = ut.random_nonce()[:16]
+        cache_path = join(ibs.cachedir, 'localization_labels_%s' % (nonce, ))
+        assert not exists(cache_path)
+        ut.ensuredir(cache_path)
+        chip_filepath_list = []
+        for index, chip in enumerate(chip_list):
+            chip_filepath = join(cache_path, 'chip_%08d.png' % (index, ))
+            cv2.imwrite(chip_filepath, chip)
+            assert exists(chip_filepath)
+            chip_filepath_list.append(chip_filepath)
+        result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
+        result_list = list(result_gen)
+        ut.delete(cache_path)
 
-    # Get the results from the algorithm
-    result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
 
     # Release chips

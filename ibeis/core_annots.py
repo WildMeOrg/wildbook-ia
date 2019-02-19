@@ -1783,7 +1783,7 @@ def compute_canonical(depc, aid_list, config=None):
 
 class LabelerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'pipeline']),
+        ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -1812,7 +1812,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_labels_annotations
+        python -m ibeis.core_annots --exec-compute_labels_annotations
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1822,6 +1822,14 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
+        >>> config = {'labeler_algo': 'densenet', 'labeler_weight_filepath': 'giraffe_v1'}
+        >>> # depc.delete_property('labeler', aid_list)
+        >>> results = depc.get_property('labeler', aid_list, None, config=config)
+        >>> print(results)
+        >>> config = {'labeler_weight_filepath': 'candidacy'}
+        >>> # depc.delete_property('labeler', aid_list)
+        >>> results = depc.get_property('labeler', aid_list, None, config=config)
+        >>> print(results)
         >>> config = {'labeler_algo': 'azure'}
         >>> # depc.delete_property('labeler', aid_list)
         >>> results = depc.get_property('labeler', aid_list, None, config=config)
@@ -1836,7 +1844,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_annot
 
-    if config['labeler_algo'] in ['pipeline']:
+    if config['labeler_algo'] in ['pipeline', 'cnn']:
         print('[ibs] labeling using Detection Pipeline Labeler')
         config_ = {
             'dim_size': (128, 128),
@@ -1848,6 +1856,17 @@ def compute_labels_annotations(depc, aid_list, config=None):
         from ibeis.algo.detect import azure
         print('[ibs] detecting using Azure AI for Earth Species Classification API')
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
+    elif config['labeler_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        config_ = {
+            'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+            'resize_dim': 'wh',
+        }
+        chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config_,
+                                               read_extern=False, ensure=True)
+        config = dict(config)
+        config['classifier_weight_filepath'] = config['labeler_weight_filepath']
+        result_gen = densenet.test_dict(chip_filepath_list, return_dict=True, **config)
     else:
         raise ValueError('specified labeler algo is not supported in config = %r' % (config, ))
 

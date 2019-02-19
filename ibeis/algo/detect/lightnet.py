@@ -36,6 +36,8 @@ CONFIG_URL_DICT = {
     'jaguar_v2'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v2.py',
     'jaguar'                     : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.jaguar.v2.py',
 
+    'giraffe_v1'                 : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.giraffe.v1.py',
+
     'hendrik_elephant'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.py',
     'hendrik_elephant_ears'      : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.py',
     'hendrik_elephant_ears_left' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.left.py',

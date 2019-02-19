@@ -512,8 +512,8 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
-def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, labeler_model_tag=None,
-                    **kwargs):
+def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False,
+                    labeler_algo='pipeline', labeler_model_tag=None, **kwargs):
     """
     Run animal detection in each image. Adds annotations to the database as they are found.
 
@@ -572,6 +572,7 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, l
     if commit:
         if labeler_model_tag is not None:
             labeler_config = config.copy()
+            labeler_config['labeler_algo'] = labeler_algo,
             labeler_config['labeler_weight_filepath'] = labeler_model_tag
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
         else:
@@ -769,8 +770,8 @@ def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/lightnet/', methods=['PUT', 'GET', 'POST'])
-def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=False, labeler_model_tag=None,
-                        **kwargs):
+def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=False,
+                        labeler_algo='pipeline', labeler_model_tag=None, **kwargs):
     """
     Run animal detection in each image. Adds annotations to the database as they are found.
 
@@ -830,6 +831,7 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
     if commit:
         if labeler_model_tag is not None:
             labeler_config = config.copy()
+            labeler_config['labeler_algo'] = labeler_algo,
             labeler_config['labeler_weight_filepath'] = labeler_model_tag
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
         else:
