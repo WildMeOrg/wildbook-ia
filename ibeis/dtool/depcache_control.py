@@ -917,8 +917,6 @@ class _CoreDependencyCache(object):
 
         FIXME: make this work for all configs
         """
-        import utool as ut
-        ut.embed()
         table = depc[tablename]
 
         all_rowid_list = table._get_all_rowids()
