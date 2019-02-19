@@ -911,6 +911,22 @@ class _CoreDependencyCache(object):
         return num_deleted
 
 
+    def delete_property_all(depc, tablename, root_rowids, _debug=False):
+        """
+        Deletes the rowids of `tablename` that correspond to `root_rowids`
+        using `config`.
+
+        FIXME: make this work for all configs
+        """
+        import utool as ut
+        ut.embed()
+        rowid_list = depc.get_rowids(tablename, root_rowids, config=config,
+                                     ensure=False, _debug=_debug)
+        table = depc[tablename]
+        num_deleted = table.delete_rows(rowid_list)
+        return num_deleted
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     """
