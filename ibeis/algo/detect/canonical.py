@@ -185,6 +185,8 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
                 model.eval()   # Set model to evaluate mode
 
             running_loss_ = np.zeros((1, 4))
+            running_loss_under_ = np.zeros((1, 4))
+            running_loss_over_ = np.zeros((1, 4))
             running_loss = 0.0
 
             # Iterate over data.
@@ -235,6 +237,9 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
                     # loss = torch.sum(loss_weighted)
 
                     loss_ = torch.mean(error, 0)
+                    loss_under_ = torch.mean(undershoots, 0)
+                    loss_over_ = torch.mean(overshoots, 0)
+
                     loss = torch.sum(loss_)
 
                     # backward + optimize only if in training phase
@@ -246,9 +251,13 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
                 seen += len(inputs)
                 running_loss += loss.item() * inputs.size(0)
                 running_loss_ += np.array(loss_.tolist()) * inputs.size(0)
+                running_loss_under_ += np.array(loss_under_.tolist()) * inputs.size(0)
+                running_loss_over_ += np.array(loss_over_.tolist()) * inputs.size(0)
 
             epoch_loss = running_loss / seen
             epoch_loss_ = running_loss_[0] / seen
+            epoch_loss_under_ = running_loss_under_[0] / seen
+            epoch_loss_over_ = running_loss_over_[0] / seen
 
             last_loss[phase] = epoch_loss
 
@@ -264,9 +273,22 @@ def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, u
             y0 *= INPUT_SIZE
             x1 *= INPUT_SIZE
             y1 *= INPUT_SIZE
-
             best_str = '!' if best else ''
             print('{:<5} Loss: {:.4f}\t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)\t{}'.format(phase, epoch_loss, x0, y0, x1, y1, best_str))
+
+            x0_, y0_, x1_, y1_ = epoch_loss_under_
+            x0_ *= INPUT_SIZE
+            y0_ *= INPUT_SIZE
+            x1_ *= INPUT_SIZE
+            y1_ *= INPUT_SIZE
+            print('{:<5} Under Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(phase, x0_, y0_, x1_, y1_))
+
+            x0_, y0_, x1_, y1_ = epoch_loss_over_
+            x0_ *= INPUT_SIZE
+            y0_ *= INPUT_SIZE
+            x1_ *= INPUT_SIZE
+            y1_ *= INPUT_SIZE
+            print('{:<5}  Over Loss: \t(X0: {:.1f}px Y0: {:.1f}px X1: {:.1f}px Y1: {:.1f}px)'.format(phase, x0_, y0_, x1_, y1_))
 
             if phase == 'val':
                 if best:
