@@ -3006,7 +3006,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
         if index % 4 == 0:
             config_ = config_list[index]
             test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = values_
-            ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
+            ibs.canonical_localization_iou_visualize(index, test_aid_set, test_bbox_set,
                                                      prediction_list, y_list, colors,
                                                      **config_)
 
