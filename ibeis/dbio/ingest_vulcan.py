@@ -19,8 +19,11 @@ SPECIES_MAPPING = {
     'giraffe'          : 'giraffe_generic',
     'horse'            : 'horse_domestic',
     'human'            : 'person',
+    'building'         : 'building',
     'hut'              : 'building_hut',
+    'manmade'          : 'building_other',
     'other animal'     : 'other',
+    'vehicle'          : 'car',
     'zebra'            : 'zebra_generic',
 }
 
@@ -228,7 +231,7 @@ def convert_vulcan2018_to_ibeis(vulcan_path, dbdir=None, **kwargs):
         >>> default_dbdir = join('/', 'data', 'ibeis', 'ELPH_Vulcan')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> vulcan_path = ut.get_argval('--vulcan', type_=str, default=default_vulcan_path)
-        >>> result = convert_vulcan2018_to_ibeis(vulcan_path, dbdir=dbdir, purge=False, dry_run=True)
+        >>> result = convert_vulcan2018_to_ibeis(vulcan_path, dbdir=dbdir, purge=False, dry_run=False)
         >>> print(result)
     """
     return _convert_vulcan_to_ibeis(vulcan_path, dbdir, **kwargs)
@@ -251,7 +254,7 @@ def convert_vulcan2019_to_ibeis(vulcan_path, dbdir=None, **kwargs):
         >>> default_dbdir = join('/', 'data', 'ibeis', 'ELPH_Vulcan')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> vulcan_path = ut.get_argval('--vulcan', type_=str, default=default_vulcan_path)
-        >>> result = convert_vulcan2019_to_ibeis(vulcan_path, dbdir=dbdir, purge=False, dry_run=True)
+        >>> result = convert_vulcan2019_to_ibeis(vulcan_path, dbdir=dbdir, purge=False, dry_run=False)
         >>> print(result)
     """
     kwargs['ignore_directory_list'] = ['Metadata']
