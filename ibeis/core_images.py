@@ -212,7 +212,8 @@ def compute_web_src(depc, gid_list, config=None):
     ibs = depc.controller
 
     gpath_list = ibs.get_image_paths(gid_list)
-    args_list = list(zip(gpath_list))
+    orient_list = ibs.get_image_orientation(gid_list)
+    args_list = list(zip(gpath_list, orient_list))
 
     genkw = {
         'ordered': True,
@@ -225,9 +226,9 @@ def compute_web_src(depc, gid_list, config=None):
         yield (val, )
 
 
-def draw_web_src(gpath):
+def draw_web_src(gpath, orient):
     from ibeis.web.routes_ajax import image_src_path
-    image_src = image_src_path(gpath)
+    image_src = image_src_path(gpath, orient)
     return image_src
 
 
