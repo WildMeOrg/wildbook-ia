@@ -2905,12 +2905,12 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x0', color=color, index=index, **config)
 
     plt.title('X0 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(322)
@@ -2922,12 +2922,12 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x1', color=color, index=index, **config)
 
     plt.title('Y0 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(323)
@@ -2939,12 +2939,12 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'y0', color=color, index=index, **config)
 
     plt.title('X1 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(324)
@@ -2956,12 +2956,12 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'y1', color=color, index=index, **config)
 
     plt.title('Y1 Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(325)
@@ -2973,7 +2973,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
-    axes_.fill_between([0.0, len(config_list)], -1, 1, facecolor='red', alpha=0.2)
+    axes_.fill_between([0.0, len(config_list)], -1, 0, facecolor='red', alpha=0.1)
 
     assert len(config_list) % 4 == 0
     rounds = len(config_list) // 4
@@ -2992,7 +2992,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
         canonical_localization_deviation_plot(ibs, attribute, color=color_, index=index, **config_)
 
     plt.title('Ensemble Deviation Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(326)
@@ -3015,7 +3015,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
                                                      **config_)
 
     plt.title('IoU Scatter Plot')
-    plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.legend(bbox_to_anchor=(0.0, 1.04, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     fig_filename = 'canonical-localization-deviance.png'
