@@ -2813,6 +2813,7 @@ def canonical_localization_iou_visualize(ibs, test_aid_set, test_bbox_set, predi
     color_list = color_list_
 
     output_path = expanduser(join('~', 'Desktop', 'canonical-regression'))
+    ut.delete(output_path)
     ut.ensuredir(output_path)
 
     config = {
@@ -2993,18 +2994,24 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([0.0, 1.0])
 
-    values = None
+    best_index = None
+    best_accuracy = 0.0
+    best_values = None
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
-        if index == 0:
-            values = values_
+        if index % 4 == 0:
+            accuracy = values_[-1]
+            if accuracy > best_accuracy:
+                best_index = index
+                best_accuracy = accuracy
+                best_values = values_
 
     plt.title('IoU Scatter Plot')
     plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    config = config_list[0]
-    test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = values
+    config = config_list[best_index]
+    test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = best_values
     ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
                                              prediction_list, y_list, colors,
                                              **config)
