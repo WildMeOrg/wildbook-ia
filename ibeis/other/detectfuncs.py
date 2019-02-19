@@ -2772,15 +2772,15 @@ def canonical_localization_iou_plot(ibs, color, index,
         overlap = general_overlap([gt], [pred])
         x = random.uniform(index, index + 1)
         y = overlap[0][0]
-        if y > threshold:
-            correct += 1
+        if y >= threshold:
+            correct += 1.0
         x_list.append(x)
         y_list.append(y)
     accuracy = correct / len(y_list)
     mean = np.mean(y_list)
     std = np.std(y_list)
 
-    label = '%s (mean: %0.02f, std: %0.02f, acc: %0.02f)' % (label, mean, std, accuracy, )
+    label = '%s (%0.02f, %0.02f +/- %0.02f)' % (label, accuracy, mean, std, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
 
     for y_value in [0.5, 0.75, 0.9]:
@@ -2896,7 +2896,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in percentages)')
+    axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2912,7 +2912,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in percentages)')
+    axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2928,7 +2928,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in percentages)')
+    axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2944,7 +2944,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in percentages)')
+    axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
     for index, (color, config) in enumerate(zip(color_list, config_list)):
@@ -2960,7 +2960,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.get_xaxis().set_ticks([])
-    axes_.set_ylabel('Deviation (in percentages)')
+    axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
 
@@ -2975,7 +2975,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
         color_list_ += colors
 
     for index, (attribute, color_) in enumerate(zip(attribute_list, color_list_)):
-        index_ = index // 4
+        index_ = (index // 4) * 4
         config_ = config_list[index_].copy()
         config_['label'] = '%s %s' % (config_['label'], attribute, )
         canonical_localization_deviation_plot(ibs, attribute, color=color_, index=index, **config_)
@@ -2998,9 +2998,11 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     best_accuracy = 0.0
     best_values = None
     for index, (color, config) in enumerate(zip(color_list, config_list)):
+        print(index, config)
         values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
         if index % 4 == 0:
             accuracy = values_[-1]
+            print(accuracy)
             if accuracy > best_accuracy:
                 best_index = index
                 best_accuracy = accuracy
@@ -3010,11 +3012,11 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     plt.legend(bbox_to_anchor=(0.0, 1.07, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    config = config_list[best_index]
+    best_config = config_list[best_index]
     test_aid_set, test_bbox_set, prediction_list, y_list, accuracy = best_values
     ibs.canonical_localization_iou_visualize(test_aid_set, test_bbox_set,
                                              prediction_list, y_list, colors,
-                                             **config)
+                                             **best_config)
 
     fig_filename = 'canonical-localization-deviance.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
