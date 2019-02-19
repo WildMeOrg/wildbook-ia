@@ -160,7 +160,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         return fmt_str
 
 
-def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, under=1.0, over=4.0):
+def finetune(model, dataloaders, optimizer, scheduler, device, num_epochs=128, under=1.0, over=1.0):
     phases = ['train', 'val']
 
     start = time.time()
