@@ -1039,6 +1039,16 @@ def update_image_rotate_90(ibs, gid_list, direction):
     ibs.depc_image.delete_property('thumbnails', gid_list)
     ibs.depc_image.delete_property('web_src',    gid_list)
 
+    # Delete web thumbnails
+    from ibeis.web import appfuncs as appf
+    config_ = {
+        'thumbsize': max(
+            int(appf.TARGET_WIDTH),
+            int(appf.TARGET_HEIGHT),
+        ),
+    }
+    ibs.depc_image.delete_property('thumbnails', gid_list, config=config_)
+
 
 @register_ibs_method
 @register_api('/api/image/rotate/left/', methods=['POST'])
