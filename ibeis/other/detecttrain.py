@@ -266,6 +266,7 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
         category_mapping=species_mapping,
         viewpoint_mapping=viewpoint_mapping,
         dest_path=data_path,
+        **kwargs
     )
 
     weights_path_list = []

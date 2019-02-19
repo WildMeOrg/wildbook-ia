@@ -2560,10 +2560,10 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
     config_list = [
-        {'label': 'CA V1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},
-        {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
-        {'label': 'CA V3 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},
-        {'label': 'CA V4 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},
+        {'label': 'CA V1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},   # SMALLER DATASET
+        {'label': 'CA V2 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},   # BROKEN L/R AUGMENTATION
+        {'label': 'CA V3 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},   # LARGER DATASET, TOO HARSH AUGMENTATION
+        {'label': 'CA V4 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},   # BETTER AUGMENTATION
         # {'label': 'CA V4 Model 0',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
         # {'label': 'CA V4 Model 1',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
         # {'label': 'CA V4 Model 2',  'classifier_algo': 'densenet', 'classifier_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
@@ -2884,22 +2884,22 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
     config_list = [
-        {'label': 'CA V1 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},
-        {'label': 'CA V1 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V1 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V1 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:2', 'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v1',   'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:0', 'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:1', 'species': 'zebra_grevys'},
+        # {'label': 'CA V1 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v1:2', 'species': 'zebra_grevys'},
         # {'label': 'CA V2 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v2',   'species': 'zebra_grevys'},
         # {'label': 'CA V2 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:0', 'species': 'zebra_grevys'},
         # {'label': 'CA V2 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:1', 'species': 'zebra_grevys'},
         # {'label': 'CA V2 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v2:2', 'species': 'zebra_grevys'},
-        {'label': 'CA V3 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},
-        {'label': 'CA V3 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V3 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V3 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:2', 'species': 'zebra_grevys'},
-        {'label': 'CA V4 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},
-        {'label': 'CA V4 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},
-        {'label': 'CA V4 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},
-        {'label': 'CA V4 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},
+        {'label': 'CA V3 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v3',   'species': 'zebra_grevys'},  # OVER = 2.0
+        {'label': 'CA V3 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:0', 'species': 'zebra_grevys'},  # OVER = 2.0
+        {'label': 'CA V3 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:1', 'species': 'zebra_grevys'},  # OVER = 2.0
+        {'label': 'CA V3 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v3:2', 'species': 'zebra_grevys'},  # OVER = 2.0
+        {'label': 'CA V4 Ensemble', 'canonical_weight_filepath': 'canonical_zebra_grevys_v4',   'species': 'zebra_grevys'},  # OVER = 4.0
+        {'label': 'CA V4 Model 0',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:0', 'species': 'zebra_grevys'},  # OVER = 4.0
+        {'label': 'CA V4 Model 1',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:1', 'species': 'zebra_grevys'},  # OVER = 4.0
+        {'label': 'CA V4 Model 2',  'canonical_weight_filepath': 'canonical_zebra_grevys_v4:2', 'species': 'zebra_grevys'},  # OVER = 4.0
     ]
     color_list = []
     # color_list = [(0, 0, 0)]
