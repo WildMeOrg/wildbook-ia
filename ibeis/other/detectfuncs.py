@@ -2818,7 +2818,7 @@ def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set
         color_list_.append(color_)
     color_list = color_list_
 
-    output_path = expanduser(join('~', 'Desktop', 'canonical-regression-%d'))
+    output_path = expanduser(join('~', 'Desktop', 'canonical-regression-%d' % (index, )))
     ut.delete(output_path)
     ut.ensuredir(output_path)
 
