@@ -919,6 +919,9 @@ class _CoreDependencyCache(object):
         """
         table = depc[tablename]
 
+        import utool as ut
+        ut.embed()
+
         all_rowid_list = table._get_all_rowids()
         ancestor_rowid_list = depc.get_ancestor_rowids(tablename, all_rowid_list)
 
