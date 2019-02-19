@@ -910,7 +910,6 @@ class _CoreDependencyCache(object):
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
 
-
     def delete_property_all(depc, tablename, root_rowids, _debug=False):
         """
         Deletes the rowids of `tablename` that correspond to `root_rowids`
@@ -920,9 +919,17 @@ class _CoreDependencyCache(object):
         """
         import utool as ut
         ut.embed()
-        rowid_list = depc.get_rowids(tablename, root_rowids, config=config,
-                                     ensure=False, _debug=_debug)
         table = depc[tablename]
+
+        all_rowid_list = table._get_all_rowids()
+        ancestor_rowid_list = depc.get_ancestor_rowids(tablename, all_rowid_list)
+
+        rowid_list = []
+        root_rowids_set = set(root_rowids)
+        for rowid, ancestor_rowid in zip(all_rowid_list, ancestor_rowid_list):
+            if ancestor_rowid in root_rowids_set:
+                rowid_list.append(rowid)
+
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
 
