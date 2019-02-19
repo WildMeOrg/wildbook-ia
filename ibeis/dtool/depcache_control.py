@@ -918,11 +918,10 @@ class _CoreDependencyCache(object):
         FIXME: make this work for all configs
         """
         table = depc[tablename]
-
-        import utool as ut
-        ut.embed()
-
         all_rowid_list = table._get_all_rowids()
+        if len(all_rowid_list) == 0:
+            return 0
+
         ancestor_rowid_list = depc.get_ancestor_rowids(tablename, all_rowid_list)
 
         rowid_list = []
