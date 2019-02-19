@@ -2726,10 +2726,10 @@ def canonical_localization_deviation_plot(ibs, attribute, color, index,
 
     label = '%s (mean: %0.02f, std: %0.02f)' % (label, mean, std, )
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
-    plt.plot([index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.5)
 
+    plt.plot([index, index + 1], [0.0, 0.0], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.3)
     if index % 4 == 3:
-        plt.plot([index + 1, index + 1], [0.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.5)
+        plt.plot([index + 1, index + 1], [-1.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.1)
 
     color = 'xkcd:gold'
     marker = 'D'
@@ -2787,10 +2787,10 @@ def canonical_localization_iou_plot(ibs, color, index,
     plt.plot(x_list, y_list, color=color,  linestyle='None', marker=marker, label=label, alpha=0.5)
 
     for y_value in [0.5, 0.75, 0.9]:
-        plt.plot([index, index + 1], [y_value, y_value], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.5)
+        plt.plot([index, index + 1], [y_value, y_value], color=(0.2, 0.2, 0.2), linestyle='-', alpha=0.3)
 
     if index % 4 == 3:
-        plt.plot([index + 1, index + 1], [0.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.5)
+        plt.plot([index + 1, index + 1], [0.0, 1.0], color=(0.2, 0.2, 0.2), linestyle='--', alpha=0.1)
 
     color = 'xkcd:gold'
     marker = 'D'
@@ -2870,7 +2870,7 @@ def canonical_localization_iou_visualize(ibs, index, test_aid_set, test_bbox_set
 
 
 @register_ibs_method
-def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
+def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2905,6 +2905,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
+    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x0', color=color, index=index, **config)
 
@@ -2921,6 +2922,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
+    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'x1', color=color, index=index, **config)
 
@@ -2937,6 +2939,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
+    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'y0', color=color, index=index, **config)
 
@@ -2953,6 +2956,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
+    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
     for index, (color, config) in enumerate(zip(color_list, config_list)):
         canonical_localization_deviation_plot(ibs, 'y1', color=color, index=index, **config)
 
@@ -2969,6 +2973,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_ylabel('GT - Pred Deviation (in percentages)')
     axes_.set_xlim([0.0, len(config_list)])
     axes_.set_ylim([min_, max_])
+    axes_.fill_between([0.0, len()], -1, 1, facecolor='red', alpha=0.2)
 
     assert len(config_list) % 4 == 0
     rounds = len(config_list) // 4
@@ -3001,7 +3006,6 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 35)):
     axes_.set_ylim([0.0, 1.0])
 
     for index, (color, config) in enumerate(zip(color_list, config_list)):
-        print(index, config)
         values_ = canonical_localization_iou_plot(ibs, color=color, index=index, **config)
         if index % 4 == 0:
             config_ = config_list[index]
