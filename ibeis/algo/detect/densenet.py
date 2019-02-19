@@ -21,6 +21,7 @@ ARCHIVE_URL_DICT = {
     'canonical_zebra_grevys_v1' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v1.zip',
     'canonical_zebra_grevys_v2' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v2.zip',
     'canonical_zebra_grevys_v3' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v3.zip',
+    'canonical_zebra_grevys_v4' : 'https://cthulhu.dyn.wildme.io/public/models/classifier.canonical.zebra_grevys.v4.zip',
     'ryan.densenet.v1'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v1.zip',
     'ryan.densenet.v2'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
 }
