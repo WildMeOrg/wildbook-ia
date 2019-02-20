@@ -2351,7 +2351,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={}, v
 
 
 @register_ibs_method
-def labeler_precision_recall_algo_display(ibs, category_list=None, species_mapping=None, viewpoint_mapping=None,
+def labeler_precision_recall_algo_display(ibs, category_list=None, species_mapping={}, viewpoint_mapping={},
                                           category_mapping=None, fuzzy_dict=None,
                                           figsize=(30, 9), **kwargs):
     import matplotlib.pyplot as plt
@@ -2363,11 +2363,10 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         aids_list = ibs.get_image_aids(test_gid_set)
         aid_list = ut.flatten(aids_list)
         species_list = ibs.get_annot_species_texts(aid_list)
-        if species_mapping is not None:
-            species_list = [
-                species_mapping.get(species, species)
-                for species in species_list
-            ]
+        species_list = [
+            species_mapping.get(species, species)
+            for species in species_list
+        ]
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
