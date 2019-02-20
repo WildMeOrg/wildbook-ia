@@ -26,6 +26,7 @@ ARCHIVE_URL_DICT = {
     'ryan_densenet_v2'          : 'https://cthulhu.dyn.wildme.io/public/models/classifier.cameratrap.ryan.densenet.v2.zip',
 
     'giraffe_v1'                : 'https://cthulhu.dyn.wildme.io/public/models/labeler.giraffe.v1.zip',
+    'jaguar_v3'                 : 'https://cthulhu.dyn.wildme.io/public/models/labeler.jaguar.v3.zip',
     'lynx_v3'                   : 'https://cthulhu.dyn.wildme.io/public/models/labeler.lynx.v3.zip',
     'manta_v1'                  : 'https://cthulhu.dyn.wildme.io/public/models/labeler.manta_ray_giant.v1.zip',
     'seaturtle_v3'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seaturtle.v3.zip',
