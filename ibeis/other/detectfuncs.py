@@ -1181,39 +1181,39 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     {},
             # ),
 
-            'jaguar': (
-                [
-                    {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['jaguar'])},
-                    {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['jaguar'])},
-                ],
-                {},
-            ),
+            # 'jaguar': (
+            #     [
+            #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['jaguar'])},
+            #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['jaguar'])},
+            #     ],
+            #     {},
+            # ),
 
-            '!jaguar': (
-                [
-                    {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!jaguar'])},
-                    {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!jaguar'])},
-                ],
-                {},
-            ),
+            # '!jaguar': (
+            #     [
+            #         {'label': 'Jaguar NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!jaguar'])},
+            #         {'label': 'Jaguar NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'jaguar_v2', 'weight_filepath' : 'jaguar_v2', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!jaguar'])},
+            #     ],
+            #     {},
+            # ),
 
             # 'manta': (
             #     [
@@ -1248,6 +1248,27 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
+
+            'giraffe': (
+                [
+                    {'label': 'Giraffe NMS 10%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+                    {'label': 'Giraffe NMS 30%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+                    {'label': 'Giraffe NMS 50%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+                    {'label': 'Giraffe NMS 70%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+                    {'label': 'Giraffe NMS 90%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+                    {'label': 'Masai Giraffe NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai'])},
+                    {'label': 'Masai Giraffe NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_masai'])},
+                    {'label': 'Masai Giraffe NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_masai'])},
+                    {'label': 'Masai Giraffe NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_masai'])},
+                    {'label': 'Masai Giraffe NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_masai'])},
+                    {'label': 'Reticulated Giraffe NMS 10%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_reticulated'])},
+                    {'label': 'Reticulated Giraffe NMS 30%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_reticulated'])},
+                    {'label': 'Reticulated Giraffe NMS 50%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_reticulated'])},
+                    {'label': 'Reticulated Giraffe NMS 70%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_reticulated'])},
+                    {'label': 'Reticulated Giraffe NMS 90%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_reticulated'])},
+                ],
+                {},
+            ),
         }
 
     for config_key in config_dict:
@@ -2378,18 +2399,18 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
                                      **kwargs)
 
     config_list = [
-        {'label': 'Both Species',           'category_list': None},
+        {'label': 'Giraffe',                'category_list': None},
         {'label': 'Masai Giraffe',          'category_list': ['giraffe_masai']},
         {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
         # {'label': 'Sea Turtle',            'category_list': ['turtle_sea']},
         # {'label': 'Sea Turtle Head',       'category_list': ['turtle_sea+head']},
-        # {'label': 'Manta',               'category_list': ['manta_ray_giant']},
+        # {'label': 'Manta',                 'category_list': ['manta_ray_giant']},
         # {'label': 'Dorsal Fin',            'category_list': ['dolphin_bottlenose_fin']},
-        # {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
-        # {'label': 'Sea Turtle',          'category_list': ['turtle_sea']},
-        # {'label': 'Whale Fluke',         'category_list': ['whale_fluke']},
-        # {'label': 'Grevy\'s Zebra',      'category_list': ['zebra_grevys']},
-        # {'label': 'Plains Zebra',        'category_list': ['zebra_plains']},
+        # {'label': 'Reticulated Giraffe',   'category_list': ['giraffe_reticulated']},
+        # {'label': 'Sea Turtle',            'category_list': ['turtle_sea']},
+        # {'label': 'Whale Fluke',           'category_list': ['whale_fluke']},
+        # {'label': 'Grevy\'s Zebra',        'category_list': ['zebra_grevys']},
+        # {'label': 'Plains Zebra',          'category_list': ['zebra_plains']},
     ]
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)

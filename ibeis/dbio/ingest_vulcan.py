@@ -161,7 +161,7 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False, dry_run=False
                 h = y1 - y0
                 area = w * h
 
-                if area <= 0:
+                if w <= 0 or h <= 0:
                     skipped += 1
                     continue
 
