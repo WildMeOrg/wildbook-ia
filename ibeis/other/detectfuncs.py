@@ -2375,7 +2375,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     # kwargs['labeler_weight_filepath'] = 'giraffe_v1'
     # kwargs['labeler_weight_filepath'] = 'lynx_v3'
     # kwargs['labeler_weight_filepath'] = 'seaturtle_v3'
-    kwargs['labeler_weight_filepath'] = 'jaguar_v3'
+    # kwargs['labeler_weight_filepath'] = 'jaguar_v3'
+    kwargs['labeler_weight_filepath'] = 'hendrik_dorsal_v2'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      **kwargs)
@@ -2388,8 +2389,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
         # {'label': 'Sea Turtle Head',        'category_list': ['turtle_sea+head']},
         # {'label': 'Manta',                  'category_list': ['manta_ray_giant']},
-        {'label': 'Jaguar',                 'category_list': ['jaguar']},
-        # {'label': 'Dorsal Fin',             'category_list': ['dolphin_bottlenose_fin']},
+        # {'label': 'Jaguar',                 'category_list': ['jaguar']},
+        {'label': 'Dorsal Fin',             'category_list': ['dolphin_bottlenose_fin']},
         # {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
         # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
         # {'label': 'Whale Fluke',            'category_list': ['whale_fluke']},

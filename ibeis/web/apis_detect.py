@@ -574,10 +574,12 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False,
             labeler_config = config.copy()
             labeler_config['labeler_algo'] = labeler_algo,
             labeler_config['labeler_weight_filepath'] = labeler_model_tag
+            specieses_list = depc.get_property('localizations_labeler', gid_list, 'species', config=labeler_config)
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
         else:
+            specieses_list = None
             viewpoints_list = None
-        aids_list = ibs.commit_localization_results(gid_list, results_list, viewpoints_list=viewpoints_list, note='cnnyolodetect')
+        aids_list = ibs.commit_localization_results(gid_list, results_list, specieses_list=specieses_list, viewpoints_list=viewpoints_list, note='cnnyolodetect')
         return aids_list
     else:
         return results_list
@@ -835,24 +837,31 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
             labeler_config = config.copy()
             labeler_config['labeler_algo'] = labeler_algo,
             labeler_config['labeler_weight_filepath'] = labeler_model_tag
+            specieses_list = depc.get_property('localizations_labeler', gid_list, 'species', config=labeler_config)
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
         else:
+            specieses_list = None
             viewpoints_list = None
-        aids_list = ibs.commit_localization_results(gid_list, results_list, viewpoints_list=viewpoints_list, note='cnnlightnetdetect')
+        aids_list = ibs.commit_localization_results(gid_list, results_list, specieses_list=specieses_list, viewpoints_list=viewpoints_list, note='cnnlightnetdetect')
         return aids_list
     else:
         return results_list
 
 
 @register_ibs_method
-def commit_localization_results(ibs, gid_list, results_list, viewpoints_list=None, note=None,
+def commit_localization_results(ibs, gid_list, results_list, specieses_list=None, viewpoints_list=None, note=None,
                                 update_json_log=True):
+    if specieses_list is None:
+        specieses_list = [None] * len(gid_list)
     if viewpoints_list is None:
         viewpoints_list = [None] * len(gid_list)
 
-    zipped_list = list(zip(gid_list, results_list, viewpoints_list))
+    zipped_list = list(zip(gid_list, results_list, specieses_list, viewpoints_list))
     aids_list = []
-    for gid, (score, bbox_list, theta_list, conf_list, class_list), viewpoint_list in zipped_list:
+    for gid, (score, bbox_list, theta_list, conf_list, class_list), species_list, viewpoint_list in zipped_list:
+        if species_list is not None:
+            assert len(species_list) == len(bbox_list)
+            class_list = viewpoint_list
         if viewpoint_list is not None:
             assert len(viewpoint_list) == len(bbox_list)
 
