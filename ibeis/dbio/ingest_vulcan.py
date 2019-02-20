@@ -134,6 +134,7 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False, dry_run=False
             'image_dict': {},
         }
 
+        skipped = 0
         for filepath in filepath_list:
             assert exists(filepath)
             filename = basename(filepath)
@@ -151,6 +152,7 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False, dry_run=False
                 species = annotation.get('type', None)
 
                 if None in [bbox, species]:
+                    skipped += 1
                     continue
 
                 bbox = list(map(int, bbox.strip().split(',')))
@@ -159,7 +161,8 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False, dry_run=False
                 h = y1 - y0
                 area = w * h
 
-                if area == 0:
+                if area <= 0:
+                    skipped += 1
                     continue
 
                 bbox = (x0, y0, w, h)
@@ -174,6 +177,9 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False, dry_run=False
                 'bbox_list': bbox_list_,
                 'species_list': species_list_,
             }
+
+        args = (skipped, )
+        print('\tSkipped %d annotations' % args)
 
     args = (len(global_species_set), global_species_set, )
     print('Found %d species: %r' % args)
