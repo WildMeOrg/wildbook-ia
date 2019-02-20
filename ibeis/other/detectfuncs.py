@@ -2350,15 +2350,19 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
-    kwargs['labeler_weight_filepath'] = 'seaturtle'
+    # kwargs['labeler_weight_filepath'] = 'seaturtle'
+    kwargs['labeler_algo'] = 'densenet'
+    kwargs['labeler_weight_filepath'] = 'giraffe_v1'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      **kwargs)
 
     config_list = [
-        # {'label': 'All Species',         'category_list': None},
-        {'label': 'Sea Turtle',            'category_list': ['turtle_sea']},
-        {'label': 'Sea Turtle Head',       'category_list': ['turtle_sea+head']},
+        {'label': 'Both Species',           'category_list': None},
+        {'label': 'Masai Giraffe',          'category_list': ['giraffe_masai']},
+        {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
+        # {'label': 'Sea Turtle',            'category_list': ['turtle_sea']},
+        # {'label': 'Sea Turtle Head',       'category_list': ['turtle_sea+head']},
         # {'label': 'Manta',               'category_list': ['manta_ray_giant']},
         # {'label': 'Dorsal Fin',            'category_list': ['dolphin_bottlenose_fin']},
         # {'label': 'Reticulated Giraffe', 'category_list': ['giraffe_reticulated']},
