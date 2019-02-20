@@ -651,10 +651,12 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/labeler/cnn/', methods=['PUT', 'GET', 'POST'])
-def labeler_cnn(ibs, aid_list, testing=False, model_tag='candidacy', **kwargs):
+def labeler_cnn(ibs, aid_list, testing=False, algo='pipeline', model_tag='candidacy', **kwargs):
     depc = ibs.depc_annot
     config = {}
 
+    if algo is not None:
+        config['labeler_algo'] = algo
     if model_tag is not None:
         config['labeler_weight_filepath'] = model_tag
 

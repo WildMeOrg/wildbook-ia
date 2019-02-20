@@ -1951,6 +1951,13 @@ def chaos_imageset(ibs):
     return imagetset_name, imagetset_uuid
 
 
+@register_api('/api/labeler/cnn/json/', methods=['POST'])
+def labeler_cnn_json_wrapper(ibs, annot_uuid_list, **kwargs):
+    ibs.web_check_uuids([], annot_uuid_list, [])
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.labeler_cnn(aid_list, **kwargs)
+
+
 @register_api('/api/imageset/json/', methods=['DELETE'])
 def delete_imageset_json(ibs, imageset_uuid_list):
     """
