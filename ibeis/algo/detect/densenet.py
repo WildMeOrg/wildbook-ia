@@ -220,7 +220,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
         return self.total
 
 
-def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=64):
+def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=256):
     phases = ['train', 'val']
 
     start = time.time()
