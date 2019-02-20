@@ -861,7 +861,7 @@ def commit_localization_results(ibs, gid_list, results_list, specieses_list=None
     for gid, (score, bbox_list, theta_list, conf_list, class_list), species_list, viewpoint_list in zipped_list:
         if species_list is not None:
             assert len(species_list) == len(bbox_list)
-            class_list = viewpoint_list
+            class_list = species_list
         if viewpoint_list is not None:
             assert len(viewpoint_list) == len(bbox_list)
 
