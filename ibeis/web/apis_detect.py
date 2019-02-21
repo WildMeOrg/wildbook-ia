@@ -572,7 +572,7 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False,
     if commit:
         if labeler_model_tag is not None:
             labeler_config = config.copy()
-            labeler_config['labeler_algo'] = labeler_algo,
+            labeler_config['labeler_algo'] = labeler_algo
             labeler_config['labeler_weight_filepath'] = labeler_model_tag
             specieses_list = depc.get_property('localizations_labeler', gid_list, 'species', config=labeler_config)
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
@@ -835,7 +835,7 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
     if commit:
         if labeler_model_tag is not None:
             labeler_config = config.copy()
-            labeler_config['labeler_algo'] = labeler_algo,
+            labeler_config['labeler_algo'] = labeler_algo
             labeler_config['labeler_weight_filepath'] = labeler_model_tag
             specieses_list = depc.get_property('localizations_labeler', gid_list, 'species', config=labeler_config)
             viewpoints_list = depc.get_property('localizations_labeler', gid_list, 'viewpoint', config=labeler_config)
