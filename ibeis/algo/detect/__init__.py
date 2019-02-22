@@ -4,7 +4,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.detect import grabmodels
 from ibeis.algo.detect import randomforest
-from ibeis.algo.detect import wic
+from ibeis.algo.detect import densenet
 from ibeis.algo.detect import yolo
 # from ibeis.algo.detect import selectivesearch
 # from ibeis.algo.detect import ssd
@@ -65,7 +65,7 @@ def reload_subs(verbose=True):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
     get_rrr(grabmodels)(verbose=verbose)
     get_rrr(randomforest)(verbose=verbose)
-    get_rrr(wic)(verbose=verbose)
+    get_rrr(densenet)(verbose=verbose)
     get_rrr(yolo)(verbose=verbose)
     # get_rrr(selectivesearch)(verbose=verbose)
     # get_rrr(ssd)(verbose=verbose)
@@ -82,7 +82,7 @@ rrrr = reload_subs
 IMPORT_TUPLES = [
     ('grabmodels', None),
     ('randomforest', None),
-    ('wic', None),
+    ('densenet', None),
     ('yolo', None),
     # ('selectivesearch', None),
     # ('ssd', None),
