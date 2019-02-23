@@ -131,7 +131,6 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
     num_total = len(train_gid_set)
     num_negative = len(negative_gid_set)
     num_positive = num_total - num_negative
-    starting_skip_rate_neg = 1.0 - (num_positive / num_total)
 
     test_tile_list = list(negative_gid_set)
 
@@ -140,11 +139,9 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
     for round_num in range(rounds):
         if round_num == 0:
             assert latest_model_tag is None
-            skip_rate_neg = starting_skip_rate_neg  # Balanced start
             round_confidence_list = [confidence_thresh] * len(test_tile_list)
         else:
             assert latest_model_tag is not None
-            skip_rate_neg = 0.0  # Take everything that is a hard negative
             round_confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=latest_model_tag)
 
         flag_list = [confidence >= confidence_thresh for confidence in round_confidence_list]
@@ -177,9 +174,14 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
             # Add previous negative boosting rounds
             for previous_round_num in range(0, round_num):
                 previous_boost_imageset_text = 'NEGATIVE-BOOST-%d-%d' % (previous_round_num, ensemble_num, )
+                print('Searching previous boosting rounds for %r: %r' % (boost_imageset_text, previous_boost_imageset_text, ))
                 previous_boost_id, = ibs.get_imageset_imgsetids_from_text([previous_boost_imageset_text])
                 previous_ensemble_test_tile_list = ibs.get_imageset_gids(previous_boost_id)
+                print('\tFound %d images' % (len(previous_ensemble_test_tile_list), ))
                 ensemble_test_tile_list += previous_ensemble_test_tile_list
+
+            ensemble_test_tile_list = list(set(ensemble_test_tile_list))
+            print('Using %d total negative images for training' % (len(ensemble_test_tile_list), ))
 
             # Set combined image set to current pool of negatives
             ibs.set_image_imagesettext(ensemble_test_tile_list, [boost_imageset_text] * len(ensemble_test_tile_list))
@@ -194,7 +196,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
                 pid,
                 boost_id,
                 dest_path=data_path,
-                skip_rate_neg=skip_rate_neg,
+                skip_rate_neg=0.0,
             )
             weights_path = densenet.train(extracted_path, output_path)
             weights_path_list.append(weights_path)
