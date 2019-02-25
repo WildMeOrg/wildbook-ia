@@ -294,7 +294,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
             # deep copy the model
             if phase == 'val' and epoch_acc > best_accuracy:
                 best_accuracy = epoch_acc
-                print('{:<5} Found better model!')
+                print('\tFound better model!')
                 best_model_state = copy.deepcopy(model.state_dict())
             if phase == 'val':
                 scheduler.step(epoch_loss)
