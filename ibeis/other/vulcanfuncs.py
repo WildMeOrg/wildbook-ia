@@ -79,8 +79,7 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min
         if target_species in species_set:
             tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
             bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile_id)
-            min_cumulative_area = np.floor((tile_w * tile_h) * min_cumulative_percentage)
-            cumulative_area = 0
+            canvas = np.zeros((tile_h, tile_w), dtype=np.uint8)
             for bbox in bbox_list:
                 xtl, ytl, w, h = bbox
                 xbr = xtl + w
@@ -89,10 +88,9 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min
                 ytl = max(ytl, 0)
                 xbr = min(xbr, tile_w)
                 ybr = min(ybr, tile_h)
-                w_ = xbr - xtl
-                h_ = ybr - ytl
-                area = w_ * h_
-                cumulative_area += area
+                canvas[ytl: ybr, xtl: xbr] = 1
+            cumulative_area = np.sum(canvas)
+            min_cumulative_area = np.floor((tile_w * tile_h) * min_cumulative_percentage)
             if cumulative_area >= min_cumulative_area:
                 flag_ = True
         flag_list.append(flag_)
