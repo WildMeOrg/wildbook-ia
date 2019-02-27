@@ -1732,7 +1732,6 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
                                                                 target_size=target_size)
         config = dict(config)
         config['classifier_weight_filepath'] = config['labeler_weight_filepath']
-        ut.embed()
         nonce = ut.random_nonce()[:16]
         cache_path = join(ibs.cachedir, 'localization_labels_%s' % (nonce, ))
         assert not exists(cache_path)
