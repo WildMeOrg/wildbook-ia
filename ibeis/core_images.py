@@ -2022,6 +2022,7 @@ class TileConfig(dtool.Config):
         ut.ParamInfo('tile_width',    512),
         ut.ParamInfo('tile_height',   512),
         ut.ParamInfo('tile_overlap',  64),
+        ut.ParamInfo('tile_offset',   0,     hideif=0),
         ut.ParamInfo('allow_borders', True),
         ut.ParamInfo('keep_extern',   False),
         ut.ParamInfo('force_serial',  False, hideif=False),
@@ -2073,6 +2074,7 @@ def compute_tiles(depc, gid_list, config=None):
     tile_width    = config['tile_width']
     tile_height   = config['tile_height']
     tile_overlap  = config['tile_overlap']
+    tile_offset   = config['tile_offset']
     allow_borders = config['allow_borders']
     keep_extern   = config['keep_extern']
 
@@ -2085,13 +2087,14 @@ def compute_tiles(depc, gid_list, config=None):
     tile_size = (tile_width, tile_height)
     tile_size_list = [tile_size] * len(gid_list)
     tile_overlap_list = [tile_overlap] * len(gid_list)
+    tile_offset_list = [tile_offset] * len(gid_list)
 
     tile_output_path = abspath(join(depc.cache_dpath, 'extern_tiles'))
     ut.ensuredir(tile_output_path)
 
-    fmt_str = join(tile_output_path, 'tiles_gid_%d_w_%d_h_%d_o_%d_%s')
+    fmt_str = join(tile_output_path, 'tiles_gid_%d_w_%d_h_%d_ol_%d_os_%d_%s')
     output_path_list = [
-        fmt_str % (gid, tile_width, tile_height, tile_overlap, config_hashid, )
+        fmt_str % (gid, tile_width, tile_height, tile_overlap, tile_offset, config_hashid, )
         for gid in gid_list
     ]
     allow_border_list = [allow_borders] * len(gid_list)
@@ -2106,6 +2109,7 @@ def compute_tiles(depc, gid_list, config=None):
         orient_list,
         tile_size_list,
         tile_overlap_list,
+        tile_offset_list,
         output_path_list,
         allow_border_list,
     ))
@@ -2158,20 +2162,21 @@ def compute_tiles(depc, gid_list, config=None):
         yield tile_relative_filepath_list_, gids, num
 
 
-def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
+def compute_tile_helper(gid, gpath, orient, size, overlap, offset, opath, borders):
     from os.path import join
 
     ext = '.jpg'
     w, h = size
-    o = overlap
+    ol = overlap
+    os = offset
 
     image = vt.imread(gpath, orient=orient)
     h_, w_ = image.shape[:2]
 
-    y_ = int(np.floor((h_ - o) / (h - o)))
-    x_ = int(np.floor((w_ - o) / (w - o)))
-    iy = (h * y_) - (o * (y_ - 1))
-    ix = (w * x_) - (o * (x_ - 1))
+    y_ = int(np.floor((h_ - ol) / (h - ol)))
+    x_ = int(np.floor((w_ - ol) / (w - ol)))
+    iy = (h * y_) - (ol * (y_ - 1))
+    ix = (w * x_) - (ol * (x_ - 1))
     oy = int(np.floor((h_ - iy) * 0.5))
     ox = int(np.floor((w_ - ix) * 0.5))
 
@@ -2180,9 +2185,9 @@ def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
     maxy = h_ - h
     maxx = w_ - w
 
-    ys = list(range(oy, h_ - h + 1, h - o))
+    ys = list(range(oy, h_ - h + 1, h - ol))
     yb = [False] * len(ys)
-    xs = list(range(ox, w_ - w + 1, w - o))
+    xs = list(range(ox, w_ - w + 1, w - ol))
     xb = [False] * len(xs)
 
     if borders and oy > 0:
@@ -2202,26 +2207,38 @@ def compute_tile_helper(gid, gpath, orient, size, overlap, opath, borders):
         for x0, xb_ in zip(xs, xb):
             x1 = x0 + w
 
-            bbox = (x0, y0, w, h)
-            border = yb_ or xb_
+            # Add the offset
+            x0 += os
+            x1 += os
+            y0 += os
+            y1 += os
 
-            # Sanity
-            assert x1 - x0 == w, '%d, %d' % (x1 - x0, w, )
-            assert y1 - y0 == h, '%d, %d' % (y1 - y0, h, )
-            assert 0 <= x0 and x0 <= w_, '%d, %d' % (x0, w_, )
-            assert 0 <= x1 and x1 <= w_, '%d, %d' % (x1, w_, )
-            assert 0 <= y0 and y0 <= h_, '%d, %d' % (y0, h_, )
-            assert 0 <= y1 and y1 <= h_, '%d, %d' % (y1, h_, )
+            # Sanity, mostly to check for offset
+            valid = True
+            try:
+                assert x1 - x0 == w, '%d, %d' % (x1 - x0, w, )
+                assert y1 - y0 == h, '%d, %d' % (y1 - y0, h, )
+                assert 0 <= x0 and x0 <= w_, '%d, %d' % (x0, w_, )
+                assert 0 <= x1 and x1 <= w_, '%d, %d' % (x1, w_, )
+                assert 0 <= y0 and y0 <= h_, '%d, %d' % (y0, h_, )
+                assert 0 <= y1 and y1 <= h_, '%d, %d' % (y1, h_, )
+            except AssertionError:
+                valid = False
 
-            args = (gid, x0, y0, w, h, ext, )
-            tile_filename = 'tile_gid_%d_xtl_%d_ytl_%d_w_%d_h_%d%s' % args
-            file_filepath = join(opath, tile_filename)
-            tile = image[y0: y1, x0: x1]
-            vt.imwrite(file_filepath, tile)
+            if valid:
+                bbox = (x0, y0, w, h)
+                border = yb_ or xb_
 
-            tile_filepath_list.append(file_filepath)
-            bbox_list.append(bbox)
-            border_list.append(border)
+                args = (gid, x0, y0, w, h, ext, )
+                tile_filename = 'tile_gid_%d_xtl_%d_ytl_%d_w_%d_h_%d%s' % args
+                file_filepath = join(opath, tile_filename)
+
+                tile = image[y0: y1, x0: x1]
+                vt.imwrite(file_filepath, tile)
+
+                tile_filepath_list.append(file_filepath)
+                bbox_list.append(bbox)
+                border_list.append(border)
 
     return gid, opath, tile_filepath_list, bbox_list, border_list
 

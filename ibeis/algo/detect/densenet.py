@@ -57,7 +57,7 @@ if not ut.get_argflag('--no-pytorch'):
                 return self.aug.augment_image(img)
 
         class TrainAugmentations(Augmentations):
-            def __init__(self, blur=False, flip=False, **kwargs):
+            def __init__(self, blur=False, flip=False, rotate=10, shear=10, **kwargs):
                 from imgaug import augmenters as iaa
                 sequence = []
 
@@ -70,7 +70,7 @@ if not ut.get_argflag('--no-pytorch'):
                 ]
                 sequence += [
                     iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
-                    iaa.Affine(rotate=(-10, 10), shear=(-10, 10), mode='symmetric'),
+                    iaa.Affine(rotate=(-rotate, rotate), shear=(-shear, shear), mode='symmetric'),
                     iaa.Grayscale(alpha=(0.0, 0.25))
                 ]
                 if flip:

@@ -40,12 +40,23 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     gids_list = ibs.get_imageset_gids(imageset_rowid_list)
     gid_list = ut.flatten(gids_list)
 
-    config = {
+    config1 = {
         'tile_width':   256,
         'tile_height':  256,
         'tile_overlap': 64,
     }
-    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
+    tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
+
+    config2 = {
+        'tile_width':    256,
+        'tile_height':   256,
+        'tile_overlap':  64,
+        'tile_offset':   128,
+        'allow_borders': False,
+    }
+    tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
+
+    tiles_list = sorted(list(set(tiles1_list + tiles2_list)))
 
     if return_gids:
         return gid_list
@@ -55,15 +66,36 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
 
 @register_ibs_method
-def vulcan_imageset_train_test_split(ibs, **kwargs):
+def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min_cumulative_percentage=0.01, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
+    tile_bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
     aids_list = ibs.get_vulcan_image_tile_aids(tile_list)
-    species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
-    flag_list = [
-        'elephant_savanna' in species_list
-        for species_list in species_list_list
-    ]
+    species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
+
+    flag_list = []
+    for tile_id, tile_bbox, aid_list, species_set in zip(tile_list, tile_bbox_list, aids_list, species_set_list):
+        flag_ = False
+        if target_species in species_set:
+            tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
+            bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile_id)
+            min_cumulative_area = np.floor((tile_w * tile_h) * min_cumulative_percentage)
+            cumulative_area = 0
+            for bbox in bbox_list:
+                xtl, ytl, w, h = bbox
+                xbr = xtl + w
+                ybr = ytl + h
+                xtl = max(xtl, 0)
+                ytl = max(ytl, 0)
+                xbr = min(xbr, tile_w)
+                ybr = min(ybr, tile_h)
+                w_ = xbr - xtl
+                h_ = ybr - ytl
+                area = w_ * h_
+                cumulative_area += area
+            if cumulative_area >= min_cumulative_area:
+                flag_ = True
+        flag_list.append(flag_)
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
     gid_all_list = ibs.get_valid_gids(is_tile=None)
@@ -198,7 +230,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
                 dest_path=data_path,
                 skip_rate_neg=0.0,
             )
-            weights_path = densenet.train(extracted_path, output_path)
+            weights_path = densenet.train(extracted_path, output_path, flip=True, rotate=20, shear=20)
             weights_path_list.append(weights_path)
 
         latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
