@@ -313,7 +313,7 @@ def compute_classifications(depc, gid_list, config=None):
         }
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
-        result_list = densenet.test(thumbpath_list, **config)
+        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
