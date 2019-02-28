@@ -272,7 +272,7 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
     ut.copy(archive_path, output_path)
 
     from ibeis.algo.detect import densenet
-    model_key = 'vulcan-boost%s' % (round_num, )
+    model_key = 'vulcan-%s-boost%s' % (hashstr, round_num, )
     densenet.ARCHIVE_URL_DICT[model_key] = 'https://kaiju.dyn.wildme.io/public/models/%s.zip' % (output_name, )
     print(ut.repr3(densenet.ARCHIVE_URL_DICT))
 
@@ -327,10 +327,10 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
         # ]
         # offset_black = 1
 
-        config_list = [
-            {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
-            {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
-        ]
+        # config_list = [
+        #     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
+        #     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
+        # ]
 
     ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
                                                             config_list=config_list,
