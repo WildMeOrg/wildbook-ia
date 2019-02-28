@@ -56,12 +56,13 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     }
     tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
 
-    tiles_list = sorted(list(set(tiles1_list + tiles2_list)))
+    tile_list = ut.flatten(tiles1_list) + ut.flatten(tiles2_list)
+    tile_list = sorted(set(tile_list))
 
     if return_gids:
         return gid_list
     else:
-        tile_list = ut.flatten(tiles_list)
+
         return tile_list
 
 
