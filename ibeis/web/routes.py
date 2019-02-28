@@ -1350,8 +1350,11 @@ def view_imagesets(**kwargs):
     all_gid_list = ibs.get_valid_gids()
     all_aid_list = ibs.get_valid_aids()
 
-    gids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ]
+    gids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_, is_tile=False) for imgsetid_ in imgsetid_list ]
     num_gids = list(map(len, gids_list))
+
+    tids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_, is_tile=True) for imgsetid_ in imgsetid_list ]
+    num_tids = list(map(len, tids_list))
 
     ######################################################################################
     all_gid_aids_list = ibs.get_image_aids(all_gid_list)
@@ -1412,6 +1415,7 @@ def view_imagesets(**kwargs):
         imageset_text_list,
         num_gids,
         image_processed_list,
+        num_tids,
         num_aids,
         annot_processed_viewpoint_list,
         annot_processed_quality_list,
@@ -2007,9 +2011,12 @@ def _make_review_image_info(ibs, gid):
 
 
 @register_route('/turk/cameratrap/', methods=['GET'])
-def turk_cameratrap(**kwargs):
+def turk_cameratrap(is_tile=False, **kwargs):
     ibs = current_app.ibs
-    tup = appf.get_turk_image_args(appf.imageset_image_cameratrap_processed)
+    tup = appf.get_turk_image_args(
+        appf.imageset_image_cameratrap_processed,
+        is_tile=is_tile
+    )
     (gid_list, reviewed_list, imgsetid, progress, gid, previous) = tup
 
     finished = gid is None
@@ -2057,7 +2064,7 @@ def precompute_web_viewpoint_thumbnails(ibs, aid_list=None, **kwargs):
 @register_route('/turk/detection/', methods=['GET'])
 def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                    previous=None, previous_only_aid=None, staged_super=False,
-                   progress=None, **kwargs):
+                   progress=None, is_tile=False, **kwargs):
 
     with ut.Timer('load'):
         ibs = current_app.ibs
@@ -2104,7 +2111,7 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
         imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
 
         if not is_canonical:
-            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+            gid_list = ibs.get_valid_gids(imgsetid=imgsetid, is_tile=is_tile)
             reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
                                                           reviews_required=staged_reviews_required)
 

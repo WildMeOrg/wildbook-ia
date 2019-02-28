@@ -37,6 +37,7 @@
             <th>ID</th>
             <th>ImageSet Text</th>
             <th>nImages / Detect</th>
+            <th>nTiles</th>
             <th>nAnnots / Vpt. / Qual.</th>
             <th>ImageSet Start</th>
             <th>Images</th>
@@ -50,7 +51,7 @@
               <th class="no-items" colspan="99">Sorry, no imagesets to display</th>
             </tr>
           {% else %}
-            {% for (is_normal, imgsetid, imagesettext, num_gids, num_processed_gids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in imageset_list %}
+            {% for (is_normal, imgsetid, imagesettext, num_gids, num_processed_gids, num_tids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in imageset_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
               <th scope="row">{{ imgsetid }}</th>
               <td>
@@ -61,6 +62,7 @@
                 {% endif %}
               </td>
               <td>{{ num_gids }} / {{ num_processed_gids }}</td>
+              <td>{{ num_tids }}</td>
               <td>{{ num_aids }} / {{ num_processed_viewpoint_aids }} / {{ num_processed_quality_aids }}</td>
               <td>{{ start }}</td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid }}">Review</a></td>

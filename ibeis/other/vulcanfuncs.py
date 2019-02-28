@@ -179,7 +179,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
 
         weights_path_list = []
         for ensemble_num in range(ensembles):
-            boost_imageset_text = 'NEGATIVE-BOOST-%d-%d' % (round_num, ensemble_num)
+            boost_imageset_text = 'NEGATIVE-BOOST-%s-%d-%d' % (hashstr, round_num, ensemble_num, )
             boost_id, = ibs.get_imageset_imgsetids_from_text([boost_imageset_text])
             ibs.unrelate_images_and_imagesets(gid_all_list, [boost_id] * len(gid_all_list))
 
@@ -203,7 +203,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
 
             # Add previous negative boosting rounds
             for previous_round_num in range(0, round_num):
-                previous_boost_imageset_text = 'NEGATIVE-BOOST-%d-%d' % (previous_round_num, ensemble_num, )
+                previous_boost_imageset_text = 'NEGATIVE-BOOST-%s-%d-%d' % (hashstr, previous_round_num, ensemble_num, )
                 print('Searching previous boosting rounds for %r: %r' % (boost_imageset_text, previous_boost_imageset_text, ))
                 previous_boost_id, = ibs.get_imageset_imgsetids_from_text([previous_boost_imageset_text])
                 previous_ensemble_test_tile_list = ibs.get_imageset_gids(previous_boost_id)
