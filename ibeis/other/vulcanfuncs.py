@@ -240,7 +240,7 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5, confidence_thresh=0.5,
 
         latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
         config_list.append(
-            {'label': 'WIC Round %d Ensbl.' % (round_num, ), 'classifier_algo': 'densenet', 'classifier_weight_filepath': latest_model_tag},
+            {'label': 'WIC %s Round %d' % (hashstr, round_num, ), 'classifier_algo': 'densenet', 'classifier_weight_filepath': latest_model_tag},
         )
         ibs.vulcan_wic_validate(config_list)
 
