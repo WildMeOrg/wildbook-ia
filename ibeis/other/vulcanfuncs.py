@@ -67,7 +67,9 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
 
 @register_ibs_method
-def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min_cumulative_percentage=0.01, **kwargs):
+def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
+                                     min_cumulative_percentage=0.01,
+                                     recompute_split=False, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
     tile_bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
@@ -109,8 +111,8 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min
     print(len(gids))
     ibs.set_image_imagesettext(gids, ['NEGATIVE'] * len(gids))
 
-    x = list(map(len, ibs.get_imageset_gids([pid, nid])))
-    num_pos, num_neg = x
+    if recompute_split:
+        ibs.imageset_train_test_split(is_tile=False)
 
     train_imgsetid = ibs.add_imagesets('TRAIN_SET')
     test_imgsetid = ibs.add_imagesets('TEST_SET')
@@ -134,6 +136,10 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min
         else:
             raise ValueError()
 
+    tid_all_list = ibs.get_valid_gids(is_tile=True)
+    ibs.unrelate_images_and_imagesets(tid_all_list, [train_imgsetid] * len(tid_all_list))
+    ibs.unrelate_images_and_imagesets(tid_all_list, [test_imgsetid]  * len(tid_all_list))
+
     ibs.set_image_imgsetids(tile_train_list, [train_imgsetid] * len(tile_train_list))
     ibs.set_image_imgsetids(tile_test_list, [test_imgsetid] * len(tile_test_list))
 
@@ -141,7 +147,7 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna', min
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, ensembles=5, rounds=5, confidence_thresh=0.5,
+def vulcan_wic_train(ibs, ensembles=3, rounds=5, confidence_thresh=0.5,
                      hashstr=None, **kwargs):
     import random
 
