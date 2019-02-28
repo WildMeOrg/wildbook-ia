@@ -161,7 +161,7 @@ def initialize_job_manager(ibs):
             containerized=ibs.containerized
         )
 
-    ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict)
+    ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict, ibs=ibs)
     ibs.job_manager.jobiface.initialize_client_thread()
     # Wait until the collector becomes live
     while 0 and True:
@@ -497,8 +497,9 @@ class JobBackend(object):
 
 
 class JobInterface(object):
-    def __init__(jobiface, id_, port_dict):
+    def __init__(jobiface, id_, port_dict, ibs=None):
         jobiface.id_ = id_
+        jobiface.ibs = ibs
         jobiface.verbose = 2 if VERBOSE_JOBS else 1
         jobiface.port_dict = port_dict
         print('JobInterface ports:')
@@ -586,6 +587,19 @@ class JobInterface(object):
             if jobiface.verbose >= 2:
                 print('Got reply: %s' % ( reply_notify))
             jobid = reply_notify['jobid']
+
+            ibs = jobiface.ibs
+            if ibs is not None:
+                engine_cache_path = join(ibs.cachedir, 'engine')
+                ut.ensuredir(engine_cache_path)
+                record_filename = '%s.pkl' % (jobid, )
+                record_filepath = join(engine_cache_path, record_filename)
+                record = {
+                    'request': engine_request,
+                    'result': None,
+                }
+                ut.save_cPkl(record_filepath, record)
+
             return jobid
 
     def get_job_id_list(jobiface):
@@ -1320,7 +1334,6 @@ def on_collect_request(collect_request, collecter_data, status_data,
             assert 'output' in collecter_data[jobid]
 
             shelve_filepath = collecter_data[jobid]['output']
-
             shelf = shelve.open(shelve_filepath)
 
             try:
