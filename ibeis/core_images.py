@@ -457,7 +457,6 @@ def compute_features(depc, gid_list, config=None):
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
     """
-    from keras.preprocessing import image as preprocess_image
     print('[ibs] Preprocess Features')
     print('config = %r' % (config,))
     # Get controller
@@ -466,6 +465,7 @@ def compute_features(depc, gid_list, config=None):
     ######################################################################################
 
     if config['framework'] in ['keras']:
+        from keras.preprocessing import image as preprocess_image
         thumbnail_config = {
             'draw_annots' : False,
             'thumbsize'   : (500, 500),
