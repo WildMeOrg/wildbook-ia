@@ -651,3 +651,45 @@ def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **k
             0.0,
             result_dict,
         )
+
+
+def features(filepath_list, batch_size=512, **kwargs):
+    # Detect if we have a GPU available
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    using_gpu = str(device) != 'cpu'
+
+    print('Initializing Datasets and Dataloaders...')
+
+    # Create training and validation datasets
+    transforms = _init_transforms(**kwargs)
+    dataset = ImageFilePathList(filepath_list, transform=transforms['test'])
+
+    # Create training and validation dataloaders
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        num_workers=batch_size // 8,
+        pin_memory=using_gpu
+    )
+
+    # Initialize the model for this run
+    model = torchvision.models.densenet201(pretrained=True)
+
+    # Send the model to GPU
+    model = model.to(device)
+    model.eval()
+
+    start = time.time()
+
+    outputs = []
+    for inputs, in tqdm.tqdm(dataloader, desc='test'):
+        inputs = inputs.to(device)
+        with torch.set_grad_enabled(False):
+            output = model(inputs)
+            outputs += output.tolist()
+
+    outputs = np.array(outputs, dtype=np.float32)
+    time_elapsed = time.time() - start
+    print('Testing complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+
+    return outputs

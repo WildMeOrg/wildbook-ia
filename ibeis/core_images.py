@@ -397,8 +397,9 @@ def compute_classifications2(depc, gid_list, config=None):
 
 class FeatureConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
-        ut.ParamInfo('flatten', True),
+        ut.ParamInfo('framework', 'torch', valid_values=['keras', 'torch']),
+        ut.ParamInfo('model',     'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception', 'densenet']),
+        ut.ParamInfo('flatten',   True),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -439,19 +440,19 @@ def compute_features(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'algo': 'vgg16'}
+        >>> config = {'model': 'vgg16'}
         >>> depc.delete_property('features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'algo': 'vgg19'}
+        >>> config = {'model': 'vgg19'}
         >>> depc.delete_property('features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'algo': 'resnet'}
+        >>> config = {'model': 'resnet'}
         >>> depc.delete_property('features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'algo': 'inception'}
+        >>> config = {'model': 'inception'}
         >>> depc.delete_property('features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
@@ -462,48 +463,70 @@ def compute_features(depc, gid_list, config=None):
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
-    thumbnail_config = {
-        'draw_annots' : False,
-        'thumbsize'   : (500, 500),
-    }
-    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=thumbnail_config,
-                              read_extern=False, ensure=True)
+    ######################################################################################
 
-    target_size = (224, 224)
-    ######################################################################################
-    if config['algo'] in ['vgg', 'vgg16']:
-        from keras.applications.vgg16 import VGG16 as MODEL_CLASS
-        from keras.applications.vgg16 import preprocess_input
-    ######################################################################################
-    elif config['algo'] in ['vgg19']:
-        from keras.applications.vgg19 import VGG19 as MODEL_CLASS
-        from keras.applications.vgg19 import preprocess_input
-    ######################################################################################
-    elif config['algo'] in ['resnet']:
-        from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
-        from keras.applications.resnet50 import preprocess_input
-    ######################################################################################
-    elif config['algo'] in ['inception']:
-        from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
-        from keras.applications.inception_v3 import preprocess_input
-        target_size = (299, 299)
-    ######################################################################################
+    if config['framework'] in ['keras']:
+        thumbnail_config = {
+            'draw_annots' : False,
+            'thumbsize'   : (500, 500),
+        }
+        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=thumbnail_config,
+                                  read_extern=False, ensure=True)
+
+        target_size = (224, 224)
+        if config['model'] in ['vgg', 'vgg16']:
+            from keras.applications.vgg16 import VGG16 as MODEL_CLASS
+            from keras.applications.vgg16 import preprocess_input
+        ######################################################################################
+        elif config['model'] in ['vgg19']:
+            from keras.applications.vgg19 import VGG19 as MODEL_CLASS
+            from keras.applications.vgg19 import preprocess_input
+        ######################################################################################
+        elif config['model'] in ['resnet']:
+            from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
+            from keras.applications.resnet50 import preprocess_input
+        ######################################################################################
+        elif config['model'] in ['inception']:
+            from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
+            from keras.applications.inception_v3 import preprocess_input
+            target_size = (299, 299)
+        ######################################################################################
+        else:
+            raise ValueError('specified feature model is not supported in config = %r' % (config, ))
+
+        # Build model
+        model = MODEL_CLASS(include_top=False)
+
+        thumbpath_iter = ut.ProgIter(thumbpath_list, lbl='forward inference', bs=True)
+        for thumbpath in thumbpath_iter:
+            image = preprocess_image.load_img(thumbpath, target_size=target_size)
+            image_array = preprocess_image.img_to_array(image)
+            image_array = np.expand_dims(image_array, axis=0)
+            image_array = preprocess_input(image_array)
+            features = model.predict(image_array)
+            if config['flatten']:
+                features = features.flatten()
+            yield (features, )
+    elif config['framework'] in ['torch']:
+        from ibeis.algo.detect import densenet
+
+        if config['model'] in ['densenet']:
+            config_ = {
+                'draw_annots' : False,
+                'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+            }
+            thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
+                                                read_extern=False, ensure=True)
+            feature_list = densenet.features(thumbpath_list)
+        else:
+            raise ValueError('specified feature model is not supported in config = %r' % (config, ))
+
+        for feature in feature_list:
+            if config['flatten']:
+                feature = feature.flatten()
+            yield (feature, )
     else:
-        raise ValueError('specified feature algo is not supported in config = %r' % (config, ))
-
-    # Build model
-    model = MODEL_CLASS(include_top=False)
-
-    thumbpath_iter = ut.ProgIter(thumbpath_list, lbl='forward inference', bs=True)
-    for thumbpath in thumbpath_iter:
-        image = preprocess_image.load_img(thumbpath, target_size=target_size)
-        image_array = preprocess_image.img_to_array(image)
-        image_array = np.expand_dims(image_array, axis=0)
-        image_array = preprocess_input(image_array)
-        features = model.predict(image_array)
-        if config['flatten']:
-            features = features.flatten()
-        yield (features, )
+        raise ValueError('specified feature framework is not supported in config = %r' % (config, ))
 
 
 class LocalizerOriginalConfig(dtool.Config):
