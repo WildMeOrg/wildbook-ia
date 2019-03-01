@@ -147,8 +147,14 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(ibs):
-    ut.embed()
+def vulcan_compute_visual_clusters(ibs, **kwargs):
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+
+    config = {
+        'framework': 'torch',
+        'model':     'densenet',
+    }
+    feature_list = ibs.depc_image.get_property('features', all_tile_set, 'vector', config=config)
 
     from sklearn.decomposition import PCA
     import matplotlib.pyplot as plt
