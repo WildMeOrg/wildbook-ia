@@ -147,7 +147,25 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, ensembles=3, rounds=5, confidence_thresh=0.5,
+def vulcan_compute_visual_clusters(ibs):
+    ut.embed()
+
+    from sklearn.decomposition import PCA
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import umap
+    import hdbscan
+    import sklearn.cluster as cluster
+    from sklearn.metrics import adjusted_rand_score, adjusted_mutual_info_score
+
+    umap_ = umap.UMAP(n_neighbors=5, min_dist=0.3, metric='correlation')
+    umap_model = umap_.fit_transform(digits.data)
+
+
+@register_ibs_method
+def vulcan_wic_train(ibs, ensembles=3, rounds=5,
+                     boost_confidence_thresh=0.9,
+                     boost_round_ratio=3,
                      hashstr=None, **kwargs):
     import random
 
@@ -176,13 +194,22 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5, confidence_thresh=0.5,
     for round_num in range(rounds):
         if round_num == 0:
             assert latest_model_tag is None
-            round_confidence_list = [confidence_thresh] * len(test_tile_list)
+            # Add a random confidence that randomizes the first sample
+            round_confidence_list = [
+                boost_confidence_thresh + random.uniform(0.0, 0.01)
+                for _ in range(len(test_tile_list))
+            ]
         else:
             assert latest_model_tag is not None
             round_confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=latest_model_tag)
 
-        flag_list = [confidence >= confidence_thresh for confidence in round_confidence_list]
+        flag_list = [confidence >= boost_confidence_thresh for confidence in round_confidence_list]
         round_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
+        round_hard_neg_confidence_list = ut.compress(round_confidence_list, flag_list)
+
+        message = 'Found %d ENSEMBLE hard negatives for round %d (boost_confidence_thresh=%0.02f)'
+        args = (len(round_hard_neg_test_tile_list), round_num, boost_confidence_thresh, )
+        print(message % args)
 
         weights_path_list = []
         for ensemble_num in range(ensembles):
@@ -192,33 +219,61 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5, confidence_thresh=0.5,
 
             # Get new images for current round
             if round_num == 0:
-                ensemble_confidence_list = [confidence_thresh] * len(test_tile_list)
+                # Add a random confidence that randomizes the first sample
+                ensemble_confidence_list = [
+                    boost_confidence_thresh + random.uniform(0.0, 0.01)
+                    for _ in range(len(test_tile_list))
+                ]
             else:
                 ensemble_latest_model_tag = '%s:%d' % (latest_model_tag, ensemble_num, )
                 ensemble_confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=ensemble_latest_model_tag)
 
-            flag_list = [confidence >= confidence_thresh for confidence in ensemble_confidence_list]
+            flag_list = [confidence >= boost_confidence_thresh for confidence in ensemble_confidence_list]
             ensemble_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
+            ensemble_hard_neg_confidence_list = ut.compress(ensemble_confidence_list, flag_list)
+
+            message = 'Found %d MODEL hard negatives for round %d model %d (boost_confidence_thresh=%0.02f)'
+            args = (len(ensemble_hard_neg_test_tile_list), round_num, ensemble_num, boost_confidence_thresh, )
+            print(message % args)
 
             # Combine the round's ensemble hard negatives with the specific model's hard negatives
-            hard_neg_test_tile_list = list(set(round_hard_neg_test_tile_list + ensemble_hard_neg_test_tile_list))
+            hard_neg_test_tile_list = round_hard_neg_test_tile_list + ensemble_hard_neg_test_tile_list
+            hard_neg_confidence_list = round_hard_neg_confidence_list + ensemble_hard_neg_confidence_list
+            hard_neg_test_tuple_list_ = sorted(zip(hard_neg_test_tile_list, hard_neg_confidence_list), reverse=True)
 
-            random.shuffle(hard_neg_test_tile_list)
-            num_hard_neg = len(hard_neg_test_tile_list)
-            ensemble_num_positive = min(num_positive, num_hard_neg)
-            ensemble_test_tile_list = hard_neg_test_tile_list[:ensemble_num_positive]
+            seen_set = set([])
+            hard_neg_test_tuple_list = []
+            for hard_neg_test_tuple in hard_neg_test_tuple_list_:
+                hard_neg_test_tile, hard_neg_test_confidence = hard_neg_test_tuple
+                if hard_neg_test_tile not in seen_set:
+                    hard_neg_test_tuple_list.append(hard_neg_test_tuple)
+                seen_set.add(hard_neg_test_tuple)
+
+            if round_num == 0:
+                num_hard_neg = len(hard_neg_test_tuple_list)
+                ensemble_num_positive = min(num_positive, num_hard_neg)
+                ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_positive]
+            else:
+                ensemble_test_tuple_list = hard_neg_test_tuple_list
+            ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 0)
 
             # Add previous negative boosting rounds
+            last_ensemble_test_tile_list = []
             for previous_round_num in range(0, round_num):
                 previous_boost_imageset_text = 'NEGATIVE-BOOST-%s-%d-%d' % (hashstr, previous_round_num, ensemble_num, )
                 print('Searching previous boosting rounds for %r: %r' % (boost_imageset_text, previous_boost_imageset_text, ))
                 previous_boost_id, = ibs.get_imageset_imgsetids_from_text([previous_boost_imageset_text])
                 previous_ensemble_test_tile_list = ibs.get_imageset_gids(previous_boost_id)
+                last_ensemble_test_tile_list = previous_ensemble_test_tile_list[:]
                 print('\tFound %d images' % (len(previous_ensemble_test_tile_list), ))
                 ensemble_test_tile_list += previous_ensemble_test_tile_list
 
             ensemble_test_tile_list = list(set(ensemble_test_tile_list))
-            print('Using %d total negative images for training' % (len(ensemble_test_tile_list), ))
+
+            num_new = len(list(set(ensemble_test_tile_list) - set(last_ensemble_test_tile_list)))
+            message = 'Found %d TOTAL hard negatives for round %d model %d (%d new this round)'
+            args = (len(ensemble_test_tile_list), round_num, ensemble_num, num_new, )
+            print(message % args)
 
             # Set combined image set to current pool of negatives
             ibs.set_image_imagesettext(ensemble_test_tile_list, [boost_imageset_text] * len(ensemble_test_tile_list))
