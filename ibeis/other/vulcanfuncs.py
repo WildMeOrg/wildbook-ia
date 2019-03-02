@@ -2,9 +2,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images_pytorch
 from ibeis.control import controller_inject
 from ibeis.algo.detect import densenet
-from os.path import join, exists
+from os.path import expanduser, join, abspath, exists
 import numpy as np
 import utool as ut
+import tqdm
 import cv2
 
 
@@ -34,6 +35,8 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
             '2012-08-16_AM_L_Azohi',
             '2012-08-15_AM_R_Marealle',
             '2012-08-14_PM_R_Chediel',
+            # '20161108_Nikon_Left',
+            # '20161108_Nikon_Right',
         ]
 
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
@@ -147,25 +150,255 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(ibs, **kwargs):
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
-
-    config = {
-        'framework': 'torch',
-        'model':     'densenet',
-    }
-    feature_list = ibs.depc_image.get_property('features', all_tile_set, 'vector', config=config)
-
+def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=15,
+                                   max_images=None,
+                                   min_pca_variance=0.9,
+                                   cleanup_memory=True, **kwargs):
     from sklearn.decomposition import PCA
-    import matplotlib.pyplot as plt
     import numpy as np
-    import umap
-    import hdbscan
-    import sklearn.cluster as cluster
-    from sklearn.metrics import adjusted_rand_score, adjusted_mutual_info_score
+    try:
+        import hdbscan
+        import umap
+    except Exception as ex:
+        print('Install required dependencies with: \n\tpip install --upgrade numpy pip scikit-image\n\tpip install hdbscan umap-learn')
+        raise ex
 
-    umap_ = umap.UMAP(n_neighbors=5, min_dist=0.3, metric='correlation')
-    umap_model = umap_.fit_transform(digits.data)
+    all_tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
+    if max_images is not None:
+        all_tile_list = all_tile_list[:max_images]
+    all_tile_list = sorted(all_tile_list)
+
+    hash_str = ut.hash_data(all_tile_list)
+    hash_str = hash_str[:16]
+    cache_path = ibs.cachedir
+    cluster_cache_path = join(cache_path, 'vulcan', 'clusters')
+    ut.ensuredir(cluster_cache_path)
+    cluster_cache_filename = 'cluster.%s.%s.%s.pkl' % (hash_str, num_clusters, n_neighbors, )
+    cluster_cache_filepath = join(cluster_cache_path, cluster_cache_filename)
+
+    if not exists(cluster_cache_filepath):
+        print('Computing clusters for tile list hash %s' % (hash_str, ))
+
+        with ut.Timer('Load DenseNet-201 features'):
+            config = {
+                'framework': 'torch',
+                'model':     'densenet',
+            }
+            feature_list = ibs.depc_image.get_property('features', all_tile_list, 'vector', config=config)
+            feature_list = np.vstack(feature_list)
+
+        # Whiten
+        with ut.Timer('Whiten features'):
+            mean = np.mean(feature_list, axis=1).reshape(-1, 1)
+            std = np.std(feature_list, axis=1).reshape(-1, 1)
+            normalized_feature_list = (feature_list - mean) / std
+            if cleanup_memory:
+                feature_list = None
+
+        # Perform PCA
+        with ut.Timer('Reduce features with PCA'):
+            for pca_index in range(10, 50):
+                pca_ = PCA(n_components=pca_index, whiten=False)
+                pca_feature_list = pca_.fit_transform(normalized_feature_list)
+                variance = sum(pca_.explained_variance_ratio_)
+                print('PCA %d captured %0.04f of the variance' % (pca_index, variance * 100.0, ))
+
+                if variance >= min_pca_variance:
+                    break
+            assert variance >= min_pca_variance
+            if cleanup_memory:
+                normalized_feature_list = None
+
+        # Further reduce with learned embedding
+        with ut.Timer('Reduce features with UMAP'):
+            umap_ = umap.UMAP(
+                n_neighbors=n_neighbors,
+                min_dist=0.001,
+                n_components=2,
+                metric='correlation'
+            )
+            umap_feature_list = umap_.fit_transform(pca_feature_list)
+            if cleanup_memory:
+                pca_feature_list = None
+
+        # Cluster with HDBSCAN
+        with ut.Timer('Cluster features with HDBSCAN'):
+            exclude_set = set([-1])
+
+            best_distance = np.inf
+            best_samples = None
+            best_unclassified = np.inf
+            best_prediction_list = None
+
+            found = False
+            # for min_cluster_size in range(250, 2501, 250):
+            for min_cluster_size in range(50, 251, 50):
+                if found:
+                    break
+                # for min_samples in list(range(1, 10, 1)) + list(range(10, 51, 5)):
+                for min_samples in list(range(1, 10, 1)) + list(range(10, 51, 5)):
+                    if found:
+                        break
+                    hdbscan_ = hdbscan.HDBSCAN(
+                        min_cluster_size=min_cluster_size,
+                        min_samples=min_samples,
+                    )
+                    hdbscan_prediction_list = hdbscan_.fit_predict(umap_feature_list)
+
+                    hdbscan_prediction_list = list(hdbscan_prediction_list)
+                    num_unclassified = hdbscan_prediction_list.count(-1)
+                    num_found_clusters = len(set(hdbscan_prediction_list) - exclude_set)
+                    print('%d, %d Unclassified: %d / %d' % (min_cluster_size, min_samples, num_unclassified, len(hdbscan_prediction_list), ))
+                    print('%d, %d Clusters:     %d' % (min_cluster_size, min_samples, num_found_clusters, ))
+
+                    distance_clusters = abs(num_clusters - num_found_clusters)
+                    if distance_clusters < best_distance or (distance_clusters == best_distance and num_unclassified < best_unclassified):
+                        best_distance = distance_clusters
+                        best_unclassified = num_unclassified
+
+                        best_samples = min_samples
+                        best_cluster_size = min_cluster_size
+                        best_prediction_list = hdbscan_prediction_list[:]
+                        print('Found Better')
+
+                    if best_distance == 0 and best_unclassified == 0:
+                        print('Found Desired, stopping early')
+                        found = True
+
+            num_unclassified = best_prediction_list.count(-1)
+            num_found_clusters = len(set(best_prediction_list) - exclude_set)
+            print('Best %d, %d Unclassified: %d / %d' % (best_cluster_size, best_samples, num_unclassified, len(best_prediction_list), ))
+            print('Best %d, %d Clusters:     %d' % (best_cluster_size, best_samples, num_found_clusters, ))
+            print(ut.repr3(ut.dict_hist(best_prediction_list)))
+
+        assignment_zip = list(zip(best_prediction_list, map(list, umap_feature_list)))
+        assignment_dict = dict(list(zip(all_tile_list, assignment_zip)))
+        ut.save_cPkl(cluster_cache_filepath, assignment_dict)
+    else:
+        assignment_dict = ut.load_cPkl(cluster_cache_filepath)
+
+    return assignment_dict
+
+
+@register_ibs_method
+def vulcan_visualize_clusters(ibs, examples=50, **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+    import random
+
+    assignment_dict = ibs.vulcan_compute_visual_clusters(**kwargs)
+
+    cluster_dict = {}
+    values_list = list(assignment_dict.items())
+    minx, miny = np.inf, np.inf
+    maxx, maxy = -np.inf, -np.inf
+    for tile_id, (cluster, embedding) in values_list:
+        x, y = embedding
+        minx = min(minx, x)
+        miny = min(miny, y)
+        maxx = max(maxx, x)
+        maxy = max(maxy, y)
+        if cluster not in cluster_dict:
+            cluster_dict[cluster] = []
+        value = (tile_id, embedding)
+        cluster_dict[cluster].append(value)
+
+    cluster_list = sorted(cluster_dict.keys())
+    color_list_ = [(0.2, 0.2, 0.2)]
+    color_list = pt.distinct_colors(len(cluster_list) - len(color_list_), randomize=False)
+    color_list = color_list_ + color_list
+
+    fig_ = plt.figure(figsize=(15, 15), dpi=400)  # NOQA
+    axes = plt.subplot(111)
+
+    axes.grid(False, which='major')
+    axes.grid(False, which='minor')
+    axes.set_autoscalex_on(False)
+    axes.set_autoscaley_on(False)
+    axes.set_ylabel('')
+    axes.set_ylabel('')
+    axes.set_xlim([minx, maxx])
+    axes.set_ylim([miny, maxy])
+
+    x_list = []
+    x_list_ = []
+    y_list = []
+    y_list_ = []
+    c_list = []
+    c_list_ = []
+    a_list = []
+    a_list_ = []
+    m_list = []
+    m_list_ = []
+
+    canvas_list = []
+    for cluster, color in zip(cluster_list, color_list):
+        print('Processing cluster %d' % (cluster, ))
+        all_value_list = cluster_dict[cluster]
+        random.shuffle(all_value_list)
+        num_tiles = min(len(all_value_list), examples)
+        value_list = all_value_list[:num_tiles]
+        tile_id_list = ut.take_column(value_list, 0)
+        tile_id_set = set(tile_id_list)
+
+        for tile_id, embedding in all_value_list:
+            x, y = embedding
+            c = color
+            if tile_id in tile_id_set:
+                a = 1.0
+                m = '*'
+                x_list_.append(x)
+                y_list_.append(y)
+                c_list_.append(c)
+                a_list_.append(a)
+                m_list_.append(m)
+            else:
+                a = 0.2
+                m = 'o'
+                x_list.append(x)
+                y_list.append(y)
+                c_list.append(c)
+                a_list.append(a)
+                m_list.append(m)
+
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+        }
+        thumbnail_list = ibs.depc_image.get_property('thumbnails', tile_id_list, 'img', config=config_)
+
+        color = np.array(color[::-1], dtype=np.float32)
+        color = np.around(color * 255.0).astype(np.uint8)
+        vertical_color = np.zeros((densenet.INPUT_SIZE, 10, 3), dtype=np.uint8)
+        vertical_color += color
+        canvas_ = np.hstack([vertical_color] + thumbnail_list + [vertical_color])
+
+        horizontal_color = np.zeros((10, canvas_.shape[1], 3), dtype=np.uint8)
+        horizontal_color += color
+        canvas = np.vstack([horizontal_color, canvas_, horizontal_color])
+        canvas_list.append(canvas)
+
+    zipped = list(zip([True] * len(x_list), x_list, y_list, c_list, a_list, m_list))
+    zipped_ = list(zip([False] * len(x_list_), x_list_, y_list_, c_list_, a_list_, m_list_))
+    random.shuffle(zipped)
+    random.shuffle(zipped_)
+    skip_rate = max(0.0, 1.0 - (20000 / len(zipped)))
+    print('Using skiprate = %0.02f' % (skip_rate, ))
+    zipped_combined = zipped + zipped_
+    for flag, x, y, c, a, m in tqdm.tqdm(zipped_combined):
+        if flag and random.uniform(0.0, 1.0) < skip_rate:
+            continue
+        plt.plot([x], [y], color=c, alpha=a, marker=m, linestyle='None')
+
+    canvas = np.vstack(canvas_list)
+
+    canvas_filename = 'vulcan-wic-clusters-examples.png'
+    canvas_filepath = abspath(expanduser(join('~', 'Desktop', canvas_filename)))
+    cv2.imwrite(canvas_filepath, canvas)
+
+    fig_filename = 'vulcan-wic-clusters-plot.png'
+    fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 @register_ibs_method
