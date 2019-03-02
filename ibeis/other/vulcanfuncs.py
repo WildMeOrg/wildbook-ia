@@ -150,7 +150,7 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=15,
+def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
                                    max_images=None,
                                    min_pca_variance=0.9,
                                    cleanup_memory=True, **kwargs):
@@ -491,6 +491,7 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
             if round_num == 0:
                 num_hard_neg = len(hard_neg_test_tuple_list)
                 ensemble_num_positive = min(num_positive, num_hard_neg)
+                random.shuffle(hard_neg_test_tuple_list)
                 ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_positive]
             else:
                 ensemble_test_tuple_list = hard_neg_test_tuple_list
