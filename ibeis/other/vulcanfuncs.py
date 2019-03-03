@@ -173,53 +173,62 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
     cache_path = ibs.cachedir
     cluster_cache_path = join(cache_path, 'vulcan', 'clusters')
     ut.ensuredir(cluster_cache_path)
+
+    umap_cache_filename = 'umap.%s.%s.pkl' % (hash_str, n_neighbors, )
+    umap_cache_filepath = join(cluster_cache_path, umap_cache_filename)
+
     cluster_cache_filename = 'cluster.%s.%s.%s.pkl' % (hash_str, num_clusters, n_neighbors, )
     cluster_cache_filepath = join(cluster_cache_path, cluster_cache_filename)
 
     if not exists(cluster_cache_filepath):
         print('Computing clusters for tile list hash %s' % (hash_str, ))
 
-        with ut.Timer('Load DenseNet-201 features'):
-            config = {
-                'framework': 'torch',
-                'model':     'densenet',
-            }
-            feature_list = ibs.depc_image.get_property('features', all_tile_list, 'vector', config=config)
-            feature_list = np.vstack(feature_list)
+        if not exists(umap_cache_filepath):
+            with ut.Timer('Load DenseNet-201 features'):
+                config = {
+                    'framework': 'torch',
+                    'model':     'densenet',
+                }
+                feature_list = ibs.depc_image.get_property('features', all_tile_list, 'vector', config=config)
+                feature_list = np.vstack(feature_list)
 
-        # Whiten
-        with ut.Timer('Whiten features'):
-            mean = np.mean(feature_list, axis=1).reshape(-1, 1)
-            std = np.std(feature_list, axis=1).reshape(-1, 1)
-            normalized_feature_list = (feature_list - mean) / std
-            if cleanup_memory:
-                feature_list = None
+            # Whiten
+            with ut.Timer('Whiten features'):
+                mean = np.mean(feature_list, axis=1).reshape(-1, 1)
+                std = np.std(feature_list, axis=1).reshape(-1, 1)
+                normalized_feature_list = (feature_list - mean) / std
+                if cleanup_memory:
+                    feature_list = None
 
-        # Perform PCA
-        with ut.Timer('Reduce features with PCA'):
-            for pca_index in range(10, 50):
-                pca_ = PCA(n_components=pca_index, whiten=False)
-                pca_feature_list = pca_.fit_transform(normalized_feature_list)
-                variance = sum(pca_.explained_variance_ratio_)
-                print('PCA %d captured %0.04f of the variance' % (pca_index, variance * 100.0, ))
+            # Perform PCA
+            with ut.Timer('Reduce features with PCA'):
+                for pca_index in range(10, 50):
+                    pca_ = PCA(n_components=pca_index, whiten=False)
+                    pca_feature_list = pca_.fit_transform(normalized_feature_list)
+                    variance = sum(pca_.explained_variance_ratio_)
+                    print('PCA %d captured %0.04f of the variance' % (pca_index, variance * 100.0, ))
 
-                if variance >= min_pca_variance:
-                    break
-            assert variance >= min_pca_variance
-            if cleanup_memory:
-                normalized_feature_list = None
+                    if variance >= min_pca_variance:
+                        break
+                assert variance >= min_pca_variance
+                if cleanup_memory:
+                    normalized_feature_list = None
 
-        # Further reduce with learned embedding
-        with ut.Timer('Reduce features with UMAP'):
-            umap_ = umap.UMAP(
-                n_neighbors=n_neighbors,
-                min_dist=0.001,
-                n_components=2,
-                metric='correlation'
-            )
-            umap_feature_list = umap_.fit_transform(pca_feature_list)
-            if cleanup_memory:
-                pca_feature_list = None
+            # Further reduce with learned embedding
+            with ut.Timer('Reduce features with UMAP'):
+                umap_ = umap.UMAP(
+                    n_neighbors=n_neighbors,
+                    min_dist=0.001,
+                    n_components=2,
+                    metric='correlation'
+                )
+                umap_feature_list = umap_.fit_transform(pca_feature_list)
+                if cleanup_memory:
+                    pca_feature_list = None
+
+            ut.save_cPkl(umap_cache_filepath, umap_feature_list)
+        else:
+            umap_feature_list = ut.load_cPkl(umap_cache_filepath)
 
         # Cluster with HDBSCAN
         with ut.Timer('Cluster features with HDBSCAN'):
