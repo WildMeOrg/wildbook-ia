@@ -231,12 +231,10 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
             best_prediction_list = None
 
             found = False
-            # for min_cluster_size in range(250, 2501, 250):
-            for min_cluster_size in range(50, 251, 50):
+            for min_cluster_size in range(50, 1001, 50):
                 if found:
                     break
-                # for min_samples in list(range(1, 10, 1)) + list(range(10, 51, 5)):
-                for min_samples in list(range(1, 10, 1)) + list(range(10, 51, 5)):
+                for min_samples in list(range(1, 50, 1)):
                     if found:
                         break
                     hdbscan_ = hdbscan.HDBSCAN(
@@ -277,16 +275,20 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
     else:
         assignment_dict = ut.load_cPkl(cluster_cache_filepath)
 
-    return assignment_dict
+    return hash_str, assignment_dict
 
 
 @register_ibs_method
-def vulcan_visualize_clusters(ibs, examples=50, **kwargs):
+def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=15,
+                              examples=50, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
     import random
 
-    assignment_dict = ibs.vulcan_compute_visual_clusters(**kwargs)
+    values = ibs.vulcan_compute_visual_clusters(num_clusters=num_clusters,
+                                                n_neighbors=n_neighbors,
+                                                **kwargs)
+    hash_str, assignment_dict = values
 
     cluster_dict = {}
     values_list = list(assignment_dict.items())
@@ -392,11 +394,12 @@ def vulcan_visualize_clusters(ibs, examples=50, **kwargs):
 
     canvas = np.vstack(canvas_list)
 
-    canvas_filename = 'vulcan-wic-clusters-examples.png'
+    args = (hash_str, num_clusters, n_neighbors, )
+    canvas_filename = 'vulcan-wic-clusters-%s-%s-%s-examples.png' % args
     canvas_filepath = abspath(expanduser(join('~', 'Desktop', canvas_filename)))
     cv2.imwrite(canvas_filepath, canvas)
 
-    fig_filename = 'vulcan-wic-clusters-plot.png'
+    fig_filename = 'vulcan-wic-clusters-%s-%s-%s-plot.png' % args
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
