@@ -222,7 +222,8 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
         return self.total
 
 
-def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=256):
+def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
+             num_epochs=256, positive=1.0, negative=1.0):
     phases = ['train', 'val']
 
     start = time.time()
@@ -264,6 +265,8 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device, num_ep
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
                     outputs = model(inputs)
+                    ut.embed()
+
                     loss = criterion(outputs, labels)
 
                     _, preds = torch.max(outputs, 1)

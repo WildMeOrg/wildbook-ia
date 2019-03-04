@@ -836,7 +836,7 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
 def commit_localization_results(ibs, gid_list, results_list, note=None,
                                 labeler_algo='pipeline', labeler_model_tag=None,
                                 use_labeler_species=False,
-                                update_json_log=True):
+                                update_json_log=True, **kwargs):
     zipped_list = list(zip(gid_list, results_list))
     aids_list = []
     for gid, results in zipped_list:
