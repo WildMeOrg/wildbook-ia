@@ -170,20 +170,20 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
             all_tile_list = all_tile_list[:max_images]
 
     all_tile_list = sorted(all_tile_list)
-    hash_str = ut.hash_data(all_tile_list)
-    hash_str = hash_str[:16]
+    hashstr = ut.hash_data(all_tile_list)
+    hashstr = hashstr[:16]
     cache_path = ibs.cachedir
     cluster_cache_path = join(cache_path, 'vulcan', 'clusters')
     ut.ensuredir(cluster_cache_path)
 
-    umap_cache_filename = 'umap.%s.%s.pkl' % (hash_str, n_neighbors, )
+    umap_cache_filename = 'umap.%s.%s.pkl' % (hashstr, n_neighbors, )
     umap_cache_filepath = join(cluster_cache_path, umap_cache_filename)
 
-    cluster_cache_filename = 'cluster.%s.%s.%s.pkl' % (hash_str, num_clusters, n_neighbors, )
+    cluster_cache_filename = 'cluster.%s.%s.%s.pkl' % (hashstr, num_clusters, n_neighbors, )
     cluster_cache_filepath = join(cluster_cache_path, cluster_cache_filename)
 
     if not exists(cluster_cache_filepath):
-        print('Computing clusters for tile list hash %s' % (hash_str, ))
+        print('Computing clusters for tile list hash %s' % (hashstr, ))
 
         if not exists(umap_cache_filepath):
             with ut.Timer('Load DenseNet features'):
@@ -286,7 +286,7 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
     else:
         assignment_dict = ut.load_cPkl(cluster_cache_filepath)
 
-    return hash_str, assignment_dict
+    return hashstr, assignment_dict
 
 
 @register_ibs_method
@@ -304,7 +304,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
     values = ibs.vulcan_compute_visual_clusters(num_clusters=num_clusters,
                                                 n_neighbors=n_neighbors,
                                                 **kwargs)
-    hash_str, assignment_dict = values
+    hashstr, assignment_dict = values
 
     cluster_dict = {}
     values_list = list(assignment_dict.items())
@@ -410,7 +410,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
 
     canvas = np.vstack(canvas_list)
 
-    args = (hash_str, num_clusters, n_neighbors, )
+    args = (hashstr, num_clusters, n_neighbors, )
     canvas_filename = 'vulcan-wic-clusters-%s-%s-%s-examples.png' % args
     canvas_filepath = abspath(expanduser(join('~', 'Desktop', canvas_filename)))
     cv2.imwrite(canvas_filepath, canvas)
@@ -433,11 +433,8 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
         hashstr = ut.random_nonce()[:8]
     print('Using hashstr=%r' % (hashstr, ))
 
-    values = ibs.vulcan_compute_visual_clusters(,
-                                ,
-                                **kwargs)
-    hash_str, assignment_dict = values
-
+    values = ibs.vulcan_compute_visual_clusters(num_clusters, n_neighbors,**kwargs)
+    _, assignment_dict = values
 
     gid_all_list = ibs.get_valid_gids(is_tile=None)
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
