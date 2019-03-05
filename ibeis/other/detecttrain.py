@@ -333,8 +333,6 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
 
     python_exe = sys.executable
 
-    ut.embed()
-
     # Call labels
     call_str = '%s %s' % (python_exe, labels_py_path, )
     print(call_str)

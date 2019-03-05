@@ -25,7 +25,8 @@ register_api = controller_inject.get_ibeis_flask_api(__name__)
 
 
 @register_ibs_method
-def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False):
+def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
+                                 return_configs=False):
     if imageset_text_list is None:
         imageset_text_list = [
             'elephant',
@@ -42,6 +43,7 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
     gids_list = ibs.get_imageset_gids(imageset_rowid_list)
     gid_list = ut.flatten(gids_list)
+    gid_list = sorted(gid_list)
 
     config1 = {
         'tile_width':   256,
@@ -49,6 +51,8 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
         'tile_overlap': 64,
     }
     tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
+    tile1_list = ut.flatten(tiles1_list)
+    config1_list = [1] * len(tile1_list)
 
     config2 = {
         'tile_width':    256,
@@ -58,15 +62,75 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
         'allow_borders': False,
     }
     tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
+    tile2_list = ut.flatten(tiles2_list)
+    config2_list = [2] * len(tile2_list)
 
-    tile_list = ut.flatten(tiles1_list) + ut.flatten(tiles2_list)
-    tile_list = sorted(set(tile_list))
+    tile_list_ = tile1_list + tile2_list
+    config_list_ = config1_list + config2_list
+    tile_list = []
+    config_list = []
 
-    if return_gids:
-        return gid_list
+    seen_set = set([])
+    for tile, config in sorted(zip(tile_list_, config_list_)):
+        if tile not in seen_set:
+            tile_list.append(tile)
+            config_list.append(config)
+        seen_set.add(tile)
+
+    if return_configs:
+        value_list = list(zip(tile_list, config_list))
     else:
+        value_list = tile_list
 
-        return tile_list
+    return (gid_list, value_list) if return_gids else value_list
+
+
+@register_ibs_method
+def vulcan_visualize_tiles(ibs, **kwargs):
+    value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True)
+    tile_list = ut.take_column(value_list, 0)
+    config_list = ut.take_column(value_list, 1)
+
+    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
+
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    gid_list = list(set(gid_list) & test_gid_set)
+
+    config = {
+        'tile_width':   256,
+        'tile_height':  256,
+        'tile_overlap': 64,
+    }
+    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
+    tile_list = ut.flatten(tiles_list)
+
+    aids_list = ibs.get_image_aids(gid_list)
+    length_list = list(map(len, aids_list))
+    flag_list = [0 < length for length in length_list]
+
+    confidences_list = []
+    for tile_list in tiles_list:
+        confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
+        confidences_list.append(confidence_list)
+
+    best_accuracy = 0.0
+    best_thresh = None
+    for index in range(100):
+        confidence_thresh = index / 100.0
+
+        correct = 0
+        for flag, confidence_list in zip(flag_list, confidences_list):
+            # confidence = sum(confidence_list) / len(confidence_list)
+            confidence = np.max(confidence_list)
+            flag_ = confidence >= confidence_thresh
+            correct += 1 if flag == flag_ else 0
+
+        accuracy = correct / len(flag_list)
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_thresh = confidence_thresh
+
+    return best_thresh, best_accuracy
 
 
 @register_ibs_method
@@ -693,12 +757,12 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
 
 @register_ibs_method
-def vulcan_wic_validate_image(ibs, model_tag=None, strategy='avg', value=None, **kwargs):
+def vulcan_wic_validate_image(ibs, model_tag=None, strategy='avg', **kwargs):
 
     strategy = strategy.lower()
     assert strategy in ['avg', 'min', 'max', 'thresh']
 
-    gid_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
+    gid_list, tile_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
 
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     gid_list = list(set(gid_list) & test_gid_set)
