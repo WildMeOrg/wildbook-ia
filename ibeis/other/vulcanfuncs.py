@@ -494,14 +494,13 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
 
             # Get new images for current round
             if round_num == 0:
-                ut.embed()
                 # Add a random confidence that randomizes the first sample
                 kickstart_examples = num_positive * boost_round_ratio
-                num_cluster_examples = int(kickstart_examples / num_clusters)
+                num_cluster_examples = int(kickstart_examples / len(cluster_list))
 
-                ensemble_confidence_dict = []
+                ensemble_confidence_dict = {}
                 for cluster in cluster_list:
-                    cluster_tile_list = cluster_dict[cluster]
+                    cluster_tile_list = list(cluster_dict[cluster])
                     random.shuffle(cluster_tile_list)
 
                     num_cluster_neg = len(cluster_tile_list)
