@@ -267,6 +267,41 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
                     outputs = model(inputs)
                     ut.embed()
 
+                    undershoots = labels - outputs
+                    overshoots = outputs - labels
+
+                    #partition
+                    undershoots[undershoots < 0] = 0
+                    overshoots[overshoots < 0] = 0
+
+                    # Square
+                    undershoots = undershoots * undershoots
+                    overshoots = overshoots * overshoots
+
+                    # Weighted
+                    undershoots *= under
+                    overshoots *= over
+
+                    # Sum
+                    error = undershoots + overshoots
+
+                    # error = outputs - labels
+                    # error = error * error
+
+                    # Bias towards bad instances
+                    # loss_sorted, loss_index = torch.sort(loss_)
+                    # loss_index += 1
+                    # loss_index = torch.tensor(loss_index, dtype=loss_.dtype)
+                    # loss_index = loss_index.to(device)
+                    # loss_weighted = loss_ * loss_index
+                    # loss = torch.sum(loss_weighted)
+
+                    loss_ = torch.mean(error, 0)
+                    loss_under_ = torch.mean(undershoots, 0)
+                    loss_over_ = torch.mean(overshoots, 0)
+
+                    loss = torch.sum(loss_)
+
                     loss = criterion(outputs, labels)
 
                     _, preds = torch.max(outputs, 1)
