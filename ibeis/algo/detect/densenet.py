@@ -223,7 +223,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
 
 
 def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
-             num_epochs=256, positive=1.0, negative=1.0):
+             num_epochs=256):
     phases = ['train', 'val']
 
     start = time.time()
@@ -265,43 +265,6 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
                     outputs = model(inputs)
-                    ut.embed()
-
-                    undershoots = labels - outputs
-                    overshoots = outputs - labels
-
-                    #partition
-                    undershoots[undershoots < 0] = 0
-                    overshoots[overshoots < 0] = 0
-
-                    # Square
-                    undershoots = undershoots * undershoots
-                    overshoots = overshoots * overshoots
-
-                    # Weighted
-                    undershoots *= under
-                    overshoots *= over
-
-                    # Sum
-                    error = undershoots + overshoots
-
-                    # error = outputs - labels
-                    # error = error * error
-
-                    # Bias towards bad instances
-                    # loss_sorted, loss_index = torch.sort(loss_)
-                    # loss_index += 1
-                    # loss_index = torch.tensor(loss_index, dtype=loss_.dtype)
-                    # loss_index = loss_index.to(device)
-                    # loss_weighted = loss_ * loss_index
-                    # loss = torch.sum(loss_weighted)
-
-                    loss_ = torch.mean(error, 0)
-                    loss_under_ = torch.mean(undershoots, 0)
-                    loss_over_ = torch.mean(overshoots, 0)
-
-                    loss = torch.sum(loss_)
-
                     loss = criterion(outputs, labels)
 
                     _, preds = torch.max(outputs, 1)
@@ -393,7 +356,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwarg
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=48, **kwargs):
+def train(data_path, output_path, batch_size=48, class_weights={}, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -456,8 +419,17 @@ def train(data_path, output_path, batch_size=48, **kwargs):
 
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=10, min_lr=1e-6)
 
+    # Get weights for the class
+    class_index_list = list(dataloaders['train'].dataset.class_to_idx.items())
+    index_class_list = [class_index[::-1] for class_index in class_index_list]
+    weight = torch.tensor([
+        class_weights.get(class_, 1.0)
+        for index, class_ in sorted(index_class_list)
+    ])
+    weight = weight.to(device)
+
     # Setup the loss fxn
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(weight=weight)
 
     print('Start Training...')
 
@@ -557,7 +529,7 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
         assert None not in [ibs, gid_list], 'Needs to have access to depc'
         assert len(filepath_list) == len(gid_list)
 
-        allowed_predictions = set(['positive', 'negative'])
+        binary_class_set = set(['negative', 'positive'])
 
         results_list = []
         for model_index in range(len(weights_path_list)):
@@ -571,7 +543,7 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
             result_list = []
             for prediction, confidence in zip(prediction_list, confidence_list):
                 # DO NOT REMOVE THIS ASSERT
-                assert prediction in allowed_predictions, 'Cannot use this method, need to implement classifier_two in depc'
+                assert prediction in binary_class_set, 'Cannot use this method, need to implement classifier_two in depc'
                 if prediction == 'positive':
                     pscore = confidence
                     nscore = 1.0 - pscore
