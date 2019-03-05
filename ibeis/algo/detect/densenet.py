@@ -57,21 +57,21 @@ if not ut.get_argflag('--no-pytorch'):
                 return self.aug.augment_image(img)
 
         class TrainAugmentations(Augmentations):
-            def __init__(self, blur=False, flip=False, rotate=10, shear=10, **kwargs):
+            def __init__(self, blur=True, flip=False, rotate=10, shear=10, **kwargs):
                 from imgaug import augmenters as iaa
                 sequence = []
 
                 sequence += [
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                     iaa.ContrastNormalization((0.75, 1.25)),
-                    iaa.AddElementwise((-20, 20), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-5, 5), per_channel=True),
+                    iaa.AddElementwise((-10, 10), per_channel=0.5),
+                    iaa.AddToHueAndSaturation(value=(-20,  20), per_channel=True),
                     iaa.Multiply((0.75, 1.25)),
                 ]
                 sequence += [
-                    iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
+                    iaa.PiecewiseAffine(scale=(0.0005, 0.005)),
                     iaa.Affine(rotate=(-rotate, rotate), shear=(-shear, shear), mode='symmetric'),
-                    iaa.Grayscale(alpha=(0.0, 0.25))
+                    iaa.Grayscale(alpha=(0.0, 0.5))
                 ]
                 if flip:
                     sequence += [
@@ -79,7 +79,7 @@ if not ut.get_argflag('--no-pytorch'):
                     ]
                 if blur:
                     sequence += [
-                        iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
+                        iaa.Sometimes(0.01, iaa.GaussianBlur(sigma=(0, 1.0))),
                     ]
                 self.aug = iaa.Sequential(sequence)
 
@@ -354,7 +354,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
     return model
 
 
-def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwargs):
+def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwargs):
     import matplotlib.pyplot as plt
     samples = dataset.samples
     flags = np.array(ut.take_column(samples, 1))
