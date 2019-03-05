@@ -49,7 +49,14 @@ CONFIG_URL_DICT = {
     'ggr2'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
 
     None                         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
+    'training_kit'               : 'https://cthulhu.dyn.wildme.io/public/data/lightnet-training-kit.zip',
 }
+
+
+def _download_training_kit():
+    training_kit_url = CONFIG_URL_DICT['training_kit']
+    training_kit_path = ut.grab_zipped_url(training_kit_url, appname='lightnet')
+    return training_kit_path
 
 
 def _parse_weights_from_cfg(url):
