@@ -1262,7 +1262,7 @@ class QueryRequest(ut.NiceRepr):
             qreq_.prog_hook = prog_hook
             cm_list = mc4.submit_query_request(
                 qreq_, use_cache=use_cache, use_bigcache=use_cache, verbose=True,
-                save_qcache=use_cache, use_supercache=use_cache,
+                save_qcache=use_cache, use_supercache=False,
                 invalidate_supercache=invalidate_supercache)
         return cm_list
 
