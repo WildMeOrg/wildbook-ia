@@ -426,6 +426,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
                      boost_round_ratio=2,
                      num_clusters=80,
                      n_neighbors=10,
+                     use_clusters=False,
                      hashstr=None, **kwargs):
     import random
 
@@ -433,11 +434,22 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
         hashstr = ut.random_nonce()[:8]
     print('Using hashstr=%r' % (hashstr, ))
 
-    values = ibs.vulcan_compute_visual_clusters(num_clusters, n_neighbors,**kwargs)
-    _, assignment_dict = values
-
     gid_all_list = ibs.get_valid_gids(is_tile=None)
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+
+    if use_clusters:
+        values = ibs.vulcan_compute_visual_clusters(num_clusters, n_neighbors, **kwargs)
+        _, assignment_dict = values
+
+        cluster_dict = {}
+        values_list = list(assignment_dict.items())
+        for tile_id, (cluster, embedding) in values_list:
+            if cluster not in cluster_dict:
+                cluster_dict[cluster] = []
+            cluster_dict[cluster].append(tile_id)
+    else:
+        cluster_dict[-1] = all_tile_set
+    cluster_list = sorted(cluster_dict.keys())
 
     train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
     train_gid_set = all_tile_set & train_gid_set
@@ -451,6 +463,11 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
     num_positive = num_total - num_negative
 
     test_tile_list = list(negative_gid_set)
+
+    class_weights = {
+        'positive': 10.0,
+        'negative': 1.0,
+    }
 
     latest_model_tag = None
     config_list = []
@@ -475,16 +492,31 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
 
             # Get new images for current round
             if round_num == 0:
+                ut.embed()
                 # Add a random confidence that randomizes the first sample
-                ensemble_confidence_list = []
+                kickstart_examples = num_positive * boost_round_ratio
+                num_cluster_examples = int(kickstart_examples / num_clusters)
 
-                                    boost_confidence_thresh + random.uniform(0.0, 0.01)
-                    for _ in range(len(test_tile_list))
+                ensemble_confidence_dict = []
+                for cluster in cluster_list:
+                    cluster_tile_list = cluster_dict[cluster]
+                    random.shuffle(cluster_tile_list)
 
+                    num_cluster_neg = len(cluster_tile_list)
+                    cluster_num_negative = min(num_cluster_examples, num_cluster_neg)
 
+                    for cluster_index, cluster_tile in enumerate(cluster_tile_list):
+                        if cluster_index < cluster_num_negative:
+                            cluster_confidence = boost_confidence_thresh + random.uniform(0.0, 0.001)
+                        else:
+                            cluster_confidence = -1.0
+                        assert cluster_tile not in ensemble_confidence_dict
+                        ensemble_confidence_dict[cluster_tile] = cluster_confidence
 
-                    for cluster in assignment_dict
-
+                ensemble_confidence_list = [
+                    ensemble_confidence_dict[test_tile]
+                    for test_tile in test_tile_list
+                ]
             else:
                 ensemble_latest_model_tag = '%s:%d' % (latest_model_tag, ensemble_num, )
                 ensemble_confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=ensemble_latest_model_tag)
@@ -515,13 +547,12 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
                     hard_neg_test_tuple_list.append(hard_neg_test_tuple)
                 seen_set.add(hard_neg_test_tuple)
 
-            num_hard_neg = len(hard_neg_test_tuple_list)
-            ensemble_num_positive = min(num_positive * boost_round_ratio, num_hard_neg)
-
             if round_num == 0:
                 random.shuffle(hard_neg_test_tuple_list)
 
-            ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_positive]
+            num_hard_neg = len(hard_neg_test_tuple_list)
+            ensemble_num_negative = min(num_positive * boost_round_ratio, num_hard_neg)
+            ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_negative]
             ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 0)
 
             # Add previous negative boosting rounds
@@ -557,7 +588,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
                 dest_path=data_path,
                 skip_rate_neg=0.0,
             )
-            weights_path = densenet.train(extracted_path, output_path, flip=True, rotate=20, shear=20)
+            weights_path = densenet.train(extracted_path, output_path, flip=True, rotate=20, shear=20, class_weights=class_weights)
             weights_path_list.append(weights_path)
 
         latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
