@@ -216,7 +216,7 @@ def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
 
 
 @register_ibs_method
-def localizer_train(ibs, species_list=None, **kwargs):
+def localizer_yolo_train(ibs, species_list=None, **kwargs):
     from pydarknet import Darknet_YOLO_Detector
     data_path = ibs.export_to_xml(species_list=species_list, **kwargs)
     output_path = join(ibs.get_cachedir(), 'training', 'localizer')
@@ -225,6 +225,138 @@ def localizer_train(ibs, species_list=None, **kwargs):
     model_path = dark.train(data_path, output_path)
     del dark
     return model_path
+
+
+def _localizer_lightnet_validate_training_kit(lightnet_training_kit_url):
+    # Remove bad files
+    delete_path_list = [
+        join(lightnet_training_kit_url, '__MACOSX'),
+    ]
+    for delete_path in delete_path_list:
+        if exists(delete_path):
+            ut.delete(delete_path)
+
+    # Ensure first-level structure
+    bin_path     = join(lightnet_training_kit_url, 'bin')
+    cfg_path     = join(lightnet_training_kit_url, 'cfg')
+    data_path    = join(lightnet_training_kit_url, 'data')
+    weights_path = join(lightnet_training_kit_url, 'darknet19_448.conv.23.pt')
+    assert exists(bin_path)
+    assert exists(cfg_path)
+    assert exists(data_path)
+    assert exists(weights_path)
+
+    # Ensure second-level structure
+    dataset_py_path = join(bin_path, 'dataset.template.py')
+    labels_py_path  = join(bin_path, 'labels.template.py')
+    test_py_path    = join(bin_path, 'test.template.py')
+    train_py_path   = join(bin_path, 'train.template.py')
+    config_py_path  = join(cfg_path, 'yolo.template.py')
+    assert exists(dataset_py_path)
+    assert exists(labels_py_path)
+    assert exists(test_py_path)
+    assert exists(train_py_path)
+    assert exists(config_py_path)
+
+
+def _localizer_lightnet_template_replace(template_filepath, replace_dict, output_filepath=None):
+    if output_filepath is None:
+        output_filepath = template_filepath.replace('.template.', '.')
+    with open(template_filepath, 'r') as template_file:
+        template = ''.join(template_file.readlines())
+    for search_str, replace_str in replace_dict.items():
+        search_str  = str(search_str)
+        replace_str = str(replace_str)
+        template = template.replace(search_str, replace_str)
+    with open(output_filepath, 'w') as output_file:
+        output_file.write(template)
+    return output_filepath
+
+
+@register_ibs_method
+def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **kwargs):
+    from ibeis.algo.detect import lightnet
+    import subprocess
+    import datetime
+    import sys
+
+    assert species_list is not None
+    species_list = sorted(species_list)
+
+    lightnet_training_kit_url = lightnet._download_training_kit()
+    _localizer_lightnet_validate_training_kit(lightnet_training_kit_url)
+
+    hashstr = ut.random_nonce()[:16]
+    species_str = '-'.join(species_list)
+
+    cache_path = join(ibs.cachedir, 'training', 'lightnet')
+    ut.ensuredir(cache_path)
+    training_instance_folder = 'lightnet-training-%s-%s' % (species_str, hashstr, )
+    training_instance_path = join(cache_path, training_instance_folder)
+    ut.copy(lightnet_training_kit_url, training_instance_path)
+
+    backup_path     = join(training_instance_path, 'backup')
+    bin_path        = join(training_instance_path, 'bin')
+    cfg_path        = join(training_instance_path, 'cfg')
+    data_path       = join(training_instance_path, 'data')
+    weights_path    = join(training_instance_path, 'darknet19_448.conv.23.pt')
+    results_path    = join(training_instance_path, 'results.txt')
+    dataset_py_path = join(bin_path, 'dataset.template.py')
+    labels_py_path  = join(bin_path, 'labels.template.py')
+    test_py_path    = join(bin_path, 'test.template.py')
+    train_py_path   = join(bin_path, 'train.template.py')
+    config_py_path  = join(cfg_path, 'yolo.template.py')
+
+    ibs.export_to_xml(species_list=species_list, output_path=data_path, **kwargs)
+
+    species_str_list = ['%r' % (species, ) for species in species_list]
+    species_str = ', '.join(species_str_list)
+    replace_dict = {
+        '_^_YEAR_^_'            : str(datetime.datetime.now().year),
+        '_^_DATA_ROOT_^_'       : data_path,
+        '_^_SPECIES_MAPPING_^_' : species_str,
+        '_^_NUM_BATCHES_^_'     : str(batches),
+    }
+
+    dataset_py_path = _localizer_lightnet_template_replace(dataset_py_path, replace_dict)
+    labels_py_path  = _localizer_lightnet_template_replace(labels_py_path,  replace_dict)
+    test_py_path    = _localizer_lightnet_template_replace(test_py_path,    replace_dict)
+    train_py_path   = _localizer_lightnet_template_replace(train_py_path,   replace_dict)
+    config_py_path  = _localizer_lightnet_template_replace(config_py_path,  replace_dict)
+    assert exists(dataset_py_path)
+    assert exists(labels_py_path)
+    assert exists(test_py_path)
+    assert exists(train_py_path)
+    assert exists(config_py_path)
+    assert not exists(backup_path)
+    assert not exists(results_path)
+
+    python_exe = sys.executable
+
+    ut.embed()
+
+    # Call labels
+    call_str = '%s %s' % (python_exe, labels_py_path, )
+    print(call_str)
+    subprocess.call(call_str, shell=True)
+
+    # Call training
+    # Example: CUDA_VISIBLE_DEVICES=0 python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt
+    cuda_str = '' if cuda_device in [-1, None] else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
+    args = (cuda_str, python_exe, train_py_path, config_py_path, backup_path, weights_path)
+    call_str = '%s%s %s -c -n %s -b %s %s' % args
+    print(call_str)
+    subprocess.call(call_str, shell=True)
+    assert exists(backup_path)
+
+    # Call testing
+    # Example: CUDA_VISIBLE_DEVICE=0 python bin/test.py -c -n cfg/yolo.py
+    cuda_str = '' if cuda_device in [-1, None] else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
+    args = (cuda_str, python_exe, test_py_path, config_py_path, backup_path, )
+    call_str = '%s%s %s -c -n %s --results results.txt %s/*' % args
+    print(call_str)
+    subprocess.call(call_str, shell=True)
+    assert exists(results_path)
 
 
 @register_ibs_method
@@ -313,7 +445,7 @@ def labeler_train(ibs, species_list=None, species_mapping=None, viewpoint_mappin
 
 @register_ibs_method
 def detector_train(ibs):
-    results = ibs.localizer_train()
+    results = ibs.localizer_yolo_train()
     localizer_weight_path, localizer_config_path, localizer_class_path = results
     classifier_model_path = ibs.classifier_binary_train()
     labeler_model_path = ibs.labeler_train()

@@ -176,7 +176,8 @@ def export_to_pascal(ibs, *args, **kwargs):
 @register_ibs_method
 def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
-                  use_existing_train_test=True, include_parts=False, gid_list=None, **kwargs):
+                  use_existing_train_test=True, include_parts=False, gid_list=None, output_path=None,
+                  **kwargs):
     """Create training XML for training models."""
     import random
     from datetime import date
@@ -238,11 +239,15 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     import datetime
     now = datetime.datetime.now()
     folder = 'VOC%d' % (now.year, )
-    datadir = ibs.get_cachedir() + '/VOCdevkit/' + folder + '/'
-    imagedir = datadir + 'JPEGImages/'
-    annotdir = datadir + 'Annotations/'
-    setsdir = datadir + 'ImageSets/'
-    mainsetsdir = setsdir + 'Main/'
+
+    if output_path is None:
+        output_path = ibs.get_cachedir()
+
+    datadir = join(output_path, 'VOCdevkit', folder)
+    imagedir = join(datadir, 'JPEGImages')
+    annotdir = join(datadir, 'Annotations')
+    setsdir  = join(datadir, 'ImageSets')
+    mainsetsdir = join(setsdir, 'Main')
 
     if purge:
         ut.delete(datadir)
@@ -281,8 +286,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
-            out_name = "%d_%06d" % (current_year, index, )
-            out_img = out_name + ".jpg"
+            out_name = '%d_%06d' % (current_year, index, )
+            out_img = '%s.jpg' % (out_name, )
 
             _image = ibs.get_images(gid)
             height, width, channels = _image.shape
@@ -299,7 +304,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                 height = target_size
                 width = int(target_size * ratio)
 
-            dst_img = imagedir + out_img
+            dst_img = join(imagedir, out_img)
             _image = vt.resize(_image, (width, height))
             vt.imwrite(dst_img, _image)
 
@@ -327,7 +332,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                         _add_annotation(part_bbox, part_theta, species_name,
                                         viewpoint, None, decrease, part_name=part_name)
 
-            dst_annot = annotdir + out_name  + '.xml'
+            out_filename = '%s.xml' % (out_name, )
+            dst_annot = join(annotdir, out_filename)
 
             if gid in test_gid_set:
                 sets_dict['test'].append(out_name)
@@ -343,7 +349,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                 raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
 
             # Write XML
-            print("Copying:\n%r\n%r\n%r\n\n" % (
+            print('Copying:\n%r\n%r\n%r\n\n' % (
                 image_path, dst_img, (width, height), ))
             xml_data = open(dst_annot, 'w')
             xml_data.write(annotation.xml())
@@ -352,13 +358,15 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                 index += 1
                 if offset != 'auto':
                     break
-                out_name = "%d_%06d" % (current_year, index, )
-                dst_annot = annotdir + out_name  + '.xml'
+                out_filename = '%d_%06d.xml' % (current_year, index, )
+                dst_annot = join(annotdir, out_filename)
         else:
-            print("Skipping:\n%r\n\n" % (image_path, ))
+            print('Skipping:\n%r\n\n' % (image_path, ))
 
     for key in sets_dict.keys():
-        with open(mainsetsdir + key + '.txt', 'w') as file_:
+        manifest_filename = '%s.txt' % (key, )
+        manifest_filepath = join(mainsetsdir, manifest_filename)
+        with open(manifest_filepath, 'w') as file_:
             sets_dict[key].append('')
             content = sets_dict[key]
             content = '\n'.join(content)
