@@ -150,10 +150,11 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
+def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
                                    max_images=None,
                                    min_pca_variance=0.9,
-                                   cleanup_memory=True, **kwargs):
+                                   cleanup_memory=True,
+                                   all_tile_list=None, **kwargs):
     from sklearn.decomposition import PCA
     import numpy as np
     try:
@@ -163,11 +164,12 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
         print('Install required dependencies with: \n\tpip install --upgrade numpy pip scikit-image\n\tpip install hdbscan umap-learn')
         raise ex
 
-    all_tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
-    if max_images is not None:
-        all_tile_list = all_tile_list[:max_images]
-    all_tile_list = sorted(all_tile_list)
+    if all_tile_list is None:
+        all_tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
+        if max_images is not None:
+            all_tile_list = all_tile_list[:max_images]
 
+    all_tile_list = sorted(all_tile_list)
     hash_str = ut.hash_data(all_tile_list)
     hash_str = hash_str[:16]
     cache_path = ibs.cachedir
@@ -184,7 +186,7 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
         print('Computing clusters for tile list hash %s' % (hash_str, ))
 
         if not exists(umap_cache_filepath):
-            with ut.Timer('Load DenseNet-201 features'):
+            with ut.Timer('Load DenseNet features'):
                 config = {
                     'framework': 'torch',
                     'model':     'densenet',
@@ -288,8 +290,13 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=50, n_neighbors=15,
 
 
 @register_ibs_method
-def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=15,
+def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
                               examples=50, **kwargs):
+    """
+    for n_neighbors in range(5, 61, 5):
+        for num_clusters in range(10, 51, 10):
+            ibs.vulcan_visualize_clusters(num_clusters, n_neighbors)
+    """
     import matplotlib.pyplot as plt
     import plottool as pt
     import random
@@ -414,15 +421,23 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=15,
 
 
 @register_ibs_method
-def vulcan_wic_train(ibs, ensembles=3, rounds=5,
-                     boost_confidence_thresh=0.9,
-                     boost_round_ratio=3,
+def vulcan_wic_train(ibs, ensembles=5, rounds=10,
+                     boost_confidence_thresh=0.5,
+                     boost_round_ratio=2,
+                     num_clusters=80,
+                     n_neighbors=10,
                      hashstr=None, **kwargs):
     import random
 
     if hashstr is None:
         hashstr = ut.random_nonce()[:8]
     print('Using hashstr=%r' % (hashstr, ))
+
+    values = ibs.vulcan_compute_visual_clusters(,
+                                ,
+                                **kwargs)
+    hash_str, assignment_dict = values
+
 
     gid_all_list = ibs.get_valid_gids(is_tile=None)
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
@@ -445,11 +460,8 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
     for round_num in range(rounds):
         if round_num == 0:
             assert latest_model_tag is None
-            # Add a random confidence that randomizes the first sample
-            round_confidence_list = [
-                boost_confidence_thresh + random.uniform(0.0, 0.01)
-                for _ in range(len(test_tile_list))
-            ]
+            # Skip ensemble hard negative mining, save for model mining
+            round_confidence_list = [-1.0] * len(test_tile_list)
         else:
             assert latest_model_tag is not None
             round_confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=latest_model_tag)
@@ -457,10 +469,6 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
         flag_list = [confidence >= boost_confidence_thresh for confidence in round_confidence_list]
         round_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
         round_hard_neg_confidence_list = ut.compress(round_confidence_list, flag_list)
-
-        message = 'Found %d ENSEMBLE hard negatives for round %d (boost_confidence_thresh=%0.02f)'
-        args = (len(round_hard_neg_test_tile_list), round_num, boost_confidence_thresh, )
-        print(message % args)
 
         weights_path_list = []
         for ensemble_num in range(ensembles):
@@ -471,10 +479,15 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
             # Get new images for current round
             if round_num == 0:
                 # Add a random confidence that randomizes the first sample
-                ensemble_confidence_list = [
-                    boost_confidence_thresh + random.uniform(0.0, 0.01)
+                ensemble_confidence_list = []
+
+                                    boost_confidence_thresh + random.uniform(0.0, 0.01)
                     for _ in range(len(test_tile_list))
-                ]
+
+
+
+                    for cluster in assignment_dict
+
             else:
                 ensemble_latest_model_tag = '%s:%d' % (latest_model_tag, ensemble_num, )
                 ensemble_confidence_list = ibs.vulcan_wic_test(test_tile_list, model_tag=ensemble_latest_model_tag)
@@ -482,6 +495,10 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
             flag_list = [confidence >= boost_confidence_thresh for confidence in ensemble_confidence_list]
             ensemble_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
             ensemble_hard_neg_confidence_list = ut.compress(ensemble_confidence_list, flag_list)
+
+            message = 'Found %d ENSEMBLE hard negatives for round %d (boost_confidence_thresh=%0.02f)'
+            args = (len(round_hard_neg_test_tile_list), round_num, boost_confidence_thresh, )
+            print(message % args)
 
             message = 'Found %d MODEL hard negatives for round %d model %d (boost_confidence_thresh=%0.02f)'
             args = (len(ensemble_hard_neg_test_tile_list), round_num, ensemble_num, boost_confidence_thresh, )
@@ -492,6 +509,7 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
             hard_neg_confidence_list = round_hard_neg_confidence_list + ensemble_hard_neg_confidence_list
             hard_neg_test_tuple_list_ = sorted(zip(hard_neg_test_tile_list, hard_neg_confidence_list), reverse=True)
 
+            # Remove duplicates with different confidences
             seen_set = set([])
             hard_neg_test_tuple_list = []
             for hard_neg_test_tuple in hard_neg_test_tuple_list_:
@@ -500,13 +518,13 @@ def vulcan_wic_train(ibs, ensembles=3, rounds=5,
                     hard_neg_test_tuple_list.append(hard_neg_test_tuple)
                 seen_set.add(hard_neg_test_tuple)
 
+            num_hard_neg = len(hard_neg_test_tuple_list)
+            ensemble_num_positive = min(num_positive * boost_round_ratio, num_hard_neg)
+
             if round_num == 0:
-                num_hard_neg = len(hard_neg_test_tuple_list)
-                ensemble_num_positive = min(num_positive, num_hard_neg)
                 random.shuffle(hard_neg_test_tuple_list)
-                ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_positive]
-            else:
-                ensemble_test_tuple_list = hard_neg_test_tuple_list
+
+            ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_positive]
             ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 0)
 
             # Add previous negative boosting rounds
