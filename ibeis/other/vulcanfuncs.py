@@ -5,6 +5,7 @@ from ibeis.algo.detect import densenet
 from os.path import expanduser, join, abspath, exists
 import numpy as np
 import utool as ut
+import random
 import tqdm
 import cv2
 
@@ -86,12 +87,33 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
 
 @register_ibs_method
-def vulcan_visualize_tiles(ibs, **kwargs):
+def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', **kwargs):
     value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True)
     tile_list = ut.take_column(value_list, 0)
     config_list = ut.take_column(value_list, 1)
 
+    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species)
+    cumulative_area_list, total_area_list = values
+
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
+    ancestor_gid_dict = {}
+    zipped = zip(tile_list, config_list, cumulative_area_list, ancestor_gid_list)
+    for tile, config, cumulative_area, ancestor_gid in zipped:
+        if ancestor_gid not in ancestor_gid_dict:
+            ancestor_gid_dict[ancestor_gid] = []
+        ancestor_gid_dict[ancestor_gid].append((cumulative_area, tile, config, ))
+
+    ancestor_key_list = sorted(ancestor_gid_dict.keys())
+    for ancestor_key in ancestor_key_list:
+        values_list = ancestor_gid_dict[ancestor_key]
+        values_list = sorted(values_list, reverse=True)
+        total_cumulative_area = 0
+        for values in values_list:
+            cumulative_area, tile, config = values
+            total_cumulative_area += cumulative_area
+        print(ancestor_key, total_cumulative_area)
+
+
 
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     gid_list = list(set(gid_list) & test_gid_set)
@@ -134,22 +156,18 @@ def vulcan_visualize_tiles(ibs, **kwargs):
 
 
 @register_ibs_method
-def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
-                                     min_cumulative_percentage=0.01,
-                                     recompute_split=False, **kwargs):
-    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
-
+def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephant_savanna'):
     tile_bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
     aids_list = ibs.get_vulcan_image_tile_aids(tile_list)
     species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
 
-    flag_list = []
+    cumulative_area_list = []
+    total_area_list = []
     for tile_id, tile_bbox, aid_list, species_set in zip(tile_list, tile_bbox_list, aids_list, species_set_list):
-        flag_ = False
+        tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
+        canvas = np.zeros((tile_h, tile_w), dtype=np.uint8)
         if target_species in species_set:
-            tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
             bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile_id)
-            canvas = np.zeros((tile_h, tile_w), dtype=np.uint8)
             for bbox in bbox_list:
                 xtl, ytl, w, h = bbox
                 xbr = xtl + w
@@ -159,11 +177,27 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
                 xbr = min(xbr, tile_w)
                 ybr = min(ybr, tile_h)
                 canvas[ytl: ybr, xtl: xbr] = 1
-            cumulative_area = np.sum(canvas)
-            min_cumulative_area = np.floor((tile_w * tile_h) * min_cumulative_percentage)
-            if cumulative_area >= min_cumulative_area:
-                flag_ = True
-        flag_list.append(flag_)
+        cumulative_area = int(np.sum(canvas))
+        total_area = tile_w * tile_h
+        cumulative_area_list.append(cumulative_area)
+        total_area_list.append(total_area)
+
+    return cumulative_area_list, total_area_list
+
+
+@register_ibs_method
+def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
+                                     min_cumulative_percentage=0.01,
+                                     recompute_split=False, **kwargs):
+    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species)
+    cumulative_area_list, total_area_list = values
+
+    flag_list = [
+        cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
     gid_all_list = ibs.get_valid_gids(is_tile=None)
