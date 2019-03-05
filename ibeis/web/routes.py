@@ -1665,7 +1665,7 @@ def view_tiles(**kwargs):
     elif len(imgsetid) > 0:
         imgsetid_list = imgsetid.strip().split(',')
         imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list ])
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid, is_tile=True) for imgsetid_ in imgsetid_list ])
     else:
         gid_list = ibs.get_valid_gids(is_tile=True)
         filtered = False
