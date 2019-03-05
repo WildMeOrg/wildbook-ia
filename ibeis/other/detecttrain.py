@@ -343,7 +343,8 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
     # Call training
     # Example: CUDA_VISIBLE_DEVICES=0 python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt
     cuda_str = '' if cuda_device in [-1, None] else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
-    call_str = '%s%s %s -c -n %s %s' % (cuda_str, python_exe, train_py_path, config_py_path, weights_path)
+    args = (cuda_str, python_exe, train_py_path, config_py_path, backup_path, weights_path)
+    call_str = '%s%s %s -c -n %s -b %s %s' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(backup_path)
@@ -351,7 +352,8 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
     # Call testing
     # Example: CUDA_VISIBLE_DEVICE=0 python bin/test.py -c -n cfg/yolo.py
     cuda_str = '' if cuda_device in [-1, None] else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
-    call_str = '%s%s %s -c -n %s --results results.txt %s/*' % (cuda_str, python_exe, test_py_path, config_py_path, backup_path)
+    args = (cuda_str, python_exe, test_py_path, config_py_path, backup_path, )
+    call_str = '%s%s %s -c -n %s --results results.txt %s/*' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(results_path)
