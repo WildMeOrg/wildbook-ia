@@ -448,7 +448,9 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
                 cluster_dict[cluster] = []
             cluster_dict[cluster].append(tile_id)
     else:
-        cluster_dict[-1] = all_tile_set
+        cluster_dict = {
+            -1: all_tile_set
+        }
     cluster_list = sorted(cluster_dict.keys())
 
     train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
