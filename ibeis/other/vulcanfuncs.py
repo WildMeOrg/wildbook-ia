@@ -612,8 +612,8 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
             num_hard_neg = len(hard_neg_test_tuple_list)
             ensemble_num_negative = min(num_positive * boost_round_ratio, num_hard_neg)
             ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_negative]
-            ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 0)
-            ensemble_test_confidence_list = ut.take_column(ensemble_test_tuple_list, 1)
+            ensemble_test_confidence_list = ut.take_column(ensemble_test_tuple_list, 0)
+            ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 1)
             args = (
                 np.min(ensemble_test_confidence_list),
                 np.max(ensemble_test_confidence_list),
