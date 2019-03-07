@@ -5,7 +5,6 @@ from ibeis.algo.detect import densenet
 from os.path import expanduser, join, abspath, exists
 import numpy as np
 import utool as ut
-import random
 import tqdm
 import cv2
 
@@ -87,72 +86,36 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
 
 @register_ibs_method
-def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', **kwargs):
+def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
+                           min_cumulative_percentage=0.01, **kwargs):
     value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True)
     tile_list = ut.take_column(value_list, 0)
     config_list = ut.take_column(value_list, 1)
 
+    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
     values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species)
     cumulative_area_list, total_area_list = values
 
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
     ancestor_gid_dict = {}
-    zipped = zip(tile_list, config_list, cumulative_area_list, ancestor_gid_list)
-    for tile, config, cumulative_area, ancestor_gid in zipped:
+    zipped = zip(tile_list, config_list, cumulative_area_list, total_area_list, ancestor_gid_list)
+    for tile, config, cumulative_area, total_area, ancestor_gid in zipped:
         if ancestor_gid not in ancestor_gid_dict:
             ancestor_gid_dict[ancestor_gid] = []
-        ancestor_gid_dict[ancestor_gid].append((cumulative_area, tile, config, ))
-
+        ancestor_gid_dict[ancestor_gid].append((cumulative_area, total_area, tile, config, ))
     ancestor_key_list = sorted(ancestor_gid_dict.keys())
+
     for ancestor_key in ancestor_key_list:
         values_list = ancestor_gid_dict[ancestor_key]
         values_list = sorted(values_list, reverse=True)
-        total_cumulative_area = 0
+        total_positive_tiles = 0
         for values in values_list:
-            cumulative_area, tile, config = values
-            total_cumulative_area += cumulative_area
-        print(ancestor_key, total_cumulative_area)
-
-
-
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    gid_list = list(set(gid_list) & test_gid_set)
-
-    config = {
-        'tile_width':   256,
-        'tile_height':  256,
-        'tile_overlap': 64,
-    }
-    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-    tile_list = ut.flatten(tiles_list)
-
-    aids_list = ibs.get_image_aids(gid_list)
-    length_list = list(map(len, aids_list))
-    flag_list = [0 < length for length in length_list]
-
-    confidences_list = []
-    for tile_list in tiles_list:
-        confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
-        confidences_list.append(confidence_list)
-
-    best_accuracy = 0.0
-    best_thresh = None
-    for index in range(100):
-        confidence_thresh = index / 100.0
-
-        correct = 0
-        for flag, confidence_list in zip(flag_list, confidences_list):
-            # confidence = sum(confidence_list) / len(confidence_list)
-            confidence = np.max(confidence_list)
-            flag_ = confidence >= confidence_thresh
-            correct += 1 if flag == flag_ else 0
-
-        accuracy = correct / len(flag_list)
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-            best_thresh = confidence_thresh
-
-    return best_thresh, best_accuracy
+            cumulative_area, total_area, tile, config = values
+            min_cumulative_area = int(np.floor(total_area * min_cumulative_percentage))
+            if cumulative_area >= min_cumulative_area:
+                total_positive_tiles += 1
+        print(ancestor_key, total_positive_tiles)
+        # images = ibs.get_images(ancestor_key)
+        # print(images.shape)
 
 
 @register_ibs_method
@@ -635,24 +598,29 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
             # Combine the round's ensemble hard negatives with the specific model's hard negatives
             hard_neg_test_tile_list = round_hard_neg_test_tile_list + ensemble_hard_neg_test_tile_list
             hard_neg_confidence_list = round_hard_neg_confidence_list + ensemble_hard_neg_confidence_list
-            hard_neg_test_tuple_list_ = sorted(zip(hard_neg_test_tile_list, hard_neg_confidence_list), reverse=True)
+            hard_neg_test_tuple_list_ = sorted(zip(hard_neg_confidence_list, hard_neg_test_tile_list), reverse=True)
 
             # Remove duplicates with different confidences
             seen_set = set([])
             hard_neg_test_tuple_list = []
             for hard_neg_test_tuple in hard_neg_test_tuple_list_:
-                hard_neg_test_tile, hard_neg_test_confidence = hard_neg_test_tuple
+                hard_neg_test_confidence, hard_neg_test_tile = hard_neg_test_tuple
                 if hard_neg_test_tile not in seen_set:
                     hard_neg_test_tuple_list.append(hard_neg_test_tuple)
-                seen_set.add(hard_neg_test_tuple)
-
-            if round_num == 0:
-                random.shuffle(hard_neg_test_tuple_list)
+                seen_set.add(hard_neg_test_tile)
 
             num_hard_neg = len(hard_neg_test_tuple_list)
             ensemble_num_negative = min(num_positive * boost_round_ratio, num_hard_neg)
             ensemble_test_tuple_list = hard_neg_test_tuple_list[:ensemble_num_negative]
             ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 0)
+            ensemble_test_confidence_list = ut.take_column(ensemble_test_tuple_list, 1)
+            args = (
+                np.min(ensemble_test_confidence_list),
+                np.max(ensemble_test_confidence_list),
+                np.mean(ensemble_test_confidence_list),
+                np.std(ensemble_test_confidence_list),
+            )
+            print('Mined negatives with confidences in range [%0.04f, %0.04f] (avg %0.04f +/- %0.04f)' % args)
 
             # Add previous negative boosting rounds
             last_ensemble_test_tile_list = []
