@@ -274,7 +274,10 @@ def _localizer_lightnet_template_replace(template_filepath, replace_dict, output
 
 
 @register_ibs_method
-def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **kwargs):
+def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
+                             validate_with_accuracy=True, deploy_tag=None,
+                             cleanup=True, cleanup_all=True, deploy=True,
+                             **kwargs):
     from ibeis.algo.detect import lightnet
     import subprocess
     import datetime
@@ -287,11 +290,11 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
     _localizer_lightnet_validate_training_kit(lightnet_training_kit_url)
 
     hashstr = ut.random_nonce()[:16]
-    species_str = '-'.join(species_list)
+    cache_species_str = '-'.join(species_list)
 
     cache_path = join(ibs.cachedir, 'training', 'lightnet')
     ut.ensuredir(cache_path)
-    training_instance_folder = 'lightnet-training-%s-%s' % (species_str, hashstr, )
+    training_instance_folder = 'lightnet-training-%s-%s' % (cache_species_str, hashstr, )
     training_instance_path = join(cache_path, training_instance_folder)
     ut.copy(lightnet_training_kit_url, training_instance_path)
 
@@ -299,6 +302,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
     bin_path        = join(training_instance_path, 'bin')
     cfg_path        = join(training_instance_path, 'cfg')
     data_path       = join(training_instance_path, 'data')
+    deploy_path     = join(training_instance_path, 'deploy')
     weights_path    = join(training_instance_path, 'darknet19_448.conv.23.pt')
     results_path    = join(training_instance_path, 'results.txt')
     dataset_py_path = join(bin_path, 'dataset.template.py')
@@ -332,6 +336,7 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
     assert not exists(results_path)
 
     python_exe = sys.executable
+    cuda_str = '' if cuda_device in [-1, None] or len(cuda_device) == 0 else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
 
     # Call labels
     call_str = '%s %s' % (python_exe, labels_py_path, )
@@ -340,7 +345,6 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
 
     # Call training
     # Example: CUDA_VISIBLE_DEVICES=0 python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt
-    cuda_str = '' if cuda_device in [-1, None] else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
     args = (cuda_str, python_exe, train_py_path, config_py_path, backup_path, weights_path)
     call_str = '%s%s %s -c -n %s -b %s %s' % args
     print(call_str)
@@ -349,12 +353,83 @@ def localizer_lightnet_train(ibs, species_list, cuda_device=0, batches=60000, **
 
     # Call testing
     # Example: CUDA_VISIBLE_DEVICE=0 python bin/test.py -c -n cfg/yolo.py
-    cuda_str = '' if cuda_device in [-1, None] else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device, )
-    args = (cuda_str, python_exe, test_py_path, config_py_path, backup_path, )
-    call_str = '%s%s %s -c -n %s --results results.txt %s/*' % args
+    args = (cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, )
+    call_str = '%s%s %s -c -n %s --results %s %s/*' % args
     print(call_str)
     subprocess.call(call_str, shell=True)
     assert exists(results_path)
+
+    # Validate results
+    with open(results_path, 'r') as results_file:
+        line_list = results_file.readlines()
+
+    result_list = []
+    for line in line_list:
+        line = line.strip().split(',')
+        if len(line) != 3:
+            continue
+        model_path, loss, accuracy = line
+        loss = float(loss)
+        accuracy = float(accuracy)
+        miss_rate = (100.0 - accuracy) / 100.0
+        if validate_with_accuracy:
+            result = (miss_rate, loss, model_path)
+        else:
+            result = (loss, miss_rate, model_path)
+        result_list.append(result)
+    result_list = sorted(result_list)
+
+    best_result = result_list[0]
+    best_model_filepath = best_result[-1]
+
+    # Copy best model, delete the rest
+    ut.ensuredir(deploy_path)
+    deploy_model_filepath = join(deploy_path, 'detect.lightnet.weights')
+    deploy_config_filepath = join(deploy_path, 'detect.lightnet.py')
+    ut.copy(best_model_filepath, deploy_model_filepath)
+    ut.copy(config_py_path, deploy_config_filepath)
+
+    # Cleanup
+    if cleanup:
+        ut.delete(backup_path)
+        ut.delete(results_path)
+
+        if cleanup_all:
+            ut.delete(bin_path)
+            ut.delete(cfg_path)
+            ut.delete(data_path)
+            ut.delete(weights_path)
+
+    # Deploy
+    final_path = join('/', 'data', 'public', 'models')
+    if deploy:
+        assert exists(final_path), 'Cannot deploy the model on this machine'
+        if deploy_tag is None:
+            deploy_tag = cache_species_str
+
+        counter = 0
+        while True:
+            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter, )
+            final_config_filename = '%s.py' % (final_config_prefix, )
+            final_config_filepath = join(final_path, final_config_filename)
+            if not exists(final_config_filepath):
+                break
+            counter += 1
+
+        final_model_filename = '%s.weights' % (final_config_prefix, )
+        final_model_filepath = join(final_path, final_model_filename)
+
+        assert not exists(final_model_filepath)
+        assert not exists(final_config_filepath)
+
+        ut.copy(deploy_model_filepath, final_model_filepath)
+        ut.copy(deploy_config_filepath, final_config_filepath)
+
+        retval = (final_model_filepath, final_config_filepath, )
+    else:
+        retval = (deploy_model_filepath, deploy_config_filepath, )
+
+    return retval
 
 
 @register_ibs_method
