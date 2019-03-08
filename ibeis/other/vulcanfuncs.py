@@ -343,10 +343,10 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
                 xbr = min(xbr, tile_w)
                 ybr = min(ybr, tile_h)
                 canvas[ytl: ybr, xtl: xbr] = 1
-        canvas[:canvas, :]  *= margin_discount
-        canvas[:, :canvas]  *= margin_discount
-        canvas[-canvas:, :] *= margin_discount
-        canvas[:, -canvas:] *= margin_discount
+        canvas[:margin, :]  *= margin_discount
+        canvas[:, :margin]  *= margin_discount
+        canvas[-margin:, :] *= margin_discount
+        canvas[:, -margin:] *= margin_discount
         cumulative_area = int(np.sum(canvas))
         total_area = tile_w * tile_h
         cumulative_area_list.append(cumulative_area)
