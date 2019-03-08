@@ -71,7 +71,7 @@ def vulcan_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
 
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
-                                 return_configs=False):
+                                 return_configs=False, limit=None, **kwargs):
     if imageset_text_list is None:
         imageset_text_list = [
             'elephant',
@@ -91,6 +91,9 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     gids_list = ibs.get_imageset_gids(imageset_rowid_list)
     gid_list = ut.flatten(gids_list)
     gid_list = sorted(gid_list)
+
+    if limit is not None:
+        gid_list = gid_list[:limit]
 
     tile_size = 256
     tile_overlap = 64
@@ -144,7 +147,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
     font = cv2.FONT_HERSHEY_SIMPLEX
     scale = 0.5
 
-    value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True)
+    value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True, **kwargs)
     tile_list = ut.take_column(value_list, 0)
     config_list = ut.take_column(value_list, 1)
 
