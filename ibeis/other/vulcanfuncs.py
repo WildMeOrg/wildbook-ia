@@ -317,7 +317,8 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         num_missed = 0
         for aid, bbox in zip(aid_list, bbox_list):
             xtl, ytl, w, h = bbox
-            if aid not in tile_seen_dict:
+            in_tile_list = list(tile_seen_dict.get(aid, []))
+            if len(in_tile_list) == 0:
                 num_missed += 1
             cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
 

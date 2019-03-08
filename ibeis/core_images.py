@@ -2101,6 +2101,9 @@ def compute_tiles(depc, gid_list, config=None):
     allow_borders = config['allow_borders']
     keep_extern   = config['keep_extern']
 
+    if allow_borders:
+        assert tile_offset == 0, 'Cannot use an offset with borders turned on'
+
     config_dict = dict(config)
     config_hashid = config.get_hashid()
 
@@ -2226,15 +2229,11 @@ def compute_tile_helper(gid, gpath, orient, size, overlap, offset, opath, border
     border_list = []
 
     for y0, yb_ in zip(ys, yb):
+        y0 += os
+        y1 = y0 + h
         for x0, xb_ in zip(xs, xb):
-            x1 = x0 + w
-            y1 = y0 + h
-
-            # Add the offset
             x0 += os
-            x1 += os
-            y0 += os
-            y1 += os
+            x1 = x0 + w
 
             # Sanity, mostly to check for offset
             valid = True
