@@ -324,7 +324,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         canvas = np.vstack([canvas] + tile_canvas_list_bottom + [vpadding])
 
         args = (ancestor_key, total_positive_tiles, num_missed, )
-        canvas_filename = 'vulcan-tile-gid-%s-num-pos-%d-num-miss-%d.png' % args
+        canvas_filename = 'vulcan-tile-gid-%s-num-patches-%d-num-missed-%d.png' % args
         canvas_filepath = join(canvas_path, canvas_filename)
         cv2.imwrite(canvas_filepath, canvas)
 
