@@ -295,7 +295,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
             flag_list = ut.take_column(value_list_, 1)
 
             bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
-            for bbox, flag, missed in zip(bbox_list, flag_list):
+            for bbox, flag in zip(bbox_list, flag_list):
                 xtl, ytl, w, h = bbox
                 xtl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
                 ytl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
