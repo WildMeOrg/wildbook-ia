@@ -45,20 +45,23 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     gid_list = ut.flatten(gids_list)
     gid_list = sorted(gid_list)
 
+    tile_size = 256
+    tile_overlap = 64
     config1 = {
-        'tile_width':   256,
-        'tile_height':  256,
-        'tile_overlap': 64,
+        'tile_width':   tile_size,
+        'tile_height':  tile_size,
+        'tile_overlap': tile_overlap,
     }
     tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
     tile1_list = ut.flatten(tiles1_list)
     config1_list = [1] * len(tile1_list)
 
+    tile_offset = (tile_size - tile_overlap) // 2
     config2 = {
-        'tile_width':    256,
-        'tile_height':   256,
-        'tile_overlap':  64,
-        'tile_offset':   128,
+        'tile_width':    tile_size,
+        'tile_height':   tile_size,
+        'tile_overlap':  tile_overlap,
+        'tile_offset':   tile_offset,
         'allow_borders': False,
     }
     tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
@@ -87,13 +90,22 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
 @register_ibs_method
 def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
-                           min_cumulative_percentage=0.01, **kwargs):
+                           min_cumulative_percentage=0.025,
+                           margin=32, margin_discount=0.5,
+                           **kwargs):
+    import random
+
+    RANDOM_VISUALIZATION_OFFSET = 5
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 0.5
+
     value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True)
     tile_list = ut.take_column(value_list, 0)
     config_list = ut.take_column(value_list, 1)
 
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
-    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species)
+    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species,
+                                                      margin=margin, margin_discount=margin_discount)
     cumulative_area_list, total_area_list = values
 
     ancestor_gid_dict = {}
@@ -104,22 +116,168 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         ancestor_gid_dict[ancestor_gid].append((cumulative_area, total_area, tile, config, ))
     ancestor_key_list = sorted(ancestor_gid_dict.keys())
 
+    canvas_path = abspath(expanduser(join('~', 'Desktop', 'visualize_tiles')))
+    ut.delete(canvas_path)
+    ut.ensuredir(canvas_path)
+
     for ancestor_key in ancestor_key_list:
         values_list = ancestor_gid_dict[ancestor_key]
         values_list = sorted(values_list, reverse=True)
         total_positive_tiles = 0
+
+        config_dict = {}
         for values in values_list:
             cumulative_area, total_area, tile, config = values
+            config = str(config)
+            border = ibs.get_vulcan_image_tile_border_flag(tile)
+            if border:
+                config = 'border'
             min_cumulative_area = int(np.floor(total_area * min_cumulative_percentage))
-            if cumulative_area >= min_cumulative_area:
+            flag = cumulative_area >= min_cumulative_area
+            if flag:
                 total_positive_tiles += 1
-        print(ancestor_key, total_positive_tiles)
-        # images = ibs.get_images(ancestor_key)
-        # print(images.shape)
+            assert config in ['1', '2', 'border']
+            if config not in config_dict:
+                config_dict[config] = []
+            value = (cumulative_area / total_area, tile, flag, )
+            config_dict[config].append(value)
+
+        print('Processing %s (%d positive tiles)' % (ancestor_key, total_positive_tiles, ))
+        if total_positive_tiles == 0:
+            print('\tContinue')
+            continue
+
+        canvas = ibs.get_images(ancestor_key)
+        canvas_h, canvas_w = canvas.shape[:2]
+
+        vpadding = np.zeros((10, canvas_w, 3), dtype=np.uint8)
+        hpadding = np.zeros((256, 5, 3), dtype=np.uint8)
+
+        config_color_dict = {
+            '1'      : (111, 155, 231, ),
+            '2'      : (231, 155, 111, ),
+            'green'  : (111, 231, 155, ),
+            'border' : (111, 111, 111, ),
+        }
+        gold = (0, 215, 255)
+        red = (126, 122, 202)
+
+        tile_canvas_list_bottom = []
+        config_key_list = sorted(config_dict.keys())
+        for config_key in config_key_list:
+            border = config_key == 'border'
+
+            value_list = config_dict[config_key]
+            value_list = sorted(value_list, reverse=True)
+
+            area_list_ = ut.take_column(value_list, 0)
+            tile_list_ = ut.take_column(value_list, 1)
+            flag_list_ = ut.take_column(value_list, 2)
+            # Visualize positive tiles
+
+            tile_canvas_list_list = []
+            tile_canvas_list = []
+            seen_tracker = 0
+            w_tracker = 0
+            for area, tile, flag in zip(area_list_, tile_list_, flag_list_):
+                if not flag:
+                    continue
+                seen_tracker += 1
+                tile_canvas = ibs.get_images(tile)
+                h_, w_ = tile_canvas.shape[:2]
+
+                cv2.rectangle(tile_canvas, (margin, margin), (w_ - margin, h_ - margin), red, 1)
+
+                aid_list = ibs.get_image_aids(ancestor_key)
+                aid_list = sorted(aid_list)
+                aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+                bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
+                for xtl, ytl, w, h in bbox_list:
+                    cv2.rectangle(tile_canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
+
+                thickness = 2
+                color = config_color_dict[config_key]
+                cv2.rectangle(tile_canvas, (1, 1), (256 - 1, 256 - 1), color, 2)
+
+                text = '%0.04f' % (area, )
+                text_width, text_height = cv2.getTextSize(text, font, scale, -1)[0]
+                cv2.rectangle(tile_canvas, (3, 3), (text_width + 3, text_height + 3), color, -1)
+                cv2.putText(tile_canvas, text, (5 + 3, text_height + 3), font, 0.4, (255, 255, 255))
+
+                tile_canvas = np.hstack((hpadding, tile_canvas, hpadding))
+                h_, w_ = tile_canvas.shape[:2]
+                assert h_ == 256
+                if w_tracker + w_ > canvas_w:
+                    tile_canvas_list_list.append(tile_canvas_list)
+                    tile_canvas_list = []
+                    w_tracker = 0
+                tile_canvas_list.append(tile_canvas)
+                w_tracker += w_
+            tile_canvas_list_list.append(tile_canvas_list)
+
+            if seen_tracker > 0:
+                for index in range(len(tile_canvas_list_list)):
+                    tile_canvas_list = tile_canvas_list_list[index]
+                    if len(tile_canvas_list) == 0:
+                        continue
+                    tile_canvas = np.hstack(tile_canvas_list)
+                    h_, w_ = tile_canvas.shape[:2]
+                    missing = canvas_w - w_
+                    assert h_ == 256 and missing >= 0
+                    missing_left = missing // 2
+                    missing_right = (missing + 1) // 2
+                    assert missing_left + missing_right == missing
+                    hpadding_left = np.zeros((256, missing_left, 3), dtype=np.uint8)
+                    hpadding_right = np.zeros((256, missing_right, 3), dtype=np.uint8)
+                    tile_canvas = np.hstack((hpadding_left, tile_canvas, hpadding_right, ))
+                    h_, w_ = tile_canvas.shape[:2]
+                    tile_canvas_list_bottom.append(vpadding)
+                    tile_canvas_list_bottom.append(tile_canvas)
+                    assert h_ == 256 and w_ == canvas_w
+
+            # Visualize location of all tiles
+            value_list_ = sorted(zip(tile_list_, flag_list_))
+            tile_list = ut.take_column(value_list_, 0)
+            flag_list = ut.take_column(value_list_, 1)
+
+            bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
+            for bbox, flag in zip(bbox_list, flag_list):
+                xtl, ytl, w, h = bbox
+                xtl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
+                ytl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
+                w   += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
+                h   += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
+
+                thickness = 2
+                color_key = config_key
+
+                if flag:
+                    color_key = 'green'
+                if border:
+                    thickness = 4
+
+                color = config_color_dict[color_key]
+                cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), color, thickness)
+
+        aid_list = ibs.get_image_aids(ancestor_key)
+        aid_list = sorted(aid_list)
+        aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+
+        for xtl, ytl, w, h in bbox_list:
+            cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
+
+        canvas = np.vstack([canvas] + tile_canvas_list_bottom + [vpadding])
+
+        args = (ancestor_key, total_positive_tiles, )
+        canvas_filename = 'vulcan-tile-gid-%s-num-pos-%d.png' % args
+        canvas_filepath = join(canvas_path, canvas_filename)
+        cv2.imwrite(canvas_filepath, canvas)
 
 
 @register_ibs_method
-def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephant_savanna'):
+def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephant_savanna',
+                                         margin=32, margin_discount=0.5):
     tile_bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
     aids_list = ibs.get_vulcan_image_tile_aids(tile_list)
     species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
@@ -128,7 +286,7 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
     total_area_list = []
     for tile_id, tile_bbox, aid_list, species_set in zip(tile_list, tile_bbox_list, aids_list, species_set_list):
         tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
-        canvas = np.zeros((tile_h, tile_w), dtype=np.uint8)
+        canvas = np.zeros((tile_h, tile_w), dtype=np.float32)
         if target_species in species_set:
             bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile_id)
             for bbox in bbox_list:
@@ -140,6 +298,10 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
                 xbr = min(xbr, tile_w)
                 ybr = min(ybr, tile_h)
                 canvas[ytl: ybr, xtl: xbr] = 1
+        canvas[:canvas, :]  *= margin_discount
+        canvas[:, :canvas]  *= margin_discount
+        canvas[-canvas:, :] *= margin_discount
+        canvas[:, -canvas:] *= margin_discount
         cumulative_area = int(np.sum(canvas))
         total_area = tile_w * tile_h
         cumulative_area_list.append(cumulative_area)
@@ -150,7 +312,7 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
 
 @register_ibs_method
 def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
-                                     min_cumulative_percentage=0.01,
+                                     min_cumulative_percentage=0.025,
                                      recompute_split=False, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 

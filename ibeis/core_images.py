@@ -2226,9 +2226,9 @@ def compute_tile_helper(gid, gpath, orient, size, overlap, offset, opath, border
     border_list = []
 
     for y0, yb_ in zip(ys, yb):
-        y1 = y0 + h
         for x0, xb_ in zip(xs, xb):
             x1 = x0 + w
+            y1 = y0 + h
 
             # Add the offset
             x0 += os
