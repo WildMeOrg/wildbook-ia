@@ -748,7 +748,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
     test_tile_list = list(negative_gid_set)
 
     class_weights = {
-        'positive': 10.0,
+        'positive': 2.0,
         'negative': 1.0,
     }
 
