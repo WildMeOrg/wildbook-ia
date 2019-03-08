@@ -207,6 +207,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         gold = (0, 215, 255)
         red = (126, 122, 202)
 
+        tile_seen_dict = {}
         tile_canvas_list_bottom = []
         config_key_list = sorted(config_dict.keys())
         for config_key in config_key_list:
@@ -237,7 +238,11 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
                 aid_list = sorted(aid_list)
                 aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
                 bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
-                for xtl, ytl, w, h in bbox_list:
+                for aid, bbox  in bbox_list:
+                    if aid not in tile_seen_dict:
+                        tile_seen_dict[aid] = set([])
+                    tile_seen_dict[aid].add(tile)
+                    xtl, ytl, w, h = bbox
                     cv2.rectangle(tile_canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
 
                 thickness = 2
@@ -309,13 +314,17 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list)
 
-        for xtl, ytl, w, h in bbox_list:
+        num_missed = 0
+        for aid, bbox in bbox_list:
+            xtl, ytl, w, h = bbox
+            if aid not in tile_seen_dict:
+                num_missed += 1
             cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
 
         canvas = np.vstack([canvas] + tile_canvas_list_bottom + [vpadding])
 
-        args = (ancestor_key, total_positive_tiles, )
-        canvas_filename = 'vulcan-tile-gid-%s-num-pos-%d.png' % args
+        args = (ancestor_key, total_positive_tiles, num_missed, )
+        canvas_filename = 'vulcan-tile-gid-%s-num-pos-%d-num-miss-%d.png' % args
         canvas_filepath = join(canvas_path, canvas_filename)
         cv2.imwrite(canvas_filepath, canvas)
 
