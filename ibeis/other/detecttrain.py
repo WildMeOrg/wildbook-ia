@@ -397,8 +397,8 @@ def localizer_lightnet_train(ibs, species_list, cuda_device='0', batches=60000,
         if cleanup_all:
             ut.delete(bin_path)
             ut.delete(cfg_path)
-            ut.delete(data_path)
             ut.delete(weights_path)
+            ut.delete(data_path)
 
     # Deploy
     final_path = join('/', 'data', 'public', 'models')
