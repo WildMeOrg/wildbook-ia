@@ -238,7 +238,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
                 aid_list = sorted(aid_list)
                 aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
                 bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
-                for aid, bbox  in bbox_list:
+                for aid, bbox in zip(aid_list, bbox_list):
                     if aid not in tile_seen_dict:
                         tile_seen_dict[aid] = set([])
                     tile_seen_dict[aid].add(tile)
