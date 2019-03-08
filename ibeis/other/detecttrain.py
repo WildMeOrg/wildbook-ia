@@ -276,7 +276,7 @@ def _localizer_lightnet_template_replace(template_filepath, replace_dict, output
 @register_ibs_method
 def localizer_lightnet_train(ibs, species_list, cuda_device='0,1', batches=60000,
                              validate_with_accuracy=True, deploy_tag=None,
-                             cleanup=True, cleanup_all=False, deploy=True,
+                             cleanup=True, cleanup_all=True, deploy=True,
                              **kwargs):
     from ibeis.algo.detect import lightnet
     import subprocess
