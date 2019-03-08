@@ -5,6 +5,7 @@ from ibeis.algo.detect import densenet
 from os.path import expanduser, join, abspath, exists
 import numpy as np
 import utool as ut
+import random
 import tqdm
 import cv2
 
@@ -25,6 +26,50 @@ register_api = controller_inject.get_ibeis_flask_api(__name__)
 
 
 @register_ibs_method
+def vulcan_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
+    gid_all_list = ibs.get_valid_gids(is_tile=None)
+
+    imageset_text_list = [
+        '20161108_Nikon_Left',
+        '20161108_Nikon_Right',
+    ]
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
+
+    zipped = zip(imageset_text_list, imageset_rowid_list, gids_list)
+    for imageset_text, imageset_rowid, gid_list in zipped:
+        imageset_text_subsample = '%s_Subsample' % (imageset_text, )
+        aids_list = ibs.get_image_aids(gid_list)
+
+        positive_list = []
+        negative_list = []
+        for gid, aid_list in zip(gid_list, aids_list):
+            aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+            if len(aid_list) > 0:
+                positive_list.append(gid)
+            else:
+                negative_list.append(gid)
+
+        num_positive = len(positive_list)
+        num_negative = min(len(negative_list), num_positive * ratio)
+        random.shuffle(negative_list)
+        negative_list = negative_list[:num_negative]
+        subsample_list = sorted(positive_list + negative_list)
+
+        args = (imageset_text, imageset_text_subsample, num_positive, num_negative, )
+        print('Subsampling %s into %s (%d positive, %d negative)' % args)
+
+        imageset_rowid, = ibs.get_imageset_imgsetids_from_text([imageset_text_subsample])
+        ibs.unrelate_images_and_imagesets(gid_all_list, [imageset_rowid] * len(gid_all_list))
+        ibs.set_image_imagesettext(
+            subsample_list,
+            [imageset_text_subsample] * len(subsample_list)
+        )
+        num_total = len(ibs.get_imageset_gids(imageset_rowid))
+        print('...%d images added' % (num_total, ))
+
+
+@register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
                                  return_configs=False):
     if imageset_text_list is None:
@@ -38,6 +83,8 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
             '2012-08-14_PM_R_Chediel',
             # '20161108_Nikon_Left',
             # '20161108_Nikon_Right',
+            '20161108_Nikon_Left_Sample',
+            '20161108_Nikon_Right_Sample',
         ]
 
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
@@ -93,8 +140,6 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
                            min_cumulative_percentage=0.025,
                            margin=32, margin_discount=0.5,
                            **kwargs):
-    import random
-
     RANDOM_VISUALIZATION_OFFSET = 5
     font = cv2.FONT_HERSHEY_SIMPLEX
     scale = 0.5
