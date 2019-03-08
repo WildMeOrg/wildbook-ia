@@ -202,13 +202,13 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         hpadding = np.zeros((256, 5, 3), dtype=np.uint8)
 
         config_color_dict = {
-            '1'      : (111, 155, 231, ),
-            '2'      : (231, 155, 111, ),
-            'green'  : (111, 231, 155, ),
-            'border' : (111, 111, 111, ),
+            '1'      : (111, 155, 231),
+            '2'      : (231, 155, 111),
+            'green'  : (111, 231, 155),
+            'red'    : (126, 122, 202),
+            'gold'   : (  0, 215, 255),
+            'border' : (111, 111, 111),
         }
-        gold = (0, 215, 255)
-        red = (126, 122, 202)
 
         tile_seen_dict = {}
         tile_canvas_list_bottom = []
@@ -228,25 +228,30 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
             tile_canvas_list = []
             seen_tracker = 0
             w_tracker = 0
+            missed_list = []
             for area, tile, flag in zip(area_list_, tile_list_, flag_list_):
                 if not flag:
+                    missed_list.append(True)
                     continue
+                else:
+                    missed_list.append(False)
+
                 seen_tracker += 1
                 tile_canvas = ibs.get_images(tile)
                 h_, w_ = tile_canvas.shape[:2]
 
-                cv2.rectangle(tile_canvas, (margin, margin), (w_ - margin, h_ - margin), red, 1)
+                cv2.rectangle(tile_canvas, (margin, margin), (w_ - margin, h_ - margin), config_color_dict['red'], 1)
 
-                aid_list = ibs.get_image_aids(ancestor_key)
+                aid_list = ibs.get_image_aids(tile)
                 aid_list = sorted(aid_list)
                 aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
                 bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
                 for aid, bbox in zip(aid_list, bbox_list):
                     if aid not in tile_seen_dict:
-                        tile_seen_dict[aid] = set([])
-                    tile_seen_dict[aid].add(tile)
+                        tile_seen_dict[aid] = 0
+                    tile_seen_dict[aid] += 1
                     xtl, ytl, w, h = bbox
-                    cv2.rectangle(tile_canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
+                    cv2.rectangle(tile_canvas, (xtl, ytl), (xtl + w, ytl + h), config_color_dict['gold'], 2)
 
                 thickness = 2
                 color = config_color_dict[config_key]
@@ -294,7 +299,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
             flag_list = ut.take_column(value_list_, 1)
 
             bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
-            for bbox, flag in zip(bbox_list, flag_list):
+            for bbox, flag, missed in zip(bbox_list, flag_list, missed_list):
                 xtl, ytl, w, h = bbox
                 xtl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
                 ytl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
@@ -304,10 +309,12 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
                 thickness = 2
                 color_key = config_key
 
-                if flag:
-                    color_key = 'green'
                 if border:
                     thickness = 4
+                if flag:
+                    color_key = 'green'
+                if missed:
+                    color_key = 'red'
 
                 color = config_color_dict[color_key]
                 cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), color, thickness)
@@ -316,14 +323,12 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         aid_list = sorted(aid_list)
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list)
-
         num_missed = 0
         for aid, bbox in zip(aid_list, bbox_list):
             xtl, ytl, w, h = bbox
-            in_tile_list = list(tile_seen_dict.get(aid, []))
-            if len(in_tile_list) == 0:
+            if tile_seen_dict.get(aid, 0) == 0:
                 num_missed += 1
-            cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), gold, 2)
+            cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), config_color_dict['gold'], 2)
 
         canvas = np.vstack([canvas] + tile_canvas_list_bottom + [vpadding])
 
@@ -1027,7 +1032,7 @@ def vulcan_wic_validate_image(ibs, model_tag=None, strategy='avg', **kwargs):
 
 
 @register_ibs_method
-def vulcan_background_train(ibs):
+def vulcan_background_train(ibs, target_species='elephant_savanna'):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.background import train_background
@@ -1047,8 +1052,7 @@ def vulcan_background_train(ibs):
     data_path = join(ibs.get_cachedir(), 'extracted')
     output_path = join(ibs.get_cachedir(), 'training', 'background')
 
-    species = 'elephant_savanna'
-    extracted_path = get_background_training_patches2(ibs, species, data_path,
+    extracted_path = get_background_training_patches2(ibs, target_species, data_path,
                                                       patch_size=50,
                                                       annot_size=annot_size,
                                                       patch_size_min=0.9,
@@ -1066,7 +1070,7 @@ def vulcan_background_train(ibs):
     model_path = train_background(output_path, X_file, y_file)
     model_state = ut.load_cPkl(model_path)
     assert 'species' not in model_state
-    model_state['species'] = species
+    model_state['species'] = target_species
     save_model(model_state, model_path)
 
     return model_path
@@ -1159,6 +1163,17 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
         canvas = np.hstack((image, mask, combined))
 
         cv2.imwrite(output_filepath, canvas)
+
+
+@register_ibs_method
+def vulcan_localizer_train(ibs, target_species='elephant_savanna', **kwargs):
+    tid_list = []
+
+    species_list = [target_species]
+    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, **kwargs)
+    model_weight_filepath, model_config_filepath = values
+
+    return model_weight_filepath, model_config_filepath
 
 
 # def __delete_old_tiles(ibs, ):
