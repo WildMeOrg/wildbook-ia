@@ -2385,11 +2385,11 @@ def delete_images(ibs, gid_list, trash_images=True):
 
     # delete thumbs in case an annot doesnt delete them
     # TODO: pass flag to not delete them in delete_annots
-    ibs.delete_image_thumbs(gid_list)
+    gid_list = list(set(gid_list))
+    ibs.depc_image.delete_property_all('thumbnails', gid_list)
+    ibs.depc_image.delete_property_all('web_src',    gid_list)
     ibs.depc_image.delete_root(gid_list)
     ibs.db.delete_rowids(const.IMAGE_TABLE, gid_list)
-    #gsgrid_list = ut.flatten(ibs.get_image_gsgrids(gid_list))
-    #ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
     ibs.db.delete(const.GSG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
 
@@ -2429,6 +2429,7 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
             print('{THUMB DELETE} config2_ = %r' % (config2_,))
 
     # TODO: delete all configs?
+    gid_list = list(set(gid_list))
     num_deleted = ibs.depc_image.delete_property('thumbnails', gid_list,
                                                  config=config2_)
 
