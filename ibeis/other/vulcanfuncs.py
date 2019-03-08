@@ -315,7 +315,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
         bbox_list = ibs.get_annot_bboxes(aid_list)
 
         num_missed = 0
-        for aid, bbox in bbox_list:
+        for aid, bbox in zip(aid_list, bbox_list):
             xtl, ytl, w, h = bbox
             if aid not in tile_seen_dict:
                 num_missed += 1
