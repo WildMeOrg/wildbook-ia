@@ -228,13 +228,9 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
             tile_canvas_list = []
             seen_tracker = 0
             w_tracker = 0
-            missed_list = []
             for area, tile, flag in zip(area_list_, tile_list_, flag_list_):
                 if not flag:
-                    missed_list.append(True)
                     continue
-                else:
-                    missed_list.append(False)
 
                 seen_tracker += 1
                 tile_canvas = ibs.get_images(tile)
@@ -299,7 +295,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
             flag_list = ut.take_column(value_list_, 1)
 
             bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
-            for bbox, flag, missed in zip(bbox_list, flag_list, missed_list):
+            for bbox, flag, missed in zip(bbox_list, flag_list):
                 xtl, ytl, w, h = bbox
                 xtl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
                 ytl += int(np.around(random.uniform(-RANDOM_VISUALIZATION_OFFSET, RANDOM_VISUALIZATION_OFFSET)))
@@ -313,8 +309,6 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
                     thickness = 4
                 if flag:
                     color_key = 'green'
-                if missed:
-                    color_key = 'red'
 
                 color = config_color_dict[color_key]
                 cv2.rectangle(canvas, (xtl, ytl), (xtl + w, ytl + h), color, thickness)
