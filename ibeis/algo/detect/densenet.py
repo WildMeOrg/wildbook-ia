@@ -356,7 +356,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwarg
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=48, class_weights={}, **kwargs):
+def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -399,6 +399,10 @@ def train(data_path, output_path, batch_size=48, class_weights={}, **kwargs):
 
     # Send the model to GPU
     model = model.to(device)
+
+    # Multi-GPU
+    if multi:
+        model = nn.DataParallel(model)
 
     print('Print Examples of Training Augmentation...')
 
