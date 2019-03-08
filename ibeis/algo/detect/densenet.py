@@ -452,7 +452,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, *
     return weights_path
 
 
-def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
+def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwargs):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -498,6 +498,10 @@ def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
 
     # Send the model to GPU
     model = model.to(device)
+
+    if multi:
+        model = nn.DataParallel(model)
+
     model.eval()
 
     start = time.time()
@@ -668,7 +672,7 @@ def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **k
         )
 
 
-def features(filepath_list, batch_size=512, **kwargs):
+def features(filepath_list, batch_size=512, multi=True, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -692,6 +696,10 @@ def features(filepath_list, batch_size=512, **kwargs):
 
     # Send the model to GPU
     model = model.to(device)
+
+    if multi:
+        model = nn.DataParallel(model)
+
     model.eval()
 
     start = time.time()
