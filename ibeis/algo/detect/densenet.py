@@ -402,8 +402,8 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, *
     model = model.to(device)
 
     # Multi-GPU
-    if multi:
-        model = nn.DataParallel(model)
+    # if multi:
+    #     model = nn.DataParallel(model)
 
     print('Print Examples of Training Augmentation...')
 
@@ -499,8 +499,8 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
     # Send the model to GPU
     model = model.to(device)
 
-    if multi:
-        model = nn.DataParallel(model)
+    # if multi:
+    #     model = nn.DataParallel(model)
 
     model.eval()
 
@@ -697,8 +697,8 @@ def features(filepath_list, batch_size=512, multi=True, **kwargs):
     # Send the model to GPU
     model = model.to(device)
 
-    if multi:
-        model = nn.DataParallel(model)
+    # if multi:
+    #     model = nn.DataParallel(model)
 
     model.eval()
 
