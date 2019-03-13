@@ -217,9 +217,9 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
         h_ = ymax - ymin
 
         if w_ < min_annot_size:
-            continue
+            return
         if h_ < min_annot_size:
-            continue
+            return
 
         # Get info
         info = {}
