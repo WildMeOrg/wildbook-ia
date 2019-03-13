@@ -279,6 +279,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
@@ -311,7 +313,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img,
                                                      source=image_uri,
                                                      **information)
-            bbox_list = ibs.get_annot_bboxes(aid_list)
+            reference_tile_gid = gid if is_tile else None
+            bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=reference_tile_gid)
             theta_list = ibs.get_annot_thetas(aid_list)
             species_name_list = ibs.get_annot_species_texts(aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(aid_list)

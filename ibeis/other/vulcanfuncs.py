@@ -570,7 +570,7 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
 
 
 @register_ibs_method
-def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
+def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
                               examples=50, **kwargs):
     """
     for n_neighbors in range(5, 61, 5):
@@ -1160,8 +1160,29 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
 
 
 @register_ibs_method
-def vulcan_localizer_train(ibs, target_species='elephant_savanna', **kwargs):
-    tid_list = []
+def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **kwargs):
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
+    train_gid_set = all_tile_set & train_gid_set
+
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+    positive_gid_set = set(ibs.get_imageset_gids(pid))
+    negative_gid_set = set(ibs.get_imageset_gids(nid))
+    positive_gid_set = positive_gid_set & train_gid_set
+    negative_gid_set = negative_gid_set & train_gid_set
+    negative_gid_list = list(negative_gid_set)
+
+    model_tag = 'vulcan-d3e8bf43-boost1'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip'
+    confidence_list = ibs.vulcan_wic_test(negative_gid_list, model_tag=model_tag)
+    zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
+
+    num_positive = len(positive_gid_set)
+    num_negative = min(len(negative_gid_set), int(ratio * num_positive))
+    zipped = zipped[:num_negative]
+
+    negative_gid_set = set(ut.take_column(zipped, 1))
+    tid_list = sorted(list(positive_gid_set | negative_gid_set))
 
     species_list = [target_species]
     values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, **kwargs)
