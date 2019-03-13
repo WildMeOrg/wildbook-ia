@@ -1185,7 +1185,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     tid_list = sorted(list(positive_gid_set | negative_gid_set))
 
     species_list = [target_species]
-    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, target_size=256, **kwargs)
+    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, cuda_device='1', target_size=256, **kwargs)
     model_weight_filepath, model_config_filepath = values
 
     return model_weight_filepath, model_config_filepath
