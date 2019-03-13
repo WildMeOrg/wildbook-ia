@@ -702,7 +702,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
 
 @register_ibs_method
 def vulcan_wic_train(ibs, ensembles=5, rounds=10,
-                     boost_confidence_thresh=0.5,
+                     boost_confidence_thresh=0.25,
                      boost_round_ratio=2,
                      num_clusters=80,
                      n_neighbors=10,
@@ -1185,7 +1185,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     tid_list = sorted(list(positive_gid_set | negative_gid_set))
 
     species_list = [target_species]
-    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, **kwargs)
+    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, target_size=256, **kwargs)
     model_weight_filepath, model_config_filepath = values
 
     return model_weight_filepath, model_config_filepath
