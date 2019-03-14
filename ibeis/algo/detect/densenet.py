@@ -489,21 +489,17 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
     ut.embed()
+    if multi:
+        model = nn.DataParallel(model)
+
+    model.load_state_dict(state)
+
+    # Add LogSoftmax and Softmax to network output
     model.classifier = nn.Sequential(
         model.classifier,
         nn.LogSoftmax(),
         nn.Softmax()
     )
-
-    if multi:
-        model = nn.DataParallel(model)
-
-    try:
-        model.load_state_dict(state, strict=False)
-    except:
-        model.load_state_dict(state)
-
-    # Add LogSoftmax and Softmax to network output
 
     # Send the model to GPU
     model = model.to(device)
