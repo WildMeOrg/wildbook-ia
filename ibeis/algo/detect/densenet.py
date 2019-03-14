@@ -453,7 +453,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, *
     return weights_path
 
 
-def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
+def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwargs):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -488,18 +488,22 @@ def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
-    try:
-        model.load_state_dict(state)
-    except:
-        model = nn.DataParallel(model)
-        model.load_state_dict(state)
-
-    # Add LogSoftmax and Softmax to network output
+    ut.embed()
     model.classifier = nn.Sequential(
         model.classifier,
         nn.LogSoftmax(),
         nn.Softmax()
     )
+
+    if multi:
+        model = nn.DataParallel(model)
+
+    try:
+        model.load_state_dict(state, strict=False)
+    except:
+        model.load_state_dict(state)
+
+    # Add LogSoftmax and Softmax to network output
 
     # Send the model to GPU
     model = model.to(device)
