@@ -734,9 +734,9 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
         for restart_config_key in restart_config_key_list:
             restart_config_url = restart_config_dict[restart_config_key]
 
-            restart_config_key = restart_config_key_list.strip().split('-')
-            assert len(restart_config_key) == 3
-            namespace, hashstr_, round_ = restart_config_key
+            restart_config_key_ = restart_config_key.strip().split('-')
+            assert len(restart_config_key_) == 3
+            namespace, hashstr_, round_ = restart_config_key_
             if hashstr is None:
                 hashstr = hashstr_
             assert hashstr == hashstr_, 'Cannot mix hash strings in a single restart'
