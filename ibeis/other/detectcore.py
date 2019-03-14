@@ -177,8 +177,7 @@ def export_to_pascal(ibs, *args, **kwargs):
 def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforce_viewpoint=False,
                   target_size=900, purge=False, use_maximum_linear_dimension=True,
                   use_existing_train_test=True, include_parts=False, gid_list=None, output_path=None,
-                  min_annot_size=5,
-                  **kwargs):
+                  min_annot_size=5, **kwargs):
     """Create training XML for training models."""
     import random
     from datetime import date
@@ -223,6 +222,13 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
         # Get info
         info = {}
+
+        w_ = xmax - xmin
+        h_ = ymax - ymin
+        if w_ < min_annot_size:
+            return
+        if h_ < min_annot_size:
+            return
 
         if viewpoint != -1 and viewpoint is not None:
             info['pose'] = viewpoint
