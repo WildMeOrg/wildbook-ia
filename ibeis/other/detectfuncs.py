@@ -1249,23 +1249,57 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     {},
             # ),
 
-            'giraffe': (
+            # 'giraffe': (
+            #     [
+            #         {'label': 'Giraffe NMS 10%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+            #         {'label': 'Giraffe NMS 30%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+            #         {'label': 'Giraffe NMS 50%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+            #         {'label': 'Giraffe NMS 70%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+            #         {'label': 'Giraffe NMS 90%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
+            #         {'label': 'Masai Giraffe NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai'])},
+            #         {'label': 'Masai Giraffe NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_masai'])},
+            #         {'label': 'Masai Giraffe NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_masai'])},
+            #         {'label': 'Masai Giraffe NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_masai'])},
+            #         {'label': 'Masai Giraffe NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_masai'])},
+            #         {'label': 'Reticulated Giraffe NMS 10%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_reticulated'])},
+            #         {'label': 'Reticulated Giraffe NMS 30%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_reticulated'])},
+            #         {'label': 'Reticulated Giraffe NMS 50%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_reticulated'])},
+            #         {'label': 'Reticulated Giraffe NMS 70%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_reticulated'])},
+            #         {'label': 'Reticulated Giraffe NMS 90%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_reticulated'])},
+            #     ],
+            #     {},
+            # ),
+
+            'spotted_skunk_v0': (
                 [
-                    {'label': 'Giraffe NMS 10%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
-                    {'label': 'Giraffe NMS 30%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
-                    {'label': 'Giraffe NMS 50%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
-                    {'label': 'Giraffe NMS 70%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
-                    {'label': 'Giraffe NMS 90%',                 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_masai', 'giraffe_reticulated'])},
-                    {'label': 'Masai Giraffe NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_masai'])},
-                    {'label': 'Masai Giraffe NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_masai'])},
-                    {'label': 'Masai Giraffe NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_masai'])},
-                    {'label': 'Masai Giraffe NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_masai'])},
-                    {'label': 'Masai Giraffe NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_masai'])},
-                    {'label': 'Reticulated Giraffe NMS 10%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['giraffe_reticulated'])},
-                    {'label': 'Reticulated Giraffe NMS 30%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['giraffe_reticulated'])},
-                    {'label': 'Reticulated Giraffe NMS 50%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['giraffe_reticulated'])},
-                    {'label': 'Reticulated Giraffe NMS 70%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['giraffe_reticulated'])},
-                    {'label': 'Reticulated Giraffe NMS 90%',     'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'giraffe_v1', 'weight_filepath' : 'giraffe_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['giraffe_reticulated'])},
+                    {'label': 'Spotted Skunk NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['skunk_spotted'])},
+                ],
+                {},
+            ),
+
+            '!spotted_skunk_v0': (
+                [
+                    {'label': 'Spotted Skunk NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!skunk_spotted'])},
+                    {'label': 'Spotted Skunk NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!skunk_spotted'])},
                 ],
                 {},
             ),
@@ -2370,13 +2404,14 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         category_list = sorted(list(set(species_list)))
 
     print('Compiling raw numbers...')
-    # kwargs['labeler_weight_filepath'] = 'seaturtle'
     kwargs['labeler_algo'] = 'densenet'
+    # kwargs['labeler_weight_filepath'] = 'seaturtle'
     # kwargs['labeler_weight_filepath'] = 'giraffe_v1'
     # kwargs['labeler_weight_filepath'] = 'lynx_v3'
     # kwargs['labeler_weight_filepath'] = 'seaturtle_v3'
     # kwargs['labeler_weight_filepath'] = 'jaguar_v3'
-    kwargs['labeler_weight_filepath'] = 'hendrik_dorsal_v2'
+    # kwargs['labeler_weight_filepath'] = 'hendrik_dorsal_v2'
+    kwargs['labeler_weight_filepath'] = 'spotted_skunk_v0'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      **kwargs)
@@ -2390,12 +2425,13 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         # {'label': 'Sea Turtle Head',        'category_list': ['turtle_sea+head']},
         # {'label': 'Manta',                  'category_list': ['manta_ray_giant']},
         # {'label': 'Jaguar',                 'category_list': ['jaguar']},
-        {'label': 'Dorsal Fin',             'category_list': ['dolphin_bottlenose_fin']},
+        # {'label': 'Dorsal Fin',             'category_list': ['dolphin_bottlenose_fin']},
         # {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
         # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
         # {'label': 'Whale Fluke',            'category_list': ['whale_fluke']},
         # {'label': 'Grevy\'s Zebra',         'category_list': ['zebra_grevys']},
         # {'label': 'Plains Zebra',           'category_list': ['zebra_plains']},
+        {'label': 'Spotted Skunk',           'category_list': ['skunk_spotted']},
     ]
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
