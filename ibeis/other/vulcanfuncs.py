@@ -702,14 +702,58 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
 
 @register_ibs_method
 def vulcan_wic_train(ibs, ensembles=5, rounds=10,
-                     boost_confidence_thresh=0.25,
+                     boost_confidence_thresh=0.20,
                      boost_round_ratio=2,
                      num_clusters=80,
                      n_neighbors=10,
                      use_clusters=False,
-                     hashstr=None, **kwargs):
+                     hashstr=None,
+                     restart_config_dict=None,
+                     **kwargs):
+    """
+    Example:
+       >>> restart_config_dict = {
+       >>>     'vulcan-d3e8bf43-boost0': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.0.zip',
+       >>>     'vulcan-d3e8bf43-boost1': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
+       >>>     'vulcan-d3e8bf43-boost2': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
+       >>>     'vulcan-d3e8bf43-boost3': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
+       >>> }
+       >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
+       >>>
+
+    """
     import random
 
+    latest_model_tag = None
+    config_list = []
+    restart_round_num = 0
+
+    if restart_config_dict:
+        latest_round = 0
+        restart_config_key_list = sorted(restart_config_dict.keys())
+        for restart_config_key in restart_config_key_list:
+            restart_config_url = restart_config_dict[restart_config_key]
+
+            restart_config_key = restart_config_key_list.strip().split('-')
+            assert len(restart_config_key) == 3
+            namespace, hashstr_, round_ = restart_config_key
+            if hashstr is None:
+                hashstr = hashstr_
+            assert hashstr == hashstr_, 'Cannot mix hash strings in a single restart'
+            round_ = int(round_.replace('boost', ''))
+            assert latest_round == round_, 'Boosting rounds cannot be skipped, please include'
+            latest_round += 1
+
+            densenet.ARCHIVE_URL_DICT[restart_config_key] = restart_config_url
+            latest_model_tag = restart_config_key
+            config_list.append(
+                {'label': 'WIC %s rRound %d' % (hashstr, round_, ), 'classifier_algo': 'densenet', 'classifier_weight_filepath': restart_config_key},
+            )
+
+        restart_round_num = latest_round
+        ibs.vulcan_wic_validate(config_list)
+
+    # Start training
     if hashstr is None:
         hashstr = ut.random_nonce()[:8]
     print('Using hashstr=%r' % (hashstr, ))
@@ -751,9 +795,10 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
         'negative': 1.0,
     }
 
-    latest_model_tag = None
-    config_list = []
     for round_num in range(rounds):
+        if round_num < restart_round_num:
+            continue
+
         if round_num == 0:
             assert latest_model_tag is None
             # Skip ensemble hard negative mining, save for model mining
@@ -910,7 +955,6 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
     output_path = '/data/public/models/%s.zip' % (output_name, )
     ut.copy(archive_path, output_path)
 
-    from ibeis.algo.detect import densenet
     model_key = 'vulcan-%s-boost%s' % (hashstr, round_num, )
     densenet.ARCHIVE_URL_DICT[model_key] = 'https://kaiju.dyn.wildme.io/public/models/%s.zip' % (output_name, )
     print(ut.repr3(densenet.ARCHIVE_URL_DICT))
@@ -977,52 +1021,140 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
                                                             offset_black=offset_black)
 
 
+# @register_ibs_method
+# def vulcan_wic_validate_image(ibs, strategy='avg', target_species='elephant_savanna',
+#                               min_cumulative_percentage=0.025, **kwargs):
+#     strategy = strategy.lower()
+#     assert strategy in ['avg', 'min', 'max', 'thresh']
+
+#     canvas_path = abspath(expanduser(join('~', 'Desktop')))
+
+#     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+#     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+#     test_gid_set = all_tile_set & test_gid_set
+#     test_gid_list = list(test_gid_set)
+#     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_gid_list)
+
+#     values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
+#     cumulative_area_list, total_area_list = values
+#     flag_list = [
+#         cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
+#         for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+#     ]
+
+#     model_tag = 'vulcan-d3e8bf43-boost2'
+#     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
+#     confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
+#     confidence_list = []
+
+#     ancestor_gt_dict = {}
+#     for ancestor_gid, flag in zip(ancestor_gid_list, flag_list):
+#         flag_ = ancestor_gt_dict.get(ancestor_gid, False)
+#         ancestor_gt_dict[ancestor_gid] = flag_ or flag
+
+#     confidence_list = []
+#     for
+
+#     gid_list, tile_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
+
+#     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+#     gid_list = list(set(gid_list) & test_gid_set)
+
+#     config = {
+#         'tile_width':   256,
+#         'tile_height':  256,
+#         'tile_overlap': 64,
+#     }
+#     tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
+#     tile_list = ut.flatten(tiles_list)
+
+#     aids_list = ibs.get_image_aids(gid_list)
+#     length_list = list(map(len, aids_list))
+#     flag_list = [0 < length for length in length_list]
+
+#     confidences_list = []
+#     for tile_list in tiles_list:
+#         confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
+#         confidences_list.append(confidence_list)
+
+#     best_accuracy = 0.0
+#     best_thresh = None
+#     for index in range(100):
+#         confidence_thresh = index / 100.0
+
+#         correct = 0
+#         for flag, confidence_list in zip(flag_list, confidences_list):
+#             # confidence = sum(confidence_list) / len(confidence_list)
+#             confidence = np.max(confidence_list)
+#             flag_ = confidence >= confidence_thresh
+#             correct += 1 if flag == flag_ else 0
+
+#         accuracy = correct / len(flag_list)
+#         if accuracy > best_accuracy:
+#             best_accuracy = accuracy
+#             best_thresh = confidence_thresh
+
+#     return best_thresh, best_accuracy
+
+
 @register_ibs_method
-def vulcan_wic_validate_image(ibs, model_tag=None, strategy='avg', **kwargs):
+def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
+                                         min_cumulative_percentage=0.025, thresh=0.27,
+                                         **kwargs):
+    def _render(gid_list, confidence_list, invert=False):
+        num_errors = 0
+        canvas = np.zeros((256, 256), dtype=np.float32)
+        for tile, confidence in zip(gid_list, confidence_list):
+            flag = confidence >= thresh
+            if invert:
+                flag = not flag
+            if flag:
+                num_errors += 1
+                aid_list = ibs.get_image_aids(tile)
+                aid_list = sorted(aid_list)
+                aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+                bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
+                for bbox in bbox_list:
+                    xtl, ytl, w, h = bbox
+                    xbr = xtl + w
+                    ybr = ytl + h
+                    canvas[ytl: ybr, xtl: xbr] += 1
+        max_canvas = np.max(canvas)
+        canvas = canvas / max_canvas
+        canvas = np.sqrt(canvas)
+        canvas = np.around(canvas * 255.0).astype(np.uint8)
+        return canvas, max_canvas, num_errors
 
-    strategy = strategy.lower()
-    assert strategy in ['avg', 'min', 'max', 'thresh']
+    canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
-    gid_list, tile_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
-
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    gid_list = list(set(gid_list) & test_gid_set)
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
 
-    config = {
-        'tile_width':   256,
-        'tile_height':  256,
-        'tile_overlap': 64,
-    }
-    tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-    tile_list = ut.flatten(tiles_list)
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
+    cumulative_area_list, total_area_list = values
+    flag_list = [
+        cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
+    positive_test_gid_list = sorted(ut.compress(test_gid_list, flag_list))
+    negative_test_gid_list = sorted(set(test_gid_list) - set(positive_test_gid_list))
 
-    aids_list = ibs.get_image_aids(gid_list)
-    length_list = list(map(len, aids_list))
-    flag_list = [0 < length for length in length_list]
+    model_tag = 'vulcan-d3e8bf43-boost2'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
+    positive_confidence_list = ibs.vulcan_wic_test(positive_test_gid_list, model_tag=model_tag)
+    negative_confidence_list = ibs.vulcan_wic_test(negative_test_gid_list, model_tag=model_tag)
 
-    confidences_list = []
-    for tile_list in tiles_list:
-        confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
-        confidences_list.append(confidence_list)
+    canvas, max_canvas, num_errors = _render(positive_test_gid_list, positive_confidence_list, invert=True)
+    canvas_filename = 'visualize_errors_location_positive_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas_filepath = join(canvas_path, canvas_filename)
+    cv2.imwrite(canvas_filepath, canvas)
 
-    best_accuracy = 0.0
-    best_thresh = None
-    for index in range(100):
-        confidence_thresh = index / 100.0
-
-        correct = 0
-        for flag, confidence_list in zip(flag_list, confidences_list):
-            # confidence = sum(confidence_list) / len(confidence_list)
-            confidence = np.max(confidence_list)
-            flag_ = confidence >= confidence_thresh
-            correct += 1 if flag == flag_ else 0
-
-        accuracy = correct / len(flag_list)
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-            best_thresh = confidence_thresh
-
-    return best_thresh, best_accuracy
+    canvas, max_canvas, num_errors = _render(negative_test_gid_list, negative_confidence_list, invert=False)
+    canvas_filename = 'visualize_errors_location_negative_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas_filepath = join(canvas_path, canvas_filename)
+    cv2.imwrite(canvas_filepath, canvas)
 
 
 @register_ibs_method
@@ -1172,8 +1304,8 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     negative_gid_set = negative_gid_set & train_gid_set
     negative_gid_list = list(negative_gid_set)
 
-    model_tag = 'vulcan-d3e8bf43-boost1'
-    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip'
+    model_tag = 'vulcan-d3e8bf43-boost2'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
     confidence_list = ibs.vulcan_wic_test(negative_gid_list, model_tag=model_tag)
     zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
 
