@@ -488,7 +488,11 @@ def test_single(filepath_list, weights_path, batch_size=512, **kwargs):
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
-    model.load_state_dict(state)
+    try:
+        model.load_state_dict(state)
+    except:
+        model = nn.DataParallel(model)
+        model.load_state_dict(state)
 
     # Add LogSoftmax and Softmax to network output
     model.classifier = nn.Sequential(
