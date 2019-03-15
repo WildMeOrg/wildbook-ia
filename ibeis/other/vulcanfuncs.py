@@ -1147,8 +1147,8 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
     gt_positive_test_gid_list = sorted(ut.compress(test_gid_list, flag_list))
     gt_negative_test_gid_list = sorted(set(test_gid_list) - set(gt_positive_test_gid_list))
 
-    model_tag = 'vulcan-d3e8bf43-boost4'
-    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
+    model_tag = 'vulcan-d3e8bf43-boost3'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
     gt_positive_confidence_list = ibs.vulcan_wic_test(gt_positive_test_gid_list, model_tag=model_tag)
     gt_negative_confidence_list = ibs.vulcan_wic_test(gt_negative_test_gid_list, model_tag=model_tag)
     gt_positive_flag_list = [
@@ -1326,8 +1326,8 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     negative_gid_set = negative_gid_set & train_gid_set
     negative_gid_list = list(negative_gid_set)
 
-    model_tag = 'vulcan-d3e8bf43-boost2'
-    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
+    model_tag = 'vulcan-d3e8bf43-boost3'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
     confidence_list = ibs.vulcan_wic_test(negative_gid_list, model_tag=model_tag)
     zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
 
@@ -1346,33 +1346,70 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
 
 
 @register_ibs_method
-def vulcan_localizer_validate(ibs, target_species='elephant_savanna', **kwargs):
+def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
+                              min_cumulative_percentage=0.025, thresh=0.27,
+                              **kwargs):
     species_set = set([target_species])
-    config_dict = {
-        'vulcan': (
-            [
-                {'label': 'Elephant NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-                {'label': 'Elephant NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-                {'label': 'Elephant NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-                {'label': 'Elephant NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-                {'label': 'Elephant NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-                {'label': 'Elephant NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-                {'label': 'Elephant NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-                {'label': 'Elephant NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-                {'label': 'Elephant NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-                {'label': 'Elephant NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-                {'label': 'Elephant NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
-            ],
-            {},
-        ),
-    }
+    template = (
+        [
+            {'label': 'Elephant NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            {'label': 'Elephant NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            {'label': 'Elephant NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            {'label': 'Elephant NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            {'label': 'Elephant NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            {'label': 'Elephant NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            {'label': 'Elephant NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': 'Elephant NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            {'label': 'Elephant NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            {'label': 'Elephant NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': 'Elephant NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+        ],
+        {},
+    )
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     test_gid_set = all_tile_set & test_gid_set
-    test_gid_list = list(test_gid_set)
+    all_test_gid_list = list(test_gid_set)
 
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list)
+    values = ibs.vulcan_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
+    cumulative_area_list, total_area_list = values
+    flag_list = [
+        cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
+    gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
+    gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
+
+    model_tag = 'vulcan-d3e8bf43-boost3'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+    all_test_confidence_list = ibs.vulcan_wic_test(all_test_gid_list, model_tag=model_tag)
+    all_test_flag_list = [
+        all_test_confidence >= thresh
+        for all_test_confidence in all_test_confidence_list
+    ]
+    wic_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, all_test_flag_list))
+    wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
+
+    # All Test Tiles
+    config_dict = {'vulcan-all': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list)
+
+    # All Positive Tiles
+    config_dict = {'vulcan-positive': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list)
+
+    # All Negative Tiles
+    config_dict = {'vulcan-negative': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list)
+
+    # All WIC-Passing Tiles
+    config_dict = {'vulcan-wic-passing': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list)
+
+    # All WIC-Failed Tiles
+    config_dict = {'vulcan-wic-failing': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list)
 
     # random.shuffle(test_gid_list)
     # gids_ = gids_[:30]
