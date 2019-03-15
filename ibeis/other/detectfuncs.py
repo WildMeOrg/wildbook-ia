@@ -737,7 +737,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
                 for val in dict_[image_uuid]:
                     if val.get('class', None) not in species_set_:
                         continue
-                    if ignore_filter_func(val):
+                    if ignore_filter_func(ibs, val):
                         continue
                     temp.append(val)
                 dict_[image_uuid] = temp
@@ -905,7 +905,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
                 for val in dict_[image_uuid]:
                     if val.get('class', None) not in species_set_:
                         continue
-                    if ignore_filter_func(val):
+                    if ignore_filter_func(ibs, val):
                         continue
                     temp.append(val)
                 dict_[image_uuid] = temp

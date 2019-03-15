@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images_pytorch
+from os.path import expanduser, join, abspath, exists
 from ibeis.control import controller_inject
 from ibeis.algo.detect import densenet
-from os.path import expanduser, join, abspath, exists
+from functools import partial
 import numpy as np
 import utool as ut
 import random
@@ -1335,6 +1336,37 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
                               thresh=0.02, margin=32, min_bbox_coverage=0.5, **kwargs):
+
+    def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
+        from ibeis.other.detectfuncs import general_intersection_over_union
+        print(annot)
+        print(args)
+        print(kwargs)
+        ut.embed()
+        margin = float(margin)
+        gid = annot.get('gid', None)
+        assert gid is not None
+        w, h = ibs.get_image_size(gid)
+        margin_percent_w = margin / w
+        margin_percent_h = margin / h
+        xtl = margin_percent_w
+        ytl = margin_percent_h
+        xbr = 1.0 - margin_percent_w
+        ybr = 1.0 - margin_percent_h
+        width = xbr - xtl
+        height = ybr - ytl
+        center_box = {
+            'xtl'    : xtl,
+            'ytl'    : ytl,
+            'xbr'    : xbr,
+            'ybr'    : ybr,
+            'width'  : width,
+            'height' : height,
+        }
+        overlap = general_intersection_over_union(annot, center_box)
+        flag = overlap < min_bbox_coverage
+        return flag
+
     species_set = set([target_species])
     template = (
         [
@@ -1377,11 +1409,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
-    def ignore_filter_func(annot, *args, **kwargs):
-        print(annot)
-        print(args)
-        print(kwargs)
-        ut.embed()
+    ignore_filter_func_ = partial(ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
     # # All Positive Tiles (All)
     # config_dict = {'vulcan-gt-positive-all': template}
@@ -1389,7 +1417,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
     # All Positive Tiles (Margin)
     config_dict = {'vulcan-gt-positive-margin': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_)
 
     # All WIC-Passing Tiles (All)
     config_dict = {'vulcan-wic-passing-all': template}
@@ -1397,7 +1425,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
     # All WIC-Passing Tiles (Margin)
     config_dict = {'vulcan-wic-passing-margin': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True, ignore_filter_func=ignore_filter_func)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True, ignore_filter_func=ignore_filter_func_)
 
     # # All Negative Tiles
     # config_dict = {'vulcan-gt-negative': template}
