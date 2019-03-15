@@ -1303,6 +1303,8 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     import matplotlib.pyplot as plt
     import plottool as pt
 
+    ut.embed()
+
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop')))
 
