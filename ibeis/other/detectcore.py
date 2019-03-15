@@ -1109,6 +1109,7 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
 
     filepath_dict = {}
     for gid, image_uuid in zip(gid_list, uuid_list):
+
         image = ibs.get_images(gid)
         image = _resize(image, t_width=t_width)
         h, w, c = image.shape
@@ -1116,10 +1117,10 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
         val_list = val_dict[image_uuid]
 
         for val in val_list:
-            xbr = int(np.around(val['xbr'] * w))
-            ybr = int(np.around(val['ybr'] * h))
             xtl = int(np.around(val['xtl'] * w))
             ytl = int(np.around(val['ytl'] * h))
+            xbr = int(np.around(val['xbr'] * w))
+            ybr = int(np.around(val['ybr'] * h))
             cv2.rectangle(image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
 
         write_filename = 'bboxes_%d_%s.png' % (gid, version, )
@@ -1128,6 +1129,9 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
         cv2.imwrite(write_filepath, image)
 
         filepath_dict[gid] = write_filepath
+        if gid == 904303:
+            break
+
 
     return filepath_dict
 

@@ -444,13 +444,11 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
     return test_gid_list
 
 
-def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={},
+def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapping={},
                             **kwargs):
-    gid_list = ibs.get_annot_gids(aid_list)
-
     species_set = set([])
     gt_list = []
-    for gid, aid in zip(gid_list, aid_list):
+    for aid in aid_list:
         width, height = ibs.get_image_sizes(gid)
 
         is_tile = ibs.get_vulcan_image_tile_flags(gid)
@@ -555,7 +553,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
         aid_list = ibs.get_image_aids(gid)
-        gt_list, species_set = general_parse_gt_annots(ibs, aid_list, **kwargs)
+        gt_list, species_set = general_parse_gt_annots(ibs, gid, aid_list, **kwargs)
         species_set = species_set | species_set
         gt_dict[uuid] = gt_list
 
@@ -685,8 +683,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
 def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
                                     **kwargs):
-    ut.embed()
-
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 

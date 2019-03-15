@@ -1393,11 +1393,11 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     config_dict = {'vulcan-all': template}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list)
 
-    # random.shuffle(test_gid_list)
-    # gids_ = gids_[:30]
-    # config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.62}
-    # ibs.visualize_ground_truth(config, gid_list=gids_)
-    # ibs.visualize_predictions(config, gid_list=gids_)
+    random.shuffle(gt_positive_test_gid_list)
+    gt_positive_test_gid_list_ = gt_positive_test_gid_list[:30]
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.2}
+    ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list_)
+    ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list_)
 
 
 # def __delete_old_tiles(ibs, ):
