@@ -683,6 +683,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
 def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
                                     **kwargs):
+    ut.embed()
+
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
