@@ -697,7 +697,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
 
 @register_ibs_method
 def vulcan_wic_train(ibs, ensembles=5, rounds=10,
-                     boost_confidence_thresh=0.20,
+                     boost_confidence_thresh=0.2,
                      boost_round_ratio=2,
                      num_clusters=80,
                      n_neighbors=10,
@@ -1093,7 +1093,7 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
 @register_ibs_method
 def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
-                                         thresh=0.01, **kwargs):
+                                         thresh=0.02, **kwargs):
     def _render(gid_list, flag_list, invert=False):
         if invert:
             flag_list = [
@@ -1334,7 +1334,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
 
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
-                              thresh=0.01, **kwargs):
+                              thresh=0.02, **kwargs):
     species_set = set([target_species])
     template = (
         [
