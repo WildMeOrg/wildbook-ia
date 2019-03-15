@@ -1659,7 +1659,7 @@ def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
+def classifier_cameratrap_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
@@ -1741,6 +1741,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                         test_gid_list=None,
                                                         figsize=(20, 20),
                                                         config_list=None,
+                                                        target_recall=None,
                                                         offset_black=0):
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -1789,6 +1790,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                          positive_imageset_id=positive_imageset_id,
                                                          negative_imageset_id=negative_imageset_id,
                                                          test_gid_list=test_gid_list,
+                                                         target_recall=target_recall,
                                                          **config)
         for color, config in zip(color_list, config_list)
     ]
@@ -1863,7 +1865,10 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_ylabel('Ground-Truth')
     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
 
-    fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
+    if target_recall is None:
+        fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
+    else:
+        fig_filename = 'classifier-cameratrap-precision-recall-roc-target-recall-%0.02f.png' % (target_recall, )
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
@@ -2061,7 +2066,7 @@ def classifier2_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def classifier2_roc_algo_plot(ibs, **kwargs):
+def classifier2_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
@@ -2314,7 +2319,7 @@ def labeler_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def labeler_roc_algo_plot(ibs, **kwargs):
+def labeler_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     category_list = kwargs['category_list']
     print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
@@ -2527,7 +2532,7 @@ def canonical_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def canonical_roc_algo_plot(ibs, **kwargs):
+def canonical_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(ibs, **kwargs)
@@ -3173,7 +3178,7 @@ def aoi2_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def aoi2_roc_algo_plot(ibs, **kwargs):
+def aoi2_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
