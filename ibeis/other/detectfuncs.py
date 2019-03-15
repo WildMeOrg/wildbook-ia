@@ -361,7 +361,7 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
     return correct_rate, fuzzy_rate
 
 
-def general_intersection_over_union(bbox1, bbox2):
+def general_intersection_over_union(bbox1, bbox2, return_components=False):
     intersection_xtl = max(bbox1['xtl'], bbox2['xtl'])
     intersection_ytl = max(bbox1['ytl'], bbox2['ytl'])
     intersection_xbr = min(bbox1['xbr'], bbox2['xbr'])
@@ -376,7 +376,10 @@ def general_intersection_over_union(bbox1, bbox2):
     intersection = intersection_w * intersection_h
     union = (bbox1['width'] * bbox1['height']) + (bbox2['width'] * bbox2['height']) - intersection
 
-    return intersection / union
+    if return_components:
+        return intersection, union
+    else:
+        return intersection / union
 
 
 def general_overlap(gt_list, pred_list):
