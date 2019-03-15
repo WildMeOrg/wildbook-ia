@@ -1374,19 +1374,19 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
     # All Positive Tiles
-    config_dict = {'vulcan-gt-positive': template}
+    config_dict = {'vulcan-gt-positive': tuple(template[:])}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list)
 
     # All WIC-Passing Tiles
-    config_dict = {'vulcan-wic-passing': template}
+    config_dict = {'vulcan-wic-passing': tuple(template[:])}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list)
 
     # All Negative Tiles
-    config_dict = {'vulcan-gt-negative': template}
+    config_dict = {'vulcan-gt-negative': tuple(template[:])}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list)
 
     # All WIC-Failed Tiles
-    config_dict = {'vulcan-wic-failing': template}
+    config_dict = {'vulcan-wic-failing': tuple(template[:])}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list)
 
     # All Test Tiles
