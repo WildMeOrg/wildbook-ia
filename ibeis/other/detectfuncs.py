@@ -444,7 +444,8 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
     return test_gid_list
 
 
-def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapping={},
+def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True,
+                            restrict_to_boundary=True, species_mapping={},
                             **kwargs):
     species_set = set([])
     gt_list = []
@@ -470,7 +471,17 @@ def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapp
         xbr = int(max(x_points))
         ytl = int(min(y_points))
         ybr = int(max(y_points))
-        bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+        # bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
+        xtl = xtl / width
+        ytl = ytl / height
+        xbr = xbr / width
+        ybr = ybr / height
+        if restrict_to_boundary:
+            xtl = max(0.0, min(1.0, xtl))
+            ytl = max(0.0, min(1.0, ytl))
+            xbr = max(0.0, min(1.0, xbr))
+            ybr = max(0.0, min(1.0, ybr))
 
         species = ibs.get_annot_species_texts(aid)
         viewpoint = ibs.get_annot_viewpoints(aid)
@@ -478,12 +489,12 @@ def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapp
         temp = {
             'gid'        : gid,
             'aid'        : aid,
-            'xtl'        : bbox[0] / width,
-            'ytl'        : bbox[1] / height,
-            'xbr'        : (bbox[0] + bbox[2]) / width,
-            'ybr'        : (bbox[1] + bbox[3]) / height,
-            'width'      : bbox[2] / width,
-            'height'     : bbox[3] / height,
+            'xtl'        : xtl,
+            'ytl'        : ytl,
+            'xbr'        : xbr,
+            'ybr'        : ybr,
+            'width'      : xbr - xtl,
+            'height'     : ybr - ytl,
             'class'      : species_mapping.get(species, species),
             'viewpoint'  : viewpoint,
             'interest'   : interest,
@@ -495,7 +506,7 @@ def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapp
         part_rowid_list = ibs.get_annot_part_rowids(aid)
         if include_parts:
             for part_rowid in part_rowid_list:
-                bbox = ibs.get_part_bboxes(part_rowid)
+                bbox = ibs.get_part_bboxes(part_rowid, reference_tile_gid=reference_tile_gid)
                 theta = ibs.get_part_thetas(part_rowid)
 
                 # Transformation matrix
@@ -512,7 +523,17 @@ def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapp
                 xbr = int(max(x_points))
                 ytl = int(min(y_points))
                 ybr = int(max(y_points))
-                bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+                # bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
+                xtl = xtl / width
+                ytl = ytl / height
+                xbr = xbr / width
+                ybr = ybr / height
+                if restrict_to_boundary:
+                    xtl = max(0.0, min(1.0, xtl))
+                    ytl = max(0.0, min(1.0, ytl))
+                    xbr = max(0.0, min(1.0, xbr))
+                    ybr = max(0.0, min(1.0, ybr))
 
                 tag = ibs.get_part_tag_text(part_rowid)
 
@@ -525,12 +546,12 @@ def general_parse_gt_annots(ibs, gid, aid_list, include_parts=True, species_mapp
                     'gid'        : gid,
                     'aid'        : aid,
                     'part_id'    : part_rowid,
-                    'xtl'        : bbox[0] / width,
-                    'ytl'        : bbox[1] / height,
-                    'xbr'        : (bbox[0] + bbox[2]) / width,
-                    'ybr'        : (bbox[1] + bbox[3]) / height,
-                    'width'      : bbox[2] / width,
-                    'height'     : bbox[3] / height,
+                    'xtl'        : xtl,
+                    'ytl'        : ytl,
+                    'xbr'        : xbr,
+                    'ybr'        : ybr,
+                    'width'      : xbr - xtl,
+                    'height'     : ybr - ytl,
                     'class'      : tag,
                     'viewpoint'  : viewpoint,
                     'interest'   : interest,
@@ -774,8 +795,15 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     return match_list
 
 
-def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
+def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5,
+                    gt_ignore_filter_func=None, **kwargs):
     total = 0.0
+
+    def gt_ignore_filter_identity_func(*args, **kwargs):
+        return False
+
+    if gt_ignore_filter_func is None:
+        gt_ignore_filter_func = gt_ignore_filter_identity_func
 
     interest_species_set = set([])
     species_set = kwargs.get('species_set', None)
@@ -794,7 +822,9 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
         for gt in gt_dict[image_uuid]:
             species = gt['class']
             interest = gt['interest']
-            if species in interest_species_set and not interest:
+            if gt_ignore_filter_func(gt):
+                gt_list_.append(gt)
+            elif species in interest_species_set and not interest:
                 gt_list_.append(gt)
             else:
                 gt_list.append(gt)
@@ -927,7 +957,8 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
 @register_ibs_method
 def localizer_precision_recall(ibs, config_dict=None, output_path=None,
-                               test_gid_list=None, overwrite_test_gid_list=False,
+                               test_gid_list=None, gt_ignore_filter_func=None,
+                               overwrite_config_keys=False,
                                **kwargs):
     if config_dict is None:
         if test_gid_list is not None:
@@ -1286,8 +1317,13 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
         # Backwards compatibility hack
         if test_gid_list is not None:
             for config_ in config_list:
-                if overwrite_test_gid_list or 'test_gid_list' not in config_:
+                if overwrite_config_keys or 'test_gid_list' not in config_:
                     config_['test_gid_list'] = test_gid_list
+
+        if gt_ignore_filter_func is not None:
+            for config_ in config_list:
+                if overwrite_config_keys or 'gt_ignore_filter_func' not in config_:
+                    config_['gt_ignore_filter_func'] = gt_ignore_filter_func
 
         ibs.localizer_precision_recall_algo_display(
             config_list,

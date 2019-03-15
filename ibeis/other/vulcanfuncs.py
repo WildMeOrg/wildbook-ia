@@ -1361,7 +1361,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     values = ibs.vulcan_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
-    gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
+    # gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
 
     model_tag = 'vulcan-d3e8bf43-boost3'
     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
@@ -1371,31 +1371,45 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
         for all_test_confidence in all_test_confidence_list
     ]
     wic_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, all_test_flag_list))
-    wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
-
-    # All Positive Tiles
-    config_dict = {'vulcan-gt-positive': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_test_gid_list=True)
+    # wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.70}
     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
-    # All WIC-Passing Tiles
-    config_dict = {'vulcan-wic-passing': template}
+    def gt_ignore_filter_func(gt, *args, **kwargs):
+        print(gt)
+        print(args)
+        print(kwargs)
+        ut.embed()
+
+    # All Positive Tiles (All)
+    config_dict = {'vulcan-gt-positive-all': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
+
+    # All Positive Tiles (Margin)
+    config_dict = {'vulcan-gt-positive-margin': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, gt_ignore_filter_func=gt_ignore_filter_func)
+
+    # All WIC-Passing Tiles (All)
+    config_dict = {'vulcan-wic-passing-all': template}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True)
 
-    # All Negative Tiles
-    config_dict = {'vulcan-gt-negative': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list, overwrite_test_gid_list=True)
+    # All WIC-Passing Tiles (Margin)
+    config_dict = {'vulcan-wic-passing-margin': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True, gt_ignore_filter_func=gt_ignore_filter_func)
 
-    # All WIC-Failed Tiles
-    config_dict = {'vulcan-wic-failing': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list, overwrite_test_gid_list=True)
+    # # All Negative Tiles
+    # config_dict = {'vulcan-gt-negative': template}
+    # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list, overwrite_test_gid_list=True)
 
-    # All Test Tiles
-    config_dict = {'vulcan-all': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list, overwrite_test_gid_list=True)
+    # # All WIC-Failed Tiles
+    # config_dict = {'vulcan-wic-failing': template}
+    # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list, overwrite_test_gid_list=True)
+
+    # # All Test Tiles
+    # config_dict = {'vulcan-all': template}
+    # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list, overwrite_test_gid_list=True)
 
 
 # def __delete_old_tiles(ibs, ):
