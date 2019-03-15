@@ -1364,6 +1364,8 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
             print(center)
             intersection, union = general_intersection_over_union(annot, center, return_components=True)
             area = annot['width'] * annot['height']
+            if area <= 0:
+                return True
             overlap = intersection / area
             flag = overlap < min_bbox_coverage
             print(area, overlap, flag)
