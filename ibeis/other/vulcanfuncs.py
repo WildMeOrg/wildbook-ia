@@ -139,9 +139,7 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
 
 @register_ibs_method
-def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
-                           min_cumulative_percentage=0.025,
-                           margin=32, margin_discount=0.5,
+def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', margin=32,
                            **kwargs):
     RANDOM_VISUALIZATION_OFFSET = 5
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -153,15 +151,15 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
 
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
     values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species,
-                                                      margin=margin, margin_discount=margin_discount)
-    cumulative_area_list, total_area_list = values
+                                                      margin=margin)
+    cumulative_area_list, total_area_list, flag_list = values
 
     ancestor_gid_dict = {}
-    zipped = zip(tile_list, config_list, cumulative_area_list, total_area_list, ancestor_gid_list)
-    for tile, config, cumulative_area, total_area, ancestor_gid in zipped:
+    zipped = zip(tile_list, config_list, cumulative_area_list, total_area_list, flag_list, ancestor_gid_list)
+    for tile, config, cumulative_area, total_area, flag, ancestor_gid in zipped:
         if ancestor_gid not in ancestor_gid_dict:
             ancestor_gid_dict[ancestor_gid] = []
-        ancestor_gid_dict[ancestor_gid].append((cumulative_area, total_area, tile, config, ))
+        ancestor_gid_dict[ancestor_gid].append((cumulative_area, total_area, tile, flag, config, ))
     ancestor_key_list = sorted(ancestor_gid_dict.keys())
 
     canvas_path = abspath(expanduser(join('~', 'Desktop', 'visualize_tiles')))
@@ -175,13 +173,11 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
 
         config_dict = {}
         for values in values_list:
-            cumulative_area, total_area, tile, config = values
+            cumulative_area, total_area, tile, flag, config = values
             config = str(config)
             border = ibs.get_vulcan_image_tile_border_flag(tile)
             if border:
                 config = 'border'
-            min_cumulative_area = int(np.floor(total_area * min_cumulative_percentage))
-            flag = cumulative_area >= min_cumulative_area
             if flag:
                 total_positive_tiles += 1
             assert config in ['1', '2', 'border']
@@ -334,7 +330,8 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna',
 
 @register_ibs_method
 def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephant_savanna',
-                                         margin=32, margin_discount=0.5):
+                                         min_cumulative_percentage=0.025, margin=32,
+                                         margin_discount=0.5):
     tile_bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
     aids_list = ibs.get_vulcan_image_tile_aids(tile_list)
     species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
@@ -364,22 +361,20 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
         cumulative_area_list.append(cumulative_area)
         total_area_list.append(total_area)
 
-    return cumulative_area_list, total_area_list
+    flag_list = [
+        cumulative_area_ >= int(np.floor(total_area_ * min_cumulative_percentage))
+        for cumulative_area_, total_area_ in zip(cumulative_area_list, total_area_list)
+    ]
+    return cumulative_area_list, total_area_list, flag_list
 
 
 @register_ibs_method
 def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
-                                     min_cumulative_percentage=0.025,
                                      recompute_split=False, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
     values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species)
-    cumulative_area_list, total_area_list = values
-
-    flag_list = [
-        cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
-        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
-    ]
+    cumulative_area_list, total_area_list, flag_list = values
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
     gid_all_list = ibs.get_valid_gids(is_tile=None)
@@ -1026,8 +1021,7 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
 
 # @register_ibs_method
-# def vulcan_wic_validate_image(ibs, strategy='avg', target_species='elephant_savanna',
-#                               min_cumulative_percentage=0.025, **kwargs):
+# def vulcan_wic_validate_image(ibs, strategy='avg', target_species='elephant_savanna', **kwargs):
 #     strategy = strategy.lower()
 #     assert strategy in ['avg', 'min', 'max', 'thresh']
 
@@ -1040,14 +1034,10 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 #     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_gid_list)
 
 #     values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
-#     cumulative_area_list, total_area_list = values
-#     flag_list = [
-#         cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
-#         for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
-#     ]
+#     cumulative_area_list, total_area_list, flag_list = values
 
-#     model_tag = 'vulcan-d3e8bf43-boost2'
-#     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
+#     model_tag = 'vulcan-d3e8bf43-boost3'
+#     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
 #     confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
 #     confidence_list = []
 
@@ -1103,8 +1093,7 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
 @register_ibs_method
 def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
-                                         min_cumulative_percentage=0.025, thresh=0.27,
-                                         **kwargs):
+                                         thresh=0.01, **kwargs):
     def _render(gid_list, flag_list, invert=False):
         if invert:
             flag_list = [
@@ -1141,11 +1130,7 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
     test_gid_list = list(test_gid_set)
 
     values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
-    cumulative_area_list, total_area_list = values
-    flag_list = [
-        cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
-        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
-    ]
+    cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(test_gid_list, flag_list))
     gt_negative_test_gid_list = sorted(set(test_gid_list) - set(gt_positive_test_gid_list))
 
@@ -1349,8 +1334,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
 
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
-                              min_cumulative_percentage=0.025, thresh=0.27,
-                              **kwargs):
+                              thresh=0.01, **kwargs):
     species_set = set([target_species])
     template = (
         [
@@ -1375,11 +1359,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     all_test_gid_list = list(test_gid_set)
 
     values = ibs.vulcan_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
-    cumulative_area_list, total_area_list = values
-    flag_list = [
-        cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
-        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
-    ]
+    cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
     gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
 
@@ -1393,25 +1373,25 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     wic_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, all_test_flag_list))
     wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
-    # All Test Tiles
-    config_dict = {'vulcan-all': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list)
-
     # All Positive Tiles
-    config_dict = {'vulcan-positive': template}
+    config_dict = {'vulcan-gt-positive': template}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list)
-
-    # All Negative Tiles
-    config_dict = {'vulcan-negative': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list)
 
     # All WIC-Passing Tiles
     config_dict = {'vulcan-wic-passing': template}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list)
 
+    # All Negative Tiles
+    config_dict = {'vulcan-gt-negative': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list)
+
     # All WIC-Failed Tiles
     config_dict = {'vulcan-wic-failing': template}
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list)
+
+    # All Test Tiles
+    config_dict = {'vulcan-all': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list)
 
     # random.shuffle(test_gid_list)
     # gids_ = gids_[:30]

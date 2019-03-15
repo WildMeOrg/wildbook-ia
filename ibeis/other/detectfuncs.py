@@ -251,7 +251,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     best_conf = best_conf_list[0]
 
     if interpolate:
-        # label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
+        # label = '%s [AP = %0.02f, OP = %0.04f]' % (label, ap * 100.0, best_conf)
         label = '%s [AP = %0.02f]' % (label, ap * 100.0)
     else:
         label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
@@ -1389,7 +1389,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
         args = (target_recall, best_label, best_area, best_conf, )
-        plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
+        plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.04f)' % args, y=1.26)
 
     ######################################################################################
     axes_ = plt.subplot(132)
@@ -1411,7 +1411,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     args = (best_label, best_area, best_conf, )
-    plt.title('Confusion Matrix\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
+    plt.title('Confusion Matrix\n(Algo: %s, mAP = %0.02f, OP = %0.04f)' % args, y=1.26)
 
     ######################################################################################
     if len(config_tag) > 0:
@@ -1858,7 +1858,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        output_cases=True, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Model: %s, OP = %0.02f)' % (best_label1, best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
@@ -1872,7 +1872,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        **best_config2)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (Model: %s, OP = %0.02f)' % (best_label2, best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
 
     if target_recall is None:
         fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
@@ -2000,7 +2000,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #     correct_rate, _ = classifier_binary_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
 #     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
 #     axes_.set_ylabel('Ground-Truth')
-#     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+#     plt.title('P-R Confusion Matrix (OP = %0.04f)' % (best_conf1, ), y=1.12)
 
 #     axes_ = plt.subplot(224)
 #     axes_.set_aspect(1)
@@ -2009,7 +2009,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #     correct_rate, _ = classifier_binary_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
 #     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
 #     axes_.set_ylabel('Ground-Truth')
-#     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+#     plt.title('ROC Confusion Matrix (OP = %0.04f)' % (best_conf2, ), y=1.12)
 
 #     fig_filename = 'classifier-precision-recall-roc.png'
 #     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -2693,7 +2693,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
                                                            output_cases=True, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (OP = %0.04f)' % (best_conf1, ), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
@@ -2704,7 +2704,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
                                                            **best_config2)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (OP = %0.04f)' % (best_conf2, ), y=1.12)
 
     fig_filename = 'canonical-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -3372,7 +3372,7 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
                                                       **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (OP = %0.04f)' % (best_conf1, ), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
@@ -3384,7 +3384,7 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
                                                       **best_config2)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (OP = %0.04f)' % (best_conf2, ), y=1.12)
 
     fig_filename = 'aoi2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -3669,7 +3669,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 #     correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
 #     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
 #     axes_.set_ylabel('Ground-Truth')
-#     plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
+#     plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.04f)' % (best_label, best_conf, ), y=1.26)
 
 #     best_index = None
 #     best_conf = None
@@ -3698,7 +3698,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 #         correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
 #         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
 #         axes_.set_ylabel('Ground-Truth')
-#         plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
+#         plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.04f)' % (best_label, best_conf, ), y=1.26)
 
 #     # plt.show()
 #     fig_filename = 'detector-precision-recall-%0.2f.png' % (min_overlap, )
