@@ -1797,7 +1797,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     # index = np.argmax(area_list)
-    index = 0
+    index = -1
 
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
@@ -1826,7 +1826,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     # index = np.argmax(area_list)
-    index = 0
+    index = -1
 
     best_label2 = config_list[index]['label']
     best_config2 = config_list[index]
@@ -1849,7 +1849,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        output_cases=True, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    plt.title('P-R Confusion Matrix (Model: %s, OP = %0.02f)' % (best_label1, best_conf1, ), y=1.12)
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
@@ -1863,7 +1863,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        **best_config2)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    plt.title('ROC Confusion Matrix (Model: %s, OP = %0.02f)' % (best_label2, best_conf2, ), y=1.12)
 
     if target_recall is None:
         fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
