@@ -1111,8 +1111,8 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
                 for flag in flag_list
             ]
         tile_list = ut.compress(gid_list, flag_list)
-        num_errors = len(tile_list)
 
+        num_bboxes = 0
         canvas = np.zeros((256, 256), dtype=np.float32)
         for tile in tile_list:
             aid_list = ibs.get_image_aids(tile)
@@ -1124,12 +1124,13 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
                 xbr = xtl + w
                 ybr = ytl + h
                 canvas[ytl: ybr, xtl: xbr] += 1
+                num_bboxes += 1
 
         max_canvas = np.max(canvas)
         canvas = canvas / max_canvas
         canvas = np.sqrt(canvas)
         canvas = np.around(canvas * 255.0).astype(np.uint8)
-        return canvas, max_canvas, num_errors
+        return canvas, max_canvas, num_bboxes
 
     canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
@@ -1160,23 +1161,23 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
         for gt_negative_confidence in gt_negative_confidence_list
     ]
 
-    canvas, max_canvas, num_errors = _render(gt_positive_test_gid_list, gt_positive_flag_list, invert=False)
-    canvas_filename = 'visualize_errors_location_gt_positive_pred_positive_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas, max_canvas, num_bboxes = _render(gt_positive_test_gid_list, gt_positive_flag_list)
+    canvas_filename = 'visualize_errors_location_gt_positive_pred_positive_max_%d_bboxes_%d.png' % (int(max_canvas), num_bboxes, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
-    canvas, max_canvas, num_errors = _render(gt_positive_test_gid_list, gt_positive_flag_list, invert=True)
-    canvas_filename = 'visualize_errors_location_gt_positive_pred_negative_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas, max_canvas, num_bboxes = _render(gt_positive_test_gid_list, gt_positive_flag_list, invert=True)
+    canvas_filename = 'visualize_errors_location_gt_positive_pred_negative_max_%d_bboxes_%d.png' % (int(max_canvas), num_bboxes, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
-    canvas, max_canvas, num_errors = _render(gt_negative_confidence_list, gt_negative_flag_list, invert=False)
-    canvas_filename = 'visualize_errors_location_gt_negative_pred_positive_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas, max_canvas, num_bboxes = _render(gt_negative_confidence_list, gt_negative_flag_list)
+    canvas_filename = 'visualize_errors_location_gt_negative_pred_positive_max_%d_bboxes_%d.png' % (int(max_canvas), num_bboxes, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
-    canvas, max_canvas, num_errors = _render(gt_negative_confidence_list, gt_negative_flag_list, invert=True)
-    canvas_filename = 'visualize_errors_location_gt_negative_pred_negative_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas, max_canvas, num_bboxes = _render(gt_negative_confidence_list, gt_negative_flag_list, invert=True)
+    canvas_filename = 'visualize_errors_location_gt_negative_pred_negative_max_%d_bboxes_%d.png' % (int(max_canvas), num_bboxes, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
