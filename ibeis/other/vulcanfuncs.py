@@ -1374,28 +1374,28 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
     # All Positive Tiles
-    config_dict = {'vulcan-gt-positive': tuple(template[:])}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list)
+    config_dict = {'vulcan-gt-positive': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_test_gid_list=True)
 
     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.70}
     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
     # All WIC-Passing Tiles
-    config_dict = {'vulcan-wic-passing': tuple(template[:])}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list)
+    config_dict = {'vulcan-wic-passing': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True)
 
     # All Negative Tiles
-    config_dict = {'vulcan-gt-negative': tuple(template[:])}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list)
+    config_dict = {'vulcan-gt-negative': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list, overwrite_test_gid_list=True)
 
     # All WIC-Failed Tiles
-    config_dict = {'vulcan-wic-failing': tuple(template[:])}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list)
+    config_dict = {'vulcan-wic-failing': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list, overwrite_test_gid_list=True)
 
     # All Test Tiles
     config_dict = {'vulcan-all': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list, overwrite_test_gid_list=True)
 
 
 # def __delete_old_tiles(ibs, ):

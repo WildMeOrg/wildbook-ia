@@ -927,7 +927,8 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
 @register_ibs_method
 def localizer_precision_recall(ibs, config_dict=None, output_path=None,
-                               test_gid_list=None, **kwargs):
+                               test_gid_list=None, overwrite_test_gid_list=False,
+                               **kwargs):
     if config_dict is None:
         if test_gid_list is not None:
             print('Using %d test gids' % (len(test_gid_list), ))
@@ -1285,7 +1286,7 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
         # Backwards compatibility hack
         if test_gid_list is not None:
             for config_ in config_list:
-                if 'test_gid_list' not in config_:
+                if overwrite_test_gid_list or 'test_gid_list' not in config_:
                     config_['test_gid_list'] = test_gid_list
 
         ibs.localizer_precision_recall_algo_display(
