@@ -1114,7 +1114,7 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
 
         num_bboxes = 0
         canvas = np.zeros((256, 256), dtype=np.float32)
-        for tile in tile_list:
+        for tile in tqdm.tqdm(tile_list):
             aid_list = ibs.get_image_aids(tile)
             aid_list = sorted(aid_list)
             aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
@@ -1171,12 +1171,12 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
-    canvas, max_canvas, num_bboxes = _render(gt_negative_confidence_list, gt_negative_flag_list)
+    canvas, max_canvas, num_bboxes = _render(gt_negative_test_gid_list, gt_negative_flag_list)
     canvas_filename = 'visualize_errors_location_gt_negative_pred_positive_max_%d_bboxes_%d.png' % (int(max_canvas), num_bboxes, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
-    canvas, max_canvas, num_bboxes = _render(gt_negative_confidence_list, gt_negative_flag_list, invert=True)
+    canvas, max_canvas, num_bboxes = _render(gt_negative_test_gid_list, gt_negative_flag_list, invert=True)
     canvas_filename = 'visualize_errors_location_gt_negative_pred_negative_max_%d_bboxes_%d.png' % (int(max_canvas), num_bboxes, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
