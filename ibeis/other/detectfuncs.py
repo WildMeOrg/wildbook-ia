@@ -97,6 +97,10 @@ def simple_code(label):
     return label
 
 
+def _ignore_filter_identity_func(*args, **kwargs):
+    return False
+
+
 ##########################################################################################
 
 
@@ -703,11 +707,14 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
 
 def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
-                                    **kwargs):
+                                    ignore_filter_func=None, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    if ignore_filter_func is None:
+        ignore_filter_func = _ignore_filter_identity_func
 
     print('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
@@ -726,11 +733,14 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
         ]
         for dict_, dict_tag in dict_list:
             for image_uuid in dict_:
-                dict_[image_uuid] = [
-                    val
-                    for val in dict_[image_uuid]
-                    if val.get('class', None) in species_set_
-                ]
+                temp = []
+                for val in dict_[image_uuid]:
+                    if val.get('class', None) not in species_set_:
+                        continue
+                    if ignore_filter_func(val):
+                        continue
+                    temp.append(val)
+                dict_[image_uuid] = temp
 
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
@@ -795,15 +805,8 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     return match_list
 
 
-def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5,
-                    gt_ignore_filter_func=None, **kwargs):
+def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
     total = 0.0
-
-    def gt_ignore_filter_identity_func(*args, **kwargs):
-        return False
-
-    if gt_ignore_filter_func is None:
-        gt_ignore_filter_func = gt_ignore_filter_identity_func
 
     interest_species_set = set([])
     species_set = kwargs.get('species_set', None)
@@ -822,9 +825,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5,
         for gt in gt_dict[image_uuid]:
             species = gt['class']
             interest = gt['interest']
-            if gt_ignore_filter_func(gt):
-                gt_list_.append(gt)
-            elif species in interest_species_set and not interest:
+            if species in interest_species_set and not interest:
                 gt_list_.append(gt)
             else:
                 gt_list.append(gt)
@@ -873,11 +874,15 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
 
 
 def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
-                                         test_gid_list=None, **kwargs):
+                                         test_gid_list=None, ignore_filter_func=None,
+                                         **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    if ignore_filter_func is None:
+        ignore_filter_func = _ignore_filter_identity_func
 
     print('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
@@ -896,11 +901,14 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
         ]
         for dict_, dict_tag in dict_list:
             for image_uuid in dict_:
-                dict_[image_uuid] = [
-                    val
-                    for val in dict_[image_uuid]
-                    if val.get('class', None) in species_set_
-                ]
+                temp = []
+                for val in dict_[image_uuid]:
+                    if val.get('class', None) not in species_set_:
+                        continue
+                    if ignore_filter_func(val):
+                        continue
+                    temp.append(val)
+                dict_[image_uuid] = temp
 
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
@@ -957,7 +965,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
 @register_ibs_method
 def localizer_precision_recall(ibs, config_dict=None, output_path=None,
-                               test_gid_list=None, gt_ignore_filter_func=None,
+                               test_gid_list=None, ignore_filter_func=None,
                                overwrite_config_keys=False,
                                **kwargs):
     if config_dict is None:
@@ -1320,10 +1328,10 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
                 if overwrite_config_keys or 'test_gid_list' not in config_:
                     config_['test_gid_list'] = test_gid_list
 
-        if gt_ignore_filter_func is not None:
+        if ignore_filter_func is not None:
             for config_ in config_list:
-                if overwrite_config_keys or 'gt_ignore_filter_func' not in config_:
-                    config_['gt_ignore_filter_func'] = gt_ignore_filter_func
+                if overwrite_config_keys or 'ignore_filter_func' not in config_:
+                    config_['ignore_filter_func'] = ignore_filter_func
 
         ibs.localizer_precision_recall_algo_display(
             config_list,

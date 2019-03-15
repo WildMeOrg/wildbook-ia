@@ -1334,7 +1334,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
 
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
-                              thresh=0.02, **kwargs):
+                              thresh=0.02, margin=32, min_bbox_coverage=0.5, **kwargs):
     species_set = set([target_species])
     template = (
         [
@@ -1377,19 +1377,19 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
-    def gt_ignore_filter_func(gt, *args, **kwargs):
-        print(gt)
+    def ignore_filter_func(annot, *args, **kwargs):
+        print(annot)
         print(args)
         print(kwargs)
         ut.embed()
 
-    # All Positive Tiles (All)
-    config_dict = {'vulcan-gt-positive-all': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
+    # # All Positive Tiles (All)
+    # config_dict = {'vulcan-gt-positive-all': template}
+    # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
 
     # All Positive Tiles (Margin)
     config_dict = {'vulcan-gt-positive-margin': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, gt_ignore_filter_func=gt_ignore_filter_func)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func)
 
     # All WIC-Passing Tiles (All)
     config_dict = {'vulcan-wic-passing-all': template}
@@ -1397,7 +1397,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
     # All WIC-Passing Tiles (Margin)
     config_dict = {'vulcan-wic-passing-margin': template}
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True, gt_ignore_filter_func=gt_ignore_filter_func)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_test_gid_list=True, ignore_filter_func=ignore_filter_func)
 
     # # All Negative Tiles
     # config_dict = {'vulcan-gt-negative': template}
