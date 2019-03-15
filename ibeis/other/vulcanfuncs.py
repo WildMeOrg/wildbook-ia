@@ -1338,39 +1338,33 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
                               thresh=0.02, margin=32, min_bbox_coverage=0.5, **kwargs):
 
     def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
-        try:
-            from ibeis.other.detectfuncs import general_intersection_over_union
-            print(annot)
-            margin = float(margin)
-            gid = annot.get('gid', None)
-            assert gid is not None
-            w, h = ibs.get_image_sizes(gid)
-            margin_percent_w = margin / w
-            margin_percent_h = margin / h
-            xtl = margin_percent_w
-            ytl = margin_percent_h
-            xbr = 1.0 - margin_percent_w
-            ybr = 1.0 - margin_percent_h
-            width = xbr - xtl
-            height = ybr - ytl
-            center = {
-                'xtl'    : xtl,
-                'ytl'    : ytl,
-                'xbr'    : xbr,
-                'ybr'    : ybr,
-                'width'  : width,
-                'height' : height,
-            }
-            print(center)
-            intersection, union = general_intersection_over_union(annot, center, return_components=True)
-            area = annot['width'] * annot['height']
-            if area <= 0:
-                return True
-            overlap = intersection / area
-            flag = overlap < min_bbox_coverage
-            print(area, overlap, flag)
-        except:
-            ut.embed()
+        from ibeis.other.detectfuncs import general_intersection_over_union
+        margin = float(margin)
+        gid = annot.get('gid', None)
+        assert gid is not None
+        w, h = ibs.get_image_sizes(gid)
+        margin_percent_w = margin / w
+        margin_percent_h = margin / h
+        xtl = margin_percent_w
+        ytl = margin_percent_h
+        xbr = 1.0 - margin_percent_w
+        ybr = 1.0 - margin_percent_h
+        width = xbr - xtl
+        height = ybr - ytl
+        center = {
+            'xtl'    : xtl,
+            'ytl'    : ytl,
+            'xbr'    : xbr,
+            'ybr'    : ybr,
+            'width'  : width,
+            'height' : height,
+        }
+        intersection, union = general_intersection_over_union(annot, center, return_components=True)
+        area = annot['width'] * annot['height']
+        if area <= 0:
+            return True
+        overlap = intersection / area
+        flag = overlap < min_bbox_coverage
         return flag
 
     species_set = set([target_species])
