@@ -448,7 +448,9 @@ def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={
     for gid, aid in zip(gid_list, aid_list):
         width, height = ibs.get_image_sizes(gid)
 
-        bbox = ibs.get_annot_bboxes(aid)
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        reference_tile_gid = gid if is_tile else None
+        bbox = ibs.get_annot_bboxes(aid, reference_tile_gid=reference_tile_gid)
         theta = ibs.get_annot_thetas(aid)
 
         # Transformation matrix
@@ -2715,6 +2717,10 @@ def _canonical_get_boxes(ibs, gid_list, species):
     bbox_set = []
     zipped = zip(aid_list, flag_list, part_rowids_list, part_types_list)
     for aid, flag, part_rowid_list, part_type_list in zipped:
+        gid = ibs.get_annot_gids(aid)
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        reference_tile_gid = gid if is_tile else None
+
         part_rowid_ = None
         if flag:
             for part_rowid, part_type in zip(part_rowid_list, part_type_list):
@@ -2723,7 +2729,7 @@ def _canonical_get_boxes(ibs, gid_list, species):
                     part_rowid_ = part_rowid
 
         if part_rowid_ is not None:
-            axtl, aytl, aw, ah = ibs.get_annot_bboxes(aid)
+            axtl, aytl, aw, ah = ibs.get_annot_bboxes(aid, reference_tile_gid=reference_tile_gid)
             axbr, aybr = axtl + aw, aytl + ah
             pxtl, pytl, pw, ph = ibs.get_part_bboxes(part_rowid_)
             pxbr, pybr = pxtl + pw, pytl + ph
@@ -3240,9 +3246,12 @@ def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
             image = _resize(image, t_width=600, verbose=False)
             height_, width_, channels_ = image.shape
 
+            is_tile = ibs.get_vulcan_image_tile_flags(test_gid)
+            reference_tile_gid = test_gid if is_tile else None
+
             for test_aid in manifest_dict[test_gid]:
                 label, prediction = manifest_dict[test_gid][test_aid]
-                bbox = ibs.get_annot_bboxes(test_aid)
+                bbox = ibs.get_annot_bboxes(test_aid, reference_tile_gid=reference_tile_gid)
                 xtl, ytl, width, height = bbox
                 xbr = xtl + width
                 ybr = ytl + height
@@ -3383,11 +3392,13 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        reference_tile_gid = gid if is_tile else None
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
+        bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=reference_tile_gid)
         gt_list = []
-        for aid in aid_list:
-            bbox = ibs.get_annot_bboxes(aid)
+        for aid, bbox in zip(aid_list, bbox_list):
             temp = {
                 'gid'        : gid,
                 'xtl'        : bbox[0] / width,

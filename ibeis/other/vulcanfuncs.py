@@ -983,12 +983,10 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 
 @register_ibs_method
 def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
-    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
-
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-    test_gid_list = ibs.get_imageset_gids(test_imgsetid)
-
-    test_tile_list = list(set(tile_list) & set(test_gid_list))
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_tile_list = list(test_gid_set)
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
 
@@ -1280,12 +1278,10 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
         output_path = join(ibs.get_cachedir(), 'tilemasks_combined')
         ut.ensuredir(output_path)
 
-    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
-
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-    test_gid_list = ibs.get_imageset_gids(test_imgsetid)
-
-    test_tile_list = list(set(tile_list) & set(test_gid_list))
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_tile_list = list(test_gid_set)
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
     positive_gid_set = set(ibs.get_imageset_gids(pid))
@@ -1347,6 +1343,42 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     model_weight_filepath, model_config_filepath = values
 
     return model_weight_filepath, model_config_filepath
+
+
+@register_ibs_method
+def vulcan_localizer_validate(ibs, target_species='elephant_savanna', **kwargs):
+    species_set = set([target_species])
+    config_dict = {
+        'vulcan': (
+            [
+                {'label': 'Elephant NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+                {'label': 'Elephant NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+                {'label': 'Elephant NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+                {'label': 'Elephant NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+                {'label': 'Elephant NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+                {'label': 'Elephant NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+                {'label': 'Elephant NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+                {'label': 'Elephant NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+                {'label': 'Elephant NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+                {'label': 'Elephant NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+                {'label': 'Elephant NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            ],
+            {},
+        ),
+    }
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
+
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list)
+
+    # random.shuffle(test_gid_list)
+    # gids_ = gids_[:30]
+    # config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_skunk_v0', 'weight_filepath' : 'spotted_skunk_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.62}
+    # ibs.visualize_ground_truth(config, gid_list=gids_)
+    # ibs.visualize_predictions(config, gid_list=gids_)
 
 
 # def __delete_old_tiles(ibs, ):
