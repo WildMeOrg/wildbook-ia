@@ -233,7 +233,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     tup1 = general_identify_operating_point(conf_list, x_list, y_list, target=target)
 
     tup2 = None
-    print('Using target_recall: %s' % (target_recall, ))
+    # print('Using target_recall: %s' % (target_recall, ))
     if target_recall is not None:
         for x, y, conf in sorted(zip(x_list, y_list, conf_list)):
             if target_recall <= x and not np.isnan(conf):
@@ -685,6 +685,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
 def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
                                     **kwargs):
+    ut.embed()
+
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
