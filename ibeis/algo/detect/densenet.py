@@ -181,7 +181,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
 
 class StratifiedSampler(torch.utils.data.sampler.Sampler):
-    def __init__(self, dataset, phase):
+    def __init__(self, dataset, phase, multiplier=1.0):
         self.dataset = dataset
         self.phase = phase
         self.training = self.phase == 'train'
@@ -198,20 +198,27 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
             for cls in self.classes
         }
         self.min = min(self.counts.values())
+        self.min = int(np.around(multiplier * self.min))
 
         if self.training:
-            self.total = self.min * len(self.classes)
+            self.total = 0
+            for cls in self.indices:
+                num_in_class = len(self.indices[cls])
+                num_samples = min(self.min, num_in_class)
+                self.total += num_samples
         else:
             self.total = len(self.labels)
 
-        args = (self.phase, len(self.labels), len(self.classes), self.min, self.total, )
-        print('Initialized Sampler for %r (sampling %d for %d classes | min %d per class, %d total)' % args)
+        args = (self.phase, len(self.labels), len(self.classes), self.min, self.total, multiplier, )
+        print('Initialized Sampler for %r (sampling %d for %d classes | min %d per class, %d total, %0.02f multiplier)' % args)
 
     def __iter__(self):
         if self.training:
             ret_list = []
             for cls in self.indices:
-                ret_list += random.sample(self.indices[cls], self.min)
+                num_in_class = len(self.indices[cls])
+                num_samples = min(self.min, num_in_class)
+                ret_list += random.sample(self.indices[cls], num_samples)
             random.shuffle(ret_list)
         else:
             ret_list = range(self.total)
@@ -357,7 +364,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, **kwargs):
+def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, sample_multiplier=1.0, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -377,7 +384,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, *
     dataloaders = {
         phase: torch.utils.data.DataLoader(
             datasets[phase],
-            sampler=StratifiedSampler(datasets[phase], phase),
+            sampler=StratifiedSampler(datasets[phase], phase, multiplier=sample_multiplier),
             batch_size=batch_size,
             num_workers=batch_size // 8,
             pin_memory=using_gpu

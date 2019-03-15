@@ -717,6 +717,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
        >>>     'vulcan-d3e8bf43-boost1': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
        >>>     'vulcan-d3e8bf43-boost2': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
        >>>     'vulcan-d3e8bf43-boost3': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
+       >>>     'vulcan-d3e8bf43-boost4': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip',
        >>> }
        >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
        >>>
@@ -919,7 +920,9 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
                 dest_path=data_path,
                 skip_rate_neg=0.0,
             )
-            weights_path = densenet.train(extracted_path, output_path, flip=True, rotate=20, shear=20, class_weights=class_weights)
+            weights_path = densenet.train(extracted_path, output_path, flip=True, rotate=20,
+                                          shear=20, class_weights=class_weights,
+                                          sample_multiplier=2.0)
             weights_path_list.append(weights_path)
 
         latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
@@ -1101,24 +1104,27 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
                                          min_cumulative_percentage=0.025, thresh=0.27,
                                          **kwargs):
-    def _render(gid_list, confidence_list, invert=False):
-        num_errors = 0
+    def _render(gid_list, flag_list, invert=False):
+        if invert:
+            flag_list = [
+                not flag
+                for flag in flag_list
+            ]
+        tile_list = ut.compress(gid_list, flag_list)
+        num_errors = len(tile_list)
+
         canvas = np.zeros((256, 256), dtype=np.float32)
-        for tile, confidence in zip(gid_list, confidence_list):
-            flag = confidence >= thresh
-            if invert:
-                flag = not flag
-            if flag:
-                num_errors += 1
-                aid_list = ibs.get_image_aids(tile)
-                aid_list = sorted(aid_list)
-                aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
-                bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
-                for bbox in bbox_list:
-                    xtl, ytl, w, h = bbox
-                    xbr = xtl + w
-                    ybr = ytl + h
-                    canvas[ytl: ybr, xtl: xbr] += 1
+        for tile in tile_list:
+            aid_list = ibs.get_image_aids(tile)
+            aid_list = sorted(aid_list)
+            aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+            bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile)
+            for bbox in bbox_list:
+                xtl, ytl, w, h = bbox
+                xbr = xtl + w
+                ybr = ytl + h
+                canvas[ytl: ybr, xtl: xbr] += 1
+
         max_canvas = np.max(canvas)
         canvas = canvas / max_canvas
         canvas = np.sqrt(canvas)
@@ -1138,21 +1144,39 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
         cumulative_area >= int(np.floor(total_area * min_cumulative_percentage))
         for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
     ]
-    positive_test_gid_list = sorted(ut.compress(test_gid_list, flag_list))
-    negative_test_gid_list = sorted(set(test_gid_list) - set(positive_test_gid_list))
+    gt_positive_test_gid_list = sorted(ut.compress(test_gid_list, flag_list))
+    gt_negative_test_gid_list = sorted(set(test_gid_list) - set(gt_positive_test_gid_list))
 
-    model_tag = 'vulcan-d3e8bf43-boost2'
+    model_tag = 'vulcan-d3e8bf43-boost4'
     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip'
-    positive_confidence_list = ibs.vulcan_wic_test(positive_test_gid_list, model_tag=model_tag)
-    negative_confidence_list = ibs.vulcan_wic_test(negative_test_gid_list, model_tag=model_tag)
+    gt_positive_confidence_list = ibs.vulcan_wic_test(gt_positive_test_gid_list, model_tag=model_tag)
+    gt_negative_confidence_list = ibs.vulcan_wic_test(gt_negative_test_gid_list, model_tag=model_tag)
+    gt_positive_flag_list = [
+        gt_positive_confidence >= thresh
+        for gt_positive_confidence in gt_positive_confidence_list
+    ]
+    gt_negative_flag_list = [
+        gt_negative_confidence >= thresh
+        for gt_negative_confidence in gt_negative_confidence_list
+    ]
 
-    canvas, max_canvas, num_errors = _render(positive_test_gid_list, positive_confidence_list, invert=True)
-    canvas_filename = 'visualize_errors_location_positive_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas, max_canvas, num_errors = _render(gt_positive_test_gid_list, gt_positive_flag_list, invert=False)
+    canvas_filename = 'visualize_errors_location_gt_positive_pred_positive_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
-    canvas, max_canvas, num_errors = _render(negative_test_gid_list, negative_confidence_list, invert=False)
-    canvas_filename = 'visualize_errors_location_negative_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas, max_canvas, num_errors = _render(gt_positive_test_gid_list, gt_positive_flag_list, invert=True)
+    canvas_filename = 'visualize_errors_location_gt_positive_pred_negative_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas_filepath = join(canvas_path, canvas_filename)
+    cv2.imwrite(canvas_filepath, canvas)
+
+    canvas, max_canvas, num_errors = _render(gt_negative_confidence_list, gt_negative_flag_list, invert=False)
+    canvas_filename = 'visualize_errors_location_gt_negative_pred_positive_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
+    canvas_filepath = join(canvas_path, canvas_filename)
+    cv2.imwrite(canvas_filepath, canvas)
+
+    canvas, max_canvas, num_errors = _render(gt_negative_confidence_list, gt_negative_flag_list, invert=True)
+    canvas_filename = 'visualize_errors_location_gt_negative_pred_negative_max_%d_errors_%d.png' % (int(max_canvas), num_errors, )
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, canvas)
 
