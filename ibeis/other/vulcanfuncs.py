@@ -1021,7 +1021,8 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
         ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
                                                                 config_list=config_list,
                                                                 offset_black=offset_black,
-                                                                target_recall=target_recall)
+                                                                target_recall=target_recall,
+                                                                force_target_recall=True)
 
 
 # @register_ibs_method

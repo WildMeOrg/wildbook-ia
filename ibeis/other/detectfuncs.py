@@ -204,7 +204,8 @@ def general_identify_operating_point(conf_list, x_list, y_list, target=(1.0, 1.0
 
 def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
                            marker='o', plot_point=True, interpolate=True,
-                           target=(1.0, 1.0), target_recall=None, **kwargs):
+                           target=(1.0, 1.0), target_recall=None,
+                           force_target_recall=False, **kwargs):
     import matplotlib.pyplot as plt
     zipped = list(sorted(zip(x_list, y_list, conf_list)))
     x_list = [_[0] for _ in zipped]
@@ -230,7 +231,6 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
         ap = np.trapz(y_list, x=x_list)
 
     tup1 = general_identify_operating_point(conf_list, x_list, y_list, target=target)
-    best_conf_list, best_x_list, best_y_list, best_length = tup1
 
     tup2 = None
     print('Using target_recall: %s' % (target_recall, ))
@@ -240,6 +240,10 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                 tup2 = [conf], [x], [y], None
                 break
 
+    if force_target_recall and tup2 is not None:
+        tup1 = tup2
+
+    best_conf_list, best_x_list, best_y_list, best_length = tup1
     if len(best_conf_list) > 1:
         print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
 
@@ -1745,6 +1749,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                         figsize=(20, 20),
                                                         config_list=None,
                                                         target_recall=None,
+                                                        force_target_recall=False,
                                                         offset_black=0):
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -1794,6 +1799,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                          negative_imageset_id=negative_imageset_id,
                                                          test_gid_list=test_gid_list,
                                                          target_recall=target_recall,
+                                                         force_target_recall=force_target_recall,
                                                          **config)
         for color, config in zip(color_list, config_list)
     ]
