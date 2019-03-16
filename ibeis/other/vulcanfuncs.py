@@ -1021,75 +1021,70 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
                                                                 force_target_recall=True)
 
 
-# @register_ibs_method
-# def vulcan_wic_validate_image(ibs, strategy='avg', target_species='elephant_savanna', **kwargs):
-#     strategy = strategy.lower()
-#     assert strategy in ['avg', 'min', 'max', 'thresh']
+@register_ibs_method
+def vulcan_wic_validate_image(ibs, **kwargs):
+    canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
-#     canvas_path = abspath(expanduser(join('~', 'Desktop')))
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
+    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_gid_list)
 
-#     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
-#     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-#     test_gid_set = all_tile_set & test_gid_set
-#     test_gid_list = list(test_gid_set)
-#     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_gid_list)
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list)
+    cumulative_area_list, total_area_list, flag_list = values
 
-#     values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
-#     cumulative_area_list, total_area_list, flag_list = values
+    model_tag = 'vulcan-d3e8bf43-boost4'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip'
+    confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
 
-#     model_tag = 'vulcan-d3e8bf43-boost4'
-#     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip'
-#     confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
-#     confidence_list = []
+    ancestor_gt_dict = {}
+    for test_gid, ancestor_gid, flag, confidence in zip(test_gid_list, ancestor_gid_list, flag_list, confidence_list):
+        if ancestor_gid not in ancestor_gt_dict:
+            ancestor_gt_dict[ancestor_gid] = {}
+        assert test_gid not in ancestor_gt_dict[ancestor_gid]
+        ancestor_gt_dict[ancestor_gid][test_gid] = (flag, confidence, )
 
-#     ancestor_gt_dict = {}
-#     for ancestor_gid, flag in zip(ancestor_gid_list, flag_list):
-#         flag_ = ancestor_gt_dict.get(ancestor_gid, False)
-#         ancestor_gt_dict[ancestor_gid] = flag_ or flag
+    # gid_list, tile_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
 
-#     confidence_list = []
-#     for
+    # test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    # gid_list = list(set(gid_list) & test_gid_set)
 
-#     gid_list, tile_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
+    # config = {
+    #     'tile_width':   256,
+    #     'tile_height':  256,
+    #     'tile_overlap': 64,
+    # }
+    # tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
+    # tile_list = ut.flatten(tiles_list)
 
-#     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-#     gid_list = list(set(gid_list) & test_gid_set)
+    # aids_list = ibs.get_image_aids(gid_list)
+    # length_list = list(map(len, aids_list))
+    # flag_list = [0 < length for length in length_list]
 
-#     config = {
-#         'tile_width':   256,
-#         'tile_height':  256,
-#         'tile_overlap': 64,
-#     }
-#     tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-#     tile_list = ut.flatten(tiles_list)
+    # confidences_list = []
+    # for tile_list in tiles_list:
+    #     confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
+    #     confidences_list.append(confidence_list)
 
-#     aids_list = ibs.get_image_aids(gid_list)
-#     length_list = list(map(len, aids_list))
-#     flag_list = [0 < length for length in length_list]
+    # best_accuracy = 0.0
+    # best_thresh = None
+    # for index in range(100):
+    #     confidence_thresh = index / 100.0
 
-#     confidences_list = []
-#     for tile_list in tiles_list:
-#         confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
-#         confidences_list.append(confidence_list)
+    #     correct = 0
+    #     for flag, confidence_list in zip(flag_list, confidences_list):
+    #         # confidence = sum(confidence_list) / len(confidence_list)
+    #         confidence = np.max(confidence_list)
+    #         flag_ = confidence >= confidence_thresh
+    #         correct += 1 if flag == flag_ else 0
 
-#     best_accuracy = 0.0
-#     best_thresh = None
-#     for index in range(100):
-#         confidence_thresh = index / 100.0
+    #     accuracy = correct / len(flag_list)
+    #     if accuracy > best_accuracy:
+    #         best_accuracy = accuracy
+    #         best_thresh = confidence_thresh
 
-#         correct = 0
-#         for flag, confidence_list in zip(flag_list, confidences_list):
-#             # confidence = sum(confidence_list) / len(confidence_list)
-#             confidence = np.max(confidence_list)
-#             flag_ = confidence >= confidence_thresh
-#             correct += 1 if flag == flag_ else 0
-
-#         accuracy = correct / len(flag_list)
-#         if accuracy > best_accuracy:
-#             best_accuracy = accuracy
-#             best_thresh = confidence_thresh
-
-#     return best_thresh, best_accuracy
+    # return best_thresh, best_accuracy
 
 
 @register_ibs_method
@@ -1406,6 +1401,10 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     # wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
+    # Precompute
+    from ibeis.other.detectfuncs import localizer_parse_pred
+    _ = localizer_parse_pred(ibs, test_gid_list=list(all_tile_set), **config)
+    # Visualize
     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
