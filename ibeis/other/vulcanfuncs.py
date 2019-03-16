@@ -1037,8 +1037,8 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 #     values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
 #     cumulative_area_list, total_area_list, flag_list = values
 
-#     model_tag = 'vulcan-d3e8bf43-boost3'
-#     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+#     model_tag = 'vulcan-d3e8bf43-boost4'
+#     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip'
 #     confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
 #     confidence_list = []
 
@@ -1094,7 +1094,7 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
 @register_ibs_method
 def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
-                                         thresh=0.02, **kwargs):
+                                         thresh=0.024, **kwargs):
     def _render(gid_list, flag_list, invert=False):
         if invert:
             flag_list = [
@@ -1135,7 +1135,7 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
     gt_positive_test_gid_list = sorted(ut.compress(test_gid_list, flag_list))
     gt_negative_test_gid_list = sorted(set(test_gid_list) - set(gt_positive_test_gid_list))
 
-    model_tag = 'vulcan-d3e8bf43-boost3'
+    model_tag = 'vulcan-d3e8bf43-boost4'
     densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
     gt_positive_confidence_list = ibs.vulcan_wic_test(gt_positive_test_gid_list, model_tag=model_tag)
     gt_negative_confidence_list = ibs.vulcan_wic_test(gt_negative_test_gid_list, model_tag=model_tag)
@@ -1314,8 +1314,8 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     negative_gid_set = negative_gid_set & train_gid_set
     negative_gid_list = list(negative_gid_set)
 
-    model_tag = 'vulcan-d3e8bf43-boost3'
-    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+    model_tag = 'vulcan-d3e8bf43-boost4'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip'
     confidence_list = ibs.vulcan_wic_test(negative_gid_list, model_tag=model_tag)
     zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
 
@@ -1335,7 +1335,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
 
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
-                              thresh=0.02, margin=32, min_bbox_coverage=0.5, **kwargs):
+                              thresh=0.024, margin=32, min_bbox_coverage=0.5, **kwargs):
 
     def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
         from ibeis.other.detectfuncs import general_intersection_over_union
@@ -1395,8 +1395,8 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
     # gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
 
-    model_tag = 'vulcan-d3e8bf43-boost3'
-    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+    model_tag = 'vulcan-d3e8bf43-boost4'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip'
     all_test_confidence_list = ibs.vulcan_wic_test(all_test_gid_list, model_tag=model_tag)
     all_test_flag_list = [
         all_test_confidence >= thresh
@@ -1411,13 +1411,13 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
     ignore_filter_func_ = partial(ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
-    # # All Positive Tiles (All)
-    # config_dict = {'vulcan-gt-positive-all': template}
-    # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
+    # All Positive Tiles (All)
+    config_dict = {'vulcan-gt-positive-all': template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
 
-    # # All Positive Tiles (Margin)
-    # config_dict = {'vulcan-gt-positive-margin-%s' % (margin, ): template}
-    # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_)
+    # All Positive Tiles (Margin)
+    config_dict = {'vulcan-gt-positive-margin-%s' % (margin, ): template}
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_)
 
     # All WIC-Passing Tiles (All)
     config_dict = {'vulcan-wic-passing-all': template}
