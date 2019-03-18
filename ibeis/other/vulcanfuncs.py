@@ -714,6 +714,8 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
        >>>     'vulcan-d3e8bf43-boost2': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
        >>>     'vulcan-d3e8bf43-boost3': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
        >>>     'vulcan-d3e8bf43-boost4': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip',
+       >>>     'vulcan-d3e8bf43-boost5': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.5.zip',
+       >>>     'vulcan-d3e8bf43-boost6': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.6.zip',
        >>> }
        >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
        >>>
@@ -788,7 +790,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
     test_tile_list = list(negative_gid_set)
 
     class_weights = {
-        'positive': 2.0,
+        'positive': 1.0,
         'negative': 1.0,
     }
 
@@ -918,7 +920,7 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
             )
             weights_path = densenet.train(extracted_path, output_path, flip=True, rotate=20,
                                           shear=20, class_weights=class_weights,
-                                          sample_multiplier=2.0)
+                                          sample_multiplier=1.0)
             weights_path_list.append(weights_path)
 
         latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
