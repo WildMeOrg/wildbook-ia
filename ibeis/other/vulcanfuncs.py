@@ -426,13 +426,16 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
+def vulcan_compute_visual_clusters(ibs, num_clusters=150, n_neighbors=500,
                                    max_images=None,
                                    min_pca_variance=0.9,
                                    cleanup_memory=True,
-                                   all_tile_list=None, **kwargs):
+                                   all_tile_list=None,
+                                   reclassify_outliers=True, **kwargs):
     from sklearn.decomposition import PCA
     import numpy as np
+    import scipy
+
     try:
         import hdbscan
         import umap
@@ -562,12 +565,73 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
     else:
         assignment_dict = ut.load_cPkl(cluster_cache_filepath)
 
-    return hashstr, assignment_dict
+    cluster_center_dict = {}
+    cluster_dict = {}
+    values_list = list(assignment_dict.items())
+    minx, miny = np.inf, np.inf
+    maxx, maxy = -np.inf, -np.inf
+    for tile_id, (cluster, embedding) in values_list:
+        cluster = int(cluster)
+        x, y = embedding
+        minx = min(minx, x)
+        miny = min(miny, y)
+        maxx = max(maxx, x)
+        maxy = max(maxy, y)
+
+        if cluster not in cluster_dict:
+            cluster_dict[cluster] = []
+        if cluster not in cluster_center_dict:
+            cluster_center_dict[cluster] = [0.0, 0.0, 0.0]
+
+        value = (tile_id, embedding)
+        cluster_dict[cluster].append(value)
+        cluster_center_dict[cluster][0] += x
+        cluster_center_dict[cluster][1] += y
+        cluster_center_dict[cluster][2] += 1
+
+    if reclassify_outliers:
+        for cluster in cluster_center_dict:
+            total = cluster_center_dict[cluster][2]
+            cluster_center_dict[cluster][0] = cluster_center_dict[cluster][0] / total
+            cluster_center_dict[cluster][1] = cluster_center_dict[cluster][1] / total
+
+        centers = []
+        for cluster in sorted(cluster_center_dict.keys()):
+            if cluster >= 0:
+                center = cluster_center_dict[cluster]
+                centers.append(center[:2])
+        centers = np.vstack(centers)
+
+        outliers_list = cluster_dict.pop(-1)
+        tile_list = []
+        embeddings = []
+        for outlier in outliers_list:
+            tile_id, embedding = outlier
+            tile_list.append(tile_id)
+            embeddings.append(embedding)
+        embeddings = np.vstack(embeddings)
+
+        distances = scipy.spatial.distance.cdist(embeddings, centers)
+        clusters = np.argmin(distances, axis=1)
+        clusters = list(map(int, clusters))
+        zipped = list(zip(tile_list, embeddings, clusters))
+        assert len(zipped) == len(embeddings)
+        for tile_id, embedding, cluster in tqdm.tqdm(zipped):
+            assert cluster >= -1
+            assert cluster in cluster_dict
+            value = (tile_id, embedding)
+            previous = len(cluster_dict[cluster])
+            cluster_dict[cluster].append(value)
+            assignment_dict[tile_id] = (cluster, embedding)
+            assert len(cluster_dict[cluster]) == previous + 1
+
+    limits = minx, maxx, miny, maxy
+    return hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits
 
 
 @register_ibs_method
-def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
-                              examples=50, **kwargs):
+def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
+                              examples=50, reclassify_outliers=True, **kwargs):
     """
     for n_neighbors in range(5, 61, 5):
         for num_clusters in range(10, 51, 10):
@@ -576,34 +640,28 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
     import matplotlib.pyplot as plt
     import plottool as pt
     import random
+    import cv2
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 2.5
+    thickness = 5
 
     values = ibs.vulcan_compute_visual_clusters(num_clusters=num_clusters,
                                                 n_neighbors=n_neighbors,
                                                 **kwargs)
-    hashstr, assignment_dict = values
-
-    cluster_dict = {}
-    values_list = list(assignment_dict.items())
-    minx, miny = np.inf, np.inf
-    maxx, maxy = -np.inf, -np.inf
-    for tile_id, (cluster, embedding) in values_list:
-        x, y = embedding
-        minx = min(minx, x)
-        miny = min(miny, y)
-        maxx = max(maxx, x)
-        maxy = max(maxy, y)
-        if cluster not in cluster_dict:
-            cluster_dict[cluster] = []
-        value = (tile_id, embedding)
-        cluster_dict[cluster].append(value)
+    hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
+    minx, maxx, miny, maxy = limits
 
     cluster_list = sorted(cluster_dict.keys())
-    color_list_ = [(0.2, 0.2, 0.2)]
+    if reclassify_outliers:
+        color_list_ = []
+    else:
+        color_list_ = [(0.2, 0.2, 0.2)]
     color_list = pt.distinct_colors(len(cluster_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
-    fig_ = plt.figure(figsize=(15, 15), dpi=400)  # NOQA
-    axes = plt.subplot(111)
+    fig_ = plt.figure(figsize=(30, 15), dpi=400)  # NOQA
+    axes = plt.subplot(121)
 
     axes.grid(False, which='major')
     axes.grid(False, which='minor')
@@ -625,6 +683,8 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
     m_list = []
     m_list_ = []
 
+    text_width_ = 110
+    max_text_width = 0.0
     canvas_list = []
     for cluster, color in zip(cluster_list, color_list):
         print('Processing cluster %d' % (cluster, ))
@@ -665,12 +725,31 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
         color = np.around(color * 255.0).astype(np.uint8)
         vertical_color = np.zeros((densenet.INPUT_SIZE, 10, 3), dtype=np.uint8)
         vertical_color += color
-        canvas_ = np.hstack([vertical_color] + thumbnail_list + [vertical_color])
+
+        text = '%d' % (cluster, )
+        text_width, text_height = cv2.getTextSize(text, font, scale, thickness)[0]
+        max_text_width = max(text_width, max_text_width)
+        prefix_vertical_color = np.zeros((densenet.INPUT_SIZE, text_width_, 3), dtype=np.uint8)
+        prefix_vertical_color += color
+
+        canvas_ = np.hstack([prefix_vertical_color, vertical_color] + thumbnail_list + [vertical_color])
+        hoffset = (text_width_ - text_width) // 2 + 5
+        voffset = (densenet.INPUT_SIZE + text_height) // 2 + 5
+        cv2.putText(canvas_, text, (hoffset, voffset), font, scale, (255, 255, 255), thickness=thickness)
 
         horizontal_color = np.zeros((10, canvas_.shape[1], 3), dtype=np.uint8)
         horizontal_color += color
         canvas = np.vstack([horizontal_color, canvas_, horizontal_color])
+
         canvas_list.append(canvas)
+
+    print('Suggest use max_text_width = %d' % (max_text_width, ))
+    args = (hashstr, num_clusters, n_neighbors, reclassify_outliers, )
+
+    canvas = np.vstack(canvas_list)
+    canvas_filename = 'vulcan-wic-clusters-%s-%s-%s-outliers-%s-examples.png' % args
+    canvas_filepath = abspath(expanduser(join('~', 'Desktop', canvas_filename)))
+    cv2.imwrite(canvas_filepath, canvas)
 
     zipped = list(zip([True] * len(x_list), x_list, y_list, c_list, a_list, m_list))
     zipped_ = list(zip([False] * len(x_list_), x_list_, y_list_, c_list_, a_list_, m_list_))
@@ -684,14 +763,47 @@ def vulcan_visualize_clusters(ibs, num_clusters=50, n_neighbors=50,
             continue
         plt.plot([x], [y], color=c, alpha=a, marker=m, linestyle='None')
 
-    canvas = np.vstack(canvas_list)
+    for cluster, color in zip(cluster_list, color_list):
+        center = cluster_center_dict[cluster]
+        x, y = center[:2]
+        plt.plot([x], [y], color=color, marker='*', linestyle='None',
+                 markersize=10, markerfacecolor=color, markeredgewidth=1.0,
+                 markeredgecolor=(1.0, 1.0, 1.0))
+        label = '%d' % (cluster, )
+        plt.text(x, y, label, horizontalalignment='center', verticalalignment='center', fontsize=3)
 
-    args = (hashstr, num_clusters, n_neighbors, )
-    canvas_filename = 'vulcan-wic-clusters-%s-%s-%s-examples.png' % args
-    canvas_filepath = abspath(expanduser(join('~', 'Desktop', canvas_filename)))
-    cv2.imwrite(canvas_filepath, canvas)
+    axes = plt.subplot(122)
 
-    fig_filename = 'vulcan-wic-clusters-%s-%s-%s-plot.png' % args
+    plt.xscale('log')
+    plt.ylabel('Cluster Number')
+    plt.title('Number of tiles by cluster\nHashed bars indicate reclassified tiles using NN')
+
+    width = 0.35
+    maxx = 0
+    for version in [0, 1]:
+        value_list = []
+        for index, (cluster, color) in enumerate(zip(cluster_list, color_list)):
+            original = cluster_center_dict[cluster][2]
+            used = len(cluster_dict.get(cluster, []))
+            reclassified = used - original
+            if version == 0:
+                value = used
+                left = 0
+            else:
+                value = reclassified
+                left = used
+                maxx = max(value + left, maxx)
+            bar_ = plt.barh([index], [value], width, color=color, left=left)
+            if version == 1:
+                for temp in bar_:
+                    temp.set_hatch('////')
+
+    axes.set_autoscalex_on(False)
+    axes.set_autoscaley_on(False)
+    axes.set_xlim([0, int(maxx * 1.1)])
+    axes.set_ylim([-1, len(cluster_list)])
+
+    fig_filename = 'vulcan-wic-clusters-%s-%s-%s-outliers-%s-plot.png' % args
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
@@ -1025,7 +1137,7 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
 @register_ibs_method
 def vulcan_wic_validate_image(ibs, **kwargs):
-    canvas_path = abspath(expanduser(join('~', 'Desktop')))
+    canvas_path = abspath(expanduser(join('~', 'Desktop')))  # NOQA
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1167,6 +1279,199 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
+def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
+                                        min_cumulative_percentage=0.025,
+                                        thresh=0.024, **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
+    cumulative_area_list, total_area_list, flag_list = values
+    area_percentage_list = [
+        cumulative_area / total_area
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
+
+    model_tag = 'vulcan-d3e8bf43-boost4'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+    confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
+
+    color_list = pt.distinct_colors(4, randomize=False)
+
+    # Coverage
+    print('Plotting coverage')
+    plt.subplot(211)
+
+    bucket_size = 5.0
+    percentage_dict = {}
+    for test_gid, flag, percentage, confidence in zip(test_gid_list, flag_list, area_percentage_list, confidence_list):
+        if percentage < min_cumulative_percentage:
+            bucket = -1
+        else:
+            bucket = int((percentage * 100.0) / bucket_size)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        flag_ = confidence >= thresh
+        if flag:
+            # GT Positive
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][0] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][1] += 1
+        else:
+            # GT Negative
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][2] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][3] += 1
+
+    num_fp = percentage_dict[-1][2]
+    num_tn = percentage_dict[-1][3]
+    percentage_dict[-1][2] = 0
+    percentage_dict[-1][3] = 0
+
+    include_negatives = True
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    if not include_negatives:
+        index_list = index_list[1:]
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            if not include_negatives and percentage < 0:
+                continue
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.title('WIC Performance by Area of Coverage\nGT Neg FP - %d | GT Neg TN - %d' % (num_fp, num_tn, ))
+    tick_list = ['[0, 2.5)', '[2.5, 5)']
+    for percentage in percentage_list:
+        if percentage <= 0:
+            continue
+        bucket_min = int(bucket_size * percentage)
+        bucket_max = int(bucket_size * (percentage + 1))
+        tick = '[%d, %d)' % (bucket_min, bucket_max, )
+        tick_list.append(tick)
+
+    if not include_negatives:
+        tick_list = tick_list[1:]
+
+    plt.xticks(index_list, tick_list)
+
+    # Number of annotations
+    print('Plotting num annotations')
+    plt.subplot(212)
+
+    aids_list = ibs.get_image_aids(test_gid_list)
+
+    percentage_dict = {}
+    for test_gid, flag, confidence, aid_list in zip(test_gid_list, flag_list, confidence_list, aids_list):
+        aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+        bucket = len(aid_list)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        flag_ = confidence >= thresh
+        if flag:
+            # GT Positive
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][0] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][1] += 1
+        else:
+            # GT Negative
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][2] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][3] += 1
+
+    num_fp = percentage_dict[0][2]
+    num_tn = percentage_dict[0][3]
+    percentage_dict[0][2] = 0
+    percentage_dict[0][3] = 0
+
+    include_negatives = True
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    if not include_negatives:
+        index_list = index_list[1:]
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            if not include_negatives and percentage < 0:
+                continue
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.title('WIC Performance by Number of Annotations\nGT Neg FP - %d | GT Neg TN - %d' % (num_fp, num_tn, ))
+    tick_list = []
+    for percentage in percentage_list:
+        tick = '%d' % (percentage, )
+        tick_list.append(tick)
+
+    if not include_negatives:
+        tick_list = tick_list[1:]
+
+    plt.xticks(index_list, tick_list)
+
+    fig_filename = 'vulcan-wic-errors-area-plot.png'
+    fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_filepath, bbox_inches='tight')
+
+
+@register_ibs_method
 def vulcan_background_train(ibs, target_species='elephant_savanna'):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
@@ -1299,7 +1604,11 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
 
 
 @register_ibs_method
-def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **kwargs):
+def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, config=None, **kwargs):
+    """
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
+    ibs.vulcan_localizer_train(config=config)
+    """
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
     train_gid_set = all_tile_set & train_gid_set
@@ -1319,8 +1628,35 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=3.0, **
     num_positive = len(positive_gid_set)
     num_negative = min(len(negative_gid_set), int(ratio * num_positive))
     zipped = zipped[:num_negative]
-
     negative_gid_set = set(ut.take_column(zipped, 1))
+
+    if config is not None:
+        from ibeis.other.detectfuncs import localizer_parse_pred
+        negative_pred_list = localizer_parse_pred(ibs, test_gid_list=list(negative_gid_list), **config)
+
+        value_list =  []
+        for negative_uuid in negative_pred_list:
+            negative_pred = negative_pred_list[negative_uuid]
+            area = 0
+            for pred in negative_pred:
+                w, h = pred['width'], pred['height']
+                area += w * h
+            value = (
+                len(negative_pred),
+                area,
+                negative_uuid,
+            )
+            value_list.append(value)
+
+        negative_zipped = sorted(value_list, reverse=True)
+        num_negative = min(len(negative_zipped), int(ratio * num_positive))
+        negative_zipped = negative_zipped[:num_negative]
+        negative_uuid_list = set(ut.take_column(negative_zipped, 2))
+        negative_gid_list_ = ibs.get_image_gids_from_uuid(negative_uuid_list)
+        assert None not in negative_gid_list_
+        negative_gid_set = negative_gid_set | set(negative_gid_list_)
+
+    print('Using %d positives, %d negatives' % (len(positive_gid_set), len(negative_gid_set), ))
     tid_list = sorted(list(positive_gid_set | negative_gid_set))
 
     species_list = [target_species]
@@ -1403,9 +1739,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     # wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
-    # Precompute
-    from ibeis.other.detectfuncs import localizer_parse_pred
-    _ = localizer_parse_pred(ibs, test_gid_list=list(all_tile_set), **config)
+
     # Visualize
     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
