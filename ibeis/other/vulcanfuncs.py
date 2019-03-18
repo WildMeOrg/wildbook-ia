@@ -426,7 +426,7 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(ibs, num_clusters=150, n_neighbors=500,
+def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
                                    max_images=None,
                                    min_pca_variance=0.9,
                                    cleanup_memory=True,
@@ -648,6 +648,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
 
     values = ibs.vulcan_compute_visual_clusters(num_clusters=num_clusters,
                                                 n_neighbors=n_neighbors,
+                                                reclassify_outliers=reclassify_outliers,
                                                 **kwargs)
     hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
     minx, maxx, miny, maxy = limits
@@ -1279,9 +1280,9 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
-                                        min_cumulative_percentage=0.025,
-                                        thresh=0.024, **kwargs):
+def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
+                                       min_cumulative_percentage=0.025,
+                                       thresh=0.024, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -1338,9 +1339,7 @@ def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
                 # Pred Negative
                 percentage_dict[bucket][3] += 1
 
-    num_fp = percentage_dict[-1][2]
     num_tn = percentage_dict[-1][3]
-    percentage_dict[-1][2] = 0
     percentage_dict[-1][3] = 0
 
     include_negatives = True
@@ -1372,8 +1371,9 @@ def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
     label_list = ['TP', 'FN', 'FP', 'TN']
     plt.legend(bar_list, label_list)
 
+    plt.yscale('log')
     plt.ylabel('Number of Tiles')
-    plt.title('WIC Performance by Area of Coverage\nGT Neg FP - %d | GT Neg TN - %d' % (num_fp, num_tn, ))
+    plt.title('WIC Performance by Area of Coverage\nGT Neg TN - %d' % (num_tn, ))
     tick_list = ['[0, 2.5)', '[2.5, 5)']
     for percentage in percentage_list:
         if percentage <= 0:
@@ -1420,9 +1420,7 @@ def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
                 # Pred Negative
                 percentage_dict[bucket][3] += 1
 
-    num_fp = percentage_dict[0][2]
     num_tn = percentage_dict[0][3]
-    percentage_dict[0][2] = 0
     percentage_dict[0][3] = 0
 
     include_negatives = True
@@ -1454,8 +1452,9 @@ def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
     label_list = ['TP', 'FN', 'FP', 'TN']
     plt.legend(bar_list, label_list)
 
+    plt.yscale('log')
     plt.ylabel('Number of Tiles')
-    plt.title('WIC Performance by Number of Annotations\nGT Neg FP - %d | GT Neg TN - %d' % (num_fp, num_tn, ))
+    plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
     tick_list = []
     for percentage in percentage_list:
         tick = '%d' % (percentage, )
@@ -1466,7 +1465,106 @@ def vulcan_wic_visualize_errors_factors(ibs, target_species='elephant_savanna',
 
     plt.xticks(index_list, tick_list)
 
-    fig_filename = 'vulcan-wic-errors-area-plot.png'
+    fig_filename = 'vulcan-wic-errors-annots-plot.png'
+    fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_filepath, bbox_inches='tight')
+
+
+@register_ibs_method
+def vulcan_wic_visualize_errors_clusters(ibs, target_species='elephant_savanna',
+                                         min_cumulative_percentage=0.025,
+                                         thresh=0.024, errors_only=False, **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
+    cumulative_area_list, total_area_list, flag_list = values
+
+    model_tag = 'vulcan-d3e8bf43-boost4'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+    confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
+
+    values = ibs.vulcan_compute_visual_clusters(80, 10, **kwargs)
+    hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
+
+    color_list = pt.distinct_colors(4, randomize=False)
+
+    # Coverage
+    print('Plotting clusters')
+    plt.subplot(111)
+
+    percentage_dict = {}
+    for test_gid, flag, confidence in zip(test_gid_list, flag_list, confidence_list):
+        cluster, embedding = assignment_dict[test_gid]
+        bucket = int(cluster)
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        flag_ = confidence >= thresh
+        if flag:
+            # GT Positive
+            if flag_:
+                # Pred Positive
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][1] += 1
+        else:
+            # GT Negative
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][2] += 1
+            else:
+                # Pred Negative
+                if not errors_only:
+                    percentage_dict[bucket][3] += 1
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    if errors_only:
+        plt.title('WIC Performance by Visual Cluster (Errors only)')
+    else:
+        plt.yscale('log')
+        plt.title('WIC Performance by Visual Cluster')
+    tick_list = []
+    for percentage in percentage_list:
+        tick = '%d' % (percentage, )
+        tick_list.append(tick)
+    plt.xticks(index_list, tick_list)
+
+    if errors_only:
+        fig_filename = 'vulcan-wic-errors-clusters-plot-errors.png'
+    else:
+        fig_filename = 'vulcan-wic-errors-clusters-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
