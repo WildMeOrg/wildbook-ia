@@ -349,7 +349,7 @@ def compute_classifications(depc, gid_list, config=None):
                     xtl, ytl, w, h = bbox
                     area = w * h
                     if area >= min_area:
-                        best_score = max(best_score, confs)
+                        best_score = max(best_score, conf)
                 if wic_confidence < wic_thresh:
                     best_key = 'negative'
                     best_score = 0.0
