@@ -12,11 +12,12 @@ TODO: need to split up into sub modules:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
 from os.path import expanduser, join, abspath
+from ibeis.control import controller_inject
 import numpy as np
 import vtool as vt
 import utool as ut
 import cv2
-from ibeis.control import controller_inject
+import tqdm
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
@@ -133,8 +134,8 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                     fp += 1
                 else:
                     tn += 1
-        if filter_fn_func_ is not None:
-            print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
+        # if filter_fn_func_ is not None:
+        #     print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
         return tp, tn, fp, fn
 
     print('Using filter_fn_func = %r' % (filter_fn_func, ))
@@ -147,7 +148,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     zipped = list(zip(label_list, confidence_list, index_list))
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
-    for conf in conf_list:
+    for conf in tqdm.tqdm(conf_list):
         conf_dict[conf] = errors(zipped, conf, category, filter_fn_func, gid_aids_mapping)
 
     conf_list_ = [-1.0, -1.0]
@@ -1778,6 +1779,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
         for confidence in confidence_list
     ]
 
+    print('Using filter_fn_func = %r' % (filter_fn_func, ))
     if filter_fn_func is not None:
         fn_filter_total = 0
         fn_filter_converted = 0
@@ -1786,12 +1788,12 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
         gid_aids_mapping = dict(zip(test_gid_set, aids_list))
 
         prediction_list_ = []
-        zipped = zip(test_gid_set, label_list, prediction_list)
+        zipped = list(zip(test_gid_set, label_list, prediction_list))
         for test_gid, label, prediction in zipped:
             prediction_ = prediction
             if label == 'positive' and prediction == 'negative':
                 fn_filter_total += 1
-                values = (test_gid, label, prediction, None, zipped)
+                values = (test_gid, label, prediction, zipped)
                 flag = filter_fn_func(ibs, 2, values, gid_aids_mapping)
                 if not flag:
                     prediction_ = 'positive'

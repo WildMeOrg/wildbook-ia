@@ -1189,30 +1189,30 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> # ibs.vulcan_wic_validate(config_list)
     """
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
+        positive_tile_set = set([])
         if version == 1:
             tile_id, label, confidence, category, conf, zipped = values
-
-            positive_tile_set = set([])
             for label_, confidence_, tile_id_ in zipped:
                 if label_ == category and conf <= confidence_:
                     positive_tile_set.add(tile_id_)
-            assert tile_id not in positive_tile_set
-            positive_tile_list = list(positive_tile_set)
-            positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
-            positive_aid_list = list(set(ut.flatten(positive_aids_list)))
-
-            flag = False
-            aid_list = gid_aids_mapping.get(tile_id, [])
-            for aid in aid_list:
-                if aid not in positive_aid_list:
-                    flag = True
-                    break
-            return flag
         else:
-            ut.embed()
             tile_id, label, prediction, zipped = values
-            for test_gid, label, prediction in zipped:
-                pass
+            for tile_id_, label_, prediction_ in zipped:
+                if label_ == 'positive' and prediction_ == 'positive':
+                    positive_tile_set.add(tile_id_)
+
+        assert tile_id not in positive_tile_set
+        positive_tile_list = list(positive_tile_set)
+        positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
+        positive_aid_list = list(set(ut.flatten(positive_aids_list)))
+
+        flag = False
+        aid_list = gid_aids_mapping.get(tile_id, [])
+        for aid in aid_list:
+            if aid not in positive_aid_list:
+                flag = True
+                break
+        return flag
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
