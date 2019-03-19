@@ -589,12 +589,12 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
         cluster_center_dict[cluster][1] += y
         cluster_center_dict[cluster][2] += 1
 
-    if reclassify_outliers:
-        for cluster in cluster_center_dict:
-            total = cluster_center_dict[cluster][2]
-            cluster_center_dict[cluster][0] = cluster_center_dict[cluster][0] / total
-            cluster_center_dict[cluster][1] = cluster_center_dict[cluster][1] / total
+    for cluster in cluster_center_dict:
+        total = cluster_center_dict[cluster][2]
+        cluster_center_dict[cluster][0] = cluster_center_dict[cluster][0] / total
+        cluster_center_dict[cluster][1] = cluster_center_dict[cluster][1] / total
 
+    if reclassify_outliers:
         centers = []
         for cluster in sorted(cluster_center_dict.keys()):
             if cluster >= 0:
@@ -1123,10 +1123,11 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ]
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC     R4',         'classifier_algo': 'densenet',          'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     {'label': 'LOC     R4',         'classifier_algo': 'lightnet',          'classifier_weight_filepath': 'vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC R4+V0 1%',   'classifier_algo': 'densenet+lightnet', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC R4+V0 2.4%', 'classifier_algo': 'densenet+lightnet', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.024,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC     R4',         'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     {'label': 'LOC     R4',         'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC R4+V0 1%',   'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC R4+V0 2.4%', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.024,vulcan_v0,0.50'},
         >>>
         >>>     # {'label': 'WIC   d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
         >>>     # {'label': 'WIC   d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
