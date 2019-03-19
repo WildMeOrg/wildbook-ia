@@ -1190,17 +1190,24 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> config_list = [
         >>>     {'label': 'WIC R4',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>>     {'label': 'LOC V0',            'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.2380,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.0840,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 90% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.0240,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC PR  R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.708,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC ROC R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.271,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.238,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.034,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.706,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 95% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
         >>>
         >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, desired_index=4)
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[0.5])
     """
-    def _filter_fn_func(version, values):
+    def _filter_fn_func(ibs, version, values):
         ut.embed()
         if version == 1:
             tile_id, label, confidence, conf, zipped = values

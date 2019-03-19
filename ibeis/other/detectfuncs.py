@@ -120,7 +120,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                     fn_filter_total += 1
                     if None not in [filter_fn_func_, index]:
                         values = (index, label, confidence, conf, zipped, )
-                        flag = filter_fn_func_(1, values)
+                        flag = filter_fn_func_(ibs, 1, values)
                         if flag:
                             fn += 1
                         else:
@@ -1785,7 +1785,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
             if label == 'positive' and prediction == 'negative':
                 fn_filter_total += 1
                 values = (test_gid, label, prediction, None, zipped)
-                flag = filter_fn_func(2, values)
+                flag = filter_fn_func(ibs, 2, values)
                 if not flag:
                     prediction_ = 'positive'
                     fn_filter_converted += 1
