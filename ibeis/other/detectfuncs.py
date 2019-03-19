@@ -112,7 +112,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         fn_filter_converted = 0
         fn_filter_total = 0
-        for label, confidence, index in enumerate(zipped):
+        for label, confidence, index in zipped:
             if label == category:
                 if conf <= confidence:
                     tp += 1
@@ -2285,7 +2285,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, species_mapping={}, viewpoint_mappin
 
     def errors(zipped, conf, category):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
-        for index, (label, confidence) in enumerate(zipped):
+        for label, confidence in zipped:
             if label == category:
                 if conf <= confidence:
                     tp += 1
