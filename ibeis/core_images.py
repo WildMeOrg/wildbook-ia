@@ -315,12 +315,25 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['lightnet']:
-        ut.embed()
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
+        assert len(classifier_weight_filepath) == 2
+        weight_filepath, nms_thresh = classifier_weight_filepath
+        nms_thresh = float(nms_thresh)
 
-        config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.0}
-        predictions = depc.get_property('localizations', gid_list, None, config=config)
-
-        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
+        config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
+        prediction_list = depc.get_property('localizations', gid_list, None, config=config)
+        result_list = []
+        for prediction in prediction_list:
+            score, bboxes, thetas, confs, classes = prediction
+            best_score = np.max(confs)
+            if best_score < 0.5:
+                best_key = 'negative'
+                best_score = 1.0 - best_score
+            else:
+                best_key = 'positive'
+            result = (best_score, best_key, )
+            result_list.append(result)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
