@@ -105,27 +105,49 @@ def _ignore_filter_identity_func(*args, **kwargs):
 
 
 def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive',
-                                  samples=SAMPLES, **kwargs):
-    def errors(zipped, conf, category):
+                                  samples=SAMPLES, index_list=None,
+                                  filter_fn_func=None,
+                                  **kwargs):
+    def errors(zipped, conf, category, filter_fn_func_, gid_aids_mapping):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
-        for label, confidence in zipped:
+        fn_filter_converted = 0
+        fn_filter_total = 0
+        for label, confidence, index in zipped:
             if label == category:
                 if conf <= confidence:
                     tp += 1
                 else:
-                    fn += 1
+                    fn_filter_total += 1
+                    if None not in [filter_fn_func_, index]:
+                        values = (index, label, confidence, category, conf, zipped, )
+                        flag = filter_fn_func_(ibs, 1, values, gid_aids_mapping)
+                        if flag:
+                            fn += 1
+                        else:
+                            fn_filter_converted += 1
+                            tp += 1
+                    else:
+                        fn += 1
             else:
                 if conf <= confidence:
                     fp += 1
                 else:
                     tn += 1
+        if filter_fn_func_ is not None:
+            print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
         return tp, tn, fp, fn
 
-    zipped = list(zip(label_list, confidence_list))
+    if index_list is None:
+        index_list = [None] * len(label_list)
+        gid_aids_mapping = {}
+    else:
+        aids_list = ibs.get_image_aids(index_list)
+        gid_aids_mapping = dict(zip(index_list, aids_list))
+    zipped = list(zip(label_list, confidence_list, index_list))
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
     for conf in conf_list:
-        conf_dict[conf] = errors(zipped, conf, category)
+        conf_dict[conf] = errors(zipped, conf, category, filter_fn_func, gid_aids_mapping)
 
     conf_list_ = [-1.0, -1.0]
     pr_list = [1.0, 0.0]
@@ -1720,7 +1742,7 @@ def classifier_cameratrap_roc_algo_plot(ibs, target_recall=None, **kwargs):
 def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
                                                      positive_imageset_id, negative_imageset_id,
                                                      test_gid_list=None, output_cases=False,
-                                                     **kwargs):
+                                                     filter_fn_func=None, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
 
@@ -1754,6 +1776,26 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
         'positive' if confidence >= conf else 'negative'
         for confidence in confidence_list
     ]
+
+    if filter_fn_func is not None:
+        fn_filter_total = 0
+        fn_filter_converted = 0
+
+        prediction_list_ = []
+        zipped = zip(test_gid_set, label_list, prediction_list)
+        for test_gid, label, prediction in zipped:
+            prediction_ = prediction
+            if label == 'positive' and prediction == 'negative':
+                fn_filter_total += 1
+                values = (test_gid, label, prediction, None, zipped)
+                flag = filter_fn_func(ibs, 2, values)
+                if not flag:
+                    prediction_ = 'positive'
+                    fn_filter_converted += 1
+            prediction_list_.append(prediction_)
+
+        print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
+        prediction_list = prediction_list_
 
     if output_cases:
         output_path = 'cameratrap-confusion-incorrect'
@@ -1797,7 +1839,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                         target_recall=None,
                                                         force_target_recall=False,
                                                         offset_black=0, desired_index=None,
-                                                        include_confusion=True):
+                                                        filter_fn_func=None):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -1847,6 +1889,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                          test_gid_list=test_gid_list,
                                                          target_recall=target_recall,
                                                          force_target_recall=force_target_recall,
+                                                         filter_fn_func=filter_fn_func,
                                                          **config)
         for color, config in zip(color_list, config_list)
     ]
@@ -1888,6 +1931,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                             positive_imageset_id=positive_imageset_id,
                                             negative_imageset_id=negative_imageset_id,
                                             test_gid_list=test_gid_list,
+                                            filter_fn_func=filter_fn_func,
                                             **config)
         for color, config in zip(color_list, config_list)
     ]
@@ -1907,40 +1951,45 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(223)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
-                                                                       conf=best_conf1, fig_=fig_, axes_=axes_,
-                                                                       positive_imageset_id=positive_imageset_id,
-                                                                       negative_imageset_id=negative_imageset_id,
-                                                                       test_gid_list=test_gid_list,
-                                                                       output_cases=False,
-                                                                       **best_config1)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)
+    if filter_fn_func is None:
+        axes_ = plt.subplot(223)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
+        correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
+                                                                           conf=best_conf1, fig_=fig_, axes_=axes_,
+                                                                           positive_imageset_id=positive_imageset_id,
+                                                                           negative_imageset_id=negative_imageset_id,
+                                                                           test_gid_list=test_gid_list,
+                                                                           output_cases=False,
+                                                                           filter_fn_func=filter_fn_func,
+                                                                           **best_config1)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)
 
-    axes_ = plt.subplot(224)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
-                                                                       conf=best_conf2, fig_=fig_, axes_=axes_,
-                                                                       positive_imageset_id=positive_imageset_id,
-                                                                       negative_imageset_id=negative_imageset_id,
-                                                                       test_gid_list=test_gid_list,
-                                                                       **best_config2)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
+        axes_ = plt.subplot(224)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
+        correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
+                                                                           conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                                           positive_imageset_id=positive_imageset_id,
+                                                                           negative_imageset_id=negative_imageset_id,
+                                                                           test_gid_list=test_gid_list,
+                                                                           filter_fn_func=filter_fn_func,
+                                                                           **best_config2)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
 
     if target_recall is None:
         fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
     else:
         fig_filename = 'classifier-cameratrap-precision-recall-roc-target-recall-%0.02f.png' % (target_recall, )
 
+    if filter_fn_func is not None:
+        fig_filename = fig_filename.replace('.png', '-recovery.png')
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 

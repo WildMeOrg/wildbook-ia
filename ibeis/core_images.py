@@ -234,7 +234,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+recovery', 'lightnet', 'densenet+lightnet', 'densenet+recovery+lightnet']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+neighbors+lightnet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -314,28 +314,22 @@ def compute_classifications(depc, gid_list, config=None):
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
-    elif config['classifier_algo'] in ['densenet+recovery']:
+    elif config['classifier_algo'] in ['densenet+neighbors']:
+        ut.embed()
         classifier_weight_filepath = config['classifier_weight_filepath']
+
+        all_bbox_list = ibs.get_vulcan_image_bboxes(gid_list)
         wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
                                                   model_tag=classifier_weight_filepath)
 
         ancestor_gid_list = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gid_list)))
         all_tile_list = list(set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
-        all_aids_list = ibs.get_image_aids(all_tile_list)
-        all_conf_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
-                                            model_tag=classifier_weight_filepath)
+        all_bbox_list = ibs.get_vulcan_image_bboxes(all_tile_list)
+        all_confidence_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
+                                                  model_tag=classifier_weight_filepath)
 
-        aid_conf_dict = {}
-        for all_tile_id, all_aid_list, all_conf in zip(all_tile_list, all_aids_list, all_conf_list):
-            for all_aid in all_aid_list:
-                if all_aid not in aid_conf_dict:
-                    aid_conf_dict[all_aid] = 0.0
-                aid_conf_dict[all_aid] = max(aid_conf_dict[all_aid], all_conf)
-
-        recovered = 0
         result_list = []
-        aids_list = ibs.get_image_aids(gid_list)
-        for gid, wic_confidence, aid_list in zip(gid_list, wic_confidence_list, aids_list):
+        for gid, wic_confidence in zip(gid_list, wic_confidence_list):
             best_score = wic_confidence
             for aid in aid_list:
                 wic_confidence_ = aid_conf_dict.get(aid, None)
@@ -351,8 +345,7 @@ def compute_classifications(depc, gid_list, config=None):
                 recovered += 1
             result = (best_score, best_key, )
             result_list.append(result)
-        print('Recovered: %d / %d' % (recovered, len(gid_list), ))
-    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+recovery+lightnet']:
+    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+neighbors+lightnet']:
         min_area = 10
 
         classifier_weight_filepath = config['classifier_weight_filepath']
@@ -371,12 +364,12 @@ def compute_classifications(depc, gid_list, config=None):
             nms_thresh = float(nms_thresh)
             wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
                                                       model_tag=wic_model_tag)
-        elif config['classifier_algo'] == 'densenet+recovery+lightnet':
+        elif config['classifier_algo'] == 'densenet+neighbors+lightnet':
             assert len(classifier_weight_filepath) == 4
             wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
             wic_thresh = float(wic_thresh)
             nms_thresh = float(nms_thresh)
-            wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet+recovery',
+            wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet+neighbors',
                                                       model_tag=wic_model_tag)
         else:
             raise ValueError
