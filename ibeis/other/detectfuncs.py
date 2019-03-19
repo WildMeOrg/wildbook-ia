@@ -1792,7 +1792,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                         config_list=None,
                                                         target_recall=None,
                                                         force_target_recall=False,
-                                                        offset_black=0):
+                                                        offset_black=0, desired_index=None):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -1847,8 +1847,10 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     ]
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    # index = np.argmax(area_list)
-    index = -1
+    if desired_index in ['argmax', None]:
+        index = np.argmax(area_list)
+    else:
+        index = desired_index
 
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
@@ -1876,8 +1878,10 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     ]
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
-    # index = np.argmax(area_list)
-    index = -1
+    if desired_index in ['argmax', None]:
+        index = np.argmax(area_list)
+    else:
+        index = desired_index
 
     best_label2 = config_list[index]['label']
     best_config2 = config_list[index]

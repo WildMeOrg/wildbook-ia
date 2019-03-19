@@ -1094,7 +1094,8 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None, recompute=False, **kwargs):
+def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None,
+                        recompute=False, desired_index=None, **kwargs):
     """
     Example:
         >>> config_list = [
@@ -1123,22 +1124,26 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ]
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC     R4',         'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     {'label': 'LOC     R4',         'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC R4+V0 1%',   'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC R4+V0 2.4%', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.024,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC R4',         'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     {'label': 'LOC R4',         'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC R4+V0 90%', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.024,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC R4+V0 95%',   'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
         >>>
-        >>>     # {'label': 'WIC   d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
-        >>>     # {'label': 'WIC   d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
-        >>>     # {'label': 'WIC   d3e8bf43 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2'},
-        >>>     # {'label': 'WIC   d3e8bf43 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost3'},
-        >>>     # {'label': 'WIC   d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     # {'label': 'WIC   d3e8bf43 R5', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost5'},
-        >>>     # {'label': 'WIC   d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
-        >>>     # {'label': 'WIC   d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
+        >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None])
+        >>> ibs.vulcan_wic_validate(config_list, desired_index=0)
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
+        >>>     {'label': 'WIC d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
+        >>>     {'label': 'WIC d3e8bf43 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2'},
+        >>>     {'label': 'WIC d3e8bf43 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost3'},
+        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     {'label': 'WIC d3e8bf43 R5', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost5'},
+        >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
+        >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, desired_index=None)
     """
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1160,7 +1165,8 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
                                                                 config_list=config_list,
                                                                 offset_black=offset_black,
                                                                 target_recall=target_recall,
-                                                                force_target_recall=True)
+                                                                force_target_recall=True,
+                                                                desired_index=desired_index)
 
 
 @register_ibs_method
@@ -1942,6 +1948,213 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     # # All Test Tiles
     # config_dict = {'vulcan-all': template}
     # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list, overwrite_config_keys=True)
+
+
+@register_ibs_method
+def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savanna',
+                                             min_cumulative_percentage=0.025,
+                                             thresh=0.024, errors_only=False, **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
+    cumulative_area_list, total_area_list, flag_list = values
+    area_percentage_list = [
+        cumulative_area / total_area
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
+
+    model_tag = 'vulcan-d3e8bf43-boost4'
+    densenet.ARCHIVE_URL_DICT[model_tag] = 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip'
+    confidence_list = ibs.vulcan_localizer_test(test_gid_list, model_tag=model_tag)
+
+    color_list = pt.distinct_colors(4, randomize=False)
+
+    # Coverage
+    print('Plotting coverage')
+    plt.subplot(211)
+
+    bucket_size = 5.0
+    percentage_dict = {}
+    for test_gid, flag, percentage, confidence in zip(test_gid_list, flag_list, area_percentage_list, confidence_list):
+        if percentage < min_cumulative_percentage:
+            bucket = -1
+        else:
+            bucket = int((percentage * 100.0) / bucket_size)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        flag_ = confidence >= thresh
+        if flag:
+            # GT Positive
+            if flag_:
+                # Pred Positive
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][1] += 1
+        else:
+            # GT Negative
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][2] += 1
+            else:
+                # Pred Negative
+                if not errors_only:
+                    percentage_dict[bucket][3] += 1
+
+    num_tn = percentage_dict[-1][3]
+    percentage_dict[-1][3] = 0
+
+    include_negatives = True
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    if not include_negatives:
+        index_list = index_list[1:]
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            if not include_negatives and percentage < 0:
+                continue
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.yscale('log')
+    if errors_only:
+        plt.title('WIC Performance by Area of Coverage (Errors only)')
+    else:
+        plt.title('WIC Performance by Area of Coverage\nGT Neg TN - %d' % (num_tn, ))
+
+    tick_list = ['[0, 2.5)', '[2.5, 5)']
+    for percentage in percentage_list:
+        if percentage <= 0:
+            continue
+        bucket_min = int(bucket_size * percentage)
+        bucket_max = int(bucket_size * (percentage + 1))
+        tick = '[%d, %d)' % (bucket_min, bucket_max, )
+        tick_list.append(tick)
+
+    if not include_negatives:
+        tick_list = tick_list[1:]
+
+    plt.xticks(index_list, tick_list)
+
+    # Number of annotations
+    print('Plotting num annotations')
+    plt.subplot(212)
+
+    aids_list = ibs.get_image_aids(test_gid_list)
+
+    percentage_dict = {}
+    for test_gid, flag, confidence, aid_list in zip(test_gid_list, flag_list, confidence_list, aids_list):
+        aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+        bucket = len(aid_list)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        flag_ = confidence >= thresh
+        if flag:
+            # GT Positive
+            if flag_:
+                # Pred Positive
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
+            else:
+                # Pred Negative
+                percentage_dict[bucket][1] += 1
+        else:
+            # GT Negative
+            if flag_:
+                # Pred Positive
+                percentage_dict[bucket][2] += 1
+            else:
+                # Pred Negative
+                if not errors_only:
+                    percentage_dict[bucket][3] += 1
+
+    num_tn = percentage_dict[0][3]
+    percentage_dict[0][3] = 0
+
+    include_negatives = True
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    if not include_negatives:
+        index_list = index_list[1:]
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            if not include_negatives and percentage < 0:
+                continue
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.yscale('log')
+    if errors_only:
+        plt.title('WIC Performance by Number of Annotations (Errors only)')
+    else:
+        plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
+
+    tick_list = []
+    for percentage in percentage_list:
+        tick = '%d' % (percentage, )
+        tick_list.append(tick)
+
+    if not include_negatives:
+        tick_list = tick_list[1:]
+
+    plt.xticks(index_list, tick_list)
+
+    if errors_only:
+        fig_filename = 'vulcan-wic-errors-annots-plot-errors.png'
+    else:
+        fig_filename = 'vulcan-wic-errors-annots-plot.png'
+
+    fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 def __delete_old_tiles(ibs, ):
