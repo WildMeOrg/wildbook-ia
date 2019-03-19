@@ -1209,6 +1209,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
     """
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
         if version == 1:
+            ut.embed()
             tile_id, label, confidence, category, conf, zipped = values
 
             positive_tile_set = set([])
