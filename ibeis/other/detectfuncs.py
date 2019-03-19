@@ -1845,8 +1845,14 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                          **config)
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ ret[0] for ret in ret_list ]
+
     conf_list = [ ret[1] for ret in ret_list ]
+    if target_recall is None:
+        area_list = [ ret[0] for ret in ret_list ]
+    else:
+        # Get the highest recall
+        ut.embed()
+        area_list = [ ret[3][3] for ret in ret_list ]
     if desired_index in ['argmax', None]:
         index = np.argmax(area_list)
     else:
