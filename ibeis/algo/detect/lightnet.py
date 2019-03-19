@@ -49,6 +49,7 @@ CONFIG_URL_DICT = {
     'ggr2'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
 
     'vulcan_v0'                  : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.v0.py',
+    'vulcan_v1'                  : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.v1.py',
 
     None                         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
     'training_kit'               : 'https://cthulhu.dyn.wildme.io/public/data/lightnet-training-kit.zip',
