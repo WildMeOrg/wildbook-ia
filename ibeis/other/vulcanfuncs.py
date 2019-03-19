@@ -1139,7 +1139,7 @@ def vulcan_wic_test(ibs, test_tile_list, classifier_algo='densenet', model_tag=N
 @register_ibs_method
 def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None,
                         recompute=False, desired_index=None, fn_recovery=False,
-                        **kwargs):
+                        plot_confusion_matrix=True, **kwargs):
     """
     Example:
         >>> config_list = [
@@ -1153,7 +1153,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True)
-        >>> ibs.vulcan_wic_validate(config_list)
+        >>> ibs.vulcan_wic_validate(config_list, plot_confusion_matrix=False)
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R4',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1231,7 +1231,8 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
                                                                 target_recall=target_recall,
                                                                 force_target_recall=True,
                                                                 desired_index=desired_index,
-                                                                filter_fn_func=filter_fn_func)
+                                                                filter_fn_func=filter_fn_func,
+                                                                plot_confusion_matrix=plot_confusion_matrix)
 
 
 @register_ibs_method

@@ -1840,7 +1840,8 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                         target_recall=None,
                                                         force_target_recall=False,
                                                         offset_black=0, desired_index=None,
-                                                        filter_fn_func=None):
+                                                        filter_fn_func=None,
+                                                        plot_confusion_matrix=True):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -1952,7 +1953,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    if filter_fn_func is None:
+    if filter_fn_func is None and plot_confusion_matrix:
         axes_ = plt.subplot(223)
         axes_.set_aspect(1)
         gca_ = plt.gca()
