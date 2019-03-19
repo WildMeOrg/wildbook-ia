@@ -1951,41 +1951,45 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(223)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
-                                                                       conf=best_conf1, fig_=fig_, axes_=axes_,
-                                                                       positive_imageset_id=positive_imageset_id,
-                                                                       negative_imageset_id=negative_imageset_id,
-                                                                       test_gid_list=test_gid_list,
-                                                                       output_cases=False,
-                                                                       filter_fn_func=filter_fn_func,
-                                                                       **best_config1)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)
+    if filter_fn_func is None:
+        axes_ = plt.subplot(223)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
+        correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color1,
+                                                                           conf=best_conf1, fig_=fig_, axes_=axes_,
+                                                                           positive_imageset_id=positive_imageset_id,
+                                                                           negative_imageset_id=negative_imageset_id,
+                                                                           test_gid_list=test_gid_list,
+                                                                           output_cases=False,
+                                                                           filter_fn_func=filter_fn_func,
+                                                                           **best_config1)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)
 
-    axes_ = plt.subplot(224)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
-                                                                       conf=best_conf2, fig_=fig_, axes_=axes_,
-                                                                       positive_imageset_id=positive_imageset_id,
-                                                                       negative_imageset_id=negative_imageset_id,
-                                                                       test_gid_list=test_gid_list,
-                                                                       filter_fn_func=filter_fn_func,
-                                                                       **best_config2)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
+        axes_ = plt.subplot(224)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
+        correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
+                                                                           conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                                           positive_imageset_id=positive_imageset_id,
+                                                                           negative_imageset_id=negative_imageset_id,
+                                                                           test_gid_list=test_gid_list,
+                                                                           filter_fn_func=filter_fn_func,
+                                                                           **best_config2)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
 
     if target_recall is None:
         fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
     else:
         fig_filename = 'classifier-cameratrap-precision-recall-roc-target-recall-%0.02f.png' % (target_recall, )
+
+    if filter_fn_func is not None:
+        fig_filename = fig_filename.replace('.png', '-filtered.png')
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
