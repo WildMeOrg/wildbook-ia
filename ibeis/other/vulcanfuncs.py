@@ -1282,7 +1282,7 @@ def vulcan_wic_visualize_errors_location(ibs, target_species='elephant_savanna',
 @register_ibs_method
 def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
                                        min_cumulative_percentage=0.025,
-                                       thresh=0.024, **kwargs):
+                                       thresh=0.024, errors_only=False, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -1326,7 +1326,8 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
             # GT Positive
             if flag_:
                 # Pred Positive
-                percentage_dict[bucket][0] += 1
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
             else:
                 # Pred Negative
                 percentage_dict[bucket][1] += 1
@@ -1337,7 +1338,8 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
                 percentage_dict[bucket][2] += 1
             else:
                 # Pred Negative
-                percentage_dict[bucket][3] += 1
+                if not errors_only:
+                    percentage_dict[bucket][3] += 1
 
     num_tn = percentage_dict[-1][3]
     percentage_dict[-1][3] = 0
@@ -1371,9 +1373,13 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
     label_list = ['TP', 'FN', 'FP', 'TN']
     plt.legend(bar_list, label_list)
 
-    plt.yscale('log')
     plt.ylabel('Number of Tiles')
-    plt.title('WIC Performance by Area of Coverage\nGT Neg TN - %d' % (num_tn, ))
+    if errors_only:
+        plt.title('WIC Performance by Area of Coverage (Errors only)\nGT Neg TN - %d' % (num_tn, ))
+    else:
+        plt.yscale('log')
+        plt.title('WIC Performance by Area of Coverage\nGT Neg TN - %d' % (num_tn, ))
+
     tick_list = ['[0, 2.5)', '[2.5, 5)']
     for percentage in percentage_list:
         if percentage <= 0:
@@ -1407,7 +1413,8 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
             # GT Positive
             if flag_:
                 # Pred Positive
-                percentage_dict[bucket][0] += 1
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
             else:
                 # Pred Negative
                 percentage_dict[bucket][1] += 1
@@ -1418,7 +1425,8 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
                 percentage_dict[bucket][2] += 1
             else:
                 # Pred Negative
-                percentage_dict[bucket][3] += 1
+                if not errors_only:
+                    percentage_dict[bucket][3] += 1
 
     num_tn = percentage_dict[0][3]
     percentage_dict[0][3] = 0
@@ -1452,9 +1460,13 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
     label_list = ['TP', 'FN', 'FP', 'TN']
     plt.legend(bar_list, label_list)
 
-    plt.yscale('log')
     plt.ylabel('Number of Tiles')
-    plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
+    if errors_only:
+        plt.title('WIC Performance by Number of Annotations (Errors only)\nGT Neg TN - %d' % (num_tn, ))
+    else:
+        plt.yscale('log')
+        plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
+
     tick_list = []
     for percentage in percentage_list:
         tick = '%d' % (percentage, )
@@ -1465,7 +1477,11 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
 
     plt.xticks(index_list, tick_list)
 
-    fig_filename = 'vulcan-wic-errors-annots-plot.png'
+    if errors_only:
+        fig_filename = 'vulcan-wic-errors-annots-plot-errors.png'
+    else:
+        fig_filename = 'vulcan-wic-errors-annots-plot.png'
+
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
