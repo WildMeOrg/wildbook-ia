@@ -1881,90 +1881,81 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     color_list = [(0, 0, 0)] * offset_black
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
-    # axes_ = plt.subplot(221)
-    # axes_.set_autoscalex_on(False)
-    # axes_.set_autoscaley_on(False)
-    # axes_.set_xlabel('Recall')
-    # axes_.set_ylabel('Precision')
-    # axes_.set_xlim([0.0, 1.01])
-    # axes_.set_ylim([0.0, 1.01])
-    # ret_list = [
-    #     classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
-    #                                                      positive_imageset_id=positive_imageset_id,
-    #                                                      negative_imageset_id=negative_imageset_id,
-    #                                                      test_gid_list=test_gid_list,
-    #                                                      target_recall=target_recall,
-    #                                                      force_target_recall=force_target_recall,
-    #                                                      filter_fn_func=filter_fn_func,
-    #                                                      **config)
-    #     for color, config in zip(color_list, config_list)
-    # ]
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        classifier_cameratrap_precision_recall_algo_plot(ibs, color=color,
+                                                         positive_imageset_id=positive_imageset_id,
+                                                         negative_imageset_id=negative_imageset_id,
+                                                         test_gid_list=test_gid_list,
+                                                         target_recall=target_recall,
+                                                         force_target_recall=force_target_recall,
+                                                         filter_fn_func=filter_fn_func,
+                                                         **config)
+        for color, config in zip(color_list, config_list)
+    ]
 
-    # conf_list = [ ret[1] for ret in ret_list ]
-    # if target_recall is None:
-    #     # Get the highest AP
-    #     area_list = [ ret[0] for ret in ret_list ]
-    # else:
-    #     # Get the highest recall
-    #     area_list = [ ret[2][2][0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    if target_recall is None:
+        # Get the highest AP
+        area_list = [ ret[0] for ret in ret_list ]
+    else:
+        # Get the highest recall
+        area_list = [ ret[2][2][0] for ret in ret_list ]
 
-    # if desired_index in ['argmax', None]:
-    #     index = np.argmax(area_list)
-    # else:
-    #     index = desired_index
+    if desired_index in ['argmax', None]:
+        index = np.argmax(area_list)
+    else:
+        index = desired_index
 
-    # best_label1 = config_list[index]['label']
-    # best_config1 = config_list[index]
-    # best_color1 = color_list[index]
-    # best_area1 = area_list[index]
-    # best_conf1 = conf_list[index]
-    # if target_recall is None:
-    #     plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.14)
-    # else:
-    #     plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.14)
-    # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-    #            borderaxespad=0.0)
-
-    # axes_ = plt.subplot(222)
-    # axes_.set_autoscalex_on(False)
-    # axes_.set_autoscaley_on(False)
-    # axes_.set_xlabel('False-Positive Rate')
-    # axes_.set_ylabel('True-Positive Rate')
-    # axes_.set_xlim([0.0, 1.01])
-    # axes_.set_ylim([0.0, 1.01])
-    # ret_list = [
-    #     classifier_cameratrap_roc_algo_plot(ibs, color=color,
-    #                                         positive_imageset_id=positive_imageset_id,
-    #                                         negative_imageset_id=negative_imageset_id,
-    #                                         test_gid_list=test_gid_list,
-    #                                         filter_fn_func=filter_fn_func,
-    #                                         **config)
-    #     for color, config in zip(color_list, config_list)
-    # ]
-    # area_list = [ ret[0] for ret in ret_list ]
-    # conf_list = [ ret[1] for ret in ret_list ]
-    # if desired_index in ['argmax', None]:
-    #     index = np.argmax(area_list)
-    # else:
-    #     index = desired_index
-
-    # best_label2 = config_list[index]['label']
-    # best_config2 = config_list[index]
-    # best_color2 = color_list[index]
-    # best_area2 = area_list[index]
-    # best_conf2 = conf_list[index]
-    # plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.14)
-    # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-    #            borderaxespad=0.0)
-
-    index = 0
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
     best_color1 = color_list[index]
-    area_list = [0.5] * len(config_list)
-    conf_list = [0.5] * len(config_list)
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
+    if target_recall is None:
+        plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.14)
+    else:
+        plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.14)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    ret_list = [
+        classifier_cameratrap_roc_algo_plot(ibs, color=color,
+                                            positive_imageset_id=positive_imageset_id,
+                                            negative_imageset_id=negative_imageset_id,
+                                            test_gid_list=test_gid_list,
+                                            filter_fn_func=filter_fn_func,
+                                            **config)
+        for color, config in zip(color_list, config_list)
+    ]
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    if desired_index in ['argmax', None]:
+        index = np.argmax(area_list)
+    else:
+        index = desired_index
+
+    best_label2 = config_list[index]['label']
+    best_config2 = config_list[index]
+    best_color2 = color_list[index]
+    best_area2 = area_list[index]
+    best_conf2 = conf_list[index]
+    plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.14)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
     axes_ = plt.subplot(223)
     axes_.set_aspect(1)
@@ -1982,20 +1973,20 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)
 
-    # axes_ = plt.subplot(224)
-    # axes_.set_aspect(1)
-    # gca_ = plt.gca()
-    # gca_.grid(False)
-    # correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
-    #                                                                    conf=best_conf2, fig_=fig_, axes_=axes_,
-    #                                                                    positive_imageset_id=positive_imageset_id,
-    #                                                                    negative_imageset_id=negative_imageset_id,
-    #                                                                    test_gid_list=test_gid_list,
-    #                                                                    filter_fn_func=filter_fn_func,
-    #                                                                    **best_config2)
-    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    # axes_.set_ylabel('Ground-Truth')
-    # plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, color=best_color2,
+                                                                       conf=best_conf2, fig_=fig_, axes_=axes_,
+                                                                       positive_imageset_id=positive_imageset_id,
+                                                                       negative_imageset_id=negative_imageset_id,
+                                                                       test_gid_list=test_gid_list,
+                                                                       filter_fn_func=filter_fn_func,
+                                                                       **best_config2)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label2, best_conf2, ), y=1.12)
 
     if target_recall is None:
         fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
