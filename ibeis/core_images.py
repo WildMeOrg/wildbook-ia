@@ -322,12 +322,46 @@ def compute_classifications(depc, gid_list, config=None):
         nms_thresh = float(nms_thresh)
 
         config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
-        prediction_list = depc.get_property('localizations', gid_list, None, config=config)
+        try:
+            prediction_list = depc.get_property('localizations', gid_list, None, config=config)
+        except:
+            ut.embed()
         result_list = []
         for prediction in prediction_list:
             score, bboxes, thetas, confs, classes = prediction
             best_score = np.max(confs)
             if best_score < 0.5:
+                best_key = 'negative'
+                best_score = 1.0 - best_score
+            else:
+                best_key = 'positive'
+            result = (best_score, best_key, )
+            result_list.append(result)
+    elif config['classifier_algo'] in ['densenet+lightnet']:
+        ut.embed()
+
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
+        assert len(classifier_weight_filepath) == 4
+        wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
+        wic_thresh = float(wic_thresh)
+        nms_thresh = float(nms_thresh)
+
+        wic_confidence_list = ibs.vulcan_wic_test(gid_list, model_tag=wic_model_tag)
+
+        config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
+        try:
+            prediction_list = depc.get_property('localizations', gid_list, None, config=config)
+        except:
+            ut.embed()
+        result_list = []
+        for wic_confidence, prediction in zip(wic_confidence_list, prediction_list):
+            score, bboxes, thetas, confs, classes = prediction
+            best_score = np.max(confs)
+            if wic_confidence < wic_thresh:
+                best_key = 'negative'
+                best_score = 0.0
+            elif best_score < 0.5:
                 best_key = 'negative'
                 best_score = 1.0 - best_score
             else:
