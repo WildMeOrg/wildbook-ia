@@ -1209,7 +1209,6 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
     """
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
         if version == 1:
-            ut.embed()
             tile_id, label, confidence, category, conf, zipped = values
 
             positive_tile_set = set([])
@@ -1227,7 +1226,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
                 if aid not in positive_aid_list:
                     flag = True
                     break
-            return flag, positive_aids_list
+            return flag
         else:
             tile_id, label, prediction, zipped = values
             for test_gid, label, prediction in zipped:
