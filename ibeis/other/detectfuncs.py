@@ -108,7 +108,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                                   samples=SAMPLES, index_list=None,
                                   filter_fn_func=None,
                                   **kwargs):
-    def errors(zipped, conf, category, filter_fn_func_):
+    def errors(zipped, conf, category, filter_fn_func_, gid_aids_mapping):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
         fn_filter_converted = 0
         fn_filter_total = 0
@@ -120,7 +120,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                     fn_filter_total += 1
                     if None not in [filter_fn_func_, index]:
                         values = (index, label, confidence, category, conf, zipped, )
-                        flag = filter_fn_func_(ibs, 1, values)
+                        flag = filter_fn_func_(ibs, 1, values, gid_aids_mapping)
                         if flag:
                             fn += 1
                         else:
@@ -139,12 +139,15 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
 
     if index_list is None:
         index_list = [None] * len(label_list)
-
+        gid_aids_mapping = {}
+    else:
+        aids_list = ibs.get_image_aids(index_list)
+        gid_aids_mapping = dict(zip(index_list, aids_list))
     zipped = list(zip(label_list, confidence_list, index_list))
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
     for conf in conf_list:
-        conf_dict[conf] = errors(zipped, conf, category, filter_fn_func)
+        conf_dict[conf] = errors(zipped, conf, category, filter_fn_func, gid_aids_mapping)
 
     conf_list_ = [-1.0, -1.0]
     pr_list = [1.0, 0.0]

@@ -1195,8 +1195,8 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.238,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 85% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.034,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.706,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 95% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.209,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.026,vulcan_v0,0.50'},
         >>>
         >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> ]
@@ -1207,7 +1207,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[0.5])
     """
-    def _filter_fn_func(ibs, version, values):
+    def _filter_fn_func(ibs, version, values, gid_aids_mapping):
         if version == 1:
             tile_id, label, confidence, category, conf, zipped = values
 
@@ -1217,16 +1217,16 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
                     positive_tile_set.add(tile_id_)
             assert tile_id not in positive_tile_set
             positive_tile_list = list(positive_tile_set)
-            positive_aids_list = ibs.get_image_aids(positive_tile_list)
+            positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
             positive_aid_list = list(set(ut.flatten(positive_aids_list)))
 
             flag = False
-            aid_list = ibs.get_image_aids(tile_id)
+            aid_list = gid_aids_mapping.get(tile_id, [])
             for aid in aid_list:
                 if aid not in positive_aid_list:
                     flag = True
                     break
-            return flag
+            return flag, positive_aids_list
         else:
             tile_id, label, prediction, zipped = values
             for test_gid, label, prediction in zipped:
