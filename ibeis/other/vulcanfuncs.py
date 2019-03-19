@@ -1374,10 +1374,10 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
     plt.legend(bar_list, label_list)
 
     plt.ylabel('Number of Tiles')
+    plt.yscale('log')
     if errors_only:
         plt.title('WIC Performance by Area of Coverage (Errors only)\nGT Neg TN - %d' % (num_tn, ))
     else:
-        plt.yscale('log')
         plt.title('WIC Performance by Area of Coverage\nGT Neg TN - %d' % (num_tn, ))
 
     tick_list = ['[0, 2.5)', '[2.5, 5)']
@@ -1461,10 +1461,10 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
     plt.legend(bar_list, label_list)
 
     plt.ylabel('Number of Tiles')
+    plt.yscale('log')
     if errors_only:
         plt.title('WIC Performance by Number of Annotations (Errors only)\nGT Neg TN - %d' % (num_tn, ))
     else:
-        plt.yscale('log')
         plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
 
     tick_list = []
