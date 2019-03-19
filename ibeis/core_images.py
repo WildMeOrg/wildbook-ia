@@ -325,9 +325,6 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet']:
-        # try:
-            # ut.embed()
-
         min_area = 20
 
         classifier_weight_filepath = config['classifier_weight_filepath']
@@ -349,10 +346,7 @@ def compute_classifications(depc, gid_list, config=None):
             raise ValueError
 
         config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
-        try:
-            prediction_list = depc.get_property('localizations', gid_list, None, config=config)
-        except:
-            prediction_list = depc.get_property('localizations', gid_list, None, config=config, recompute=True)
+        prediction_list = depc.get_property('localizations', gid_list, None, config=config)
         result_list = []
         for wic_confidence, prediction in zip(wic_confidence_list, prediction_list):
             score, bboxes, thetas, confs, classes = prediction
@@ -372,8 +366,6 @@ def compute_classifications(depc, gid_list, config=None):
                 best_key = 'positive'
             result = (best_score, best_key, )
             result_list.append(result)
-        # except:
-        #     ut.embed()
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
