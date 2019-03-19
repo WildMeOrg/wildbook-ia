@@ -119,7 +119,8 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                 else:
                     fn_filter_total += 1
                     if None not in [filter_fn_func_, index]:
-                        flag = filter_fn_func_(index, zipped)
+                        values = (index, label, confidence, conf, zipped, )
+                        flag = filter_fn_func_(1, values)
                         if flag:
                             fn += 1
                         else:
@@ -132,11 +133,9 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                     fp += 1
                 else:
                     tn += 1
-        print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
+        if filter_fn_func_ is not None:
+            print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
         return tp, tn, fp, fn
-
-    if filter_fn_func is not None:
-        ut.embed()
 
     if index_list is None:
         index_list = [None] * len(label_list)
@@ -1744,9 +1743,6 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
 
-    if filter_fn_func is not None:
-        ut.embed()
-
     if test_gid_list is None:
         test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
         test_gid_list = list(test_gid_set_)
@@ -1777,6 +1773,11 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
         'positive' if confidence >= conf else 'negative'
         for confidence in confidence_list
     ]
+
+    if filter_fn_func is not None:
+        values = (test_gid_set, label_list, prediction_list, )
+        filter_fn_func(2, values)
+        ut.embed()
 
     if output_cases:
         output_path = 'cameratrap-confusion-incorrect'
@@ -1894,10 +1895,10 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
     if target_recall is None:
-        plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+        plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.14)
     else:
-        plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.06, 1.0, .102), loc=3, ncol=2, mode="expand",
+        plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.14)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(222)
@@ -1928,8 +1929,8 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.06, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.14)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(223)
