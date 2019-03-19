@@ -113,25 +113,27 @@ def __delete_old_tiles(ibs, ):
 
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
-                                 return_configs=False, limit=None, **kwargs):
-    if imageset_text_list is None:
-        imageset_text_list = [
-            'elephant',
-            'RR18_BIG_2015_09_23_R_AM',
-            'TA24_TPM_L_2016-10-30-A',
-            'TA24_TPM_R_2016-10-30-A',
-            '2012-08-16_AM_L_Azohi',
-            '2012-08-15_AM_R_Marealle',
-            '2012-08-14_PM_R_Chediel',
-            # '20161108_Nikon_Left',
-            # '20161108_Nikon_Right',
-            '20161108_Nikon_Left_Sample',
-            '20161108_Nikon_Right_Sample',
-        ]
+                                 return_configs=False, limit=None, gid_list=None,
+                                 **kwargs):
+    if gid_list is None:
+        if imageset_text_list is None:
+            imageset_text_list = [
+                'elephant',
+                'RR18_BIG_2015_09_23_R_AM',
+                'TA24_TPM_L_2016-10-30-A',
+                'TA24_TPM_R_2016-10-30-A',
+                '2012-08-16_AM_L_Azohi',
+                '2012-08-15_AM_R_Marealle',
+                '2012-08-14_PM_R_Chediel',
+                # '20161108_Nikon_Left',
+                # '20161108_Nikon_Right',
+                '20161108_Nikon_Left_Sample',
+                '20161108_Nikon_Right_Sample',
+            ]
 
-    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
-    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
-    gid_list = ut.flatten(gids_list)
+        imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+        gids_list = ibs.get_imageset_gids(imageset_rowid_list)
+        gid_list = ut.flatten(gids_list)
     gid_list = sorted(gid_list)
 
     if limit is not None:

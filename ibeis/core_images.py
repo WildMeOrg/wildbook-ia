@@ -317,52 +317,41 @@ def compute_classifications(depc, gid_list, config=None):
     elif config['classifier_algo'] in ['densenet+recovery']:
         ut.embed()
         classifier_weight_filepath = config['classifier_weight_filepath']
-        wic_confidence_list = ibs.vulcan_wic_test(gid_list, model_tag=classifier_weight_filepath)
+        wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
+                                                  model_tag=classifier_weight_filepath)
 
-        tile_id, label, confidence, category, conf, zipped = values
+        ancestor_gid_list = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gid_list)))
+        all_tile_list = set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list))
+        all_aids_list = ibs.get_image_aids(all_tile_list)
+        all_conf_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
+                                            model_tag=classifier_weight_filepath)
 
-        positive_tile_set = set([])
-        for label_, confidence_, tile_id_ in zipped:
-            if label_ == category and conf <= confidence_:
-                positive_tile_set.add(tile_id_)
-        assert tile_id not in positive_tile_set
-        positive_tile_list = list(positive_tile_set)
-        positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
-        positive_aid_list = list(set(ut.flatten(positive_aids_list)))
+        aid_conf_dict = {}
+        for all_tile_id, all_aid_list, all_conf in zip(all_tile_list, all_aids_list, all_conf_list):
+            for all_aid in all_aid_list:
+                if all_aid not in aid_conf_dict:
+                    aid_conf_dict[all_aid] == 0.0
+                aid_conf_dict[all_aid] = max(aid_conf_dict[all_aid], all_conf)
 
-        # if version == 1:
-        #     tile_id, label, confidence, category, conf, zipped = values
+        aids_list = ibs.get_image_aids(gid_list)
 
-        #     positive_tile_set = set([])
-        #     for label_, confidence_, tile_id_ in zipped:
-        #         if label_ == category and conf <= confidence_:
-        #             positive_tile_set.add(tile_id_)
-        #     assert tile_id not in positive_tile_set
-        #     positive_tile_list = list(positive_tile_set)
-        #     positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
-        #     positive_aid_list = list(set(ut.flatten(positive_aids_list)))
+        result_list = []
+        for gid, wic_confidence, aid_list in zip(gid_list, wic_confidence_list, aids_list):
+            best_score = wic_confidence
+            for aid in aid_list:
+                wic_confidence_ = aid_conf_dict.get(aid, None)
+                assert wic_confidence_ is not None
+                best_score = max(best_score, wic_confidence_)
 
-        #     flag = False
-        #     aid_list = gid_aids_mapping.get(tile_id, [])
-        #     for aid in aid_list:
-        #         if aid not in positive_aid_list:
-        #             flag = True
-        #             break
-        #     return flag
-        # else:
-        #     tile_id, label, prediction, zipped = values
-        #     for test_gid, label, prediction in zipped:
-        #         pass
-
-        flag = False
-        aid_list = gid_aids_mapping.get(tile_id, [])
-        for aid in aid_list:
-            if aid not in positive_aid_list:
-                flag = True
-                break
-        return flag
+            if wic_confidence < 0.5:
+                best_key = 'negative'
+                best_score = 1.0 - best_score
+            else:
+                best_key = 'positive'
+            result = (best_score, best_key, )
+            result_list.append(result)
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+recovery+lightnet']:
-        min_area = 20
+        min_area = 10
 
         classifier_weight_filepath = config['classifier_weight_filepath']
         classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
@@ -395,12 +384,14 @@ def compute_classifications(depc, gid_list, config=None):
         result_list = []
         for wic_confidence, prediction in zip(wic_confidence_list, prediction_list):
             score, bboxes, thetas, confs, classes = prediction
+
             best_score = 0.0
             for bbox, conf in zip(bboxes, confs):
                 xtl, ytl, w, h = bbox
                 area = w * h
                 if area >= min_area:
                     best_score = max(best_score, conf)
+
             if wic_confidence < wic_thresh:
                 best_key = 'negative'
                 best_score = 1.0
