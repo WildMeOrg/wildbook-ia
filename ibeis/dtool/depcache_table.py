@@ -2089,6 +2089,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         (parent_ids_, preproc_args, idxs1, idxs2) = rectify_tup
         # Do the getting / adding work
         if recompute:
+            print('REQUESTED RECOMPUTE')
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None,
@@ -2567,7 +2568,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         This DOES NOT modify the depcache internals.
         """
         assert STORE_CFGDICT
-        print('Recomputing external data')
+        print('Recomputing external data (_recompute_external_storage)')
         # TODO: need to rectify parent ids?
 
         parent_rowids = table.get_parent_rowids(tbl_rowids)
@@ -2594,7 +2595,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         This DOES modify the depcache internals.
         """
         assert STORE_CFGDICT
-        print('Recomputing external data')
+        print('Recomputing external data (_recompute_and_store)')
         if len(tbl_rowids) == 0:
             return
         parent_rowids = table.get_parent_rowids(tbl_rowids)
