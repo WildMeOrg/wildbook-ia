@@ -1877,10 +1877,12 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 
     conf_list = [ ret[1] for ret in ret_list ]
     if target_recall is None:
+        # Get the highest AP
         area_list = [ ret[0] for ret in ret_list ]
     else:
         # Get the highest recall
         area_list = [ ret[2][2][0] for ret in ret_list ]
+
     if desired_index in ['argmax', None]:
         index = np.argmax(area_list)
     else:
@@ -1891,8 +1893,11 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+    if target_recall is None:
+        plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    else:
+        plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.06, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(222)
@@ -1923,8 +1928,8 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+    plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.06, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(223)
