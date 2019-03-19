@@ -315,50 +315,53 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet']:
-        min_area = 20
-
-        classifier_weight_filepath = config['classifier_weight_filepath']
-        classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
-
-        if config['classifier_algo'] == 'lightnet':
-            assert len(classifier_weight_filepath) == 2
-            weight_filepath, nms_thresh = classifier_weight_filepath
-            wic_thresh = 0.0
-            nms_thresh = float(nms_thresh)
-            wic_confidence_list = [np.inf] * len(gid_list)
-        elif config['classifier_algo'] == 'densenet+lightnet':
-            assert len(classifier_weight_filepath) == 4
-            wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
-            wic_thresh = float(wic_thresh)
-            nms_thresh = float(nms_thresh)
-            wic_confidence_list = ibs.vulcan_wic_test(gid_list, model_tag=wic_model_tag)
-        else:
-            raise ValueError
-
-        config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
         try:
-            prediction_list = depc.get_property('localizations', gid_list, None, config=config)
-        except:
-            prediction_list = depc.get_property('localizations', gid_list, None, config=config, recompute=True)
-        result_list = []
-        for wic_confidence, prediction in zip(wic_confidence_list, prediction_list):
-            score, bboxes, thetas, confs, classes = prediction
-            best_score = 0.0
-            for bbox, conf in zip(bboxes, confs):
-                xtl, ytl, w, h = bbox
-                area = w * h
-                if area >= min_area:
-                    best_score = max(best_score, confs)
-            if wic_confidence < wic_thresh:
-                best_key = 'negative'
-                best_score = 0.0
-            elif best_score < 0.5:
-                best_key = 'negative'
-                best_score = 1.0 - best_score
+            min_area = 20
+
+            classifier_weight_filepath = config['classifier_weight_filepath']
+            classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
+
+            if config['classifier_algo'] == 'lightnet':
+                assert len(classifier_weight_filepath) == 2
+                weight_filepath, nms_thresh = classifier_weight_filepath
+                wic_thresh = 0.0
+                nms_thresh = float(nms_thresh)
+                wic_confidence_list = [np.inf] * len(gid_list)
+            elif config['classifier_algo'] == 'densenet+lightnet':
+                assert len(classifier_weight_filepath) == 4
+                wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
+                wic_thresh = float(wic_thresh)
+                nms_thresh = float(nms_thresh)
+                wic_confidence_list = ibs.vulcan_wic_test(gid_list, model_tag=wic_model_tag)
             else:
-                best_key = 'positive'
-            result = (best_score, best_key, )
-            result_list.append(result)
+                raise ValueError
+
+            config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
+            try:
+                prediction_list = depc.get_property('localizations', gid_list, None, config=config)
+            except:
+                prediction_list = depc.get_property('localizations', gid_list, None, config=config, recompute=True)
+            result_list = []
+            for wic_confidence, prediction in zip(wic_confidence_list, prediction_list):
+                score, bboxes, thetas, confs, classes = prediction
+                best_score = 0.0
+                for bbox, conf in zip(bboxes, confs):
+                    xtl, ytl, w, h = bbox
+                    area = w * h
+                    if area >= min_area:
+                        best_score = max(best_score, confs)
+                if wic_confidence < wic_thresh:
+                    best_key = 'negative'
+                    best_score = 0.0
+                elif best_score < 0.5:
+                    best_key = 'negative'
+                    best_score = 1.0 - best_score
+                else:
+                    best_key = 'positive'
+                result = (best_score, best_key, )
+                result_list.append(result)
+        except:
+            ut.embed()
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
