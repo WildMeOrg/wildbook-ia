@@ -685,7 +685,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
     m_list = []
     m_list_ = []
 
-    text_width_ = 110
+    text_width_ = 120
     max_text_width = 0.0
     canvas_list = []
     for cluster, color in zip(cluster_list, color_list):
@@ -1149,6 +1149,10 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
 
     if target_recall_list is None:
         target_recall_list = [None, 0.8, 0.85, 0.9, 0.95, 0.98]
+
+    # Recompute
+    for config in config_list:
+        ibs.depc_image.get_property('classifier', test_tile_list, None, config=config, recompute=True)
 
     for target_recall in target_recall_list:
         ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,

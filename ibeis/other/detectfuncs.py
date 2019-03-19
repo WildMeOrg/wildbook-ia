@@ -1692,8 +1692,8 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
         test_gid_set.append(gid)
         label_list.append(label)
 
-    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
-    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs, recompute=True)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs, recompute=True)
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
@@ -1897,7 +1897,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                        positive_imageset_id=positive_imageset_id,
                                                                        negative_imageset_id=negative_imageset_id,
                                                                        test_gid_list=test_gid_list,
-                                                                       output_cases=True, **best_config1)
+                                                                       output_cases=False, **best_config1)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (Model: %s, OP = %0.04f)' % (best_label1, best_conf1, ), y=1.12)

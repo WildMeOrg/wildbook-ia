@@ -326,6 +326,8 @@ def compute_classifications(depc, gid_list, config=None):
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet']:
         try:
+            ut.embed()
+
             min_area = 20
 
             classifier_weight_filepath = config['classifier_weight_filepath']
@@ -362,7 +364,7 @@ def compute_classifications(depc, gid_list, config=None):
                         best_score = max(best_score, conf)
                 if wic_confidence < wic_thresh:
                     best_key = 'negative'
-                    best_score = 0.0
+                    best_score = 1.0
                 elif best_score < 0.5:
                     best_key = 'negative'
                     best_score = 1.0 - best_score
