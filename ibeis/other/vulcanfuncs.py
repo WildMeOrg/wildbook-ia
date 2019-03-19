@@ -1143,31 +1143,6 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
     """
     Example:
         >>> config_list = [
-        >>>     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
-        >>>     {'label': 'ELPH WIC B0 0',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:0'},
-        >>>     {'label': 'ELPH WIC B0 1',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:1'},
-        >>>     {'label': 'ELPH WIC B0 2',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:2'},
-        >>>     {'label': 'ELPH WIC B0 3',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:3'},
-        >>>     {'label': 'ELPH WIC B0 4',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:4'},
-        >>> ]
-        >>> offset_black = 1
-        >>>
-        >>> config_list = [
-        >>>     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
-        >>>     {'label': 'ELPH WIC B1 0',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:0'},
-        >>>     {'label': 'ELPH WIC B1 1',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:1'},
-        >>>     {'label': 'ELPH WIC B1 2',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:2'},
-        >>>     {'label': 'ELPH WIC B1 3',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:3'},
-        >>>     {'label': 'ELPH WIC B1 4',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:4'},
-        >>> ]
-        >>> offset_black = 1
-        >>>
-        >>> config_list = [
-        >>>     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
-        >>>     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
-        >>> ]
-        >>>
-        >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
         >>>     {'label': 'WIC d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
         >>>     {'label': 'WIC d3e8bf43 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2'},
@@ -1177,8 +1152,8 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
         >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list)
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True)
+        >>> ibs.vulcan_wic_validate(config_list)
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R4',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1203,10 +1178,10 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, desired_index=6)
         >>>
-        >>> config_list = [
-        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[0.5])
+        >>> # config_list = [
+        >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>> # ]
+        >>> # ibs.vulcan_wic_validate(config_list)
     """
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
         if version == 1:

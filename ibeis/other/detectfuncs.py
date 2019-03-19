@@ -137,6 +137,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
             print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
         return tp, tn, fp, fn
 
+    print('Using filter_fn_func = %r' % (filter_fn_func, ))
     if index_list is None:
         index_list = [None] * len(label_list)
         gid_aids_mapping = {}
@@ -1962,7 +1963,6 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                            negative_imageset_id=negative_imageset_id,
                                                                            test_gid_list=test_gid_list,
                                                                            output_cases=False,
-                                                                           filter_fn_func=filter_fn_func,
                                                                            **best_config1)
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
@@ -1977,7 +1977,6 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
                                                                            positive_imageset_id=positive_imageset_id,
                                                                            negative_imageset_id=negative_imageset_id,
                                                                            test_gid_list=test_gid_list,
-                                                                           filter_fn_func=filter_fn_func,
                                                                            **best_config2)
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
