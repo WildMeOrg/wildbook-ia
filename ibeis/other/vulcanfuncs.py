@@ -663,6 +663,7 @@ def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
 
     fig_ = plt.figure(figsize=(30, 15), dpi=400)  # NOQA
     axes = plt.subplot(121)
+    plt.title('Visualization of Embedding Space - UMAP + HDBSCAN Unsupervised Labeling')
 
     axes.grid(False, which='major')
     axes.grid(False, which='minor')
@@ -821,18 +822,18 @@ def vulcan_wic_train(ibs, ensembles=5, rounds=10,
                      **kwargs):
     """
     Example:
-       >>> restart_config_dict = {
-       >>>     'vulcan-d3e8bf43-boost0': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.0.zip',
-       >>>     'vulcan-d3e8bf43-boost1': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
-       >>>     'vulcan-d3e8bf43-boost2': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
-       >>>     'vulcan-d3e8bf43-boost3': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
-       >>>     'vulcan-d3e8bf43-boost4': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip',
-       >>>     'vulcan-d3e8bf43-boost5': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.5.zip',
-       >>>     'vulcan-d3e8bf43-boost6': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.6.zip',
-       >>> }
-       >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
-       >>>
-
+         >>> restart_config_dict = {
+         >>>     'vulcan-d3e8bf43-boost0': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.0.zip',
+         >>>     'vulcan-d3e8bf43-boost1': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
+         >>>     'vulcan-d3e8bf43-boost2': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
+         >>>     'vulcan-d3e8bf43-boost3': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
+         >>>     'vulcan-d3e8bf43-boost4': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip',
+         >>>     'vulcan-d3e8bf43-boost5': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.5.zip',
+         >>>     'vulcan-d3e8bf43-boost6': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.6.zip',
+         >>>     'vulcan-d3e8bf43-boost7': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.7.zip',
+         >>> }
+         >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
+         >>>
     """
     import random
 
@@ -1093,7 +1094,51 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
+def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None, **kwargs):
+    """
+    Example:
+        >>> config_list = [
+        >>>     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
+        >>>     {'label': 'ELPH WIC B0 0',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:0'},
+        >>>     {'label': 'ELPH WIC B0 1',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:1'},
+        >>>     {'label': 'ELPH WIC B0 2',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:2'},
+        >>>     {'label': 'ELPH WIC B0 3',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:3'},
+        >>>     {'label': 'ELPH WIC B0 4',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:4'},
+        >>> ]
+        >>> offset_black = 1
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
+        >>>     {'label': 'ELPH WIC B1 0',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:0'},
+        >>>     {'label': 'ELPH WIC B1 1',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:1'},
+        >>>     {'label': 'ELPH WIC B1 2',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:2'},
+        >>>     {'label': 'ELPH WIC B1 3',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:3'},
+        >>>     {'label': 'ELPH WIC B1 4',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:4'},
+        >>> ]
+        >>> offset_black = 1
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
+        >>>     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
+        >>> ]
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC     R4',         'classifier_algo': 'densenet',          'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     # {'label': 'LOC     R4',         'classifier_algo': 'lightnet',          'classifier_weight_filepath': 'vulcan-v0,0.50'},
+        >>>     # {'label': 'WIC+LOC R4+V0 1%',   'classifier_algo': 'densenet+lightnet', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.001,vulcan-v0,0.50'},
+        >>>     # {'label': 'WIC+LOC R4+V0 2.4%', 'classifier_algo': 'densenet+lightnet', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.024,vulcan-v0,0.50'},
+        >>>
+        >>>     # {'label': 'WIC   d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
+        >>>     # {'label': 'WIC   d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
+        >>>     # {'label': 'WIC   d3e8bf43 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2'},
+        >>>     # {'label': 'WIC   d3e8bf43 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost3'},
+        >>>     # {'label': 'WIC   d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     # {'label': 'WIC   d3e8bf43 R5', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost5'},
+        >>>     # {'label': 'WIC   d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
+        >>>     # {'label': 'WIC   d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None])
+    """
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     test_gid_set = all_tile_set & test_gid_set
@@ -1101,34 +1146,10 @@ def vulcan_wic_validate(ibs, config_list=None, offset_black=0, **kwargs):
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
 
-    if config_list is None:
-        # config_list = [
-        #     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
-        #     {'label': 'ELPH WIC B0 0',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:0'},
-        #     {'label': 'ELPH WIC B0 1',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:1'},
-        #     {'label': 'ELPH WIC B0 2',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:2'},
-        #     {'label': 'ELPH WIC B0 3',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:3'},
-        #     {'label': 'ELPH WIC B0 4',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0:4'},
-        # ]
-        # offset_black = 1
+    if target_recall_list is None:
+        target_recall_list = [None, 0.8, 0.85, 0.9, 0.95, 0.98]
 
-        # config_list = [
-        #     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
-        #     {'label': 'ELPH WIC B1 0',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:0'},
-        #     {'label': 'ELPH WIC B1 1',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:1'},
-        #     {'label': 'ELPH WIC B1 2',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:2'},
-        #     {'label': 'ELPH WIC B1 3',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:3'},
-        #     {'label': 'ELPH WIC B1 4',        'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1:4'},
-        # ]
-        # offset_black = 1
-
-        # config_list = [
-        #     {'label': 'ELPH WIC B0 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost0'},
-        #     {'label': 'ELPH WIC B1 Ensemble', 'classifier_algo': 'densenet', 'classifier_weight_filepath': 'vulcan-boost1'},
-        # ]
-        pass
-
-    for target_recall in [None, 0.8, 0.85, 0.9, 0.95, 0.98]:
+    for target_recall in target_recall_list:
         ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
                                                                 config_list=config_list,
                                                                 offset_black=offset_black,
@@ -1376,7 +1397,7 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
     plt.ylabel('Number of Tiles')
     plt.yscale('log')
     if errors_only:
-        plt.title('WIC Performance by Area of Coverage (Errors only)\nGT Neg TN - %d' % (num_tn, ))
+        plt.title('WIC Performance by Area of Coverage (Errors only)')
     else:
         plt.title('WIC Performance by Area of Coverage\nGT Neg TN - %d' % (num_tn, ))
 
@@ -1463,7 +1484,7 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
     plt.ylabel('Number of Tiles')
     plt.yscale('log')
     if errors_only:
-        plt.title('WIC Performance by Number of Annotations (Errors only)\nGT Neg TN - %d' % (num_tn, ))
+        plt.title('WIC Performance by Number of Annotations (Errors only)')
     else:
         plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
 
@@ -1917,45 +1938,45 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list, overwrite_config_keys=True)
 
 
-# def __delete_old_tiles(ibs, ):
-#     tid_all_list = ibs.get_valid_gids(is_tile=True)
+def __delete_old_tiles(ibs, ):
+    tid_all_list = ibs.get_valid_gids(is_tile=True)
 
-#     imageset_text_list = [
-#         'elephant',
-#         'RR18_BIG_2015_09_23_R_AM',
-#         'TA24_TPM_L_2016-10-30-A',
-#         'TA24_TPM_R_2016-10-30-A',
-#         '2012-08-16_AM_L_Azohi',
-#         '2012-08-15_AM_R_Marealle',
-#         '2012-08-14_PM_R_Chediel',
-#         # '20161108_Nikon_Left',
-#         # '20161108_Nikon_Right',
-#         '20161108_Nikon_Left_Sample',
-#         '20161108_Nikon_Right_Sample',
-#     ]
+    imageset_text_list = [
+        'elephant',
+        'RR18_BIG_2015_09_23_R_AM',
+        'TA24_TPM_L_2016-10-30-A',
+        'TA24_TPM_R_2016-10-30-A',
+        '2012-08-16_AM_L_Azohi',
+        '2012-08-15_AM_R_Marealle',
+        '2012-08-14_PM_R_Chediel',
+        # '20161108_Nikon_Left',
+        # '20161108_Nikon_Right',
+        '20161108_Nikon_Left_Sample',
+        '20161108_Nikon_Right_Sample',
+    ]
 
-#     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
-#     gids_list = ibs.get_imageset_gids(imageset_rowid_list)
-#     gid_list = ut.flatten(gids_list)
-#     gid_list = sorted(gid_list)
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    gids_list = ibs.get_imageset_gids(imageset_rowid_list)
+    gid_list = ut.flatten(gids_list)
+    gid_list = sorted(gid_list)
 
-#     tile_size = 256
-#     tile_overlap = 64
-#     config1 = {
-#         'tile_width':   tile_size,
-#         'tile_height':  tile_size,
-#         'tile_overlap': tile_overlap,
-#     }
-#     tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
-#     tile1_list = ut.flatten(tiles1_list)
-#     remaining = set(tid_all_list) - set(tile1_list)
-#     ibs.delete_images(remaining, trash_images=True)
+    tile_size = 256
+    tile_overlap = 64
+    config1 = {
+        'tile_width':   tile_size,
+        'tile_height':  tile_size,
+        'tile_overlap': tile_overlap,
+    }
+    tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
+    tile1_list = ut.flatten(tiles1_list)
+    remaining = set(tid_all_list) - set(tile1_list)
+    ibs.delete_images(remaining, trash_images=True)
 
-#     table = ibs.depc_image['tiles']
-#     depc_all_rowid_list = table._get_all_rowids()
-#     depc_rowid_list = table.get_rowids_from_root(gid_list, config=config1)
-#     remaining = set(depc_all_rowid_list) - set(depc_rowid_list)
-#     table.delete_rows(remaining, delete_extern=True)
+    table = ibs.depc_image['tiles']
+    depc_all_rowid_list = table._get_all_rowids()
+    depc_rowid_list = table.get_rowids_from_root(gid_list, config=config1)
+    remaining = set(depc_all_rowid_list) - set(depc_rowid_list)
+    table.delete_rows(remaining, delete_extern=True)
 
 
 if __name__ == '__main__':

@@ -234,7 +234,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'lightnet', 'densenet+lightnet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -313,6 +313,13 @@ def compute_classifications(depc, gid_list, config=None):
         }
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
+        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
+    elif config['classifier_algo'] in ['lightnet']:
+        ut.embed()
+
+        config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.0}
+        predictions = depc.get_property('localizations', gid_list, None, config=config)
+
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))

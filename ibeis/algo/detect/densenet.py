@@ -30,7 +30,16 @@ ARCHIVE_URL_DICT = {
     'lynx_v3'                   : 'https://cthulhu.dyn.wildme.io/public/models/labeler.lynx.v3.zip',
     'manta_v1'                  : 'https://cthulhu.dyn.wildme.io/public/models/labeler.manta_ray_giant.v1.zip',
     'seaturtle_v3'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seaturtle.v3.zip',
-    'hendrik_dorsal_v2'         : 'https://cthulhu.dyn.wildme.io/public/models/labeler.hendrik_dorsal.v2.zip'
+    'hendrik_dorsal_v2'         : 'https://cthulhu.dyn.wildme.io/public/models/labeler.hendrik_dorsal.v2.zip',
+
+    'vulcan-d3e8bf43-boost0'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.0.zip',
+    'vulcan-d3e8bf43-boost1'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
+    'vulcan-d3e8bf43-boost2'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
+    'vulcan-d3e8bf43-boost3'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
+    'vulcan-d3e8bf43-boost4'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip',
+    'vulcan-d3e8bf43-boost5'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.5.zip',
+    'vulcan-d3e8bf43-boost6'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.6.zip',
+    'vulcan-d3e8bf43-boost7'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.7.zip',
 }
 
 
