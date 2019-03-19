@@ -1204,10 +1204,12 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         ut.embed()
         if version == 1:
             tile_id, label, confidence, conf, zipped = values
+            for label, confidence, index in zipped:
+                pass
         else:
-            test_gid_set, label_list, prediction_list = values
-        for label, confidence, index in zipped:
-            pass
+            tile_id, label, prediction, zipped = values
+            for test_gid, label, prediction in zipped:
+                pass
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))

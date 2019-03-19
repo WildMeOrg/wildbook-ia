@@ -275,8 +275,8 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     best_conf = best_conf_list[0]
 
     if interpolate:
-        # label = '%s [AP = %0.02f, OP = %0.04f]' % (label, ap * 100.0, best_conf)
-        label = '%s [AP = %0.02f]' % (label, ap * 100.0)
+        # label = '%s [AP = %0.04f, OP = %0.04f]' % (label, ap * 100.0, best_conf)
+        label = '%s [AP = %0.04f]' % (label, ap * 100.0)
     else:
         label = '%s [AUC = %0.02f]' % (label, ap * 100.0, )
 
@@ -1451,7 +1451,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
         args = (target_recall, best_label, best_area, best_conf, )
-        plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.04f)' % args, y=1.26)
+        plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.04f, OP = %0.04f)' % args, y=1.26)
 
     ######################################################################################
     axes_ = plt.subplot(132)
@@ -1473,7 +1473,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     args = (best_label, best_area, best_conf, )
-    plt.title('Confusion Matrix\n(Algo: %s, mAP = %0.02f, OP = %0.04f)' % args, y=1.26)
+    plt.title('Confusion Matrix\n(Algo: %s, mAP = %0.04f, OP = %0.04f)' % args, y=1.26)
 
     ######################################################################################
     if len(config_tag) > 0:
@@ -1775,9 +1775,24 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf,
     ]
 
     if filter_fn_func is not None:
-        values = (test_gid_set, label_list, prediction_list, )
-        filter_fn_func(2, values)
-        ut.embed()
+        fn_filter_total = 0
+        fn_filter_converted = 0
+
+        prediction_list_ = []
+        zipped = zip(test_gid_set, label_list, prediction_list)
+        for test_gid, label, prediction in zipped:
+            prediction_ = prediction
+            if label == 'positive' and prediction == 'negative':
+                fn_filter_total += 1
+                values = (test_gid, label, prediction, None, zipped)
+                flag = filter_fn_func(2, values)
+                if not flag:
+                    prediction_ = 'positive'
+                    fn_filter_converted += 1
+            prediction_list_.append(prediction_)
+
+        print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
+        prediction_list = prediction_list_
 
     if output_cases:
         output_path = 'cameratrap-confusion-incorrect'
@@ -1895,7 +1910,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
     if target_recall is None:
-        plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.14)
+        plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.14)
     else:
         plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.14)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -2067,7 +2082,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #     axes_.set_xlim([0.0, 1.01])
 #     axes_.set_ylim([0.0, 1.01])
 #     area, best_conf1, _ = classifier_binary_precision_recall_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-#     plt.title('Precision-Recall Curve (AP = %0.02f)' % (area, ), y=1.10)
+#     plt.title('Precision-Recall Curve (AP = %0.04f)' % (area, ), y=1.10)
 #     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
 #                borderaxespad=0.0)
 
@@ -2079,7 +2094,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 #     axes_.set_xlim([0.0, 1.01])
 #     axes_.set_ylim([0.0, 1.01])
 #     area, best_conf2, _ = classifier_binary_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-#     plt.title('ROC Curve (AP = %0.02f)' % (area, ), y=1.10)
+#     plt.title('ROC Curve (AP = %0.04f)' % (area, ), y=1.10)
 #     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
 #                borderaxespad=0.0)
 
@@ -2589,7 +2604,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     area_list_ = area_list
     mAP = sum(area_list_) / len(area_list_)
     args = (mAP * 100.0, )
-    plt.title('Confusion Matrix\nmAP = %0.02f' % args, y=1.19)
+    plt.title('Confusion Matrix\nmAP = %0.04f' % args, y=1.19)
 
     fig_filename = 'labeler-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -2746,7 +2761,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -2770,7 +2785,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.title('ROC Curve (Best: %s, AP = %0.04f)' % (best_label2, best_area2, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -3423,7 +3438,7 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
     best_color1 = color_list[index]
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1, ), y=1.10)
+    plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -3447,7 +3462,7 @@ def aoi2_precision_recall_algo_display(ibs, test_gid_list=None, output_cases=Fal
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2, ), y=1.10)
+    plt.title('ROC Curve (Best: %s, AP = %0.04f)' % (best_label2, best_area2, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
     plt.plot([0.0, 1.0], [0.0, 1.0], color=(0.5, 0.5, 0.5), linestyle='--')
@@ -3747,7 +3762,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 #     best_kwargs = kwargs_list[index]
 #     best_area = area_list[index]
 #     best_conf = conf_list[index]
-#     plt.title('Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label, best_area, ), y=1.20)
+#     plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label, best_area, ), y=1.20)
 #     # Display graph
 #     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
 #                borderaxespad=0.0)
