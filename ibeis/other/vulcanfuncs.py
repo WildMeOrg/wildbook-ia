@@ -1094,7 +1094,7 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 
 
 @register_ibs_method
-def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None, **kwargs):
+def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None, recompute=False, **kwargs):
     """
     Example:
         >>> config_list = [
@@ -1151,8 +1151,9 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         target_recall_list = [None, 0.8, 0.85, 0.9, 0.95, 0.98]
 
     # Recompute
-    for config in config_list:
-        ibs.depc_image.get_property('classifier', test_tile_list, None, config=config, recompute=True)
+    if recompute:
+        for config in config_list:
+            ibs.depc_image.get_property('classifier', test_tile_list, None, config=config, recompute=True)
 
     for target_recall in target_recall_list:
         ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
