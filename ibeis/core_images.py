@@ -315,13 +315,12 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['densenet+recovery']:
-        ut.embed()
         classifier_weight_filepath = config['classifier_weight_filepath']
         wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
                                                   model_tag=classifier_weight_filepath)
 
         ancestor_gid_list = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gid_list)))
-        all_tile_list = set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list))
+        all_tile_list = list(set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
         all_aids_list = ibs.get_image_aids(all_tile_list)
         all_conf_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
                                             model_tag=classifier_weight_filepath)
@@ -330,12 +329,12 @@ def compute_classifications(depc, gid_list, config=None):
         for all_tile_id, all_aid_list, all_conf in zip(all_tile_list, all_aids_list, all_conf_list):
             for all_aid in all_aid_list:
                 if all_aid not in aid_conf_dict:
-                    aid_conf_dict[all_aid] == 0.0
+                    aid_conf_dict[all_aid] = 0.0
                 aid_conf_dict[all_aid] = max(aid_conf_dict[all_aid], all_conf)
 
-        aids_list = ibs.get_image_aids(gid_list)
-
+        recovered = 0
         result_list = []
+        aids_list = ibs.get_image_aids(gid_list)
         for gid, wic_confidence, aid_list in zip(gid_list, wic_confidence_list, aids_list):
             best_score = wic_confidence
             for aid in aid_list:
@@ -348,8 +347,11 @@ def compute_classifications(depc, gid_list, config=None):
                 best_score = 1.0 - best_score
             else:
                 best_key = 'positive'
+            if best_score > wic_confidence:
+                recovered += 1
             result = (best_score, best_key, )
             result_list.append(result)
+        print('Recovered: %d / %d' % (recovered, len(gid_list), ))
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+recovery+lightnet']:
         min_area = 10
 
