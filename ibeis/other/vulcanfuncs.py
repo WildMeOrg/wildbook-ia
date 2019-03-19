@@ -1136,7 +1136,8 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 
 @register_ibs_method
 def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None,
-                        recompute=False, desired_index=None, **kwargs):
+                        recompute=False, desired_index=None, fn_recovery=False,
+                        **kwargs):
     """
     Example:
         >>> config_list = [
@@ -1174,7 +1175,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
         >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[0.85])
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R4',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1199,6 +1200,9 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, desired_index=4)
     """
+    def _filter_fn_func():
+        pass
+
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     test_gid_set = all_tile_set & test_gid_set
@@ -1214,13 +1218,15 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         for config in config_list:
             ibs.depc_image.get_property('classifier', test_tile_list, None, config=config, recompute=True)
 
+    filter_fn_func = _filter_fn_func if fn_recovery else None
     for target_recall in target_recall_list:
         ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
                                                                 config_list=config_list,
                                                                 offset_black=offset_black,
                                                                 target_recall=target_recall,
                                                                 force_target_recall=True,
-                                                                desired_index=desired_index)
+                                                                desired_index=desired_index,
+                                                                filter_fn_func=filter_fn_func)
 
 
 @register_ibs_method
