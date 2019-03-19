@@ -234,7 +234,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'lightnet', 'densenet+lightnet']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+recovery', 'lightnet', 'densenet+lightnet', 'densenet+recovery+lightnet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -314,7 +314,54 @@ def compute_classifications(depc, gid_list, config=None):
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
-    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet']:
+    elif config['classifier_algo'] in ['densenet+recovery']:
+        ut.embed()
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        wic_confidence_list = ibs.vulcan_wic_test(gid_list, model_tag=classifier_weight_filepath)
+
+        tile_id, label, confidence, category, conf, zipped = values
+
+        positive_tile_set = set([])
+        for label_, confidence_, tile_id_ in zipped:
+            if label_ == category and conf <= confidence_:
+                positive_tile_set.add(tile_id_)
+        assert tile_id not in positive_tile_set
+        positive_tile_list = list(positive_tile_set)
+        positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
+        positive_aid_list = list(set(ut.flatten(positive_aids_list)))
+
+        # if version == 1:
+        #     tile_id, label, confidence, category, conf, zipped = values
+
+        #     positive_tile_set = set([])
+        #     for label_, confidence_, tile_id_ in zipped:
+        #         if label_ == category and conf <= confidence_:
+        #             positive_tile_set.add(tile_id_)
+        #     assert tile_id not in positive_tile_set
+        #     positive_tile_list = list(positive_tile_set)
+        #     positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
+        #     positive_aid_list = list(set(ut.flatten(positive_aids_list)))
+
+        #     flag = False
+        #     aid_list = gid_aids_mapping.get(tile_id, [])
+        #     for aid in aid_list:
+        #         if aid not in positive_aid_list:
+        #             flag = True
+        #             break
+        #     return flag
+        # else:
+        #     tile_id, label, prediction, zipped = values
+        #     for test_gid, label, prediction in zipped:
+        #         pass
+
+        flag = False
+        aid_list = gid_aids_mapping.get(tile_id, [])
+        for aid in aid_list:
+            if aid not in positive_aid_list:
+                flag = True
+                break
+        return flag
+    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+recovery+lightnet']:
         min_area = 20
 
         classifier_weight_filepath = config['classifier_weight_filepath']
@@ -331,7 +378,15 @@ def compute_classifications(depc, gid_list, config=None):
             wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
             wic_thresh = float(wic_thresh)
             nms_thresh = float(nms_thresh)
-            wic_confidence_list = ibs.vulcan_wic_test(gid_list, model_tag=wic_model_tag)
+            wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
+                                                      model_tag=wic_model_tag)
+        elif config['classifier_algo'] == 'densenet+recovery+lightnet':
+            assert len(classifier_weight_filepath) == 4
+            wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
+            wic_thresh = float(wic_thresh)
+            nms_thresh = float(nms_thresh)
+            wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet+recovery',
+                                                      model_tag=wic_model_tag)
         else:
             raise ValueError
 

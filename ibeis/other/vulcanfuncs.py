@@ -1119,9 +1119,9 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
 
 
 @register_ibs_method
-def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
+def vulcan_wic_test(ibs, test_tile_list, classifier_algo='densenet', model_tag=None):
     config = {
-        'classifier_algo': 'densenet',
+        'classifier_algo': classifier_algo,
         'classifier_weight_filepath': model_tag,
     }
     prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
@@ -1136,7 +1136,7 @@ def vulcan_wic_test(ibs, test_tile_list, model_tag=None):
 
 @register_ibs_method
 def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None,
-                        recompute=False, desired_index=None, fn_recovery=False,
+                        recompute=False, desired_index=None,
                         **kwargs):
     """
     Example:
@@ -1178,6 +1178,18 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ibs.vulcan_wic_validate(config_list)
         >>>
         >>> config_list = [
+        >>>     {'label': 'WIC d3e8bf43 R0', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
+        >>>     {'label': 'WIC d3e8bf43 R1', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
+        >>>     {'label': 'WIC d3e8bf43 R2', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2'},
+        >>>     {'label': 'WIC d3e8bf43 R3', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost3'},
+        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     {'label': 'WIC d3e8bf43 R5', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost5'},
+        >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
+        >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet+recovery',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list)
+        >>>
+        >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R4',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>>     {'label': 'WIC d3e8bf43 R4:0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:0'},
         >>>     {'label': 'WIC d3e8bf43 R4:1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:1'},
@@ -1197,41 +1209,14 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.706,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.209,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.026,vulcan_v0,0.50'},
-        >>>
-        >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, desired_index=4, target_recall_list=[None])
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+recovery',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[0.5])
     """
-    def _filter_fn_func(ibs, version, values, gid_aids_mapping):
-        if version == 1:
-            tile_id, label, confidence, category, conf, zipped = values
-
-            positive_tile_set = set([])
-            for label_, confidence_, tile_id_ in zipped:
-                if label_ == category and conf <= confidence_:
-                    positive_tile_set.add(tile_id_)
-            assert tile_id not in positive_tile_set
-            positive_tile_list = list(positive_tile_set)
-            positive_aids_list = ut.take(gid_aids_mapping, positive_tile_list)
-            positive_aid_list = list(set(ut.flatten(positive_aids_list)))
-
-            flag = False
-            aid_list = gid_aids_mapping.get(tile_id, [])
-            for aid in aid_list:
-                if aid not in positive_aid_list:
-                    flag = True
-                    break
-            return flag
-        else:
-            tile_id, label, prediction, zipped = values
-            for test_gid, label, prediction in zipped:
-                pass
-
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     test_gid_set = all_tile_set & test_gid_set
@@ -1247,15 +1232,13 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         for config in config_list:
             ibs.depc_image.get_property('classifier', test_tile_list, None, config=config, recompute=True)
 
-    filter_fn_func = _filter_fn_func if fn_recovery else None
     for target_recall in target_recall_list:
         ibs.classifier_cameratrap_precision_recall_algo_display(pid, nid, test_gid_list=test_tile_list,
                                                                 config_list=config_list,
                                                                 offset_black=offset_black,
                                                                 target_recall=target_recall,
                                                                 force_target_recall=True,
-                                                                desired_index=desired_index,
-                                                                filter_fn_func=filter_fn_func)
+                                                                desired_index=desired_index)
 
 
 @register_ibs_method
