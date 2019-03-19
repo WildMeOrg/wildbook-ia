@@ -1185,7 +1185,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC d3e8bf43 R4:3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:3'},
         >>>     {'label': 'WIC d3e8bf43 R4:4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:4'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0)
+        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC R4',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1200,7 +1200,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>
         >>>     # {'label': 'WIC++   R4',         'classifier_algo': 'densenet+neighbors', 'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, desired_index=4)
+        >>> ibs.vulcan_wic_validate(config_list, desired_index=4, target_recall_list=[None])
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1208,11 +1208,25 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[0.5])
     """
     def _filter_fn_func(ibs, version, values):
-        ut.embed()
         if version == 1:
-            tile_id, label, confidence, conf, zipped = values
-            for label, confidence, index in zipped:
-                pass
+            tile_id, label, confidence, category, conf, zipped = values
+
+            positive_tile_set = set([])
+            for label_, confidence_, tile_id_ in zipped:
+                if label_ == category and conf <= confidence_:
+                    positive_tile_set.add(tile_id_)
+            assert tile_id not in positive_tile_set
+            positive_tile_list = list(positive_tile_set)
+            positive_aids_list = ibs.get_image_aids(positive_tile_list)
+            positive_aid_list = list(set(ut.flatten(positive_aids_list)))
+
+            flag = False
+            aid_list = ibs.get_image_aids(tile_id)
+            for aid in aid_list:
+                if aid not in positive_aid_list:
+                    flag = True
+                    break
+            return flag
         else:
             tile_id, label, prediction, zipped = values
             for test_gid, label, prediction in zipped:

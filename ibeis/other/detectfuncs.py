@@ -119,7 +119,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
                 else:
                     fn_filter_total += 1
                     if None not in [filter_fn_func_, index]:
-                        values = (index, label, confidence, conf, zipped, )
+                        values = (index, label, confidence, category, conf, zipped, )
                         flag = filter_fn_func_(ibs, 1, values)
                         if flag:
                             fn += 1
