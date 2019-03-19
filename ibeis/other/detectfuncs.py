@@ -1959,6 +1959,8 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
     best_color1 = color_list[index]
+    area_list = [0.5] * len(config_list)
+    conf_list = [0.5] * len(config_list)
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
 
