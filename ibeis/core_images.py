@@ -315,8 +315,8 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['tile_aggregation']:
+        ut.embed()
         VERSION = 2
-        confidence_thresh = 0.01
 
         classifier_weight_filepath = config['classifier_weight_filepath']
         classifier_weight_filepath = classifier_weight_filepath.strip().split(';')
@@ -329,6 +329,7 @@ def compute_classifications(depc, gid_list, config=None):
             tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=[gid])
             confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
             if VERSION == 1:
+                confidence_thresh = 0.01
                 confidence_list = [
                     confidence
                     for confidence in confidence_list
