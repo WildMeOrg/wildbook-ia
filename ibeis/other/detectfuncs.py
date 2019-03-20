@@ -829,7 +829,8 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     return match_list
 
 
-def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
+def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5,
+                    return_match_dict=False, **kwargs):
     total = 0.0
 
     interest_species_set = set([])
@@ -841,6 +842,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
                 interest_species_set.add(species)
 
     match_list = []
+    match_dict = {}
     for image_uuid in uuid_list:
         gt_list = []
         gt_list_ = []
@@ -858,6 +860,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
 
         # Match predictions
         match_list_ = localizer_assignments(pred_list, gt_list, gt_list_, min_overlap)
+        match_dict[image_uuid] = match_list_
         for match_ in match_list_:
             match_list.append(match_)
 
@@ -887,7 +890,10 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
     # print('\t con [-10:]     : %r' % (conf_list[-10:], ))
     # print('\t num_annotations: %r' % (total, ))
 
-    return conf_list, tp_list, fp_list, total
+    if return_match_dict:
+        return conf_list, tp_list, fp_list, total, match_dict
+    else:
+        return conf_list, tp_list, fp_list, total
 
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
