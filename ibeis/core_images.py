@@ -315,7 +315,6 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['tile_aggregation']:
-        ut.embed()
         VERSION = 2
 
         classifier_weight_filepath = config['classifier_weight_filepath']
