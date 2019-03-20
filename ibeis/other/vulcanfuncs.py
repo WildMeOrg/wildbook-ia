@@ -413,25 +413,31 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
 
 
 @register_ibs_method
-def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
-                                     recompute_split=False, **kwargs):
+def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, target_species=target_species)
+    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, **kwargs)
     cumulative_area_list, total_area_list, flag_list = values
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+    pidi, nidi = ibs.get_imageset_imgsetids_from_text(['POSITIVE_IMAGE', 'NEGATIVE_IMAGE'])
     gid_all_list = ibs.get_valid_gids(is_tile=None)
-    ibs.unrelate_images_and_imagesets(gid_all_list, [pid] * len(gid_all_list))
-    ibs.unrelate_images_and_imagesets(gid_all_list, [nid] * len(gid_all_list))
+    ibs.unrelate_images_and_imagesets(gid_all_list, [pid]  * len(gid_all_list))
+    ibs.unrelate_images_and_imagesets(gid_all_list, [nid]  * len(gid_all_list))
+    ibs.unrelate_images_and_imagesets(gid_all_list, [pidi] * len(gid_all_list))
+    ibs.unrelate_images_and_imagesets(gid_all_list, [nidi] * len(gid_all_list))
 
     gids = [ gid for gid, flag in zip(tile_list, flag_list) if flag == 1 ]
     print(len(gids))
-    ibs.set_image_imagesettext(gids, ['POSITIVE'] * len(gids))
+    ibs.set_image_imgsetids(gids, [pid] * len(gids))
+    gidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
+    ibs.set_image_imgsetids(gidsi, [pidi] * len(gidsi))
 
     gids = [ gid for gid, flag in zip(tile_list, flag_list) if flag == 0 ]
     print(len(gids))
-    ibs.set_image_imagesettext(gids, ['NEGATIVE'] * len(gids))
+    ibs.set_image_imgsetids(gids, [nid] * len(gids))
+    gidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
+    ibs.set_image_imgsetids(gidsi, [nidi] * len(gidsi))
 
     if recompute_split:
         ibs.imageset_train_test_split(is_tile=False)
@@ -458,11 +464,16 @@ def vulcan_imageset_train_test_split(ibs, target_species='elephant_savanna',
         else:
             raise ValueError()
 
+    # Set tiles
     tid_all_list = ibs.get_valid_gids(is_tile=True)
     ibs.unrelate_images_and_imagesets(tid_all_list, [train_imgsetid] * len(tid_all_list))
     ibs.unrelate_images_and_imagesets(tid_all_list, [test_imgsetid]  * len(tid_all_list))
 
     ibs.set_image_imgsetids(tile_train_list, [train_imgsetid] * len(tile_train_list))
+    ibs.set_image_imgsetids(tile_test_list, [test_imgsetid] * len(tile_test_list))
+
+    # Associate Images
+
     ibs.set_image_imgsetids(tile_test_list, [test_imgsetid] * len(tile_test_list))
 
     return tile_list
@@ -1230,11 +1241,12 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
     test_gid_set = all_tile_set & test_gid_set
     test_tile_list = list(test_gid_set)
 
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+
     if use_ancestors:
         ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
         test_tile_list = list(set(ancestor_gid_list))
-
-    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+        pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE_IMAGE', 'NEGATIVE_IMAGE'])
 
     if target_recall_list is None:
         target_recall_list = [None, 0.8, 0.85, 0.9, 0.95, 0.98]

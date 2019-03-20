@@ -347,7 +347,8 @@ def compute_classifications(depc, gid_list, config=None):
             result = (best_score, best_key, )
             result_list.append(result)
     elif config['classifier_algo'] in ['densenet+neighbors']:
-        ut.embed()
+        raise NotImplementedError
+        # ut.embed()
         # classifier_weight_filepath = config['classifier_weight_filepath']
 
         # all_bbox_list = ibs.get_vulcan_image_bboxes(gid_list)
