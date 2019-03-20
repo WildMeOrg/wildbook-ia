@@ -2152,9 +2152,9 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
             conf, flag, index, overlap = match
 
             if flag:
+                tp += 1
                 if not errors_only:
                     percentage_dict[bucket][0] += 1
-                    tp += 1
             else:
                 percentage_dict[bucket][2] += 1
         percentage_dict[bucket][1] += (total - tp)
