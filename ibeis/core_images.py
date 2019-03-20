@@ -315,25 +315,36 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['tile_aggregation']:
-        from ibeis.algo.detect import densenet
-        ut.embed()
+        VERSION = 2
+        confidence_thresh = 0.01
 
         classifier_weight_filepath = config['classifier_weight_filepath']
         classifier_weight_filepath = classifier_weight_filepath.strip().split(';')
 
         assert len(classifier_weight_filepath) == 2
-        classifier_algo_, classifier_weight_filepath_ = classifier_weight_filepath
-
-        config_ = {
-            'classifier_algo': classifier_algo_,
-            'classifier_weight_filepath': classifier_weight_filepath_,
-        }
+        classifier_algo_, model_tag_ = classifier_weight_filepath
 
         result_list = []
         for gid in gid_list:
             tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=[gid])
-            result_list_ = depc.get('classifier', tid_list, config=config)
+            confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
+            if VERSION == 1:
+                confidence_list = [
+                    confidence
+                    for confidence in confidence_list
+                    if confidence > confidence_thresh
+                ]
+                best_score = np.mean(confidence_list)
+            else:
+                best_score = np.max(confidence_list)
 
+            if best_score < 0.5:
+                best_key = 'negative'
+                best_score = 1.0 - best_score
+            else:
+                best_key = 'positive'
+            result = (best_score, best_key, )
+            result_list.append(result)
     elif config['classifier_algo'] in ['densenet+neighbors']:
         ut.embed()
         # classifier_weight_filepath = config['classifier_weight_filepath']
