@@ -1584,7 +1584,6 @@ def vulcan_wic_visualize_errors_annots(ibs, target_species='elephant_savanna',
 
 @register_ibs_method
 def vulcan_wic_visualize_errors_clusters(ibs, target_species='elephant_savanna',
-                                         min_cumulative_percentage=0.025,
                                          thresh=0.024, errors_only=False, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -1596,7 +1595,7 @@ def vulcan_wic_visualize_errors_clusters(ibs, target_species='elephant_savanna',
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
     cumulative_area_list, total_area_list, flag_list = values
 
     model_tag = 'vulcan-d3e8bf43-boost4'
@@ -2090,12 +2089,13 @@ def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=100, **kwargs):
 
 @register_ibs_method
 def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savanna',
+                                             min_cumulative_percentage=0.025,
                                              sensitivity=0.4425, errors_only=False, **kwargs):
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    fig_ = plt.figure(figsize=(12, 10), dpi=400)  # NOQA
+    fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -2104,6 +2104,13 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
 
     # model_tag = 'vulcan-d3e8bf43-boost4'
     # confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
+    cumulative_area_list, total_area_list, flag_list = values
+    area_percentage_list = [
+        cumulative_area / total_area
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
 
     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': sensitivity}
 
@@ -2133,9 +2140,77 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
 
     color_list = pt.distinct_colors(4, randomize=False)
 
+    # Coverage
+    print('Plotting coverage')
+    plt.subplot(211)
+
+    bucket_size = 5.0
+    percentage_dict = {}
+    for test_uuid, percentage in zip(test_uuid_list, area_percentage_list):
+        if percentage < min_cumulative_percentage:
+            bucket = -1
+        else:
+            bucket = int((percentage * 100.0) / bucket_size)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        match_list, total = match_dict[test_uuid]
+        tp = 0
+        for match in match_list:
+            conf, flag, index, overlap = match
+
+            if flag:
+                tp += 1
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
+            else:
+                percentage_dict[bucket][2] += 1
+        percentage_dict[bucket][1] += (total - tp)
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.yscale('log')
+    if errors_only:
+        plt.title('WIC Performance by Area of Coverage (Errors only)')
+    else:
+        plt.title('WIC Performance by Area of Coverage')
+
+    tick_list = ['[0, 2.5)', '[2.5, 5)']
+    for percentage in percentage_list:
+        if percentage <= 0:
+            continue
+        bucket_min = int(bucket_size * percentage)
+        bucket_max = int(bucket_size * (percentage + 1))
+        tick = '[%d, %d)' % (bucket_min, bucket_max, )
+        tick_list.append(tick)
+
+    plt.xticks(index_list, tick_list)
+
     # Number of annotations
     print('Plotting num annotations')
-    plt.subplot(111)
+    plt.subplot(212)
 
     percentage_dict = {}
     for test_uuid in test_uuid_list:
