@@ -2145,8 +2145,6 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
             percentage_dict[bucket] = [0, 0, 0, 0]
 
         match_list, total = match_dict[test_uuid]
-        if len(match_list) > 2:
-            break
         tp = 0
         for match in match_list:
             conf, flag, index, overlap = match
