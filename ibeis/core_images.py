@@ -41,6 +41,7 @@ import vtool as vt
 import cv2
 from ibeis.control.controller_inject import register_preprocs
 import sys
+import tqdm
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
 
@@ -324,7 +325,7 @@ def compute_classifications(depc, gid_list, config=None):
         classifier_algo_, model_tag_ = classifier_weight_filepath
 
         result_list = []
-        for gid in gid_list:
+        for gid in tqdm.tqdm(gid_list):
             tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=[gid])
             confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
             if VERSION == 1:
