@@ -1926,9 +1926,9 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
     if target_recall is None:
-        plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.14)
+        plt.title('Precision-Recall Curve (Best: %s, AP = %0.04f)' % (best_label1, best_area1, ), y=1.16)
     else:
-        plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.14)
+        plt.title('Precision-Recall Curve (Best: %s, Precision = %0.02f)' % (best_label1, best_area1, ), y=1.16)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -1960,7 +1960,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.14)
+    plt.title('ROC Curve (Best: %s, ROC = %0.02f)' % (best_label2, best_area2, ), y=1.16)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 

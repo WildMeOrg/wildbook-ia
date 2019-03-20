@@ -1152,7 +1152,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
         >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
         >>> ]
-        >>> # ibs.vulcan_wic_validate(config_list)
+        >>> ibs.vulcan_wic_validate(config_list)
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True)
         >>>
         >>> config_list = [
@@ -1176,7 +1176,20 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.209,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.026,vulcan_v0,0.50'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list)
+        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=False, target_recall_list=[None])
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC+R R6',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
+        >>>     {'label': 'LOC+R V0',            'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC PR  R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.607,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC ROC R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2,0.027,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.645,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 85% R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 90% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 95% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 98% RX+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boostX,0.026,vulcan_v0,0.50'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[None])
         >>>
         >>> # config_list = [
         >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -2273,6 +2286,122 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
     else:
         fig_filename = 'vulcan-loc-errors-annots-plot.png'
 
+    fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_filepath, bbox_inches='tight')
+
+
+@register_ibs_method
+def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_savanna',
+                                               sensitivity=0.4425, thresh=0.024,
+                                               errors_only=False, **kwargs):
+    from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_gid_list = list(test_gid_set)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
+    cumulative_area_list, total_area_list, flag_list = values
+
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': sensitivity}
+
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+    print('\tGather Ground-Truth')
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **config)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **config)
+
+    # Filter for speices
+    dict_list = [
+        (gt_dict, 'Ground-Truth'),
+        (pred_dict, 'Predictions'),
+    ]
+    for dict_, dict_tag in dict_list:
+        for image_uuid in dict_:
+            temp = []
+            for val in dict_[image_uuid]:
+                if val.get('class', None) != target_species:
+                    continue
+                temp.append(val)
+            dict_[image_uuid] = temp
+
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, **kwargs)
+    conf_list, tp_list, fp_list, total, match_dict = values
+
+    values = ibs.vulcan_compute_visual_clusters(80, 10, **kwargs)
+    hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
+
+    color_list = pt.distinct_colors(4, randomize=False)
+
+    # Coverage
+    print('Plotting clusters')
+    plt.subplot(111)
+
+    percentage_dict = {}
+    for test_gid, test_uuid in zip(test_gid_list, test_uuid_list):
+        cluster, embedding = assignment_dict[test_gid]
+        bucket = int(cluster)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0, 0, 0, 0]
+
+        match_list, total = match_dict[test_uuid]
+        tp = 0
+        for match in match_list:
+            conf, flag, index, overlap = match
+
+            if flag:
+                tp += 1
+                if not errors_only:
+                    percentage_dict[bucket][0] += 1
+            else:
+                percentage_dict[bucket][2] += 1
+        percentage_dict[bucket][1] += (total - tp)
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = ['TP', 'FN', 'FP', 'TN']
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    if errors_only:
+        plt.title('Localization Performance by Visual Cluster (Errors only)')
+    else:
+        plt.yscale('log')
+        plt.title('Localization Performance by Visual Cluster')
+    tick_list = []
+    for percentage in percentage_list:
+        tick = '%d' % (percentage, )
+        tick_list.append(tick)
+    plt.xticks(index_list, tick_list)
+
+    if errors_only:
+        fig_filename = 'vulcan-loc-errors-clusters-plot-errors.png'
+    else:
+        fig_filename = 'vulcan-loc-errors-clusters-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
