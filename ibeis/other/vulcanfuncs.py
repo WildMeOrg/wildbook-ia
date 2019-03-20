@@ -430,14 +430,15 @@ def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
     gids = [ gid for gid, flag in zip(tile_list, flag_list) if flag == 1 ]
     print(len(gids))
     ibs.set_image_imgsetids(gids, [pid] * len(gids))
-    gidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
-    ibs.set_image_imgsetids(gidsi, [pidi] * len(gidsi))
+    pgidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
+    ibs.set_image_imgsetids(pgidsi, [pgidsi] * len(pgidsi))
 
     gids = [ gid for gid, flag in zip(tile_list, flag_list) if flag == 0 ]
     print(len(gids))
     ibs.set_image_imgsetids(gids, [nid] * len(gids))
-    gidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
-    ibs.set_image_imgsetids(gidsi, [nidi] * len(gidsi))
+    ngidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
+    ngidsi = list(set(ngidsi) - set(pgidsi))
+    ibs.set_image_imgsetids(ngidsi, [nidi] * len(ngidsi))
 
     if recompute_split:
         ibs.imageset_train_test_split(is_tile=False)
