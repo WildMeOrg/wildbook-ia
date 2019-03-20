@@ -685,12 +685,12 @@ def vulcan_compute_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
 
 
 @register_ibs_method
-def vulcan_visualize_clusters(ibs, num_clusters=80, n_neighbors=10,
-                              examples=50, reclassify_outliers=True, **kwargs):
+def vulcan_visualize_visual_clusters(ibs, num_clusters=80, n_neighbors=10,
+                                     examples=50, reclassify_outliers=True, **kwargs):
     """
     for n_neighbors in range(5, 61, 5):
         for num_clusters in range(10, 51, 10):
-            ibs.vulcan_visualize_clusters(num_clusters, n_neighbors)
+            ibs.vulcan_visualize_visual_clusters(num_clusters, n_neighbors)
     """
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -2375,6 +2375,17 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
         fig_filename = 'vulcan-loc-errors-clusters-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
+
+
+@register_ibs_method
+def vulcan_visualize_annotation_clusters(ibs, **kwargs):
+    ut.embed()
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_list = list(all_tile_set)
+
+    values = ibs.vulcan_tile_positive_cumulative_area(all_tile_list)
+    cumulative_area_list, total_area_list, flag_list = values
+    gt_positive_gid_list = sorted(ut.compress(all_tile_list, flag_list))
 
 
 if __name__ == '__main__':
