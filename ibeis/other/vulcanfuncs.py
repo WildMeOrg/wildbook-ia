@@ -2091,8 +2091,6 @@ def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=100, **kwargs):
 @register_ibs_method
 def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savanna',
                                              sensitivity=0.4425, errors_only=False, **kwargs):
-    ut.embed()
-
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
     import matplotlib.pyplot as plt
     import plottool as pt
@@ -2133,51 +2131,43 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
-    color_list = pt.distinct_colors(3, randomize=False)
+    color_list = pt.distinct_colors(4, randomize=False)
 
     # Number of annotations
     print('Plotting num annotations')
     plt.subplot(111)
 
     percentage_dict = {}
-    for test_uuid in zip(test_uuid_list):
-        bucket = len(gt_dict[test_uuid])
+    for test_uuid in test_uuid_list:
+        bucket = len(pred_dict[test_uuid])
 
         if bucket not in percentage_dict:
             percentage_dict[bucket] = [0, 0, 0, 0]
 
-        match_list = match_dict[test_uuid]
-        fn = bucket - len(match_list)
-
-        percentage_dict[bucket][1] += fn
-        for match in match_dict:
+        match_list, total = match_dict[test_uuid]
+        if len(match_list) > 2:
+            break
+        tp = 0
+        for match in match_list:
             conf, flag, index, overlap = match
 
             if flag:
                 if not errors_only:
                     percentage_dict[bucket][0] += 1
+                    tp += 1
             else:
                 percentage_dict[bucket][2] += 1
-
-    num_tn = percentage_dict[0][3]
-    percentage_dict[0][3] = 0
-
-    include_negatives = True
+        percentage_dict[bucket][1] += (total - tp)
 
     width = 0.35
     percentage_list = sorted(percentage_dict.keys())
     index_list = np.arange(len(percentage_list))
-
-    if not include_negatives:
-        index_list = index_list[1:]
 
     bottom = None
     bar_list = []
     for index, color in enumerate(color_list):
         value_list = []
         for percentage in percentage_list:
-            if not include_negatives and percentage < 0:
-                continue
             value = percentage_dict[percentage][index]
             value_list.append(value)
         value_list = np.array(value_list)
@@ -2194,24 +2184,21 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
     plt.ylabel('Number of Tiles')
     plt.yscale('log')
     if errors_only:
-        plt.title('WIC Performance by Number of Annotations (Errors only)')
+        plt.title('Localization Performance by Number of Annotations (Errors only)')
     else:
-        plt.title('WIC Performance by Number of Annotations\nGT Neg TN - %d' % (num_tn, ))
+        plt.title('Localization Performance by Number of Annotations')
 
     tick_list = []
     for percentage in percentage_list:
         tick = '%d' % (percentage, )
         tick_list.append(tick)
 
-    if not include_negatives:
-        tick_list = tick_list[1:]
-
     plt.xticks(index_list, tick_list)
 
     if errors_only:
-        fig_filename = 'vulcan-wic-errors-annots-plot-errors.png'
+        fig_filename = 'vulcan-loc-errors-annots-plot-errors.png'
     else:
-        fig_filename = 'vulcan-wic-errors-annots-plot.png'
+        fig_filename = 'vulcan-loc-errors-annots-plot.png'
 
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')

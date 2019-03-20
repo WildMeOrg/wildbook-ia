@@ -856,11 +856,12 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5,
             else:
                 gt_list.append(gt)
 
-        total += len(gt_list)
+        total_ = len(gt_list)
+        total += total_
 
         # Match predictions
         match_list_ = localizer_assignments(pred_list, gt_list, gt_list_, min_overlap)
-        match_dict[image_uuid] = match_list_
+        match_dict[image_uuid] = (match_list_, total_, )
         for match_ in match_list_:
             match_list.append(match_)
 
