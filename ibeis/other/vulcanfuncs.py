@@ -1139,6 +1139,7 @@ def vulcan_wic_test(ibs, test_tile_list, classifier_algo='densenet', model_tag=N
 @register_ibs_method
 def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None,
                         recompute=False, desired_index=None, fn_recovery=False,
+                        use_ancestors=False,
                         **kwargs):
     """
     Example:
@@ -1187,9 +1188,22 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+R+LOC 85% R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+R+LOC 90% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+R+LOC 95% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC 98% RX+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boostX,0.026,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 98% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boostX,0.005,vulcan_v0,0.50'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[None])
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-d3e8bf43-boost6'},
+        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC PR  R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.607,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC ROC R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.027,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.645,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 90% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 95% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boostX,0.005,vulcan_v0,0.50'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=False, target_recall_list=[None], use_ancestors=True)
         >>>
         >>> # config_list = [
         >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1227,6 +1241,10 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
     test_gid_set = all_tile_set & test_gid_set
     test_tile_list = list(test_gid_set)
 
+    if use_ancestors:
+        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
+        test_tile_list = list(set(ancestor_gid_list))
+
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
 
     if target_recall_list is None:
@@ -1246,71 +1264,6 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
                                                                 force_target_recall=True,
                                                                 desired_index=desired_index,
                                                                 filter_fn_func=filter_fn_func)
-
-
-@register_ibs_method
-def vulcan_wic_validate_image(ibs, **kwargs):
-    canvas_path = abspath(expanduser(join('~', 'Desktop')))  # NOQA
-
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    test_gid_set = all_tile_set & test_gid_set
-    test_gid_list = list(test_gid_set)
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_gid_list)
-
-    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list)
-    cumulative_area_list, total_area_list, flag_list = values
-
-    model_tag = 'vulcan-d3e8bf43-boost4'
-    confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
-
-    ancestor_gt_dict = {}
-    for test_gid, ancestor_gid, flag, confidence in zip(test_gid_list, ancestor_gid_list, flag_list, confidence_list):
-        if ancestor_gid not in ancestor_gt_dict:
-            ancestor_gt_dict[ancestor_gid] = {}
-        assert test_gid not in ancestor_gt_dict[ancestor_gid]
-        ancestor_gt_dict[ancestor_gid][test_gid] = (flag, confidence, )
-
-    # gid_list, tile_list = ibs.vulcan_get_valid_tile_rowids(return_gids=True)
-
-    # test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    # gid_list = list(set(gid_list) & test_gid_set)
-
-    # config = {
-    #     'tile_width':   256,
-    #     'tile_height':  256,
-    #     'tile_overlap': 64,
-    # }
-    # tiles_list = ibs.compute_tiles(gid_list=gid_list, **config)
-    # tile_list = ut.flatten(tiles_list)
-
-    # aids_list = ibs.get_image_aids(gid_list)
-    # length_list = list(map(len, aids_list))
-    # flag_list = [0 < length for length in length_list]
-
-    # confidences_list = []
-    # for tile_list in tiles_list:
-    #     confidence_list = ibs.vulcan_wic_test(tile_list, model_tag=model_tag)
-    #     confidences_list.append(confidence_list)
-
-    # best_accuracy = 0.0
-    # best_thresh = None
-    # for index in range(100):
-    #     confidence_thresh = index / 100.0
-
-    #     correct = 0
-    #     for flag, confidence_list in zip(flag_list, confidences_list):
-    #         # confidence = sum(confidence_list) / len(confidence_list)
-    #         confidence = np.max(confidence_list)
-    #         flag_ = confidence >= confidence_thresh
-    #         correct += 1 if flag == flag_ else 0
-
-    #     accuracy = correct / len(flag_list)
-    #     if accuracy > best_accuracy:
-    #         best_accuracy = accuracy
-    #         best_thresh = confidence_thresh
-
-    # return best_thresh, best_accuracy
 
 
 @register_ibs_method
@@ -2114,9 +2067,6 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
-
-    # model_tag = 'vulcan-d3e8bf43-boost4'
-    # confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
 
     values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
     cumulative_area_list, total_area_list, flag_list = values

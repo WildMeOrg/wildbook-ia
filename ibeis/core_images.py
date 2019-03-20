@@ -234,7 +234,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+neighbors+lightnet']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'tile_aggregation']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -314,38 +314,59 @@ def compute_classifications(depc, gid_list, config=None):
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
-    elif config['classifier_algo'] in ['densenet+neighbors']:
+    elif config['classifier_algo'] in ['tile_aggregation']:
+        from ibeis.algo.detect import densenet
         ut.embed()
+
         classifier_weight_filepath = config['classifier_weight_filepath']
+        classifier_weight_filepath = classifier_weight_filepath.strip().split(';')
 
-        all_bbox_list = ibs.get_vulcan_image_bboxes(gid_list)
-        wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
-                                                  model_tag=classifier_weight_filepath)
+        assert len(classifier_weight_filepath) == 2
+        classifier_algo_, classifier_weight_filepath_ = classifier_weight_filepath
 
-        ancestor_gid_list = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gid_list)))
-        all_tile_list = list(set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
-        all_bbox_list = ibs.get_vulcan_image_bboxes(all_tile_list)
-        all_confidence_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
-                                                  model_tag=classifier_weight_filepath)
+        config_ = {
+            'classifier_algo': classifier_algo_,
+            'classifier_weight_filepath': classifier_weight_filepath_,
+        }
 
         result_list = []
-        for gid, wic_confidence in zip(gid_list, wic_confidence_list):
-            best_score = wic_confidence
-            for aid in aid_list:
-                wic_confidence_ = aid_conf_dict.get(aid, None)
-                assert wic_confidence_ is not None
-                best_score = max(best_score, wic_confidence_)
+        for gid in gid_list:
+            tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=[gid])
+            result_list_ = depc.get('classifier', tid_list, config=config)
 
-            if wic_confidence < 0.5:
-                best_key = 'negative'
-                best_score = 1.0 - best_score
-            else:
-                best_key = 'positive'
-            if best_score > wic_confidence:
-                recovered += 1
-            result = (best_score, best_key, )
-            result_list.append(result)
-    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+neighbors+lightnet']:
+    elif config['classifier_algo'] in ['densenet+neighbors']:
+        ut.embed()
+        # classifier_weight_filepath = config['classifier_weight_filepath']
+
+        # all_bbox_list = ibs.get_vulcan_image_bboxes(gid_list)
+        # wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
+        #                                           model_tag=classifier_weight_filepath)
+        #
+        # ancestor_gid_list = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gid_list)))
+        # all_tile_list = list(set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
+        # all_bbox_list = ibs.get_vulcan_image_bboxes(all_tile_list)
+        # all_confidence_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
+        #                                           model_tag=classifier_weight_filepath)
+        #
+        # TODO: USE THRESHOLDED AVERAGE, NOT MAX
+        # result_list = []
+        # for gid, wic_confidence in zip(gid_list, wic_confidence_list):
+        #     best_score = wic_confidence
+        #     for aid in aid_list:
+        #         wic_confidence_ = aid_conf_dict.get(aid, None)
+        #         assert wic_confidence_ is not None
+        #         best_score = max(best_score, wic_confidence_)
+        #
+        #     if wic_confidence < 0.5:
+        #         best_key = 'negative'
+        #         best_score = 1.0 - best_score
+        #     else:
+        #         best_key = 'positive'
+        #     if best_score > wic_confidence:
+        #         recovered += 1
+        #     result = (best_score, best_key, )
+        #     result_list.append(result)
+    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet']:
         min_area = 10
 
         classifier_weight_filepath = config['classifier_weight_filepath']
@@ -363,13 +384,6 @@ def compute_classifications(depc, gid_list, config=None):
             wic_thresh = float(wic_thresh)
             nms_thresh = float(nms_thresh)
             wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
-                                                      model_tag=wic_model_tag)
-        elif config['classifier_algo'] == 'densenet+neighbors+lightnet':
-            assert len(classifier_weight_filepath) == 4
-            wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
-            wic_thresh = float(wic_thresh)
-            nms_thresh = float(nms_thresh)
-            wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet+neighbors',
                                                       model_tag=wic_model_tag)
         else:
             raise ValueError
