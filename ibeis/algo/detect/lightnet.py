@@ -45,6 +45,8 @@ CONFIG_URL_DICT = {
     'hendrik_elephant_ears_left' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.left.py',
     'hendrik_dorsal'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
 
+    'spotted_skunk_v0'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.skunk_spotted.v0.py',
+
     'candidacy'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
     'ggr2'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
 
