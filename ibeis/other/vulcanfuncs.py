@@ -2378,7 +2378,11 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
 
 
 @register_ibs_method
-def vulcan_visualize_annotation_clusters(ibs, **kwargs):
+def vulcan_visualize_annotation_clusters(ibs, target_species='elephant_savanna', **kwargs):
+    from sklearn.cluster import AgglomerativeClustering
+    from scipy.cluster.hierarchy import fclusterdata
+    import numpy as np
+
     ut.embed()
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     all_tile_list = list(all_tile_set)
@@ -2387,6 +2391,29 @@ def vulcan_visualize_annotation_clusters(ibs, **kwargs):
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_gid_list = sorted(ut.compress(all_tile_list, flag_list))
 
+    # config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': 0.4425}
+    # prediction_list = localizer_parse_pred(ibs, test_gid_list=gt_positive_gid_list, **config)
+
+    aids_list = ibs.get_image_aids(gt_positive_gid_list)
+    for gid, aid_list in zip(gt_positive_gid_list, aids_list):
+        aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+        bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
+        centers = []
+        for bbox in bbox_list:
+            xtl, ytl, w, h = bbox
+            cx = xtl + (w // 2)
+            cy = ytl + (h // 2)
+            center = (cx, cy, )
+            centers.append(center)
+        centers = np.array(centers)
+        # clustering = AgglomerativeClustering(n_clusters=3).fit(centers)
+        # clustering.labels_
+        if len(centers) > 1:
+            y_pred = fclusterdata(centers, t=32, criterion='distance')
+            num_clusters = len(set(y_pred))
+            if num_clusters < len(aid_list):
+                print(aid_list)
+                print(y_pred)
 
 if __name__ == '__main__':
     """
