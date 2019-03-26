@@ -8331,6 +8331,200 @@ def import_folder(ibs, path, recursive=True, **kwargs):
     return gid_list
 
 
+@register_ibs_method
+def export_ggr_folders(ibs, output_path=None):
+    from os.path import exists, join
+    import pytz
+    import tqdm
+    import math
+
+    if output_path is None:
+        output_path_clean = '/media/jason.parham/princeton/GGR-2016-CLEAN/'
+        output_path_census = '/media/jason.parham/princeton/GGR-2016-CENSUS/'
+        prefix = '/media/extend/GGR-COMBINED/'
+        needle = 'GGR Special'
+
+        output_path_clean = '/media/jason.parham/princeton/GGR-2018-CLEAN/'
+        output_path_census = '/media/jason.parham/princeton/GGR-2018-CENSUS/'
+        prefix = '/data/ibeis/GGR2/GGR2018data/'
+        needle = 'GGR Special Zone -'
+
+    gid_list = ibs.get_valid_gids()
+
+    uuid_list = ibs.get_image_uuids(gid_list)
+    gpath_list = ibs.get_image_paths(gid_list)
+    datetime_list = ibs.get_image_datetime(gid_list)
+    gps_list = ibs.get_image_gps2(gid_list)
+    uri_original_list = ibs.get_image_uris_original(gid_list)
+    aids_list = ibs.get_image_aids(gid_list)
+    note_list = ibs.get_image_notes(gid_list)
+
+    clean_line_list = []
+    census_line_list = []
+
+    imageset_dict = {}
+    imageset_rowid_list = ibs.get_valid_imgsetids()
+    imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
+    for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
+        if needle in imageset_text:
+            imageset_text = imageset_text.replace(needle, '').strip()
+            print(imageset_text)
+            imageset_dict[imageset_text] = set(ibs.get_imageset_gids(imageset_rowid))
+
+    header = [
+        'IBEIS_IMAGE_UUID',
+        'FILEPATH',
+        'GGR_CAR_NUMBER',
+        'GGR_PERSON_LETTER',
+        'GGR_IMAGE_INDEX',
+        'USED IN GGR CENSUS?',
+        'DATE',
+        'TIME',
+        'GPS_LATITUDE',
+        'GPS_LONGITUDE',
+        'ZONES',
+        'ZEBRA NAMES',
+        'GIRAFFE NAMES',
+        'ORIGINAL FILEPATH',
+    ]
+    header_str = ','.join(map(str, header))
+    clean_line_list.append(header_str)
+    census_line_list.append(header_str)
+
+    VERIFY = True
+
+    zipped = list(zip(
+        gid_list,
+        uuid_list,
+        gpath_list,
+        datetime_list,
+        gps_list,
+        uri_original_list,
+        aids_list,
+        note_list
+    ))
+
+    tz = pytz.timezone('Africa/Nairobi')
+
+    errors = []
+    census = 0
+    cleaned = 0
+    for values in tqdm.tqdm(zipped):
+        gid, uuid, gpath, datetime_, gps, uri_original, aid_list, note = values
+
+        if prefix not in uri_original:
+            errors.append(uri_original)
+            continue
+        uri_original = uri_original.replace(prefix, '')
+
+        datetime_ = datetime_.astimezone(tz)
+        date = datetime_.strftime('%x')
+        time = datetime_.strftime('%X')
+
+        lat, lon = gps
+
+        if math.isnan(lat):
+            lat = ''
+        if math.isnan(lon):
+            lon = ''
+
+        note = note.split(',')
+        if len(note) != 4:
+            errors.append(note)
+            continue
+        ggr, number, letter, image = note
+        image = int(image)
+        assert image < 10000
+
+        output_path = join(output_path_clean, number, letter)
+        ut.ensuredir(output_path)
+
+        output_filename = '%04d.jpg' % (image, )
+        output_filepath = join(output_path, output_filename)
+        assert '.jpg' in gpath
+        # print(output_filepath)
+        if VERIFY:
+            assert exists(output_filepath)
+        else:
+            ut.copy(gpath, output_filepath)
+
+        named = False
+        nid_list = ibs.get_annot_nids(aid_list)
+        for nid in nid_list:
+            if nid > 0:
+                named = True
+                break
+
+        zebra_aids = ibs.filter_annotation_set(aid_list, species='zebra_grevys')
+        giraffe_aids = ibs.filter_annotation_set(aid_list, species='giraffe_reticulated')
+        zebra_nids = ibs.get_annot_nids(zebra_aids)
+        giraffe_nids = ibs.get_annot_nids(giraffe_aids)
+        zebra_nids = [zebra_nid for zebra_nid in zebra_nids if zebra_nid > 0]
+        giraffe_nids = [giraffe_nid for giraffe_nid in giraffe_nids if giraffe_nid > 0]
+        zebra_names = ibs.get_name_texts(zebra_nids)
+        giraffe_names = ibs.get_name_texts(giraffe_nids)
+        zebra_name_str = ';'.join(map(str, zebra_names))
+        giraffe_name_str = ';'.join(map(str, giraffe_names))
+
+        zone_list = []
+        for imageset_text in imageset_dict:
+            if gid in imageset_dict[imageset_text]:
+                zone_list.append(imageset_text)
+        zone_list = sorted(zone_list)
+        zone_str = ';'.join(zone_list)
+
+        filepath_ = output_filepath.replace(output_path_clean, '')
+        line = [
+            uuid,
+            filepath_,
+            number,
+            letter,
+            image,
+            'YES' if named else 'NO',
+            date,
+            time,
+            lat,
+            lon,
+            zone_str,
+            zebra_name_str,
+            giraffe_name_str,
+            uri_original,
+        ]
+        line_str = ','.join(map(str, line))
+        clean_line_list.append(line_str)
+
+        cleaned += 1
+        if named:
+            census += 1
+            output_path = join(output_path_census, number, letter)
+            ut.ensuredir(output_path)
+            output_filepath = join(output_path, output_filename)
+            # print(output_filepath)
+            if VERIFY:
+                assert exists(output_filepath)
+            else:
+                ut.copy(gpath, output_filepath)
+            filepath_ = output_filepath.replace(output_path_census, '')
+            line[1] = filepath_
+            assert line[5] == 'YES'
+            line_str = ','.join(map(str, line))
+            census_line_list.append(line_str)
+
+    assert cleaned + 1 == len(clean_line_list)
+    assert census + 1 == len(census_line_list)
+
+    clean_line_str = '\n'.join(clean_line_list)
+    census_line_str = '\n'.join(census_line_list)
+
+    clean_filepath = join(output_path_clean, 'manifest.csv')
+    with open(clean_filepath, 'w') as clean_file:
+        clean_file.write(clean_line_str)
+
+    census_filepath = join(output_path_census, 'manifest.csv')
+    with open(census_filepath, 'w') as census_file:
+        census_file.write(census_line_str)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
