@@ -81,13 +81,39 @@ def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_ima
 @register_ibs_method
 def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3, **kwargs):
     """
+    >>> import uuid
+    >>> manifest_filepath = join(ibs.dbdir, 'flukebook_groundtruth.csv')
+    >>> with open(manifest_filepath, 'r') as manifest_file:
+    >>>     line_list = manifest_file.readlines()
     >>>
+    >>> label_dict = {
+    >>>     'Left Dorsal Fin'  : 'left_dorsal_fin',
+    >>>     'Right Dorsal Fin' : 'right_dorsal_fin',
+    >>>     'Tail Fluke'       : 'tail_fluke',
+    >>> }
     >>>
+    >>> uuid_list = []
+    >>> label_list = []
+    >>> for line in line_list:
+    >>>     line = line.strip().split(',')
+    >>>     assert len(line) == 2
+    >>>     uuid_, label_ = line
+    >>>     uuid_ = uuid.UUID(uuid_)
+    >>>     label_ = label_.strip()
+    >>>     print(uuid_, label_)
+    >>>     uuid_list.append(uuid_)
+    >>>     label_ = label_dict.get(label_, None)
+    >>>     assert label_ is not None
+    >>>     label_list.append(label_)
+    >>>
+    >>> gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+    >>> assert None not in gid_list
+    >>> ibs.classifier_multiclass_densenet_train(gid_list, label_list)
     """
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_multiclass_training_images_pytorch
     from ibeis.algo.detect import densenet
 
-    data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
+    data_path = join(ibs.get_cachedir(), 'extracted-classifier-multiclass')
     extracted_path = get_cnn_classifier_multiclass_training_images_pytorch(
         ibs,
         gid_list,
@@ -100,17 +126,17 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
     weights_path_list = []
     for ensemble_num in range(ensembles):
         args = (ensemble_num, )
-        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-ensemble-%d' % args)
-        weights_path = densenet.train(extracted_path, output_path, blur=True, flip=True)
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-multiclass-ensemble-%d' % args)
+        weights_path = densenet.train(extracted_path, output_path, blur=True, flip=False)
         weights_path_list.append(weights_path)
 
-    archive_name = 'classifier.cameratrap.zip'
+    archive_name = 'classifier.multiclass.zip'
     archive_path = join(ibs.get_cachedir(), 'training', archive_name)
     ensemble_weights_path_list = []
 
     for index, weights_path in enumerate(sorted(weights_path_list)):
         assert exists(weights_path)
-        ensemble_weights_path = 'classifier.cameratrap.%d.weights' % (index, )
+        ensemble_weights_path = 'classifier.multiclass.%d.weights' % (index, )
         ut.copy(weights_path, ensemble_weights_path)
         ensemble_weights_path_list.append(ensemble_weights_path)
 
