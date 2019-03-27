@@ -79,6 +79,47 @@ def classifier_cameratrap_densenet_train(ibs, positive_imageset_id, negative_ima
 
 
 @register_ibs_method
+def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3, **kwargs):
+    """
+    >>>
+    >>>
+    """
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_multiclass_training_images_pytorch
+    from ibeis.algo.detect import densenet
+
+    data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
+    extracted_path = get_cnn_classifier_multiclass_training_images_pytorch(
+        ibs,
+        gid_list,
+        label_list,
+        dest_path=data_path,
+        image_size=densenet.INPUT_SIZE,
+        **kwargs
+    )
+
+    weights_path_list = []
+    for ensemble_num in range(ensembles):
+        args = (ensemble_num, )
+        output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap-ensemble-%d' % args)
+        weights_path = densenet.train(extracted_path, output_path, blur=True, flip=True)
+        weights_path_list.append(weights_path)
+
+    archive_name = 'classifier.cameratrap.zip'
+    archive_path = join(ibs.get_cachedir(), 'training', archive_name)
+    ensemble_weights_path_list = []
+
+    for index, weights_path in enumerate(sorted(weights_path_list)):
+        assert exists(weights_path)
+        ensemble_weights_path = 'classifier.cameratrap.%d.weights' % (index, )
+        ut.copy(weights_path, ensemble_weights_path)
+        ensemble_weights_path_list.append(ensemble_weights_path)
+
+    ut.archive_files(archive_path, ensemble_weights_path_list, overwrite=True, common_prefix=True)
+
+    return archive_path
+
+
+@register_ibs_method
 def classifier_binary_train(ibs, species_list, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
