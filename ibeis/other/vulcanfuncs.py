@@ -70,6 +70,50 @@ def vulcan_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
         print('...%d images added' % (num_total, ))
 
 
+def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
+    tid_list = ibs.vulcan_get_valid_tile_rowids()
+    aids_list = ibs.get_image_aids(tid_list)
+
+    tile_has_annots = 0
+    tile_has_elephs = 0
+    for tid, aid_list in zip(tid_list, aids_list):
+        if len(aid_list) > 0:
+            tile_has_annots += 1
+            aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+            if len(aid_list) > 0:
+                tile_has_elephs += 1
+
+    gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
+    gid_list = list(set(gid_list))
+    aids_list = ibs.get_image_aids(gid_list)
+
+    image_has_annots = 0
+    image_has_elephs = 0
+    for gid, aid_list in zip(gid_list, aids_list):
+        if len(aid_list) > 0:
+            image_has_annots += 1
+            aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+            if len(aid_list) > 0:
+                image_has_elephs += 1
+
+    aid_list = ut.flatten(aids_list)
+    num_annots = len(aid_list)
+    aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+    num_elephs = len(aid_list)
+
+    print('\nAnnotations: %d' % (num_annots, ))
+    print('\t%d are elephants' % (num_elephs, ))
+
+    print('\nTiles: %d' % (len(tid_list), ))
+    print('\tfrom %d images' % (len(gid_list), ))
+    print('\t%d has annots' % (tile_has_annots, ))
+    print('\t%d has elephants' % (tile_has_elephs, ))
+
+    print('\nImages: %d' % (len(gid_list), ))
+    print('\t%d has annots' % (image_has_annots, ))
+    print('\t%d has elephants' % (image_has_elephs, ))
+
+
 def __delete_old_tiles(ibs, ):
     tid_all_list = ibs.get_valid_gids(is_tile=True)
 
