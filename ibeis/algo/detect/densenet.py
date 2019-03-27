@@ -60,21 +60,21 @@ if not ut.get_argflag('--no-pytorch'):
                 return self.aug.augment_image(img)
 
         class TrainAugmentations(Augmentations):
-            def __init__(self, blur=False, flip=False, **kwargs):
+            def __init__(self, blur=True, flip=False, rotate=10, shear=10, **kwargs):
                 from imgaug import augmenters as iaa
                 sequence = []
 
                 sequence += [
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
                     iaa.ContrastNormalization((0.75, 1.25)),
-                    iaa.AddElementwise((-20, 20), per_channel=0.5),
-                    iaa.AddToHueAndSaturation(value=(-5, 5), per_channel=True),
+                    iaa.AddElementwise((-10, 10), per_channel=0.5),
+                    iaa.AddToHueAndSaturation(value=(-20,  20), per_channel=True),
                     iaa.Multiply((0.75, 1.25)),
                 ]
                 sequence += [
-                    iaa.PiecewiseAffine(scale=(0.0001, 0.001)),
-                    iaa.Affine(rotate=(-10, 10), shear=(-10, 10), mode='symmetric'),
-                    iaa.Grayscale(alpha=(0.0, 0.25))
+                    iaa.PiecewiseAffine(scale=(0.0005, 0.005)),
+                    iaa.Affine(rotate=(-rotate, rotate), shear=(-shear, shear), mode='symmetric'),
+                    iaa.Grayscale(alpha=(0.0, 0.5))
                 ]
                 if flip:
                     sequence += [
@@ -82,7 +82,7 @@ if not ut.get_argflag('--no-pytorch'):
                     ]
                 if blur:
                     sequence += [
-                        iaa.Sometimes(0.25, iaa.GaussianBlur(sigma=(0, 2.0))),
+                        iaa.Sometimes(0.01, iaa.GaussianBlur(sigma=(0, 1.0))),
                     ]
                 self.aug = iaa.Sequential(sequence)
 
@@ -184,7 +184,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
 
 class StratifiedSampler(torch.utils.data.sampler.Sampler):
-    def __init__(self, dataset, phase):
+    def __init__(self, dataset, phase, multiplier=1.0):
         self.dataset = dataset
         self.phase = phase
         self.training = self.phase == 'train'
@@ -201,20 +201,27 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
             for cls in self.classes
         }
         self.min = min(self.counts.values())
+        self.min = int(np.around(multiplier * self.min))
 
         if self.training:
-            self.total = self.min * len(self.classes)
+            self.total = 0
+            for cls in self.indices:
+                num_in_class = len(self.indices[cls])
+                num_samples = min(self.min, num_in_class)
+                self.total += num_samples
         else:
             self.total = len(self.labels)
 
-        args = (self.phase, len(self.labels), len(self.classes), self.min, self.total, )
-        print('Initialized Sampler for %r (sampling %d for %d classes | min %d per class, %d total)' % args)
+        args = (self.phase, len(self.labels), len(self.classes), self.min, self.total, multiplier, )
+        print('Initialized Sampler for %r (sampling %d for %d classes | min %d per class, %d total, %0.02f multiplier)' % args)
 
     def __iter__(self):
         if self.training:
             ret_list = []
             for cls in self.indices:
-                ret_list += random.sample(self.indices[cls], self.min)
+                num_in_class = len(self.indices[cls])
+                num_samples = min(self.min, num_in_class)
+                ret_list += random.sample(self.indices[cls], num_samples)
             random.shuffle(ret_list)
         else:
             ret_list = range(self.total)
@@ -298,6 +305,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
             # deep copy the model
             if phase == 'val' and epoch_acc > best_accuracy:
                 best_accuracy = epoch_acc
+                print('\tFound better model!')
                 best_model_state = copy.deepcopy(model.state_dict())
             if phase == 'val':
                 scheduler.step(epoch_loss)
@@ -319,7 +327,7 @@ def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
     return model
 
 
-def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwargs):
+def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwargs):
     import matplotlib.pyplot as plt
     samples = dataset.samples
     flags = np.array(ut.take_column(samples, 1))
@@ -359,7 +367,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=5, **kwarg
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, **kwargs):
+def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, sample_multiplier=1.0, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -379,7 +387,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, *
     dataloaders = {
         phase: torch.utils.data.DataLoader(
             datasets[phase],
-            sampler=StratifiedSampler(datasets[phase], phase),
+            sampler=StratifiedSampler(datasets[phase], phase, multiplier=sample_multiplier),
             batch_size=batch_size,
             num_workers=batch_size // 8,
             pin_memory=using_gpu
@@ -404,8 +412,8 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, *
     model = model.to(device)
 
     # Multi-GPU
-    if multi:
-        model = nn.DataParallel(model)
+    # if multi:
+    #     model = nn.DataParallel(model)
 
     print('Print Examples of Training Augmentation...')
 
@@ -510,6 +518,10 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
 
     # Send the model to GPU
     model = model.to(device)
+
+    # if multi:
+    #     model = nn.DataParallel(model)
+
     model.eval()
 
     start = time.time()
@@ -680,7 +692,7 @@ def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **k
         )
 
 
-def features(filepath_list, batch_size=512, **kwargs):
+def features(filepath_list, batch_size=512, multi=True, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -704,6 +716,10 @@ def features(filepath_list, batch_size=512, **kwargs):
 
     # Send the model to GPU
     model = model.to(device)
+
+    # if multi:
+    #     model = nn.DataParallel(model)
+
     model.eval()
 
     start = time.time()
