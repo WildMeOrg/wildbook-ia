@@ -501,13 +501,15 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
 
     num_classes = len(classes)
 
+    # ut.embed()
+
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
-    if multi:
-        model = nn.DataParallel(model)
+    # if multi:
+    #     model = nn.DataParallel(model)
 
     model.load_state_dict(state)
 
@@ -525,11 +527,11 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
             nn.Softmax()
         )
 
+    if multi:
+        model = nn.DataParallel(model)
+
     # Send the model to GPU
     model = model.to(device)
-
-    # if multi:
-    #     model = nn.DataParallel(model)
 
     model.eval()
 
@@ -726,8 +728,8 @@ def features(filepath_list, batch_size=512, multi=True, **kwargs):
     # Send the model to GPU
     model = model.to(device)
 
-    # if multi:
-    #     model = nn.DataParallel(model)
+    if multi:
+        model = nn.DataParallel(model)
 
     model.eval()
 
