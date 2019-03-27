@@ -390,8 +390,8 @@ class JobBackend(object):
         #self.num_engines = 3
         self.num_engines = NUM_ENGINES
         self.engine_queue_proc = None
-        self.collect_queue_proc = None
         self.engine_procs = None
+        self.collect_queue_proc = None
         self.collect_proc = None
         # --
         only_engine = ut.get_argflag('--only-engine')
@@ -427,7 +427,7 @@ class JobBackend(object):
             'engine_url2',
             'collect_url1',
             'collect_url2',
-            'collect_pushpull_url',
+            # 'collect_pushpull_url',
         ]
         # Get ports
         if use_static_ports:
@@ -446,8 +446,7 @@ class JobBackend(object):
             for key, port in list(zip(key_list, port_list))
         }
 
-    def initialize_background_processes(self, dbdir=None, wait=0, containerized=False,
-                                        thread=True):
+    def initialize_background_processes(self, dbdir=None, containerized=False, thread=False):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
@@ -460,18 +459,17 @@ class JobBackend(object):
             else:
                 _spawner_func_ = ut.spawn_background_process
 
-            if wait != 0:
-                print('Waiting for background process (%s) to spin up' % (ut.get_funcname(func,)))
             proc = _spawner_func_(func, *args, **kwargs)
-            # time.sleep(wait)
             assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
             return proc
 
         if self.spawn_queue:
             self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict)
             self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
+
         if self.spawn_collector:
             self.collect_proc = _spawner(collector_loop, self.port_dict, dbdir, containerized)
+
         if self.spawn_engine:
             if self.fg_engine:
                 print('ENGINE IS IN DEBUG FOREGROUND MODE')
@@ -481,8 +479,12 @@ class JobBackend(object):
                 assert False, 'should never see this'
             else:
                 # Normal case
-                self.engine_procs = [_spawner(engine_loop, i, self.port_dict, dbdir)
-                                      for i in range(self.num_engines)]
+                self.engine_procs = [
+                    _spawner(engine_loop, i, self.port_dict, dbdir, containerized)
+                    for i in range(self.num_engines)
+                ]
+
+        # Check if online
         # wait for processes to spin up
         if self.spawn_queue:
             assert self.engine_queue_proc.is_alive(), 'engine died too soon'
@@ -946,7 +948,7 @@ def engine_queue_loop(port_dict):
             print('Exiting %s queue' % (loop_name,))
 
 
-def engine_loop(id_, port_dict, dbdir=None):
+def engine_loop(id_, port_dict, dbdir, containerized):
     r"""
     IBEIS:
         This will be part of a worker process with its own IBEISController
@@ -968,8 +970,9 @@ def engine_loop(id_, port_dict, dbdir=None):
             print('Initializing engine')
             print('connect engine_url2 = %r' % (port_dict['engine_url2'],))
         assert dbdir is not None
-        #ibs = ibeis.opendb(dbname)
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
+        # ibs = ibeis.opendb(dbdir=dbdir)
+        # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
         engine_rout_sock.connect(port_dict['engine_url2'])
