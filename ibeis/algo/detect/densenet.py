@@ -492,6 +492,8 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
 
     num_classes = len(classes)
 
+    ut.embed()
+
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
