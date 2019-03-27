@@ -2554,7 +2554,7 @@ def vulcan_annotation_clusters_visualize_gt_annots(ibs, target_species='elephant
     plt.legend(bar_list, label_list)
 
     plt.ylabel('Number of Tiles')
-    plt.yscale('log')
+    # plt.yscale('log')
     plt.title('Number of Annotation Clusters by Area of Coverage')
 
     tick_list = ['[0, 2.5)', '[2.5, 5)']
@@ -2615,7 +2615,7 @@ def vulcan_annotation_clusters_visualize_gt_annots(ibs, target_species='elephant
     plt.legend(bar_list, label_list)
 
     plt.ylabel('Number of Tiles')
-    plt.yscale('log')
+    # plt.yscale('log')
     plt.title('Number of Annotation Clusters by Number of Annotations')
 
     tick_list = []
