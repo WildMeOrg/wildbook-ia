@@ -717,8 +717,8 @@ def features(filepath_list, batch_size=512, multi=True, **kwargs):
     # Send the model to GPU
     model = model.to(device)
 
-    # if multi:
-    #     model = nn.DataParallel(model)
+    if multi:
+        model = nn.DataParallel(model)
 
     model.eval()
 
