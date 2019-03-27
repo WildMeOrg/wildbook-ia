@@ -108,7 +108,7 @@ def classifier_multiclass_densenet_train(ibs, gid_list, label_list, ensembles=3,
     >>>
     >>> gid_list = ibs.get_image_gids_from_uuid(uuid_list)
     >>> assert None not in gid_list
-    >>> ibs.classifier_multiclass_densenet_train(gid_list, label_list)
+    >>> archive_path = ibs.classifier_multiclass_densenet_train(gid_list, label_list)
     """
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_multiclass_training_images_pytorch
     from ibeis.algo.detect import densenet
