@@ -2378,12 +2378,11 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
 
 
 @register_ibs_method
-def vulcan_visualize_annotation_clusters(ibs, target_species='elephant_savanna', **kwargs):
-    from sklearn.cluster import AgglomerativeClustering
+def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
+                                       distance=32, **kwargs):
     from scipy.cluster.hierarchy import fclusterdata
     import numpy as np
 
-    ut.embed()
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     all_tile_list = list(all_tile_set)
 
@@ -2391,29 +2390,87 @@ def vulcan_visualize_annotation_clusters(ibs, target_species='elephant_savanna',
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_gid_list = sorted(ut.compress(all_tile_list, flag_list))
 
-    # config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': 0.4425}
-    # prediction_list = localizer_parse_pred(ibs, test_gid_list=gt_positive_gid_list, **config)
+    assignment_image_dict = {}
 
     aids_list = ibs.get_image_aids(gt_positive_gid_list)
     for gid, aid_list in zip(gt_positive_gid_list, aids_list):
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
+
         centers = []
+        radii = []
         for bbox in bbox_list:
             xtl, ytl, w, h = bbox
-            cx = xtl + (w // 2)
-            cy = ytl + (h // 2)
+            cx = int(np.around(xtl + (w // 2)))
+            cy = int(np.around(ytl + (h // 2)))
             center = (cx, cy, )
+            radius = int(np.around(max(w, h) * 0.5))
             centers.append(center)
+            radii.append(radius)
+
         centers = np.array(centers)
-        # clustering = AgglomerativeClustering(n_clusters=3).fit(centers)
-        # clustering.labels_
-        if len(centers) > 1:
-            y_pred = fclusterdata(centers, t=32, criterion='distance')
-            num_clusters = len(set(y_pred))
-            if num_clusters < len(aid_list):
-                print(aid_list)
-                print(y_pred)
+        radii = np.array(radii).reshape(-1, 1)
+        values = np.hstack((centers, radii))
+
+        def metric_func(value1, value2):
+            cx1, cy1, radius1 = value1
+            cx2, cy2, radius2 = value2
+            dist = np.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
+            dist = max(0.0, dist - radius1 - radius2)
+            return dist
+
+        if len(values) > 1:
+            prediction_list = fclusterdata(values, t=distance, criterion='distance', metric=metric_func)
+        else:
+            prediction_list = [1]
+
+        assignment_annot_dict = dict(zip(aid_list, prediction_list))
+        value_annot_dict = dict(zip(aid_list, values))
+        assignment_image_dict[gid] = (assignment_annot_dict, value_annot_dict)
+
+    return assignment_image_dict
+
+
+@register_ibs_method
+def vulcan_visualize_annotation_clusters(ibs, output_path=None, **kwargs):
+    import plottool as pt
+
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'bboxes_circles')))
+        ut.ensuredir(output_path)
+
+    assignment_image_dict = ibs.vulcan_compute_annotation_clusters(ibs, **kwargs)
+
+    for gid in assignment_image_dict:
+        assignment_annot_dict, value_annot_dict = assignment_image_dict[gid]
+
+        aid_list = sorted(assignment_annot_dict.keys())
+        prediction_list = [
+            assignment_image_dict[gid][aid]
+            for aid in aid_list
+        ]
+        cluster_list = sorted(set(prediction_list))
+        color_list = pt.distinct_colors(len(cluster_list), randomize=False)
+        color_list = [
+            tuple(map(int, np.around(np.array(color, dtype=np.float32) * 255.0)))
+            for color in color_list
+        ]
+        color_dict = dict(zip(cluster_list, color_list))
+
+        image = ibs.get_images(gid)
+        for aid in aid_list:
+            cluster = assignment_annot_dict[aid]
+            value = value_annot_dict[aid]
+            color = color_dict[cluster]
+            cx, cy, radius = value
+            cv2.circle(image, (cx, cy), 1, color, 2)
+            cv2.circle(image, (cx, cy), radius, color, 2)
+
+        write_filename = 'bboxes_%d_circle_clusters_%d.png' % (gid, len(cluster_list), )
+        write_filepath = join(output_path, write_filename)
+        print(write_filepath)
+        cv2.imwrite(write_filepath, image)
+
 
 if __name__ == '__main__':
     """
