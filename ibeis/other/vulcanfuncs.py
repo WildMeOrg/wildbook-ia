@@ -2434,6 +2434,7 @@ def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
 @register_ibs_method
 def vulcan_visualize_annotation_clusters(ibs, output_path=None, **kwargs):
     import plottool as pt
+    import cv2
 
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop', 'bboxes_circles')))
@@ -2445,8 +2446,9 @@ def vulcan_visualize_annotation_clusters(ibs, output_path=None, **kwargs):
         assignment_annot_dict, value_annot_dict = assignment_image_dict[gid]
 
         aid_list = sorted(assignment_annot_dict.keys())
+        globals().update(locals())
         prediction_list = [
-            assignment_image_dict[gid][aid]
+            assignment_annot_dict[aid]
             for aid in aid_list
         ]
         cluster_list = sorted(set(prediction_list))
@@ -2470,6 +2472,162 @@ def vulcan_visualize_annotation_clusters(ibs, output_path=None, **kwargs):
         write_filepath = join(output_path, write_filename)
         print(write_filepath)
         cv2.imwrite(write_filepath, image)
+
+
+@register_ibs_method
+def vulcan_annotation_clusters_visualize_gt_annots(ibs, target_species='elephant_savanna',
+                                                   min_cumulative_percentage=0.025,
+                                                   **kwargs):
+    import matplotlib.pyplot as plt
+    import plottool as pt
+
+    fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
+
+    assignment_image_dict = ibs.vulcan_compute_annotation_clusters(ibs, **kwargs)
+    test_gid_list = sorted(assignment_image_dict.keys())
+
+    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species, min_cumulative_percentage=min_cumulative_percentage)
+    cumulative_area_list, total_area_list, flag_list = values
+    area_percentage_list = [
+        cumulative_area / total_area
+        for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
+    ]
+
+    num_clusters = 0
+    for gid in assignment_image_dict:
+        assignment_annot_dict, value_annot_dict = assignment_image_dict[gid]
+        clusters = []
+        for aid in assignment_annot_dict:
+            cluster = assignment_annot_dict[aid]
+            clusters.append(cluster)
+        clusters = set(clusters)
+        num_clusters = max(num_clusters, len(clusters))
+
+    color_list = pt.distinct_colors(num_clusters, randomize=False)
+
+    # Coverage
+    print('Plotting coverage')
+    plt.subplot(211)
+
+    bucket_size = 5.0
+    percentage_dict = {}
+    for test_gid, percentage in zip(test_gid_list, area_percentage_list):
+        if percentage < min_cumulative_percentage:
+            bucket = -1
+        else:
+            bucket = int((percentage * 100.0) / bucket_size)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0] * num_clusters
+
+        assignment_annot_dict, value_annot_dict = assignment_image_dict[test_gid]
+        clusters = []
+        for aid in assignment_annot_dict:
+            cluster = assignment_annot_dict[aid]
+            clusters.append(cluster)
+        clusters = set(clusters)
+        num_clusters_ = len(clusters)
+
+        cluster = num_clusters_ - 1
+        percentage_dict[bucket][cluster] += 1
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = list(map(str, range(1, num_clusters + 1)))
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.yscale('log')
+    plt.title('Number of Annotation Clusters by Area of Coverage')
+
+    tick_list = ['[0, 2.5)', '[2.5, 5)']
+    for percentage in percentage_list:
+        if percentage <= 0:
+            continue
+        bucket_min = int(bucket_size * percentage)
+        bucket_max = int(bucket_size * (percentage + 1))
+        tick = '[%d, %d)' % (bucket_min, bucket_max, )
+        tick_list.append(tick)
+
+    plt.xticks(index_list, tick_list)
+
+    # Number of annotations
+    print('Plotting num annotations')
+    plt.subplot(212)
+
+    percentage_dict = {}
+    aids_list = ibs.get_image_aids(test_gid_list)
+    for test_gid, aid_list in zip(test_gid_list, aids_list):
+        aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
+        bucket = len(aid_list)
+
+        if bucket not in percentage_dict:
+            percentage_dict[bucket] = [0] * num_clusters
+
+        assignment_annot_dict, value_annot_dict = assignment_image_dict[test_gid]
+        clusters = []
+        for aid in assignment_annot_dict:
+            cluster = assignment_annot_dict[aid]
+            clusters.append(cluster)
+        clusters = set(clusters)
+        num_clusters_ = len(clusters)
+
+        cluster = num_clusters_ - 1
+        percentage_dict[bucket][cluster] += 1
+
+    width = 0.35
+    percentage_list = sorted(percentage_dict.keys())
+    index_list = np.arange(len(percentage_list))
+
+    bottom = None
+    bar_list = []
+    for index, color in enumerate(color_list):
+        value_list = []
+        for percentage in percentage_list:
+            value = percentage_dict[percentage][index]
+            value_list.append(value)
+        value_list = np.array(value_list)
+        print(value_list)
+        if bottom is None:
+            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
+        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
+        bar_list.append(bar_)
+        bottom += value_list
+
+    label_list = list(map(str, range(1, num_clusters + 1)))
+    plt.legend(bar_list, label_list)
+
+    plt.ylabel('Number of Tiles')
+    plt.yscale('log')
+    plt.title('Number of Annotation Clusters by Number of Annotations')
+
+    tick_list = []
+    for percentage in percentage_list:
+        tick = '%d' % (percentage, )
+        tick_list.append(tick)
+
+    plt.xticks(index_list, tick_list)
+
+    fig_filename = 'vulcan-annot-clusters-annots-plot.png'
+    fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 if __name__ == '__main__':
