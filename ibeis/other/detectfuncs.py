@@ -2019,23 +2019,26 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 def classifier2_precision_recall_algo(ibs, category, species_mapping={},
                                       output_path=None, test_gid_list=None,
                                       test_label_list=None, **kwargs):
-    ut.embed()
-
     depc = ibs.depc_image
     if test_gid_list is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
         test_gid_list = list(test_gid_set)
 
-    aids_list = ibs.get_image_aids(test_gid_list)
-
-    species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
-    species_set_list = []
-    for species_list in species_list_list:
-        species_set = set([])
-        for species in species_list:
-            species = species_mapping.get(species, species)
-            species_set.add(species)
-        species_set_list.append(species_set)
+    if test_label_list is None:
+        aids_list = ibs.get_image_aids(test_gid_list)
+        species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
+        species_set_list = []
+        for species_list in species_list_list:
+            species_set = set([])
+            for species in species_list:
+                species = species_mapping.get(species, species)
+                species_set.add(species)
+            species_set_list.append(species_set)
+    else:
+        species_set_list = [
+            set([label])
+            for label in test_label_list
+        ]
 
     label_list = [
         'positive' if category in species_set_ else 'negative'
@@ -2110,10 +2113,9 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
 
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_list_ = list(test_gid_set) if test_gid_list is None else test_gid_list
-    test_label_list_ = [None] * len(test_gid_list_) if test_label_list is None else test_label_list
+    test_label_list_ = test_label_list if is_labeled else [None] * len(test_gid_list_)
 
     zipped = list(zip(test_gid_list_, test_label_list_))
-
     test_gid_list_ = []
     test_label_list_ = []
     for test_gid_, test_label_ in zipped:
@@ -2122,7 +2124,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
             test_label_list_.append(test_label_)
 
     test_gid_list = test_gid_list_
-    test_label_list = test_label_list_
+    test_label_list = test_label_list_ if is_labeled else None
 
     # depc.delete_property('classifier_two', test_gid_list, config=kwargs)
 
