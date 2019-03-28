@@ -2088,12 +2088,11 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
                                               species_mapping={},
                                               nice_mapping={},
                                               test_gid_list=None,
-                                              test_labe_list=None,
+                                              test_label_list=None,
                                               figsize=(20, 9), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
-    ut.embed()
 
     depc = ibs.depc_image
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
@@ -2105,11 +2104,25 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     kwargs['classifier_two_algo'] = 'densenet'
     kwargs['classifier_two_weight_filepath'] = 'flukebook_v1'
 
-    if test_gid_list is None:
-        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-        test_gid_list = list(test_gid_set)
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_list_ = list(test_gid_set) if test_gid_list is None else test_gid_list
+    test_label_list_ = [None] * len(test_gid_list_) if test_label_list is None else test_label_list
+
+    zipped = list(zip(test_gid_list_, test_label_list_))
+
+    test_gid_list_ = []
+    test_label_list_ = []
+    for test_gid_, test_label_ in zipped:
+        if test_gid_ in test_gid_set:
+            test_gid_list_.append(test_gid_)
+            test_label_list_.append(test_label_)
+
+    test_gid_list = test_gid_list_
+    test_label_list = test_label_list_
 
     # depc.delete_property('classifier_two', test_gid_list, config=kwargs)
+
+    ut.embed()
 
     if species_list is None:
         test_gid = test_gid_list[0]

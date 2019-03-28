@@ -388,7 +388,6 @@ def compute_classifications2(depc, gid_list, config=None):
         classifier_weight_filepath = config['classifier_weight_filepath']
         result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
     elif config['classifier_two_algo'] in ['densenet']:
-        ut.embed()
         from ibeis.algo.detect import densenet
         config_ = {
             'draw_annots' : False,
@@ -399,7 +398,11 @@ def compute_classifications2(depc, gid_list, config=None):
         config_ = {
             'classifier_weight_filepath': config['classifier_two_weight_filepath'],
         }
-        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, multi_class=True, **config_)
+        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, return_dict=True, multiclass=True, **config_)
+        for index in range(len(result_list)):
+            best_score, best_key, scores = result_list[index]
+            classes = [best_key]
+            result_list[index] = (scores, classes, )
     else:
         raise ValueError('specified classifier_two algo is not supported in config = %r' % (config, ))
 
