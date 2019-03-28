@@ -2017,7 +2017,10 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, positive_imageset_i
 
 
 def classifier2_precision_recall_algo(ibs, category, species_mapping={},
-                                      output_path=None, test_gid_list=None, **kwargs):
+                                      output_path=None, test_gid_list=None,
+                                      test_label_list=None, **kwargs):
+    ut.embed()
+
     depc = ibs.depc_image
     if test_gid_list is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2100,6 +2103,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     # kwargs['classifier_two_weight_filepath'] = 'candidacy'
     # kwargs['classifier_two_weight_filepath'] = 'ggr2'
 
+    is_labeled = test_label_list is not None
+
     kwargs['classifier_two_algo'] = 'densenet'
     kwargs['classifier_two_weight_filepath'] = 'flukebook_v1'
 
@@ -2120,8 +2125,6 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     test_label_list = test_label_list_
 
     # depc.delete_property('classifier_two', test_gid_list, config=kwargs)
-
-    ut.embed()
 
     if species_list is None:
         test_gid = test_gid_list[0]
@@ -2155,6 +2158,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     for color, config in zip(color_list, config_list):
         classifier2_precision_recall_algo_plot(ibs, color=color,
                                                test_gid_list=test_gid_list,
+                                               test_label_list=test_label_list,
                                                species_mapping=species_mapping,
                                                **config)
     plt.title('Precision-Recall Curves', y=1.19)
@@ -2173,6 +2177,7 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     for color, config in zip(color_list, config_list):
         values = classifier2_roc_algo_plot(ibs, color=color,
                                            test_gid_list=test_gid_list,
+                                           test_label_list=test_label_list,
                                            species_mapping=species_mapping,
                                            **config)
         ap, best_conf, tup1, tup2 = values
@@ -2182,25 +2187,33 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    aids_list = ibs.get_image_aids(test_gid_list)
-    species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
-    species_set_list = []
-    for species_list in species_list_list:
-        species_set = set([])
-        for species in species_list:
-            species = species_mapping.get(species, species)
-            species_set.add(species)
-        species_set_list.append(species_set)
+    if is_labeled:
+        species_set_list = [
+            set([label])
+            for label in test_label_list
+        ]
+    else:
+        aids_list = ibs.get_image_aids(test_gid_list)
+        species_list_list = list(map(ibs.get_annot_species_texts, aids_list))
+        species_set_list = []
+        for species_list in species_list_list:
+            species_set = set([])
+            for species in species_list:
+                species = species_mapping.get(species, species)
+                species_set.add(species)
+            species_set_list.append(species_set)
     confidence_dict_list = depc.get_property('classifier_two', test_gid_list, 'scores', config=kwargs)
 
     correct = 0
-    for confidence_dict, species_set in zip(confidence_dict_list, species_set_list):
+    for test_gid, confidence_dict, species_set in zip(test_gid_list, confidence_dict_list, species_set_list):
         species_set_ = set([])
         for key in confidence_dict:
             if op_dict[key] <= confidence_dict[key]:
                 species_set_.add(key)
         if len(species_set ^ species_set_) == 0:
             correct += 1
+        else:
+            print(test_gid, confidence_dict, species_set)
     print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_list)))
     print('\t using op_dict = %r' % (op_dict, ))
 
