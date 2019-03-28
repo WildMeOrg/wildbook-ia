@@ -21,11 +21,12 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/wic/cnn/', methods=['PUT', 'GET', 'POST'])
-def wic_cnn(ibs, gid_list, testing=False, model_tag='candidacy', **kwargs):
+def wic_cnn(ibs, gid_list, testing=False, algo='cnn', model_tag='candidacy', **kwargs):
     depc = ibs.depc_image
     config = {}
 
     if model_tag is not None:
+        config['classifier_two_algo'] = algo
         config['classifier_two_weight_filepath'] = model_tag
 
     if testing:
@@ -36,12 +37,16 @@ def wic_cnn(ibs, gid_list, testing=False, model_tag='candidacy', **kwargs):
     output_list = []
     for result in result_list:
         scores, classes = result
-        output_list.append({
-            'scores': scores,
-            'class': classes,
-        })
+        output_list.append(scores)
 
     return output_list
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1to1
+def wic_cnn_json(ibs, gid_list, config={}, **kwargs):
+    return wic_cnn(ibs, gid_list, **config)
 
 
 @register_ibs_method

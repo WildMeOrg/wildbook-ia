@@ -413,8 +413,8 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, s
     model = model.to(device)
 
     # Multi-GPU
-    # if multi:
-    #     model = nn.DataParallel(model)
+    if multi:
+        model = nn.DataParallel(model)
 
     print('Print Examples of Training Augmentation...')
 
@@ -498,10 +498,19 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
-    # if multi:
-    #     model = nn.DataParallel(model)
+    post_multi = multi
+    try:
+        # Pre-multi
+        if multi:
+            model = nn.DataParallel(model)
 
-    model.load_state_dict(state)
+        model.load_state_dict(state)
+        post_multi = False
+    except:
+        model = torchvision.models.densenet201()
+        num_ftrs = model.classifier.in_features
+        model.classifier = nn.Linear(num_ftrs, num_classes)
+        model.load_state_dict(state)
 
     # Add LogSoftmax and Softmax to network output
     try:
@@ -517,7 +526,7 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
             nn.Softmax()
         )
 
-    if multi:
+    if post_multi:
         model = nn.DataParallel(model)
 
     # Send the model to GPU

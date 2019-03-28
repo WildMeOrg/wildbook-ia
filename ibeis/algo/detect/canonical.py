@@ -495,6 +495,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
         inputs = inputs.to(device)
         with torch.set_grad_enabled(False):
             output = model(inputs)
+            output = output.cpu()
             outputs.append(np.array(output))
 
     outputs = np.vstack(outputs)
