@@ -399,6 +399,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'classifier_weight_filepath': config['classifier_two_weight_filepath'],
         }
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, return_dict=True, multiclass=True, **config_)
+        result_list = list(result_list)
         for index in range(len(result_list)):
             best_score, best_key, scores = result_list[index]
             classes = [best_key]

@@ -2093,7 +2093,6 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
     import matplotlib.pyplot as plt
     import plottool as pt
 
-
     depc = ibs.depc_image
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
