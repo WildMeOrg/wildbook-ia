@@ -32,8 +32,9 @@ ARCHIVE_URL_DICT = {
     'manta_v1'                  : 'https://cthulhu.dyn.wildme.io/public/models/labeler.manta_ray_giant.v1.zip',
     'seaturtle_v3'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seaturtle.v3.zip',
     'hendrik_dorsal_v2'         : 'https://cthulhu.dyn.wildme.io/public/models/labeler.hendrik_dorsal.v2.zip',
-
     'spotted_skunk_v0'          : 'https://cthulhu.dyn.wildme.io/public/models/labeler.skunk_spotted.v0.zip',
+
+    'flukebook_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/classifier2.flukebook.v1.zip',
 }
 
 
@@ -547,12 +548,14 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
 
 
 def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
-                  ensemble_index, ibs=None, gid_list=None, **kwargs):
+                  ensemble_index, ibs=None, gid_list=None, multi_class=False, **kwargs):
 
     if ensemble_index is not None:
         assert 0 <= ensemble_index and ensemble_index < len(weights_path_list)
         weights_path_list = [ weights_path_list[ensemble_index] ]
         assert len(weights_path_list) > 0
+
+    ut.embed()
 
     cached = False
     try:
@@ -614,7 +617,7 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
         yield merged
 
 
-def test(gpath_list, classifier_weight_filepath=None, return_dict=False, **kwargs):
+def test(gpath_list, classifier_weight_filepath=None, return_dict=False, multi_class=False, **kwargs):
     from detecttools.directory import Directory
     # Get correct weight if specified with shorthand
     archive_url = None
@@ -650,7 +653,7 @@ def test(gpath_list, classifier_weight_filepath=None, return_dict=False, **kwarg
     print('Using weights in the ensemble, index %r: %s ' % (ensemble_index, ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list,
                                 classifier_weight_filepath, ensemble_index,
-                                **kwargs)
+                                multi_class=multi_class, **kwargs)
     for result in result_list:
         best_key = None
         best_score = -1.0

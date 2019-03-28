@@ -2088,16 +2088,22 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
                                               species_mapping={},
                                               nice_mapping={},
                                               test_gid_list=None,
+                                              test_labe_list=None,
                                               figsize=(20, 9), **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
+
+    ut.embed()
 
     depc = ibs.depc_image
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 
     # kwargs['classifier_two_weight_filepath'] = 'v3'
     # kwargs['classifier_two_weight_filepath'] = 'candidacy'
-    kwargs['classifier_two_weight_filepath'] = 'ggr2'
+    # kwargs['classifier_two_weight_filepath'] = 'ggr2'
+
+    kwargs['classifier_two_algo'] = 'densenet'
+    kwargs['classifier_two_weight_filepath'] = 'flukebook_v1'
 
     if test_gid_list is None:
         test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
