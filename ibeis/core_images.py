@@ -434,7 +434,7 @@ def compute_classifications(depc, gid_list, config=None):
 
 class Classifier2Config(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn']),
+        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn', 'rf', 'densenet']),
         ut.ParamInfo('classifier_two_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -489,6 +489,31 @@ def compute_classifications2(depc, gid_list, config=None):
         # depc.delete_property('thumbnails', gid_list, config=config_)
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
+    elif config['classifier_two_algo'] in ['rf']:
+        from ibeis.algo.detect.rf import classify
+        config_ = {
+            'algo': 'resnet'
+        }
+        vector_list = depc.get_property('features', gid_list, 'vector', config=config_)
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
+    elif config['classifier_two_algo'] in ['densenet']:
+        from ibeis.algo.detect import densenet
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
+        }
+        thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
+                                            read_extern=False, ensure=True)
+        config_ = {
+            'classifier_weight_filepath': config['classifier_two_weight_filepath'],
+        }
+        result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, return_dict=True, multiclass=True, **config_)
+        result_list = list(result_list)
+        for index in range(len(result_list)):
+            best_score, best_key, scores = result_list[index]
+            classes = [best_key]
+            result_list[index] = (scores, classes, )
     else:
         raise ValueError('specified classifier_two algo is not supported in config = %r' % (config, ))
 

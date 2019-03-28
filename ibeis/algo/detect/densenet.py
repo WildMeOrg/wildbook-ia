@@ -32,8 +32,8 @@ ARCHIVE_URL_DICT = {
     'manta_v1'                  : 'https://cthulhu.dyn.wildme.io/public/models/labeler.manta_ray_giant.v1.zip',
     'seaturtle_v3'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seaturtle.v3.zip',
     'hendrik_dorsal_v2'         : 'https://cthulhu.dyn.wildme.io/public/models/labeler.hendrik_dorsal.v2.zip',
-
     'spotted_skunk_v0'          : 'https://cthulhu.dyn.wildme.io/public/models/labeler.skunk_spotted.v0.zip',
+    'flukebook_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/classifier2.flukebook.v1.zip',
 
     'vulcan-d3e8bf43-boost0'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.0.zip',
     'vulcan-d3e8bf43-boost1'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
@@ -421,8 +421,8 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, s
     model = model.to(device)
 
     # Multi-GPU
-    # if multi:
-    #     model = nn.DataParallel(model)
+    if multi:
+        model = nn.DataParallel(model)
 
     print('Print Examples of Training Augmentation...')
 
@@ -501,17 +501,24 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
 
     num_classes = len(classes)
 
-    # ut.embed()
-
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
-    # if multi:
-    #     model = nn.DataParallel(model)
+    post_multi = multi
+    try:
+        # Pre-multi
+        if multi:
+            model = nn.DataParallel(model)
 
-    model.load_state_dict(state)
+        model.load_state_dict(state)
+        post_multi = False
+    except:
+        model = torchvision.models.densenet201()
+        num_ftrs = model.classifier.in_features
+        model.classifier = nn.Linear(num_ftrs, num_classes)
+        model.load_state_dict(state)
 
     # Add LogSoftmax and Softmax to network output
     try:
@@ -527,7 +534,7 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
             nn.Softmax()
         )
 
-    if multi:
+    if post_multi:
         model = nn.DataParallel(model)
 
     # Send the model to GPU
@@ -556,7 +563,7 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
 
 
 def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
-                  ensemble_index, ibs=None, gid_list=None, **kwargs):
+                  ensemble_index, ibs=None, gid_list=None, multiclass=False, **kwargs):
 
     if ensemble_index is not None:
         assert 0 <= ensemble_index and ensemble_index < len(weights_path_list)
@@ -569,32 +576,42 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
         assert None not in [ibs, gid_list], 'Needs to have access to depc'
         assert len(filepath_list) == len(gid_list)
 
-        binary_class_set = set(['negative', 'positive'])
-
         results_list = []
         for model_index in range(len(weights_path_list)):
-            classifier_weight_filepath_ = '%s:%d' % (classifier_weight_filepath, model_index, )
-            config = {
-                'classifier_algo': 'densenet',
-                'classifier_weight_filepath': classifier_weight_filepath_,
-            }
-            prediction_list = ibs.depc_image.get_property('classifier', gid_list, 'class', config=config)
-            confidence_list = ibs.depc_image.get_property('classifier', gid_list, 'score', config=config)
-            result_list = []
-            for prediction, confidence in zip(prediction_list, confidence_list):
-                # DO NOT REMOVE THIS ASSERT
-                assert prediction in binary_class_set, 'Cannot use this method, need to implement classifier_two in depc'
-                if prediction == 'positive':
-                    pscore = confidence
-                    nscore = 1.0 - pscore
-                else:
-                    nscore = confidence
-                    pscore = 1.0 - nscore
-                result = {
-                    'positive': pscore,
-                    'negative': nscore,
+            if multiclass:
+                classifier_two_weight_filepath_ = '%s:%d' % (classifier_weight_filepath, model_index, )
+                config = {
+                    'classifier_two_algo': 'densenet',
+                    'classifier_two_weight_filepath': classifier_two_weight_filepath_,
                 }
-                result_list.append(result)
+                scores_list = ibs.depc_image.get_property('classifier_two', gid_list, 'scores', config=config)
+                result_list = []
+                for score_dict in scores_list:
+                    result = score_dict
+                    result_list.append(result)
+            else:
+                classifier_weight_filepath_ = '%s:%d' % (classifier_weight_filepath, model_index, )
+                config = {
+                    'classifier_algo': 'densenet',
+                    'classifier_weight_filepath': classifier_weight_filepath_,
+                }
+                prediction_list = ibs.depc_image.get_property('classifier', gid_list, 'class', config=config)
+                confidence_list = ibs.depc_image.get_property('classifier', gid_list, 'score', config=config)
+                result_list = []
+                for prediction, confidence in zip(prediction_list, confidence_list):
+                    # DO NOT REMOVE THIS ASSERT
+                    assert prediction in set(['negative', 'positive']), 'Cannot use this method, need to implement classifier_two in depc'
+                    if prediction == 'positive':
+                        pscore = confidence
+                        nscore = 1.0 - pscore
+                    else:
+                        nscore = confidence
+                        pscore = 1.0 - nscore
+                    result = {
+                        'positive': pscore,
+                        'negative': nscore,
+                    }
+                    result_list.append(result)
             assert len(result_list) == len(gid_list)
             results_list.append(result_list)
         assert len(results_list) == len(weights_path_list)
@@ -623,7 +640,7 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
         yield merged
 
 
-def test(gpath_list, classifier_weight_filepath=None, return_dict=False, **kwargs):
+def test(gpath_list, classifier_weight_filepath=None, return_dict=False, multiclass=False, **kwargs):
     from detecttools.directory import Directory
     # Get correct weight if specified with shorthand
     archive_url = None
@@ -659,7 +676,7 @@ def test(gpath_list, classifier_weight_filepath=None, return_dict=False, **kwarg
     print('Using weights in the ensemble, index %r: %s ' % (ensemble_index, ut.repr3(weights_path_list), ))
     result_list = test_ensemble(gpath_list, weights_path_list,
                                 classifier_weight_filepath, ensemble_index,
-                                **kwargs)
+                                multiclass=multiclass, **kwargs)
     for result in result_list:
         best_key = None
         best_score = -1.0
