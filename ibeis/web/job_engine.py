@@ -446,7 +446,7 @@ class JobBackend(object):
             for key, port in list(zip(key_list, port_list))
         }
 
-    def initialize_background_processes(self, dbdir=None, containerized=False, thread=False):
+    def initialize_background_processes(self, dbdir=None, containerized=False, thread=True):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
