@@ -316,8 +316,6 @@ def compute_classifications(depc, gid_list, config=None):
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     elif config['classifier_algo'] in ['tile_aggregation']:
-        VERSION = 2
-
         classifier_weight_filepath = config['classifier_weight_filepath']
         classifier_weight_filepath = classifier_weight_filepath.strip().split(';')
 
@@ -328,22 +326,13 @@ def compute_classifications(depc, gid_list, config=None):
         for gid in tqdm.tqdm(gid_list):
             tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=[gid])
             confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
-            if VERSION == 1:
-                confidence_thresh = 0.01
-                confidence_list = [
-                    confidence
-                    for confidence in confidence_list
-                    if confidence > confidence_thresh
-                ]
-                best_score = np.mean(confidence_list)
-            else:
-                best_score = np.max(confidence_list)
+            best_score = np.max(confidence_list)
 
-            if best_score < 0.5:
+            if best_score >= 0.5:
+                best_key = 'positive'
+            else:
                 best_key = 'negative'
                 best_score = 1.0 - best_score
-            else:
-                best_key = 'positive'
             result = (best_score, best_key, )
             result_list.append(result)
     elif config['classifier_algo'] in ['densenet+neighbors']:
@@ -401,27 +390,33 @@ def compute_classifications(depc, gid_list, config=None):
         else:
             raise ValueError
 
+        flag_list = [wic_confidence >= wic_thresh for wic_confidence in wic_confidence_list]
+        gid_list_ = ut.compress(gid_list, flag_list)
         config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
-        prediction_list = depc.get_property('localizations', gid_list, None, config=config)
+        prediction_list = depc.get_property('localizations', gid_list_, None, config=config)
+        prediction_dict = dict(zip(gid_list_, prediction_list))
+
         result_list = []
-        for wic_confidence, prediction in zip(wic_confidence_list, prediction_list):
-            score, bboxes, thetas, confs, classes = prediction
+        for gid, flag in zip(gid_list, flag_list):
+            prediction = prediction_dict.get(gid, None)
 
             best_score = 0.0
-            for bbox, conf in zip(bboxes, confs):
-                xtl, ytl, w, h = bbox
-                area = w * h
-                if area >= min_area:
-                    best_score = max(best_score, conf)
+            if prediction is not None:
+                score, bboxes, thetas, confs, classes = prediction
+                for bbox, conf in zip(bboxes, confs):
+                    xtl, ytl, w, h = bbox
+                    area = w * h
+                    if area >= min_area:
+                        best_score = max(best_score, conf)
 
-            if wic_confidence < wic_thresh:
+            if not flag:
                 best_key = 'negative'
                 best_score = 1.0
-            elif best_score < 0.5:
+            elif best_score >= 0.5:
+                best_key = 'positive'
+            else:
                 best_key = 'negative'
                 best_score = 1.0 - best_score
-            else:
-                best_key = 'positive'
             result = (best_score, best_key, )
             result_list.append(result)
     else:
