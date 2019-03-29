@@ -172,6 +172,8 @@ def vulcan_pipeline(ibs, images,
     ]
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
 
+    ut.embed()
+
     try:
         classifier_algo = 'tile_aggregation'
         model_tag       = 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'
