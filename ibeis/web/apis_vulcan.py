@@ -122,7 +122,7 @@ def vulcan_core_status(*args, **kwargs):
 
 
 @register_api(_prefix('image'), methods=['POST'])
-def vulcan_image_upload(ibs, *args, **kwargs):
+def vulcan_image_upload(ibs, time_upload=False, *args, **kwargs):
     r"""
     Upload an image for future processing.
 
@@ -159,7 +159,10 @@ def vulcan_image_upload(ibs, *args, **kwargs):
         except:
             raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)', 'image', image=True)
         image = _image(ibs, gid)
-    return image, time_upload
+    if time_upload:
+        return image, time_upload
+    else:
+        return image
 
 
 @register_ibs_method
@@ -191,12 +194,15 @@ def vulcan_pipeline(ibs, images,
 
         with ut.Timer('Test Deleting') as time_test:
             if testing:
+                print('TESTING')
                 tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
                 flag_list = [tile for tile in tile_list if tile is not None]
                 tile_list = ut.compress(tile_list, flag_list)
                 ibs.depc_image.delete_property_all('tiles', gid_list)
                 ibs.depc_image.delete_root(gid_list)
                 ibs.delete_images(tile_list, trash_images=False)
+            else:
+                print('NOT TESTING')
 
         with ut.Timer('Tiling') as time_tile:
             # Pre-compute tiles
@@ -280,7 +286,7 @@ def vulcan_pipeline_upload(ibs, *_args, **kwargs):
     ibs = current_app.ibs
 
     # Input argument validation
-    image, time_upload = vulcan_image_upload(ibs)
+    image, time_upload = vulcan_image_upload(ibs, time_upload=True)
     images = [image]
     args = (images, )
     response = vulcan_pipeline(ibs, *args, time_upload=time_upload, **kwargs)
