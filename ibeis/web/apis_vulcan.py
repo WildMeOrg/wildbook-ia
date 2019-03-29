@@ -176,7 +176,7 @@ def vulcan_pipeline(ibs, images,
         time = 0.0
         for timer in args:
             if timer is not None:
-                time = timer.ellapsed
+                time += timer.ellapsed
         return time
 
     with ut.Timer('Inference') as time_inference:
