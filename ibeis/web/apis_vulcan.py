@@ -183,7 +183,8 @@ def vulcan_pipeline(ibs, images,
         wic_classifier_algo = 'densenet'
         loc_classifier_algo = 'densenet+lightnet'
         agg_classifier_algo = 'tile_aggregation'
-        wic_model_tag       = 'vulcan-d3e8bf43-boost2'
+        # wic_model_tag       = 'vulcan-d3e8bf43-boost2'
+        wic_model_tag       = 'vulcan-d3e8bf43-boost2:3'
         loc_model_tag       = 'vulcan_v0'
         wic_sensitivity     = 0.347
         loc_sensitivity     = 0.151
@@ -247,7 +248,7 @@ def vulcan_pipeline(ibs, images,
             {
                 'score': confidence,
                 'flag':  flag,
-                'locations': location_list,
+                'tiles': location_list,
             }
             for confidence, flag, location_list in zip(agg_confidence_list, agg_flag_list, locations_list)
         ],
