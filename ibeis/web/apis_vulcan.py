@@ -261,6 +261,7 @@ def vulcan_pipeline(ibs, images,
             'aggregate' : _timer(time_agg),
             'inference' : _timer(time_wic, time_loc),
             'overhead'  : _timer(time_upload, time_uuid, time_test, time_tile, time_agg),
+            'caching'   : _timer(time_uuid, time_tile, time_wic, time_loc, time_agg),
             'total'     : _timer(time_upload, time_inference),
         },
     }
