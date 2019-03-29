@@ -962,8 +962,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     # NAME: engine_
     # CALLED_FROM: engine_queue
     import ibeis
-    import utool
-    utool.util_parallel.__FORCE_SERIAL__ = True
+    import utool as ut
+    ut.util_parallel.__FORCE_SERIAL__ = True
     update_proctitle('engine_loop')
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='darkred')
@@ -973,7 +973,6 @@ def engine_loop(id_, port_dict, dbdir, containerized):
             print('connect engine_url2 = %r' % (port_dict['engine_url2'],))
         assert dbdir is not None
         # ibs = ibeis.opendb(dbdir=dbdir)
-        # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
