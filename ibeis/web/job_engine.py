@@ -460,6 +460,8 @@ class JobBackend(object):
                 _spawner_func_ = ut.spawn_background_process
 
             proc = _spawner_func_(func, *args, **kwargs)
+            if thread:
+                proc.join()
             assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
             return proc
 
