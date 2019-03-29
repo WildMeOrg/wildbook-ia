@@ -487,7 +487,7 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=batch_size // 8,
+        num_workers=0,
         pin_memory=using_gpu
     )
 
@@ -735,7 +735,7 @@ def features(filepath_list, batch_size=512, multi=True, **kwargs):
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=batch_size // 8,
+        num_workers=0,
         pin_memory=using_gpu
     )
 
