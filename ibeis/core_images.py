@@ -2188,7 +2188,7 @@ class TileConfig(dtool.Config):
         ut.ParamInfo('tile_overlap',  64),
         ut.ParamInfo('tile_offset',   0, hideif=0),
         ut.ParamInfo('allow_borders', True),
-        ut.ParamInfo('keep_extern',   False),
+        ut.ParamInfo('keep_extern',   True),
         ut.ParamInfo('force_serial',  False, hideif=False),
     ]
 
@@ -2293,7 +2293,7 @@ def compute_tiles(depc, gid_list, config=None):
     for val in gen:
         parent_gid, output_path, tile_filepath_list, bbox_list, border_list = val
 
-        gids = ibs.add_images(tile_filepath_list)
+        gids = ibs.add_images(tile_filepath_list, auto_localize=False, ensure_loadable=False, ensure_exif=False)
 
         if ut.duplicates_exist(gids):
             flag_list = []
