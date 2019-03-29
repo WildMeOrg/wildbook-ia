@@ -122,7 +122,7 @@ def vulcan_core_status(*args, **kwargs):
 
 
 @register_api(_prefix('image'), methods=['POST'])
-def vulcan_image_upload(ibs, time_upload=False, *args, **kwargs):
+def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
     r"""
     Upload an image for future processing.
 
@@ -159,7 +159,7 @@ def vulcan_image_upload(ibs, time_upload=False, *args, **kwargs):
         except:
             raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)', 'image', image=True)
         image = _image(ibs, gid)
-    if time_upload:
+    if return_time:
         return image, time_upload
     else:
         return image
@@ -286,7 +286,7 @@ def vulcan_pipeline_upload(ibs, *_args, **kwargs):
     ibs = current_app.ibs
 
     # Input argument validation
-    image, time_upload = vulcan_image_upload(ibs, time_upload=True)
+    image, time_upload = vulcan_image_upload(ibs, return_time=True)
     images = [image]
     args = (images, )
     response = vulcan_pipeline(ibs, *args, time_upload=time_upload, **kwargs)
