@@ -2293,7 +2293,10 @@ def compute_tiles(depc, gid_list, config=None):
     for val in gen:
         parent_gid, output_path, tile_filepath_list, bbox_list, border_list = val
 
-        gids = ibs.add_images(tile_filepath_list, auto_localize=False, ensure_loadable=False, ensure_exif=False)
+        if keep_extern:
+            gids = ibs.add_images(tile_filepath_list, auto_localize=False, ensure_loadable=False, ensure_exif=False)
+        else:
+            gids = ibs.add_images(tile_filepath_list)
 
         if ut.duplicates_exist(gids):
             flag_list = []
