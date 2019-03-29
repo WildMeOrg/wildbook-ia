@@ -23,4 +23,6 @@ from ibeis.web import routes
 from ibeis.control import controller_inject
 if controller_inject.MICROSOFT_API_ENABLED:
     from ibeis.web import apis_microsoft
+if controller_inject.VULCAN_API_ENABLED:
+    from ibeis.web import apis_vulcan
 

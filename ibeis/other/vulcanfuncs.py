@@ -1177,13 +1177,13 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
 
 
 @register_ibs_method
-def vulcan_wic_test(ibs, test_tile_list, classifier_algo='densenet', model_tag=None):
+def vulcan_wic_test(ibs, test_tile_list, classifier_algo='densenet', model_tag=None, testing=False):
     config = {
         'classifier_algo': classifier_algo,
         'classifier_weight_filepath': model_tag,
     }
-    prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config)
-    confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config)
+    prediction_list = ibs.depc_image.get_property('classifier', test_tile_list, 'class', config=config, recompute=testing, recompute_all=testing)
+    confidence_list = ibs.depc_image.get_property('classifier', test_tile_list, 'score', config=config, recompute=testing, recompute_all=testing)
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
