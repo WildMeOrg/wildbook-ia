@@ -460,8 +460,6 @@ class JobBackend(object):
                 _spawner_func_ = ut.spawn_background_process
 
             proc = _spawner_func_(func, *args, **kwargs)
-            if thread:
-                proc.join()
             assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
             return proc
 
@@ -964,6 +962,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     # NAME: engine_
     # CALLED_FROM: engine_queue
     import ibeis
+    import utool
+    utool.util_parallel.__FORCE_SERIAL__ = True
     update_proctitle('engine_loop')
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='darkred')
@@ -974,7 +974,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
         assert dbdir is not None
         # ibs = ibeis.opendb(dbdir=dbdir)
         # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
         engine_rout_sock.connect(port_dict['engine_url2'])
