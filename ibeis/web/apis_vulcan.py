@@ -172,70 +172,75 @@ def vulcan_pipeline(ibs, images,
                     time_upload=None,
                     *args, **kwargs):
 
-    def _timer(timer):
-        return None if timer is None else timer.ellapsed
+    def _timer(*args):
+        time = 0.0
+        for timer in args:
+            if timer is not None:
+                time = timer.ellapsed
+        return time
 
-    wic_classifier_algo = 'densenet'
-    loc_classifier_algo = 'densenet+lightnet'
-    agg_classifier_algo = 'tile_aggregation'
-    wic_model_tag       = 'vulcan-d3e8bf43-boost2'
-    loc_model_tag       = 'vulcan_v0'
-    wic_sensitivity     = 0.347
-    loc_sensitivity     = 0.151
-    loc_nms             = 0.5
+    with ut.Timer('Inference') as time_inference:
+        wic_classifier_algo = 'densenet'
+        loc_classifier_algo = 'densenet+lightnet'
+        agg_classifier_algo = 'tile_aggregation'
+        wic_model_tag       = 'vulcan-d3e8bf43-boost2'
+        loc_model_tag       = 'vulcan_v0'
+        wic_sensitivity     = 0.347
+        loc_sensitivity     = 0.151
+        loc_nms             = 0.5
 
-    try:
-        with ut.Timer('UUIDs') as time_uuid:
-            uuid_list = [
-                uuid.UUID(image['uuid'])
-                for image in images
-            ]
-            gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+        try:
+            with ut.Timer('UUIDs') as time_uuid:
+                uuid_list = [
+                    uuid.UUID(image['uuid'])
+                    for image in images
+                ]
+                gid_list = ibs.get_image_gids_from_uuid(uuid_list)
 
-        with ut.Timer('Test Deleting') as time_test:
-            if testing:
-                print('TESTING')
+            with ut.Timer('Test Deleting') as time_test:
+                if testing:
+                    print('TESTING')
+                    tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+                    flag_list = [tile for tile in tile_list if tile is not None]
+                    tile_list = ut.compress(tile_list, flag_list)
+                    ibs.depc_image.delete_property_all('tiles', gid_list)
+                    ibs.depc_image.delete_root(gid_list)
+                    ibs.delete_images(tile_list, trash_images=False)
+                else:
+                    print('NOT TESTING')
+
+            with ut.Timer('Tiling') as time_tile:
+                # Pre-compute tiles
                 tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
-                flag_list = [tile for tile in tile_list if tile is not None]
-                tile_list = ut.compress(tile_list, flag_list)
-                ibs.depc_image.delete_property_all('tiles', gid_list)
-                ibs.depc_image.delete_root(gid_list)
-                ibs.delete_images(tile_list, trash_images=False)
-            else:
-                print('NOT TESTING')
+                ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
-        with ut.Timer('Tiling') as time_tile:
-            # Pre-compute tiles
-            tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
-            ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
+            with ut.Timer('WIC') as time_wic:
+                model_tag           = wic_model_tag
+                wic_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=wic_classifier_algo, model_tag=model_tag)
+                wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
 
-        with ut.Timer('WIC') as time_wic:
-            model_tag           = wic_model_tag
-            wic_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=wic_classifier_algo, model_tag=model_tag)
-            wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
+            with ut.Timer('LOC') as time_loc:
+                model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
+                loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
+                loc_flag_list       = [loc_confidence >= loc_sensitivity for loc_confidence in loc_confidence_list]  # NOQA
 
-        with ut.Timer('LOC') as time_loc:
-            model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
-            loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
-            loc_flag_list       = [loc_confidence >= loc_sensitivity for loc_confidence in loc_confidence_list]  # NOQA
+                location_dict = {}
+                for ancestor_gid, tile, loc_flag in zip(ancestor_gid_list, tile_list, loc_flag_list):
+                    if ancestor_gid not in location_dict:
+                        location_dict[ancestor_gid] = []
+                    if loc_flag:
+                        location_dict[ancestor_gid].append(tile)
+                locations_list = [
+                    ibs.get_vulcan_image_tile_bboxes(location_dict.get(gid, []))
+                    for gid in gid_list
+                ]
 
-            location_dict = {}
-            for ancestor_gid, tile, loc_flag in zip(ancestor_gid_list, tile_list, loc_flag_list):
-                if ancestor_gid not in location_dict:
-                    location_dict[ancestor_gid] = []
-                if loc_flag:
-                    location_dict[ancestor_gid].append(tile)
-            locations_list = [
-                ibs.get_vulcan_image_tile_bboxes(location_dict.get(gid, []))
-                for gid in gid_list
-            ]
-
-        with ut.Timer('Aggregate') as time_agg:
-            model_tag           = '%s;%s,%0.03f,%s,%0.02f' % (loc_classifier_algo, wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms)
-            agg_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo=agg_classifier_algo, model_tag=model_tag)
-            agg_flag_list       = [agg_confidence >= loc_sensitivity for agg_confidence in agg_confidence_list]
-    except:
-        raise controller_inject.WebException('The Vulcan pipeline process has failed for an unknown reason')
+            with ut.Timer('Aggregate') as time_agg:
+                model_tag           = '%s;%s,%0.03f,%s,%0.02f' % (loc_classifier_algo, wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms)
+                agg_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo=agg_classifier_algo, model_tag=model_tag)
+                agg_flag_list       = [agg_confidence >= loc_sensitivity for agg_confidence in agg_confidence_list]
+        except:
+            raise controller_inject.WebException('The Vulcan pipeline process has failed for an unknown reason')
 
     response = {
         'classifications': [
@@ -254,6 +259,9 @@ def vulcan_pipeline(ibs, images,
             'wic'       : _timer(time_wic),
             'loc'       : _timer(time_loc),
             'aggregate' : _timer(time_agg),
+            'inference' : _timer(time_wic, time_loc),
+            'overhead'  : _timer(time_upload, time_uuid, time_test, time_tile, time_agg),
+            'total'     : _timer(time_upload, time_inference),
         },
     }
 
