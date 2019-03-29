@@ -64,7 +64,7 @@ class ThumbnailConfig(dtool.Config):
     configclass=ThumbnailConfig,
     fname='thumbcache',
     rm_extern_on_delete=True,
-    chunksize=256,
+    chunksize=2048,
 )
 def compute_thumbnails(depc, gid_list, config=None):
     r"""Compute the thumbnail for a given input image.
@@ -249,7 +249,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=8192,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
@@ -322,17 +322,28 @@ def compute_classifications(depc, gid_list, config=None):
         assert len(classifier_weight_filepath) == 2
         classifier_algo_, model_tag_ = classifier_weight_filepath
 
+        tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
+        confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
+
+        gid_dict = {}
+        for ancestor_gid, tid, confidence in zip(ancestor_gid_list, tid_list, confidence_list):
+            if ancestor_gid not in gid_dict:
+                gid_dict[ancestor_gid] = []
+            gid_dict[ancestor_gid].append(confidence)
+
         result_list = []
         for gid in tqdm.tqdm(gid_list):
-            tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=[gid])
-            confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
-            best_score = np.max(confidence_list)
+            gid_confidence_list = gid_dict.get(gid, None)
+            assert gid_confidence_list is not None
+            best_score = np.max(gid_confidence_list)
 
             if best_score >= 0.5:
                 best_key = 'positive'
             else:
                 best_key = 'negative'
                 best_score = 1.0 - best_score
+
             result = (best_score, best_key, )
             result_list.append(result)
     elif config['classifier_algo'] in ['densenet+neighbors']:
@@ -672,7 +683,7 @@ class LocalizerOriginalConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerOriginalConfig,
     fname='localizationscache',
-    chunksize=256,
+    chunksize=1024,
 )
 def compute_localizations_original(depc, gid_list, config=None):
     r"""Extract the localizations for a given input image.
