@@ -158,7 +158,7 @@ def __delete_old_tiles(ibs, ):
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
                                  return_configs=False, limit=None, gid_list=None,
-                                 **kwargs):
+                                 include_grid2=True, **kwargs):
     if gid_list is None:
         if imageset_text_list is None:
             imageset_text_list = [
@@ -194,17 +194,21 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     tile1_list = ut.flatten(tiles1_list)
     config1_list = [1] * len(tile1_list)
 
-    tile_offset = (tile_size - tile_overlap) // 2
-    config2 = {
-        'tile_width':    tile_size,
-        'tile_height':   tile_size,
-        'tile_overlap':  tile_overlap,
-        'tile_offset':   tile_offset,
-        'allow_borders': False,
-    }
-    tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
-    tile2_list = ut.flatten(tiles2_list)
-    config2_list = [2] * len(tile2_list)
+    if include_grid2:
+        tile_offset = (tile_size - tile_overlap) // 2
+        config2 = {
+            'tile_width':    tile_size,
+            'tile_height':   tile_size,
+            'tile_overlap':  tile_overlap,
+            'tile_offset':   tile_offset,
+            'allow_borders': False,
+        }
+        tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
+        tile2_list = ut.flatten(tiles2_list)
+        config2_list = [2] * len(tile2_list)
+    else:
+        tile2_list = []
+        config2_list = []
 
     tile_list_ = tile1_list + tile2_list
     config_list_ = config1_list + config2_list
@@ -1283,6 +1287,29 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 85% R2:4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:4,0.347,vulcan_v0,0.50'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1)
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-d3e8bf43-boost6'},
+        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC PR  R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.607,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC ROC R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.027,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.645,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 90% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 95% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.005,vulcan_v0,0.50'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, include_grid2=False)
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:0,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:1+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:1,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:3,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:4,0.347,vulcan_v0,0.50'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1, include_grid2=False)
         >>>
         >>> # config_list = [
         >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
