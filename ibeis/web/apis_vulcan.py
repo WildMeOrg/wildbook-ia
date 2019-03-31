@@ -168,6 +168,7 @@ def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
 @register_ibs_method
 def vulcan_pipeline(ibs, images,
                     testing=False,
+                    quick=True,
                     __jobid__=None,
                     time_upload=None,
                     *args, **kwargs):
@@ -180,9 +181,11 @@ def vulcan_pipeline(ibs, images,
         return time
 
     with ut.Timer('Inference') as time_inference:
+        include_grid2 = not quick
+
         wic_classifier_algo = 'densenet'
         loc_classifier_algo = 'densenet+lightnet'
-        agg_classifier_algo = 'tile_aggregation'
+        agg_classifier_algo = 'tile_aggregation_quick' if quick else 'tile_aggregation'
         # wic_model_tag       = 'vulcan-d3e8bf43-boost2'
         wic_model_tag       = 'vulcan-d3e8bf43-boost2:3'
         loc_model_tag       = 'vulcan_v0'
@@ -212,7 +215,7 @@ def vulcan_pipeline(ibs, images,
 
             with ut.Timer('Tiling') as time_tile:
                 # Pre-compute tiles
-                tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+                tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
                 ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
             with ut.Timer('WIC') as time_wic:

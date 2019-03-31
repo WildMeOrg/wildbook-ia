@@ -235,7 +235,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'tile_aggregation']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'tile_aggregation', 'tile_aggregation_quick']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -315,14 +315,15 @@ def compute_classifications(depc, gid_list, config=None):
         thumbpath_list = ibs.depc_image.get('thumbnails', gid_list, 'img', config=config_,
                                             read_extern=False, ensure=True)
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
-    elif config['classifier_algo'] in ['tile_aggregation']:
+    elif config['classifier_algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
         classifier_weight_filepath = config['classifier_weight_filepath']
         classifier_weight_filepath = classifier_weight_filepath.strip().split(';')
 
         assert len(classifier_weight_filepath) == 2
         classifier_algo_, model_tag_ = classifier_weight_filepath
 
-        tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+        include_grid2 = config['classifier_algo'] == 'tile_aggregation'
+        tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
         ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
         confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
 
