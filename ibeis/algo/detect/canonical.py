@@ -461,7 +461,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=batch_size // 8,
+        num_workers=0,
         pin_memory=using_gpu
     )
 
