@@ -137,7 +137,7 @@ def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh, m
         params.network.postprocess = lnd.transform.Compose(postprocess_list)
 
         # Make mult-GPU
-        params.network = nn.DataParallel(params.network)
+        # params.network = nn.DataParallel(params.network)
 
     params.network.eval()
     params.network.to(params.device)
