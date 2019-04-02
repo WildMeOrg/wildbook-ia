@@ -64,7 +64,7 @@ class ThumbnailConfig(dtool.Config):
     configclass=ThumbnailConfig,
     fname='thumbcache',
     rm_extern_on_delete=True,
-    chunksize=2048,
+    chunksize=4096,
 )
 def compute_thumbnails(depc, gid_list, config=None):
     r"""Compute the thumbnail for a given input image.
@@ -235,7 +235,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'tile_aggregation', 'tile_aggregation_quick']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+lightnet!', 'tile_aggregation', 'tile_aggregation_quick']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -249,7 +249,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=8192,
+    chunksize=14336,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
@@ -322,7 +322,7 @@ def compute_classifications(depc, gid_list, config=None):
         assert len(classifier_weight_filepath) == 2
         classifier_algo_, model_tag_ = classifier_weight_filepath
 
-        include_grid2 = config['classifier_algo'] == 'tile_aggregation'
+        include_grid2 = config['classifier_algo'] in ['tile_aggregation']
         tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
         ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
         confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_)
@@ -380,55 +380,62 @@ def compute_classifications(depc, gid_list, config=None):
         #         recovered += 1
         #     result = (best_score, best_key, )
         #     result_list.append(result)
-    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet']:
+    elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+lightnet!']:
         min_area = 10
 
         classifier_weight_filepath = config['classifier_weight_filepath']
         classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
 
-        if config['classifier_algo'] == 'lightnet':
+        if config['classifier_algo'] in ['lightnet']:
             assert len(classifier_weight_filepath) == 2
             weight_filepath, nms_thresh = classifier_weight_filepath
             wic_thresh = 0.0
             nms_thresh = float(nms_thresh)
             wic_confidence_list = [np.inf] * len(gid_list)
-        elif config['classifier_algo'] == 'densenet+lightnet':
+            wic_filter = False
+        elif config['classifier_algo'] in ['densenet+lightnet', 'densenet+lightnet!']:
             assert len(classifier_weight_filepath) == 4
             wic_model_tag, wic_thresh, weight_filepath, nms_thresh = classifier_weight_filepath
             wic_thresh = float(wic_thresh)
             nms_thresh = float(nms_thresh)
             wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
                                                       model_tag=wic_model_tag)
+            wic_filter = config['classifier_algo'] in ['densenet+lightnet']
         else:
             raise ValueError
 
         flag_list = [wic_confidence >= wic_thresh for wic_confidence in wic_confidence_list]
-        gid_list_ = ut.compress(gid_list, flag_list)
+        if wic_filter:
+            gid_list_ = ut.compress(gid_list, flag_list)
+        else:
+            gid_list_ = gid_list[:]
         config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
         prediction_list = depc.get_property('localizations', gid_list_, None, config=config)
         prediction_dict = dict(zip(gid_list_, prediction_list))
 
         result_list = []
         for gid, flag in zip(gid_list, flag_list):
-            prediction = prediction_dict.get(gid, None)
-
-            best_score = 0.0
-            if prediction is not None:
-                score, bboxes, thetas, confs, classes = prediction
-                for bbox, conf in zip(bboxes, confs):
-                    xtl, ytl, w, h = bbox
-                    area = w * h
-                    if area >= min_area:
-                        best_score = max(best_score, conf)
-
             if not flag:
                 best_key = 'negative'
                 best_score = 1.0
-            elif best_score >= 0.5:
-                best_key = 'positive'
             else:
-                best_key = 'negative'
-                best_score = 1.0 - best_score
+                prediction = prediction_dict.get(gid, None)
+                assert prediction is not None
+
+                best_score = 0.0
+                if prediction is not None:
+                    score, bboxes, thetas, confs, classes = prediction
+                    for bbox, conf in zip(bboxes, confs):
+                        xtl, ytl, w, h = bbox
+                        area = w * h
+                        if area >= min_area:
+                            best_score = max(best_score, conf)
+
+                if best_score >= 0.5:
+                    best_key = 'positive'
+                else:
+                    best_key = 'negative'
+                    best_score = 1.0 - best_score
             result = (best_score, best_key, )
             result_list.append(result)
     else:
@@ -684,7 +691,7 @@ class LocalizerOriginalConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerOriginalConfig,
     fname='localizationscache',
-    chunksize=1024,
+    chunksize=14336,
 )
 def compute_localizations_original(depc, gid_list, config=None):
     r"""Extract the localizations for a given input image.
@@ -859,7 +866,7 @@ def compute_localizations_original(depc, gid_list, config=None):
 
     flip = config.get('flip', False)
     if flip:
-        assert config['algo'] == 'lightnet', 'config "flip" is only supported by the "lightnet" algo'
+        assert config['algo'] in ['lightnet'], 'config "flip" is only supported by the "lightnet" algo'
 
     # Normal computations
     base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
@@ -965,7 +972,7 @@ class LocalizerConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerConfig,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=14336,
 )
 def compute_localizations(depc, loc_orig_id_list, config=None):
     r"""Extract the localizations for a given input image.
@@ -2201,7 +2208,7 @@ class TileConfig(dtool.Config):
     configclass=TileConfig,
     fname='tilecache',
     rm_extern_on_delete=True,
-    chunksize=16,
+    chunksize=64,
 )
 def compute_tiles(depc, gid_list, config=None):
     r"""Compute the tile for a given input image.

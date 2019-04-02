@@ -1199,8 +1199,7 @@ def vulcan_wic_test(ibs, test_tile_list, classifier_algo='densenet', model_tag=N
 @register_ibs_method
 def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=None,
                         recompute=False, desired_index=None, fn_recovery=False,
-                        use_ancestors=False,
-                        **kwargs):
+                        use_ancestors=False, quick=False, **kwargs):
     """
     Example:
         >>> config_list = [
@@ -1264,6 +1263,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost0,0.026,vulcan_v0,0.50'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-d3e8bf43-boost6'},
@@ -1277,9 +1277,10 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.005,vulcan_v0,0.50'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2+V0',   'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 85% R2:0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:0,0.347,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 85% R2:1+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:1,0.347,vulcan_v0,0.50'},
         >>>     {'label': 'WIC+LOC 85% R2:2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:2,0.347,vulcan_v0,0.50'},
@@ -1287,29 +1288,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC+LOC 85% R2:4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:4,0.347,vulcan_v0,0.50'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1)
-        >>>
-        >>> config_list = [
-        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-d3e8bf43-boost6'},
-        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC PR  R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.607,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC ROC R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.027,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.645,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 90% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 95% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.005,vulcan_v0,0.50'},
-        >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, include_grid2=False)
-        >>>
-        >>> config_list = [
-        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:0,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:1+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:1,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:3,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:4,0.347,vulcan_v0,0.50'},
-        >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1, include_grid2=False)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1, quick=True)
         >>>
         >>> # config_list = [
         >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
@@ -1341,6 +1320,14 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
                 flag = True
                 break
         return flag
+
+    if quick:
+        kwargs['include_grid2'] = False
+        for index in range(len(config_list)):
+            classifier_algo = config_list[index].get('classifier_algo', None)
+            if classifier_algo in ['tile_aggregation']:
+                classifier_algo = '%s_quick' % (classifier_algo, )
+                config_list[index]['classifier_algo'] = classifier_algo
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))

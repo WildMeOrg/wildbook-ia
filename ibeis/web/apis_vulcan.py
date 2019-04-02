@@ -183,15 +183,16 @@ def vulcan_pipeline(ibs, images,
     with ut.Timer('Inference') as time_inference:
         include_grid2 = not quick
 
-        wic_classifier_algo = 'densenet'
-        loc_classifier_algo = 'densenet+lightnet'
-        agg_classifier_algo = 'tile_aggregation_quick' if quick else 'tile_aggregation'
-        # wic_model_tag       = 'vulcan-d3e8bf43-boost2'
-        wic_model_tag       = 'vulcan-d3e8bf43-boost2:3'
-        loc_model_tag       = 'vulcan_v0'
-        wic_sensitivity     = 0.347
-        loc_sensitivity     = 0.151
-        loc_nms             = 0.5
+        wic_classifier_algo     = 'densenet'
+        loc_classifier_algo     = '%s+lightnet' % (wic_classifier_algo, )
+        loc_all_classifier_algo = '%s+lightnet!' % (wic_classifier_algo, )
+        agg_classifier_algo     = 'tile_aggregation_quick' if quick else 'tile_aggregation'
+        # wic_model_tag           = 'vulcan-d3e8bf43-boost2'
+        wic_model_tag           = 'vulcan-d3e8bf43-boost2:3'
+        loc_model_tag           = 'vulcan_v0'
+        wic_sensitivity         = 0.347
+        loc_sensitivity         = 0.151
+        loc_nms                 = 0.5
 
         try:
             with ut.Timer('UUIDs') as time_uuid:
@@ -223,7 +224,12 @@ def vulcan_pipeline(ibs, images,
                 wic_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=wic_classifier_algo, model_tag=model_tag)
                 wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
 
-            with ut.Timer('LOC') as time_loc:
+            with ut.Timer('LOC All') as time_loc_all:
+                model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
+                loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
+                loc_flag_list       = [loc_confidence >= loc_sensitivity for loc_confidence in loc_confidence_list]  # NOQA
+
+            with ut.Timer('LOC Filtered') as time_loc_filtered:
                 model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
                 loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
                 loc_flag_list       = [loc_confidence >= loc_sensitivity for loc_confidence in loc_confidence_list]  # NOQA
@@ -256,16 +262,17 @@ def vulcan_pipeline(ibs, images,
             for confidence, flag, location_list in zip(agg_confidence_list, agg_flag_list, locations_list)
         ],
         'times': {
+            '_test'     : _timer(time_test),
+            '_loc_all'  : _timer(time_loc_all),
             'upload'    : _timer(time_upload),
             'uuid'      : _timer(time_uuid),
-            'test'      : _timer(time_test),
             'tile'      : _timer(time_tile),
             'wic'       : _timer(time_wic),
-            'loc'       : _timer(time_loc),
+            'loc'       : _timer(time_loc_filtered),
             'aggregate' : _timer(time_agg),
-            'inference' : _timer(time_wic, time_loc),
+            'gpu'       : _timer(time_wic, time_loc_filtered),
             'overhead'  : _timer(time_upload, time_uuid, time_test, time_tile, time_agg),
-            'caching'   : _timer(time_uuid, time_tile, time_wic, time_loc, time_agg),
+            'inference' : _timer(time_uuid, time_tile, time_wic, time_loc_filtered, time_agg),
             'total'     : _timer(time_upload, time_inference),
         },
     }

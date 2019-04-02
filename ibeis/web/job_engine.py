@@ -972,8 +972,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
             print('Initializing engine')
             print('connect engine_url2 = %r' % (port_dict['engine_url2'],))
         assert dbdir is not None
-        # ibs = ibeis.opendb(dbdir=dbdir)
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
+        ibs = ibeis.opendb(dbdir=dbdir)
+        # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
         engine_rout_sock.connect(port_dict['engine_url2'])

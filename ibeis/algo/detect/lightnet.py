@@ -127,6 +127,8 @@ def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh):
     params.network.postprocess[0].conf_thresh = conf_thresh
     params.network.postprocess[1].nms_thresh = nms_thresh
 
+    ut.embed()
+
     params.network.eval()
     params.network.to(params.device)
 
@@ -178,7 +180,7 @@ def _detect(params, gpath_list, flip=False):
 
 def detect(gpath_list, config_filepath=None, weight_filepath=None,
            classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN,
-           flip=False, batch_size=8, **kwargs):
+           flip=False, batch_size=64, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:
