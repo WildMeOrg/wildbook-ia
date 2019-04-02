@@ -407,6 +407,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/WildbookOrg/ibeis_cnn.git',
             'https://github.com/WildbookOrg/pydarknet.git',
             'https://gitlab.com/bluemellophone/lightnet.git',
+            'https://gitlab.com/bluemellophone/brambox.git',
         ])
         # NEW CNN Dependencies
         tpl_rman.add_repos([
