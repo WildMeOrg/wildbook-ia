@@ -137,7 +137,7 @@ def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh, m
         params.network.postprocess = lnd.transform.Compose(postprocess_list)
 
         # Make mult-GPU
-        # params.network = nn.DataParallel(params.network)
+        params.network = nn.DataParallel(params.network)
 
     params.network.eval()
     params.network.to(params.device)
@@ -171,6 +171,8 @@ def _detect(params, gpath_list, flip=False):
     if torch.cuda.is_available():
         imgs = imgs.cuda()
 
+    ut.embed()
+
     # Run detector
     if torch.__version__.startswith('0.3'):
         imgs_tf = torch.autograd.Variable(imgs, volatile=True)
@@ -179,7 +181,6 @@ def _detect(params, gpath_list, flip=False):
         with torch.no_grad():
             out = params.network(imgs)
 
-    ut.embed()
     result_list = []
     for result, img_size in zip(out, img_sizes):
         result = ln.data.transform.ReverseLetterbox.apply([result], params.input_dimension, img_size)
