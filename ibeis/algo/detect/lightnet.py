@@ -130,8 +130,9 @@ def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh, m
     if multi:
         import torch.nn as nn
         import lightnet.data as lnd
-        ut.embed()
-        postprocess_list = params.network.postprocess
+
+        # Add serialization to Brambox Detections for DataParallel
+        postprocess_list = list(params.network.postprocess)
         postprocess_list.append(lnd.transform.SerializeBrambox())
         params.network.postprocess = lnd.transform.Compose(postprocess_list)
 
