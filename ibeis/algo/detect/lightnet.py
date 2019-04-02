@@ -164,7 +164,6 @@ def _detect(params, gpath_list, flip=False):
         imgs = imgs.cuda()
 
     # Run detector
-    ut.embed()
     if torch.__version__.startswith('0.3'):
         imgs_tf = torch.autograd.Variable(imgs, volatile=True)
         out = params.network(imgs_tf)
@@ -172,6 +171,7 @@ def _detect(params, gpath_list, flip=False):
         with torch.no_grad():
             out = params.network(imgs)
 
+    ut.embed()
     result_list = []
     for result, img_size in zip(out, img_sizes):
         result = ln.data.transform.ReverseLetterbox.apply([result], params.input_dimension, img_size)
@@ -183,7 +183,7 @@ def _detect(params, gpath_list, flip=False):
 
 def detect(gpath_list, config_filepath=None, weight_filepath=None,
            classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN,
-           flip=False, batch_size=64, **kwargs):
+           flip=False, batch_size=128, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:
