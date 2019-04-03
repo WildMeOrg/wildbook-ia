@@ -217,6 +217,7 @@ def vulcan_pipeline(ibs, images,
         with ut.Timer('Tiling') as time_tile:
             # Pre-compute tiles
             tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
+            num_tiles = len(tile_list)
             ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
         with ut.Timer('WIC') as time_wic:
@@ -272,6 +273,7 @@ def vulcan_pipeline(ibs, images,
         ],
         'times': {
             '_test'            : _timer(time_test),
+            '_num_tiles'       : num_tiles,
             '_loc_all'         : _timer(time_loc_all),
             'step_0_upload'    : _timer(time_upload),
             'step_1_uuid'      : _timer(time_uuid),
