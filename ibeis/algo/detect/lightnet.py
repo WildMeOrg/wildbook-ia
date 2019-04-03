@@ -110,7 +110,7 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
         yield (gid, gpath, result_list)
 
 
-def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh, multi=True):
+def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh, multi=False):
     """Create the lightnet network."""
     device = torch.device('cpu')
     if torch.cuda.is_available():
@@ -171,7 +171,7 @@ def _detect(params, gpath_list, flip=False):
     if torch.cuda.is_available():
         imgs = imgs.cuda()
 
-    ut.embed()
+    # ut.embed()
 
     # Run detector
     if torch.__version__.startswith('0.3'):
