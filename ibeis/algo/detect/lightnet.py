@@ -192,7 +192,7 @@ def _detect(params, gpath_list, flip=False):
 
 def detect(gpath_list, config_filepath=None, weight_filepath=None,
            classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN,
-           flip=False, batch_size=128, **kwargs):
+           flip=False, batch_size=256, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:

@@ -471,7 +471,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, s
     return weights_path
 
 
-def test_single(filepath_list, weights_path, batch_size=1536, multi=True, **kwargs):
+def test_single(filepath_list, weights_path, batch_size=1792, multi=True, **kwargs):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

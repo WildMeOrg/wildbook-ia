@@ -214,7 +214,6 @@ def vulcan_pipeline(ibs, images,
             else:
                 print('NOT TESTING')
 
-        ut.embed()
         with ut.Timer('Tiling') as time_tile:
             # Pre-compute tiles
             tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
