@@ -240,10 +240,19 @@ def vulcan_pipeline(ibs, images,
                     location_dict[ancestor_gid] = []
                 if loc_flag:
                     location_dict[ancestor_gid].append(tile)
-            locations_list = [
-                ibs.get_vulcan_image_tile_bboxes(location_dict.get(gid, []))
-                for gid in gid_list
-            ]
+
+            locations_list = []
+            for gid in gid_list:
+                tile_list_ = location_dict.get(gid, [])
+                bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list_)
+                location_list_ = []
+                for bbox in bbox_list:
+                    xtl, ytl, w, h = bbox
+                    cx = xtl + (w // 2)
+                    cy = ytl + (h // 2)
+                    location_ = (cx, cy)
+                    location_list_.append(location_)
+                locations_list.append(location_list_)
 
         with ut.Timer('Aggregate') as time_agg:
             model_tag           = '%s;%s,%0.03f,%s,%0.02f' % (loc_classifier_algo, wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms)
@@ -257,14 +266,14 @@ def vulcan_pipeline(ibs, images,
             {
                 'score': confidence,
                 'flag':  flag,
-                'tiles': location_list,
+                'tile_centers': location_list,
             }
             for confidence, flag, location_list in zip(agg_confidence_list, agg_flag_list, locations_list)
         ],
         'times': {
             '_test'            : _timer(time_test),
             '_loc_all'         : _timer(time_loc_all),
-            'step_0upload'     : _timer(time_upload),
+            'step_0_upload'    : _timer(time_upload),
             'step_1_uuid'      : _timer(time_uuid),
             'step_2_tile'      : _timer(time_tile),
             'step_3_wic'       : _timer(time_wic),
