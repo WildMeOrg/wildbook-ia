@@ -169,6 +169,7 @@ def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
 def vulcan_pipeline(ibs, images,
                     testing=False,
                     quick=True,
+                    _run_all_loc=False,
                     __jobid__=None,
                     time_upload=None,
                     *args, **kwargs):
@@ -226,20 +227,21 @@ def vulcan_pipeline(ibs, images,
             wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
 
         with ut.Timer('LOC All') as time_loc_all:
-            model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
-            loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
-            loc_flag_list       = [loc_confidence >= loc_sensitivity for loc_confidence in loc_confidence_list]  # NOQA
+            if _run_all_loc:
+                model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
+                all_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
+                all_loc_flag_list       = [all_loc_confidence >= loc_sensitivity for all_loc_confidence in all_loc_confidence_list]  # NOQA
 
         with ut.Timer('LOC Filtered') as time_loc_filtered:
             model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
-            loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
-            loc_flag_list       = [loc_confidence >= loc_sensitivity for loc_confidence in loc_confidence_list]  # NOQA
+            filtered_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
+            filtered_loc_flag_list       = [filtered_loc_confidence >= loc_sensitivity for filtered_loc_confidence in filtered_loc_confidence_list]  # NOQA
 
             location_dict = {}
-            for ancestor_gid, tile, loc_flag in zip(ancestor_gid_list, tile_list, loc_flag_list):
+            for ancestor_gid, tile, filtered_loc_flag in zip(ancestor_gid_list, tile_list, filtered_loc_flag_list):
                 if ancestor_gid not in location_dict:
                     location_dict[ancestor_gid] = []
-                if loc_flag:
+                if filtered_loc_flag:
                     location_dict[ancestor_gid].append(tile)
 
             locations_list = []
