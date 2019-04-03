@@ -414,10 +414,10 @@ def compute_classifications(depc, gid_list, config=None):
         prediction_dict = dict(zip(gid_list_, prediction_list))
 
         result_list = []
-        for gid, flag in zip(gid_list, flag_list):
+        for gid, wic_confidence, flag in zip(gid_list, wic_confidence_list, flag_list):
             if not flag:
                 best_key = 'negative'
-                best_score = 1.0
+                best_score = 1.0 - wic_confidence
             else:
                 prediction = prediction_dict.get(gid, None)
                 assert prediction is not None
