@@ -685,12 +685,24 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
 
 
 @register_ibs_method
-def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, **kwargs):
+def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, gid_list=None,
+                              keep_existing=True, recovery=False, **kwargs):
     from random import shuffle
-    gid_list = ibs.get_valid_gids(is_tile=is_tile)
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(is_tile=is_tile)
+
+    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
+    test_imgsetid = ibs.add_imagesets('TEST_SET')
+    existing_train_gid_set = set(ibs.get_imageset_gids(train_imgsetid))
+    existing_test_gid_set = set(ibs.get_imageset_gids(test_imgsetid))
+
     aids_list = ibs.get_image_aids(gid_list)
     distro_dict = {}
     for gid, aid_list in zip(gid_list, aids_list):
+        if keep_existing:
+            if gid in existing_train_gid_set or gid in existing_test_gid_set:
+                continue
         total = len(aid_list)
         if total not in distro_dict:
             distro_dict[total] = []
@@ -717,6 +729,37 @@ def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, **kwargs):
         global_train_list.extend(train_list)
         global_test_list.extend(test_list)
 
+    if recovery:
+        ibs.unrelate_images_and_imagesets(gid_list, [train_imgsetid] * len(gid_list))
+        ibs.unrelate_images_and_imagesets(gid_list, [test_imgsetid]  * len(gid_list))
+    elif not keep_existing:
+        all_gid_list = ibs.get_valid_gids(is_tile=None)
+        ibs.unrelate_images_and_imagesets(all_gid_list, [train_imgsetid] * len(all_gid_list))
+        ibs.unrelate_images_and_imagesets(all_gid_list, [test_imgsetid]  * len(all_gid_list))
+
+    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
+    ibs.set_image_imgsetids(global_test_list,  [test_imgsetid]  * len(global_test_list))
+
+    # Verify
+    existing_train_gid_set_ = set(ibs.get_imageset_gids(train_imgsetid))
+    existing_test_gid_set_ = set(ibs.get_imageset_gids(test_imgsetid))
+    shared_gid_list = list(existing_train_gid_set_ & existing_test_gid_set_)
+    try:
+        assert len(shared_gid_list) == 0
+    except AssertionError:
+        assert not recovery
+        ibs.imageset_train_test_split(train_split=train_split, is_tile=is_tile,
+                                      gid_list=shared_gid_list, keep_existing=False,
+                                      recovery=True, **kwargs)
+        existing_train_gid_set_ = set(ibs.get_imageset_gids(train_imgsetid))
+        existing_test_gid_set_ = set(ibs.get_imageset_gids(test_imgsetid))
+        shared_gid_list = list(existing_train_gid_set_ & existing_test_gid_set_)
+        assert len(shared_gid_list) == 0
+
+    imageset_rowids_list = ibs.get_image_imgsetids(gid_list)
+    for gid, imageset_rowid_list in zip(gid_list, imageset_rowids_list):
+        assert train_imgsetid in imageset_rowid_list or test_imgsetid in imageset_rowid_list
+
     args = (
         len(global_train_list),
         len(global_test_list),
@@ -724,18 +767,6 @@ def imageset_train_test_split(ibs, train_split=0.8, is_tile=False, **kwargs):
         len(global_train_list) / len(gid_list),
         train_split,
     )
-
-    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-
-    temp_list = ibs.get_imageset_gids(train_imgsetid)
-    ibs.unrelate_images_and_imagesets(temp_list, [train_imgsetid] * len(temp_list))
-    temp_list = ibs.get_imageset_gids(test_imgsetid)
-    ibs.unrelate_images_and_imagesets(temp_list, [test_imgsetid] * len(temp_list))
-
-    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
-    ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
-
     print('Complete... %d train + %d test = %d (%0.04f %0.04f)' % args)
 
 

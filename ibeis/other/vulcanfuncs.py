@@ -31,15 +31,17 @@ def vulcan_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
     gid_all_list = ibs.get_valid_gids(is_tile=None)
 
     imageset_text_list = [
-        '20161108_Nikon_Left',
-        '20161108_Nikon_Right',
+        '20161106_Nikon_Left',
+        '20161106_Nikon_Right',
+        # '20161108_Nikon_Left',
+        # '20161108_Nikon_Right',
     ]
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
     gids_list = ibs.get_imageset_gids(imageset_rowid_list)
 
     zipped = zip(imageset_text_list, imageset_rowid_list, gids_list)
     for imageset_text, imageset_rowid, gid_list in zipped:
-        imageset_text_subsample = '%s_Subsample' % (imageset_text, )
+        imageset_text_subsample = '%s_Sample' % (imageset_text, )
         aids_list = ibs.get_image_aids(gid_list)
 
         positive_list = []
@@ -114,7 +116,7 @@ def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
     print('\t%d has elephants' % (image_has_elephs, ))
 
 
-def __delete_old_tiles(ibs, ):
+def __delete_old_tiles(ibs, **kwargs):
     tid_all_list = ibs.get_valid_gids(is_tile=True)
 
     imageset_text_list = [
@@ -125,10 +127,8 @@ def __delete_old_tiles(ibs, ):
         '2012-08-16_AM_L_Azohi',
         '2012-08-15_AM_R_Marealle',
         '2012-08-14_PM_R_Chediel',
-        # '20161108_Nikon_Left',
-        # '20161108_Nikon_Right',
-        '20161108_Nikon_Left_Sample',
-        '20161108_Nikon_Right_Sample',
+        '20161108_Nikon_Left',
+        '20161108_Nikon_Right',
     ]
 
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
@@ -155,6 +155,24 @@ def __delete_old_tiles(ibs, ):
     table.delete_rows(remaining, delete_extern=True)
 
 
+def __export_test_images(ibs, **kwargs):
+    all_tid_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_tid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_tid_set = all_tid_set & test_tid_set
+    test_tid_list = list(test_tid_set)
+    test_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tid_list)
+    test_gid_set = list(set(test_gid_list))
+    image_path_list = ibs.get_image_paths(test_gid_set)
+
+    source_path = ibs.imgdir
+    output_path = abspath(expanduser(join('~', 'Downloads', 'export')))
+    ut.ensuredir(output_path)
+    for image_path_src in image_path_list:
+        image_path_dst = image_path_src.replace(source_path, output_path)
+        print(image_path_src, image_path_dst)
+        ut.copy(image_path_src, image_path_dst)
+
+
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
                                  return_configs=False, limit=None, gid_list=None,
@@ -169,6 +187,10 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
                 '2012-08-16_AM_L_Azohi',
                 '2012-08-15_AM_R_Marealle',
                 '2012-08-14_PM_R_Chediel',
+                # '20161106_Nikon_Left',
+                # '20161106_Nikon_Right',
+                '20161106_Nikon_Left_Sample',
+                '20161106_Nikon_Right_Sample',
                 # '20161108_Nikon_Left',
                 # '20161108_Nikon_Right',
                 '20161108_Nikon_Left_Sample',
@@ -463,7 +485,6 @@ def vulcan_tile_positive_cumulative_area(ibs, tile_list, target_species='elephan
 @register_ibs_method
 def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
     tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
-
     values = ibs.vulcan_tile_positive_cumulative_area(tile_list, **kwargs)
     cumulative_area_list, total_area_list, flag_list = values
 
