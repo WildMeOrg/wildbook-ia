@@ -107,7 +107,7 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
         yield (gid, gpath, result_list)
 
 
-def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh):
+def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh, multi=False):
     """Create the lightnet network."""
     device = torch.device('cpu')
     if torch.cuda.is_available():
@@ -123,6 +123,18 @@ def _create_network(config_filepath, weight_filepath, conf_thresh, nms_thresh):
     # Update conf_thresh and nms_thresh in postpsocess
     params.network.postprocess[0].conf_thresh = conf_thresh
     params.network.postprocess[1].nms_thresh = nms_thresh
+
+    if multi:
+        import torch.nn as nn
+        import lightnet.data as lnd
+
+        # Add serialization to Brambox Detections for DataParallel
+        postprocess_list = list(params.network.postprocess)
+        postprocess_list.append(lnd.transform.SerializeBrambox())
+        params.network.postprocess = lnd.transform.Compose(postprocess_list)
+
+        # Make mult-GPU
+        params.network = nn.DataParallel(params.network)
 
     params.network.eval()
     params.network.to(params.device)
@@ -156,6 +168,8 @@ def _detect(params, gpath_list, flip=False):
     if torch.cuda.is_available():
         imgs = imgs.cuda()
 
+    # ut.embed()
+
     # Run detector
     if torch.__version__.startswith('0.3'):
         imgs_tf = torch.autograd.Variable(imgs, volatile=True)
@@ -175,7 +189,7 @@ def _detect(params, gpath_list, flip=False):
 
 def detect(gpath_list, config_filepath=None, weight_filepath=None,
            classes_filepath=None, sensitivity=0.0, verbose=VERBOSE_LN,
-           flip=False, batch_size=8, **kwargs):
+           flip=False, batch_size=192, **kwargs):
     """Detect image filepaths with lightnet.
 
     Args:

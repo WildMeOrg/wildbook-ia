@@ -33,7 +33,6 @@ ARCHIVE_URL_DICT = {
     'seaturtle_v3'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seaturtle.v3.zip',
     'hendrik_dorsal_v2'         : 'https://cthulhu.dyn.wildme.io/public/models/labeler.hendrik_dorsal.v2.zip',
     'spotted_skunk_v0'          : 'https://cthulhu.dyn.wildme.io/public/models/labeler.skunk_spotted.v0.zip',
-
     'flukebook_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/classifier2.flukebook.v1.zip',
 }
 
@@ -234,7 +233,7 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
 
 
 def finetune(model, dataloaders, criterion, optimizer, scheduler, device,
-             num_epochs=256):
+             num_epochs=128):
     phases = ['train', 'val']
 
     start = time.time()
@@ -463,7 +462,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, s
     return weights_path
 
 
-def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwargs):
+def test_single(filepath_list, weights_path, batch_size=1792, multi=True, **kwargs):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -479,7 +478,7 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=batch_size // 8,
+        num_workers=0,
         pin_memory=using_gpu
     )
 
@@ -525,6 +524,7 @@ def test_single(filepath_list, weights_path, batch_size=512, multi=True, **kwarg
             nn.LogSoftmax(),
             nn.Softmax()
         )
+        post_multi = False
 
     if post_multi:
         model = nn.DataParallel(model)
@@ -727,7 +727,7 @@ def features(filepath_list, batch_size=512, multi=True, **kwargs):
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=batch_size // 8,
+        num_workers=0,
         pin_memory=using_gpu
     )
 
