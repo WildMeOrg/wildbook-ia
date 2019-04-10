@@ -31,30 +31,50 @@ SPECIES_MAPPING = {
 def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False,
                              purge_existing_annotations=True, dry_run=False,
                              ignore_directory_list=[], auto_localize=True,
-                             ensure_image=True, **kwargs):
+                             ensure_image=True, recursive=False, layer=1,
+                             vulcan_tag=None, **kwargs):
+
+    def _walk(direct_list):
+        direct_list_ = []
+        for direct_ in direct_list:
+            print('Processing %s' % (direct_, ))
+            found = False
+            for file_ in direct_.file_list:
+                base, ext = splitext(file_)
+                ext = ext.lower().strip('.')
+                if ext in ['json']:
+                    found = True
+                    break
+            if found:
+                direct_list_.append(direct_)
+            direct_list_ += _walk(direct_.directory_list)
+
+        return direct_list_
+
     if purge:
         ut.delete(dbdir)
 
     ibs = ibeis.opendb(dbdir=dbdir)
 
     direct = Directory(vulcan_path, recursive=True)
+    directory_list = direct.directory_list
+    if recursive:
+        directory_list = _walk(directory_list)
 
     global_species_set = set([])
     global_dict = {}
     key_list = ['annotations', 'config', 'ignoreFilenameList', 'metadata']
-    for directory in direct.directory_list:
+    for directory in directory_list:
         print(directory)
 
         if directory.base() in ignore_directory_list:
             print('\tSkipping Directory')
             continue
 
-        assert len(directory.directory_list) == 0
-
         image_list = []
         json_list = []
         other_list = []
-        for file in directory.files():
+        for file in directory.file_list:
             base, ext = splitext(file)
             ext = ext.lower().strip('.')
             if ext in ['json']:
@@ -67,6 +87,7 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False,
             else:
                 other_list.append(file)
 
+        assert len(directory.directory_list) == 0
         assert len(json_list) == 1
         assert len(other_list) == 0
 
@@ -132,12 +153,35 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False,
             filepath = join(directory.absolute_directory_path, filename)
             filepath_list.append(filepath)
 
-        imageset_text = directory.base()
-        assert imageset_text not in global_dict
-        global_dict[imageset_text] = {
-            'metadata_dict': metadata_dict,
-            'image_dict': {},
-        }
+        if layer == 1:
+            imageset_text = directory.base()
+        elif layer == 2:
+            imageset_text = directory.absolute_directory_path
+            # imageset_text, imageset_text_1 = split(imageset_text)
+            # imageset_text, imageset_text_2 = split(imageset_text)
+            # imageset_text = '%s %s' % (vulcan_tag, imageset_text_2, )
+            imageset_text = imageset_text.split('/')
+            imageset_text = imageset_text[8]
+
+        # assert imageset_text not in global_dict
+        if imageset_text in global_dict:
+            assert layer in [2]
+            for key in metadata_dict:
+                value = metadata_dict[key]
+                if isinstance(value, list):
+                    global_dict[imageset_text]['metadata_dict'][key] += value
+                elif isinstance(value, dict):
+                    for key_ in value:
+                        value_ = metadata_dict[key][key_]
+                        global_dict[imageset_text]['metadata_dict'][key][key_] = value_
+                else:
+                    raise ValueError
+        else:
+            assert layer in [1, 2]
+            global_dict[imageset_text] = {
+                'metadata_dict': metadata_dict,
+                'image_dict': {},
+            }
 
         skipped = 0
         for filepath in filepath_list:
@@ -236,7 +280,7 @@ def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False,
     return all_gid_list
 
 
-def _process_vulcan_sequence_metadata(vulcan_path, ibs, gid_list, **kwargs):
+def _process_vulcan_sequence_metadata(vulcan_path, vulcan_tag, ibs, gid_list, version=1, **kwargs):
     import xlrd
 
     direct = Directory(vulcan_path, recursive=True)
@@ -252,7 +296,7 @@ def _process_vulcan_sequence_metadata(vulcan_path, ibs, gid_list, **kwargs):
 
         xlsx_list = []
         other_list = []
-        for file in directory.files():
+        for file in directory.file_list:
             base, ext = splitext(file)
             ext = ext.lower().strip('.')
             if ext in ['xlsx']:
@@ -267,45 +311,100 @@ def _process_vulcan_sequence_metadata(vulcan_path, ibs, gid_list, **kwargs):
             workbook = xlrd.open_workbook(xlsx)
 
             for sheet in workbook.sheets():
+                header_list = None
                 if sheet.nrows > 0:
                     header_list = sheet.row_values(0)
-                    header_list = [header.strip() for header in header_list]
-                    header_str = ''.join(header_list)
-                    row_list = []
-                    if len(header_str) > 0:
-                        for row_index in range(1, sheet.nrows):
-                            row = sheet.row_values(row_index)
-                            row_str = ''.join([str(_).strip() for _ in row])
-                            if len(row_str) > 0:
-                                row_list.append(row)
+                    first_header = header_list[0].lower()
+                    has_photocode = first_header in ['photocode']
+                    if has_photocode:
+                        header_list = [header.strip() for header in header_list]
+                        header_str = ''.join(header_list)
+                        row_list = []
+                        if len(header_str) > 0:
+                            for row_index in range(1, sheet.nrows):
+                                row = sheet.row_values(row_index)
+                                row_str = ''.join([str(_).strip() for _ in row])
+                                if len(row_str) > 0:
+                                    row_list.append(row)
+                        print(sheet, sheet.nrows)
+                        print(header_list)
+                        print(len(row_list))
                     else:
                         header_list = None
-                    print(sheet, sheet.nrows)
-                    print(header_list)
-                    print(len(row_list))
 
-            if header_list is not None:
-                for row in row_list:
-                    metadata = dict(zip(header_list, row))
-                    for key in metadata:
-                        value = str(metadata[key])
-                        if len(value) == 0:
-                            metadata[key] = None
-                    photocode = metadata.get('Photocode', None)
-                    assert photocode is not None
-                    photocode = photocode.strip()
-                    if photocode not in metadata_dict:
-                        metadata_dict[photocode] = metadata
-                    else:
-                        existing_metadata = metadata_dict[photocode]
-                        duplicate_filename_list.append(photocode)
-                        duplicate_metadata_list.append((metadata, existing_metadata))
+                if header_list is not None:
+                    for row in row_list:
+                        metadata = dict(zip(header_list, row))
+                        for key in metadata:
+                            value = str(metadata[key])
+                            if len(value) == 0:
+                                metadata[key] = None
+                        photocode = metadata.get('Photocode', None)
+                        assert photocode is not None
+                        photocode = photocode.strip()
+                        if photocode not in metadata_dict:
+                            metadata_dict[photocode] = metadata
+                        else:
+                            existing_metadata = metadata_dict[photocode]
+                            duplicate_filename_list.append(photocode)
+                            duplicate_metadata_list.append((metadata, existing_metadata))
 
     filepath_original_list = ibs.get_image_uris_original(gid_list)
-    filename_list = [
-        splitext(split(filepath_original)[1])[0]
-        for filepath_original in filepath_original_list
-    ]
+    if version == 1:
+        filename_list = [
+            splitext(split(filepath_original)[1])[0]
+            for filepath_original in filepath_original_list
+        ]
+    else:
+        missing = 0
+        filename_list = []
+        seen_set = set([])
+        for filepath_original in filepath_original_list:
+            filepath_original = filepath_original.replace(vulcan_path, '')
+            filepath_original = filepath_original.replace('Photos/', '')
+            start = filepath_original.split('/')[0]
+            start = start.split('-')
+            assert len(start) == 4
+            _, day, month, year = start
+            assert month == 'March'
+
+            if 'ATS' in filepath_original:
+                loc = 'ATS'
+            elif 'AKP' in filepath_original:
+                loc = 'AKP'
+            else:
+                raise ValueError
+
+            if 'left' in filepath_original.lower():
+                side = '1'
+            elif 'right' in filepath_original.lower() or '_r_' in filepath_original.lower():
+                side = '2'
+            else:
+                side = '2'
+                continue
+
+            filepath_original = filepath_original.split('/')[-2:]
+            folder, tag = filepath_original
+            folder = folder[:3]
+            tag = tag.replace('.JPG', '').replace('DSC_', '')
+            if len(tag) != 4:
+                # tag_ = tag[-4:]
+                # folder = 100
+                # filename = '2017-03-%s-%s-%s-%s-%s' % (day, loc, side, folder, tag_, )
+                assert tag.count('-') == 6 and ('ATS' in tag or 'AKP' in tag)
+                filename = tag
+            else:
+                assert len(tag) == 4
+                filename = '2017-03-%s-%s-%s-%s-%s' % (day, loc, side, folder, tag, )
+
+            if filename not in metadata_dict:
+                missing += 1
+            # assert filename in metadata_dict
+            if filename in seen_set:
+                filename = filename + '-alt'
+            seen_set.add(filename)
+            filename_list.append(filename)
+
     assert len(filename_list) == len(set(filename_list))
     gid_dict = dict(zip(filename_list, gid_list))
 
@@ -313,8 +412,8 @@ def _process_vulcan_sequence_metadata(vulcan_path, ibs, gid_list, **kwargs):
     num_missing_metadata = 0
     num_missing_images = 0
 
-    gid_list = []
-    metadata_list = []
+    gid_list_ = []
+    metadata_list_ = []
     key_list = list(set(gid_dict.keys()) | set(metadata_dict.keys()))
     for key in key_list:
         gid = gid_dict.get(key, None)
@@ -324,12 +423,73 @@ def _process_vulcan_sequence_metadata(vulcan_path, ibs, gid_list, **kwargs):
         if metadata is None:
             num_missing_metadata += 1
         if None not in [gid, metadata]:
-            gid_list.append(gid)
-            metadata_list.append(metadata)
-    assert len(gid_list) == len(metadata_list)
-
-    ibs.set_image_metadata(gid_list, metadata_list)
+            gid_list_.append(gid)
+            metadata_list_.append(metadata)
+    assert len(gid_list_) == len(metadata_list_)
     print(num_duplcates, num_missing_metadata, num_missing_images)
+
+    # Set image metadata
+    ibs.set_image_metadata(gid_list_, metadata_list_)
+
+    # Add imagesets
+    skipped = 0
+    skipped_list = []
+    metadata_dict_ = {}
+    for gid, metadata in zip(gid_list_, metadata_list_):
+        for key in ['Transect', 'Transect (Amal23)']:
+            transect = metadata.get(key, None)
+            if transect is not None:
+                break
+
+        for key in ['Camleft/right', 'Camleft/right', 'Camera left/ right', 'Camera Side', 'Camera']:
+            photoside = metadata.get(key, None)
+            if photoside is not None:
+                break
+
+        for key in ['Photo  No.']:
+            photonum = metadata.get(key, None)
+            if photonum is not None:
+                break
+
+        if None not in [transect, photonum, photoside]:
+            transect = int(transect)
+            photonum = int(photonum)
+            photoside = photoside.strip().capitalize()
+            assert photoside in ['Left', 'Right']
+            if transect not in metadata_dict_:
+                metadata_dict_[transect] = {}
+            if photoside not in metadata_dict_[transect]:
+                metadata_dict_[transect][photoside] = []
+            metadata_dict_[transect][photoside].append((photonum, gid))
+        else:
+            skipped += 1
+            skipped_list.append((transect, photoside, photonum, metadata.keys()))
+
+    imageset_image_gid_list = []
+    imageset_image_text_list = []
+    imageset_imageset_text_list = []
+    imageset_imageset_metadata_list = []
+    for transect in sorted(metadata_dict_.keys()):
+        for photoside in sorted(metadata_dict_[transect].keys()):
+            imageset_text = '%s Transect %s (%s)' % (vulcan_tag, transect, photoside)
+            values_list = metadata_dict_[transect][photoside]
+            values_list = sorted(values_list)
+            temp_list = ut.take_column(values_list, 1)
+            imageset_image_gid_list += temp_list
+            imageset_image_text_list += [imageset_text] * len(temp_list)
+            key_list_ = ['index', 'gid']
+            metadata_ = {
+                'sequence': [
+                    dict(zip(key_list_, value_list))
+                    for value_list in values_list
+                ]
+            }
+            imageset_imageset_text_list.append(imageset_text)
+            imageset_imageset_metadata_list.append(metadata_)
+
+    ibs.set_image_imagesettext(imageset_image_gid_list, imageset_image_text_list)
+    imageset_imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_imageset_text_list)
+    ibs.set_imageset_metadata(imageset_imageset_rowid_list, imageset_imageset_metadata_list)
 
 
 def convert_vulcan2018_to_ibeis(vulcan_path, dbdir=None, **kwargs):
@@ -380,7 +540,7 @@ def convert_vulcan2019_to_ibeis(vulcan_path, dbdir=None, **kwargs):
     ibs, gid_list = _convert_vulcan_to_ibeis(vulcan_path, dbdir,
                                              ignore_directory_list=ignore_directory_list,
                                              **kwargs)
-    _process_vulcan_sequence_metadata(vulcan_path, ibs, gid_list, **kwargs)
+    _process_vulcan_sequence_metadata(vulcan_path, 'OlPejeta-2016', ibs, gid_list, **kwargs)
     return ibs, gid_list
 
 
@@ -403,11 +563,30 @@ def convert_vulcan2019_sequences_to_ibeis(dbdir=None, **kwargs):
         >>> print(result)
     """
     vulcan_path_list = [
-        '/data/raw/processed/Vulcan_Elephants_2019_Sequence/QENP_201809_29-30/Photos/',
+        (
+            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/QENP_201809_29-30/Photos/',
+            False,
+            'QENP-2018',
+            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/QENP_201809_29-30/',
+        ),
+        (
+            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/Tsavo_201703_12/Photos/',
+            True,
+            'Tsavo-2017',
+            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/Tsavo_201703_12/',
+        ),
     ]
-    for vulcan_path in vulcan_path_list:
-        assert exists(vulcan_path)
-        ibs, gid_list = _convert_vulcan_to_ibeis(vulcan_path, dbdir,
+    for vulcan_image_path, vulcan_recusrive, vulcan_tag, vulcan_metadata_path in vulcan_path_list:
+        assert exists(vulcan_image_path)
+        assert exists(vulcan_metadata_path)
+        layer = 2 if vulcan_recusrive else 1
+        version = 2 if vulcan_recusrive else 1
+        ibs, gid_list = _convert_vulcan_to_ibeis(vulcan_image_path, dbdir,
                                                  dry_run=True, auto_localize=False,
+                                                 recursive=vulcan_recusrive,
+                                                 layer=layer, vulcan_tag=vulcan_tag,
                                                  **kwargs)
+        _process_vulcan_sequence_metadata(vulcan_metadata_path, vulcan_tag, ibs,
+                                          gid_list, version=version, **kwargs)
+
     return ibs, gid_list
