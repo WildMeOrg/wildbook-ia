@@ -42,6 +42,7 @@ import cv2
 from ibeis.control.controller_inject import register_preprocs
 import sys
 import tqdm
+from os.path import join, exists, split
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
 
@@ -381,7 +382,29 @@ def compute_classifications(depc, gid_list, config=None):
         #     result = (best_score, best_key, )
         #     result_list.append(result)
     elif config['classifier_algo'] in ['vulcan_detectnet']:
-        ut.embed()
+        import json
+
+        json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
+        assert exists(json_filepath)
+        with open(json_filepath, 'r') as json_file:
+            values = json.load(json_file)
+        annotations = values.get('annotations', {})
+
+        gpath_list = ibs.get_image_paths(gid_list)
+        gname_list = [split(gpath)[1] for gpath in gpath_list]
+
+        result_list = []
+        for gname in gname_list:
+            annotation = annotations.get(gname, None)
+            assert annotation is not None
+
+            best_score = 1.0
+            if len(annotation) == 0:
+                best_key = 'negative'
+            else:
+                best_key = 'positive'
+            result = (best_score, best_key, )
+            result_list.append(result)
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+lightnet!']:
         min_area = 10
 
