@@ -600,7 +600,7 @@ def detector_train(ibs):
 
 
 @register_ibs_method
-def background_train(ibs, species, train_gid_set=None):
+def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.background import train_background
@@ -609,7 +609,8 @@ def background_train(ibs, species, train_gid_set=None):
     extracted_path = get_background_training_patches2(ibs, species, data_path,
                                                       patch_size=50,
                                                       train_gid_set=train_gid_set,
-                                                      global_limit=500000)
+                                                      global_limit=global_limit,
+                                                      **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')
     model_path = train_background(output_path, X_file, y_file)
