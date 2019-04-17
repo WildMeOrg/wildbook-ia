@@ -1311,6 +1311,13 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1)
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1, quick=True)
         >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC+LOC 85% R2+V0',   'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:3,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'Vulcan DetectNet',    'classifier_algo': 'vulcan_detectnet',  'classifier_weight_filepath': 'annotations_vulcan_model.json'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>>
         >>> # config_list = [
         >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> # ]

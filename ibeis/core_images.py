@@ -235,7 +235,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+lightnet!', 'tile_aggregation', 'tile_aggregation_quick']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+lightnet!', 'tile_aggregation', 'tile_aggregation_quick', 'vulcan_detectnet']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -380,6 +380,8 @@ def compute_classifications(depc, gid_list, config=None):
         #         recovered += 1
         #     result = (best_score, best_key, )
         #     result_list.append(result)
+    elif config['classifier_algo'] in ['vulcan_detectnet']:
+        ut.embed()
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+lightnet!']:
         min_area = 10
 
