@@ -645,7 +645,7 @@ def review_query_chips_best(ibs, aid, **kwargs):
 
 @register_ibs_method
 @register_api('/test/query/chip/', methods=['GET'])
-def query_chips_test(ibs, aid=None, limited=False, **kwargs):
+def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kwargs):
     """
     CommandLine:
         python -m ibeis.web.apis_query query_chips_test
@@ -672,6 +672,10 @@ def query_chips_test(ibs, aid=None, limited=False, **kwargs):
 
     if limited:
         daid_list = daid_list[-4:]
+
+    if census_annotations:
+        flag_list = ibs.get_annot_canonical(daid_list)
+        daid_list = ut.compress(daid_list, flag_list)
 
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
     return result_dict
