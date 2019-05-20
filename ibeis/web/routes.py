@@ -14,6 +14,7 @@ from ibeis.web import appfuncs as appf
 from ibeis.web import routes_ajax
 import utool as ut
 import numpy as np
+import os
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -2270,6 +2271,11 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
             staged_aid_list = ibs.get_image_aids(gid, is_staged=True)
             staged_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(staged_aid_list, is_staged=True))
 
+            imgesetid_list = list(set(ibs.get_image_imgsetids(gid)) - set([imgsetid]))
+            imagesettext_list = ibs.get_imageset_text(imgesetid_list)
+            imagesettext_list = [_ for _ in imagesettext_list if not _.startswith('*')]
+            imagesettext_list_str = ', '.join(imagesettext_list)
+            original_filename = os.path.split(ibs.get_image_uris_original(gid))[1]
         else:
             species = None
             image_src = None
@@ -2277,6 +2283,8 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
             part_list = []
             staged_aid_list = []
             staged_part_rowid_list = []
+            imagesettext_list_str = None
+            original_filename = None
 
         staged_uuid_list = ibs.get_annot_staged_uuids(staged_aid_list)
         staged_user_id_list = ibs.get_annot_staged_user_ids(staged_aid_list)
@@ -2491,6 +2499,8 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                          previous=previous,
                          previous_only_aid=previous_only_aid,
                          imagesettext=imagesettext,
+                         imagesettext_list_str=imagesettext_list_str,
+                         original_filename=original_filename,
                          progress=progress,
                          staged_progress=staged_progress,
                          finished=finished,

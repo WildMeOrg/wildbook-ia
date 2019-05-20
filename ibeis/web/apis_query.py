@@ -645,7 +645,7 @@ def review_query_chips_best(ibs, aid, **kwargs):
 
 @register_ibs_method
 @register_api('/test/query/chip/', methods=['GET'])
-def query_chips_test(ibs, aid=None, limited=False, **kwargs):
+def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kwargs):
     """
     CommandLine:
         python -m ibeis.web.apis_query query_chips_test
@@ -672,6 +672,10 @@ def query_chips_test(ibs, aid=None, limited=False, **kwargs):
 
     if limited:
         daid_list = daid_list[-4:]
+
+    if census_annotations:
+        flag_list = ibs.get_annot_canonical(daid_list)
+        daid_list = ut.compress(daid_list, flag_list)
 
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
     return result_dict
@@ -749,15 +753,15 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             assert cache_path is not None
 
             score_list = cm.score_list
-            daid_list = cm.daid_list
+            daid_list_ = cm.daid_list
 
-            zipped = sorted(zip(score_list, daid_list), reverse=True)
+            zipped = sorted(zip(score_list, daid_list_), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
             daid_set = set(ut.take_column(zipped, 1))
 
             extern_flag_list = []
-            for daid in daid_list:
+            for daid in daid_list_:
                 extern_flag = daid in daid_set
 
                 if extern_flag:
@@ -873,15 +877,15 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             value_list = value_list[:n_]
 
             dscore_list = ut.take_column(value_list, 0)
-            daid_list = ut.take_column(value_list, 1)
-            duuid_list = ibs.get_annot_uuids(daid_list)
-            dnid_list = ibs.get_annot_nids(daid_list)
-            species_list = ibs.get_annot_species(daid_list)
-            viewpoint_list = ibs.get_annot_viewpoints(daid_list)
+            daid_list_ = ut.take_column(value_list, 1)
+            duuid_list = ibs.get_annot_uuids(daid_list_)
+            dnid_list = ibs.get_annot_nids(daid_list_)
+            species_list = ibs.get_annot_species(daid_list_)
+            viewpoint_list = ibs.get_annot_viewpoints(daid_list_)
             values_list = list(zip(
                 dscore_list,
                 duuid_list,
-                daid_list,
+                daid_list_,
                 dnid_list,
                 species_list,
                 viewpoint_list,
