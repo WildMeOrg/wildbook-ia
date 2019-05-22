@@ -181,7 +181,7 @@ class DBInputs(object):
                     # self._setup()
                     getattr(self, 'measure_' + expt_name)()
                 else:
-                    ut.cprint('Re-setup fixed it', 'gren')
+                    ut.cprint('Re-setup fixed it', 'green')
             else:
                 print('Experiment results {} exist'.format(expt_name))
             self.expt_results[expt_name] = ut.load_data(fpath)
