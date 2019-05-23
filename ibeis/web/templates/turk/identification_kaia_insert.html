@@ -7,7 +7,6 @@
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-identification-form">
     <div id="ia-bbox-annotator"></div>
     <div style="text-align: center; color: #aaa;">
-        KAIA!<br/>
       <!-- <span><i>Note: A match should be marked as "Cannot Tell" if it is impossible to verify the match (e.g. differing viewpoints, unrecoverable quality, can not determine which is the main animal in the annotation).</i></span> -->
     </div>
     <br/>
@@ -41,45 +40,43 @@
       <div class="col-lg-4"></div>
       <div class="col-lg-4" id="identification-image-container">
         <div class="row" id="identification-buttons">
-          <div class="col-lg-4">
+          <div class="col-lg-3">
             <input type="submit" name="identification-submit" id="ia-turk-submit-match" class="btn btn-info" value="Same Animal">
           </div>
-          <div class="col-lg-4">
+          <div class="col-lg-6">
             <input type="submit" name="identification-submit" id="ia-turk-submit-notmatch" class="btn btn-danger" value="Different Animals">
           </div>
-          <div class="col-lg-4">
+          <div class="col-lg-3">
             <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
             <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
           </div>
-          <div class="col-lg-3"></div>
-          <div class="col-lg-3">
+          <div class="col-lg-6">
             <div class="checkbox">
               <label>
                 <input id="ia-turk-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
               </label>
             </div>
           </div>
-          <div class="col-lg-3">
+          <div class="col-lg-6">
             <div class="checkbox">
               <label>
                 <input id="ia-turk-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
               </label>
             </div>
           </div>
-          <div class="col-lg-3"></div>
         </div>
 
         <br/>
 
         <img class="identification-image" id="identification-image-matches" src="{{ image_matches_src }}" />
-        <br/>
+        <!-- <br/> -->
         <img class="identification-image" id="identification-image-clean" src="{{ image_clean_src }}"/>
         {% if REFER_DST_STR %}
           <a href="/{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
         {% endif %}
           <div class="row" style="margin-top: 10px;">
             <div class="col-lg-4">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-info" value="Exclude Top">
+              <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-default" value="Exclude Top">
             </div>
             <div class="col-lg-4">
               {% if previous %}
@@ -95,7 +92,7 @@
               {% endif %}
             </div>
             <div class="col-lg-4">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-info" value="Exclude Bottom">
+              <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-default" value="Exclude Bottom">
             </div>
           </div>
       </div>
