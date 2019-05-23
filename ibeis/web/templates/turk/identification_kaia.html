@@ -1,11 +1,4 @@
 {% extends "layout.html" %}
-{% block content_custom_css %}
-<style>
-  .container {
-    width: 90% !important;
-  }
-</style>
-{% endblock %}
 {% block content %}
   {% if finished == 'engine' %}
   <div class="alert alert-info text-center" role="alert">
@@ -112,9 +105,8 @@
   {% endif %}
 
   <style>
-    .container
-    {
-      /*width: 1500px !important;*/
+    .container {
+      width: 90% !important;
     }
 
     .label-text-box

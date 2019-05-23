@@ -3820,6 +3820,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     """
     ibs = current_app.ibs
 
+    if ibs.dbdir == 'ZEBRA_Kaia':
+        kaia = True
+
     if hogwild_species == 'None':
         hogwild_species = None
 
