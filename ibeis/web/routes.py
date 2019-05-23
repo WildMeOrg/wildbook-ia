@@ -3793,7 +3793,7 @@ def turk_identification_hardcase(*args, **kwargs):
 @register_route('/turk/identification/graph/', methods=['GET'])
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
-                              view_orientation='vertical', view_version=1,
+                              view_orientation='horizontal', view_version=1,
                               hogwild=False, hogwild_species=None,
                               creation_imageset_rowid_list=None,
                               kaia=False,

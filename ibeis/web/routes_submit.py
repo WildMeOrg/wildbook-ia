@@ -1279,7 +1279,7 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
         base = url_for('turk_identification_graph')
         sep = '&' if '?' in base else '?'
         args = (base, sep, ut.to_json(graph_uuid), previous, hogwild, hogwild_species, )
-        url = '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s' % args
+        url = '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s&kaia=true' % args
         url = url.replace(': ', ':')
         return redirect(url)
 
