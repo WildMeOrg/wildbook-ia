@@ -37,16 +37,18 @@
       <div class="col-lg-2"></div>
     </div> -->
     <div class="row">
-      <div class="col-lg-4"></div>
-      <div class="col-lg-4" id="identification-image-container">
+      <div class="col-lg-3">
+        <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-default" value="Exclude Top">
+      </div>
+      <div class="col-lg-6" id="identification-image-container">
         <div class="row" id="identification-buttons">
-          <div class="col-lg-3">
+          <div class="col-lg-4">
             <input type="submit" name="identification-submit" id="ia-turk-submit-match" class="btn btn-info" value="Same Animal">
           </div>
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <input type="submit" name="identification-submit" id="ia-turk-submit-notmatch" class="btn btn-danger" value="Different Animals">
           </div>
-          <div class="col-lg-3">
+          <div class="col-lg-4">
             <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
             <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
           </div>
@@ -76,7 +78,6 @@
         {% endif %}
           <div class="row" style="margin-top: 10px;">
             <div class="col-lg-4">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-default" value="Exclude Top">
             </div>
             <div class="col-lg-4">
               {% if previous %}
@@ -92,11 +93,12 @@
               {% endif %}
             </div>
             <div class="col-lg-4">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-default" value="Exclude Bottom">
             </div>
           </div>
       </div>
-      <div class="col-lg-4"></div>
+      <div class="col-lg-3">
+        <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-default" value="Exclude Bottom">
+      </div>
     </div>
   </form>
 
@@ -118,9 +120,9 @@
         max_height = Math.max(max_height, current_height);
       });
 
-      $("#identification-buttons").css("margin-top", max_height + "px");
-      second_height = $("#identification-buttons").height();
-      $(".ia-form").css("height", (max_height + second_height + 100) + "px");
+      // $("#identification-buttons").css("margin-top", max_height + "px");
+      // second_height = $("#identification-buttons").height();
+      // $(".ia-form").css("height", (max_height + second_height + 100) + "px");
 
       $("#identification-image-container").css("height", max_height + "px");
       $(".ia-container").css("height", $(".ia-form").height() + "px");
