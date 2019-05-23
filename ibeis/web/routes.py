@@ -4022,12 +4022,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         if 'n_ccs' in data_dict:
             match_data['Connected Components'] = data_dict['n_ccs']
 
-        interest_config = {
-            'aoi_two_weight_filepath': 'candidacy',
-        }
-        interest_prediction_list = ibs.depc_annot.get_property('aoi_two', [aid1, aid2], None, config=interest_config)
-        match_data['AoI Top'] = interest_prediction_list[0]
-        match_data['AoI Bottom'] = interest_prediction_list[1]
+        # interest_config = {
+        #     'aoi_two_weight_filepath': 'candidacy',
+        # }
+        # interest_prediction_list = ibs.depc_annot.get_property('aoi_two', [aid1, aid2], None, config=interest_config)
+        # match_data['AoI Top'] = interest_prediction_list[0]
+        # match_data['AoI Bottom'] = interest_prediction_list[1]
 
         match_data['Queue Size'] = queue_len
 
