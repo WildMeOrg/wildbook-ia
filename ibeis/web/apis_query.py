@@ -1209,7 +1209,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
     # FILTER FOR GGR2
-    if True:
+    if False:
         aid_list = ibs.check_ggr_valid_aids(aid_list, **kwargs)
 
     graph_uuid = ut.hashable_to_uuid(sorted(aid_list))

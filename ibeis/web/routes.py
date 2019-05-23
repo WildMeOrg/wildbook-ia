@@ -3676,19 +3676,68 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
 def turk_identification_graph_refer(imgsetid, **kwargs):
     ibs = current_app.ibs
-    aid_list = ibs.get_imageset_aids(imgsetid)
-    annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
-    imageset_text = ibs.get_imageset_text(imgsetid).lower()
-    species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+    if ibs.dbname == 'ZEBRA_Kaia':
+        assert imgsetid == 3925
 
-    config = {
-        'species':     species,
-        'threshold':   0.75,
-        'enable_canonical': True,
-    }
-    return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                     creation_imageset_rowid_list=[imgsetid], **config)
+        desired_species = 'zebra_grevys'
+
+        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
+        current_gids = ibs.get_imageset_gids(current_imageset_rowid)
+        current_aids = ut.flatten(ibs.get_image_aids(current_gids))
+        current_aoi_list = ibs.get_annot_interest(current_aids)
+        current_aids = ut.compress(current_aids, current_aoi_list)
+        # current_nids = ibs.get_annot_nids(current_aids)
+
+        # x = [current_nid for current_nid in current_nids if current_nid <= 0]
+        # print(len(x))
+
+        total = 0
+        species_dict = {}
+        species_list = ibs.get_annot_species_texts(current_aids)
+        viewpoint_list = ibs.get_annot_viewpoints(current_aids)
+        for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
+            if viewpoint is None:
+                print(aid)
+                continue
+            if species not in species_dict:
+                species_dict[species] = []
+            if species == 'zebra_plains':
+                if 'left' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+            if species == 'zebra_grevys':
+                if 'right' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+            if species == 'zebra_hybrid':
+                if 'right' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+
+        aid_list = species_dict[desired_species]
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        species = desired_species
+
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid], kaia=True)
+
+    else:
+        aid_list = ibs.get_imageset_aids(imgsetid)
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+
+        config = {
+            'species':     species,
+            'threshold':   0.75,
+            'enable_canonical': True,
+        }
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid], **config)
 
 
 @register_route('/turk/query/graph/v2/refer/', methods=['GET'])
@@ -3747,6 +3796,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               view_orientation='vertical', view_version=1,
                               hogwild=False, hogwild_species=None,
                               creation_imageset_rowid_list=None,
+                              kaia=False,
                               **kwargs):
     """
     CommandLine:
@@ -3864,7 +3914,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     'algo.hardcase' : True,
                 }
             else:
-                print('[routes] Graph is in hardcase-mode')
+                print('[routes] Graph is not in hardcase-mode')
                 query_config_dict = {}
 
             query_config_dict.update(kwargs.get('query_config_dict', {}))
@@ -4020,7 +4070,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
     graph_uuid_str = graph_uuid_str.replace(': ', ':')
-    base = url_for('submit_identification_v2')
+    if kaia:
+        base = url_for('submit_identification_v2')
+    else:
+        base = url_for('submit_identification_v2_kaia')
     callback_url = '%s?%s' % (base, graph_uuid_str, )
 
     hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid), )
@@ -4036,7 +4089,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
-    return appf.template('turk', 'identification',
+    template_name = 'identification_kaia' if kaia else 'identification'
+    return appf.template('turk', template_name,
                          match_data=match_data,
                          image_clean_src=image_clean_src,
                          image_matches_src=image_matches_src,

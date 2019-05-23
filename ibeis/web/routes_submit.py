@@ -1251,6 +1251,39 @@ def submit_identification_v2(graph_uuid, **kwargs):
         return redirect(url)
 
 
+@register_route('/submit/identification/v2/kaia/', methods=['POST'])
+def submit_identification_v2_kaia(graph_uuid, **kwargs):
+    ibs = current_app.ibs
+    ut.embed()
+
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    # Process form data
+    annot_uuid_1, annot_uuid_2 = ibs.process_graph_match_html_v2(graph_uuid, **kwargs)
+    aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
+    aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+
+    hogwild = kwargs.get('identification-hogwild', False)
+    hogwild_species = kwargs.get('identification-hogwild-species', None)
+    hogwild_species = None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
+    print('Using hogwild: %r' % (hogwild, ))
+
+    previous = '%s;%s;-1' % (aid1, aid2, )
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        base = url_for('turk_identification_graph')
+        sep = '&' if '?' in base else '?'
+        args = (base, sep, ut.to_json(graph_uuid), previous, hogwild, hogwild_species, )
+        url = '%s%sgraph_uuid=%s&previous=%s&hogwild=%s&hogwild_species=%s' % args
+        url = url.replace(': ', ':')
+        return redirect(url)
+
+
 @register_route('/submit/group_review/', methods=['POST'])
 def group_review_submit(**kwargs):
     """
