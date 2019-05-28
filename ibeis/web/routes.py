@@ -4096,12 +4096,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     imgesetid_1_list = list(set(ibs.get_image_imgsetids(gid1)) - set(creation_imageset_rowid_list))
     imagesettext_1_list = ibs.get_imageset_text(imgesetid_1_list)
-    imagesettext_1_list = [imagesettext_1 for imagesettext_1 in imagesettext_1_list if not _.startswith('*')]
+    imagesettext_1_list = [imagesettext_1 for imagesettext_1 in imagesettext_1_list if not imagesettext_1.startswith('*')]
     imagesettext_1_list_str = ', '.join(imagesettext_1_list)
 
     imgesetid_2_list = list(set(ibs.get_image_imgsetids(gid2)) - set(creation_imageset_rowid_list))
     imagesettext_2_list = ibs.get_imageset_text(imgesetid_2_list)
-    imagesettext_2_list = [imagesettext_2 for imagesettext_2 in imagesettext_2_list if not _.startswith('*')]
+    imagesettext_2_list = [imagesettext_2 for imagesettext_2 in imagesettext_2_list if not imagesettext_2.startswith('*')]
     imagesettext_2_list_str = ', '.join(imagesettext_2_list)
 
     try:
