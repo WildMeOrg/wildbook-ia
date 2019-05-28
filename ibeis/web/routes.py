@@ -4104,8 +4104,15 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     imagesettext_2_list = [_ for _ in imagesettext_2_list if not _.startswith('*')]
     imagesettext_2_list_str = ', '.join(imagesettext_2_list)
 
-    original_filename_1_str = os.path.split(ibs.get_image_uris_original(gid1))[1]
-    original_filename_2_str = os.path.split(ibs.get_image_uris_original(gid2))[1]
+    try:
+        original_filename_1_str = os.path.split(ibs.get_image_uris_original(gid1))[1]
+    except:
+        original_filename_1_str = 'UNKNOWN'
+
+    try:
+        original_filename_2_str = os.path.split(ibs.get_image_uris_original(gid2))[1]
+    except:
+        original_filename_2_str = 'UNKNOWN'
 
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
