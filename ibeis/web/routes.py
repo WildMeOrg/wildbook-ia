@@ -3678,50 +3678,53 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
-        assert imgsetid == 3925
+        # assert imgsetid == 3925
 
         desired_species = 'zebra_grevys'
 
-        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
-        current_gids = ibs.get_imageset_gids(current_imageset_rowid)
-        current_aids = ut.flatten(ibs.get_image_aids(current_gids))
-        current_aoi_list = ibs.get_annot_interest(current_aids)
-        current_aids = ut.compress(current_aids, current_aoi_list)
-        # current_nids = ibs.get_annot_nids(current_aids)
+        # current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
+        # current_gids = ibs.get_imageset_gids(current_imageset_rowid)
+        # current_aids = ut.flatten(ibs.get_image_aids(current_gids))
+        # current_aoi_list = ibs.get_annot_interest(current_aids)
+        # current_aids = ut.compress(current_aids, current_aoi_list)
+        # # current_nids = ibs.get_annot_nids(current_aids)
 
-        # x = [current_nid for current_nid in current_nids if current_nid <= 0]
-        # print(len(x))
+        # # x = [current_nid for current_nid in current_nids if current_nid <= 0]
+        # # print(len(x))
 
-        total = 0
-        species_dict = {}
-        species_list = ibs.get_annot_species_texts(current_aids)
-        viewpoint_list = ibs.get_annot_viewpoints(current_aids)
-        for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
-            if viewpoint is None:
-                print(aid)
-                continue
-            if species not in species_dict:
-                species_dict[species] = []
-            if species == 'zebra_plains':
-                if 'left' in viewpoint:
-                    species_dict[species].append(aid)
-                    total += 1
-            if species == 'zebra_grevys':
-                if 'right' in viewpoint:
-                    species_dict[species].append(aid)
-                    total += 1
-            if species == 'zebra_hybrid':
-                if 'right' in viewpoint:
-                    species_dict[species].append(aid)
-                    total += 1
+        # total = 0
+        # species_dict = {}
+        # species_list = ibs.get_annot_species_texts(current_aids)
+        # viewpoint_list = ibs.get_annot_viewpoints(current_aids)
+        # for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
+        #     if viewpoint is None:
+        #         print(aid)
+        #         continue
+        #     if species not in species_dict:
+        #         species_dict[species] = []
+        #     if species == 'zebra_plains':
+        #         if 'left' in viewpoint:
+        #             species_dict[species].append(aid)
+        #             total += 1
+        #     if species == 'zebra_grevys':
+        #         if 'right' in viewpoint:
+        #             species_dict[species].append(aid)
+        #             total += 1
+        #     if species == 'zebra_hybrid':
+        #         if 'right' in viewpoint:
+        #             species_dict[species].append(aid)
+        #             total += 1
 
-        aid_list = species_dict[desired_species]
-        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+        # aid_list = species_dict[desired_species]
+
+        aid_list = ibs.get_valid_aids()
+        gid_list = list(set(ibs.get_annot_gids(aid_list)))
+        ibs.set_image_imgsetids(gid_list, [imgsetid] * len(gid_list))
+        ibs.set_annot_species(aid_list, [desired_species] * len(aid_list))
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
-        species = desired_species
-
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=desired_species,
                                          creation_imageset_rowid_list=[imgsetid], kaia=True)
 
     else:
@@ -4091,6 +4094,22 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     ]
     confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
+    if creation_imageset_rowid_list is None:
+        creation_imageset_rowid_list = []
+
+    gid1 = ibs.get_annot_gids(aid1)
+    gid2 = ibs.get_annot_gids(aid2)
+
+    imgesetid_1_list = list(set(ibs.get_image_imgsetids(gid1)) - set(creation_imageset_rowid_list))
+    imagesettext_1_list = ibs.get_imageset_text(imgesetid_1_list)
+    imagesettext_1_list = [_ for _ in imagesettext_1_list if not _.startswith('*')]
+    imagesettext_1_list_str = ', '.join(imagesettext_1_list)
+
+    imgesetid_2_list = list(set(ibs.get_image_imgsetids(gid2)) - set(creation_imageset_rowid_list))
+    imagesettext_2_list = ibs.get_imageset_text(imgesetid_2_list)
+    imagesettext_2_list = [_ for _ in imagesettext_2_list if not _.startswith('*')]
+    imagesettext_2_list_str = ', '.join(imagesettext_2_list)
+
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
     return appf.template('turk', template_name,
@@ -4108,6 +4127,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          finished=finished,
                          graph_uuid=graph_uuid_,
                          hogwild=hogwild,
+                         imagesettext_1_list_str=imagesettext_1_list_str,
+                         imagesettext_2_list_str=imagesettext_2_list_str,
                          hogwild_species=hogwild_species,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),

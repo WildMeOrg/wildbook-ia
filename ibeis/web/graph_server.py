@@ -299,6 +299,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return infr_status
 
     def get_feat_extractor(actor):
+        if actor.infr.verifiers is None:
+            actor.infr.verifiers = {}
         match_state_verifier = actor.infr.verifiers.get('match_state', None)
         if match_state_verifier is not None:
             return match_state_verifier.extr
