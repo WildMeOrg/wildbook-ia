@@ -1264,6 +1264,97 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
 
+    age1 = kwargs.get('age-annot-1', None)
+    age2 = kwargs.get('age-annot-2', None)
+    sex1 = kwargs.get('sex-annot-1', None)
+    sex2 = kwargs.get('sex-annot-2', None)
+    condition1 = kwargs.get('condition-annot-1', None)
+    condition2 = kwargs.get('condition-annot-2', None)
+    comment1 = kwargs.get('comment-annot-1', None)
+    comment2 = kwargs.get('comment-annot-2', None)
+    comment_match = kwargs.get('comment-match', None)
+
+    assert age1 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+    assert age2 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+    assert sex1 in ['male', 'female', 'unknown']
+    assert sex2 in ['male', 'female', 'unknown']
+    assert 0 <= condition1 and condition1 <= 5
+    assert 0 <= condition2 and condition2 <= 5
+
+    age1_min = None
+    age1_max = None
+    if age1 == 'age1':
+        age1_min = None
+        age1_max = 2
+    elif age1 == 'age2':
+        age1_min = 3
+        age1_max = 5
+    elif age1 == 'age3':
+        age1_min = 6
+        age1_max = 11
+    elif age1 == 'age4':
+        age1_min = 12
+        age1_max = 23
+    elif age1 == 'age5':
+        age1_min = 24
+        age1_max = 35
+    elif age1 == 'age6':
+        age1_min = 36
+        age1_max = None
+    elif age1 == 'unknown':
+        age1_min = None
+        age1_max = None
+    else:
+        raise ValueError()
+
+    age2_min = None
+    age2_max = None
+    if age2 == 'age1':
+        age2_min = None
+        age2_max = 2
+    elif age2 == 'age2':
+        age2_min = 3
+        age2_max = 5
+    elif age2 == 'age3':
+        age2_min = 6
+        age2_max = 11
+    elif age2 == 'age4':
+        age2_min = 12
+        age2_max = 23
+    elif age2 == 'age5':
+        age2_min = 24
+        age2_max = 35
+    elif age2 == 'age6':
+        age2_min = 36
+        age2_max = None
+    elif age2 == 'unknown':
+        age2_min = None
+        age2_max = None
+    else:
+        raise ValueError()
+
+    if condition1 in [0]:
+        condition1 = None
+    if condition2 in [0]:
+        condition2 = None
+
+    ibs.set_annot_age_months_est_min([aid1, aid2], [age1_min, age2_min])
+    ibs.set_annot_age_months_est_max([aid1, aid2], [age1_max, age2_max])
+    ibs.set_annot_qualities([aid1, aid2], [condition1, condition2])
+
+    metadata1, metadata2 = ibs.get_annot_metadata([aid1, aid2])
+    if 'turk' not in metadata1:
+        metadata1['turk'] = {}
+    if 'turk' not in metadata2:
+        metadata2['turk'] = {}
+    if 'match' not in metadata1['turk']:
+        metadata1['turk']['match'] = {}
+    if 'match' not in metadata2['turk']:
+        metadata2['turk']['match'] = {}
+    metadata1['turk']['match']['comment'] = comment1
+    metadata2['turk']['match']['comment'] = comment2
+    ibs.set_annot_metadata([aid1, aid2], [metadata1, metadata2])
+
     hogwild = kwargs.get('identification-hogwild', False)
     hogwild_species = kwargs.get('identification-hogwild-species', None)
     hogwild_species = None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
