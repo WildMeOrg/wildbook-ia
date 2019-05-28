@@ -3678,49 +3678,44 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
-        # assert imgsetid == 3925
+        assert imgsetid == 3925
 
         desired_species = 'zebra_grevys'
 
-        # current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
-        # current_gids = ibs.get_imageset_gids(current_imageset_rowid)
-        # current_aids = ut.flatten(ibs.get_image_aids(current_gids))
-        # current_aoi_list = ibs.get_annot_interest(current_aids)
-        # current_aids = ut.compress(current_aids, current_aoi_list)
-        # # current_nids = ibs.get_annot_nids(current_aids)
+        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
+        current_gids = ibs.get_imageset_gids(current_imageset_rowid)
+        current_aids = ut.flatten(ibs.get_image_aids(current_gids))
+        current_aoi_list = ibs.get_annot_interest(current_aids)
+        current_aids = ut.compress(current_aids, current_aoi_list)
+        # current_nids = ibs.get_annot_nids(current_aids)
 
-        # # x = [current_nid for current_nid in current_nids if current_nid <= 0]
-        # # print(len(x))
+        # x = [current_nid for current_nid in current_nids if current_nid <= 0]
+        # print(len(x))
 
-        # total = 0
-        # species_dict = {}
-        # species_list = ibs.get_annot_species_texts(current_aids)
-        # viewpoint_list = ibs.get_annot_viewpoints(current_aids)
-        # for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
-        #     if viewpoint is None:
-        #         print(aid)
-        #         continue
-        #     if species not in species_dict:
-        #         species_dict[species] = []
-        #     if species == 'zebra_plains':
-        #         if 'left' in viewpoint:
-        #             species_dict[species].append(aid)
-        #             total += 1
-        #     if species == 'zebra_grevys':
-        #         if 'right' in viewpoint:
-        #             species_dict[species].append(aid)
-        #             total += 1
-        #     if species == 'zebra_hybrid':
-        #         if 'right' in viewpoint:
-        #             species_dict[species].append(aid)
-        #             total += 1
+        total = 0
+        species_dict = {}
+        species_list = ibs.get_annot_species_texts(current_aids)
+        viewpoint_list = ibs.get_annot_viewpoints(current_aids)
+        for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
+            if viewpoint is None:
+                print(aid)
+                continue
+            if species not in species_dict:
+                species_dict[species] = []
+            if species == 'zebra_plains':
+                if 'left' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+            if species == 'zebra_grevys':
+                if 'right' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+            if species == 'zebra_hybrid':
+                if 'right' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
 
-        # aid_list = species_dict[desired_species]
-
-        aid_list = ibs.get_valid_aids()
-        gid_list = list(set(ibs.get_annot_gids(aid_list)))
-        ibs.set_image_imgsetids(gid_list, [imgsetid] * len(gid_list))
-        ibs.set_annot_species(aid_list, [desired_species] * len(aid_list))
+        aid_list = species_dict[desired_species]
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
