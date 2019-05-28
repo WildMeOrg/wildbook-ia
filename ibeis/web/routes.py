@@ -4105,6 +4105,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     imagesettext_2_list = [_ for _ in imagesettext_2_list if not _.startswith('*')]
     imagesettext_2_list_str = ', '.join(imagesettext_2_list)
 
+    original_filename_1_str = os.path.split(ibs.get_image_uris_original(gid1))[1]
+    original_filename_2_str = os.path.split(ibs.get_image_uris_original(gid2))[1]
+
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
     return appf.template('turk', template_name,
@@ -4124,6 +4127,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          hogwild=hogwild,
                          imagesettext_1_list_str=imagesettext_1_list_str,
                          imagesettext_2_list_str=imagesettext_2_list_str,
+                         original_filename_1_str=original_filename_1_str,
+                         original_filename_2_str=original_filename_2_str,
                          hogwild_species=hogwild_species,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),

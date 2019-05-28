@@ -21,23 +21,23 @@
 
     {% if hogwild %}
       <div class="row">
-        <div class="col-lg-2"></div>
-        <div class="col-lg-8" style="text-align: center; color: red; margin-top: -10px; margin-bottom: 10px;">
+        <div class="col-lg-2 col-md-2 col-sm-2"></div>
+        <div class="col-lg-8 col-md-8 col-sm-8" style="text-align: center; color: red; margin-top: -10px; margin-bottom: 10px;">
           Hogwild UUID: {{ graph_uuid }}
         </div>
-        <div class="col-lg-2"></div>
+        <div class="col-lg-2 col-md-2 col-sm-2"></div>
       </div>
     {% endif %}
 
 <!--     <div class="row">
-      <div class="col-lg-2"></div>
-      <div class="col-lg-8" id="identification-score-container"{% if alert %}style="background-color: #c9302c; color: white;" {% endif %}>
+      <div class="col-lg-2 col-md-2 col-sm-2"></div>
+      <div class="col-lg-8 col-md-8 col-sm-8" id="identification-score-container"{% if alert %}style="background-color: #c9302c; color: white;" {% endif %}>
         <span id="identification-score">{{ match_data }}</span>
       </div>
-      <div class="col-lg-2"></div>
+      <div class="col-lg-2 col-md-2 col-sm-2"></div>
     </div> -->
     <div class="row">
-      <div class="col-lg-2" style="text-align: left;">
+      <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: left;">
         <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-default" value="Exclude Left">
         <br/>
 
@@ -128,34 +128,34 @@
         </div>
 
       </div>
-      <div class="col-lg-8" id="identification-image-container">
+      <div class="col-lg-8 col-md-8 col-sm-8" id="identification-image-container">
         <div class="row" id="identification-buttons">
-          <div class="col-lg-4">
+          <div class="col-lg-4 col-md-4 col-sm-4">
             <input type="submit" name="identification-submit" id="ia-turk-submit-match" class="btn btn-info" value="Same Animal">
           </div>
-          <div class="col-lg-4">
+          <div class="col-lg-4 col-md-4 col-sm-4">
             <input type="submit" name="identification-submit" id="ia-turk-submit-notmatch" class="btn btn-danger" value="Different Animals">
           </div>
-          <div class="col-lg-4">
+          <div class="col-lg-4 col-md-4 col-sm-4">
             <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
             <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
           </div>
-          <div class="col-lg-2"></div>
-          <div class="col-lg-4">
+          <div class="col-lg-2 col-md-2 col-sm-2"></div>
+          <div class="col-lg-4 col-md-4 col-sm-4">
             <div class="checkbox">
               <label>
                 <input id="ia-turk-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
               </label>
             </div>
           </div>
-          <div class="col-lg-4">
+          <div class="col-lg-4 col-md-4 col-sm-4">
             <div class="checkbox">
               <label>
                 <input id="ia-turk-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
               </label>
             </div>
           </div>
-          <div class="col-lg-2"></div>
+          <div class="col-lg-2 col-md-2 col-sm-2"></div>
         </div>
 
         <!-- <br/> -->
@@ -166,16 +166,24 @@
         <br/>
 
         <div class="row" id="image-spacer">
-          <div class="col-lg-5">
+          <div class="col-lg-5 col-md-5 col-sm-5">
             <i>
             {{ imagesettext_1_list_str }}
             </i>
+            <br/>
+            <b>
+            {{ original_filename_1_str }}
+            </b>
           </div>
-          <div class="col-lg-2"></div>
-          <div class="col-lg-5">
+          <div class="col-lg-2 col-md-2 col-sm-2"></div>
+          <div class="col-lg-5 col-md-5 col-sm-5">
             <i>
             {{ imagesettext_2_list_str }}
             </i>
+            <br/>
+            <b>
+            {{ original_filename_2_str }}
+            </b>
           </div>
 
         </div>
@@ -189,9 +197,9 @@
           <a href="/{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
         {% endif %}
           <div class="row" style="margin-top: 10px;">
-            <div class="col-lg-4">
+            <div class="col-lg-4 col-md-4 col-sm-4">
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-4 col-md-4 col-sm-4">
               {% if previous %}
                 {% if previous_version == 1 %}
                   <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
@@ -204,11 +212,11 @@
                 {% endif %}
               {% endif %}
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-4 col-md-4 col-sm-4">
             </div>
           </div>
       </div>
-      <div class="col-lg-2" style="text-align: right;">
+      <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: right;">
         <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-default" value="Exclude Right">
         <br/>
 
@@ -304,7 +312,7 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-identification.js', version='20180606-0') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/turk-identification-kaia.js', version='20180606-0') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
