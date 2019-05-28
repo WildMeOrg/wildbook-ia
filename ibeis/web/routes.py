@@ -3721,7 +3721,6 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=desired_species,
                                          creation_imageset_rowid_list=[imgsetid], kaia=True)
-
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
@@ -4072,9 +4071,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
     graph_uuid_str = graph_uuid_str.replace(': ', ':')
     if kaia:
-        base = url_for('submit_identification_v2')
-    else:
         base = url_for('submit_identification_v2_kaia')
+    else:
+        base = url_for('submit_identification_v2')
     callback_url = '%s?%s' % (base, graph_uuid_str, )
 
     hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid), )
