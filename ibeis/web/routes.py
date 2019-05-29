@@ -4165,7 +4165,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     elif age2_min is None and age2_max is None:
         age2 = 'unknown'
     else:
-        age1 = 'unknown'
+        age2 = 'unknown'
 
     if condition1 is None:
         condition1 = 0
