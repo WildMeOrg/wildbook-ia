@@ -198,7 +198,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         import ibeis
         assert dbdir is not None, 'must specify dbdir'
         assert actor.infr is None, ('AnnotInference already running')
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=True, web=False,
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False,
                            force_serial=True)
 
         # Create the AnnotInference
