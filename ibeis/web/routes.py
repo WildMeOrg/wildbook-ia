@@ -3719,7 +3719,8 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
 
         metadata_dict_list = ibs.get_annot_metadata(aid_list)
         excluded_list = [
-            metadata_dict_list.get('excluded', False)
+            metadata_dict.get('excluded', False)
+            for metadata_dict in metadata_dict_list
         ]
         aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
 
