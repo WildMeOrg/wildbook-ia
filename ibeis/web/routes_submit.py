@@ -1349,7 +1349,8 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     if condition2 in [0]:
         condition2 = None
 
-    ibs.set_annot_sex([aid1, aid2], [sex1, sex2])
+    ibs.set_annot_sex([aid1], [sex1])
+    ibs.set_annot_sex([aid2], [sex2])
     ibs.set_annot_age_months_est_min([aid1, aid2], [age1_min, age2_min])
     ibs.set_annot_age_months_est_max([aid1, aid2], [age1_max, age2_max])
     ibs.set_annot_qualities([aid1, aid2], [condition1, condition2])
