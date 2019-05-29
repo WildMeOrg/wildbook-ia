@@ -3717,6 +3717,12 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
 
         aid_list = species_dict[desired_species]
 
+        metadata_dict_list = ibs.get_annot_metadata(aid_list)
+        excluded_list = [
+            metadata_dict_list.get('excluded', False)
+        ]
+        aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
+
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=desired_species,
