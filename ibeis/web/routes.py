@@ -4148,7 +4148,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     elif age1_min is None and age1_max is None:
         age1 = 'unknown'
     else:
-        raise ValueError()
+        age1 = 'unknown'
 
     if age2_min is None and age2_max == 2:
         age2 = 'age1'
@@ -4165,7 +4165,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     elif age2_min is None and age2_max is None:
         age2 = 'unknown'
     else:
-        raise ValueError()
+        age1 = 'unknown'
 
     if condition1 is None:
         condition1 = 0
