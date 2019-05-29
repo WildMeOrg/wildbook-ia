@@ -1254,7 +1254,6 @@ def submit_identification_v2(graph_uuid, **kwargs):
 @register_route('/submit/identification/v2/kaia/', methods=['POST'])
 def submit_identification_v2_kaia(graph_uuid, **kwargs):
     ibs = current_app.ibs
-    ut.embed()
 
     # Process form data
     annot_uuid_1, annot_uuid_2 = ibs.process_graph_match_html_v2(graph_uuid, **kwargs)

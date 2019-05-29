@@ -4114,6 +4114,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     except:
         original_filename_2_str = 'UNKNOWN'
 
+    ut.embed()
+
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
     return appf.template('turk', template_name,
