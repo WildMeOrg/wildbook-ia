@@ -4114,8 +4114,6 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     except:
         original_filename_2_str = 'UNKNOWN'
 
-    ut.embed()
-
     sex1, sex2 = ibs.get_annot_sex([aid1, aid2])
     age1_min, age2_min = ibs.get_annot_age_months_est_min([aid1, aid2])
     age1_max, age2_max = ibs.get_annot_age_months_est_max([aid1, aid2])
