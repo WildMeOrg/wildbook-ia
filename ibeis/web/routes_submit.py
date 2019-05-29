@@ -1256,9 +1256,6 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     ibs = current_app.ibs
     ut.embed()
 
-    imgsetid = request.args.get('imgsetid', '')
-    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
-
     # Process form data
     annot_uuid_1, annot_uuid_2 = ibs.process_graph_match_html_v2(graph_uuid, **kwargs)
     aid1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
@@ -1280,6 +1277,20 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     assert sex2 in ['male', 'female', 'unknown']
     assert 0 <= condition1 and condition1 <= 5
     assert 0 <= condition2 and condition2 <= 5
+
+    if sex1 == 'male':
+        sex1 = 1
+    elif sex1 == 'female':
+        sex1 = 0
+    else:
+        sex1 = -1
+
+    if sex2 == 'male':
+        sex2 = 1
+    elif sex2 == 'female':
+        sex2 = 0
+    else:
+        sex2 = -1
 
     age1_min = None
     age1_max = None
@@ -1338,6 +1349,7 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     if condition2 in [0]:
         condition2 = None
 
+    ibs.set_annot_sex([aid1, aid2], [sex1, sex2])
     ibs.set_annot_age_months_est_min([aid1, aid2], [age1_min, age2_min])
     ibs.set_annot_age_months_est_max([aid1, aid2], [age1_max, age2_max])
     ibs.set_annot_qualities([aid1, aid2], [condition1, condition2])
@@ -1354,6 +1366,22 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     metadata1['turk']['match']['comment'] = comment1
     metadata2['turk']['match']['comment'] = comment2
     ibs.set_annot_metadata([aid1, aid2], [metadata1, metadata2])
+
+    edge = (aid1, aid2, )
+    review_rowid_list = ibs.get_review_rowids_from_edges([edge])[0]
+    assert len(review_rowid_list) > 0
+
+    review_rowid = review_rowid_list[-1]
+    metadata_match = ibs.get_review_metadata(review_rowid)
+    if 'turk' not in metadata_match:
+        metadata_match['turk'] = {}
+    if 'match' not in metadata_match['turk']:
+        metadata_match['turk']['match'] = {}
+    existing_comment = metadata_match.get('comment', '')
+    updated_comment = '\n'.join([comment_match, existing_comment])
+    updated_comment = updated_comment.strip()
+    metadata_match['turk']['match']['comment'] = updated_comment
+    ibs.set_review_metadata([review_rowid], [metadata_match])
 
     hogwild = kwargs.get('identification-hogwild', False)
     hogwild_species = kwargs.get('identification-hogwild-species', None)
