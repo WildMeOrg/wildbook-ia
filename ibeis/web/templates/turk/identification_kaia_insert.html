@@ -42,7 +42,7 @@
         <br/>
 
         <div class="form-group">
-          <h4><u>Sex</u></h4>
+          <h4><u>Sex {{ sex1 }}</u></h4>
           <div class="form-check">
             <input class="form-check-input" type="radio" name="sex-annot-1" id="radio-sex-1-1" value="male">
             <label class="form-check-label" for="radio-sex-1-1">
@@ -64,7 +64,7 @@
         </div>
 
         <div class="form-group">
-          <h4><u>Age</u></h4>
+          <h4><u>Age {{ age1 }}</u></h4>
           <div class="form-check">
             <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-1" value="age1">
             <label class="form-check-label" for="radio-age-1-1">
@@ -110,7 +110,7 @@
         </div>
 
         <div class="form-group">
-          <h4><u>Condition</u></h4>
+          <h4><u>Condition {{ condition1 }}</u></h4>
           <input type="range" class="custom-range" min="0" max="5" name="condition-annot-1" id="range-condition-annot-1" value="0">
           <div class="row-custom-expand">
             <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">0</div>
@@ -124,7 +124,7 @@
 
         <div class="form-group">
           <h4><u>Comment</u></h4>
-          <textarea class="form-control" id="textarea-comment-annot-1" name="comment-annot-1" rows="3"></textarea>
+          <textarea class="form-control" id="textarea-comment-annot-1" name="comment-annot-1" rows="3">{{ comment1 }}</textarea>
         </div>
 
       </div>
@@ -189,7 +189,7 @@
         </div>
         <div class="form-group">
           <h4><u>Match Comment</u></h4>
-          <textarea class="form-control" id="textarea-comment-match" name="comment-match" rows="3"></textarea>
+          <textarea class="form-control" id="textarea-comment-match" name="comment-match" rows="3">{{ comment_match }}</textarea>
         </div>
 
 
@@ -221,7 +221,7 @@
         <br/>
 
         <div class="form-group">
-          <h4><u>Sex</u></h4>
+          <h4><u>Sex {{ sex2 }}</u></h4>
           <div class="form-check">
             <label class="form-check-label" for="radio-sex-2-1">
               Male
@@ -243,7 +243,7 @@
         </div>
 
         <div class="form-group">
-          <h4><u>Age</u></h4>
+          <h4><u>Age {{ age2 }}</u></h4>
           <div class="form-check">
             <label class="form-check-label" for="radio-age-2-1">
               0-3 Months
@@ -289,7 +289,7 @@
         </div>
 
         <div class="form-group">
-          <h4><u>Condition</u></h4>
+          <h4><u>Condition {{ condition2 }}</u></h4>
           <input type="range" class="custom-range" min="0" max="5" name="condition-annot-2" id="range-condition-annot-2" value="0">
           <div class="row-custom-expand">
             <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">0</div>
@@ -303,7 +303,7 @@
 
         <div class="form-group">
           <h4><u>Comment</u></h4>
-          <textarea class="form-control" id="textarea-comment-annot-2" name="comment-annot-2" rows="3"></textarea>
+          <textarea class="form-control" id="textarea-comment-annot-2" name="comment-annot-2" rows="3">{{ comment2 }}</textarea>
         </div>
       </div>
     </div>

@@ -4116,6 +4116,85 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     ut.embed()
 
+    sex1, sex2 = ibs.get_annot_sex([aid1, aid2])
+    age1_min, age2_min = ibs.get_annot_age_months_est_min([aid1, aid2])
+    age1_max, age2_max = ibs.get_annot_age_months_est_max([aid1, aid2])
+    condition1, condition2 = ibs.get_annot_qualities([aid1, aid2])
+
+    if sex1 == 1:
+        sex1 = 'male'
+    elif sex1 == 0:
+        sex1 = 'female'
+    else:
+        sex1 = 'unknown'
+
+    if sex2 == 1:
+        sex2 = 'male'
+    elif sex2 == 0:
+        sex2 = 'female'
+    else:
+        sex2 = 'unknown'
+
+    if age1_min is None and age1_max == 2:
+        age1 = 'age1'
+    elif age1_min == 3 and age1_max == 5:
+        age1 = 'age2'
+    elif age1_min == 6 and age1_max == 11:
+        age1 = 'age3'
+    elif age1_min == 12 and age1_max == 23:
+        age1 = 'age4'
+    elif age1_min == 24 and age1_max == 35:
+        age1 = 'age5'
+    elif age1_min == 36 and age1_max is None:
+        age1 = 'age6'
+    elif age1_min is None and age1_max is None:
+        age1 = 'unknown'
+    else:
+        raise ValueError()
+
+    if age2_min is None and age2_max == 2:
+        age2 = 'age1'
+    elif age2_min == 3 and age2_max == 5:
+        age2 = 'age2'
+    elif age2_min == 6 and age2_max == 11:
+        age2 = 'age3'
+    elif age2_min == 12 and age2_max == 23:
+        age2 = 'age4'
+    elif age2_min == 24 and age2_max == 35:
+        age2 = 'age5'
+    elif age2_min == 36 and age2_max is None:
+        age2 = 'age6'
+    elif age2_min is None and age2_max is None:
+        age2 = 'unknown'
+    else:
+        raise ValueError()
+
+    if condition1 is None:
+        condition1 = 0
+    if condition2 is None:
+        condition2 = 0
+
+    assert age1 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+    assert age2 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+    assert sex1 in ['male', 'female', 'unknown']
+    assert sex2 in ['male', 'female', 'unknown']
+    assert 0 <= condition1 and condition1 <= 5
+    assert 0 <= condition2 and condition2 <= 5
+
+    metadata1, metadata2 = ibs.get_annot_metadata([aid1, aid2])
+    comment1 = metadata1.get('turk', {}).get('match', {}).get('comment', '')
+    comment2 = metadata2.get('turk', {}).get('match', {}).get('comment', '')
+
+    try:
+        edge = (aid1, aid2, )
+        review_rowid_list = ibs.get_review_rowids_from_edges([edge])[0]
+        assert len(review_rowid_list) > 0
+        review_rowid = review_rowid_list[-1]
+        metadata_match = ibs.get_review_metadata(review_rowid)
+        comment_match = metadata_match.get('turk', {}).get('match', {}).get('comment', '')
+    except:
+        comment_match = ''
+
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
     return appf.template('turk', template_name,
@@ -4133,6 +4212,15 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          finished=finished,
                          graph_uuid=graph_uuid_,
                          hogwild=hogwild,
+                         age1=age1,
+                         age2=age2,
+                         sex1=sex1,
+                         sex2=sex2,
+                         condition1=condition1,
+                         condition2=condition2,
+                         comment1=comment1,
+                         comment2=comment2,
+                         comment_match=comment_match,
                          imagesettext_1_list_str=imagesettext_1_list_str,
                          imagesettext_2_list_str=imagesettext_2_list_str,
                          original_filename_1_str=original_filename_1_str,
