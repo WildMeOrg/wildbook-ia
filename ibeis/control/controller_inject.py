@@ -1009,6 +1009,8 @@ def get_ibeis_flask_route(__name__):
                            __route_microsoft_check__=True,
                            **options):
 
+            __route_authenticate__ = False
+
             if MICROSOFT_API_ENABLED and __route_microsoft_check__:
                 __route_authenticate__ = False
                 if not rule.startswith(MICROSOFT_API_PREFIX):

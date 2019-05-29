@@ -3708,19 +3708,72 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
 def turk_identification_graph_refer(imgsetid, **kwargs):
     ibs = current_app.ibs
-    aid_list = ibs.get_imageset_aids(imgsetid)
-    annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
-    imageset_text = ibs.get_imageset_text(imgsetid).lower()
-    species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+    if ibs.dbname == 'ZEBRA_Kaia':
+        assert imgsetid == 3925
 
-    config = {
-        'species':     species,
-        'threshold':   0.75,
-        'enable_canonical': True,
-    }
-    return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
-                                     creation_imageset_rowid_list=[imgsetid], **config)
+        desired_species = 'zebra_grevys'
+
+        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
+        current_gids = ibs.get_imageset_gids(current_imageset_rowid)
+        current_aids = ut.flatten(ibs.get_image_aids(current_gids))
+        current_aoi_list = ibs.get_annot_interest(current_aids)
+        current_aids = ut.compress(current_aids, current_aoi_list)
+        # current_nids = ibs.get_annot_nids(current_aids)
+
+        # x = [current_nid for current_nid in current_nids if current_nid <= 0]
+        # print(len(x))
+
+        total = 0
+        species_dict = {}
+        species_list = ibs.get_annot_species_texts(current_aids)
+        viewpoint_list = ibs.get_annot_viewpoints(current_aids)
+        for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
+            if viewpoint is None:
+                print(aid)
+                continue
+            if species not in species_dict:
+                species_dict[species] = []
+            if species == 'zebra_plains':
+                if 'left' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+            if species == 'zebra_grevys':
+                if 'right' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+            if species == 'zebra_hybrid':
+                if 'right' in viewpoint:
+                    species_dict[species].append(aid)
+                    total += 1
+
+        aid_list = species_dict[desired_species]
+
+        metadata_dict_list = ibs.get_annot_metadata(aid_list)
+        excluded_list = [
+            metadata_dict.get('excluded', False)
+            for metadata_dict in metadata_dict_list
+        ]
+        aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=desired_species,
+                                         creation_imageset_rowid_list=[imgsetid], kaia=True)
+    else:
+        aid_list = ibs.get_imageset_aids(imgsetid)
+        annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        species = 'zebra_grevys' if 'zebra' in imageset_text else 'giraffe_reticulated'
+
+        config = {
+            'species':     species,
+            'threshold':   0.75,
+            'enable_canonical': True,
+        }
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid], **config)
 
 
 @register_route('/turk/query/graph/v2/refer/', methods=['GET'])
@@ -3776,9 +3829,10 @@ def turk_identification_hardcase(*args, **kwargs):
 @register_route('/turk/identification/graph/', methods=['GET'])
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
-                              view_orientation='vertical', view_version=1,
+                              view_orientation='horizontal', view_version=1,
                               hogwild=False, hogwild_species=None,
                               creation_imageset_rowid_list=None,
+                              kaia=False,
                               **kwargs):
     """
     CommandLine:
@@ -3801,6 +3855,9 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         >>> ut.show_if_requested()
     """
     ibs = current_app.ibs
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        kaia = True
 
     if hogwild_species == 'None':
         hogwild_species = None
@@ -3896,7 +3953,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     'algo.hardcase' : True,
                 }
             else:
-                print('[routes] Graph is in hardcase-mode')
+                print('[routes] Graph is not in hardcase-mode')
                 query_config_dict = {}
 
             query_config_dict.update(kwargs.get('query_config_dict', {}))
@@ -4004,12 +4061,12 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
         if 'n_ccs' in data_dict:
             match_data['Connected Components'] = data_dict['n_ccs']
 
-        interest_config = {
-            'aoi_two_weight_filepath': 'candidacy',
-        }
-        interest_prediction_list = ibs.depc_annot.get_property('aoi_two', [aid1, aid2], None, config=interest_config)
-        match_data['AoI Top'] = interest_prediction_list[0]
-        match_data['AoI Bottom'] = interest_prediction_list[1]
+        # interest_config = {
+        #     'aoi_two_weight_filepath': 'candidacy',
+        # }
+        # interest_prediction_list = ibs.depc_annot.get_property('aoi_two', [aid1, aid2], None, config=interest_config)
+        # match_data['AoI Top'] = interest_prediction_list[0]
+        # match_data['AoI Bottom'] = interest_prediction_list[1]
 
         match_data['Queue Size'] = queue_len
 
@@ -4052,7 +4109,10 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid), )
     graph_uuid_str = graph_uuid_str.replace(': ', ':')
-    base = url_for('submit_identification_v2')
+    if kaia:
+        base = url_for('submit_identification_v2_kaia')
+    else:
+        base = url_for('submit_identification_v2')
     callback_url = '%s?%s' % (base, graph_uuid_str, )
 
     hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid), )
@@ -4067,8 +4127,114 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     ]
     confidence_list = list(zip(confidence_nice_list, confidence_text_list, confidence_selected_list))
 
+    if creation_imageset_rowid_list is None:
+        creation_imageset_rowid_list = []
+
+    gid1 = ibs.get_annot_gids(aid1)
+    gid2 = ibs.get_annot_gids(aid2)
+
+    imgesetid_1_list = list(set(ibs.get_image_imgsetids(gid1)) - set(creation_imageset_rowid_list))
+    imagesettext_1_list = ibs.get_imageset_text(imgesetid_1_list)
+    imagesettext_1_list = [imagesettext_1 for imagesettext_1 in imagesettext_1_list if not imagesettext_1.startswith('*')]
+    imagesettext_1_list_str = ', '.join(imagesettext_1_list)
+
+    imgesetid_2_list = list(set(ibs.get_image_imgsetids(gid2)) - set(creation_imageset_rowid_list))
+    imagesettext_2_list = ibs.get_imageset_text(imgesetid_2_list)
+    imagesettext_2_list = [imagesettext_2 for imagesettext_2 in imagesettext_2_list if not imagesettext_2.startswith('*')]
+    imagesettext_2_list_str = ', '.join(imagesettext_2_list)
+
+    try:
+        original_filename_1_str = os.path.split(ibs.get_image_uris_original(gid1))[1]
+    except:
+        original_filename_1_str = 'UNKNOWN'
+
+    try:
+        original_filename_2_str = os.path.split(ibs.get_image_uris_original(gid2))[1]
+    except:
+        original_filename_2_str = 'UNKNOWN'
+
+    sex1, sex2 = ibs.get_annot_sex([aid1, aid2])
+    age1_min, age2_min = ibs.get_annot_age_months_est_min([aid1, aid2])
+    age1_max, age2_max = ibs.get_annot_age_months_est_max([aid1, aid2])
+    condition1, condition2 = ibs.get_annot_qualities([aid1, aid2])
+
+    if sex1 == 1:
+        sex1 = 'male'
+    elif sex1 == 0:
+        sex1 = 'female'
+    else:
+        sex1 = 'unknown'
+
+    if sex2 == 1:
+        sex2 = 'male'
+    elif sex2 == 0:
+        sex2 = 'female'
+    else:
+        sex2 = 'unknown'
+
+    if age1_min is None and age1_max == 2:
+        age1 = 'age1'
+    elif age1_min == 3 and age1_max == 5:
+        age1 = 'age2'
+    elif age1_min == 6 and age1_max == 11:
+        age1 = 'age3'
+    elif age1_min == 12 and age1_max == 23:
+        age1 = 'age4'
+    elif age1_min == 24 and age1_max == 35:
+        age1 = 'age5'
+    elif age1_min == 36 and age1_max is None:
+        age1 = 'age6'
+    elif age1_min is None and age1_max is None:
+        age1 = 'unknown'
+    else:
+        age1 = 'unknown'
+
+    if age2_min is None and age2_max == 2:
+        age2 = 'age1'
+    elif age2_min == 3 and age2_max == 5:
+        age2 = 'age2'
+    elif age2_min == 6 and age2_max == 11:
+        age2 = 'age3'
+    elif age2_min == 12 and age2_max == 23:
+        age2 = 'age4'
+    elif age2_min == 24 and age2_max == 35:
+        age2 = 'age5'
+    elif age2_min == 36 and age2_max is None:
+        age2 = 'age6'
+    elif age2_min is None and age2_max is None:
+        age2 = 'unknown'
+    else:
+        age2 = 'unknown'
+
+    if condition1 is None:
+        condition1 = 0
+    if condition2 is None:
+        condition2 = 0
+
+    assert age1 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+    assert age2 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+    assert sex1 in ['male', 'female', 'unknown']
+    assert sex2 in ['male', 'female', 'unknown']
+    assert 0 <= condition1 and condition1 <= 5
+    assert 0 <= condition2 and condition2 <= 5
+
+    metadata1, metadata2 = ibs.get_annot_metadata([aid1, aid2])
+    comment1 = metadata1.get('turk', {}).get('match', {}).get('comment', '')
+    comment2 = metadata2.get('turk', {}).get('match', {}).get('comment', '')
+
+    try:
+        edge = (aid1, aid2, )
+        review_rowid_list = ibs.get_review_rowids_from_edges([edge])[0]
+        assert len(review_rowid_list) > 0
+        review_rowid = review_rowid_list[-1]
+        metadata_match = ibs.get_review_metadata(review_rowid)
+        comment_match = metadata_match.get('turk', {}).get('match', {}).get('comment', '')
+    except:
+        comment_match = ''
+
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
-    return appf.template('turk', 'identification',
+    template_name = 'identification_kaia' if kaia else 'identification'
+    return appf.template('turk', template_name,
                          match_data=match_data,
                          image_clean_src=image_clean_src,
                          image_matches_src=image_matches_src,
@@ -4083,6 +4249,19 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          finished=finished,
                          graph_uuid=graph_uuid_,
                          hogwild=hogwild,
+                         age1=age1,
+                         age2=age2,
+                         sex1=sex1,
+                         sex2=sex2,
+                         condition1=condition1,
+                         condition2=condition2,
+                         comment1=comment1,
+                         comment2=comment2,
+                         comment_match=comment_match,
+                         imagesettext_1_list_str=imagesettext_1_list_str,
+                         imagesettext_2_list_str=imagesettext_2_list_str,
+                         original_filename_1_str=original_filename_1_str,
+                         original_filename_2_str=original_filename_2_str,
                          hogwild_species=hogwild_species,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),

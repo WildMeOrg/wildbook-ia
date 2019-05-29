@@ -110,6 +110,15 @@ def update_1_1_0(db, ibs=None):
         ''')
 
 
+def update_1_1_1(db, ibs=None):
+    db.modify_table(
+        const.REVIEW_TABLE,
+        add_columns=[
+            ('review_metadata_json', 'TEXT'),
+        ]
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -126,6 +135,7 @@ VALID_VERSIONS = ut.odict([
     ('1.0.2',    (None,                 update_1_0_2,       post_1_0_2          )),
     ('1.0.3',    (None,                 update_1_0_3,       None                )),
     ('1.1.0',    (None,                 update_1_1_0,       None                )),
+    ('1.1.1',    (None,                 update_1_1_1,       None                )),
 ])
 """
 SeeAlso:

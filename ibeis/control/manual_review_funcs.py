@@ -780,6 +780,76 @@ def get_review_tags_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=N
     return review_tags_list
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/metadata/', methods=['GET'])
+def get_review_metadata(ibs, review_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): review metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/review/metadata/
+    """
+    metadata_str_list = ibs.staging.get(const.REVIEW_TABLE, ('review_metadata_json',), review_rowid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/review/metadata/', methods=['PUT'])
+def set_review_metadata(ibs, review_rowid_list, metadata_dict_list):
+    r"""
+    Sets the review's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/review/metadata/
+
+    CommandLine:
+        python -m ibeis.control.manual_review_funcs --test-set_review_metadata
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_review_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> review_rowid_list = ibs.add_review([1], [2], [0])
+        >>> metadata_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.repr2(metadata_dict_list))
+        >>> ibs.set_review_metadata(review_rowid_list, metadata_dict_list)
+        >>> # verify results
+        >>> metadata_dict_list_ = ibs.get_review_metadata(review_rowid_list)
+        >>> print(ut.repr2(metadata_dict_list_))
+        >>> assert metadata_dict_list == metadata_dict_list_
+        >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
+        >>> print(ut.repr2(metadata_str_list))
+        >>> metadata_str_list_ = ibs.get_review_metadata(review_rowid_list, return_raw=True)
+        >>> print(ut.repr2(metadata_str_list_))
+        >>> assert metadata_str_list == metadata_str_list_
+        >>> ibs.delete_review(review_rowid_list)
+    """
+    id_iter = ((review_rowid,) for review_rowid in review_rowid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.staging.set(const.REVIEW_TABLE, ('review_metadata_json',), val_list, id_iter)
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
