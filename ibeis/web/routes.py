@@ -2121,6 +2121,8 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
 
             width, height = ibs.get_image_sizes(gid)
             staged_user = controller_inject.get_user()
+            if staged_user is None:
+                staged_user = {}
             staged_user_id = staged_user.get('username', None)
 
             # Get annotations
