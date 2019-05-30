@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 from detecttools.directory import Directory
 from os.path import join, splitext, exists, basename, split
 import utool as ut
+import random
 import ibeis
 import json
 
@@ -30,7 +31,7 @@ SPECIES_MAPPING = {
 
 def _convert_vulcan_to_ibeis(vulcan_path, dbdir=None, purge=False,
                              purge_existing_annotations=True, dry_run=False,
-                             ignore_directory_list=[], auto_localize=True,
+                             ignore_directory_list=[], auto_localize=False,
                              ensure_image=True, recursive=False, layer=1,
                              vulcan_tag=None, **kwargs):
 
@@ -505,14 +506,17 @@ def convert_vulcan2018_to_ibeis(vulcan_path, dbdir=None, **kwargs):
     Example:
         >>> # SCRIPT
         >>> from ibeis.dbio.ingest_vulcan import *  # NOQA
-        >>> default_vulcan_path = join('/', 'data', 'raw', 'processed', 'Vulcan_Elephants_2018')
+        >>> default_vulcan_path = join('/', 'data', 'raw', 'processed', 'Vulcan_Elephants_S3', 'WildMe')
         >>> default_dbdir = join('/', 'data', 'ibeis', 'ELPH_Vulcan')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> vulcan_path = ut.get_argval('--vulcan', type_=str, default=default_vulcan_path)
         >>> result = convert_vulcan2018_to_ibeis(vulcan_path, dbdir=dbdir, purge=False, dry_run=False)
         >>> print(result)
     """
-    ibs, gid_list = _convert_vulcan_to_ibeis(vulcan_path, dbdir, **kwargs)
+    ignore_directory_list = ['OlPejeta_2016']
+    ibs, gid_list = _convert_vulcan_to_ibeis(vulcan_path, dbdir,
+                                             ignore_directory_list=ignore_directory_list,
+                                             **kwargs)
     return ibs, gid_list
 
 
@@ -529,7 +533,7 @@ def convert_vulcan2019_to_ibeis(vulcan_path, dbdir=None, **kwargs):
     Example:
         >>> # SCRIPT
         >>> from ibeis.dbio.ingest_vulcan import *  # NOQA
-        >>> default_vulcan_path = join('/', 'data', 'raw', 'processed', 'Vulcan_Elephants_2019')
+        >>> default_vulcan_path = join('/', 'data', 'raw', 'processed', 'Vulcan_Elephants_S3', 'WildMe', 'OlPejeta_2016')
         >>> default_dbdir = join('/', 'data', 'ibeis', 'ELPH_Vulcan')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
         >>> vulcan_path = ut.get_argval('--vulcan', type_=str, default=default_vulcan_path)
@@ -582,11 +586,321 @@ def convert_vulcan2019_sequences_to_ibeis(dbdir=None, **kwargs):
         layer = 2 if vulcan_recusrive else 1
         version = 2 if vulcan_recusrive else 1
         ibs, gid_list = _convert_vulcan_to_ibeis(vulcan_image_path, dbdir,
-                                                 dry_run=True, auto_localize=False,
+                                                 dry_run=True,
                                                  recursive=vulcan_recusrive,
                                                  layer=layer, vulcan_tag=vulcan_tag,
                                                  **kwargs)
         _process_vulcan_sequence_metadata(vulcan_metadata_path, vulcan_tag, ibs,
                                           gid_list, version=version, **kwargs)
-
     return ibs, gid_list
+
+
+def walk_vulcan_s3_directory(direct_list, validation_match_str='VALIDATION'):
+    direct_list_ = []
+    for direct_ in direct_list:
+        found = []
+        for file_ in direct_.file_list:
+            path, filename = split(file_)
+            base, ext = splitext(filename)
+            ext = ext.lower().strip('.')
+            if ext in ['json']:
+                if validation_match_str not in base:
+                    found.append(file_)
+        if len(found) > 0:
+            direct_list_.append((direct_, found))
+        direct_list_ += walk_vulcan_s3_directory(direct_.directory_list)
+    return direct_list_
+
+
+def convert_vulcan_s3_to_ibeis(dbdir, auto_localize=False, ensure_image=True):
+    vulcan_prefix = '/data/raw/processed/'
+    vulcan_path_list = [
+        'MWS/WildMe/elephant/',
+        'MWS/WildMe/RR18_BIG_2015_09_23_R_AM/',
+        'MWS/WildMe/TA24_TPM_L_2016-10-30-A/',
+        'MWS/WildMe/TA24_TPM_R_2016-10-30-A/',
+        'MWS/WildMe/2012-08-16_AM_L_Azohi/',
+        'MWS/WildMe/2012-08-15_AM_R_Marealle/',
+        'MWS/WildMe/2012-08-14_PM_R_Chediel/',
+
+        'MWS/WildMe/OlPejeta_2016/20161106_Nikon_Left/',
+        'MWS/WildMe/OlPejeta_2016/20161106_Nikon_Right/',
+        'MWS/WildMe/OlPejeta_2016/20161108_Nikon_Left/',
+        'MWS/WildMe/OlPejeta_2016/20161108_Nikon_Right/',
+
+        'MWS/QENP_201809_29-30/Photos/',
+        'MWS/Tsavo_201703_12-24/Photos/',
+        'MWS/Katavi/Photos/',
+
+        # 'OlPejeta_201903/Photos/',
+        # 'Tarangire_201903/Photos/',
+    ]
+
+    desired_species_set = set([
+        'elephant_savanna',
+        'elephant_savanna_baby',
+        'elephant_savanna_carcass',
+    ])
+
+    ibs = ibeis.opendb(dbdir=dbdir)
+
+    # Locate all folders with JSON files (excluding VALIDATION files)
+    direct_list = []
+    for vulcan_path in vulcan_path_list:
+        vulcan_path_absolute = join(vulcan_prefix, vulcan_path)
+        direct = Directory(vulcan_path_absolute, recursive=True)
+        direct_list += walk_vulcan_s3_directory([direct] + direct.directory_list)
+
+    # Filter out multiple JSON files for a given folder
+    def _filter(json_filepath_):
+        if 'annotations_vulcan_april2019.json' in json_filepath_:
+            return True
+        if 'annotations_20161106_Nikon_Left_Corrected.json' in json_filepath_:
+            return True
+        if 'annotations_20161106_Nikon_Right_Corrected.json' in json_filepath_:
+            return True
+        return False
+
+    json_filepath_list = []
+    for direct, json_filepath_list_ in direct_list:
+        assert 1 <= len(json_filepath_list_) and len(json_filepath_list_) <= 2
+
+        if len(json_filepath_list_) == 2:
+            json_filepath_list_filtered = [
+                json_filepath
+                for json_filepath in json_filepath_list_
+                if _filter(json_filepath)
+            ]
+            assert len(json_filepath_list_filtered) == 1
+            json_filepath_list_ = json_filepath_list_filtered
+
+        assert len(json_filepath_list_) == 1
+        json_filepath = json_filepath_list_[0]
+        assert 'VALIDATION' not in json_filepath
+        json_filepath_list.append(json_filepath)
+
+    # De-duplicate list of JSON files
+    json_filepath_list = sorted(set(json_filepath_list))
+
+    # Load all JSON files and ensure their structure
+    global_file_ext_set = set([])
+    global_species_set = set([])
+    global_image_set = set([])
+    global_pos_image_filtered_set = set([])
+    global_neg_image_filtered_set = set([])
+    global_neg_image_skipped_set = set([])
+
+    processed_dict = {}
+
+    raw_file_ext_set = set(['nef', 'NEF'])
+    ignored_file_ext_set = set(['db', 'dbf', 'prj', 'json', 'txt', 'shx', 'ignore', 'shp'])
+
+    key_list = ['annotations', 'config', 'ignoreFilenameList', 'metadata']
+    for json_filepath in json_filepath_list:
+        error_message_list = []
+
+        json_path, json_filename = split(json_filepath)
+
+        try:
+            with open(json_filepath, 'r') as json_file:
+                json_dict = json.load(json_file)
+        except json.JSONDecodeError:
+            continue
+
+        for key in key_list:
+            if key not in json_dict:
+                error_message_list.append('\tMissing JSON Key: %r' % (key, ))
+
+        extra_key_set = set(json_dict.keys()) - set(key_list)
+        if len(extra_key_set) > 0:
+            error_message_list.append('\tExtra JSON keys: %r' % (extra_key_set, ))
+
+        annotation_dict = json_dict.get('annotations', None)
+        ignore_set = set(json_dict.get('ignoreFilenameList', []))
+
+        assert annotation_dict is not None
+
+        direct = Directory(json_path, recursive=False)
+        filepath_list = direct.file_list
+
+        filename_list = [
+            basename(image_filepath)
+            for image_filepath in filepath_list
+        ]
+        filename_set = set(filename_list)
+
+        local_file_ext_set = set([])
+        for filename in filename_set:
+            base, ext = splitext(filename)
+            ext = ext.strip('.')
+            local_file_ext_set.add(ext)
+
+        if len(ignore_set) > 0:
+            # error_message_list.append('\tIgnoring %d Files' % (len(ignore_set), ))
+            pass
+
+        unknown_ignored_list = ignore_set - filename_set
+        if len(unknown_ignored_list) > 0:
+            error_message_list.append('\tMissing %d Ignored Files' % (len(unknown_ignored_list), ))
+
+        filename_set = filename_set - ignore_set
+
+        pos_image_set = set([])
+        neg_image_set = set([])
+        missing_set = set([])
+        for filename in sorted(list(annotation_dict.keys())):
+
+            if filename in ignore_set:
+                continue
+
+            annotation_list = annotation_dict[filename]
+
+            bbox_list = []
+            species_list = []
+            for annotation in annotation_list:
+                bbox    = annotation.get('rectangle', None)
+                species = annotation.get('type',      None)
+
+                if None in [bbox, species]:
+                    continue
+
+                bbox = list(map(int, bbox.strip().split(',')))
+                x0, y0, x1, y1 = bbox
+                w = x1 - x0
+                h = y1 - y0
+
+                if w <= 0 or h <= 0:
+                    continue
+
+                bbox = (x0, y0, w, h)
+                species = SPECIES_MAPPING.get(species, species)
+                global_species_set.add(species)
+
+                if species in desired_species_set:
+                    bbox_list.append(bbox)
+                    species_list.append(species)
+
+            assert len(bbox_list) == len(species_list)
+
+            filepath = join(direct.absolute_directory_path, filename)
+
+            assert filepath not in processed_dict
+            processed_dict[filepath] = (bbox_list, species_list, json_filepath)
+
+            if exists(filepath):
+                if len(bbox_list) > 0:
+                    pos_image_set.add(filepath)
+                else:
+                    neg_image_set.add(filepath)
+            else:
+                missing_set.add(filepath)
+
+            base, ext = splitext(filename)
+            ext = ext.strip('.')
+            local_file_ext_set.add(ext)
+
+        image_set = pos_image_set | neg_image_set
+        global_image_set = global_image_set | image_set
+
+        used_file_ext_set = local_file_ext_set - ignored_file_ext_set
+        if len(raw_file_ext_set & used_file_ext_set) > 0:
+            error_message_list.append('\tUsing Extensions: %r' % (used_file_ext_set, ))
+        global_file_ext_set = global_file_ext_set | local_file_ext_set
+
+        if len(missing_set) > 0:
+            error_message_list.append('\tMissing %d Wanted Files (missing image file)' % (len(missing_set), ))
+
+        unregistered_list = list(filename_set - image_set)
+        if len(unregistered_list) > 0:
+            # error_message_list.append('\tUnregistered %d Files (missing annotations)' % (len(unregistered_list), ))
+            pass
+
+        if len(error_message_list) > 0:
+            print('Processing: %r' % (json_filepath, ))
+            print('\n'.join(error_message_list))
+
+        num_positive = len(pos_image_set)
+        num_negative = len(neg_image_set)
+        num_desired = min(num_negative, num_positive)
+        neg_image_list = list(neg_image_set)
+        random.shuffle(neg_image_list)
+        neg_image_filtered_list = neg_image_list[:num_desired]
+        neg_image_filtered_set = set(neg_image_filtered_list)
+
+        local_neg_image_skipped_set = neg_image_set - neg_image_filtered_set
+
+        global_pos_image_filtered_set = global_pos_image_filtered_set | pos_image_set
+        global_neg_image_filtered_set = global_neg_image_filtered_set | neg_image_filtered_set
+        global_neg_image_skipped_set  = global_neg_image_skipped_set  | local_neg_image_skipped_set
+
+    num_positive = len(global_pos_image_filtered_set)
+    num_negative = len(global_neg_image_skipped_set)
+    num_desired = min(num_negative, num_positive)
+    global_neg_image_skipped_list = list(global_neg_image_skipped_set)
+    random.shuffle(global_neg_image_skipped_list)
+    global_neg_image_skipped_filtered_list = global_neg_image_skipped_list[:num_desired]
+    global_neg_image_skipped_filtered_set = set(global_neg_image_skipped_filtered_list)
+    assert len(global_neg_image_skipped_filtered_set & global_neg_image_filtered_set) == 0
+
+    global_neg_image_filtered_total_set = global_neg_image_filtered_set | global_neg_image_skipped_filtered_set
+    global_image_filtered_set = global_pos_image_filtered_set | global_neg_image_filtered_total_set
+
+    print('Encountered %r extensions' % (global_file_ext_set, ))
+    args = (len(global_species_set), global_species_set, )
+    print('Encountered %d species: %r' % args)
+    print('Found %d images' % (len(global_image_set), ))
+    print('Kept %d images' % (len(global_image_filtered_set), ))
+    print('\t%d positive' % (len(global_pos_image_filtered_set), ))
+    print('\t%d negative (within folders)' % (len(global_neg_image_filtered_set), ))
+    print('\t%d negative (global)' % (len(global_neg_image_skipped_filtered_set), ))
+
+    for filepath in global_pos_image_filtered_set:
+        assert filepath in processed_dict
+        bbox_list, species_list, json_filepath = processed_dict[filepath]
+        assert len(bbox_list) == len(species_list)
+        assert len(bbox_list) > 0
+        assert len(species_list) > 0
+        combined_species = set(species_list) | desired_species_set
+        assert combined_species == desired_species_set
+        assert len(combined_species & desired_species_set) > 0
+
+    for filepath in global_neg_image_filtered_total_set:
+        assert filepath in processed_dict
+        bbox_list, species_list, json_filepath = processed_dict[filepath]
+        assert len(bbox_list) == len(species_list)
+        assert len(bbox_list) == 0
+        assert len(species_list) == 0
+
+    global_image_filtered_list = sorted(global_image_filtered_set)
+    gid_list = ibs.add_images(global_image_filtered_list, auto_localize=auto_localize,
+                              ensure_loadable=ensure_image,
+                              ensure_exif=ensure_image)
+
+    imageset_text_list = []
+    global_gid_list = []
+    global_bbox_list = []
+    global_species_list = []
+    for gid, filepath in zip(gid_list, global_image_filtered_list):
+        assert json_filepath.startswith(vulcan_prefix)
+        json_filepath = json_filepath.replace(vulcan_prefix, '')
+        imageset_text = None
+        for vulcan_path in vulcan_path_list:
+            if json_filepath.startswith(vulcan_path):
+                imageset_text = vulcan_path
+                break
+        assert imageset_text is not None
+        imageset_text = imageset_text.replace('/Photos/', '')
+        imageset_text = imageset_text.strip('/')
+        imageset_text_list.append(imageset_text)
+
+        bbox_list, species_list, json_filepath = processed_dict[filepath]
+        assert len(bbox_list) == len(species_list)
+        global_gid_list += [gid] * len(bbox_list)
+        global_bbox_list += bbox_list
+        global_species_list += species_list
+
+    ibs.set_image_imagesettext(gid_list, imageset_text_list)
+
+    assert len(global_gid_list) == len(global_bbox_list)
+    assert len(global_gid_list) == len(global_species_list)
+    ibs.add_annots(global_gid_list, bbox_list=global_bbox_list, species_list=global_species_list)
