@@ -248,7 +248,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=512,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
@@ -338,7 +338,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[dict, list],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=512,
 )
 def compute_classifications2(depc, gid_list, config=None):
     r"""Extract the multi-class classifications for a given input image.
@@ -567,7 +567,7 @@ class LocalizerOriginalConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerOriginalConfig,
     fname='localizationscache',
-    chunksize=256,
+    chunksize=128,
 )
 def compute_localizations_original(depc, gid_list, config=None):
     r"""Extract the localizations for a given input image.
