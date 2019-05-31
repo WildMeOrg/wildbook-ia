@@ -365,6 +365,8 @@ def default_species(ibs):
 def imageset_image_processed(ibs, gid_list, is_staged=False, reviews_required=3):
     if is_staged:
         staged_user = controller_inject.get_user()
+        if staged_user is None:
+            staged_user = {}
         staged_user_id = staged_user.get('username', None)
 
         metadata_dict_list = ibs.get_image_metadata(gid_list)
