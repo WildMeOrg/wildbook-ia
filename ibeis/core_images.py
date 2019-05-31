@@ -487,7 +487,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[dict, list],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=512,
 )
 def compute_classifications2(depc, gid_list, config=None):
     r"""Extract the multi-class classifications for a given input image.

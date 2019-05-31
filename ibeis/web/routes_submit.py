@@ -1382,19 +1382,18 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
 
     edge = (aid1, aid2, )
     review_rowid_list = ibs.get_review_rowids_from_edges([edge])[0]
-    assert len(review_rowid_list) > 0
-
-    review_rowid = review_rowid_list[-1]
-    metadata_match = ibs.get_review_metadata(review_rowid)
-    if 'turk' not in metadata_match:
-        metadata_match['turk'] = {}
-    if 'match' not in metadata_match['turk']:
-        metadata_match['turk']['match'] = {}
-    existing_comment = metadata_match.get('comment', '')
-    updated_comment = '\n'.join([comment_match, existing_comment])
-    updated_comment = updated_comment.strip()
-    metadata_match['turk']['match']['comment'] = updated_comment
-    ibs.set_review_metadata([review_rowid], [metadata_match])
+    if len(review_rowid_list) > 0:
+        review_rowid = review_rowid_list[-1]
+        metadata_match = ibs.get_review_metadata(review_rowid)
+        if 'turk' not in metadata_match:
+            metadata_match['turk'] = {}
+        if 'match' not in metadata_match['turk']:
+            metadata_match['turk']['match'] = {}
+        existing_comment = metadata_match.get('comment', '')
+        updated_comment = '\n'.join([comment_match, existing_comment])
+        updated_comment = updated_comment.strip()
+        metadata_match['turk']['match']['comment'] = updated_comment
+        ibs.set_review_metadata([review_rowid], [metadata_match])
 
     hogwild = kwargs.get('identification-hogwild', False)
     hogwild_species = kwargs.get('identification-hogwild-species', None)
