@@ -174,6 +174,12 @@ def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
 #         ut.copy(image_path_src, image_path_dst)
 
 
+@register_ibs_method
+def export_dataset(ibs, **kwargs):
+    ibs.export_to_coco(['elephant_savanna'], target_size=None)
+
+
+@register_ibs_method
 def recompute_tiles(ibs, gid_list):
     tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
     ibs.delete_images(tid_list, trash_images=False)

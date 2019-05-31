@@ -276,7 +276,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 
     # Get all gids and process them
     if gid_list is None:
-        gid_list = sorted(ibs.get_valid_gids())
+        gid_list = sorted(ibs.get_valid_gids(is_tile=False))
 
     sets_dict = {
         'test'     : [],
@@ -654,14 +654,15 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             annot = annots[index]
 
             # Map internal aids to external annot index
-            individual_ids = annot['individual_ids']
-            individual_ids_ = []
-            for individual_id in individual_ids:
-                if individual_id not in aid_dict:
-                    continue
-                individual_id_ = aid_dict[individual_id]
-                individual_ids_.append(individual_id_)
-            annot['individual_ids'] = individual_ids_
+            if 'individual_ids' in annot:
+                individual_ids = annot['individual_ids']
+                individual_ids_ = []
+                for individual_id in individual_ids:
+                    if individual_id not in aid_dict:
+                        continue
+                    individual_id_ = aid_dict[individual_id]
+                    individual_ids_.append(individual_id_)
+                annot['individual_ids'] = individual_ids_
 
             # Map reviews
             if include_reviews:
