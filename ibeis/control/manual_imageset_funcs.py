@@ -10,14 +10,15 @@ import uuid
 print, rrr, profile = ut.inject2(__name__)
 
 
-IMAGESET_END_TIME_POSIX   = 'imageset_end_time_posix'
-IMAGESET_GPS_LAT          = 'imageset_gps_lat'
-IMAGESET_GPS_LON          = 'imageset_gps_lon'
-IMAGESET_NOTE             = 'imageset_note'
-IMAGESET_PROCESSED_FLAG   = 'imageset_processed_flag'
-IMAGESET_ROWID            = 'imageset_rowid'
-IMAGESET_SHIPPED_FLAG     = 'imageset_shipped_flag'
-IMAGESET_START_TIME_POSIX = 'imageset_start_time_posix'
+IMAGESET_OCCURRENCE_FLAG   = 'imageset_occurrence_flag'
+IMAGESET_END_TIME_POSIX    = 'imageset_end_time_posix'
+IMAGESET_GPS_LAT           = 'imageset_gps_lat'
+IMAGESET_GPS_LON           = 'imageset_gps_lon'
+IMAGESET_NOTE              = 'imageset_note'
+IMAGESET_PROCESSED_FLAG    = 'imageset_processed_flag'
+IMAGESET_ROWID             = 'imageset_rowid'
+IMAGESET_SHIPPED_FLAG      = 'imageset_shipped_flag'
+IMAGESET_START_TIME_POSIX  = 'imageset_start_time_posix'
 IMAGESET_SMART_WAYPOINT_ID = 'imageset_smart_waypoint_id'
 IMAGESET_SMART_XML_FNAME   = 'imageset_smart_xml_fname'
 
@@ -109,7 +110,7 @@ def get_imageset_isoccurrence(ibs, imgsetid_list):
 @accessor_decors.adder
 @register_api('/api/imageset/', methods=['POST'])
 def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None,
-                  notes_list=None):
+                  notes_list=None, occurence_flag_list=None):
     r"""
     Adds a list of imagesets.
 
@@ -132,8 +133,10 @@ def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None,
         notes_list = [''] * len(imagesettext_list)
     if imageset_uuid_list is None:
         imageset_uuid_list = [uuid.uuid4() for _ in range(len(imagesettext_list))]
-    colnames = ['imageset_text', 'imageset_uuid', 'imageset_note']
-    params_iter = zip(imagesettext_list, imageset_uuid_list, notes_list)
+    if occurence_flag_list is None:
+        occurence_flag_list = [0] * len(imagesettext_list)
+    colnames = ['imageset_text', 'imageset_uuid', 'imageset_occurrence_flag', 'imageset_note']
+    params_iter = zip(imagesettext_list, imageset_uuid_list, occurence_flag_list, notes_list)
     get_rowid_from_superkey = functools.partial(ibs.get_imageset_imgsetids_from_text, ensure=False)
     imgsetid_list = ibs.db.add_cleanly(const.IMAGESET_TABLE, colnames, params_iter, get_rowid_from_superkey)
     return imgsetid_list
@@ -969,6 +972,48 @@ def get_imageset_metadata(ibs, imageset_rowid_list, return_raw=False):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/imageset/occurrence/', methods=['GET'])
+def get_imageset_occurrence_flags(ibs, imageset_rowid_list):
+    r"""
+    imageset_occurrence_flag_list <- imageset.imageset_occurrence_flag[imageset_rowid_list]
+
+    gets data from the "native" column "imageset_occurrence_flag" in the "imageset" table
+
+    Args:
+        imageset_rowid_list (list):
+
+    Returns:
+        list: imageset_occurrence_flag_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = imageset_occurrence_flag
+        tbl = imageset
+
+    RESTful:
+        Method: GET
+        URL:    /api/imageset/occurrence/
+
+    CommandLine:
+        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_occurrence_flags
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> imageset_rowid_list = ibs._get_all_imageset_rowids()
+        >>> imageset_occurrence_flag_list = ibs.get_imageset_occurrence_flags(imageset_rowid_list)
+        >>> assert len(imageset_rowid_list) == len(imageset_occurrence_flag_list)
+    """
+    id_iter = imageset_rowid_list
+    colnames = (IMAGESET_OCCURRENCE_FLAG,)
+    imageset_occurrence_flag_list = ibs.db.get(
+        const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
+    return imageset_occurrence_flag_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/imageset/processed/', methods=['GET'])
 def get_imageset_processed_flags(ibs, imageset_rowid_list):
     r"""
@@ -1238,6 +1283,32 @@ def set_imageset_metadata(ibs, imageset_rowid_list, metadata_dict_list):
         metadata_str_list.append(metadata_str)
     val_list = ((metadata_str,) for metadata_str in metadata_str_list)
     ibs.db.set(const.IMAGESET_TABLE, ('imageset_metadata_json',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/imageset/occurrence/', methods=['PUT'])
+def set_imageset_occurrence_flags(ibs, imageset_rowid_list, imageset_occurrence_flag_list):
+    r"""
+    imageset_occurrence_flag_list -> imageset.imageset_occurrence_flag[imageset_rowid_list]
+
+    Args:
+        imageset_rowid_list
+        imageset_occurrence_flag_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = imageset
+        col = imageset_occurrence_flag
+
+    RESTful:
+        Method: PUT
+        URL:    /api/imageset/occurrence/
+    """
+    id_iter = imageset_rowid_list
+    colnames = (IMAGESET_OCCURRENCE_FLAG,)
+    val_iter = ((occurrence_flag,) for occurrence_flag in imageset_occurrence_flag_list)
+    ibs.db.set(const.IMAGESET_TABLE, colnames, val_iter, id_iter)
 
 
 @register_ibs_method

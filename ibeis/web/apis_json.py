@@ -17,7 +17,7 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 
 @register_api('/api/imageset/json/', methods=['POST'])
 def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_rowid_list=None,
-                       imageset_notes_list=None):
+                       imageset_notes_list=None, imageset_occurence_flag_list=None):
     r"""
     Adds a list of imagesets.
 
@@ -34,10 +34,11 @@ def add_imagesets_json(ibs, imageset_text_list, imageset_uuid_list=None, config_
         Method: POST
         URL:    /api/imageset/json/
     """
-    imageset_rowid_list = ibs.add_imagesets_json(imageset_text_list,
-                                                 imageset_uuid_list=imageset_uuid_list,
-                                                 config_rowid_list=config_rowid_list,
-                                                 notes_list=imageset_notes_list)
+    imageset_rowid_list = ibs.add_imagesets(imageset_text_list,
+                                            imageset_uuid_list=imageset_uuid_list,
+                                            occurence_flag_list=imageset_occurence_flag_list,
+                                            config_rowid_list=config_rowid_list,
+                                            notes_list=imageset_notes_list)
     imageset_uuid_list = ibs.get_imageset_uuid(imageset_rowid_list)
     return imageset_uuid_list
 
@@ -883,10 +884,10 @@ def get_imageset_annot_uuids_json(ibs, imageset_uuid_list):
     return annot_uuids_list
 
 
-@register_api('/api/imageset/occurrence/json/', methods=['GET'])
-def get_imageset_isoccurrence_json(ibs, imageset_uuid_list):
-    imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_isoccurrence(imageset_rowid_list)
+# @register_api('/api/imageset/occurrence/json/', methods=['GET'])
+# def get_imageset_isoccurrence_json(ibs, imageset_uuid_list):
+#     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+#     return ibs.get_imageset_isoccurrence(imageset_rowid_list)
 
 
 @register_api('/api/imageset/num/annot/reviewed/json/', methods=['GET'])
@@ -987,6 +988,12 @@ def get_imageset_gps_lats_json(ibs, imageset_uuid_list):
 def get_imageset_gps_lons_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     return ibs.get_imageset_gps_lons(imageset_rowid_list)
+
+
+@register_api('/api/imageset/occurrence/json/', methods=['GET'])
+def get_imageset_occurrence_flags_json(ibs, imageset_uuid_list):
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    return ibs.get_imageset_occurrence_flags(imageset_rowid_list)
 
 
 @register_api('/api/imageset/processed/json/', methods=['GET'])

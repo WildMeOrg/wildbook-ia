@@ -1660,6 +1660,12 @@ def update_1_8_2(db, ibs=None):
     ))
 
 
+def update_1_8_3(db, ibs=None):
+    db.modify_table(const.IMAGESET_TABLE, (
+        (3, 'imageset_occurrence_flag', 'INTEGER DEFAULT 0', None),
+    ))
+
+
 def update_1_9_0_vulcan(db, ibs=None):
     db.modify_table(const.IMAGE_TABLE, (
         (None, 'image_tile_parent_rowid',    'INTEGER',           None),
@@ -1675,6 +1681,10 @@ def update_1_9_0_vulcan(db, ibs=None):
 
 def update_1_9_1_vulcan(db, ibs=None):
     update_1_8_2(db, ibs)
+
+
+def update_1_9_2_vulcan(db, ibs=None):
+    update_1_8_3(db, ibs)
 
 
 # ========================
@@ -1737,6 +1747,7 @@ VALID_VERSIONS = ut.odict([
     ('1.8.1',        (None,                 update_1_8_1,        None                )),
     ('1.9.0.vulcan', (None,                 update_1_9_0_vulcan, None                )),
     ('1.9.1.vulcan', (None,                 update_1_9_1_vulcan, None                )),
+    ('1.9.2.vulcan', (None,                 update_1_9_2_vulcan, None                )),
 ])
 """
 SeeAlso:
