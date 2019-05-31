@@ -529,6 +529,8 @@ def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
 
     train_gid_set = set(train_gid_list)
     test_gid_set = set(test_gid_list)
+    assert len(test_gid_set & train_gid_set) == 0
+    assert len(test_gid_set) + len(train_gid_set) == len(ibs.get_valid_gids(is_tile=False))
 
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
@@ -549,10 +551,6 @@ def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
     ibs.unrelate_images_and_imagesets(tid_all_list, [test_imgsetid]  * len(tid_all_list))
 
     ibs.set_image_imgsetids(tile_train_list, [train_imgsetid] * len(tile_train_list))
-    ibs.set_image_imgsetids(tile_test_list, [test_imgsetid] * len(tile_test_list))
-
-    # Associate Images
-
     ibs.set_image_imgsetids(tile_test_list, [test_imgsetid] * len(tile_test_list))
 
     return tile_list

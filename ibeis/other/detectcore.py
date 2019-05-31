@@ -400,7 +400,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
                    use_maximum_linear_dimension=True,
                    use_existing_train_test=True, gid_list=None,
-                   include_reviews=False, require_named=True, **kwargs):
+                   include_reviews=False, require_named=False, **kwargs):
     """Create training COCO dataset for training models."""
     from datetime import date
     import datetime
@@ -409,6 +409,8 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
 
     print('Received species_mapping = %r' % (species_mapping, ))
     print('Using species_list = %r' % (species_list, ))
+
+    vulcan_prefix = '/data/raw/processed/'
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
@@ -428,7 +430,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         ut.ensuredir(image_dir_dict[dataset])
 
     info = {
-        'description'         : 'Wild Me %s Dataset' % (ibs.dbname, ),
+        'description'         : 'Wild Me %s Dataset (Vulcan MWS)' % (ibs.dbname, ),
         # 'url'                 : 'http://www.greatgrevysrally.com',
         'url'                 : 'http://www.wildme.org',
         'version'             : '1.0',
@@ -518,17 +520,20 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         _image = ibs.get_images(gid)
         height, width, channels = _image.shape
 
-        condition = width > height if use_maximum_linear_dimension else width < height
-        if condition:
-            ratio = height / width
-            decrease = target_size / width
-            width = target_size
-            height = int(target_size * ratio)
+        if target_size is None:
+            decrease = 1.0
         else:
-            ratio = width / height
-            decrease = target_size / height
-            height = target_size
-            width = int(target_size * ratio)
+            condition = width > height if use_maximum_linear_dimension else width < height
+            if condition:
+                ratio = height / width
+                decrease = target_size / width
+                width = target_size
+                height = int(target_size * ratio)
+            else:
+                ratio = width / height
+                decrease = target_size / height
+                height = target_size
+                width = int(target_size * ratio)
 
         image_path = ibs.get_image_paths(gid)
         image_filename = '%012d.jpg' % (image_index, )
@@ -537,15 +542,16 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         vt.imwrite(image_filepath, _image)
 
         output_dict[dataset]['images'].append({
-            'license'          : 3,
-            'file_name'        : image_filename,
-            'coco_url'         : None,
-            'height'           : height,
-            'width'            : width,
-            'date_captured'    : ibs.get_image_datetime_str(gid).replace('/', '-'),
-            'flickr_url'       : None,
-            'id'               : image_index,
-            'ibeis_image_uuid' : str(ibs.get_image_uuids(gid)),
+            'license'           : 3,
+            'file_name'         : image_filename,
+            'coco_url'          : None,
+            'height'            : height,
+            'width'             : width,
+            'date_captured'     : ibs.get_image_datetime_str(gid).replace('/', '-'),
+            'flickr_url'        : None,
+            'id'                : image_index,
+            'ibeis_image_uuid'  : str(ibs.get_image_uuids(gid)),
+            'vulcan_image_path' : str(ibs.get_image_uris_original(gid).replace(vulcan_prefix, '')),
         })
 
         print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
@@ -591,22 +597,22 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             h = ymax - ymin
             area = w * h
 
-            individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
-            reviews = ibs.get_review_rowids_from_single([aid])[0]
-            user_list = ibs.get_review_identity(reviews)
-            aid_tuple_list = ibs.get_review_aid_tuple(reviews)
-            decision_list = ibs.get_review_decision_str(reviews)
+            # individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
+            # reviews = ibs.get_review_rowids_from_single([aid])[0]
+            # user_list = ibs.get_review_identity(reviews)
+            # aid_tuple_list = ibs.get_review_aid_tuple(reviews)
+            # decision_list = ibs.get_review_decision_str(reviews)
 
-            ids = []
-            decisions = []
-            zipped = zip(user_list, aid_tuple_list, decision_list)
-            for user, aid_tuple, decision in zipped:
-                if 'user:web' not in user:
-                    continue
-                match = list(set(aid_tuple) - set([aid]))
-                assert len(match) == 1
-                ids.append(match[0])
-                decisions.append(decision.lower())
+            # ids = []
+            # decisions = []
+            # zipped = zip(user_list, aid_tuple_list, decision_list)
+            # for user, aid_tuple, decision in zipped:
+            #     if 'user:web' not in user:
+            #         continue
+            #     match = list(set(aid_tuple) - set([aid]))
+            #     assert len(match) == 1
+            #     ids.append(match[0])
+            #     decisions.append(decision.lower())
 
             xtl_, ytl_, w_, h_ = bbox
             xtl_ *= decrease
@@ -626,10 +632,10 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
                 'category_id'       : category_dict[species_name],
                 'id'                : annot_index,
                 'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
-                'individual_ids'    : individuals,
+                # 'individual_ids'    : individuals,
             }
-            if include_reviews:
-                annot['review_ids'] = list(zip(ids, decisions))
+            # if include_reviews:
+            #     annot['review_ids'] = list(zip(ids, decisions))
 
             output_dict[dataset]['annotations'].append(annot)
             seen += 1
