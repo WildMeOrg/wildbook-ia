@@ -52,7 +52,10 @@ def submit_cameratrap(**kwargs):
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
     gid = int(request.form['cameratrap-gid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
     flag = request.form.get('cameratrap-toggle', 'off') == 'on'
     ibs.set_image_cameratrap([gid], [flag])
     print('[web] user_id: %s, gid: %d, flag: %r' % (user_id, gid, flag, ))
@@ -80,7 +83,10 @@ def submit_detection(**kwargs):
         gid = int(request.form['detection-gid'])
         only_aid = request.form['detection-only-aid']
         only_aid = None if only_aid == 'None' or only_aid == '' else int(only_aid)
-        user_id = controller_inject.get_user().get('username', None)
+        user = controller_inject.get_user()
+        if user is None:
+            user = {}
+        user_id = user.get('username', None)
 
         if is_canonical:
             assert only_aid is not None
@@ -159,6 +165,8 @@ def submit_detection(**kwargs):
                 if is_staged:
                     staged_uuid = uuid.uuid4()
                     staged_user = controller_inject.get_user()
+                    if staged_user is None:
+                        staged_user = {}
                     staged_user_id = staged_user.get('username', None)
 
                     # Filter aids for current user
@@ -588,7 +596,10 @@ def submit_viewpoint(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['viewpoint-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
@@ -658,7 +669,10 @@ def submit_viewpoint2(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['viewpoint-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
@@ -735,7 +749,10 @@ def submit_viewpoint3(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['viewpoint-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
@@ -822,7 +839,10 @@ def submit_annotation(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['ia-annotation-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
@@ -985,7 +1005,10 @@ def submit_species(**kwargs):
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['ia-species-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid, ))
@@ -1065,7 +1088,10 @@ def submit_quality(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['quality-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
 
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
@@ -1101,7 +1127,10 @@ def submit_demographics(species='zebra_grevys', **kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['demographics-aid'])
-    user_id = controller_inject.get_user().get('username', None)
+    user = controller_inject.get_user()
+    if user is None:
+        user = {}
+    user_id = user.get('username', None)
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
