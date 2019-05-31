@@ -613,6 +613,125 @@ def walk_vulcan_s3_directory(direct_list, validation_match_str='VALIDATION'):
 
 
 def convert_vulcan_s3_to_ibeis(dbdir, auto_localize=False, ensure_image=True):
+    r"""
+    Training:
+        D MWS/WildMe/elephant/
+        D MWS/WildMe/RR18_BIG_2015_09_23_R_AM/
+        D MWS/WildMe/TA24_TPM_L_2016-10-30-A/
+        D MWS/WildMe/TA24_TPM_R_2016-10-30-A/
+        D MWS/WildMe/2012-08-16_AM_L_Azohi/
+        D MWS/WildMe/2012-08-15_AM_R_Marealle/
+        D MWS/WildMe/2012-08-14_PM_R_Chediel/
+
+        D MWS/WildMe/OlPejeta_2016/20161106_Nikon_Left/
+        D MWS/WildMe/OlPejeta_2016/20161106_Nikon_Right/
+        D MWS/WildMe/OlPejeta_2016/20161108_Nikon_Left/
+        D MWS/WildMe/OlPejeta_2016/20161108_Nikon_Right/
+
+        D MWS/QENP_201809_29-30/Photos/
+        D MWS/Tsavo_201703_12-24/Photos/
+        D MWS/Katavi/Photos/
+
+        ---
+
+        -D MWS/QENP_201809_29-30/Photos/QENP\ 29\ Sep\ 2018\,\ Nikon\ Left/
+        -D MWS/QENP_201809_29-30/Photos/QENP\ 29\ Sep\ 2018\,\ Nikon\ Right/
+        -D MWS/QENP_201809_29-30/Photos/QENP\ 30\ Sep\ 2018\,\ Nikon\ Left/
+        -D MWS/QENP_201809_29-30/Photos/QENP\ 30\ Sep\ 2018\,\ Nikon\ Right/
+        -D MWS/Tsavo_201703_12-24/Photos/
+
+        ---
+
+        F MWS/Katavi/Photos/A/sde-A_20180923A/154D5600/sde-a_L_20180923101642.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180923A/154D5600/sde-a_L_20180923101644.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180923A/154D5600/sde-a_L_20180923101646.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180923A/154D5600/sde-a_L_20180923101648.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180925A/159D5600/sde-a_L_20180925090108.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180925A/159D5600/sde-a_L_20180925090110.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180925A/162D5600/sde-a_L_20180925103426.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/sde-a_L_20180928063108.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/164D5600/sde-a_L_20180928065722.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/171D5600/sde-a_L_20180928103238.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/171D5600/sde-a_L_20180928103240.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/171D5600/sde-a_L_20180928103242.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/171D5600/sde-a_L_20180928105040.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/171D5600/sde-a_L_20180928105424.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180928A/171D5600/sde-a_L_20180928105426.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180929A/171D5600/sde-a_L_20180929070410.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180929A/171D5600/sde-a_L_20180929070412.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180929A/178D5600/sde-a_L_20180929100236.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180929A/178D5600/sde-a_L_20180929100238.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180929A/178D5600/sde-a_L_20180929100240.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180929A/178D5600/sde-a_L_20180929100242.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180930A/179D5600/sde-a_L_20180930070536.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180930A/179D5600/sde-a_L_20180930070538.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180930A/179D5600/sde-a_L_20180930070544.jpg
+        F MWS/Katavi/Photos/A/sde-A_20180930A/179D5600/sde-a_L_20180930070546.jpg
+        F MWS/Katavi/Photos/A/sde-A_20181008A/222D5600/sde-a_L_20181008065514.jpg
+        F MWS/Katavi/Photos/A/sde-A_20181008A/224D5600/sde-a_L_20181008075354.jpg
+        F MWS/Katavi/Photos/A/sde-A_20181008A/229D5600/sde-a_L_20181008103704.jpg
+        F MWS/Katavi/Photos/C/sde-C_20180927A/122D5600/sde-c_L_20180927082022.jpg
+        F MWS/Katavi/Photos/C/sde-C_20180927A/122D5600/sde-c_L_20180927082024.jpg
+        F MWS/Katavi/Photos/C/sde-C_20180927A/122D5600/sde-c_L_20180927082624.jpg
+        F MWS/Katavi/Photos/C/sde-C_20180927A/122D5600/sde-c_L_20180927082626.jpg
+        F MWS/Katavi/Photos/D/sde-D_20181003A/111D5600/sde-d_R_20181003082548.jpg
+        F MWS/Katavi/Photos/D/sde-D_20181003A/111D5600/sde-d_R_20181003082550.jpg
+        F MWS/Katavi/Photos/D/sde-D_20181003A/111D5600/sde-d_R_20181003082552.jpg
+        F MWS/Katavi/Photos/D/sde-D_20181003A/111D5600/sde-d_R_20181003082554.jpg
+
+
+    Testing:
+        D MWS/OlPejeta_201903/Photos/
+        D MWS/Tarangire_201903/Photos/
+
+    Duplicated:
+        MWS/OlPejeta_201611_06-08
+        MWS/Katavi
+
+    Ignored:
+        MWS/WildMe/2012-08-13_rightbitok
+        MWS/WildMe/2014-08-19_PM_Manyara_Ranch
+        MWS/WildMe/2014-08-20_AM
+        MWS/WildMe/2014-08-20_AM_R
+        MWS/WildMe/2014-08-20_PM_Tarangire
+        MWS/WildMe/2014-08-20_PM_Tarangire_R
+        MWS/WildMe/2014-08-21_AM_Tarangire
+        MWS/WildMe/2014-08-21_AM_Tarangire_R
+        MWS/WildMe/2014-08-21_PM_Tarangire
+        MWS/WildMe/2014-08-21_PM_Tarangire_R
+        MWS/WildMe/2014-08-22_AM_Tarangire
+        MWS/WildMe/2014-08-22_AM_Tarangire_R
+        MWS/WildMe/2014-08-22_PM_Tarangire
+        MWS/WildMe/2014-08-22_PM_Tarangire_R
+        MWS/WildMe/20160915_Botswana_0
+        MWS/WildMe/20161010_Botswana_1
+        MWS/WildMe/20161013_Botswana_1
+        MWS/WildMe/20161013_Botswana_2
+        MWS/WildMe/5H-CFA
+        MWS/WildMe/5H-SGR
+        MWS/WildMe/5H-TWR
+        MWS/WildMe/5H-ZGF
+        MWS/WildMe/A032C025_1402281O
+        MWS/WildMe/A032C026_140228ZV
+        MWS/WildMe/all-kenya
+        MWS/WildMe/Clip1HTK121
+        MWS/WildMe/Clip1HTK151_1
+        MWS/WildMe/Clip1HTK154_1
+        MWS/WildMe/elephantSet1
+        MWS/WildMe/elephantSet2
+        MWS/WildMe/elephantSet3
+        MWS/WildMe/TA23_MPK_L_2014-08-24-PM-Tarangire
+        MWS/WildMe/TA23_MPK_R_2014-08-24-AM-Tarangire
+        MWS/WildMe/TA23_MPK_R_2014-08-25-PM-Tarangire
+        MWS/WildMe/TA23_MPZ_L_2014-08-20-AM-training
+        MWS/WildMe/TA23_MPZ_L_2014-08-21-AM-Kibaoni
+        MWS/WildMe/TA23_MPZ_L_2014-08-21-PM-Lolkisale
+        MWS/WildMe/TA23_MPZ_L_2014-08-26-AM-Tarangire
+        MWS/WildMe/TA23_MPZ_R_2014-08-20-AM-training
+        MWS/WildMe/TA23_MPZ_R_2014-08-21-AM-Kibaoni
+        MWS/WildMe/TA23_MPZ_R_2014-08-21-PM-Lolkisale
+        MWS/WildMe/TA23_MPZ_training_pics
+    """
     vulcan_prefix = '/data/raw/processed/'
     vulcan_path_list = [
         'MWS/WildMe/elephant/',
@@ -871,16 +990,19 @@ def convert_vulcan_s3_to_ibeis(dbdir, auto_localize=False, ensure_image=True):
         assert len(bbox_list) == 0
         assert len(species_list) == 0
 
-    global_image_filtered_list = sorted(global_image_filtered_set)
+    global_image_filtered_list = sorted(global_pos_image_filtered_set)
     gid_list = ibs.add_images(global_image_filtered_list, auto_localize=auto_localize,
                               ensure_loadable=ensure_image,
                               ensure_exif=ensure_image)
+    assert None not in gid_list
 
     imageset_text_list = []
     global_gid_list = []
     global_bbox_list = []
     global_species_list = []
     for gid, filepath in zip(gid_list, global_image_filtered_list):
+        bbox_list, species_list, json_filepath = processed_dict[filepath]
+
         assert json_filepath.startswith(vulcan_prefix)
         json_filepath = json_filepath.replace(vulcan_prefix, '')
         imageset_text = None
@@ -893,7 +1015,6 @@ def convert_vulcan_s3_to_ibeis(dbdir, auto_localize=False, ensure_image=True):
         imageset_text = imageset_text.strip('/')
         imageset_text_list.append(imageset_text)
 
-        bbox_list, species_list, json_filepath = processed_dict[filepath]
         assert len(bbox_list) == len(species_list)
         global_gid_list += [gid] * len(bbox_list)
         global_bbox_list += bbox_list
@@ -903,4 +1024,6 @@ def convert_vulcan_s3_to_ibeis(dbdir, auto_localize=False, ensure_image=True):
 
     assert len(global_gid_list) == len(global_bbox_list)
     assert len(global_gid_list) == len(global_species_list)
-    ibs.add_annots(global_gid_list, bbox_list=global_bbox_list, species_list=global_species_list)
+    aid_list = ibs.add_annots(global_gid_list, bbox_list=global_bbox_list, species_list=global_species_list)
+
+    return gid_list, aid_list

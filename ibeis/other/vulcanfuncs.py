@@ -174,6 +174,12 @@ def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
 #         ut.copy(image_path_src, image_path_dst)
 
 
+def recompute_tiles(ibs, gid_list):
+    tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+    ibs.delete_images(tid_list, trash_images=False)
+    ibs.depc_image.delete_property_all('tiles', gid_list)
+
+
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
                                  return_configs=False, limit=None, gid_list=None,
@@ -2107,13 +2113,12 @@ def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=100, **kwargs):
     gt_positive_gid_list = sorted(ut.compress(tile_gid_list, flag_list))
     gt_negative_gid_list = sorted(set(tile_gid_list) - set(gt_positive_gid_list))
 
-    num_negative = min(len(gt_negative_gid_list), max_examples)
-
     # WIC
     model_tag = 'vulcan-d3e8bf43-boost4'
     confidence_list = ibs.vulcan_wic_test(gt_negative_gid_list, model_tag=model_tag)
 
     zipped = sorted(list(zip(confidence_list, gt_negative_gid_list)), reverse=True)
+    num_negative = min(len(gt_negative_gid_list), max_examples)
     zipped = zipped[:num_negative]
     wic_verify_list = set(ut.take_column(zipped, 1))
 
