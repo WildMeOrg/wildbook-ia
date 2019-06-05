@@ -1335,6 +1335,50 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
         >>> # ]
         >>> # ibs.vulcan_wic_validate(config_list)
+        >>>
+        >>>
+        >>> ###############################################################################################################################################################################
+        >>>
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC 5fbfff26 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost0'},
+        >>>     {'label': 'WIC 5fbfff26 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost1'},
+        >>>     {'label': 'WIC 5fbfff26 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost2'},
+        >>>     {'label': 'WIC 5fbfff26 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list)
+        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True)
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC 5fbfff26 R3',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
+        >>>     {'label': 'WIC 5fbfff26 R3:0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:0'},
+        >>>     {'label': 'WIC 5fbfff26 R3:1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:1'},
+        >>>     {'label': 'WIC 5fbfff26 R3:2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:2'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC R4',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost4'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None])
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC+R R6',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost6'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[None])
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost6'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost6'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>>
     """
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
         positive_tile_set = set([])

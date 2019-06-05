@@ -46,6 +46,11 @@ ARCHIVE_URL_DICT = {
     'vulcan-d3e8bf43-boost5'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.5.zip',
     'vulcan-d3e8bf43-boost6'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.6.zip',
     'vulcan-d3e8bf43-boost7'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.7.zip',
+
+    'vulcan-5fbfff26-boost0'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.5fbfff26.0.zip',
+    'vulcan-5fbfff26-boost1'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.5fbfff26.1.zip',
+    'vulcan-5fbfff26-boost2'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.5fbfff26.2.zip',
+    'vulcan-5fbfff26-boost3'    : 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.5fbfff26.3.zip',
 }
 
 
