@@ -17,6 +17,7 @@ import vtool as vt
 import utool as ut
 import cv2
 from ibeis.control import controller_inject
+import tqdm
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
@@ -837,6 +838,103 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
+def _ignore_filter_identity_func(*args, **kwargs):
+    return False
+
+
+def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
+                              ignore_filter_func=None, **kwargs):
+
+    assert 'min_overlap' not in kwargs
+
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    if ignore_filter_func is None:
+        ignore_filter_func = _ignore_filter_identity_func
+
+    print('\tGather Ground-Truth')
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    species_set = kwargs.get('species_set', None)
+    if species_set is not None:
+        # filter out any prefix ! to denote interest only
+        species_set_ = set([ species.lstrip('!') for species in species_set ])
+
+        dict_list = [
+            (gt_dict, 'Ground-Truth'),
+            (pred_dict, 'Predictions'),
+        ]
+        for dict_, dict_tag in dict_list:
+            for image_uuid in dict_:
+                temp = []
+                for val in dict_[image_uuid]:
+                    if val.get('class', None) not in species_set_:
+                        continue
+                    if ignore_filter_func(ibs, val):
+                        continue
+                    temp.append(val)
+                dict_[image_uuid] = temp
+
+    target = (1.0, 1.0)
+    iou_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+
+    conf_list_ = []
+    iou_list_ = []
+    recall_list = []
+    for iou in tqdm.tqdm(iou_list):
+        values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, min_overlap=iou, **kwargs)
+        conf_list, tp_list, fp_list, total = values
+
+        conf_list_ = [-1.0, -1.0]
+        pr_list = [1.0, 0.0]
+        re_list = [0.0, 1.0]
+        for conf, tp, fp in zip(conf_list, tp_list, fp_list):
+            try:
+                pr = tp / (tp + fp)
+                re = tp / total
+            except ZeroDivisionError:
+                continue
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+
+        best_tup = general_identify_operating_point(conf_list, re_list, pr_list, target=target)
+        best_conf_list, best_re_list, best_y_list, best_length = best_tup
+        if len(best_conf_list) > 1:
+            print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
+        assert len(best_conf_list) > 0
+
+        best_re_index = np.argmax(best_re_list)
+        best_re = best_re_list[best_re_list]
+        best_conf = best_conf_list[best_re_index]
+
+        conf_list_.append(best_conf)
+        iou_list_.append(iou)
+        recall_list.append(best_re)
+
+    return conf_list_, iou_list_, re_list
+
+
+def localizer_iou_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, iou_list, re_list = localizer_iou_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
+
+
+# def localizer_iou_precision_algo_plot(ibs, **kwargs):
+#     label = kwargs['label']
+#     print('Processing Precision-Recall for: %r' % (label, ))
+#     conf_list, iou_list, pr_list, re_list = localizer_iou_precision_recall_algo(ibs, **kwargs)
+    # return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
+
+
 def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
                                          test_gid_list=None, **kwargs):
     if test_gid_list is None:
@@ -1403,22 +1501,24 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop')))
 
-    fig_ = plt.figure(figsize=figsize, dpi=400)
-
-    axes_ = plt.subplot(131)
-    axes_.set_autoscalex_on(False)
-    axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Recall (Ground-Truth IOU >= %0.02f)' % (min_overlap, ))
-    axes_.set_ylabel('Precision')
-    axes_.set_xlim([0.0, 1.01])
-    axes_.set_ylim([0.0, 1.01])
-
     color_list_ = []
     for _ in range(offset_color):
         color_list_ += [(0.2, 0.2, 0.2)]
 
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
+
+    fig_ = plt.figure(figsize=figsize, dpi=400)
+
+    ######################################################################################
+
+    axes_ = plt.subplot(141)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall (Ground-Truth IOU >= %0.02f)' % (min_overlap, ))
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
 
     ret_list = [
         localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
@@ -1464,8 +1564,79 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
                borderaxespad=0.0)
 
     ######################################################################################
+
+    axes_ = plt.subplot(142)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('IOU (Intersection / Union)')
+    axes_.set_ylabel('Recall')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+
+    ret_list = [
+        localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
+        for color_, config_ in zip(color_list, config_list)
+    ]
+
+    # area_list = [ ret[0] for ret in ret_list ]
+    # tup2_list = [ ret[3] for ret in ret_list ]
+
+    # best_index = None if BEST_INDEX is None else BEST_INDEX  # Match formatting of below, this is a silly conditional
+
+    # best_y = 0.0
+    # best_index_ = None
+    # valid_best_index = []
+    # for index, tup2 in enumerate(tup2_list):
+    #     if tup2 is None:
+    #         continue
+
+    #     conf_list, x_list, y_list, length = tup2
+    #     y = y_list[0]
+    #     if best_y < y:
+    #         valid_best_index.append(index)
+    #         best_index_ = index
+    #         best_y = y
+
+    # # If user defined best_index is invalid, don't use it
+    # if best_index is None:
+    #     best_index = best_index_
+    # else:
+    #     if best_index not in valid_best_index:
+    #         best_index = None
+
+    # if best_index is not None:
+    #     best_conf_list, best_x_list, best_y_list, best_length = tup2_list[best_index]
+    #     color = 'xkcd:gold'
+    #     marker = 'D'
+    #     plt.plot(best_x_list, best_y_list, color=color, marker=marker)
+
+    plt.title('Recall-IOU Curves', y=1.19)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    ######################################################################################
+
+    # axes_ = plt.subplot(153)
+    # axes_.set_autoscalex_on(False)
+    # axes_.set_autoscaley_on(False)
+    # axes_.set_xlabel('IOU (Intersection / Union)')
+    # axes_.set_ylabel('Precision')
+    # axes_.set_xlim([0.0, 1.01])
+    # axes_.set_ylim([0.0, 1.01])
+
+    # ret_list = [
+    #     localizer_iou_precision_algo_plot(ibs, color=color_, plot_point=False, **config_)
+    #     for color_, config_ in zip(color_list, config_list)
+    # ]
+
+    # plt.title('Precision-IOU Curves', y=1.19)
+    # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+    #            borderaxespad=0.0)
+
+    ######################################################################################
+
     if best_index is not None:
-        axes_ = plt.subplot(133)
+        axes_ = plt.subplot(144)
         axes_.set_aspect(1)
         gca_ = plt.gca()
         gca_.grid(False)
@@ -1487,7 +1658,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         plt.title('Confusion Matrix for Recall >= %0.02f\n(Algo: %s, mAP = %0.02f, OP = %0.02f)' % args, y=1.26)
 
     ######################################################################################
-    axes_ = plt.subplot(132)
+    axes_ = plt.subplot(143)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
