@@ -14,6 +14,9 @@ from os.path import join
 ut.noinject('[const]')
 
 
+PRODUCTION = ut.get_argflag('--production')
+
+
 PI  = math.pi
 TAU = 2.0 * PI
 

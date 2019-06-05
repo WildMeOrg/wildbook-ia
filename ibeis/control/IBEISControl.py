@@ -315,6 +315,7 @@ class IBEISController(BASE_CLASS):
 
         # Hack to store HTTPS flag (deliver secure content in web)
         ibs.https = False
+        ibs.production = const.PRODUCTION
 
         print('[ibs.__init__] END new IBEISController\n')
 
