@@ -309,13 +309,14 @@ class IBEISController(BASE_CLASS):
         is_mac = 'macosx' in ut.get_plat_specifier().lower()
         ibs._parallel_chips = not ibs.force_serial and not is_mac
 
-        ibs.containerized = ut.get_argflag('--containerized')
-        if ibs.containerized:
-            print('[ibs.__init__] CONTAINERIZED: True\n')
+        ibs.containerized = const.CONTAINERIZED
+        ibs.production = const.PRODUCTION
+
+        print('[ibs.__init__] CONTAINERIZED: %s\n' % (ibs.containerized, ))
+        print('[ibs.__init__] PRODUCTION: %s\n' % (ibs.production, ))
 
         # Hack to store HTTPS flag (deliver secure content in web)
         ibs.https = False
-        ibs.production = const.PRODUCTION
 
         print('[ibs.__init__] END new IBEISController\n')
 
