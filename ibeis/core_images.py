@@ -41,6 +41,7 @@ import vtool as vt
 import cv2
 from ibeis.control.controller_inject import register_preprocs
 import sys
+import ibeis.constants as const
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
 
@@ -248,7 +249,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
@@ -338,7 +339,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[dict, list],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_classifications2(depc, gid_list, config=None):
     r"""Extract the multi-class classifications for a given input image.
@@ -567,7 +568,7 @@ class LocalizerOriginalConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerOriginalConfig,
     fname='localizationscache',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_localizations_original(depc, gid_list, config=None):
     r"""Extract the localizations for a given input image.
@@ -848,7 +849,7 @@ class LocalizerConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerConfig,
     fname='detectcache',
-    chunksize=256,
+    chunksize=64 if const.PRODUCTION else 256,
 )
 def compute_localizations(depc, loc_orig_id_list, config=None):
     r"""Extract the localizations for a given input image.
@@ -1284,7 +1285,7 @@ class Chip2Config(dtool.Config):
     coltypes=[ChipListImgType],
     configclass=Chip2Config,
     fname='chipcache4',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_localizations_chips(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
@@ -1377,7 +1378,7 @@ class ClassifierLocalizationsConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=ClassifierLocalizationsConfig,
     fname='detectcache',
-    chunksize=8,
+    chunksize=2 if const.PRODUCTION else 8,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
@@ -1575,7 +1576,7 @@ class Feature2Config(dtool.Config):
     coltypes=[np.ndarray],
     configclass=Feature2Config,
     fname='featcache',
-    chunksize=4,
+    chunksize=2 if const.PRODUCTION else 4,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
     r"""Compute features on images using pre-trained state-of-the-art models in Keras.
@@ -1720,7 +1721,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_localizations_labels(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
@@ -1835,7 +1836,7 @@ class AoIConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=AoIConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_localizations_interest(depc, loc_id_list, config=None):
     r"""Extract the detections for a given input image.
@@ -1925,7 +1926,7 @@ class DetectorConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=DetectorConfig,
     fname='detectcache',
-    chunksize=256,
+    chunksize=32 if const.PRODUCTION else 256,
 )
 def compute_detections(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
