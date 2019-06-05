@@ -54,6 +54,7 @@ import utool as ut
 import vtool as vt
 import numpy as np
 import cv2
+import ibeis.constants as const
 from ibeis.control.controller_inject import register_preprocs, register_subprops
 from ibeis.algo.hots.chip_match import ChipMatch
 from ibeis.algo.hots import neighbor_index
@@ -1187,7 +1188,7 @@ class FeatWeightConfig(dtool.Config):
     colnames=['fwg'],
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
-    fname='featcache', chunksize=512,
+    fname='featcache', chunksize=64 if const.PRODUCTION else 512,
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
@@ -1660,7 +1661,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='chipcache4',
-    chunksize=1024,
+    chunksize=32 if const.PRODUCTION else 1024,
 )
 def compute_classifications(depc, aid_list, config=None):
     r"""
@@ -1733,7 +1734,7 @@ class CanonicalConfig(dtool.Config):
     coltypes=[float, float, float, float],
     configclass=CanonicalConfig,
     fname='canonicalcache4',
-    chunksize=1024,
+    chunksize=32 if const.PRODUCTION else 1024,
 )
 def compute_canonical(depc, aid_list, config=None):
     r"""
@@ -1797,7 +1798,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
-    chunksize=128,
+    chunksize=32 if const.PRODUCTION else 128,
 )
 def compute_labels_annotations(depc, aid_list, config=None):
     r"""
@@ -1887,7 +1888,7 @@ class AoIConfig(dtool.Config):
     coltypes=[float, str],
     configclass=AoIConfig,
     fname='chipcache4',
-    chunksize=256,
+    chunksize=32 if const.PRODUCTION else 256,
 )
 def compute_aoi2(depc, aid_list, config=None):
     r"""
