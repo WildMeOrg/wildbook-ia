@@ -341,7 +341,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
 
     compute_params = params_list is None
     if compute_params:
-        params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+        params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
 
     # <DEBUG>
     debug = False
@@ -367,70 +367,63 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     all_gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
                                       ibs.get_image_gids_from_uuid)
 
-    none_idxs = ut.where(ut.flag_None_items(all_gid_list))
-    ut.take(params_list, none_idxs)
-
-    gpath_list = ibs.get_image_paths(all_gid_list)
-    guuid_list = ibs.get_image_uuids(all_gid_list)
-    gext_list  = ibs.get_image_exts(all_gid_list)
-
-    has_duplicates = ut.duplicates_exist(all_gid_list)
-
-    if ensure_unique and has_duplicates:
-        ut.debug_duplicate_items(all_gid_list, gpath_list, guuid_list, gext_list)
-
-    if not compute_params:
-        # We need to double check that the UUIDs are valid, considering we received the UUIDs
-        guuid_list_ = ibs.compute_image_uuids(gpath_list)
-        assert guuid_list_ == guuid_list
-
-    if has_duplicates:
-        flag_list = []
-        seen_set = set([])
-        for gid in all_gid_list:
-            if gid is None:
-                flag = False
-            else:
-                flag = gid not in seen_set
-                seen_set.add(gid)
-            flag_list.append(flag)
-        gid_list = ut.compress(all_gid_list, flag_list)
-        params_list = ut.compress(params_list, flag_list)
-    else:
-        gid_list = all_gid_list
+    # Filter for valid images and de-duplicate
+    none_set = set([None])
+    all_gid_set = set(all_gid_list)
+    all_valid_gid_set = all_gid_set - none_set
+    all_valid_gid_list = list(all_valid_gid_set)
 
     if auto_localize:
         # Move to ibeis database local cache
-        ibs.localize_images(gid_list)
+        ibs.localize_images(all_valid_gid_list)
 
-    if as_annots:
-        # Add succesfull imports as annotations
-        aid_list = ibs.use_images_as_annotations(gid_list)
-        print('[ibs] added %d annotations' % (len(aid_list),))
+    # Check for duplicates
+    has_duplicates = ut.duplicates_exist(all_gid_list)
+    if ensure_unique and has_duplicates:
+        debug_gpath_list = ibs.get_image_paths(all_gid_list)
+        debug_guuid_list = ibs.get_image_uuids(all_gid_list)
+        debug_gext_list  = ibs.get_image_exts(all_gid_list)
+        ut.debug_duplicate_items(all_gid_list, debug_gpath_list, debug_guuid_list, debug_gext_list)
 
     # Check loadable
     if ensure_loadable or ensure_exif:
-        bad_load_list, bad_exif_list = ibs.check_image_loadable(gid_list)
+        valid_gpath_list = ibs.get_image_paths(all_valid_gid_list)
+        bad_load_list, bad_exif_list = ibs.check_image_loadable(all_valid_gid_list)
         bad_load_set = set(bad_load_list)
         bad_exif_set = set(bad_exif_list)
 
-        all_gid_list_ = []
-        delete_gid_list = []
-        for gid, gpath in zip(all_gid_list, gpath_list):
-            gid_ = gid
-            if gid in bad_load_set:
-                print('Loadable Image Validation: Failed to load %r' % (gpath, ))
-                gid_ = None
-            if gid_ is not None and gid in bad_exif_set and ensure_exif:
-                print('Loadable EXIF Validation:  Failed to load %r' % (gpath, ))
-                gid_ = None
-            all_gid_list_.append(gid_)
-            if gid is not None and gid_ is None:
-                delete_gid_list.append(gid)
+        delete_gid_set = set([])
+        for valid_gid, valid_gpath in zip(all_valid_gid_list, valid_gpath_list):
+            if ensure_loadable and valid_gid in bad_load_set:
+                print('Loadable Image Validation: Failed to load %r' % (valid_gpath, ))
+                delete_gid_set.add(valid_gid)
+            if ensure_exif and valid_gid in bad_exif_set:
+                print('Loadable EXIF Validation:  Failed to load %r' % (valid_gpath, ))
+                delete_gid_set.add(valid_gid)
 
+        delete_gid_list = list(delete_gid_set)
         ibs.delete_images(delete_gid_list, trash_images=False)
-        all_gid_list = all_gid_list_
 
+        all_valid_gid_set = all_gid_set - delete_gid_set - none_set
+        all_valid_gid_list = list(all_valid_gid_set)
+
+    if not compute_params:
+        # We need to double check that the UUIDs are valid, considering we received the UUIDs
+        guuid_list = ibs.get_image_uuids(all_gid_list)
+        guuid_list_ = ibs.compute_image_uuids(gpath_list)
+        assert guuid_list == guuid_list_
+
+    if as_annots:
+        # Add succesfull imports as annotations
+        aid_list = ibs.use_images_as_annotations(all_valid_gid_list)
+        print('[ibs] added %d annotations' % (len(aid_list),))
+
+    # None out any gids that didn't pass the validity check
+    assert None not in all_valid_gid_set
+    all_gid_list = [
+        aid if aid in all_valid_gid_set else None
+        for aid in all_gid_list
+    ]
     assert len(gpath_list) == len(all_gid_list)
     return all_gid_list
 
@@ -514,6 +507,7 @@ def localize_images(ibs, gid_list_=None):
     guuid_strs = (str(guuid) for guuid in guuid_list)
     loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
+
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
         print('Localizing %r -> %r' % (uri, loc_gpath, ))
@@ -1412,11 +1406,30 @@ def get_image_paths(ibs, gid_list):
     """
     #ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
-    # Images should never have null uris
-    # If the uri is not absolute then it is inferred to be relative to ibs.imgdir
-    #ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
-    # Note: join does not prepend anything if the uri is absolute
-    gpath_list = [None if uri is None else join(ibs.imgdir, uri) for uri in uri_list]
+
+    url_protos = ['https://', 'http://']
+    s3_proto = ['s3://']
+    valid_protos = s3_proto + url_protos
+
+    def isproto(uri, valid_protos):
+        return any(uri.startswith(proto) for proto in valid_protos)
+
+    def islocal(uri):
+        return not (isabs(uri) and isproto(uri, valid_protos))
+
+    gpath_list = []
+    for uri in uri_list:
+        if uri is None:
+            gpath = None
+        elif isproto(uri, valid_protos):
+            gpath = uri
+        elif isabs(uri):
+            gpath = uri
+        else:
+            assert islocal(uri)
+            gpath = join(ibs.imgdir, uri)
+        gpath_list.append(gpath)
+
     return gpath_list
 
 
