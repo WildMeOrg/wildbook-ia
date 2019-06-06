@@ -95,7 +95,7 @@ def update_proctitle(procname, dbname=None):
         # new_title = procname + ' ' + old_title
         # new_title = 'ibeis_zmq_loop'
         hostname = ut.get_computer_name()
-        new_title = 'IBEIS_db_%s_host_%s_new_%s_old_%s' % (dbname, hostname, procname, old_title, )
+        new_title = 'IBEIS_%s_%s_%s' % (dbname, hostname, procname, )
         print('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:

@@ -630,18 +630,21 @@ def models_cnn(ibs, config_dict, parse_classes_func, parse_line_func, check_hash
         if config_tag in hidden_models:
             continue
 
-        config_url = config_dict[config_tag]
-        classes_url = parse_classes_func(config_url)
         try:
-            classes_filepath = ut.grab_file_url(classes_url, appname='ibeis',
-                                                check_hash=check_hash)
-            assert exists(classes_filepath)
-        except (urllib.error.HTTPError, AssertionError):
-            continue
+            config_url = config_dict[config_tag]
+            classes_url = parse_classes_func(config_url)
+            try:
+                classes_filepath = ut.grab_file_url(classes_url, appname='ibeis',
+                                                    check_hash=check_hash)
+                assert exists(classes_filepath)
+            except (urllib.error.HTTPError, AssertionError):
+                continue
 
-        classes_filepath = ut.truepath(classes_filepath)
-        line_list = parse_line_func(classes_filepath)
-        model_dict[config_tag] = line_list
+            classes_filepath = ut.truepath(classes_filepath)
+            line_list = parse_line_func(classes_filepath)
+            model_dict[config_tag] = line_list
+        except:
+            pass
 
     return model_dict
 
