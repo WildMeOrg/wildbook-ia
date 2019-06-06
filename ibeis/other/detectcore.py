@@ -454,7 +454,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             h = ymax - ymin
             area = w * h
 
-            individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
+            # individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
             reviews = ibs.get_review_rowids_from_single([aid])[0]
             user_list = ibs.get_review_identity(reviews)
             aid_tuple_list = ibs.get_review_aid_tuple(reviews)
@@ -489,7 +489,8 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
                 'category_id'       : category_dict[species_name],
                 'id'                : annot_index,
                 'ibeis_annot_uuid'  : str(ibs.get_annot_uuids(aid)),
-                'individual_ids'    : individuals,
+                'ibeis_annot_name'  : str(ibs.get_annot_name_texts(aid)),
+                # 'individual_ids'    : individuals,
             }
             if include_reviews:
                 annot['review_ids'] = list(zip(ids, decisions))
@@ -511,14 +512,14 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             annot = annots[index]
 
             # Map internal aids to external annot index
-            individual_ids = annot['individual_ids']
-            individual_ids_ = []
-            for individual_id in individual_ids:
-                if individual_id not in aid_dict:
-                    continue
-                individual_id_ = aid_dict[individual_id]
-                individual_ids_.append(individual_id_)
-            annot['individual_ids'] = individual_ids_
+            # individual_ids = annot['individual_ids']
+            # individual_ids_ = []
+            # for individual_id in individual_ids:
+            #     if individual_id not in aid_dict:
+            #         continue
+            #     individual_id_ = aid_dict[individual_id]
+            #     individual_ids_.append(individual_id_)
+            # annot['individual_ids'] = individual_ids_
 
             # Map reviews
             if include_reviews:
