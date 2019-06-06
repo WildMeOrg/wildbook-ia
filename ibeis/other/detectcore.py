@@ -372,9 +372,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         else:
             raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
 
-        _image = ibs.get_images(gid)
-        height, width, channels = _image.shape
-
+        width, height = ibs.get_image_sizes(gid)
         if target_size is None:
             decrease = 1.0
         else:
@@ -395,6 +393,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         image_filepath = join(image_dir_dict[dataset], image_filename)
 
         if output_images:
+            _image = ibs.get_images(gid)
             _image = vt.resize(_image, (width, height))
             vt.imwrite(image_filepath, _image)
 
