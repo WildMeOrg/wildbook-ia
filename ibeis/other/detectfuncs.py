@@ -904,7 +904,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
+def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
                               ignore_filter_func=None, **kwargs):
 
     assert 'min_overlap' not in kwargs
@@ -943,6 +943,7 @@ def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
                     temp.append(val)
                 dict_[image_uuid] = temp
 
+    ut.embed()
     target = (1.0, 1.0)
     iou_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
@@ -985,14 +986,14 @@ def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
 
 def localizer_iou_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    print('Processing IoU-Recall for: %r' % (label, ))
     conf_list, iou_list, re_list = localizer_iou_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
 #     label = kwargs['label']
-#     print('Processing Precision-Recall for: %r' % (label, ))
+#     print('Processing IoU-Precision for: %r' % (label, ))
 #     conf_list, iou_list, pr_list, re_list = localizer_iou_precision_recall_algo(ibs, **kwargs)
     # return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
 
@@ -1568,7 +1569,7 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
 
 
 @register_ibs_method
-def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(30, 9),
+def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(40, 9),
                                             target_recall=0.8, BEST_INDEX=None, offset_color=0,
                                             write_images=False, plot_point=True, output_path=None, **kwargs):
     import matplotlib.pyplot as plt
