@@ -904,7 +904,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
+def localizer_iou_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
                               ignore_filter_func=None, **kwargs):
 
     assert 'min_overlap' not in kwargs
