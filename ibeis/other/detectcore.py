@@ -502,7 +502,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             aid_dict[aid] = annot_index
             annot_index += 1
 
-        assert seen > 0
+        # assert seen > 0
         image_index += 1
 
     for dataset in output_dict:
