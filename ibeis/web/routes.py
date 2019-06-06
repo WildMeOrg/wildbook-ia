@@ -3682,7 +3682,8 @@ def turk_identification_graph_refer(imgsetid, **kwargs):
     if ibs.dbname == 'ZEBRA_Kaia':
         assert imgsetid == 3925
 
-        desired_species = 'zebra_grevys'
+        # desired_species = 'zebra_grevys'
+        desired_species = 'zebra_plains'
 
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
         current_gids = ibs.get_imageset_gids(current_imageset_rowid)
