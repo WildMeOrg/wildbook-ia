@@ -85,15 +85,17 @@ TIMESTAMP_FMTSTR = '%Y-%m-%d %H:%M:%S %Z'
 TIMESTAMP_TIMEZONE = 'US/Pacific'
 
 
-def update_proctitle(procname):
+def update_proctitle(procname, dbname=None):
     try:
         import setproctitle
         print('CHANGING PROCESS TITLE')
         old_title = setproctitle.getproctitle()
         print('old_title = %r' % (old_title,))
-        #new_title = 'IBEIS_' + procname + ' ' + old_title
-        #new_title = procname + ' ' + old_title
-        new_title = 'ibeis_zmq_loop'
+        # new_title = 'IBEIS_' + procname + ' ' + old_title
+        # new_title = procname + ' ' + old_title
+        # new_title = 'ibeis_zmq_loop'
+        hostname = ut.get_computer_name()
+        new_title = 'IBEIS_db_%s_host_%s_new_%s_old_%s' % (dbname, hostname, procname, old_title, )
         print('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:
@@ -964,7 +966,6 @@ def engine_loop(id_, port_dict, dbdir, containerized):
     import ibeis
     import utool as ut
     ut.util_parallel.__FORCE_SERIAL__ = True
-    update_proctitle('engine_loop')
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='darkred')
     with ut.Indenter('[engine %d] ' % (id_)):
@@ -974,6 +975,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
         assert dbdir is not None
         # ibs = ibeis.opendb(dbdir=dbdir, web=False, force_serial=False)
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
+        update_proctitle('engine_loop', dbname=ibs.dbname)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
         engine_rout_sock.connect(port_dict['engine_url2'])
@@ -1037,6 +1039,17 @@ def engine_loop(id_, port_dict, dbdir, containerized):
                     'action': 'notification',
                 }
                 collect_deal_sock.send_json(reply_notify)
+
+                # We no longer need the engine result, and can clear it's memory
+                engine_result = None
+                collect_request = None
+
+                # Explicitly try to release GPU memory
+                try:
+                    import torch
+                    torch.cuda.empty_cache()
+                except:
+                    pass
         except KeyboardInterrupt:
             print('Caught ctrl+c in engine loop. Gracefully exiting')
         # ----
@@ -1085,7 +1098,6 @@ def collector_loop(port_dict, dbdir, containerized):
     Service that stores completed algorithm results
     """
     import ibeis
-    update_proctitle('collector_loop')
     print = partial(ut.colorprint, color='yellow')
     with ut.Indenter('[collect] '):
         collect_rout_sock = ctx.socket(zmq.ROUTER)
@@ -1095,6 +1107,8 @@ def collector_loop(port_dict, dbdir, containerized):
             print('connect collect_url2  = %r' % (port_dict['collect_url2'],))
 
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+        update_proctitle('collector_loop', dbname=ibs.dbname)
+
         # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
         shelve_path = ibs.get_shelves_path()
 
