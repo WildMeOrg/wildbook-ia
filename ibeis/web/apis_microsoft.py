@@ -281,12 +281,16 @@ def microsoft_detect_model(ibs, *args, **kwargs):
         schema:
           type: object
     """
+
     hidden_models = [
         'hendrik_elephant',
         'hendrik_elephant_ears',
         'hendrik_elephant_ears_left',
         'hendrik_dorsal',
         'candidacy',
+        'vulcan_v0',
+        'vulcan_v1',
+        'training_kit',
         None,
     ]
     return ibs.models_cnn_lightnet(hidden_models=hidden_models)
