@@ -943,7 +943,6 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
                     temp.append(val)
                 dict_[image_uuid] = temp
 
-    ut.embed()
     target = (1.0, 1.0)
     iou_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
@@ -954,9 +953,9 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
         values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, min_overlap=iou, **kwargs)
         conf_list, tp_list, fp_list, total = values
 
-        conf_list_ = [-1.0, -1.0]
-        pr_list = [1.0, 0.0]
-        re_list = [0.0, 1.0]
+        conf_list_ = []
+        pr_list = []
+        re_list = []
         for conf, tp, fp in zip(conf_list, tp_list, fp_list):
             try:
                 pr = tp / (tp + fp)
@@ -967,8 +966,8 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
             pr_list.append(pr)
             re_list.append(re)
 
-        best_tup = general_identify_operating_point(conf_list, re_list, pr_list, target=target)
-        best_conf_list, best_re_list, best_y_list, best_length = best_tup
+        best_tup = general_identify_operating_point(conf_list, re_list, re_list, target=target)
+        best_conf_list, best_re_list, best_pr_list, best_length = best_tup
         if len(best_conf_list) > 1:
             print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
         assert len(best_conf_list) > 0
@@ -981,14 +980,14 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
         iou_list_.append(iou)
         recall_list.append(best_re)
 
-    return conf_list_, iou_list_, re_list
+    return conf_list_, iou_list_, recall_list
 
 
 def localizer_iou_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     print('Processing IoU-Recall for: %r' % (label, ))
-    conf_list, iou_list, re_list = localizer_iou_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, iou_list, re_list, **kwargs)
+    conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, iou_list, recall_list, **kwargs)
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
