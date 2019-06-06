@@ -2060,17 +2060,17 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     species_set = set([target_species])
     template_v0 = (
         [
-            # {'label': 'Elephant V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
             {'label': 'Elephant V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
             {'label': 'Elephant V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': 'Elephant V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
         ],
         {},
     )
@@ -2083,26 +2083,6 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     values = ibs.vulcan_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
-
-    gt_positive_test_gid_list = gt_positive_test_gid_list[:100]
-    # gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
-
-    # model_tag = 'vulcan-d3e8bf43-boost4'
-    # all_test_confidence_list = ibs.vulcan_wic_test(all_test_gid_list, model_tag=model_tag)
-    # all_test_flag_list = [
-    #     all_test_confidence >= thresh
-    #     for all_test_confidence in all_test_confidence_list
-    # ]
-    # wic_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, all_test_flag_list))
-    # wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
-
-    # config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
-
-    # Visualize
-    # ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
-    # ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
-
-    # ignore_filter_func_ = partial(ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
     # All Positive Tiles (All)
     config_dict = {
