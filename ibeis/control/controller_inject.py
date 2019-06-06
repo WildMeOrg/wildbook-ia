@@ -106,6 +106,9 @@ if MICROSOFT_API_ENABLED:
     WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG
 
 
+STRICT_VERSION_API = False  # True == Microsoft Deployment (i.e., only allow /wildme/v0.1/ prefixes)
+
+
 def get_flask_app(templates_auto_reload=True):
     # TODO this should be initialized explicity in main_module.py only if needed
     global GLOBAL_APP

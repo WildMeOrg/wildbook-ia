@@ -375,17 +375,20 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         _image = ibs.get_images(gid)
         height, width, channels = _image.shape
 
-        condition = width > height if use_maximum_linear_dimension else width < height
-        if condition:
-            ratio = height / width
-            decrease = target_size / width
-            width = target_size
-            height = int(target_size * ratio)
+        if target_size is None:
+            decrease = 1.0
         else:
-            ratio = width / height
-            decrease = target_size / height
-            height = target_size
-            width = int(target_size * ratio)
+            condition = width > height if use_maximum_linear_dimension else width < height
+            if condition:
+                ratio = height / width
+                decrease = target_size / width
+                width = target_size
+                height = int(target_size * ratio)
+            else:
+                ratio = width / height
+                decrease = target_size / height
+                height = target_size
+                width = int(target_size * ratio)
 
         image_path = ibs.get_image_paths(gid)
         image_filename = '%012d.jpg' % (image_index, )
