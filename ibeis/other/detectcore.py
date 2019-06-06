@@ -400,7 +400,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
 def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
                    use_maximum_linear_dimension=True,
                    use_existing_train_test=True, gid_list=None,
-                   include_reviews=False, require_named=False, **kwargs):
+                   include_reviews=False, require_named=True, output_images=True,
+                   **kwargs):
     """Create training COCO dataset for training models."""
     from datetime import date
     import datetime
@@ -538,8 +539,10 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         image_path = ibs.get_image_paths(gid)
         image_filename = '%012d.jpg' % (image_index, )
         image_filepath = join(image_dir_dict[dataset], image_filename)
-        _image = vt.resize(_image, (width, height))
-        vt.imwrite(image_filepath, _image)
+
+        if output_images:
+            _image = vt.resize(_image, (width, height))
+            vt.imwrite(image_filepath, _image)
 
         output_dict[dataset]['images'].append({
             'license'           : 3,
@@ -645,7 +648,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             aid_dict[aid] = annot_index
             annot_index += 1
 
-        assert seen > 0
+        # assert seen > 0
         image_index += 1
 
     for dataset in output_dict:
