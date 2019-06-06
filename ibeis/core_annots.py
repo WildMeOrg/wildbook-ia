@@ -1798,7 +1798,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
-    chunksize=32 if const.PRODUCTION else 128,
+    chunksize=8 if const.PRODUCTION else 128,
 )
 def compute_labels_annotations(depc, aid_list, config=None):
     r"""
