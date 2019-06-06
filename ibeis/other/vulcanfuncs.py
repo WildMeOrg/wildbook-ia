@@ -1347,7 +1347,7 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC 5fbfff26 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list)
-        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], fn_recovery=True)
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC 5fbfff26 R3',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
@@ -1356,25 +1356,34 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC 5fbfff26 R3:2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:2'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
+        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None], fn_recovery=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC R4',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost4'},
-        >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None])
-        >>>
-        >>> config_list = [
-        >>>     {'label': 'WIC+R R6',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost6'},
-        >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[None])
-        >>>
-        >>> config_list = [
-        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost6'},
+        >>>     {'label': 'WIC 5fbfff26 R0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0'},
+        >>>     {'label': 'WIC 5fbfff26 R1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1'},
+        >>>     {'label': 'WIC 5fbfff26 R2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2'},
+        >>>     {'label': 'WIC 5fbfff26 R3',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost6'},
+        >>>     {'label': 'WIC 5fbfff26 R0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0'},
+        >>>     {'label': 'WIC 5fbfff26 R0:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0:0'},
+        >>>     {'label': 'WIC 5fbfff26 R0:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0:1'},
+        >>>     {'label': 'WIC 5fbfff26 R0:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0:2'},
+        >>>     {'label': 'WIC 5fbfff26 R1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1'},
+        >>>     {'label': 'WIC 5fbfff26 R1:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1:0'},
+        >>>     {'label': 'WIC 5fbfff26 R1:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1:1'},
+        >>>     {'label': 'WIC 5fbfff26 R1:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1:2'},
+        >>>     {'label': 'WIC 5fbfff26 R2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2'},
+        >>>     {'label': 'WIC 5fbfff26 R2:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2:0'},
+        >>>     {'label': 'WIC 5fbfff26 R2:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2:1'},
+        >>>     {'label': 'WIC 5fbfff26 R2:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2:2'},
+        >>>     {'label': 'WIC 5fbfff26 R3',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3'},
+        >>>     {'label': 'WIC 5fbfff26 R3:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3:0'},
+        >>>     {'label': 'WIC 5fbfff26 R3:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3:1'},
+        >>>     {'label': 'WIC 5fbfff26 R3:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3:2'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
@@ -2150,7 +2159,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=100, **kwargs):
+def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=500, use_wic=True, use_loc=False, **kwargs):
     from ibeis.other.detectfuncs import localizer_parse_pred
 
     tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
@@ -2162,40 +2171,46 @@ def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=100, **kwargs):
     gt_negative_gid_list = sorted(set(tile_gid_list) - set(gt_positive_gid_list))
 
     # WIC
-    model_tag = 'vulcan-d3e8bf43-boost4'
-    confidence_list = ibs.vulcan_wic_test(gt_negative_gid_list, model_tag=model_tag)
+    if use_wic:
+        model_tag = 'vulcan-5fbfff26-boost3'
+        confidence_list = ibs.vulcan_wic_test(gt_negative_gid_list, model_tag=model_tag)
 
-    zipped = sorted(list(zip(confidence_list, gt_negative_gid_list)), reverse=True)
-    num_negative = min(len(gt_negative_gid_list), max_examples)
-    zipped = zipped[:num_negative]
-    wic_verify_list = set(ut.take_column(zipped, 1))
+        zipped = sorted(list(zip(confidence_list, gt_negative_gid_list)), reverse=True)
+        num_negative = min(len(gt_negative_gid_list), max_examples)
+        zipped = zipped[:num_negative]
+        wic_verify_set = set(ut.take_column(zipped, 1))
+    else:
+        wic_verify_set = set([])
 
     # Localizer
-    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': 0.4425}
-    prediction_list = localizer_parse_pred(ibs, test_gid_list=gt_negative_gid_list, **config)
+    if use_loc:
+        config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': 0.4425}
+        prediction_list = localizer_parse_pred(ibs, test_gid_list=gt_negative_gid_list, **config)
 
-    value_list =  []
-    for negative_uuid in prediction_list:
-        negative_pred = prediction_list[negative_uuid]
-        area = 0
-        for pred in negative_pred:
-            w, h = pred['width'], pred['height']
-            area += w * h
-        value = (
-            len(negative_pred),
-            area,
-            negative_uuid,
-        )
-        value_list.append(value)
+        value_list =  []
+        for negative_uuid in prediction_list:
+            negative_pred = prediction_list[negative_uuid]
+            area = 0
+            for pred in negative_pred:
+                w, h = pred['width'], pred['height']
+                area += w * h
+            value = (
+                len(negative_pred),
+                area,
+                negative_uuid,
+            )
+            value_list.append(value)
 
-    zipped = sorted(value_list, reverse=True)
-    zipped = zipped[:num_negative]
-    loc_verify_list = ut.take_column(zipped, 2)
-    loc_verify_list = set(ibs.get_image_gids_from_uuid(loc_verify_list))
+        zipped = sorted(value_list, reverse=True)
+        zipped = zipped[:num_negative]
+        loc_verify_set = ut.take_column(zipped, 2)
+        loc_verify_set = set(ibs.get_image_gids_from_uuid(loc_verify_set))
+    else:
+        loc_verify_set = set([])
 
-    print('Suggested WIC Verify: %d' % (len(wic_verify_list), ))
-    print('Suggested LOC Verify: %d' % (len(loc_verify_list), ))
-    verify_list = list(wic_verify_list | loc_verify_list)
+    print('Suggested WIC Verify: %d' % (len(wic_verify_set), ))
+    print('Suggested LOC Verify: %d' % (len(loc_verify_set), ))
+    verify_list = list(wic_verify_set | loc_verify_set)
 
     verify_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(verify_list)
     verify_gid_set = list(set(verify_gid_list))
