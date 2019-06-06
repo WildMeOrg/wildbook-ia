@@ -904,10 +904,6 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def _ignore_filter_identity_func(*args, **kwargs):
-    return False
-
-
 def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
                               ignore_filter_func=None, **kwargs):
 
