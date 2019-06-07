@@ -1030,8 +1030,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
         else:
             ibs.update_annot_rotate_right_90(aid_list)
 
-    ibs.depc_image.delete_property_all('thumbnails', gid_list)
-    ibs.depc_image.delete_property_all('web_src',    gid_list)
+    ibs.delete_image_thumbs(gid_list)
 
 
 @register_ibs_method
@@ -2376,6 +2375,7 @@ def delete_images(ibs, gid_list, trash_images=True):
     ibs.delete_annots(aid_list)
     # delete thumbs in case an annot doesnt delete them
     # TODO: pass flag to not delete them in delete_annots
+    gid_list = list(set(gid_list))
     ibs.delete_image_thumbs(gid_list)
     ibs.depc_image.delete_root(gid_list)
     ibs.db.delete_rowids(const.IMAGE_TABLE, gid_list)
@@ -2414,25 +2414,29 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         >>> for path in gpath_list:
         >>>     utool.assertpath(path)
     """
-    if ut.VERBOSE:
-        print('[ibs] deleting %d image thumbnails' % len(gid_list))
-        if DEBUG_THUMB:
-            print('{THUMB DELETE} config2_ = %r' % (config2_,))
+    ibs.depc_image.delete_property_all('thumbnails', gid_list)
+    ibs.depc_image.delete_property_all('web_src',    gid_list)
 
-    # TODO: delete all configs?
-    num_deleted = ibs.depc_image.delete_property('thumbnails', gid_list,
-                                                 config=config2_)
+    # if ut.VERBOSE:
+    #     print('[ibs] deleting %d image thumbnails' % len(gid_list))
+    #     if DEBUG_THUMB:
+    #         print('{THUMB DELETE} config2_ = %r' % (config2_,))
 
-    # HACK: Remove paths computed by QT and not the depcache.
-    thumbpath_list = ibs.get_image_thumbpath(gid_list, **config2_)
-    #print('thumbpath_list = %r' % (thumbpath_list,))
-    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
-    ut.remove_existing_fpaths(thumbpath_list, quiet=True,
-                              lbl='image_thumbs')
+    # # TODO: delete all configs?
+    # gid_list = list(set(gid_list))
+    # num_deleted = ibs.depc_image.delete_property('thumbnails', gid_list,
+    #                                              config=config2_)
 
-    if DEBUG_THUMB:
-        print('num_deleted = %r' % (num_deleted,))
-        print('{THUMB DELETE} DONE DELETE')
+    # # HACK: Remove paths computed by QT and not the depcache.
+    # thumbpath_list = ibs.get_image_thumbpath(gid_list, **config2_)
+    # #print('thumbpath_list = %r' % (thumbpath_list,))
+    # #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
+    # ut.remove_existing_fpaths(thumbpath_list, quiet=True,
+    #                           lbl='image_thumbs')
+
+    # if DEBUG_THUMB:
+    #     print('num_deleted = %r' % (num_deleted,))
+    #     print('{THUMB DELETE} DONE DELETE')
 
 
 @register_ibs_method
