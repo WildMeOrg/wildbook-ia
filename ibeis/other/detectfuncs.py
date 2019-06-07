@@ -988,7 +988,7 @@ def localizer_iou_recall_algo_plot(ibs, **kwargs):
     print('Processing IoU-Recall for: %r' % (label, ))
     conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, iou_list, recall_list,
-                                  interpolation=False, **kwargs)
+                                  interpolate=False, **kwargs)
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
