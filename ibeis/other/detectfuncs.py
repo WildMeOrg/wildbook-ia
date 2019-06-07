@@ -988,7 +988,7 @@ def localizer_iou_recall_algo_plot(ibs, **kwargs):
     print('Processing IoU-Recall for: %r' % (label, ))
     conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, iou_list, recall_list,
-                                  interpolate=False, **kwargs)
+                                  interpolation=False, **kwargs)
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
@@ -1654,6 +1654,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
         localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
         for color_, config_ in zip(color_list, config_list)
     ]
+    plt.plot([min_overlap, min_overlap], [0.0, 1.0], color=(0.5, 0.5, 0.5), linestyle='--')
 
     # area_list = [ ret[0] for ret in ret_list ]
     # tup2_list = [ ret[3] for ret in ret_list ]

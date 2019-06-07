@@ -2084,13 +2084,19 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
 
-    gt_positive_test_gid_list = gt_positive_test_gid_list[:100]
+    ignore_filter_func_ = partial(ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
     # All Positive Tiles (All)
     config_dict = {
         'vulcan-gt-positive-all-v0': template_v0,
     }
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
+
+    # All Positive Tiles (Margin)
+    config_dict = {
+        'vulcan-gt-positive-margin-%s-v0' % (margin, ): template_v0,
+    }
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_)
 
 
 # @register_ibs_method
