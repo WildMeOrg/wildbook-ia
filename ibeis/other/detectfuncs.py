@@ -905,7 +905,7 @@ def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
             re_list.append(re)
 
         best_tup = general_identify_operating_point(conf_list, re_list, pr_list, target=target)
-        best_conf_list, best_re_list, best_y_list, best_length = best_tup
+        best_conf_list, best_re_list, best_pr_list, best_length = best_tup
         if len(best_conf_list) > 1:
             print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
         assert len(best_conf_list) > 0
