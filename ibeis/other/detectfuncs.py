@@ -241,6 +241,8 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     y_list = [_[1] for _ in zipped]
     conf_list = [_[2] for _ in zipped]
 
+    ut.embed()
+
     if interpolate:
         conf_list, x_list, y_list = general_interpolate_precision_recall(
             conf_list,

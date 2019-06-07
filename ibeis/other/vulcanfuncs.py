@@ -2017,7 +2017,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=2.0, co
     tid_list = sorted(list(positive_gid_set | negative_gid_set))
 
     species_list = [target_species]
-    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, cuda_device='1', target_size=256, **kwargs)
+    values = ibs.localizer_lightnet_train(species_list, gid_list=tid_list, cuda_device='0,1', target_size=256, **kwargs)
     model_weight_filepath, model_config_filepath = values
 
     return model_weight_filepath, model_config_filepath
@@ -2083,6 +2083,8 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     values = ibs.vulcan_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
+
+    gt_positive_test_gid_list = gt_positive_test_gid_list[:100]
 
     # All Positive Tiles (All)
     config_dict = {
@@ -2228,7 +2230,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=500, use_wic=True, use_loc=False, **kwargs):
+def vulcan_verify_negative_gt_suggestsions(ibs, min_confidence=0.5, max_examples=None, use_wic=True, use_loc=False, **kwargs):
     from ibeis.other.detectfuncs import localizer_parse_pred
 
     tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
@@ -2245,9 +2247,19 @@ def vulcan_verify_negative_gt_suggestsions(ibs, max_examples=500, use_wic=True, 
         confidence_list = ibs.vulcan_wic_test(gt_negative_gid_list, model_tag=model_tag)
 
         zipped = sorted(list(zip(confidence_list, gt_negative_gid_list)), reverse=True)
-        num_negative = min(len(gt_negative_gid_list), max_examples)
+        if max_examples is None:
+            num_negative = min(len(gt_negative_gid_list), max_examples)
+        else:
+            for index, value in enumerate(zipped):
+                if value[0] < min_confidence:
+                    break
+            num_negative = index
+
         zipped = zipped[:num_negative]
+        wic_confidence_list = ut.take_column(zipped, 0)
         wic_verify_set = set(ut.take_column(zipped, 1))
+        print('Num negative: %d' % (num_negative, ))
+        print('Confidence: Min %0.02f, Max %0.02f' % (min(wic_confidence_list), max(wic_confidence_list), ))
     else:
         wic_verify_set = set([])
 
