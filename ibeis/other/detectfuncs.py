@@ -241,8 +241,6 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     y_list = [_[1] for _ in zipped]
     conf_list = [_[2] for _ in zipped]
 
-    ut.embed()
-
     if interpolate:
         conf_list, x_list, y_list = general_interpolate_precision_recall(
             conf_list,
@@ -990,7 +988,7 @@ def localizer_iou_recall_algo_plot(ibs, **kwargs):
     print('Processing IoU-Recall for: %r' % (label, ))
     conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, iou_list, recall_list,
-                                  interpolation=False, **kwargs)
+                                  interpolate=False, **kwargs)
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
