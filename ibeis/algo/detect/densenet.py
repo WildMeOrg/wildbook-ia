@@ -384,7 +384,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=48, class_weights={}, multi=True, sample_multiplier=1.0, **kwargs):
+def train(data_path, output_path, batch_size=96, class_weights={}, multi=True, sample_multiplier=1.0, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
