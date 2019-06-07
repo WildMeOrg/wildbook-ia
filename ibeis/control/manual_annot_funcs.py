@@ -973,19 +973,22 @@ def delete_annots(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.deleter
 def delete_annot_imgthumbs(ibs, aid_list):
-    # Less hacky
     gid_list_ = ibs.get_annot_gids(aid_list)
-    table_config_filter = {
-        'thumbnails': {
-            'draw_annots': True,
-        }
-    }
-    ibs.depc_image.delete_root(gid_list_, table_config_filter)
+    ibs.delete_image_thumbs(gid_list_)
 
-    # MEGA HACK FOR QT
-    config2_ = {'thumbsize': 221}
-    ibs.delete_image_thumbs(gid_list_, **config2_)
+    # # Less hacky
+    # table_config_filter = {
+    #     'thumbnails': {
+    #         'draw_annots': True,
+    #     }
+    # }
+    # ibs.depc_image.delete_root(gid_list_, table_config_filter)
     # ibs.delete_image_thumbs(gid_list_)
+
+    # # MEGA HACK FOR QT
+    # config2_ = {'thumbsize': 221}
+    # ibs.delete_image_thumbs(gid_list_, **config2_)
+    # # ibs.delete_image_thumbs(gid_list_)
 
 
 # ==========
