@@ -503,7 +503,6 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
     annot_index = 1
 
     aid_dict = {}
-
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
 
@@ -539,6 +538,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
         image_filepath = join(image_dir_dict[dataset], image_filename)
 
         if output_images:
+            print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
             _image = ibs.get_images(gid)
             _image = vt.resize(_image, (width, height))
             vt.imwrite(image_filepath, _image)
@@ -555,8 +555,6 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             'ibeis_image_uuid'  : str(ibs.get_image_uuids(gid)),
             'vulcan_image_path' : str(ibs.get_image_uris_original(gid).replace(vulcan_prefix, '')),
         })
-
-        print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
 
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -586,6 +584,7 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
             new_verts = np.round(trans_pts).astype(np.int).T.tolist()
 
+            globals().update(locals())
             x_points = [int(np.around(pt[0] * decrease)) for pt in new_verts]
             y_points = [int(np.around(pt[1] * decrease)) for pt in new_verts]
             segmentation = ut.flatten(list(zip(x_points, y_points)))
@@ -615,7 +614,6 @@ def export_to_coco(ibs, species_list, species_mapping={}, target_size=2400,
             #     assert len(match) == 1
             #     ids.append(match[0])
             #     decisions.append(decision.lower())
-
 
             xtl_, ytl_, w_, h_ = bbox
             xtl_ *= decrease

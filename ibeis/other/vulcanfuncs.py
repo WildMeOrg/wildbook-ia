@@ -176,7 +176,9 @@ def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
 
 @register_ibs_method
 def export_dataset(ibs, **kwargs):
-    ibs.export_to_coco(['elephant_savanna'], target_size=None)
+    gid_list = ibs.get_valid_gids(is_tile=False)
+    ibs.export_to_coco(['elephant_savanna'], target_size=None, gid_list=gid_list,
+                       require_named=False)
 
 
 @register_ibs_method
