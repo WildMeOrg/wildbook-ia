@@ -966,7 +966,7 @@ def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
             pr_list.append(pr)
             re_list.append(re)
 
-        best_tup = general_identify_operating_point(conf_list, re_list, re_list, target=target)
+        best_tup = general_identify_operating_point(conf_list, re_list, pr_list, target=target)
         best_conf_list, best_re_list, best_pr_list, best_length = best_tup
         if len(best_conf_list) > 1:
             print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
@@ -988,7 +988,7 @@ def localizer_iou_recall_algo_plot(ibs, **kwargs):
     print('Processing IoU-Recall for: %r' % (label, ))
     conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, iou_list, recall_list,
-                                  interpolation=False, **kwargs)
+                                  interpolate=False, **kwargs)
 
 
 # def localizer_iou_precision_algo_plot(ibs, **kwargs):
@@ -1508,39 +1508,39 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
                 {},
             ),
 
-            'spotted_dolphin_v0': (
-                [
-                    {'label': 'Spotted DolphinNMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['dolphin_spotted'])},
-                    {'label': 'Spotted DolphinNMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['dolphin_spotted'])},
-                ],
-                {},
-            ),
+            # 'spotted_dolphin_v0': (
+            #     [
+            #         {'label': 'Spotted DolphinNMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['dolphin_spotted'])},
+            #         {'label': 'Spotted DolphinNMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['dolphin_spotted'])},
+            #     ],
+            #     {},
+            # ),
 
-            '!spotted_dolphin_v0': (
-                [
-                    {'label': 'Spotted Dolphin! NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!dolphin_spotted'])},
-                    {'label': 'Spotted Dolphin! NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!dolphin_spotted'])},
-                ],
-                {},
-            ),
+            # '!spotted_dolphin_v0': (
+            #     [
+            #         {'label': 'Spotted Dolphin! NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!dolphin_spotted'])},
+            #         {'label': 'Spotted Dolphin! NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'spotted_dolphin_v0', 'weight_filepath' : 'spotted_dolphin_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!dolphin_spotted'])},
+            #     ],
+            #     {},
+            # ),
         }
 
     for config_key in config_dict:

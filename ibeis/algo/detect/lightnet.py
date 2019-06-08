@@ -52,8 +52,11 @@ CONFIG_URL_DICT = {
     'candidacy'                  : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
     'ggr2'                       : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.ggr2.py',
 
-    'vulcan_v0'                  : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.v0.py',
-    'vulcan_v1'                  : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.v1.py',
+    'vulcan_v0'                  : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.d3e8bf43.v0.py',
+    'vulcan_v1'                  : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.d3e8bf43.v1.py',
+    'vulcan_d3e8bf43_v0'         : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.d3e8bf43.v0.py',
+    'vulcan_d3e8bf43_v1'         : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.d3e8bf43.v1.py',
+    'vulcan_5fbfff26_v0'         : 'https://kaiju.dyn.wildme.io/public/models/detect.lightnet.vulcan.5fbfff26.v0.py',
 
     None                         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.candidacy.py',
     'training_kit'               : 'https://cthulhu.dyn.wildme.io/public/data/lightnet-training-kit.zip',
