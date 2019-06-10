@@ -2056,6 +2056,7 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=2.0, co
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
                               thresh=0.024, margin=32, min_bbox_coverage=0.5,
+                              use_ancestors=False, quick=False,
                               offset_color=0, **kwargs):
 
     def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
