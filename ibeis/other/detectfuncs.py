@@ -891,9 +891,9 @@ def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
         values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, min_overlap=iou, **kwargs)
         conf_list, tp_list, fp_list, total = values
 
-        conf_list_ = [-1.0, -1.0]
-        pr_list = [1.0, 0.0]
-        re_list = [0.0, 1.0]
+        conf_list_ = []
+        pr_list = []
+        re_list = []
         for conf, tp, fp in zip(conf_list, tp_list, fp_list):
             try:
                 pr = tp / (tp + fp)
