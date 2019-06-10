@@ -698,7 +698,7 @@ def compute_features(depc, gid_list, config=None):
 
 class LocalizerOriginalConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo',            'yolo', valid_values=['azure', 'yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
+        ut.ParamInfo('algo',            'yolo', valid_values=['azure', 'yolo', 'lightnet', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED', 'tile_aggregation', 'tile_aggregation_quick']),
         ut.ParamInfo('species',         None),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
@@ -967,6 +967,58 @@ def compute_localizations_original(depc, gid_list, config=None):
             {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal-plus'},  # SSD4
         ]
         detect_gen = _combined(gid_list, config_dict_list)
+    elif config['algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
+        ut.embed()
+
+        assert config['config_filepath'] in ['variant1']
+
+        weight_filepath = config['weight_filepath']
+        weight_filepath = weight_filepath.strip().split(';')
+
+        assert len(weight_filepath) == 2
+        algo_, model_tag_ = weight_filepath
+
+        model_tag_ = model_tag_.strip().split(',')
+        assert len(model_tag_) == 3
+
+        model_tag, nms_thresh, boundary = model_tag_
+        nms_thresh = float(nms_thresh)
+        boundary = bool(boundary)
+
+        include_grid2 = config['algo'] in ['tile_aggregation']
+        tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
+
+        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
+        bbox_list         = ibs.get_vulcan_image_tile_bboxes(tid_list)
+
+        loc_config = {
+            'algo'       : algo_,
+            'model_tag'  : model_tag,
+            'nms_thresh' : nms_thresh,
+            'boundary'   : boundary,
+        }
+        detections_list = ibs.vulcan_localizer_test(tid_list, **loc_config)
+
+        gid_dict = {}
+        for ancestor_gid, tid, bbox, detection_list in zip(ancestor_gid_list, tid_list, bbox_list, detections_list):
+            if ancestor_gid not in gid_dict:
+                gid_dict[ancestor_gid] = []
+            gid_dict[ancestor_gid].append(confidence)
+
+        result_list = []
+        for gid in tqdm.tqdm(gid_list):
+            gid_confidence_list = gid_dict.get(gid, None)
+            assert gid_confidence_list is not None
+            best_score = np.max(gid_confidence_list)
+
+            if best_score >= 0.5:
+                best_key = 'positive'
+            else:
+                best_key = 'negative'
+                best_score = 1.0 - best_score
+
+            result = (best_score, best_key, )
+            result_list.append(result)
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 
@@ -987,7 +1039,7 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('nms', True),
         ut.ParamInfo('nms_thresh', 0.2),
         ut.ParamInfo('invalid', True),
-        ut.ParamInfo('invalid_margin', 0.25),
+        ut.ParamInfo('invalid_margin', 0.5),
         ut.ParamInfo('boundary', True),
     ]
 

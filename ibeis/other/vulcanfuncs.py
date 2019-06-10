@@ -2054,9 +2054,29 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=2.0, co
 
 
 @register_ibs_method
+def vulcan_localizer_test(ibs, test_tile_list, algo='lightnet', model_tag=None,
+                          sensitivity=0.0, nms=True, nms_thresh=0.2, invalid=True,
+                          invalid_margin=0.5, boundary=True, testing=False):
+    assert model_tag is not None
+    config = {
+        'algo'            : algo,
+        'config_filepath' : model_tag,
+        'weight_filepath' : model_tag,
+        'sensitivity'     : sensitivity,
+        'nms'             : nms,
+        'nms_thresh'      : nms_thresh,
+        'invalid'         : invalid,
+        'invalid_magin'   : invalid_margin,
+        'boundary'        : boundary,
+    }
+
+    detections_list = ibs.depc_image.get_property('localizations', test_tile_list, 'class', config=config, recompute=testing, recompute_all=testing)
+    return detections_list
+
+
+@register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
                               thresh=0.024, margin=32, min_bbox_coverage=0.5,
-                              use_ancestors=False, quick=False,
                               offset_color=0, **kwargs):
 
     def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
@@ -2187,6 +2207,39 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
         'vulcan-gt-positive-margin-%s-v0' % (margin, ): template_v0,
     }
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_, offset_color=offset_color)
+
+
+@register_ibs_method
+def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
+                                    quick=False, offset_color=0, **kwargs):
+
+    algo = 'tile_aggregation_quick' if quick else 'tile_aggregation'
+
+    species_set = set([target_species])
+    template_v0 = (
+        [
+            {'label': 'd3e8bf43 V0 Bound NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_d3e8bf43_v0,0.60,True',  'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': 'd3e8bf43 V0 NMS 60%',        'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_d3e8bf43_v0,0.60,False', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': '5fbfff26 V0 Bound NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_5fbfff26_v0,0.60,True',  'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': '5fbfff26 V0 NMS 60%',        'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_5fbfff26_v0,0.60,False', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+        ],
+        {},
+    )
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = all_tile_set & test_gid_set
+    test_tile_list = list(test_gid_set)
+
+    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
+    test_gid_list = list(set(ancestor_gid_list))
+
+    key = 'vulcan-localizer-image-%s' % (algo, )
+    config_dict = {
+        key: template_v0,
+    }
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list, overwrite_config_keys=True, offset_color=offset_color)
 
 
 # @register_ibs_method
