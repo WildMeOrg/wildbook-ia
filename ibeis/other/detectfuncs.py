@@ -52,44 +52,18 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
 
 
 def simple_code(label):
-    from ibeis.constants import YAWALIAS
+    from ibeis.constants import YAWALIAS, SPECIES_MAPPING
 
     if label == 'ignore':
         return 'IGNORE'
-    label = label.replace('lion',                'LN')
-    label = label.replace('jaguar',              'JAG')
-    label = label.replace('zebra_plains',        'PZ')
-    label = label.replace('hippopotamus',        'HIPPO')
-    label = label.replace('antelope',            'ANTEL')
-    label = label.replace('elephant_savannah',   'ELEPH')
-    label = label.replace('person',              'PERSON')
-    # label = label.replace('giraffe_reticulated', 'GIR')
-    label = label.replace('giraffe_reticulated', 'RG')
-    label = label.replace('zebra_grevys',        'GZ')
-    # label = label.replace('giraffe_masai',       'GIRM')
-    label = label.replace('giraffe_masai',       'MG')
-    label = label.replace('unspecified_animal',  'UNSPEC')
-    label = label.replace('car',                 'CAR')
-    label = label.replace('bird',                'B')
-    label = label.replace('whale_shark',         'WS')
-    label = label.replace('whale_fluke',         'WF')
-    label = label.replace('lionfish',            'LF')
-    label = label.replace('turtle_sea',          'ST')
-    label = label.replace('dog_wild',            'WD')
-    label = label.replace('cow_domestic',        'DOMW')
-    label = label.replace('sheep_domestic',      'DOMS')
-    label = label.replace('dog_domestic',        'DOMD')
-    label = label.replace('bicycle',             'CYCLE')
-    label = label.replace('motorcycle',          'MCYCLE')
-    label = label.replace('bus',                 'BUS')
-    label = label.replace('truck',               'TRUCK')
-    label = label.replace('horse_domestic',      'DOMH')
-    label = label.replace('boat',                'BOAT')
-    label = label.replace('train',               'TRAIN')
-    label = label.replace('cat_domestic',        'DOMC')
-    label = label.replace('airplane',            'PLANE')
-    label = label.replace('manta_ray_giant',     'MM')
-    label = label.replace('dolphin_bottlenose_fin', 'DOR')
+
+    for key in SPECIES_MAPPING:
+        if key in label:
+            species_code, species_nice = SPECIES_MAPPING[key]
+            while species_code is None:
+                species_code, species_nice = SPECIES_MAPPING[species_nice]
+            assert species_code is not None
+            label = label.replace(key, species_code)
 
     for key in sorted(YAWALIAS.keys(), key=len, reverse=True):
         value = YAWALIAS[key]
