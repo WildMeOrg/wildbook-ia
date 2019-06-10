@@ -918,14 +918,14 @@ def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
         iou_list_.append(iou)
         recall_list.append(best_re)
 
-    return conf_list_, iou_list_, re_list
+    return conf_list_, iou_list_, recall_list
 
 
 def localizer_iou_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     print('Processing Precision-Recall for: %r' % (label, ))
-    conf_list, iou_list, re_list = localizer_iou_recall_algo(ibs, **kwargs)
-    return general_area_best_conf(conf_list, iou_list, re_list,
+    conf_list, iou_list, recall_list = localizer_iou_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, iou_list, recall_list,
                                   interpolate=False, **kwargs)
 
 
@@ -1561,7 +1561,7 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
 
 
 @register_ibs_method
-def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(30, 9),
+def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min_overlap=0.5, figsize=(40, 9),
                                             target_recall=0.8, BEST_INDEX=None, offset_color=0,
                                             write_images=False, plot_point=True, output_path=None, **kwargs):
     import matplotlib.pyplot as plt
