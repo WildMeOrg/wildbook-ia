@@ -1965,8 +1965,36 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
 @register_ibs_method
 def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=2.0, config=None, **kwargs):
     """
-    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
     ibs.vulcan_localizer_train(config=config)
+
+    ###
+
+    from ibeis.other.detectfuncs import localizer_parse_pred
+    target_species='elephant_savanna'
+    ratio=2.0
+    kwargs = {}
+
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
+
+    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
+    train_gid_set = all_tile_set & train_gid_set
+
+    pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
+    positive_gid_set = set(ibs.get_imageset_gids(pid))
+    negative_gid_set = set(ibs.get_imageset_gids(nid))
+    positive_gid_set = positive_gid_set & train_gid_set
+    negative_gid_set = negative_gid_set & train_gid_set
+    negative_gid_list = list(negative_gid_set)
+
+    num = len(negative_gid_list) // 2
+
+    negative_gid_list = negative_gid_list[:num]
+    negative_gid_list = negative_gid_list[num:]
+    negative_pred_list = localizer_parse_pred(  ibs, test_gid_list=list(negative_gid_list), **config)
+
+
     """
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
