@@ -2055,7 +2055,8 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=2.0, co
 
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
-                              thresh=0.024, margin=32, min_bbox_coverage=0.5, **kwargs):
+                              thresh=0.024, margin=32, min_bbox_coverage=0.5,
+                              offset_color=0, **kwargs):
 
     def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
         from ibeis.other.detectfuncs import general_intersection_over_union
@@ -2132,7 +2133,11 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
             # {'label': '5fbfff26 V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
             # {'label': '5fbfff26 V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
 
+            # ibs.vulcan_localizer_validate(offset_color=1)
+
             #############################################
+
+            # {'label': 'd3e8bf43 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_d3e8bf43_v0', 'weight_filepath' : 'vulcan_d3e8bf43_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
 
             # {'label': '5fbfff26 V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
             # {'label': '5fbfff26 V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
@@ -2145,6 +2150,8 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
             # {'label': '5fbfff26 V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
             # {'label': '5fbfff26 V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
             # {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_validate(offset_color=1)
 
             #############################################
 
@@ -2172,13 +2179,13 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     config_dict = {
         'vulcan-gt-positive-all-v0': template_v0,
     }
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, offset_color=1)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, offset_color=offset_color)
 
     # All Positive Tiles (Margin)
     config_dict = {
         'vulcan-gt-positive-margin-%s-v0' % (margin, ): template_v0,
     }
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_, offset_color=1)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_, offset_color=offset_color)
 
 
 # @register_ibs_method
