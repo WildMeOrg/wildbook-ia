@@ -842,7 +842,7 @@ def _ignore_filter_identity_func(*args, **kwargs):
     return False
 
 
-def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
+def localizer_iou_recall_algo(ibs, samples=100, test_gid_list=None,
                               ignore_filter_func=None, **kwargs):
 
     assert 'min_overlap' not in kwargs
