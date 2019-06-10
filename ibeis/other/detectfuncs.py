@@ -52,44 +52,18 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
 
 
 def simple_code(label):
-    from ibeis.constants import YAWALIAS
+    from ibeis.constants import YAWALIAS, SPECIES_MAPPING
 
     if label == 'ignore':
         return 'IGNORE'
-    label = label.replace('lion',                'LN')
-    label = label.replace('jaguar',              'JAG')
-    label = label.replace('zebra_plains',        'PZ')
-    label = label.replace('hippopotamus',        'HIPPO')
-    label = label.replace('antelope',            'ANTEL')
-    label = label.replace('elephant_savannah',   'ELEPH')
-    label = label.replace('person',              'PERSON')
-    # label = label.replace('giraffe_reticulated', 'GIR')
-    label = label.replace('giraffe_reticulated', 'RG')
-    label = label.replace('zebra_grevys',        'GZ')
-    # label = label.replace('giraffe_masai',       'GIRM')
-    label = label.replace('giraffe_masai',       'MG')
-    label = label.replace('unspecified_animal',  'UNSPEC')
-    label = label.replace('car',                 'CAR')
-    label = label.replace('bird',                'B')
-    label = label.replace('whale_shark',         'WS')
-    label = label.replace('whale_fluke',         'WF')
-    label = label.replace('lionfish',            'LF')
-    label = label.replace('turtle_sea',          'ST')
-    label = label.replace('dog_wild',            'WD')
-    label = label.replace('cow_domestic',        'DOMW')
-    label = label.replace('sheep_domestic',      'DOMS')
-    label = label.replace('dog_domestic',        'DOMD')
-    label = label.replace('bicycle',             'CYCLE')
-    label = label.replace('motorcycle',          'MCYCLE')
-    label = label.replace('bus',                 'BUS')
-    label = label.replace('truck',               'TRUCK')
-    label = label.replace('horse_domestic',      'DOMH')
-    label = label.replace('boat',                'BOAT')
-    label = label.replace('train',               'TRAIN')
-    label = label.replace('cat_domestic',        'DOMC')
-    label = label.replace('airplane',            'PLANE')
-    label = label.replace('manta_ray_giant',     'MM')
-    label = label.replace('dolphin_bottlenose_fin', 'DOR')
+
+    for key in SPECIES_MAPPING:
+        if key in label:
+            species_code, species_nice = SPECIES_MAPPING[key]
+            while species_code is None:
+                species_code, species_nice = SPECIES_MAPPING[species_nice]
+            assert species_code is not None
+            label = label.replace(key, species_code)
 
     for key in sorted(YAWALIAS.keys(), key=len, reverse=True):
         value = YAWALIAS[key]
@@ -1474,39 +1448,39 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     {},
             # ),
 
-            'nassau_grouper_v0': (
-                [
-                    {'label': 'Nassau Grouper NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['grouper_nassau'])},
-                    {'label': 'Nassau Grouper NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['grouper_nassau'])},
-                ],
-                {},
-            ),
+            # 'nassau_grouper_v0': (
+            #     [
+            #         {'label': 'Nassau Grouper NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['grouper_nassau'])},
+            #         {'label': 'Nassau Grouper NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['grouper_nassau'])},
+            #     ],
+            #     {},
+            # ),
 
-            '!nassau_grouper_v0': (
-                [
-                    {'label': 'Nassau Grouper! NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!grouper_nassau'])},
-                    {'label': 'Nassau Grouper! NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!grouper_nassau'])},
-                ],
-                {},
-            ),
+            # '!nassau_grouper_v0': (
+            #     [
+            #         {'label': 'Nassau Grouper! NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['!grouper_nassau'])},
+            #         {'label': 'Nassau Grouper! NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'nassau_grouper_v0', 'weight_filepath' : 'nassau_grouper_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['!grouper_nassau'])},
+            #     ],
+            #     {},
+            # ),
 
             # 'spotted_dolphin_v0': (
             #     [
@@ -1541,6 +1515,74 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     ],
             #     {},
             # ),
+
+            'seadragon_weedy_v0': (
+                [
+                    {'label': 'Weedy SD NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy SD NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy'])},
+                ],
+                {},
+            ),
+
+            'seadragon_leafy_v0': (
+                [
+                    {'label': 'Leafy SD NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy SD NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy'])},
+                ],
+                {},
+            ),
+
+            'seadragon_weedy_head_v0': (
+                [
+                    {'label': 'Weedy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy+head'])},
+                ],
+                {},
+            ),
+
+            'seadragon_leafy_head_v0': (
+                [
+                    {'label': 'Leafy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy+head'])},
+                ],
+                {},
+            ),
         }
 
     for config_key in config_dict:
@@ -2851,8 +2893,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     # kwargs['labeler_weight_filepath'] = 'jaguar_v3'
     # kwargs['labeler_weight_filepath'] = 'hendrik_dorsal_v2'
     # kwargs['labeler_weight_filepath'] = 'spotted_skunk_v0'
-    kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
+    # kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
     # kwargs['labeler_weight_filepath'] = 'spotted_dolphin_v0'
+    kwargs['labeler_weight_filepath'] = 'seadragon_v0'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      test_gid_set=test_gid_set, **kwargs)
@@ -2873,8 +2916,14 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         # {'label': 'Grevy\'s Zebra',         'category_list': ['zebra_grevys']},
         # {'label': 'Plains Zebra',           'category_list': ['zebra_plains']},
         # {'label': 'Spotted Skunk',          'category_list': ['skunk_spotted']},
-        {'label': 'Nassau Grouper',           'category_list': ['grouper_nassau']},
+        # {'label': 'Nassau Grouper',           'category_list': ['grouper_nassau']},
         # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
+        # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
+        {'label': 'Weedy SD ',                'category_list': ['seadragon_weedy']},
+        # {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
+        {'label': 'Leafy SD ',                'category_list': ['seadragon_leafy']},
+        # {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
+
     ]
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
