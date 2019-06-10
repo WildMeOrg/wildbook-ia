@@ -2792,9 +2792,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
         # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
         {'label': 'Weedy SD ',                'category_list': ['seadragon_weedy']},
-        {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
+        # {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
         {'label': 'Leafy SD ',                'category_list': ['seadragon_leafy']},
-        {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
+        # {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
 
     ]
     color_list = [(0.0, 0.0, 0.0)]

@@ -411,6 +411,8 @@ SPECIES_MAPPING = {
     'rhino_white'            :      ('WRHINO', 'Rhino (White)'),
     'seal_saimma_ringed'     :       ('SEAL2', 'Seal (Siamaa Ringed)'),
     'seal_spotted'           :       ('SEAL1', 'Seal (Spotted)'),
+    'seadragon_leafy'        :         ('SDL', 'Sea Dragon (Leafy)'),
+    'seadragon_weedy'        :         ('SDW', 'Sea Dragon (Weedy)'),
     'shark_sandtiger'        :         ('STS', 'Sand Tiger Shark'),
     'skunk_spotted'          :      ('SSKUNK', 'Skunk (Spotted)'),
     'snail'                  :       ('SNAIL', 'Snail'),
