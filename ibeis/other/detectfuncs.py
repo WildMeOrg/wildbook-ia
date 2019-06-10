@@ -911,7 +911,7 @@ def localizer_iou_recall_algo(ibs, samples=10, test_gid_list=None,
         assert len(best_conf_list) > 0
 
         best_re_index = np.argmax(best_re_list)
-        best_re = best_re_list[best_re_list]
+        best_re = best_re_list[best_re_index]
         best_conf = best_conf_list[best_re_index]
 
         conf_list_.append(best_conf)
