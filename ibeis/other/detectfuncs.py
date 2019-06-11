@@ -599,6 +599,9 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
     size_list = ibs.get_image_sizes(test_gid_list)
     # Unsure, but we need to call this multiple times?  Lazy loading bug?
+    # depc.delete_property('localizations', test_gid_list, config=kwargs)
+
+    bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
     bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
     # Get actual data
     bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)

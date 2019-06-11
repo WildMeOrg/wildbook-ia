@@ -1027,8 +1027,8 @@ def compute_localizations_original(depc, gid_list, config=None):
                 bbox_ = (
                     tile_xtl + detect_xtl,
                     tile_ytl + detect_ytl,
-                    tile_xtl + detect_w,
-                    tile_ytl + detect_h,
+                    detect_w,
+                    detect_h,
                 )
                 bboxes_.append(bbox_)
 
