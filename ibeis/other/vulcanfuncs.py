@@ -2323,7 +2323,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
 
-    key = 'vulcan-localizer-image-wic-thresh-%s' % (algo, )
+    key = 'vulcan-localizer-image-%s-vulcan-comparison' % (algo, )
     config_dict = {
         key: template_v0,
     }
