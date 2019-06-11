@@ -407,27 +407,55 @@ def compute_classifications(depc, gid_list, config=None):
             result = (best_score, best_key, )
             result_list.append(result)
     elif config['classifier_algo'] in ['vulcan_detectnet_csv', 'vulcan_faster_rcnn_csv']:
-        ut.embed()
+        uuid_str_list = list(map(str, ibs.get_image_uuids(gid_list)))
 
-        json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
-        assert exists(json_filepath)
-        with open(json_filepath, 'r') as json_file:
-            values = json.load(json_file)
-        annotations = values.get('annotations', {})
+        manifest_filepath = join(ibs.dbdir, 'WIC_manifest_output.csv')
+        csv_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
 
-        gpath_list = ibs.get_image_paths(gid_list)
-        gname_list = [split(gpath)[1] for gpath in gpath_list]
+        assert exists(manifest_filepath)
+        assert exists(csv_filepath)
+
+        manifest_dict = {}
+        with open(manifest_filepath, 'r') as manifest_file:
+            manifest_file.readline()  # Discard column header row
+            manifest_line_list = manifest_file.readlines()
+            for manifest_line in manifest_line_list:
+                manifest = manifest_line.strip().split(',')
+                assert len(manifest) == 2
+                manifest_filename, manifest_uuid = manifest
+                manifest_dict[manifest_filename] = manifest_uuid
+
+        csv_dict = {}
+        with open(csv_filepath, 'r') as csv_file:
+            csv_file.readline()  # Discard column header row
+            csv_line_list = csv_file.readlines()
+            for csv_line in csv_line_list:
+                csv = csv_line.strip().split(',')
+                assert len(csv) == 2
+                csv_filename, csv_score = csv
+                csv_uuid = manifest_dict.get(csv_filename, None)
+                assert csv_uuid is not None, 'Test image %r is not in the manifest' % (csv, )
+                csv_dict[csv_uuid] = csv_score
 
         result_list = []
-        for gname in gname_list:
-            annotation = annotations.get(gname, None)
-            assert annotation is not None
+        for uuid_str in uuid_str_list:
+            best_score = csv_dict.get(uuid_str, None)
+            assert best_score is not None
 
-            best_score = 1.0
-            if len(annotation) == 0:
-                best_key = 'negative'
+            if config['classifier_algo'] in ['vulcan_detectnet_csv']:
+                assert best_score in ['yes', 'no']
+                best_key = 'positive' if best_score == 'yes' else 'negative'
+                best_score = 1.0
+            elif config['classifier_algo'] in ['vulcan_faster_rcnn_csv']:
+                best_score = float(best_score)
+                if best_score >= 0.5:
+                    best_key = 'positive'
+                else:
+                    best_key = 'negative'
+                    best_score = 1.0 - best_score
             else:
-                best_key = 'positive'
+                raise ValueError
+
             result = (best_score, best_key, )
             result_list.append(result)
     elif config['classifier_algo'] in ['lightnet', 'densenet+lightnet', 'densenet+lightnet!']:
