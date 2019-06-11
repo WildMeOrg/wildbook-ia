@@ -994,6 +994,7 @@ def compute_localizations_original(depc, gid_list, config=None):
 
             flag_list = [wic_confidence >= wic_thresh for wic_confidence in wic_confidence_list]
             tid_list_ = ut.compress(tid_list, flag_list)
+            print('%d tiles passed WIC filter out of %d' % (len(tid_list_), len(tid_list), ))
 
             config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
             prediction_list = depc.get_property('localizations', tid_list_, None, config=config)
