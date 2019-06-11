@@ -968,8 +968,6 @@ def compute_localizations_original(depc, gid_list, config=None):
         ]
         detect_gen = _combined(gid_list, config_dict_list)
     elif config['algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
-        ut.embed()
-
         include_grid2 = config['algo'] in ['tile_aggregation']
         tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
 
@@ -1042,13 +1040,19 @@ def compute_localizations_original(depc, gid_list, config=None):
 
         detect_gen = []
         for gid in tqdm.tqdm(gid_list):
-            score   = gid_dict[gid]['score']
-            bboxes  = np.array(gid_dict[gid]['bboxes'])
-            thetas  = np.array(gid_dict[gid]['thetas'])
-            confs   = np.array(gid_dict[gid]['confs'])
-            classes = np.array(gid_dict[gid]['classes'])
-
-            score = sum(score) / len(score) if len(score) > 0 else 0.0
+            if gid in gid_dict:
+                score   = gid_dict[gid]['score']
+                score = sum(score) / len(score) if len(score) > 0 else 0.0
+                bboxes  = np.array(gid_dict[gid]['bboxes'])
+                thetas  = np.array(gid_dict[gid]['thetas'])
+                confs   = np.array(gid_dict[gid]['confs'])
+                classes = np.array(gid_dict[gid]['classes'])
+            else:
+                score = 0.0
+                bboxes  = np.array([])
+                thetas  = np.array([])
+                confs   = np.array([])
+                classes = np.array([])
 
             detect = (score, bboxes, thetas, confs, classes)
             detect_gen.append(detect)
