@@ -2141,37 +2141,37 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
             #############################################
 
-            {'label': 'd3e8bf43 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': 'd3e8bf43 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
 
-            {'label': '5fbfff26 V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_validate(offset_color=1)
 
             #############################################
 
-            # {'label': 'd3e8bf43 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': 'd3e8bf43 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
 
-            # {'label': '5fbfff26 V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_validate(offset_color=1)
 
@@ -2201,13 +2201,13 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 
     # All Positive Tiles (All)
     config_dict = {
-        'vulcan-gt-positive-all-v0': template_v0,
+        'vulcan-gt-positive-all-v1': template_v0,
     }
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, offset_color=offset_color)
 
     # All Positive Tiles (Margin)
     config_dict = {
-        'vulcan-gt-positive-margin-%s-v0' % (margin, ): template_v0,
+        'vulcan-gt-positive-margin-%s-v1' % (margin, ): template_v0,
     }
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_, offset_color=offset_color)
 
@@ -2221,17 +2221,17 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     species_set = set([target_species])
     template_v0 = (
         [
-            # {'label': '5fbfff26 R3+V0 NMS 0%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 10%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 20%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 30%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 40%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 50%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 0%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 10%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 20%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 30%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 40%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 50%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
             {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 100%', 'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 100%', 'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
         ],
         {},
     )
@@ -2248,12 +2248,12 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     config_dict = {
         key: template_v0,
     }
-    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list, overwrite_config_keys=True, offset_color=offset_color)
+    ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list, overwrite_config_keys=True, offset_color=offset_color, min_overlap=0.2)
 
-    config = template_v0[0][0]
-    test_gid_list = test_gid_list[:10]
-    ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
-    ibs.visualize_predictions(config, gid_list=test_gid_list, t_width=2000)
+    # config = {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.60, 'sensitivity': 0.4425}
+    # test_gid_list = test_gid_list[:10]
+    # ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
+    # ibs.visualize_predictions(config, gid_list=test_gid_list, t_width=2000)
 
 
 # @register_ibs_method
