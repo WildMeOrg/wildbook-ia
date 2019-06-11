@@ -2261,6 +2261,8 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
             {'label': '5fbfff26 R3+V0 400 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
             {'label': '5fbfff26 R3+V0 400 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
             {'label': '5fbfff26 R3+V0 400 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate(offset_color=1)
         ],
         {},
     )
@@ -2273,7 +2275,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
 
-    key = 'vulcan-localizer-image-%s' % (algo, )
+    key = 'vulcan-localizer-image-wic-thresh-%s' % (algo, )
     config_dict = {
         key: template_v0,
     }
