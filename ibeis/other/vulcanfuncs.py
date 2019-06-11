@@ -2310,7 +2310,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
             {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
             {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
 
-            # ibs.vulcan_localizer_image_validate(offset_color=1)
+            # ibs.vulcan_localizer_image_validate()
         ],
         {},
     )

@@ -1112,17 +1112,14 @@ def compute_localizations_original(depc, gid_list, config=None):
     elif config['algo'] in ['vulcan_detectnet_json', 'vulcan_faster_rcnn_json']:
         import json
 
-        ut.embed()
-
-        raise ValueError
-
         uuid_str_list = list(map(str, ibs.get_image_uuids(gid_list)))
 
         manifest_filepath = join(ibs.dbdir, 'WIC_manifest_output.csv')
-        csv_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
+        assert config['config_filepath'] in ['variant1']
+        json_filepath = join(ibs.dbdir, config['weight_filepath'])
 
         assert exists(manifest_filepath)
-        assert exists(csv_filepath)
+        assert exists(json_filepath)
 
         manifest_dict = {}
         with open(manifest_filepath, 'r') as manifest_file:
@@ -1134,41 +1131,48 @@ def compute_localizations_original(depc, gid_list, config=None):
                 manifest_filename, manifest_uuid = manifest
                 manifest_dict[manifest_filename] = manifest_uuid
 
-        csv_dict = {}
-        with open(csv_filepath, 'r') as csv_file:
-            csv_file.readline()  # Discard column header row
-            csv_line_list = csv_file.readlines()
-            for csv_line in csv_line_list:
-                csv = csv_line.strip().split(',')
-                assert len(csv) == 2
-                csv_filename, csv_score = csv
-                csv_uuid = manifest_dict.get(csv_filename, None)
-                assert csv_uuid is not None, 'Test image %r is not in the manifest' % (csv, )
-                csv_dict[csv_uuid] = csv_score
-
-        json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
-        assert exists(json_filepath)
         with open(json_filepath, 'r') as json_file:
-            values = json.load(json_file)
-        annotations = values.get('annotations', {})
+            json_values = json.load(json_file)
 
-        gpath_list = ibs.get_image_paths(gid_list)
-        gname_list = [split(gpath)[1] for gpath in gpath_list]
+        images = json_values.get('images', None)
+        annotations = json_values.get('annotations', None)
 
-        result_list = []
-        for gname in gname_list:
-            annotation = annotations.get(gname, None)
-            assert annotation is not None
+        assert images is not None
+        assert annotations is not None
 
-            best_score = 1.0
-            if len(annotation) == 0:
-                best_key = 'negative'
-            else:
-                best_key = 'positive'
-            result = (best_score, best_key, )
-            result_list.append(result)
+        image_dict = {}
+        annotation_dict = {}
+        for image in images:
+            assert 'file_name' in image and 'id' in image, 'Incorrect COCO format'
+            image_filename = image['file_name']
+            image_id = image['id']
+            image_uuid = manifest_dict.get(image_filename, None)
+            assert image_uuid is not None
+            image_dict[image_id] = image_uuid
+            annotation_dict[image_uuid] = []
 
+        for annotation in annotations:
+            assert 'image_id' in annotation and 'bbox' in annotation
+            image_id = annotation['image_id']
+            image_uuid = image_dict[image_id]
+            assert image_uuid is not None
+            annotation_bbox = annotation['bbox']
+            assert image_uuid in annotation_dict
+            annotation_dict[image_uuid].append(annotation_bbox)
 
+        detect_gen = []
+        for uuid_str in tqdm.tqdm(uuid_str_list):
+            assert uuid_str in annotation_dict
+            bbox_list = annotation_dict[uuid_str]
+
+            score = 0.0
+            bboxes  = np.array(bbox_list)
+            thetas  = np.array([0.0]                * len(bbox_list))
+            confs   = np.array([1.0]                * len(bbox_list))
+            classes = np.array(['elephant_savanna'] * len(bbox_list))
+
+            detect = (score, bboxes, thetas, confs, classes)
+            detect_gen.append(detect)
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 
