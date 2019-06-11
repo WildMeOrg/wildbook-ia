@@ -222,6 +222,8 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     if limit is not None:
         gid_list = gid_list[:limit]
 
+    gid_list[:50]
+
     tile_size = 256
     tile_overlap = 64
     config1 = {
@@ -2236,8 +2238,6 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
-
-    test_gid_list = test_gid_list[:20]
 
     key = 'vulcan-localizer-image-%s' % (algo, )
     config_dict = {
