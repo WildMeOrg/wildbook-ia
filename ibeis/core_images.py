@@ -970,6 +970,12 @@ def compute_localizations_original(depc, gid_list, config=None):
     elif config['algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
         ut.embed()
 
+        include_grid2 = config['algo'] in ['tile_aggregation']
+        tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
+
+        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
+        bbox_list         = ibs.get_vulcan_image_tile_bboxes(tid_list)
+
         assert config['config_filepath'] in ['variant1']
 
         weight_filepath = config['weight_filepath']
@@ -978,30 +984,34 @@ def compute_localizations_original(depc, gid_list, config=None):
         assert len(weight_filepath) == 2
         algo_, model_tag_ = weight_filepath
 
-        model_tag_ = model_tag_.strip().split(',')
-        assert len(model_tag_) == 3
+        if algo_ in ['densenet+lightnet']:
+            model_tag_ = model_tag_.strip().split(',')
 
-        model_tag, nms_thresh, boundary = model_tag_
-        nms_thresh = float(nms_thresh)
-        boundary = bool(boundary)
+            assert len(model_tag_) == 4
+            wic_model_tag, wic_thresh, weight_filepath, nms_thresh = model_tag_
+            wic_thresh = float(wic_thresh)
+            nms_thresh = float(nms_thresh)
+            wic_confidence_list = ibs.vulcan_wic_test(tid_list, classifier_algo='densenet',
+                                                      model_tag=wic_model_tag)
 
-        include_grid2 = config['algo'] in ['tile_aggregation']
-        tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
+            flag_list = [wic_confidence >= wic_thresh for wic_confidence in wic_confidence_list]
+            tid_list_ = ut.compress(tid_list, flag_list)
 
-        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
-        bbox_list         = ibs.get_vulcan_image_tile_bboxes(tid_list)
-
-        loc_config = {
-            'algo'       : algo_,
-            'model_tag'  : model_tag,
-            'nms_thresh' : nms_thresh,
-            'boundary'   : boundary,
-        }
-        detections_list = ibs.vulcan_localizer_test(tid_list, **loc_config)
+            config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
+            prediction_list = depc.get_property('localizations', tid_list_, None, config=config)
+            prediction_dict = dict(zip(tid_list_, prediction_list))
+        else:
+            raise ValueError('Only "densenet+lightnet" is implemented')
 
         gid_dict = {}
-        for ancestor_gid, tid, tile_bbox, detections in zip(ancestor_gid_list, tid_list, bbox_list, detections_list):
-            score, bboxes, thetas, confs, classes = detections
+        zipped = list(zip(ancestor_gid_list, tid_list, bbox_list))
+        for ancestor_gid, tid, tile_bbox in zipped:
+            prediction = prediction_dict.get(tid, None)
+
+            if prediction is None:
+                continue
+
+            score, bboxes, thetas, confs, classes = prediction
             tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
 
             if ancestor_gid not in gid_dict:
@@ -1026,9 +1036,9 @@ def compute_localizations_original(depc, gid_list, config=None):
 
             gid_dict[ancestor_gid]['score']   += [score]
             gid_dict[ancestor_gid]['bboxes']  += bboxes_
-            gid_dict[ancestor_gid]['thetas']  += thetas
-            gid_dict[ancestor_gid]['confs']   += confs
-            gid_dict[ancestor_gid]['classes'] += classes
+            gid_dict[ancestor_gid]['thetas']  += list(thetas)
+            gid_dict[ancestor_gid]['confs']   += list(confs)
+            gid_dict[ancestor_gid]['classes'] += list(classes)
 
         detect_gen = []
         for gid in tqdm.tqdm(gid_list):
@@ -1042,8 +1052,6 @@ def compute_localizations_original(depc, gid_list, config=None):
 
             detect = (score, bboxes, thetas, confs, classes)
             detect_gen.append(detect)
-
-        raise ValueError
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 

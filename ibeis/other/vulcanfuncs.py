@@ -2056,13 +2056,14 @@ def vulcan_localizer_train(ibs, target_species='elephant_savanna', ratio=2.0, co
 @register_ibs_method
 def vulcan_localizer_test(ibs, test_tile_list, algo='lightnet', model_tag=None,
                           sensitivity=0.0, nms=True, nms_thresh=0.2, invalid=True,
-                          invalid_margin=0.5, boundary=True, testing=False):
+                          invalid_margin=0.25, boundary=True, testing=False):
     assert model_tag is not None
     config = {
         'algo'            : algo,
         'config_filepath' : model_tag,
         'weight_filepath' : model_tag,
         'sensitivity'     : sensitivity,
+        'grid'            : False,
         'nms'             : nms,
         'nms_thresh'      : nms_thresh,
         'invalid'         : invalid,
@@ -2220,7 +2221,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     species_set = set([target_species])
     template_v0 = (
         [
-            {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.60',  'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.60', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
         ],
         {},
     )
