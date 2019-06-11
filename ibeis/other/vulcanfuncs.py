@@ -2220,11 +2220,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     species_set = set([target_species])
     template_v0 = (
         [
-            {'label': 'd3e8bf43 V0 Bound NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_d3e8bf43_v0,0.60,True',  'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            {'label': 'd3e8bf43 V0 NMS 60%',        'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_d3e8bf43_v0,0.60,False', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 Bound NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_5fbfff26_v0,0.60,True',  'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            {'label': '5fbfff26 V0 NMS 60%',        'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'lightnet;vulcan_5fbfff26_v0,0.60,False', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.341,vulcan_5fbfff26_v0,0.60',  'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
         ],
         {},
     )
