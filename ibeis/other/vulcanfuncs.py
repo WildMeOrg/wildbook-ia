@@ -1348,8 +1348,9 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>>     {'label': 'WIC 5fbfff26 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost2'},
         >>>     {'label': 'WIC 5fbfff26 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], fn_recovery=True)
+        >>> # ibs.vulcan_wic_validate(config_list)
+        >>> # ibs.vulcan_wic_validate(config_list, target_recall_list=[None], fn_recovery=True)
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], fn_recovery=True, quick=True)
         >>>
         >>> config_list = [
         >>>     {'label': 'WIC 5fbfff26 R3',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
@@ -1390,6 +1391,14 @@ def vulcan_wic_validate(ibs, config_list, offset_black=0, target_recall_list=Non
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
+        >>> config_list = [
+        >>>     {'label': 'WIC 5fbfff26 R3',     'classifier_algo': 'densenet',               'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
+        >>>     {'label': 'Vulcan DetectNet',    'classifier_algo': 'vulcan_detectnet_csv',   'classifier_weight_filepath': 'WIC_detectnet_output.csv'},
+        >>>     {'label': 'Vulcan Faster R-CNN', 'classifier_algo': 'vulcan_faster_rcnn_csv', 'classifier_weight_filepath': 'WIC_fasterRCNN_output.csv'},
+        >>> ]
+        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+
+
     """
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
         positive_tile_set = set([])
@@ -2314,7 +2323,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
     if False:
         config = {'grid' : False, 'algo': 'tile_aggregation', 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'sensitivity': 0.5859}
-        test_gid_list = [1, 2, 5, 6, 7, 14, 20, 23, 24, 27]
+        # test_gid_list = [1, 2, 5, 6, 7, 14, 20, 23, 24, 27]
         ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
         ibs.visualize_predictions(config, gid_list=test_gid_list, t_width=2000)
 

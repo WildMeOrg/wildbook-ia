@@ -30,10 +30,49 @@ def _image(ibs, gid):
     }
 
 
+def _sequence(ibs, imageset_rowid):
+    return {
+        'uuid': str(ibs.get_imageset_uuids(imageset_rowid)),
+    }
+
+
 def _task(ibs, taskid):
     return {
         'uuid': taskid,
     }
+
+
+def _ensure_images_exist(ibs, images, allow_none=False):
+    for index, image in enumerate(images):
+        try:
+            if allow_none and image is None:
+                continue
+            parameter = 'images:%d' % (index, )
+            assert 'uuid' in image, 'Image Model provided is invalid, missing UUID key'
+        except AssertionError as ex:
+            raise controller_inject.WebInvalidInput(str(ex), parameter)
+
+    uuid_list = [
+        None if image is None else uuid.UUID(image['uuid'])
+        for image in images
+    ]
+    gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+
+    bad_index_list = []
+    for index, (uuid_, gid) in enumerate(zip(uuid_list, gid_list)):
+        if allow_none and gid is None:
+            continue
+        if gid is None:
+            bad_index_list.append((index, uuid_))
+
+    if len(bad_index_list) > 0:
+        message = 'Uploaded list contains unrecognized %d records (index, UUID): %s' % (len(bad_index_list), bad_index_list, )
+        raise controller_inject.WebInvalidInput(message, 'images')
+
+    if not allow_none:
+        assert None not in gid_list
+
+    return gid_list
 
 
 @register_route(_prefix('swagger'), methods=['GET'])
@@ -54,6 +93,20 @@ def vulcan_core_specification_swagger(*args, **kwargs):
         properties:
           uuid:
             description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.
+            type: string
+            format: uuid
+    - schema:
+        id: Sequence
+        description: A Sequence is a semantic construct that represents an ordered list of images, where the images are assumed to be in order spatially and temporally
+        required:
+          - name
+          - uuid
+        properties:
+          name:
+            description: a text name to easily refer to the sequence of images (e.g. "Location Samburu, Survey 3, Sequence 10, Camera Left")
+            type: string
+          uuid:
+            description: a random UUID to identify the sequence
             type: string
             format: uuid
     - schema:
@@ -165,6 +218,108 @@ def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
         return image
 
 
+@register_api(_prefix('sequence'), methods=['POST'])
+def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
+    r"""
+    Add an image sequence for future processing using a list of previously-uploaded images
+
+    ---
+    parameters:
+    - name: name
+      in: body
+      description: A name for the sequence
+      required: true
+      type: string
+    - name: images
+      in: body
+      description: A JSON ordered list of Image models to process with the pipeline.  Use None (null) values to indicate missing images in the sequence.  The index of the images list always begin with 0 and is sequential.
+      required: true
+      type: array
+      items:
+        $ref: '#/definitions/Image'
+    - name: overwrite
+      in: body
+      description: A boolean flag to overwrite the existing sequence, if present
+      required: false
+      type: boolean
+      default: false
+    produces:
+    - application/json
+    responses:
+      200:
+        description: Returns a Sequence model with an ID
+        schema:
+          $ref: '#/definitions/Sequence'
+      400:
+        description: Invalid input parameter
+    """
+    # Input argument validation
+    gid_list = ibs._ensure_images_exist(images, allow_none=True)
+    imageset_rowid = ibs.get_imageset_imgsetids_from_text(name)
+
+    metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
+    sequence = metadata_dict.get('sequence', None)
+    if sequence is not None:
+        assert overwrite, 'This sequence has already been defined and overwriting is OFF (use overwrite = True to force)'
+
+    sequence = []
+    for index, gid in enumerate(gid_list):
+        sequence.append({
+            'index' : index,
+            'gid'   : gid,
+        })
+
+    metadata_dict['sequence'] = sequence
+    ibs.set_imageset_metadata([imageset_rowid], [metadata_dict])
+
+    sequence = _sequence(ibs, imageset_rowid)
+    return sequence
+
+
+@register_api(_prefix('sequence'), methods=['GET'])
+def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
+    r"""
+    Return the sequence's images
+
+    ---
+    parameters:
+    - name: sequence
+      in: body
+      description: A Sequence model
+      required: true
+      schema:
+        $ref: "#/definitions/Sequence"
+    produces:
+    - application/json
+    responses:
+      200:
+        description: Returns a JSON object with the list of Image models
+      400:
+        description: Invalid input parameter
+    """
+    # Input argument validation
+    gid_list = ibs._ensure_images_exist(images, allow_none=True)
+    imageset_rowid = ibs.get_imageset_imgsetids_from_text(name)
+
+    metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
+    sequence = metadata_dict.get('sequence', None)
+    if sequence is not None:
+        assert overwrite, 'This sequence has already been defined and overwriting is OFF (use overwrite = True to force)'
+
+    sequence = []
+    for index, gid in enumerate(gid_list):
+        sequence.append({
+            'index' : index,
+            'gid'   : gid,
+        })
+
+    metadata_dict['sequence'] = sequence
+    ibs.set_imageset_metadata([imageset_rowid], [metadata_dict])
+
+    sequence = _sequence(ibs, imageset_rowid)
+    return sequence
+
+
 @register_ibs_method
 def vulcan_pipeline(ibs, images,
                     testing=False,
@@ -197,11 +352,7 @@ def vulcan_pipeline(ibs, images,
             loc_nms                 = 0.5
 
         with ut.Timer('UUIDs') as time_uuid:
-            uuid_list = [
-                uuid.UUID(image['uuid'])
-                for image in images
-            ]
-            gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+            gid_list = _ensure_images_exist(images)
 
         with ut.Timer('Test Deleting') as time_test:
             if testing:

@@ -237,7 +237,7 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+lightnet!', 'tile_aggregation', 'tile_aggregation_quick', 'vulcan_detectnet']),
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet', 'densenet+neighbors', 'lightnet', 'densenet+lightnet', 'densenet+lightnet!', 'tile_aggregation', 'tile_aggregation_quick', 'vulcan_detectnet', 'vulcan_detectnet_csv', 'vulcan_faster_rcnn_csv']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -384,6 +384,30 @@ def compute_classifications(depc, gid_list, config=None):
         #     result_list.append(result)
     elif config['classifier_algo'] in ['vulcan_detectnet']:
         import json
+
+        json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
+        assert exists(json_filepath)
+        with open(json_filepath, 'r') as json_file:
+            values = json.load(json_file)
+        annotations = values.get('annotations', {})
+
+        gpath_list = ibs.get_image_paths(gid_list)
+        gname_list = [split(gpath)[1] for gpath in gpath_list]
+
+        result_list = []
+        for gname in gname_list:
+            annotation = annotations.get(gname, None)
+            assert annotation is not None
+
+            best_score = 1.0
+            if len(annotation) == 0:
+                best_key = 'negative'
+            else:
+                best_key = 'positive'
+            result = (best_score, best_key, )
+            result_list.append(result)
+    elif config['classifier_algo'] in ['vulcan_detectnet_csv', 'vulcan_faster_rcnn_csv']:
+        ut.embed()
 
         json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
         assert exists(json_filepath)
