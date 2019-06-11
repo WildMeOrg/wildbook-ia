@@ -191,7 +191,7 @@ def recompute_tiles(ibs, gid_list):
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
                                  return_configs=False, limit=None, gid_list=None,
-                                 include_grid2=False, **kwargs):
+                                 include_grid2=True, **kwargs):
     if gid_list is None:
         # if imageset_text_list is None:
         #     imageset_text_list = [
