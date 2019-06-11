@@ -1042,6 +1042,8 @@ def compute_localizations_original(depc, gid_list, config=None):
 
             detect = (score, bboxes, thetas, confs, classes)
             detect_gen.append(detect)
+
+        raise ValueError
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 

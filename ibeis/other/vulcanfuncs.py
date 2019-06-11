@@ -3029,6 +3029,25 @@ def vulcan_annotation_clusters_visualize_gt_annots(ibs, target_species='elephant
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
+# @register_ibs_method
+# def _export_test_daatset(ibs):
+#     import ibeis
+#     from ibeis.dbio.export_subset import merge_databases
+#     import ibeis.constants as const
+#     import random
+
+#     gid_list = ibs.get_valid_gids()
+#     random.shuffle(gid_list)
+#     gid_list_ = gid_list[:50]
+
+#     ibs_src = ibs
+#     ibs_dst = ibeis.opendb(dbdir='/data/ibeis/TEST_Vulcan/')
+#     rowid_subsets = {
+#         const.IMAGE_TABLE: gid_list_
+#     }
+#     merge_databases(ibs_src, ibs_dst, rowid_subsets=rowid_subsets, localize_images=True)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
