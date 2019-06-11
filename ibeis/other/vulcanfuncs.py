@@ -191,7 +191,7 @@ def recompute_tiles(ibs, gid_list):
 @register_ibs_method
 def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False,
                                  return_configs=False, limit=None, gid_list=None,
-                                 include_grid2=True, **kwargs):
+                                 include_grid2=False, **kwargs):
     if gid_list is None:
         # if imageset_text_list is None:
         #     imageset_text_list = [
@@ -221,8 +221,6 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
 
     if limit is not None:
         gid_list = gid_list[:limit]
-
-    gid_list = gid_list[:50]
 
     tile_size = 256
     tile_overlap = 64
