@@ -1132,8 +1132,9 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
     ibs = depc.controller
 
-    zipped = zip(depc.get_native('localizations_original', loc_orig_id_list, None))
-    for loc_orig_id, detect in zip(loc_orig_id_list, zipped):
+    zipped = list(zip(depc.get_native('localizations_original', loc_orig_id_list, None)))
+    zipped2 = list(zip(loc_orig_id_list, zipped))
+    for loc_orig_id, detect in tqdm.tqdm(zipped2):
         score, bboxes, thetas, confs, classes = detect[0]
 
         # Apply Threshold
