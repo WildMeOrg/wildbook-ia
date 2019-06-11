@@ -222,7 +222,7 @@ def vulcan_get_valid_tile_rowids(ibs, imageset_text_list=None, return_gids=False
     if limit is not None:
         gid_list = gid_list[:limit]
 
-    gid_list[:50]
+    gid_list = gid_list[:50]
 
     tile_size = 256
     tile_overlap = 64
