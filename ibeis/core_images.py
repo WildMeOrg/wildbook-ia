@@ -1000,25 +1000,48 @@ def compute_localizations_original(depc, gid_list, config=None):
         detections_list = ibs.vulcan_localizer_test(tid_list, **loc_config)
 
         gid_dict = {}
-        for ancestor_gid, tid, bbox, detection_list in zip(ancestor_gid_list, tid_list, bbox_list, detections_list):
+        for ancestor_gid, tid, tile_bbox, detections in zip(ancestor_gid_list, tid_list, bbox_list, detections_list):
+            score, bboxes, thetas, confs, classes = detections
+            tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
+
             if ancestor_gid not in gid_dict:
-                gid_dict[ancestor_gid] = []
-            gid_dict[ancestor_gid].append(confidence)
+                gid_dict[ancestor_gid] = {
+                    'score'  : [],
+                    'bboxes' : [],
+                    'thetas' : [],
+                    'confs'  : [],
+                    'classes': [],
+                }
 
-        result_list = []
+            bboxes_ = []
+            for detect_bbox in bboxes:
+                detect_xtl, detect_ytl, detect_w, detect_h = detect_bbox
+                bbox_ = (
+                    tile_xtl + detect_xtl,
+                    tile_ytl + detect_ytl,
+                    tile_xtl + detect_w,
+                    tile_ytl + detect_h,
+                )
+                bboxes_.append(bbox_)
+
+            gid_dict[ancestor_gid]['score']   += [score]
+            gid_dict[ancestor_gid]['bboxes']  += bboxes_
+            gid_dict[ancestor_gid]['thetas']  += thetas
+            gid_dict[ancestor_gid]['confs']   += confs
+            gid_dict[ancestor_gid]['classes'] += classes
+
+        detect_gen = []
         for gid in tqdm.tqdm(gid_list):
-            gid_confidence_list = gid_dict.get(gid, None)
-            assert gid_confidence_list is not None
-            best_score = np.max(gid_confidence_list)
+            score   = gid_dict[gid]['score']
+            bboxes  = np.array(gid_dict[gid]['bboxes'])
+            thetas  = np.array(gid_dict[gid]['thetas'])
+            confs   = np.array(gid_dict[gid]['confs'])
+            classes = np.array(gid_dict[gid]['classes'])
 
-            if best_score >= 0.5:
-                best_key = 'positive'
-            else:
-                best_key = 'negative'
-                best_score = 1.0 - best_score
+            score = sum(score) / len(score) if len(score) > 0 else 0.0
 
-            result = (best_score, best_key, )
-            result_list.append(result)
+            detect = (score, bboxes, thetas, confs, classes)
+            detect_gen.append(detect)
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 

@@ -2070,7 +2070,7 @@ def vulcan_localizer_test(ibs, test_tile_list, algo='lightnet', model_tag=None,
         'boundary'        : boundary,
     }
 
-    detections_list = ibs.depc_image.get_property('localizations', test_tile_list, 'class', config=config, recompute=testing, recompute_all=testing)
+    detections_list = ibs.depc_image.get_property('localizations', test_tile_list, config=config, recompute=testing, recompute_all=testing)
     return detections_list
 
 
@@ -2236,6 +2236,8 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
+
+    test_gid_list = test_gid_list[:20]
 
     key = 'vulcan-localizer-image-%s' % (algo, )
     config_dict = {
