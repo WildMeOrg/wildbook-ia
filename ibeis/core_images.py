@@ -1026,7 +1026,11 @@ def compute_localizations_original(depc, gid_list, config=None):
         ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
         bbox_list         = ibs.get_vulcan_image_tile_bboxes(tid_list)
 
-        assert config['config_filepath'] in ['variant1']
+        assert config['config_filepath'] in ['variant1', 'variant2']
+
+        if config['config_filepath'] in ['variant2']:
+            ut.embed()
+            raise ValueError
 
         weight_filepath = config['weight_filepath']
         weight_filepath = weight_filepath.strip().split(';')
@@ -1075,7 +1079,8 @@ def compute_localizations_original(depc, gid_list, config=None):
                 }
 
             bboxes_ = []
-            for detect_bbox in bboxes:
+            confs_ = []
+            for detect_bbox, detect_conf in zip(bboxes, confs):
                 detect_xtl, detect_ytl, detect_w, detect_h = detect_bbox
                 bbox_ = (
                     tile_xtl + detect_xtl,
@@ -1084,12 +1089,14 @@ def compute_localizations_original(depc, gid_list, config=None):
                     detect_h,
                 )
                 bboxes_.append(bbox_)
+            thetas_ = list(thetas)
+            classes_ = list(classes)
 
             gid_dict[ancestor_gid]['score']   += [score]
             gid_dict[ancestor_gid]['bboxes']  += bboxes_
-            gid_dict[ancestor_gid]['thetas']  += list(thetas)
-            gid_dict[ancestor_gid]['confs']   += list(confs)
-            gid_dict[ancestor_gid]['classes'] += list(classes)
+            gid_dict[ancestor_gid]['thetas']  += thetas_
+            gid_dict[ancestor_gid]['confs']   += confs_
+            gid_dict[ancestor_gid]['classes'] += classes_
 
         detect_gen = []
         for gid in tqdm.tqdm(gid_list):

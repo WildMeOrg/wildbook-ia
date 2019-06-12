@@ -2084,41 +2084,41 @@ def vulcan_localizer_test(ibs, test_tile_list, algo='lightnet', model_tag=None,
     return detections_list
 
 
+def _vulcan_localizer_ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
+    from ibeis.other.detectfuncs import general_intersection_over_union
+    margin = float(margin)
+    gid = annot.get('gid', None)
+    assert gid is not None
+    w, h = ibs.get_image_sizes(gid)
+    margin_percent_w = margin / w
+    margin_percent_h = margin / h
+    xtl = margin_percent_w
+    ytl = margin_percent_h
+    xbr = 1.0 - margin_percent_w
+    ybr = 1.0 - margin_percent_h
+    width = xbr - xtl
+    height = ybr - ytl
+    center = {
+        'xtl'    : xtl,
+        'ytl'    : ytl,
+        'xbr'    : xbr,
+        'ybr'    : ybr,
+        'width'  : width,
+        'height' : height,
+    }
+    intersection, union = general_intersection_over_union(annot, center, return_components=True)
+    area = annot['width'] * annot['height']
+    if area <= 0:
+        return True
+    overlap = intersection / area
+    flag = overlap < min_bbox_coverage
+    return flag
+
+
 @register_ibs_method
 def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
                               thresh=0.024, margin=32, min_bbox_coverage=0.5,
                               offset_color=0, **kwargs):
-
-    def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
-        from ibeis.other.detectfuncs import general_intersection_over_union
-        margin = float(margin)
-        gid = annot.get('gid', None)
-        assert gid is not None
-        w, h = ibs.get_image_sizes(gid)
-        margin_percent_w = margin / w
-        margin_percent_h = margin / h
-        xtl = margin_percent_w
-        ytl = margin_percent_h
-        xbr = 1.0 - margin_percent_w
-        ybr = 1.0 - margin_percent_h
-        width = xbr - xtl
-        height = ybr - ytl
-        center = {
-            'xtl'    : xtl,
-            'ytl'    : ytl,
-            'xbr'    : xbr,
-            'ybr'    : ybr,
-            'width'  : width,
-            'height' : height,
-        }
-        intersection, union = general_intersection_over_union(annot, center, return_components=True)
-        area = annot['width'] * annot['height']
-        if area <= 0:
-            return True
-        overlap = intersection / area
-        flag = overlap < min_bbox_coverage
-        return flag
-
     species_set = set([target_species])
     template_v0 = (
         [
@@ -2203,7 +2203,7 @@ def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
 
-    ignore_filter_func_ = partial(ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
+    ignore_filter_func_ = partial(_vulcan_localizer_ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
     # All Positive Tiles (All)
     config_dict = {
@@ -2315,12 +2315,21 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
             ########################################################################################################
 
-            {'label': '5fbfff26 R3+V0 796+0% NMS 90%',   'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
-            {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 796+0% NMS 90%',   'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate(quick=True)
+
+            ########################################################################################################
+
+            {'label': '5fbfff26 R3+V0 703+0%  Var2 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 400+40% Var2 NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 703+0%  Var1 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 400+40% Var1 NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate()
         ],
         {},
     )
@@ -2350,37 +2359,6 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 # @register_ibs_method
 # def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
 #                               thresh=0.024, margin=32, min_bbox_coverage=0.5, **kwargs):
-
-#     def ignore_filter_func(ibs, annot, margin, min_bbox_coverage, *args, **kwargs):
-#         from ibeis.other.detectfuncs import general_intersection_over_union
-#         margin = float(margin)
-#         gid = annot.get('gid', None)
-#         assert gid is not None
-#         w, h = ibs.get_image_sizes(gid)
-#         margin_percent_w = margin / w
-#         margin_percent_h = margin / h
-#         xtl = margin_percent_w
-#         ytl = margin_percent_h
-#         xbr = 1.0 - margin_percent_w
-#         ybr = 1.0 - margin_percent_h
-#         width = xbr - xtl
-#         height = ybr - ytl
-#         center = {
-#             'xtl'    : xtl,
-#             'ytl'    : ytl,
-#             'xbr'    : xbr,
-#             'ybr'    : ybr,
-#             'width'  : width,
-#             'height' : height,
-#         }
-#         intersection, union = general_intersection_over_union(annot, center, return_components=True)
-#         area = annot['width'] * annot['height']
-#         if area <= 0:
-#             return True
-#         overlap = intersection / area
-#         flag = overlap < min_bbox_coverage
-#         return flag
-
 #     species_set = set([target_species])
 #     template_v0 = (
 #         [
@@ -2440,7 +2418,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 #     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
 #     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
-#     ignore_filter_func_ = partial(ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
+#     ignore_filter_func_ = partial(_vulcan_localizer_ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
 #     # All Positive Tiles (All)
 #     config_dict = {
