@@ -1020,17 +1020,16 @@ def compute_localizations_original(depc, gid_list, config=None):
         ]
         detect_gen = _combined(gid_list, config_dict_list)
     elif config['algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
+        from ibeis.other.detectfuncs import general_intersection_over_union
+
         include_grid2 = config['algo'] in ['tile_aggregation']
         tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
 
         ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
         bbox_list         = ibs.get_vulcan_image_tile_bboxes(tid_list)
+        size_list         = ibs.get_image_sizes(tid_list)
 
-        assert config['config_filepath'] in ['variant1', 'variant2']
-
-        if config['config_filepath'] in ['variant2']:
-            ut.embed()
-            raise ValueError
+        assert config['config_filepath'] in ['variant1', 'variant2', 'variant2-32', 'variant2-64', 'variant3-32', 'variant3-64', 'variant4-32', 'variant4-64']
 
         weight_filepath = config['weight_filepath']
         weight_filepath = weight_filepath.strip().split(';')
@@ -1052,15 +1051,15 @@ def compute_localizations_original(depc, gid_list, config=None):
             tid_list_ = ut.compress(tid_list, flag_list)
             print('%d tiles passed WIC filter out of %d' % (len(tid_list_), len(tid_list), ))
 
-            config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
-            prediction_list = depc.get_property('localizations', tid_list_, None, config=config)
+            loc_config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : weight_filepath, 'weight_filepath' : weight_filepath, 'nms': True, 'nms_thresh': nms_thresh, 'sensitivity': 0.0}
+            prediction_list = depc.get_property('localizations', tid_list_, None, config=loc_config)
             prediction_dict = dict(zip(tid_list_, prediction_list))
         else:
             raise ValueError('Only "densenet+lightnet" is implemented')
 
         gid_dict = {}
-        zipped = list(zip(ancestor_gid_list, tid_list, bbox_list))
-        for ancestor_gid, tid, tile_bbox in zipped:
+        zipped = list(zip(ancestor_gid_list, tid_list, size_list, bbox_list))
+        for ancestor_gid, tid, tile_size, tile_bbox in tqdm.tqdm(zipped):
             prediction = prediction_dict.get(tid, None)
 
             if prediction is None:
@@ -1082,6 +1081,56 @@ def compute_localizations_original(depc, gid_list, config=None):
             confs_ = []
             for detect_bbox, detect_conf in zip(bboxes, confs):
                 detect_xtl, detect_ytl, detect_w, detect_h = detect_bbox
+                detect_xbr = detect_xtl + detect_w
+                detect_ybr = detect_ytl + detect_h
+                detect_annot = {
+                    'xtl'    : detect_xtl / tile_w,
+                    'ytl'    : detect_ytl / tile_h,
+                    'xbr'    : detect_xbr / tile_w,
+                    'ybr'    : detect_ybr / tile_h,
+                    'width'  : detect_w   / tile_w,
+                    'height' : detect_h   / tile_h,
+                }
+
+                multiplier = None
+                if config['config_filepath'] in ['variant1']:
+                    multiplier = 1.0
+                elif config['config_filepath'] in ['variant2', 'variant2-32', 'variant2-64', 'variant3-32', 'variant3-64', 'variant4-32', 'variant4-64']:
+                    margin = 32.0 if config['config_filepath'] in ['variant-2', 'variant2-32', 'variant3-32', 'variant4-32'] else 64.0
+                    tile_w, tile_h = tile_size
+                    margin_percent_w = margin / tile_w
+                    margin_percent_h = margin / tile_h
+                    xtl = margin_percent_w
+                    ytl = margin_percent_h
+                    xbr = 1.0 - margin_percent_w
+                    ybr = 1.0 - margin_percent_h
+                    width = xbr - xtl
+                    height = ybr - ytl
+                    center = {
+                        'xtl'    : xtl,
+                        'ytl'    : ytl,
+                        'xbr'    : xbr,
+                        'ybr'    : ybr,
+                        'width'  : width,
+                        'height' : height,
+                    }
+                    intersection, union = general_intersection_over_union(detect_annot, center, return_components=True)
+                    area = detect_annot['width'] * detect_annot['height']
+                    overlap = 0.0 if area <= 0 else intersection / area
+                    assert 0.0 <= overlap and overlap <= 1.0
+
+                    if config['config_filepath'] in ['variant2', 'variant2-32', 'variant2-64']:
+                        multiplier = overlap
+                    elif config['config_filepath'] in ['variant3-32', 'variant3-64']:
+                        multiplier = np.sqrt(overlap)
+                    elif config['config_filepath'] in ['variant4-32', 'variant4-64']:
+                        multiplier = overlap ** overlap
+                    else:
+                        raise ValueError
+                else:
+                    raise ValueError
+                assert multiplier is not None
+
                 bbox_ = (
                     tile_xtl + detect_xtl,
                     tile_ytl + detect_ytl,
@@ -1089,6 +1138,7 @@ def compute_localizations_original(depc, gid_list, config=None):
                     detect_h,
                 )
                 bboxes_.append(bbox_)
+                confs_.append(detect_conf * multiplier)
             thetas_ = list(thetas)
             classes_ = list(classes)
 
