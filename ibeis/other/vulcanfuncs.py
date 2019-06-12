@@ -2885,7 +2885,8 @@ def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
 
     assignment_image_dict = {}
     aids_list = ibs.get_image_aids(gt_positive_gid_list)
-    for gid, aid_list in zip(gt_positive_gid_list, aids_list):
+    zipped = zip(gt_positive_gid_list, aids_list)
+    for gid, aid_list in tqdm.tqdm(zipped):
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
 
@@ -2933,10 +2934,11 @@ def vulcan_visualize_annotation_clusters(ibs, output_path=None, use_ancestors=Fa
         output_path = abspath(expanduser(join('~', 'Desktop', folder_name)))
         ut.ensuredir(output_path)
 
+    print('Computing Assignments')
     assignment_image_dict = ibs.vulcan_compute_annotation_clusters(ibs, use_ancestors=use_ancestors,
                                                                    **kwargs)
 
-    for gid in assignment_image_dict:
+    for gid in tqdm.tqdm(assignment_image_dict):
         assignment_annot_dict, value_annot_dict = assignment_image_dict[gid]
 
         aid_list = sorted(assignment_annot_dict.keys())
