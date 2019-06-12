@@ -2330,10 +2330,11 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list, overwrite_config_keys=True, offset_color=offset_color, min_overlap=0.2, target_recall=0.9)
 
     if False:
-        config = {'grid' : False, 'algo': 'tile_aggregation', 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'sensitivity': 0.5859}
-        # test_gid_list = [1, 2, 5, 6, 7, 14, 20, 23, 24, 27]
-        ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
+        config = {'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'sensitivity': 0.0}
+        # config = {'grid' : False, 'algo': 'tile_aggregation', 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'sensitivity': 0.5859}
+        test_gid_list = [1, 2, 5, 6, 7, 14, 20, 23, 24, 27, 29, 33, 34, 35, 41, 50, 53, 56, 61, 67]
         ibs.visualize_predictions(config, gid_list=test_gid_list, t_width=2000)
+        ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
 
 
 # @register_ibs_method
