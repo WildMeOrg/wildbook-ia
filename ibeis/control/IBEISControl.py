@@ -285,6 +285,8 @@ class IBEISController(BASE_CLASS):
                 force_serial = True
             else:
                 force_serial = not ut.in_main_process()
+        if const.CONTAINERIZED:
+            force_serial = True
         ibs.force_serial = force_serial
         # observer_weakref_list keeps track of the guibacks connected to this
         # controller
