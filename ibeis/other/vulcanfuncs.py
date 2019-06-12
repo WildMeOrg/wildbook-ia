@@ -2869,19 +2869,21 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
 
 @register_ibs_method
 def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
-                                       distance=32, **kwargs):
+                                       distance=32, use_ancestors=False, **kwargs):
     from scipy.cluster.hierarchy import fclusterdata
     import numpy as np
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     all_tile_list = list(all_tile_set)
-
     values = ibs.vulcan_tile_positive_cumulative_area(all_tile_list)
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_gid_list = sorted(ut.compress(all_tile_list, flag_list))
 
-    assignment_image_dict = {}
+    if use_ancestors:
+        gt_positive_gid_list_ = ibs.get_vulcan_image_tile_ancestor_gids(gt_positive_gid_list)
+        gt_positive_gid_list = list(set(gt_positive_gid_list_))
 
+    assignment_image_dict = {}
     aids_list = ibs.get_image_aids(gt_positive_gid_list)
     for gid, aid_list in zip(gt_positive_gid_list, aids_list):
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
@@ -2922,15 +2924,17 @@ def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
 
 
 @register_ibs_method
-def vulcan_visualize_annotation_clusters(ibs, output_path=None, **kwargs):
+def vulcan_visualize_annotation_clusters(ibs, output_path=None, use_ancestors=False, **kwargs):
     import plottool as pt
     import cv2
 
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'Desktop', 'bboxes_circles')))
+        folder_name = 'bboxes_circles_images' if use_ancestors else 'bboxes_circles_tiles'
+        output_path = abspath(expanduser(join('~', 'Desktop', folder_name)))
         ut.ensuredir(output_path)
 
-    assignment_image_dict = ibs.vulcan_compute_annotation_clusters(ibs, **kwargs)
+    assignment_image_dict = ibs.vulcan_compute_annotation_clusters(ibs, use_ancestors=use_ancestors,
+                                                                   **kwargs)
 
     for gid in assignment_image_dict:
         assignment_annot_dict, value_annot_dict = assignment_image_dict[gid]
