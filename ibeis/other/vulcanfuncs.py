@@ -2332,17 +2332,43 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
             # {'label': '5fbfff26 R3+V0 703+0%  Var3-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
             # {'label': '5fbfff26 R3+V0 703+0%  Var4-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
 
+            # ibs.vulcan_localizer_image_validate()
+
             ########################################################################################################
 
-            {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate()
+
+            ########################################################################################################
+
+            {'label': '5fbf R3+V0 796+0% Var1    90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 796+0% Var2-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 796+0% Var3-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 796+0% Var4-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 796+0% Var2-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 796+0% Var3-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 796+0% Var4-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate(quick=True)
+
+            ########################################################################################################
+
+            # {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate(quick=True)
         ],
         {},
     )
@@ -2362,8 +2388,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list, overwrite_config_keys=True, offset_color=offset_color, min_overlap=0.2, target_recall=0.9)
 
     if False:
-        config = {'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'sensitivity': 0.0}
-        # config = {'grid' : False, 'algo': 'tile_aggregation', 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'sensitivity': 0.5859}
+        config = {'grid' : False, 'algo': 'tile_aggregation', 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'sensitivity': 0.5859}
         test_gid_list = [1, 2, 5, 6, 7, 14, 20, 23, 24, 27, 29, 33, 34, 35, 41, 50, 53, 56, 61, 67]
         ibs.visualize_predictions(config, gid_list=test_gid_list, t_width=2000)
         ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
@@ -2871,10 +2896,43 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
 
 
 @register_ibs_method
-def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
-                                       distance=32, use_ancestors=False, **kwargs):
+def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
     from scipy.cluster.hierarchy import fclusterdata
     import numpy as np
+
+    centers = []
+    radii = []
+    for bbox in bbox_list:
+        xtl, ytl, w, h = bbox
+        cx = int(np.around(xtl + (w // 2)))
+        cy = int(np.around(ytl + (h // 2)))
+        center = (cx, cy, )
+        radius = int(np.around(max(w, h) * 0.5))
+        centers.append(center)
+        radii.append(radius)
+
+    centers = np.array(centers)
+    radii = np.array(radii).reshape(-1, 1)
+    values = np.hstack((centers, radii))
+
+    def metric_func(value1, value2):
+        cx1, cy1, radius1 = value1
+        cx2, cy2, radius2 = value2
+        dist = np.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
+        dist = max(0.0, dist - radius1 - radius2)
+        return dist
+
+    if len(values) > 1:
+        prediction_list = fclusterdata(values, t=distance, criterion='distance', metric=metric_func)
+    else:
+        prediction_list = [1]
+
+    return prediction_list
+
+
+@register_ibs_method
+def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
+                                       use_ancestors=False, **kwargs):
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     all_tile_list = list(all_tile_set)
@@ -2893,33 +2951,7 @@ def vulcan_compute_annotation_clusters(ibs, target_species='elephant_savanna',
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
 
-        centers = []
-        radii = []
-        for bbox in bbox_list:
-            xtl, ytl, w, h = bbox
-            cx = int(np.around(xtl + (w // 2)))
-            cy = int(np.around(ytl + (h // 2)))
-            center = (cx, cy, )
-            radius = int(np.around(max(w, h) * 0.5))
-            centers.append(center)
-            radii.append(radius)
-
-        centers = np.array(centers)
-        radii = np.array(radii).reshape(-1, 1)
-        values = np.hstack((centers, radii))
-
-        def metric_func(value1, value2):
-            cx1, cy1, radius1 = value1
-            cx2, cy2, radius2 = value2
-            dist = np.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
-            dist = max(0.0, dist - radius1 - radius2)
-            return dist
-
-        if len(values) > 1:
-            prediction_list = fclusterdata(values, t=distance, criterion='distance', metric=metric_func)
-        else:
-            prediction_list = [1]
-
+        prediction_list = ibs._vulcan_compute_annotation_clusters(bbox_list, **kwargs)
         assignment_annot_dict = dict(zip(aid_list, prediction_list))
         value_annot_dict = dict(zip(aid_list, values))
         assignment_image_dict[gid] = (assignment_annot_dict, value_annot_dict)
@@ -2964,10 +2996,10 @@ def vulcan_visualize_annotation_clusters(ibs, output_path=None, use_ancestors=Fa
             value = value_annot_dict[aid]
             color = color_dict[cluster]
             cx, cy, radius = value
-            cv2.circle(image, (cx, cy), 1, color, 2)
-            cv2.circle(image, (cx, cy), radius, color, 2)
+            cv2.circle(image, (cx, cy), 3, color, 5)
+            cv2.circle(image, (cx, cy), radius, color, 5)
 
-        write_filename = 'bboxes_%d_circle_clusters_%d.png' % (gid, len(cluster_list), )
+        write_filename = 'bboxes_%d_circle_annots_%d_clusters_%d.png' % (gid, len(aid_list), len(cluster_list), )
         write_filepath = join(output_path, write_filename)
         print(write_filepath)
         cv2.imwrite(write_filepath, image)
@@ -3262,6 +3294,30 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, target_species
         fig_filename = 'vulcan-loc-errors-clusters-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
+
+
+@register_ibs_method
+def vulcan_detect(ibs, gid_list, testing=False, **kwargs):
+    detection_config = {
+        'algo'            : 'tile_aggregation_quick',
+        'config_filepath' : 'variant3-32',
+        'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0',
+        'sensitivity'     : 0.5,
+        'nms_thresh'      : 0.9,
+    }
+
+    detections_list = ibs.depc_image.get_property('localizations', gid_list, config=detection_config, recompute=testing, recompute_all=testing)
+
+    result_list = []
+    for detections in detections_list:
+        score, bboxes, thetas, confs, classes = detections
+        clusters = ibs._vulcan_compute_annotation_clusters(bboxes, **kwargs)
+
+        result = (bboxes, classes, confs, clusters, )
+        result_list.append(result)
+
+    return result_list
+
 
 if __name__ == '__main__':
     """

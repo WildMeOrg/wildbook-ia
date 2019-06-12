@@ -126,11 +126,11 @@ def vulcan_core_specification_swagger(*args, **kwargs):
           description: Returns the Swagger 2.0 JSON format
     """
     swag = swagger(current_app)
-    swag['info']['title'] = 'Wild Me - Vulcan Project'
+    swag['info']['title'] = 'Wild Me - Vulcan MWS Project, Phase 1'
     swag['info']['description'] = 'Documentation for all REST API endpoints provided by Wild Me for the Vulcan collaboration'
     swag['info']['version'] = 'v0.1'
     swag['info']['contact'] = {
-        'name':  'Wild Me Developers',
+        'name':  'Wild Me',
         'url':   'http://wildme.org',
         'email': 'dev@wildme.org',
     }
@@ -175,7 +175,7 @@ def vulcan_core_status(*args, **kwargs):
 
 
 @register_api(_prefix('image'), methods=['POST'])
-def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
+def vulcan_image_upload(ibs, precompute=True, return_times=False, *args, **kwargs):
     r"""
     Upload an image for future processing.
 
@@ -190,6 +190,12 @@ def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
       - image/png
       - image/jpg
       - image/tiff
+    - name: precompute
+      in: body
+      description: A boolean flag to precompute the tiles for this image
+      required: false
+      type: boolean
+      default: true
     produces:
     - application/json
     responses:
@@ -212,8 +218,13 @@ def vulcan_image_upload(ibs, return_time=False, *args, **kwargs):
         except:
             raise controller_inject.WebInvalidInput('Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)', 'image', image=True)
         image = _image(ibs, gid)
-    if return_time:
-        return image, time_upload
+
+    with ut.Timer('Tiling') as time_tile:
+        # Pre-compute tiles
+        ibs.vulcan_get_valid_tile_rowids(gid_list=[gid], include_grid2=True)
+
+    if return_times:
+        return image, time_upload, time_tile
     else:
         return image
 
@@ -298,26 +309,11 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
         description: Invalid input parameter
     """
     # Input argument validation
-    gid_list = ibs._ensure_images_exist(images, allow_none=True)
-    imageset_rowid = ibs.get_imageset_imgsetids_from_text(name)
 
     metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
-    sequence = metadata_dict.get('sequence', None)
-    if sequence is not None:
-        assert overwrite, 'This sequence has already been defined and overwriting is OFF (use overwrite = True to force)'
-
-    sequence = []
-    for index, gid in enumerate(gid_list):
-        sequence.append({
-            'index' : index,
-            'gid'   : gid,
-        })
-
-    metadata_dict['sequence'] = sequence
-    ibs.set_imageset_metadata([imageset_rowid], [metadata_dict])
-
-    sequence = _sequence(ibs, imageset_rowid)
-    return sequence
+    sequence_ = metadata_dict.get('sequence', None)
+    assert sequence_ is not None
+    return sequence_
 
 
 @register_ibs_method
@@ -379,12 +375,12 @@ def vulcan_pipeline(ibs, images,
 
         with ut.Timer('LOC All') as time_loc_all:
             if _run_all_loc:
-                model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
+                model_tag               = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
                 all_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
                 all_loc_flag_list       = [all_loc_confidence >= loc_sensitivity for all_loc_confidence in all_loc_confidence_list]  # NOQA
 
         with ut.Timer('LOC Filtered') as time_loc_filtered:
-            model_tag           = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
+            model_tag                    = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
             filtered_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
             filtered_loc_flag_list       = [filtered_loc_confidence >= loc_sensitivity for filtered_loc_confidence in filtered_loc_confidence_list]  # NOQA
 
@@ -407,6 +403,9 @@ def vulcan_pipeline(ibs, images,
                     location_ = (cx, cy)
                     location_list_.append(location_)
                 locations_list.append(location_list_)
+
+        with ut.Timer('Clustering') as time_loc_cluster:
+            pass
 
         with ut.Timer('Aggregate') as time_agg:
             model_tag           = '%s;%s,%0.03f,%s,%0.02f' % (loc_classifier_algo, wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms)
@@ -433,10 +432,11 @@ def vulcan_pipeline(ibs, images,
             'step_2_tile'      : _timer(time_tile),
             'step_3_wic'       : _timer(time_wic),
             'step_4_loc'       : _timer(time_loc_filtered),
-            'step_5_aggregate' : _timer(time_agg),
-            'inference'        : _timer(time_wic, time_loc_filtered),
+            'step_5_cluster'   : _timer(time_loc_cluster),
+            'step_6_aggregate' : _timer(time_agg),
+            'gpu_inference'    : _timer(time_wic, time_loc_filtered),
             'overhead'         : _timer(time_upload, time_config, time_uuid, time_tile, time_agg),
-            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc_filtered, time_agg),
+            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc_filtered, time_loc_cluster, time_agg),
         },
     }
 
@@ -469,7 +469,7 @@ def vulcan_pipeline_upload(ibs, *_args, **kwargs):
     ibs = current_app.ibs
 
     # Input argument validation
-    image, time_upload = vulcan_image_upload(ibs, return_time=True)
+    image, time_upload, time_tile = vulcan_image_upload(ibs, return_times=True)
     images = [image]
     args = (images, )
     response = vulcan_pipeline(ibs, *args, time_upload=time_upload, **kwargs)
