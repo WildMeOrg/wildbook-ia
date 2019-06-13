@@ -3393,9 +3393,74 @@ def vulcan_detect(ibs, gid_list, quick=True, testing=False, detection_config=Non
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_tp_fp_examples(ibs, samples=500, target_species='elephant_savanna',
+def _vulcan_localizer_visualize_tp_fp_canvas(ibs, value_list, line_length=10, target_size=150):
+    from ibeis.web import appfuncs as appf
+
+    image_dict = {}
+    line_list = []
+    line = []
+    for value in value_list:
+        gid = value['gid']
+        image = ibs.get_images(gid)
+        if gid not in image_dict:
+            image_dict[gid] = image
+        else:
+            image = image_dict[gid]
+        width, height = ibs.get_image_sizes(gid)
+        xtl = int(np.around(value['xtl'] * width))
+        ytl = int(np.around(value['ytl'] * height))
+        xbr = int(np.around(value['xbr'] * width))
+        ybr = int(np.around(value['ybr'] * height))
+        chip = image[ytl:ybr, xtl:xbr]
+
+        h, w, c = chip.shape
+        if w <= h:
+            chip = appf._resize(chip, t_height=target_size)
+        else:
+            chip = appf._resize(chip, t_width=target_size)
+        h, w, c = chip.shape
+
+        while chip.shape[0] < target_size:
+            pad = np.zeros((1, chip.shape[1], c), dtype=chip.dtype)
+            chip = np.vstack((pad, chip))
+            if chip.shape[0] == target_size:
+                break
+            chip = np.vstack((chip, pad))
+
+        while chip.shape[1] < target_size:
+            pad = np.zeros((chip.shape[0], 1, c), dtype=chip.dtype)
+            chip = np.hstack((pad, chip))
+            if chip.shape[1] == target_size:
+                break
+            chip = np.hstack((chip, pad))
+
+        assert h <= target_size and w <= target_size
+
+        line.append(chip)
+        if len(line) >= line_length:
+            line_list.append(np.hstack(line))
+            line = []
+
+    if len(line) > 0:
+        while len(line) < line_length:
+            # borrow dtype and c from last chip, a bit hacky, but whatever
+            chip = np.zeros((target_size, target_size, c), dtype=chip.dtype)
+            line.append(chip)
+        line_list.append(np.hstack(line))
+    canvas = np.vstack(line_list)
+
+    # Release images in memory
+    image_dict = None
+
+    return canvas
+
+
+@register_ibs_method
+def vulcan_localizer_visualize_tp_fp_examples(ibs, target_species='elephant_savanna',
                                               quick=True, **kwargs):
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
+
+    canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
     detection_config = ibs.vulcan_detect_config(quick=quick)
 
@@ -3427,10 +3492,6 @@ def vulcan_localizer_visualize_tp_fp_examples(ibs, samples=500, target_species='
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, min_overlap=0.2, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
-    ut.embed()
-
-    fn = 0
-    fp = 0
     fn_det_list = []
     fp_det_list = []
     for test_uuid in test_uuid_list:
@@ -3440,23 +3501,42 @@ def vulcan_localizer_visualize_tp_fp_examples(ibs, samples=500, target_species='
         assert len(pred_list) == len(match_list)
         assert len(gt_list) == total
 
-        matched_gt = 0
         matched_gt_index_set   = set([])
         matched_pred_index_set = set([])
         for pred_index, match in enumerate(match_list):
             match_confidence, match_flag, match_gt, match_overlap = match
             if match_flag:
-                matched_gt += 1
+                match_index = None
+                for gt_index, gt in enumerate(gt_list):
+                    if gt['aid'] == match_gt['aid']:
+                        match_index = gt_index
+                assert match_index is not None
                 matched_gt_index_set.add(match_index)
                 matched_pred_index_set.add(pred_index)
 
-        fn += total - matched_gt
         remaining_gt_index_set = set(list(range(len(gt_list)))) - matched_gt_index_set
         remaining_pred_index_set = set(list(range(len(pred_list)))) - matched_pred_index_set
-        fp += len(remaining_pred_index_set)
+        remaining_gt_index_list = sorted(list(remaining_gt_index_set))
+        remaining_pred_index_list = sorted(list(remaining_pred_index_set))
 
-        fn_det_list += ut.take(gt_list, list(remaining_gt_index_set))
-        fp_det_list += ut.take(pred_list, list(remaining_pred_index_set))
+        fn_det_list += ut.take(gt_list, remaining_gt_index_list)
+        fp_det_list_preds = ut.take(pred_list, remaining_pred_index_list)
+        fp_det_list_confs = ut.take(ut.take_column(match_list, 0), remaining_pred_index_list)
+        fp_det_list += list(zip(fp_det_list_confs, fp_det_list_preds))
+
+    fp_det_list = sorted(fp_det_list, reverse=True)
+    fp_det_list = ut.take_column(fp_det_list, 1)
+
+    fn_canvas = ibs._vulcan_localizer_visualize_tp_fp_canvas(fn_det_list, **kwargs)
+    fp_canvas = ibs._vulcan_localizer_visualize_tp_fp_canvas(fp_det_list, **kwargs)
+
+    canvas_filename = 'vulcan-detection-errors-fn.png'
+    canvas_filepath = join(canvas_path, canvas_filename)
+    cv2.imwrite(canvas_filepath, fn_canvas)
+
+    canvas_filename = 'vulcan-detection-errors-fp.png'
+    canvas_filepath = join(canvas_path, canvas_filename)
+    cv2.imwrite(canvas_filepath, fp_canvas)
 
 
 if __name__ == '__main__':
