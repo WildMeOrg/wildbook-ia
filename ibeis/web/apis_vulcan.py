@@ -337,17 +337,33 @@ def vulcan_pipeline(ibs, images,
             include_grid2 = not quick
 
             detection_config = ibs.vulcan_detect_config(quick=quick)
+            detection_algo        = detection_config['algo']
+            detection_config      = detection_config['config_filepath']
+            detection_weight      = detection_config['weight_filepath']
+            detection_sensitivity = detection_config['sensitivity']
+            detection_nms         = detection_config['nms_thresh']
 
-            wic_classifier_algo     = 'densenet'
-            loc_classifier_algo     = '%s+lightnet' % (wic_classifier_algo, )
-            loc_all_classifier_algo = '%s+lightnet!' % (wic_classifier_algo, )
-            agg_classifier_algo     = 'tile_aggregation_quick' if quick else 'tile_aggregation'
-            # wic_model_tag           = 'vulcan-d3e8bf43-boost2'
-            wic_model_tag           = 'vulcan-d3e8bf43-boost2:3'
-            loc_model_tag           = 'vulcan_v0'
-            wic_sensitivity         = 0.347
-            loc_sensitivity         = 0.151
-            loc_nms                 = 0.5
+            detection_weight_algo, detection_weight_config = detection_weight.strip().split(';')
+            detection_weight_algo_wic, detection_weight_algo_loc = detection_weight_algo.strip().split('+')
+
+            values = detection_weight_config.strip().split(',')
+            assert len(values) == 4
+            detection_weight_config_wic_model_tag   = values[0]
+            detection_weight_config_wic_sensitivity = values[1]
+            detection_weight_config_loc_model_tag   = values[2]
+            detection_weight_config_loc_tile_nms    = values[3]
+
+            wic_classifier_algo     = detection_weight_algo_wic
+            wic_model_tag           = detection_weight_config_wic_model_tag
+            wic_sensitivity         = detection_weight_config_wic_sensitivity
+
+            loc_classifier_algo     = detection_weight_algo
+            loc_model_tag           = detection_weight_config_loc_model_tag
+            loc_sensitivity         = detection_sensitivity
+            loc_tile_nms            = detection_weight_config_loc_tile_nms
+            loc_image_nms           = detection_nms
+
+            agg_classifier_algo     = detection_algo
 
         with ut.Timer('UUIDs') as time_uuid:
             gid_list = _ensure_images_exist(images)
@@ -371,40 +387,21 @@ def vulcan_pipeline(ibs, images,
             ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
         with ut.Timer('WIC') as time_wic:
-            model_tag           = wic_model_tag
-            wic_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=wic_classifier_algo, model_tag=model_tag)
-            wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
+            wic_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=wic_classifier_algo, model_tag=wic_model_tag)
+            # wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
 
-        with ut.Timer('LOC All') as time_loc_all:
-            if _run_all_loc:
-                model_tag               = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
-                all_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
-                all_loc_flag_list       = [all_loc_confidence >= loc_sensitivity for all_loc_confidence in all_loc_confidence_list]  # NOQA
+        # with ut.Timer('LOC All') as time_loc_all:
+        #     if _run_all_loc:
+        #         model_tag               = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
+        #         all_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
+        #         all_loc_flag_list       = [all_loc_confidence >= loc_sensitivity for all_loc_confidence in all_loc_confidence_list]  # NOQA
 
-        with ut.Timer('LOC Filtered') as time_loc_filtered:
-            model_tag                    = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
-            filtered_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_classifier_algo, model_tag=model_tag)
+        with ut.Timer('LOC') as time_loc:
+            detections_list = ibs.vulcan_localizer_test(tile_list,
+                                                        algo=detection_weight_algo_loc,
+                                                        model_tag=detection_weight_config_wic_model_tag,
+                                                        sensitivity=detection_sensitivity)
             filtered_loc_flag_list       = [filtered_loc_confidence >= loc_sensitivity for filtered_loc_confidence in filtered_loc_confidence_list]  # NOQA
-
-            location_dict = {}
-            for ancestor_gid, tile, filtered_loc_flag in zip(ancestor_gid_list, tile_list, filtered_loc_flag_list):
-                if ancestor_gid not in location_dict:
-                    location_dict[ancestor_gid] = []
-                if filtered_loc_flag:
-                    location_dict[ancestor_gid].append(tile)
-
-            locations_list = []
-            for gid in gid_list:
-                tile_list_ = location_dict.get(gid, [])
-                bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list_)
-                location_list_ = []
-                for bbox in bbox_list:
-                    xtl, ytl, w, h = bbox
-                    cx = xtl + (w // 2)
-                    cy = ytl + (h // 2)
-                    location_ = (cx, cy)
-                    location_list_.append(location_)
-                locations_list.append(location_list_)
 
         with ut.Timer('Clustering') as time_loc_cluster:
             pass
@@ -428,17 +425,17 @@ def vulcan_pipeline(ibs, images,
         'times': {
             '_test'            : _timer(time_test),
             '_num_tiles'       : num_tiles,
-            '_loc_all'         : _timer(time_loc_all),
+            # '_loc_all'         : _timer(time_loc_all),
             'step_0_upload'    : _timer(time_upload),
             'step_1_uuid'      : _timer(time_config, time_uuid),
             'step_2_tile'      : _timer(time_tile),
             'step_3_wic'       : _timer(time_wic),
-            'step_4_loc'       : _timer(time_loc_filtered),
+            'step_4_loc'       : _timer(time_loc),
             'step_5_cluster'   : _timer(time_loc_cluster),
             'step_6_aggregate' : _timer(time_agg),
-            'gpu_inference'    : _timer(time_wic, time_loc_filtered),
+            'gpu_inference'    : _timer(time_wic, time_loc),
             'overhead'         : _timer(time_upload, time_config, time_uuid, time_tile, time_agg),
-            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc_filtered, time_loc_cluster, time_agg),
+            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc, time_loc_cluster, time_agg),
         },
     }
 

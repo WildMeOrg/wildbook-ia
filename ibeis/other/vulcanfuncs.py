@@ -2350,10 +2350,10 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
             ########################################################################################################
 
-            {'label': '5fbf R3  +V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3:0+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:0,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3  +V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3:0+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:0,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
             {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3:2+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:2,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3:2+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:2,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate(quick=True, offset_color=1)
         ],
@@ -3346,36 +3346,59 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, target_species
 
 
 @register_ibs_method
+def vulcan_localizer_test(ibs, test_tile_list, algo='lightnet', model_tag=None,
+                          sensitivity=0.0, nms=True, nms_thresh=0.2,
+                          invalid=True, invalid_margin=0.25, boundary=True, testing=False):
+    assert model_tag is not None
+    config = {
+        'algo'            : algo,
+        'config_filepath' : model_tag,
+        'weight_filepath' : model_tag,
+        'sensitivity'     : sensitivity,
+        'nms'             : nms,
+        'nms_thresh'      : nms_thresh,
+        # 'grid'            : False,
+        # 'invalid'         : invalid,
+        # 'invalid_magin'   : invalid_margin,
+        # 'boundary'        : boundary,
+    }
+
+    detections_list = ibs.depc_image.get_property('localizations', test_tile_list, config=config, recompute=testing, recompute_all=testing)
+    return detections_list
+
+
+@register_ibs_method
 def vulcan_detect_config(ibs, quick=True):
     if quick:
         detection_config = {
             'algo'            : 'tile_aggregation_quick',
             'config_filepath' : 'variant3-32',
-            'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0',
+            'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4',
             'sensitivity'     : 0.5,
-            'nms_thresh'      : 0.9,
+            'nms_thresh'      : 0.8,
         }
     else:
         detection_config = {
-            'algo'            : 'tile_aggregation_quick',
+            'algo'            : 'tile_aggregation',
             'config_filepath' : 'variant3-32',
-            'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0',
-            'sensitivity'     : 0.5,
-            'nms_thresh'      : 0.9,
+            'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4',
+            'sensitivity'     : 0.5077,
+            'nms_thresh'      : 0.8,
         }
     return detection_config
 
 
 @register_ibs_method
-def vulcan_detect(ibs, gid_list, quick=True, testing=False, **kwargs):
-    detection_config = ibs.vulcan_detect_config(quick=quick)
+def vulcan_detect(ibs, gid_list, quick=True, testing=False, detection_config=None, **kwargs):
+    if detection_config is None:
+        detection_config = ibs.vulcan_detect_config(quick=quick)
+
     detections_list = ibs.depc_image.get_property('localizations', gid_list, config=detection_config, recompute=testing, recompute_all=testing)
 
     result_list = []
     for detections in detections_list:
         score, bboxes, thetas, confs, classes = detections
         clusters = ibs._vulcan_compute_annotation_clusters(bboxes, **kwargs)
-
         result = (bboxes, classes, confs, clusters, )
         result_list.append(result)
 
