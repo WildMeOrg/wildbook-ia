@@ -3014,7 +3014,7 @@ def vulcan_compute_pred_annotation_clusters(ibs, target_species='elephant_savann
     assignment_image_dict = {}
     zipped = zip(pred_gid_list, result_list)
     for gid, result in tqdm.tqdm(zipped):
-        bboxes, classes, confs, prediction_list, value_list = result_list
+        bboxes, classes, confs, prediction_list, value_list = result
         aid_list = list(range(len(bboxes)))
 
         assignment_annot_dict = dict(zip(aid_list, prediction_list))
