@@ -2647,7 +2647,7 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
         match_list, total = match_dict[test_uuid]
         tp = 0
         for match in match_list:
-            conf, flag, index, overlap = match
+            conf, flag, gt, overlap = match
 
             if flag:
                 tp += 1
@@ -2830,7 +2830,7 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
         match_list, total = match_dict[test_uuid]
         tp = 0
         for match in match_list:
-            conf, flag, index, overlap = match
+            conf, flag, gt, overlap = match
 
             if flag:
                 tp += 1
@@ -3273,7 +3273,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, target_species
         match_list, total = match_dict[test_uuid]
         tp = 0
         for match in match_list:
-            conf, flag, index, overlap = match
+            conf, flag, gt, overlap = match
 
             if flag:
                 tp += 1
@@ -3390,6 +3390,73 @@ def vulcan_detect(ibs, gid_list, quick=True, testing=False, detection_config=Non
         return result_list, time_loc_cluster
     else:
         return result_list
+
+
+    @register_ibs_method
+def vulcan_localizer_visualize_tp_fp_examples(ibs, samples=500, target_species='elephant_savanna',
+                                              quick=False, **kwargs):
+    from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
+
+    detection_config = ibs.vulcan_detect_config(quick=quick)
+
+    gt_positive_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE')))
+    gt_test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_list = list(gt_positive_gid_set & gt_test_gid_set)
+
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+    print('\tGather Ground-Truth')
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **detection_config)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **detection_config)
+
+    # Filter for speices
+    dict_list = [
+        (gt_dict, 'Ground-Truth'),
+        (pred_dict, 'Predictions'),
+    ]
+    for dict_, dict_tag in dict_list:
+        for image_uuid in dict_:
+            temp = []
+            for val in dict_[image_uuid]:
+                if val.get('class', None) != target_species:
+                    continue
+                temp.append(val)
+            dict_[image_uuid] = temp
+
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, min_overlap=0.2, **kwargs)
+    conf_list, tp_list, fp_list, total, match_dict = values
+
+    ut.embed()
+
+    fn = 0
+    fp = 0
+    fn_det_list = []
+    fp_det_list = []
+    for test_uuid in test_uuid_list:
+        match_list, total = match_dict[test_uuid]
+        gt_list = gt_dict[test_uuid]
+        pred_list = pred_dict[test_uuid]
+        assert len(pred_list) == len(match_list)
+        assert len(gt_list) == total
+
+        matched_gt = 0
+        matched_gt_index_set   = set([])
+        matched_pred_index_set = set([])
+        for pred_index, match in enumerate(match_list):
+            match_confidence, match_flag, match_gt, match_overlap = match
+            if match_flag:
+                matched_gt += 1
+                matched_gt_index_set.add(match_index)
+                matched_pred_index_set.add(pred_index)
+
+        fn += total - matched_gt
+        remaining_gt_index_set = set(list(range(len(gt_list)))) - matched_gt_index_set
+        remaining_pred_index_set = set(list(range(len(pred_list)))) - matched_pred_index_set
+        fp += len(remaining_pred_index_set)
+
+        fn_det_list += ut.take(gt_list, list(remaining_gt_index_set))
+        fp_det_list += ut.take(pred_list, list(remaining_pred_index_set))
 
 
 if __name__ == '__main__':

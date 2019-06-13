@@ -794,13 +794,15 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
 
         if match_index is not None:
             flag = True
+            gt = gt_list[match_index].copy()
             del gt_list[match_index]
         elif match_index_ is not None:
             flag = None
 
         if flag is not None:
             match_list += [
-                (pred['confidence'], flag, match_index, best_overlap)
+                # (pred['confidence'], flag, match_index, best_overlap)
+                (pred['confidence'], flag, gt, best_overlap)
             ]
 
     return match_list
@@ -851,7 +853,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5,
 
     tp_counter = 0
     fp_counter = 0
-    for conf, flag, index, overlap in match_list:
+    for conf, flag, gt, overlap in match_list:
         if flag:
             tp_counter += 1
         else:
