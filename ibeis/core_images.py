@@ -1434,12 +1434,9 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 bboxes[index][3] = height
 
         if config['squared']:
-            ut.embed()
-            raise ValueError
-
             for index, (xtl, ytl, width, height) in enumerate(bboxes):
                 cx = xtl + width // 2
-                cy = xtl + width // 2
+                cy = ytl + height // 2
                 radius = max(width, height) // 2
 
                 xtl = cx - radius
