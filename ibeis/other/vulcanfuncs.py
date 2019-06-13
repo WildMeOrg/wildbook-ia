@@ -2887,6 +2887,9 @@ def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
     from scipy.cluster.hierarchy import fclusterdata
     import numpy as np
 
+    if len(bbox_list) == 0:
+        return [], []
+
     centers = []
     radii = []
     for bbox in bbox_list:
@@ -3001,11 +3004,10 @@ def vulcan_visualize_gt_annotation_clusters(ibs, use_ancestors=True, **kwargs):
 def vulcan_compute_pred_annotation_clusters(ibs, target_species='elephant_savanna',
                                             use_ancestors=True, quick=True, **kwargs):
     assert use_ancestors is True, 'Tile cluster predictions are not supported yet'
-    ut.embed()
 
     gt_positive_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE')))
-    gt_test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE')))
-    pred_gid_list = list(gt_test_gid_list & gt_positive_gid_list)
+    gt_test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    pred_gid_list = list(gt_positive_gid_set & gt_test_gid_set)
 
     result_list = ibs.vulcan_detect(pred_gid_list, quick=quick, return_clustering_plot_values=True, **kwargs)
 

@@ -337,9 +337,7 @@ def vulcan_pipeline(ibs, images,
             include_grid2 = not quick
 
             detection_config = ibs.vulcan_detect_config(quick=quick)
-            detection_agg_config = detection_config['config_filepath']
             detection_agg_weight = detection_config['weight_filepath']
-
             detection_weight_algo, detection_weight_config = detection_agg_weight.strip().split(';')
             detection_weight_algo_wic, detection_weight_algo_loc = detection_weight_algo.strip().split('+')
 
@@ -368,7 +366,7 @@ def vulcan_pipeline(ibs, images,
         with ut.Timer('Tiling') as time_tile:
             # Pre-compute tiles
             tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
-            num_tiles = len(tile_list)
+            num_tiles_wic = len(tile_list)
             # ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
         with ut.Timer('WIC') as time_wic:
@@ -379,6 +377,7 @@ def vulcan_pipeline(ibs, images,
             )
             wic_flag_list = [wic_confidence >= detection_weight_config_wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
             tile_list_filtered = ut.compress(tile_list, wic_flag_list)
+            num_tiles_loc = len(tile_list_filtered)
 
         # with ut.Timer('LOC All') as time_loc_all:
         #     if _run_all_loc:
@@ -400,13 +399,13 @@ def vulcan_pipeline(ibs, images,
         with ut.Timer('Cluster + Aggregate') as time_agg:
             result_list, time_cluster = ibs.vulcan_detect(
                 gid_list,
-                detection_config=detection_agg_config,
+                detection_config=detection_config,
                 return_times=True
             )
 
             results = []
             for result in result_list:
-                bboxes, classes, confs, clusters = result
+                bboxes, classes, confs, clusters = result[:-1]
                 zipped = zip(bboxes, classes, confs, clusters)
                 result_ = []
                 for bbox, class_, conf, cluster in zipped:
@@ -417,8 +416,6 @@ def vulcan_pipeline(ibs, images,
                         'cluster': cluster,
                     })
                 results.append(result_)
-
-        time_agg = time_agg - time_cluster
     except:
         raise controller_inject.WebException('The Vulcan pipeline process has failed for an unknown reason')
 
@@ -426,18 +423,19 @@ def vulcan_pipeline(ibs, images,
         'results': results,
         'times': {
             '_test'            : _timer(time_test),
-            '_num_tiles'       : num_tiles,
+            '_num_tiles_wic'   : num_tiles_wic,
+            '_num_tiles_loc'   : num_tiles_loc,
             # '_loc_all'         : _timer(time_loc_all),
             'step_0_upload'    : _timer(time_upload),
             'step_1_uuid'      : _timer(time_config, time_uuid),
             'step_2_tile'      : _timer(time_tile),
             'step_3_wic'       : _timer(time_wic),
             'step_4_loc'       : _timer(time_loc),
-            'step_5_cluster'   : _timer(time_cluster),
-            'step_6_aggregate' : _timer(time_agg),
+            'step_5_aggregate' : _timer(time_agg) - _timer(time_cluster),
+            'step_6_cluster'   : _timer(time_cluster),
             'gpu_inference'    : _timer(time_wic, time_loc),
             'overhead'         : _timer(time_upload, time_config, time_uuid, time_tile, time_agg),
-            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc, time_cluster, time_agg),
+            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc, time_agg),
         },
     }
 
