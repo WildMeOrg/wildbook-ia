@@ -2356,6 +2356,30 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
             # {'label': '5fbf R3:2+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:2,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate(quick=True, offset_color=1)
+
+            ########################################################################################################
+
+            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate(quick=True)
+
+            ########################################################################################################
+
+            {'label': '5fbf R3+V0 400+40% V3-32 80%',    'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate()
+
+            ########################################################################################################
+
+            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+
+            # ibs.vulcan_localizer_image_validate(quick=True)
         ],
         {},
     )
@@ -2368,7 +2392,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
 
-    key = 'vulcan-localizer-image-%s-variants' % (algo, )
+    key = 'vulcan-localizer-image-%s-comparison-final' % (algo, )
     config_dict = {
         key: template_v0,
     }
