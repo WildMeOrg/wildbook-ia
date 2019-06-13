@@ -3489,7 +3489,8 @@ def vulcan_localizer_visualize_tp_fp_examples(ibs, target_species='elephant_sava
                 temp.append(val)
             dict_[image_uuid] = temp
 
-    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, min_overlap=0.2, **kwargs)
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True,
+                             min_overlap=0.2, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
     fn_det_list = []
