@@ -1029,7 +1029,8 @@ def compute_localizations_original(depc, gid_list, config=None):
         bbox_list         = ibs.get_vulcan_image_tile_bboxes(tid_list)
         size_list         = ibs.get_image_sizes(tid_list)
 
-        assert config['config_filepath'] in ['variant1', 'variant2', 'variant2-32', 'variant2-64', 'variant3-32', 'variant3-64', 'variant4-32', 'variant4-64']
+        config_filepath = config['config_filepath']
+        assert config_filepath in ['variant1', 'variant2', 'variant2-32', 'variant2-64', 'variant3-32', 'variant3-64', 'variant4-32', 'variant4-64']
 
         weight_filepath = config['weight_filepath']
         weight_filepath = weight_filepath.strip().split(';')
@@ -1093,10 +1094,10 @@ def compute_localizations_original(depc, gid_list, config=None):
                 }
 
                 multiplier = None
-                if config['config_filepath'] in ['variant1']:
+                if config_filepath in ['variant1']:
                     multiplier = 1.0
-                elif config['config_filepath'] in ['variant2', 'variant2-32', 'variant2-64', 'variant3-32', 'variant3-64', 'variant4-32', 'variant4-64']:
-                    margin = 32.0 if config['config_filepath'] in ['variant-2', 'variant2-32', 'variant3-32', 'variant4-32'] else 64.0
+                elif config_filepath in ['variant2', 'variant2-32', 'variant2-64', 'variant3-32', 'variant3-64', 'variant4-32', 'variant4-64']:
+                    margin = 32.0 if config_filepath in ['variant-2', 'variant2-32', 'variant3-32', 'variant4-32'] else 64.0
                     tile_w, tile_h = tile_size
                     margin_percent_w = margin / tile_w
                     margin_percent_h = margin / tile_h
@@ -1119,11 +1120,11 @@ def compute_localizations_original(depc, gid_list, config=None):
                     overlap = 0.0 if area <= 0 else intersection / area
                     assert 0.0 <= overlap and overlap <= 1.0
 
-                    if config['config_filepath'] in ['variant2', 'variant2-32', 'variant2-64']:
+                    if config_filepath in ['variant2', 'variant2-32', 'variant2-64']:
                         multiplier = overlap
-                    elif config['config_filepath'] in ['variant3-32', 'variant3-64']:
+                    elif config_filepath in ['variant3-32', 'variant3-64']:
                         multiplier = np.sqrt(overlap)
-                    elif config['config_filepath'] in ['variant4-32', 'variant4-64']:
+                    elif config_filepath in ['variant4-32', 'variant4-64']:
                         multiplier = overlap ** overlap
                     else:
                         raise ValueError
@@ -1252,6 +1253,7 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.5),
         ut.ParamInfo('boundary', True),
+        ut.ParamInfo('squared', False, hideif=False),  # True will convert the bounding box into a square using the existing center as a reference point and the radius as half the length of the longest side (width or height).
     ]
 
 
@@ -1413,6 +1415,26 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
         if config['boundary']:
             gid = depc.get_ancestor_rowids('localizations_original', [loc_orig_id], 'images')[0]
             w, h = ibs.get_image_sizes(gid)
+
+            for index, (xtl, ytl, width, height) in enumerate(bboxes):
+                xbr = xtl + width
+                ybr = ytl + height
+
+                xtl = min(max(0, xtl), w)
+                xbr = min(max(0, xbr), w)
+                ytl = min(max(0, ytl), h)
+                ybr = min(max(0, ybr), h)
+
+                width = xbr - xtl
+                height = ybr - ytl
+
+                bboxes[index][0] = xtl
+                bboxes[index][1] = ytl
+                bboxes[index][2] = width
+                bboxes[index][3] = height
+
+        if config['square']:
+            ut.embed()
 
             for index, (xtl, ytl, width, height) in enumerate(bboxes):
                 xbr = xtl + width
