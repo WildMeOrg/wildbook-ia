@@ -336,6 +336,8 @@ def vulcan_pipeline(ibs, images,
         with ut.Timer('Config') as time_config:
             include_grid2 = not quick
 
+            detection_config = ibs.vulcan_detect_config(quick=quick)
+
             wic_classifier_algo     = 'densenet'
             loc_classifier_algo     = '%s+lightnet' % (wic_classifier_algo, )
             loc_all_classifier_algo = '%s+lightnet!' % (wic_classifier_algo, )
