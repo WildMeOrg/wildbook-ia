@@ -2962,7 +2962,7 @@ def vulcan_visualize_annotation_clusters(ibs, assignment_image_dict, tag,
 
 @register_ibs_method
 def vulcan_compute_gt_annotation_clusters(ibs, target_species='elephant_savanna',
-                                          use_ancestors=False, **kwargs):
+                                          use_ancestors=True, **kwargs):
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     all_tile_list = list(all_tile_set)
@@ -2990,7 +2990,7 @@ def vulcan_compute_gt_annotation_clusters(ibs, target_species='elephant_savanna'
 
 
 @register_ibs_method
-def vulcan_visualize_gt_annotation_clusters(ibs, use_ancestors=False, **kwargs):
+def vulcan_visualize_gt_annotation_clusters(ibs, use_ancestors=True, **kwargs):
     print('Computing Assignments')
     tag = 'images_gt' if use_ancestors else 'tiles_gt'
     assignment_image_dict = ibs.vulcan_compute_gt_annotation_clusters(ibs, use_ancestors=use_ancestors, **kwargs)
@@ -2999,15 +2999,18 @@ def vulcan_visualize_gt_annotation_clusters(ibs, use_ancestors=False, **kwargs):
 
 @register_ibs_method
 def vulcan_compute_pred_annotation_clusters(ibs, target_species='elephant_savanna',
-                                            use_ancestors=False, quick=True, **kwargs):
+                                            use_ancestors=True, quick=True, **kwargs):
     assert use_ancestors is True, 'Tile cluster predictions are not supported yet'
     ut.embed()
 
-    gt_positive_gid_list = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE'))
-    result_list = ibs.vulcan_detect(gt_positive_gid_list, quick=quick, return_clustering_plot_values=True, **kwargs)
+    gt_positive_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE')))
+    gt_test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE')))
+    pred_gid_list = list(gt_test_gid_list & gt_positive_gid_list)
+
+    result_list = ibs.vulcan_detect(pred_gid_list, quick=quick, return_clustering_plot_values=True, **kwargs)
 
     assignment_image_dict = {}
-    zipped = zip(gt_positive_gid_list, result_list)
+    zipped = zip(pred_gid_list, result_list)
     for gid, result in tqdm.tqdm(zipped):
         bboxes, classes, confs, prediction_list, value_list = result_list
         aid_list = list(range(len(bboxes)))
@@ -3020,7 +3023,7 @@ def vulcan_compute_pred_annotation_clusters(ibs, target_species='elephant_savann
 
 
 @register_ibs_method
-def vulcan_visualize_pred_annotation_clusters(ibs, use_ancestors=False, quick=True, **kwargs):
+def vulcan_visualize_pred_annotation_clusters(ibs, use_ancestors=True, quick=True, **kwargs):
     print('Computing Assignments')
     tag = 'images_pred_quick_%s' if use_ancestors else 'tiles_pred_quick_%s'
     tag = tag % (quick, )

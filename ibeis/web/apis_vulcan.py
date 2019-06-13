@@ -337,21 +337,18 @@ def vulcan_pipeline(ibs, images,
             include_grid2 = not quick
 
             detection_config = ibs.vulcan_detect_config(quick=quick)
-            # detection_algo        = detection_config['algo']
-            detection_config      = detection_config['config_filepath']
-            detection_weight      = detection_config['weight_filepath']
-            # detection_sensitivity = detection_config['sensitivity']
-            # detection_nms         = detection_config['nms_thresh']
+            detection_agg_config = detection_config['config_filepath']
+            detection_agg_weight = detection_config['weight_filepath']
 
-            detection_weight_algo, detection_weight_config = detection_weight.strip().split(';')
+            detection_weight_algo, detection_weight_config = detection_agg_weight.strip().split(';')
             detection_weight_algo_wic, detection_weight_algo_loc = detection_weight_algo.strip().split('+')
 
             values = detection_weight_config.strip().split(',')
             assert len(values) == 4
             detection_weight_config_wic_model_tag   = values[0]
-            detection_weight_config_wic_sensitivity = values[1]
+            detection_weight_config_wic_sensitivity = float(values[1])
             detection_weight_config_loc_model_tag   = values[2]
-            detection_weight_config_loc_tile_nms    = values[3]
+            detection_weight_config_loc_tile_nms    = float(values[3])
 
         with ut.Timer('UUIDs') as time_uuid:
             gid_list = _ensure_images_exist(images)
@@ -403,7 +400,7 @@ def vulcan_pipeline(ibs, images,
         with ut.Timer('Cluster + Aggregate') as time_agg:
             result_list, time_cluster = ibs.vulcan_detect(
                 gid_list,
-                detection_config=detection_config,
+                detection_config=detection_agg_config,
                 return_times=True
             )
 
