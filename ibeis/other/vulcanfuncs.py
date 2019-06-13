@@ -3399,7 +3399,7 @@ def _vulcan_localizer_visualize_tp_fp_canvas(ibs, value_list, line_length=10, ta
     image_dict = {}
     line_list = []
     line = []
-    for value in value_list:
+    for value in tqdm.tqdm(value_list):
         gid = value['gid']
         image = ibs.get_images(gid)
         if gid not in image_dict:

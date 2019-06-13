@@ -549,7 +549,7 @@ def convert_viewpoint_to_tuple(viewpoint_text):
         return tuple(viewpoint_list)
 
 
-def _resize(image, t_width=None, t_height=None):
+def _resize(image, t_width=None, t_height=None, verbose=False):
     """
     TODO:
         # use vtool instead
@@ -561,7 +561,8 @@ def _resize(image, t_width=None, t_height=None):
         return vt.resize_to_maxdims(image, maxdims, interpolation)
     else:
         import cv2
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+        if verbose:
+            print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
         height, width = image.shape[:2]
         if t_width is None and t_height is None:
             return image
