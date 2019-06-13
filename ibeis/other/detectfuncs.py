@@ -788,6 +788,7 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     match_list = []
     for pred in pred_list:
         flag = False
+        gt = None
 
         match_index,  best_overlap  = localizer_assign(gt_list,  pred, min_overlap)
         match_index_, best_overlap_ = localizer_assign(gt_list_, pred, min_overlap)
