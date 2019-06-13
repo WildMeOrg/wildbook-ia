@@ -2367,10 +2367,10 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
             ########################################################################################################
 
-            {'label': '5fbf R3+V0 400+40% V3-32  80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3+V0 400+40% V3-32S 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
-            {'label': 'Vulcan DetectNet',                  'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            {'label': '5fbf R3+V0 400+40% V3-32 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-32S 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
             {'label': 'Vulcan Faster R-CNN',               'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            {'label': 'Vulcan DetectNet',                  'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate()
 
@@ -2378,8 +2378,8 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
             # {'label': '5fbf R3:1+V0 400+40% V3-32  80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
             # {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
-            # {'label': 'Vulcan DetectNet',                 'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
             # {'label': 'Vulcan Faster R-CNN',              'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            # {'label': 'Vulcan DetectNet',                 'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate(quick=True)
         ],
@@ -2401,10 +2401,10 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=test_gid_list, overwrite_config_keys=True, offset_color=offset_color, min_overlap=0.2, target_recall=0.9)
 
     if False:
-        config = {'grid' : False, 'algo': 'tile_aggregation', 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'sensitivity': 0.5859}
+        detection_config = ibs.vulcan_detect_config(quick=False)
         test_gid_list = [1, 2, 5, 6, 7, 14, 20, 23, 24, 27, 29, 33, 34, 35, 41, 50, 53, 56, 61, 67]
-        ibs.visualize_predictions(config, gid_list=test_gid_list, t_width=2000)
-        ibs.visualize_ground_truth(config, gid_list=test_gid_list, t_width=2000)
+        ibs.visualize_predictions(detection_config, gid_list=test_gid_list, t_width=2000)
+        ibs.visualize_ground_truth(detection_config, gid_list=test_gid_list, t_width=2000)
 
 
 # @register_ibs_method
