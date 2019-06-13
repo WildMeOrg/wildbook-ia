@@ -3392,7 +3392,7 @@ def vulcan_detect(ibs, gid_list, quick=True, testing=False, detection_config=Non
         return result_list
 
 
-    @register_ibs_method
+@register_ibs_method
 def vulcan_localizer_visualize_tp_fp_examples(ibs, samples=500, target_species='elephant_savanna',
                                               quick=False, **kwargs):
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
