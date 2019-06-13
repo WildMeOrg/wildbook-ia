@@ -337,11 +337,11 @@ def vulcan_pipeline(ibs, images,
             include_grid2 = not quick
 
             detection_config = ibs.vulcan_detect_config(quick=quick)
-            detection_algo        = detection_config['algo']
+            # detection_algo        = detection_config['algo']
             detection_config      = detection_config['config_filepath']
             detection_weight      = detection_config['weight_filepath']
-            detection_sensitivity = detection_config['sensitivity']
-            detection_nms         = detection_config['nms_thresh']
+            # detection_sensitivity = detection_config['sensitivity']
+            # detection_nms         = detection_config['nms_thresh']
 
             detection_weight_algo, detection_weight_config = detection_weight.strip().split(';')
             detection_weight_algo_wic, detection_weight_algo_loc = detection_weight_algo.strip().split('+')
@@ -352,18 +352,6 @@ def vulcan_pipeline(ibs, images,
             detection_weight_config_wic_sensitivity = values[1]
             detection_weight_config_loc_model_tag   = values[2]
             detection_weight_config_loc_tile_nms    = values[3]
-
-            wic_classifier_algo     = detection_weight_algo_wic
-            wic_model_tag           = detection_weight_config_wic_model_tag
-            wic_sensitivity         = detection_weight_config_wic_sensitivity
-
-            loc_classifier_algo     = detection_weight_algo
-            loc_model_tag           = detection_weight_config_loc_model_tag
-            loc_sensitivity         = detection_sensitivity
-            loc_tile_nms            = detection_weight_config_loc_tile_nms
-            loc_image_nms           = detection_nms
-
-            agg_classifier_algo     = detection_algo
 
         with ut.Timer('UUIDs') as time_uuid:
             gid_list = _ensure_images_exist(images)
@@ -384,11 +372,16 @@ def vulcan_pipeline(ibs, images,
             # Pre-compute tiles
             tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list, include_grid2=include_grid2)
             num_tiles = len(tile_list)
-            ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
+            # ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
 
         with ut.Timer('WIC') as time_wic:
-            wic_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=wic_classifier_algo, model_tag=wic_model_tag)
-            # wic_flag_list       = [wic_confidence >= wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
+            wic_confidence_list = ibs.vulcan_wic_test(
+                tile_list,
+                classifier_algo=detection_weight_algo_wic,
+                model_tag=detection_weight_config_wic_model_tag
+            )
+            wic_flag_list = [wic_confidence >= detection_weight_config_wic_sensitivity for wic_confidence in wic_confidence_list]  # NOQA
+            tile_list_filtered = ut.compress(tile_list, wic_flag_list)
 
         # with ut.Timer('LOC All') as time_loc_all:
         #     if _run_all_loc:
@@ -397,31 +390,43 @@ def vulcan_pipeline(ibs, images,
         #         all_loc_flag_list       = [all_loc_confidence >= loc_sensitivity for all_loc_confidence in all_loc_confidence_list]  # NOQA
 
         with ut.Timer('LOC') as time_loc:
-            detections_list = ibs.vulcan_localizer_test(tile_list,
-                                                        algo=detection_weight_algo_loc,
-                                                        model_tag=detection_weight_config_wic_model_tag,
-                                                        sensitivity=detection_sensitivity)
-            filtered_loc_flag_list       = [filtered_loc_confidence >= loc_sensitivity for filtered_loc_confidence in filtered_loc_confidence_list]  # NOQA
+            # detections_list =
+            ibs.vulcan_localizer_test(
+                tile_list_filtered,
+                algo=detection_weight_algo_loc,
+                model_tag=detection_weight_config_loc_model_tag,
+                sensitivity=0.0,
+                nms_thresh=detection_weight_config_loc_tile_nms
+            )
+            # filtered_loc_flag_list       = [filtered_loc_confidence >= loc_sensitivity for filtered_loc_confidence in filtered_loc_confidence_list]  # NOQA
 
-        with ut.Timer('Clustering') as time_loc_cluster:
-            pass
+        with ut.Timer('Cluster + Aggregate') as time_agg:
+            result_list, time_cluster = ibs.vulcan_detect(
+                gid_list,
+                detection_config=detection_config,
+                return_times=True
+            )
 
-        with ut.Timer('Aggregate') as time_agg:
-            model_tag           = '%s;%s,%0.03f,%s,%0.02f' % (loc_classifier_algo, wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms)
-            agg_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo=agg_classifier_algo, model_tag=model_tag)
-            agg_flag_list       = [agg_confidence >= loc_sensitivity for agg_confidence in agg_confidence_list]
+            results = []
+            for result in result_list:
+                bboxes, classes, confs, clusters = result
+                zipped = zip(bboxes, classes, confs, clusters)
+                result_ = []
+                for bbox, class_, conf, cluster in zipped:
+                    result_.append({
+                        'bbox': bbox,
+                        'class': class_,
+                        'confidence': conf,
+                        'cluster': cluster,
+                    })
+                results.append(result_)
+
+        time_agg = time_agg - time_cluster
     except:
         raise controller_inject.WebException('The Vulcan pipeline process has failed for an unknown reason')
 
     response = {
-        'results': [
-            {
-                'score': confidence,
-                'flag':  flag,
-                'tile_centers': location_list,
-            }
-            for confidence, flag, location_list in zip(agg_confidence_list, agg_flag_list, locations_list)
-        ],
+        'results': results,
         'times': {
             '_test'            : _timer(time_test),
             '_num_tiles'       : num_tiles,
@@ -431,11 +436,11 @@ def vulcan_pipeline(ibs, images,
             'step_2_tile'      : _timer(time_tile),
             'step_3_wic'       : _timer(time_wic),
             'step_4_loc'       : _timer(time_loc),
-            'step_5_cluster'   : _timer(time_loc_cluster),
+            'step_5_cluster'   : _timer(time_cluster),
             'step_6_aggregate' : _timer(time_agg),
             'gpu_inference'    : _timer(time_wic, time_loc),
             'overhead'         : _timer(time_upload, time_config, time_uuid, time_tile, time_agg),
-            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc, time_loc_cluster, time_agg),
+            'total'            : _timer(time_upload, time_config, time_uuid, time_tile, time_wic, time_loc, time_cluster, time_agg),
         },
     }
 

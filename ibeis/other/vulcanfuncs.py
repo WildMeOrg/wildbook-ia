@@ -2284,10 +2284,10 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
             ########################################################################################################
 
-            # {'label': '5fbfff26 R3+V0 703+0%  NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
-            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 703+0%  NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate()
 
@@ -2352,7 +2352,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
 
             # {'label': '5fbf R3  +V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
             # {'label': '5fbf R3:0+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:0,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
             # {'label': '5fbf R3:2+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:2,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
 
             # ibs.vulcan_localizer_image_validate(quick=True, offset_color=1)
@@ -2900,7 +2900,7 @@ def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
 
     centers = np.array(centers)
     radii = np.array(radii).reshape(-1, 1)
-    values = np.hstack((centers, radii))
+    value_list = np.hstack((centers, radii))
 
     def metric_func(value1, value2):
         cx1, cy1, radius1 = value1
@@ -2909,12 +2909,12 @@ def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
         dist = max(0.0, dist - radius1 - radius2)
         return dist
 
-    if len(values) > 1:
-        prediction_list = fclusterdata(values, t=distance, criterion='distance', metric=metric_func)
+    if len(value_list) > 1:
+        prediction_list = fclusterdata(value_list, t=distance, criterion='distance', metric=metric_func)
     else:
         prediction_list = [1]
 
-    return prediction_list
+    return prediction_list, value_list
 
 
 @register_ibs_method
@@ -2981,10 +2981,10 @@ def vulcan_compute_gt_annotation_clusters(ibs, target_species='elephant_savanna'
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
 
-        prediction_list = ibs._vulcan_compute_annotation_clusters(bbox_list, **kwargs)
+        prediction_list, value_list = ibs._vulcan_compute_annotation_clusters(bbox_list, **kwargs)
         assignment_annot_dict = dict(zip(aid_list, prediction_list))
-        value_annot_dict = dict(zip(aid_list, values))
-        assignment_image_dict[gid] = (assignment_annot_dict, value_annot_dict)
+        value_annot_dict = dict(zip(aid_list, value_list))
+        assignment_image_dict[gid] = (assignment_annot_dict, value_annot_dict, )
 
     return assignment_image_dict
 
@@ -2999,58 +2999,33 @@ def vulcan_visualize_gt_annotation_clusters(ibs, use_ancestors=False, **kwargs):
 
 @register_ibs_method
 def vulcan_compute_pred_annotation_clusters(ibs, target_species='elephant_savanna',
-                                            use_ancestors=False, **kwargs):
+                                            use_ancestors=False, quick=True, **kwargs):
     assert use_ancestors is True, 'Tile cluster predictions are not supported yet'
+    ut.embed()
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
-    all_tile_list = list(all_tile_set)
-    values = ibs.vulcan_tile_positive_cumulative_area(all_tile_list)
-    cumulative_area_list, total_area_list, flag_list = values
-    gt_positive_gid_list = sorted(ut.compress(all_tile_list, flag_list))
-
-    if use_ancestors:
-        gt_positive_gid_list_ = ibs.get_vulcan_image_tile_ancestor_gids(gt_positive_gid_list)
-        gt_positive_gid_list = list(set(gt_positive_gid_list_))
+    gt_positive_gid_list = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE'))
+    result_list = ibs.vulcan_detect(gt_positive_gid_list, quick=quick, return_clustering_plot_values=True, **kwargs)
 
     assignment_image_dict = {}
+    zipped = zip(gt_positive_gid_list, result_list)
+    for gid, result in tqdm.tqdm(zipped):
+        bboxes, classes, confs, prediction_list, value_list = result_list
+        aid_list = list(range(len(bboxes)))
 
-    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': 0.4425}
-    prediction_list = localizer_parse_pred(ibs, test_gid_list=gt_negative_gid_list, **config)
-
-    value_list =  []
-    for negative_uuid in prediction_list:
-        negative_pred = prediction_list[negative_uuid]
-        area = 0
-        for pred in negative_pred:
-            w, h = pred['width'], pred['height']
-            area += w * h
-        value = (
-            len(negative_pred),
-            area,
-            negative_uuid,
-        )
-        value_list.append(value)
-
-
-    aids_list = ibs.get_image_aids(gt_positive_gid_list)
-    zipped = zip(gt_positive_gid_list, aids_list)
-    for gid, aid_list in tqdm.tqdm(zipped):
-        aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
-        bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
-
-        prediction_list = ibs._vulcan_compute_annotation_clusters(bbox_list, **kwargs)
         assignment_annot_dict = dict(zip(aid_list, prediction_list))
-        value_annot_dict = dict(zip(aid_list, values))
-        assignment_image_dict[gid] = (assignment_annot_dict, value_annot_dict)
+        value_annot_dict = dict(zip(aid_list, value_list))
+        assignment_image_dict[gid] = (assignment_annot_dict, value_annot_dict, )
 
     return assignment_image_dict
 
 
 @register_ibs_method
-def vulcan_visualize_pred_annotation_clusters(ibs, use_ancestors=False, **kwargs):
+def vulcan_visualize_pred_annotation_clusters(ibs, use_ancestors=False, quick=True, **kwargs):
     print('Computing Assignments')
-    tag = 'images_pred' if use_ancestors else 'tiles_pred'
-    assignment_image_dict = ibs.vulcan_compute_pred_annotation_clusters(ibs, use_ancestors=use_ancestors, **kwargs)
+    tag = 'images_pred_quick_%s' if use_ancestors else 'tiles_pred_quick_%s'
+    tag = tag % (quick, )
+    assignment_image_dict = ibs.vulcan_compute_pred_annotation_clusters(ibs, use_ancestors=use_ancestors,
+                                                                        quick=quick, **kwargs)
     ibs.vulcan_visualize_annotation_clusters(assignment_image_dict, tag, **kwargs)
 
 
@@ -3374,7 +3349,7 @@ def vulcan_detect_config(ibs, quick=True):
             'algo'            : 'tile_aggregation_quick',
             'config_filepath' : 'variant3-32',
             'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4',
-            'sensitivity'     : 0.5,
+            'sensitivity'     : 0.4215,
             'nms_thresh'      : 0.8,
         }
     else:
@@ -3389,20 +3364,27 @@ def vulcan_detect_config(ibs, quick=True):
 
 
 @register_ibs_method
-def vulcan_detect(ibs, gid_list, quick=True, testing=False, detection_config=None, **kwargs):
+def vulcan_detect(ibs, gid_list, quick=True, testing=False, detection_config=None, return_times=False, return_clustering_plot_values=False, **kwargs):
     if detection_config is None:
         detection_config = ibs.vulcan_detect_config(quick=quick)
 
     detections_list = ibs.depc_image.get_property('localizations', gid_list, config=detection_config, recompute=testing, recompute_all=testing)
 
-    result_list = []
-    for detections in detections_list:
-        score, bboxes, thetas, confs, classes = detections
-        clusters = ibs._vulcan_compute_annotation_clusters(bboxes, **kwargs)
-        result = (bboxes, classes, confs, clusters, )
-        result_list.append(result)
+    with ut.Timer('Clustering') as time_loc_cluster:
+        result_list = []
+        for detections in detections_list:
+            score, bboxes, thetas, confs, classes = detections
+            clusters, values = ibs._vulcan_compute_annotation_clusters(bboxes, **kwargs)
+            if return_clustering_plot_values:
+                result = (bboxes, classes, confs, clusters, values)
+            else:
+                result = (bboxes, classes, confs, clusters, )
+            result_list.append(result)
 
-    return result_list
+    if return_times:
+        return result_list, time_loc_cluster
+    else:
+        return result_list
 
 
 if __name__ == '__main__':
