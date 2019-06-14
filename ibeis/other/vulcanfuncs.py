@@ -2650,7 +2650,8 @@ def vulcan_localizer_visualize_errors_annots(ibs, target_species='elephant_savan
                 temp.append(val)
             dict_[image_uuid] = temp
 
-    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, **kwargs)
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict,
+                             return_match_dict=True, min_overlap=0.2, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
     color_list = pt.distinct_colors(4, randomize=False)
@@ -2833,7 +2834,8 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
                 temp.append(val)
             dict_[image_uuid] = temp
 
-    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, **kwargs)
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict,
+                             return_match_dict=True, min_overlap=0.2, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
     values = ibs.vulcan_compute_visual_clusters(80, 10, **kwargs)
@@ -2908,6 +2910,14 @@ def vulcan_localizer_visualize_errors_clusters(ibs, target_species='elephant_sav
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
+def _vulcan_compute_annotation_clusters_metric_func(value1, value2):
+    cx1, cy1, radius1 = value1
+    cx2, cy2, radius2 = value2
+    dist = np.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
+    dist = max(0.0, dist - radius1 - radius2)
+    return dist
+
+
 @register_ibs_method
 def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
     from scipy.cluster.hierarchy import fclusterdata
@@ -2931,15 +2941,9 @@ def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
     radii = np.array(radii).reshape(-1, 1)
     value_list = np.hstack((centers, radii))
 
-    def metric_func(value1, value2):
-        cx1, cy1, radius1 = value1
-        cx2, cy2, radius2 = value2
-        dist = np.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
-        dist = max(0.0, dist - radius1 - radius2)
-        return dist
-
     if len(value_list) > 1:
-        prediction_list = fclusterdata(value_list, t=distance, criterion='distance', metric=metric_func)
+        prediction_list = fclusterdata(value_list, t=distance, criterion='distance',
+                                       metric=_vulcan_compute_annotation_clusters_metric_func)
     else:
         prediction_list = [1]
 
@@ -3236,24 +3240,15 @@ def vulcan_visualize_annotation_clusters_distribution(ibs, target_species='eleph
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, version=None, quick=True,
+def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
                                                              target_species='elephant_savanna',
-                                                             errors_only=False, **kwargs):
+                                                             distance=128, **kwargs):
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
     import matplotlib.pyplot as plt
-    import plottool as pt
 
-    ut.embed()
-
-    fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
-
-    if version is None:
-        version = 'annots/image'
-    assert version in ['annots/image', 'clusters/image', 'annots/cluster']
-
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    gid_list = ibs.get_valid_gids()
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    test_gid_set = all_tile_set & test_gid_set
+    test_gid_set = set(gid_list) & test_gid_set
     test_gid_list = list(test_gid_set)
 
     detection_config = ibs.vulcan_detect_config(quick=quick)
@@ -3279,77 +3274,281 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, version=None, 
                 temp.append(val)
             dict_[image_uuid] = temp
 
-    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True, **kwargs)
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict,
+                             return_match_dict=True, min_overlap=0.2, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
-    values = ibs.vulcan_compute_visual_clusters(80, 10, **kwargs)
-    hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
+    fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
 
-    color_list = pt.distinct_colors(4, randomize=False)
+    # Annots / Image
+    print('Plotting Annots / Image')
+    plt.subplot(131)
 
-    # Coverage
-    print('Plotting clusters')
-    plt.subplot(111)
+    bias_label_list = [
+        (-10, '<-10'),
+        (-5,  '-9 to -5'),
+        (-4,  '-4'),
+        (-3,  '-3'),
+        (-2,  '-2'),
+        (-1,  '-1'),
+        (0,   '0'),
+        (1,   '1'),
+        (2,   '2'),
+        (3,   '3'),
+        (4,   '4'),
+        (5,   '5 to 9'),
+        (10,   '>10'),
+    ]
 
-    percentage_dict = {}
+    bias_dict = {
+        bias_index: 0
+        for bias_index, bias_label in bias_label_list
+    }
     for test_gid, test_uuid in zip(test_gid_list, test_uuid_list):
-        cluster, embedding = assignment_dict[test_gid]
-        bucket = int(cluster)
+        gt_list = gt_dict[test_uuid]
+        pred_list = pred_dict[test_uuid]
 
-        if bucket not in percentage_dict:
-            percentage_dict[bucket] = [0, 0, 0, 0]
+        bias = len(pred_list) - len(gt_list)
+        if bias <= -10:
+            bias = -10
+        elif bias <= -5:
+            bias = -5
+        elif bias >= 10:
+            bias = 10
+        elif bias >= 5:
+            bias = 5
 
-        match_list, total = match_dict[test_uuid]
-        tp = 0
-        for match in match_list:
-            conf, flag, gt, overlap = match
+        assert bias in bias_dict
+        bias_dict[bias] += 1
 
-            if flag:
-                tp += 1
-                if not errors_only:
-                    percentage_dict[bucket][0] += 1
+    width = 0.50
+    index_list = np.arange(len(bias_dict))
+    key_list = ut.take_column(bias_label_list, 0)
+    label_list = ut.take_column(bias_label_list, 1)
+    value_list = ut.take(bias_dict, key_list)
+
+    undercount, correct, overcount = 0, 0, 0
+    color_list = []
+    for key, value in zip(key_list, value_list):
+        if key < 0:
+            undercount += value
+            color = (0.8078, 0.2039, 0.1647)
+        elif key == 0:
+            correct += value
+            color = (0.4118, 0.8588, 0.2824)
+        else:
+            overcount += value
+            color = (0.2824, 0.619, 0.8549)
+        color_list.append(color)
+
+    for index, value, color in zip(index_list, value_list, color_list):
+        plt.bar([index], [value], width, color=color)
+
+    plt.ylabel('Number of Images')
+    plt.xlabel('Bias for Detections (PRED - GT)')
+    plt.yscale('log')
+    plt.title('Count Bias for Detections / Image\n<-- (%d) Undercount | Correct (%d) | Overcount (%d) -->' % (undercount, correct, overcount, ))
+    plt.xticks(index_list, label_list)
+
+    # Clusters / Image
+    print('Plotting Clusters / Image')
+    plt.subplot(132)
+
+    bias_label_list = [
+        (-5, '<-5'),
+        (-4,  '-4'),
+        (-3,  '-3'),
+        (-2,  '-2'),
+        (-1,  '-1'),
+        (0,   '0'),
+        (1,   '1'),
+        (2,   '2'),
+        (3,   '3'),
+        (4,   '4'),
+        (5,   '>5'),
+    ]
+
+    bias_dict = {
+        bias_index: 0
+        for bias_index, bias_label in bias_label_list
+    }
+    for test_uuid in test_uuid_list:
+        gt_list = gt_dict[test_uuid]
+        pred_list = pred_dict[test_uuid]
+
+        image_height, image_width = ibs.get_image_sizes(test_gid)
+        globals().update(locals())
+        gt_bbox_list = [
+            (
+                int(np.around(gt['xtl'] * image_width)),
+                int(np.around(gt['ytl'] * image_height)),
+                int(np.around(gt['width'] * image_width)),
+                int(np.around(gt['height'] * image_height)),
+            )
+            for gt in gt_list
+        ]
+        pred_bbox_list = [
+            (
+                int(np.around(pred['xtl'] * image_width)),
+                int(np.around(pred['ytl'] * image_height)),
+                int(np.around(pred['width'] * image_width)),
+                int(np.around(pred['height'] * image_height)),
+            )
+            for pred in pred_list
+        ]
+        gt_prediction_list, gt_value_list = _vulcan_compute_annotation_clusters(ibs, gt_bbox_list, distance=distance)
+        pred_prediction_list, pred_value_list = _vulcan_compute_annotation_clusters(ibs, pred_bbox_list, distance=distance)
+        bias = len(set(pred_prediction_list)) - len(set(gt_prediction_list))
+        if bias <= -5:
+            bias = -5
+        elif bias >= 5:
+            bias = 5
+
+        assert bias in bias_dict
+        bias_dict[bias] += 1
+
+    width = 0.50
+    index_list = np.arange(len(bias_dict))
+    key_list = ut.take_column(bias_label_list, 0)
+    label_list = ut.take_column(bias_label_list, 1)
+    value_list = ut.take(bias_dict, key_list)
+
+    undercount, correct, overcount = 0, 0, 0
+    color_list = []
+    for key, value in zip(key_list, value_list):
+        if key < 0:
+            undercount += value
+            color = (0.8078, 0.2039, 0.1647)
+        elif key == 0:
+            correct += value
+            color = (0.4118, 0.8588, 0.2824)
+        else:
+            overcount += value
+            color = (0.2824, 0.619, 0.8549)
+        color_list.append(color)
+
+    for index, value, color in zip(index_list, value_list, color_list):
+        plt.bar([index], [value], width, color=color)
+
+    plt.ylabel('Number of Images')
+    plt.xlabel('Bias in Clusters (PRED - GT)')
+    plt.yscale('log')
+    plt.title('Count Bias for Clusters / Image\n<-- (%d) Undercount | Correct (%d) | Overcount (%d) -->' % (undercount, correct, overcount, ))
+    plt.xticks(index_list, label_list)
+
+    # Annot / Cluster
+    print('Plotting Annot / Cluster')
+    plt.subplot(133)
+
+    bias_label_list = [
+        (-5,    '<-5'),
+        (-4,    '-4'),
+        (-3,    '-3'),
+        (-2,    '-2'),
+        (-1,    '-1'),
+        (0,     '0'),
+        (1,     '1'),
+        (2,     '2'),
+        (3,     '3'),
+        (4,     '4'),
+        (5,     '>5'),
+    ]
+    unassigned = 0
+
+    bias_dict = {
+        bias_index: 0
+        for bias_index, bias_label in bias_label_list
+    }
+    for test_uuid in test_uuid_list:
+        gt_list = gt_dict[test_uuid]
+        pred_list = pred_dict[test_uuid]
+
+        image_height, image_width = ibs.get_image_sizes(test_gid)
+        globals().update(locals())
+        gt_bbox_list = [
+            (
+                int(np.around(gt['xtl'] * image_width)),
+                int(np.around(gt['ytl'] * image_height)),
+                int(np.around(gt['width'] * image_width)),
+                int(np.around(gt['height'] * image_height)),
+            )
+            for gt in gt_list
+        ]
+        pred_bbox_list = [
+            (
+                int(np.around(pred['xtl'] * image_width)),
+                int(np.around(pred['ytl'] * image_height)),
+                int(np.around(pred['width'] * image_width)),
+                int(np.around(pred['height'] * image_height)),
+            )
+            for pred in pred_list
+        ]
+        gt_prediction_list, gt_value_list = _vulcan_compute_annotation_clusters(ibs, gt_bbox_list, distance=distance)
+        pred_prediction_list, pred_value_list = _vulcan_compute_annotation_clusters(ibs, pred_bbox_list, distance=distance)
+
+        cluster_tabulation = {}
+        for pred_index, pred_value in enumerate(pred_value_list):
+            best_distance = np.inf
+            best_prediction = None
+            for gt_index, (gt_prediction, gt_value) in enumerate(zip(gt_prediction_list, gt_value_list)):
+                dist = _vulcan_compute_annotation_clusters_metric_func(pred_value, gt_value)
+                if dist <= distance:
+                    if dist < best_distance:
+                        best_distance = dist
+                        best_prediction = gt_prediction
+
+            if best_prediction is not None:
+                if best_prediction not in cluster_tabulation:
+                    cluster_tabulation[best_prediction] = 0
+                cluster_tabulation[best_prediction] += 1
             else:
-                percentage_dict[bucket][2] += 1
-        percentage_dict[bucket][1] += (total - tp)
+                unassigned += 1
 
-    width = 0.35
-    percentage_list = sorted(percentage_dict.keys())
-    index_list = np.arange(len(percentage_list))
+        for gt_prediction in gt_prediction_list:
+            if gt_prediction not in cluster_tabulation:
+                cluster_tabulation[gt_prediction] = 0
+            cluster_tabulation[gt_prediction] -= 1
 
-    bottom = None
-    bar_list = []
-    for index, color in enumerate(color_list):
-        value_list = []
-        for percentage in percentage_list:
-            value = percentage_dict[percentage][index]
-            value_list.append(value)
-        value_list = np.array(value_list)
-        print(value_list)
-        if bottom is None:
-            bottom = np.zeros(value_list.shape, dtype=value_list.dtype)
-        bar_ = plt.bar(index_list, value_list, width, color=color, bottom=bottom)
-        bar_list.append(bar_)
-        bottom += value_list
+        for key in cluster_tabulation:
+            bias = cluster_tabulation[key]
+            if bias <= -5:
+                bias = -5
+            elif bias >= 5:
+                bias = 5
 
-    label_list = ['TP', 'FN', 'FP', 'TN']
-    plt.legend(bar_list, label_list)
+            assert bias in bias_dict
+            bias_dict[bias] += 1
 
-    plt.ylabel('Number of Tiles')
-    if errors_only:
-        plt.title('Localization Performance by Visual Cluster (Errors only)')
-    else:
-        plt.yscale('log')
-        plt.title('Localization Performance by Visual Cluster')
-    tick_list = []
-    for percentage in percentage_list:
-        tick = '%d' % (percentage, )
-        tick_list.append(tick)
-    plt.xticks(index_list, tick_list)
+    width = 0.50
+    index_list = np.arange(len(bias_dict))
+    key_list = ut.take_column(bias_label_list, 0)
+    label_list = ut.take_column(bias_label_list, 1)
+    value_list = ut.take(bias_dict, key_list)
 
-    if errors_only:
-        fig_filename = 'vulcan-loc-errors-clusters-plot-errors.png'
-    else:
-        fig_filename = 'vulcan-loc-errors-clusters-plot.png'
+    undercount, correct, overcount = 0, 0, 0
+    color_list = []
+    for key, value in zip(key_list, value_list):
+        if key < 0:
+            undercount += value
+            color = (0.8078, 0.2039, 0.1647)
+        elif key == 0:
+            correct += value
+            color = (0.4118, 0.8588, 0.2824)
+        else:
+            overcount += value
+            color = (0.2824, 0.619, 0.8549)
+        color_list.append(color)
+
+    for index, value, color in zip(index_list, value_list, color_list):
+        plt.bar([index], [value], width, color=color)
+
+    plt.ylabel('Number of GT Clusters')
+    plt.xlabel('Bias in Detections (PRED - GT)')
+    plt.yscale('log')
+    plt.title('Count Bias for Detections / Cluster\n<-- (%d) Undercount | Correct (%d), Unassigned Pred. (%d) | Overcount (%d) -->' % (undercount, correct, unassigned, overcount, ))
+    plt.xticks(index_list, label_list)
+
+    fig_filename = 'vulcan-errors-residuals-plot-quick-%s.png' % (quick, )
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
@@ -3518,8 +3717,8 @@ def vulcan_localizer_visualize_tp_fp_examples(ibs, target_species='elephant_sava
                 temp.append(val)
             dict_[image_uuid] = temp
 
-    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, return_match_dict=True,
-                             min_overlap=0.2, **kwargs)
+    values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict,
+                             return_match_dict=True, min_overlap=0.2, **kwargs)
     conf_list, tp_list, fp_list, total, match_dict = values
 
     fn_det_list = []
