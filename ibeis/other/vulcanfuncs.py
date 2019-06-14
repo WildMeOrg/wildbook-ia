@@ -3559,8 +3559,8 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     print('Plotting Annot / Cluster')
     plt.subplot(133)
 
-    bias_label_list= = [
-        (-5,    '<-5'),
+    bias_label_list = [
+        (-5,    '<=-5'),
         (-4,    '-4'),
         (-3,    '-3'),
         (-2,    '-2'),
