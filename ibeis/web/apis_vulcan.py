@@ -372,13 +372,13 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
     # Input argument validation
     sequence_rowid = _ensure_sequence_exist(ibs, sequence)
     metadata_dict = ibs.get_imageset_metadata(sequence_rowid)
-    sequence = metadata_dict.get('sequence', None)
+    sequence_dict = metadata_dict.get('sequence', None)
 
-    for value in sequence:
+    for value in sequence_dict:
         gid = value.pop('gid')
         value['image'] = _image(ibs, gid)
 
-    return {'sequence': sequence}
+    return {'sequence': sequence_dict}
 
 
 @register_ibs_method
@@ -625,39 +625,17 @@ def vulcan_pipeline_batch(ibs, images, async=True,
 
 
 @register_api(_prefix('pipeline/sequence'), methods=['POST'])
-def vulcan_pipeline_sequence(ibs, images, async=True,
-                         callback_url=None, callback_method=None,
-                             *_args, **kwargs):
+def vulcan_pipeline_sequence(ibs, sequence, *_args, **kwargs):
     r"""
-    The asynchronous variant of POST 'pipeline' that takes in a list of Image models and returns a task ID.
-
-    It may be more ideal for a particular application to upload many images at one time and perform processing later in a large batch.  This type of batch API call is more efficient because the pipeline on GPU can process more images in parallel.  However, if you intend to run the pipeline on an upload as quickly as possible, please use the on-demand, non-batched API.
+    A wrapper around $prefix/batch to send an entire sequence to the detection pipeline.  Takes in the same configuration parameters as that call.
     ---
     parameters:
-    - name: images
+    - name: sequence
       in: body
-      description: A JSON list of Image models to process with the pipeline.
+      description: A Sequence model to process with the pipeline.
       required: true
-      type: array
-      items:
-        $ref: '#/definitions/Image'
-    - name: callback_url
-      in: body
-      description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a 'body' parameter called `task` which will provide a Task model
-      required: false
-      type: string
-      format: url
-    - name: callback_method
-      in: body
-      description: The HTTP method for which to make the callback
-      required: false
-      default: post
-      type: string
-      enum:
-      - get
-      - post
-      - put
-      - delete
+      schema:
+        $ref: "#/definitions/Sequence"
     responses:
       200:
         description: Returns a Task model
@@ -669,42 +647,10 @@ def vulcan_pipeline_sequence(ibs, images, async=True,
         description: The task returns an array of arrays of results, in parallel lists with the provided Image models
     """
     ibs = current_app.ibs
+    ut.embed()
 
-    # Input argument validation
-    for index, image in enumerate(images):
-        try:
-            parameter = 'images:%d' % (index, )
-            assert 'uuid' in image, 'Image Model provided is invalid, missing UUID key'
-        except AssertionError as ex:
-            raise controller_inject.WebInvalidInput(str(ex), parameter)
-
-    try:
-        parameter = 'async'
-        assert isinstance(async, bool), 'Asynchronous flag must be a boolean'
-
-        parameter = 'callback_url'
-        assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
-        if callback_url is not None:
-            assert callback_url.startswith('http://') or callback_url.startswith('https://'), 'Callback URL must start with http:// or https://'
-
-        parameter = 'callback_method'
-        assert callback_method is None or isinstance(callback_method, str), 'Callback URL must be a string'
-        if callback_method is not None:
-            callback_method = callback_method.lower()
-            assert callback_method in ['get', 'post', 'put', 'delete'], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
-    except AssertionError as ex:
-        raise controller_inject.WebInvalidInput(str(ex), parameter)
-
-    args = (images, )
-    if async:
-        taskid = ibs.job_manager.jobiface.queue_job('vulcan_pipeline',
-                                                    callback_url, callback_method,
-                                                    *args, **kwargs)
-        response = _task(ibs, taskid)
-    else:
-        response = ibs.vulcan_pipeline(*args, **kwargs)
-
-    return response
+    sequence_dict = vulcan_sequence_images(ibs, sequence)
+    return
 
 
 @register_api(_prefix('task'), methods=['GET'])
