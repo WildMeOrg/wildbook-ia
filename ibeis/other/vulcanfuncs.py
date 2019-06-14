@@ -2377,7 +2377,7 @@ def vulcan_localizer_image_validate(ibs, target_species='elephant_savanna',
             ########################################################################################################
 
             {'label': '5fbf R3:1+V0 400+40% V3-32  80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
+            # {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
             {'label': 'Vulcan Faster R-CNN',              'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
             {'label': 'Vulcan DetectNet',                 'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
 
@@ -3236,31 +3236,34 @@ def vulcan_visualize_annotation_clusters_distribution(ibs, target_species='eleph
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, target_species='elephant_savanna',
-                                                             sensitivity=0.4425, thresh=0.024,
+def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, version=None, quick=True,
+                                                             target_species='elephant_savanna',
                                                              errors_only=False, **kwargs):
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
     import matplotlib.pyplot as plt
     import plottool as pt
 
+    ut.embed()
+
     fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
+
+    if version is None:
+        version = 'annots/image'
+    assert version in ['annots/image', 'clusters/image', 'annots/cluster']
 
     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(test_gid_list, target_species=target_species)
-    cumulative_area_list, total_area_list, flag_list = values
-
-    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.5, 'sensitivity': sensitivity}
+    detection_config = ibs.vulcan_detect_config(quick=quick)
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
     print('\tGather Ground-Truth')
-    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **config)
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **detection_config)
 
     print('\tGather Predictions')
-    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **config)
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **detection_config)
 
     # Filter for speices
     dict_list = [

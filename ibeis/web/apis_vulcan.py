@@ -229,6 +229,35 @@ def vulcan_image_upload(ibs, precompute=True, return_times=False, *args, **kwarg
         return image
 
 
+@register_api(_prefix('image'), methods=['GET'])
+def vulcan_image(ibs, image, *args, **kwargs):
+    r"""
+    Return the image's status
+
+    ---
+    parameters:
+    - name: sequence
+      in: body
+      description: An Image model
+      required: true
+      schema:
+        $ref: "#/definitions/Image"
+    produces:
+    - application/json
+    responses:
+      200:
+        description: Returns a JSON object with the list of Image models
+      400:
+        description: Invalid input parameter
+    """
+    # Input argument validation
+
+    metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
+    sequence_ = metadata_dict.get('sequence', None)
+    assert sequence_ is not None
+    return sequence_
+
+
 @register_api(_prefix('sequence'), methods=['POST'])
 def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
     r"""
