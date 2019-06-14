@@ -376,7 +376,7 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
 
     for value in sequence_dict:
         gid = value.pop('gid')
-        value['image'] = _image(ibs, gid)
+        value['image'] = None if gid is None else _image(ibs, gid)
 
     return {
         'name'    : ibs.get_imageset_text(sequence_rowid),
