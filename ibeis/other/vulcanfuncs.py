@@ -3335,7 +3335,7 @@ def vulcan_localizer_count_residuals_exploration(ibs, target_species='elephant_s
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
+def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
                                                              target_species='elephant_savanna',
                                                              distance=128, **kwargs):
     from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
@@ -3452,7 +3452,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     plt.xlabel('Bias for Detections (PRED - GT)')
     plt.yscale('log')
     args = (undercounti, undercountx, correcti, correctx, overcounti, overcountx, )
-    plt.title('Count Bias for Detections / Image\n<-- (%d Img, %d Det) Undercount | Correct (%d Img, %d Det) | Overcount (%d Img, %d Det) -->' % args)
+    plt.title('Count Bias for Detections / Image\n<-- (%d Img, %d Det) Under | Correct (%d Img, %d Det) | Over (%d Img, %d Det) -->' % args)
     plt.xticks(index_list, label_list)
 
     # Clusters / Image
@@ -3548,7 +3548,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     plt.xlabel('Bias in Clusters (PRED - GT)')
     plt.yscale('log')
     args = (undercounti, undercountx, correcti, correctx, overcounti, overcountx, )
-    plt.title('Count Bias for Clusters / Image\n<-- (%d Img, %d Clust) Undercount | Correct (%d Img, %d Clust) | Overcount (%d Img, %d Clust) -->' % args)
+    plt.title('Count Bias for Clusters / Image\n<-- (%d Img, %d Clust) Under | Correct (%d Img, %d Clust) | Over (%d Img, %d Clust) -->' % args)
     plt.xticks(index_list, label_list)
 
     # Annot / Cluster
@@ -3671,7 +3671,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     plt.xlabel('Bias in Detections (PRED - GT)')
     plt.yscale('log')
     args = (undercountc, undercountx, correctc, correctx, unassigned, overcountc, overcountx, )
-    plt.title('Count Bias for Detections / Cluster\n<-- (%d Clust, %d Det) Undercount | Correct (%d Clust, %d Det), Unassigned Pred. (%d) | Overcount (%d Clust, %d Det) -->' % args)
+    plt.title('Count Bias for Detections / Cluster\n<-- (%d Clust, %d Det) Under | Correct (%d Clust, %d Det), Unassigned (%d Det) | Over (%d Clust, %d Det) -->' % args)
     plt.xticks(index_list, label_list)
 
     fig_filename = 'vulcan-errors-residuals-plot-quick-%s.png' % (quick, )
