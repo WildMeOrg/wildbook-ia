@@ -645,6 +645,7 @@ def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
         description: The task returns an array of arrays of results, in parallel lists with the provided Image models
     """
     ibs = current_app.ibs
+    ut.embed()
     sequence_dict = vulcan_sequence_images(ibs, sequence)
     sequence_list = sequence_dict['sequence']
     images = [
