@@ -378,7 +378,10 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
         gid = value.pop('gid')
         value['image'] = _image(ibs, gid)
 
-    return {'sequence': sequence_dict}
+    return {
+        'name'    : ibs.get_imageset_text(sequence_rowid),
+        'sequence': sequence_dict
+    }
 
 
 @register_ibs_method
@@ -625,7 +628,7 @@ def vulcan_pipeline_batch(ibs, images, async=True,
 
 
 @register_api(_prefix('pipeline/sequence'), methods=['POST'])
-def vulcan_pipeline_sequence(ibs, sequence, *_args, **kwargs):
+def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
     r"""
     A wrapper around $prefix/batch to send an entire sequence to the detection pipeline.  Takes in the same configuration parameters as that call.
     ---
@@ -647,10 +650,8 @@ def vulcan_pipeline_sequence(ibs, sequence, *_args, **kwargs):
         description: The task returns an array of arrays of results, in parallel lists with the provided Image models
     """
     ibs = current_app.ibs
-    ut.embed()
-
     sequence_dict = vulcan_sequence_images(ibs, sequence)
-    return
+    return vulcan_pipeline_batch(ibs, sequence_dict['sequence'], *args, **kwargs)
 
 
 @register_api(_prefix('task'), methods=['GET'])
