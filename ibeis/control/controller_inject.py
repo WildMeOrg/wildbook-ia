@@ -538,8 +538,10 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                     parameter = str(ex2).split(':')[1].strip().strip('\'')
                     raise WebMissingInput('Missing required parameter', parameter)
                 elif isinstance(ex2, WebException):
+                    traceback.print_exc()
                     raise
                 else:
+                    traceback.print_exc()
                     raise WebRuntimeException('An unknown error has occurred, please contact the API administrator at dev@wildme.org.')
             else:
                 msg_list = []

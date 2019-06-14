@@ -251,7 +251,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=256 if const.PRODUCTION else 14336,
+    chunksize=512 if const.PRODUCTION else 14336,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""Extract the detections for a given input image.
