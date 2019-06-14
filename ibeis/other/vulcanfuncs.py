@@ -3399,11 +3399,20 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
         bias_index: 0
         for bias_index, bias_label in bias_label_list
     }
+    undercountx, correctx, overcountx = 0, 0, 0
     for test_gid, test_uuid in zip(test_gid_list, test_uuid_list):
         gt_list = gt_dict[test_uuid]
         pred_list = pred_dict[test_uuid]
 
         bias = len(pred_list) - len(gt_list)
+
+        if bias == 0:
+            correctx += len(pred_list)
+        elif bias < 0:
+            undercountx += bias
+        elif bias > 0:
+            overcountx += bias
+
         if bias <= -10:
             bias = -10
         elif bias <= -5:
@@ -3422,17 +3431,17 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     label_list = ut.take_column(bias_label_list, 1)
     value_list = ut.take(bias_dict, key_list)
 
-    undercount, correct, overcount = 0, 0, 0
+    undercounti, correcti, overcounti = 0, 0, 0
     color_list = []
     for key, value in zip(key_list, value_list):
         if key < 0:
-            undercount += value
+            undercounti += value
             color = (0.8078, 0.2039, 0.1647)
         elif key == 0:
-            correct += value
+            correcti += value
             color = (0.4118, 0.8588, 0.2824)
         else:
-            overcount += value
+            overcounti += value
             color = (0.2824, 0.619, 0.8549)
         color_list.append(color)
 
@@ -3442,7 +3451,8 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     plt.ylabel('Number of Images')
     plt.xlabel('Bias for Detections (PRED - GT)')
     plt.yscale('log')
-    plt.title('Count Bias for Detections / Image\n<-- (%d) Undercount | Correct (%d) | Overcount (%d) -->' % (undercount, correct, overcount, ))
+    args = (undercounti, undercountx, correcti, correctx, overcounti, overcountx, )
+    plt.title('Count Bias for Detections / Image\n<-- (%d Img, %d Det) Undercount | Correct (%d Img, %d Det) | Overcount (%d Img, %d Det) -->' % args)
     plt.xticks(index_list, label_list)
 
     # Clusters / Image
@@ -3467,6 +3477,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
         bias_index: 0
         for bias_index, bias_label in bias_label_list
     }
+    undercountx, correctx, overcountx = 0, 0, 0
     for test_uuid in test_uuid_list:
         gt_list = gt_dict[test_uuid]
         pred_list = pred_dict[test_uuid]
@@ -3494,6 +3505,14 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
         gt_prediction_list, gt_value_list = _vulcan_compute_annotation_clusters(ibs, gt_bbox_list, distance=distance)
         pred_prediction_list, pred_value_list = _vulcan_compute_annotation_clusters(ibs, pred_bbox_list, distance=distance)
         bias = len(set(pred_prediction_list)) - len(set(gt_prediction_list))
+
+        if bias == 0:
+            correctx += len(set(pred_prediction_list))
+        elif bias < 0:
+            undercountx += bias
+        elif bias > 0:
+            overcountx += bias
+
         if bias <= -5:
             bias = -5
         elif bias >= 5:
@@ -3508,17 +3527,17 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     label_list = ut.take_column(bias_label_list, 1)
     value_list = ut.take(bias_dict, key_list)
 
-    undercount, correct, overcount = 0, 0, 0
+    undercounti, correcti, overcounti = 0, 0, 0
     color_list = []
     for key, value in zip(key_list, value_list):
         if key < 0:
-            undercount += value
+            undercounti += value
             color = (0.8078, 0.2039, 0.1647)
         elif key == 0:
-            correct += value
+            correcti += value
             color = (0.4118, 0.8588, 0.2824)
         else:
-            overcount += value
+            overcounti += value
             color = (0.2824, 0.619, 0.8549)
         color_list.append(color)
 
@@ -3528,7 +3547,8 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     plt.ylabel('Number of Images')
     plt.xlabel('Bias in Clusters (PRED - GT)')
     plt.yscale('log')
-    plt.title('Count Bias for Clusters / Image\n<-- (%d) Undercount | Correct (%d) | Overcount (%d) -->' % (undercount, correct, overcount, ))
+    args = (undercounti, undercountx, correcti, correctx, overcounti, overcountx, )
+    plt.title('Count Bias for Clusters / Image\n<-- (%d Img, %d Clust) Undercount | Correct (%d Img, %d Clust) | Overcount (%d Img, %d Clust) -->' % args)
     plt.xticks(index_list, label_list)
 
     # Annot / Cluster
@@ -3554,6 +3574,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
         bias_index: 0
         for bias_index, bias_label in bias_label_list
     }
+    undercountx, correctx, overcountx = 0, 0, 0
     for test_uuid in test_uuid_list:
         gt_list = gt_dict[test_uuid]
         pred_list = pred_dict[test_uuid]
@@ -3594,18 +3615,27 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
 
             if best_prediction is not None:
                 if best_prediction not in cluster_tabulation:
-                    cluster_tabulation[best_prediction] = 0
-                cluster_tabulation[best_prediction] += 1
+                    cluster_tabulation[best_prediction] = [0, 0]
+                cluster_tabulation[best_prediction][0] += 1
+                cluster_tabulation[best_prediction][1] += 1
             else:
                 unassigned += 1
 
         for gt_prediction in gt_prediction_list:
             if gt_prediction not in cluster_tabulation:
-                cluster_tabulation[gt_prediction] = 0
-            cluster_tabulation[gt_prediction] -= 1
+                cluster_tabulation[gt_prediction] = [0, 0]
+            cluster_tabulation[gt_prediction][0] -= 1
 
         for key in cluster_tabulation:
-            bias = cluster_tabulation[key]
+            bias, total = cluster_tabulation[key]
+
+            if bias == 0:
+                correctx += total
+            elif bias < 0:
+                undercountx += bias
+            elif bias > 0:
+                overcountx += bias
+
             if bias <= -5:
                 bias = -5
             elif bias >= 5:
@@ -3620,17 +3650,17 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     label_list = ut.take_column(bias_label_list, 1)
     value_list = ut.take(bias_dict, key_list)
 
-    undercount, correct, overcount = 0, 0, 0
+    undercountc, correctc, overcountc = 0, 0, 0
     color_list = []
     for key, value in zip(key_list, value_list):
         if key < 0:
-            undercount += value
+            undercountc += value
             color = (0.8078, 0.2039, 0.1647)
         elif key == 0:
-            correct += value
+            correctc += value
             color = (0.4118, 0.8588, 0.2824)
         else:
-            overcount += value
+            overcountc += value
             color = (0.2824, 0.619, 0.8549)
         color_list.append(color)
 
@@ -3640,7 +3670,8 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     plt.ylabel('Number of GT Clusters')
     plt.xlabel('Bias in Detections (PRED - GT)')
     plt.yscale('log')
-    plt.title('Count Bias for Detections / Cluster\n<-- (%d) Undercount | Correct (%d), Unassigned Pred. (%d) | Overcount (%d) -->' % (undercount, correct, unassigned, overcount, ))
+    args = (undercountc, undercountx, correctc, correctx, unassigned, overcountc, overcountx, )
+    plt.title('Count Bias for Detections / Cluster\n<-- (%d Clust, %d Det) Undercount | Correct (%d Clust, %d Det), Unassigned Pred. (%d) | Overcount (%d Clust, %d Det) -->' % args)
     plt.xticks(index_list, label_list)
 
     fig_filename = 'vulcan-errors-residuals-plot-quick-%s.png' % (quick, )
