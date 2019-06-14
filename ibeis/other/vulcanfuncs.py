@@ -3399,15 +3399,16 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         bias_index: 0
         for bias_index, bias_label in bias_label_list
     }
-    undercountx, correctx, overcountx = 0, 0, 0
+    totalx, undercountx, correctx, overcountx = 0, 0, 0, 0
     for test_gid, test_uuid in zip(test_gid_list, test_uuid_list):
         gt_list = gt_dict[test_uuid]
         pred_list = pred_dict[test_uuid]
 
         bias = len(pred_list) - len(gt_list)
 
+        totalx += len(gt_list)
         if bias == 0:
-            correctx += len(pred_list)
+            correctx += len(gt_list)
         elif bias < 0:
             undercountx += bias
         elif bias > 0:
@@ -3448,6 +3449,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     for index, value, color in zip(index_list, value_list, color_list):
         plt.bar([index], [value], width, color=color)
 
+    print(totalx)
     plt.ylabel('Number of Images')
     plt.xlabel('Bias for Detections (PRED - GT)')
     plt.yscale('log')
@@ -3477,7 +3479,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         bias_index: 0
         for bias_index, bias_label in bias_label_list
     }
-    undercountx, correctx, overcountx = 0, 0, 0
+    totalx, undercountx, correctx, overcountx = 0, 0, 0, 0
     for test_uuid in test_uuid_list:
         gt_list = gt_dict[test_uuid]
         pred_list = pred_dict[test_uuid]
@@ -3506,8 +3508,9 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         pred_prediction_list, pred_value_list = _vulcan_compute_annotation_clusters(ibs, pred_bbox_list, distance=distance)
         bias = len(set(pred_prediction_list)) - len(set(gt_prediction_list))
 
+        totalx += len(set(gt_prediction_list))
         if bias == 0:
-            correctx += len(set(pred_prediction_list))
+            correctx += len(set(gt_prediction_list))
         elif bias < 0:
             undercountx += bias
         elif bias > 0:
@@ -3544,6 +3547,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     for index, value, color in zip(index_list, value_list, color_list):
         plt.bar([index], [value], width, color=color)
 
+    print(totalx)
     plt.ylabel('Number of Images')
     plt.xlabel('Bias in Clusters (PRED - GT)')
     plt.yscale('log')
@@ -3574,7 +3578,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         bias_index: 0
         for bias_index, bias_label in bias_label_list
     }
-    undercountx, correctx, overcountx = 0, 0, 0
+    totalx, undercountx, correctx, overcountx = 0, 0, 0, 0
     for test_uuid in test_uuid_list:
         gt_list = gt_dict[test_uuid]
         pred_list = pred_dict[test_uuid]
@@ -3629,6 +3633,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         for key in cluster_tabulation:
             bias, total = cluster_tabulation[key]
 
+            totalx += total
             if bias == 0:
                 correctx += total
             elif bias < 0:
@@ -3667,6 +3672,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     for index, value, color in zip(index_list, value_list, color_list):
         plt.bar([index], [value], width, color=color)
 
+    print(totalx)
     plt.ylabel('Number of GT Clusters')
     plt.xlabel('Bias in Detections (PRED - GT)')
     plt.yscale('log')
