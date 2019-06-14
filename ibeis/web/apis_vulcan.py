@@ -591,12 +591,7 @@ def vulcan_pipeline_batch(ibs, images, async=True,
     ibs = current_app.ibs
 
     # Input argument validation
-    for index, image in enumerate(images):
-        try:
-            parameter = 'images:%d' % (index, )
-            assert 'uuid' in image, 'Image Model provided is invalid, missing UUID key'
-        except AssertionError as ex:
-            raise controller_inject.WebInvalidInput(str(ex), parameter)
+    _ensure_images_exist(ibs, images)
 
     try:
         parameter = 'async'
@@ -651,7 +646,13 @@ def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
     """
     ibs = current_app.ibs
     sequence_dict = vulcan_sequence_images(ibs, sequence)
-    return vulcan_pipeline_batch(ibs, sequence_dict['sequence'], *args, **kwargs)
+    sequence_list = sequence_dict['sequence']
+    images = [
+        sequence_['image']
+        for sequence_ in sequence_list
+        if sequence_ is not None
+    ]
+    return vulcan_pipeline_batch(ibs, images, *args, **kwargs)
 
 
 @register_api(_prefix('task'), methods=['GET'])
