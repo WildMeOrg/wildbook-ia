@@ -3380,7 +3380,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     plt.subplot(131)
 
     bias_label_list = [
-        (-10, '<-10'),
+        (-10, '<=-10'),
         (-5,  '-9 to -5'),
         (-4,  '-4'),
         (-3,  '-3'),
@@ -3392,7 +3392,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         (3,   '3'),
         (4,   '4'),
         (5,   '5 to 9'),
-        (10,   '>10'),
+        (10,   '>=10'),
     ]
 
     bias_dict = {
@@ -3462,7 +3462,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     plt.subplot(132)
 
     bias_label_list = [
-        (-5, '<-5'),
+        (-5, '<=-5'),
         (-4,  '-4'),
         (-3,  '-3'),
         (-2,  '-2'),
@@ -3472,7 +3472,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         (2,   '2'),
         (3,   '3'),
         (4,   '4'),
-        (5,   '>5'),
+        (5,   '>=5'),
     ]
 
     bias_dict = {
@@ -3559,7 +3559,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
     print('Plotting Annot / Cluster')
     plt.subplot(133)
 
-    bias_label_list = [
+    bias_label_list= = [
         (-5,    '<-5'),
         (-4,    '-4'),
         (-3,    '-3'),
@@ -3570,7 +3570,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=False,
         (2,     '2'),
         (3,     '3'),
         (4,     '4'),
-        (5,     '>5'),
+        (5,     '>=5'),
     ]
     unassigned = 0
 

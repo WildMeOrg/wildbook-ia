@@ -269,8 +269,12 @@ def vulcan_image(ibs, image, *args, **kwargs):
         description: Invalid input parameter
     """
     # Input argument validation
-    _ensure_images_exist(ibs, [image])
-    return True
+    try:
+        status = 'available'
+        _ensure_images_exist(ibs, [image])
+    except:
+        status = 'unavailable'
+    return {'status': status}
 
 
 @register_api(_prefix('sequence'), methods=['POST'])
