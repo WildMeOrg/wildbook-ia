@@ -33,7 +33,7 @@ def _image(ibs, gid):
 
 def _sequence(ibs, sequence_rowid):
     return {
-        'uuid': str(ibs.get_imageset_uuids(sequence_rowid)),
+        'uuid': str(ibs.get_imageset_uuid(sequence_rowid)),
     }
 
 
@@ -313,7 +313,14 @@ def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
         description: Invalid input parameter
     """
     # Input argument validation
-    ut.embed()
+    if isinstance(name, (list, tuple)):
+        try:
+            assert len(name) == 1
+            name = name[0]
+        except AssertionError as ex:
+            parameter = 'name'
+            raise controller_inject.WebInvalidInput(str(ex), parameter)
+
     gid_list = _ensure_images_exist(ibs, images, allow_none=True)
     sequence_rowid = ibs.get_imageset_imgsetids_from_text(name)
 
@@ -331,6 +338,11 @@ def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
 
     metadata_dict['sequence'] = sequence
     ibs.set_imageset_metadata([sequence_rowid], [metadata_dict])
+
+    current_sequence_gid_list = ibs.get_imageset_gids(sequence_rowid)
+    ibs.unrelate_images_and_imagesets(current_sequence_gid_list, [sequence_rowid] * len(current_sequence_gid_list))
+    new_sequence_gid_list = list(set(gid_list) - set([None]))
+    ibs.set_image_imgsetids(new_sequence_gid_list, [sequence_rowid] * len(new_sequence_gid_list))
 
     sequence = _sequence(ibs, sequence_rowid)
     return sequence
