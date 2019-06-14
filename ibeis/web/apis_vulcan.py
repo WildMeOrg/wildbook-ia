@@ -370,8 +370,7 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
         description: Invalid input parameter
     """
     # Input argument validation
-    ut.embed()
-    sequence_rowid = _ensure_sequence_exist(sequence)
+    sequence_rowid = _ensure_sequence_exist(ibs, sequence)
     metadata_dict = ibs.get_imageset_metadata(sequence_rowid)
     sequence = metadata_dict.get('sequence', None)
 
@@ -379,7 +378,7 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
         gid = value.pop('gid')
         value['image'] = _image(ibs, gid)
 
-    return sequence
+    return {'sequence': sequence}
 
 
 @register_ibs_method
