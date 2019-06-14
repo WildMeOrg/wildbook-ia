@@ -5,6 +5,7 @@ from ibeis.control import controller_inject
 from flask_swagger import swagger
 from flask import current_app
 from flask import jsonify
+import traceback
 import utool as ut
 import uuid
 
@@ -268,7 +269,7 @@ def vulcan_image(ibs, image, *args, **kwargs):
         description: Invalid input parameter
     """
     # Input argument validation
-    _ensure_images_exist([image])
+    _ensure_images_exist(ibs, [image])
     return True
 
 
@@ -308,7 +309,7 @@ def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
         description: Invalid input parameter
     """
     # Input argument validation
-    gid_list = ibs._ensure_images_exist(images, allow_none=True)
+    gid_list = _ensure_images_exist(ibs, images, allow_none=True)
     sequence_rowid = ibs.get_imageset_imgsetids_from_text(name)
 
     metadata_dict = ibs.get_imageset_metadata(sequence_rowid)
@@ -397,7 +398,7 @@ def vulcan_pipeline(ibs, images,
             detection_weight_config_loc_tile_nms    = float(values[3])
 
         with ut.Timer('UUIDs') as time_uuid:
-            gid_list = _ensure_images_exist(images)
+            gid_list = _ensure_images_exist(ibs, images)
 
         with ut.Timer('Test Deleting') as time_test:
             if testing:
@@ -465,6 +466,7 @@ def vulcan_pipeline(ibs, images,
                     })
                 results.append(result_)
     except:
+        traceback.print_exc()
         raise controller_inject.WebException('The Vulcan pipeline process has failed for an unknown reason')
 
     response = {
