@@ -30,9 +30,9 @@ def _image(ibs, gid):
     }
 
 
-def _sequence(ibs, imageset_rowid):
+def _sequence(ibs, sequence_rowid):
     return {
-        'uuid': str(ibs.get_imageset_uuids(imageset_rowid)),
+        'uuid': str(ibs.get_imageset_uuids(sequence_rowid)),
     }
 
 
@@ -73,6 +73,23 @@ def _ensure_images_exist(ibs, images, allow_none=False):
         assert None not in gid_list
 
     return gid_list
+
+
+def _ensure_sequence_exist(ibs, sequence):
+    try:
+        parameter = 'sequence'
+        assert 'uuid' in sequence, 'Sequence Model provided is invalid, missing UUID key'
+    except AssertionError as ex:
+        raise controller_inject.WebInvalidInput(str(ex), parameter)
+
+    sequence_uuid = uuid.UUID(sequence['uuid'])
+    sequence_rowid = ibs.get_imageset_imgsetids_from_uuid(sequence_uuid)
+
+    if sequence_uuid is None or sequence_rowid is None:
+        message = 'Sequence is unrecognized'
+        raise controller_inject.WebInvalidInput(message, 'sequence')
+
+    return sequence_rowid
 
 
 @register_route(_prefix('swagger'), methods=['GET'])
@@ -232,7 +249,7 @@ def vulcan_image_upload(ibs, precompute=True, return_times=False, *args, **kwarg
 @register_api(_prefix('image'), methods=['GET'])
 def vulcan_image(ibs, image, *args, **kwargs):
     r"""
-    Return the image's status
+    Check if an Image is available in the database.
 
     ---
     parameters:
@@ -246,16 +263,13 @@ def vulcan_image(ibs, image, *args, **kwargs):
     - application/json
     responses:
       200:
-        description: Returns a JSON object with the list of Image models
+        description: The Image is registered and available
       400:
         description: Invalid input parameter
     """
     # Input argument validation
-
-    metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
-    sequence_ = metadata_dict.get('sequence', None)
-    assert sequence_ is not None
-    return sequence_
+    _ensure_images_exist([image])
+    return True
 
 
 @register_api(_prefix('sequence'), methods=['POST'])
@@ -295,9 +309,9 @@ def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
     """
     # Input argument validation
     gid_list = ibs._ensure_images_exist(images, allow_none=True)
-    imageset_rowid = ibs.get_imageset_imgsetids_from_text(name)
+    sequence_rowid = ibs.get_imageset_imgsetids_from_text(name)
 
-    metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
+    metadata_dict = ibs.get_imageset_metadata(sequence_rowid)
     sequence = metadata_dict.get('sequence', None)
     if sequence is not None:
         assert overwrite, 'This sequence has already been defined and overwriting is OFF (use overwrite = True to force)'
@@ -310,9 +324,9 @@ def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
         })
 
     metadata_dict['sequence'] = sequence
-    ibs.set_imageset_metadata([imageset_rowid], [metadata_dict])
+    ibs.set_imageset_metadata([sequence_rowid], [metadata_dict])
 
-    sequence = _sequence(ibs, imageset_rowid)
+    sequence = _sequence(ibs, sequence_rowid)
     return sequence
 
 
@@ -333,16 +347,21 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
     - application/json
     responses:
       200:
-        description: Returns a JSON object with the list of Image models
+        description: Returns a JSON object with the list of Image models and their index in the sequence
       400:
         description: Invalid input parameter
     """
     # Input argument validation
 
-    metadata_dict = ibs.get_imageset_metadata(imageset_rowid)
-    sequence_ = metadata_dict.get('sequence', None)
-    assert sequence_ is not None
-    return sequence_
+    sequence_rowid = _ensure_sequence_exist(sequence)
+    metadata_dict = ibs.get_imageset_metadata(sequence_rowid)
+    sequence = metadata_dict.get('sequence', None)
+
+    for value in sequence:
+        gid = value.pop('gid')
+        value['image'] = _image(ibs, gid)
+
+    return sequence
 
 
 @register_ibs_method

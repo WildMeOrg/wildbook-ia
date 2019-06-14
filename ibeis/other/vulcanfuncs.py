@@ -3240,6 +3240,101 @@ def vulcan_visualize_annotation_clusters_distribution(ibs, target_species='eleph
 
 
 @register_ibs_method
+def vulcan_localizer_count_residuals_exploration(ibs, target_species='elephant_savanna',
+                                                 **kwargs):
+    from ibeis.other.detectfuncs import general_parse_gt, localizer_parse_pred, localizer_tp_fp
+
+    gid_list = ibs.get_valid_gids()
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = set(gid_list) & test_gid_set
+    test_gid_list = list(test_gid_set)
+
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+    print('\tGather Ground-Truth')
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list)
+
+    # Filter for speices
+    dict_list = [
+        (gt_dict, 'Ground-Truth'),
+        # (pred_dict, 'Predictions'),
+    ]
+    for dict_, dict_tag in dict_list:
+        for image_uuid in dict_:
+            temp = []
+            for val in dict_[image_uuid]:
+                if val.get('class', None) != target_species:
+                    continue
+                temp.append(val)
+            dict_[image_uuid] = temp
+
+    detection_config_list = []
+    for agg_algo in ['tile_aggregation_quick', 'tile_aggregation']:
+        for agg_variant in tqdm.tqdm(['variant1', 'variant2-32', 'variant2-64', 'variant3-32', 'variant4-32', 'variant4-64']):
+            for wic_model in ['vulcan-5fbfff26-boost0', 'vulcan-5fbfff26-boost1', 'vulcan-5fbfff26-boost2', 'vulcan-5fbfff26-boost3']:
+                for wic_sensitivity in [0.1, 0.3, 0.5, 0.7, 0.9]:
+                    for loc_model in ['vulcan_5fbfff26_v0']:
+                        for loc_nms in [0.1, 0.3, 0.5, 0.7, 0.9]:
+                            for agg_nms in [0.1, 0.3, 0.5, 0.7, 0.9]:
+                                for agg_sensitivity in [0.1, 0.3, 0.5, 0.7, 0.9]:
+                                    detection_config = {
+                                        'algo'            : agg_algo,
+                                        'config_filepath' : agg_variant,
+                                        'weight_filepath' : 'densenet+lightnet;%s,%s,%s,%s' % (wic_model, wic_sensitivity, loc_model, loc_nms, ),
+                                        'nms_thresh'      : agg_nms,
+                                        'sensitivity'     : agg_sensitivity,
+                                    }
+                                    detection_config_list.append(detection_config)
+
+    random.shuffle(detection_config_list)
+
+    keep = 20
+    snapshot = 50
+    running_list = []
+    for detection_config in tqdm.tqdm(detection_config_list):
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **detection_config)
+
+        # Filter for speices
+        dict_list = [
+            # (gt_dict, 'Ground-Truth'),
+            (pred_dict, 'Predictions'),
+        ]
+        for dict_, dict_tag in dict_list:
+            for image_uuid in dict_:
+                temp = []
+                for val in dict_[image_uuid]:
+                    if val.get('class', None) != target_species:
+                        continue
+                    temp.append(val)
+                dict_[image_uuid] = temp
+
+        values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict,
+                                 return_match_dict=True, min_overlap=0.2, **kwargs)
+        conf_list, tp_list, fp_list, total, match_dict = values
+        correct = 0
+        net_bias = 0
+        for test_gid, test_uuid in zip(test_gid_list, test_uuid_list):
+            gt_list = gt_dict[test_uuid]
+            pred_list = pred_dict[test_uuid]
+
+            bias = len(pred_list) - len(gt_list)
+            if bias == 0:
+                correct += 1
+            else:
+                net_bias += bias
+        net_bias_ = -1 * abs(net_bias)
+        result = (correct, net_bias_, net_bias, detection_config)
+        print(result)
+        running_list.append(result)
+
+        if len(running_list) >= snapshot:
+            running_list = sorted(running_list, reverse=True)
+            running_list = running_list[:keep]
+            print(running_list)
+
+    return running_list
+
+
+@register_ibs_method
 def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
                                                              target_species='elephant_savanna',
                                                              distance=128, **kwargs):
@@ -3552,6 +3647,8 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(ibs, quick=True,
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
+    return
+
 
 @register_ibs_method
 def vulcan_localizer_test(ibs, test_tile_list, algo='lightnet', model_tag=None,
@@ -3582,16 +3679,16 @@ def vulcan_detect_config(ibs, quick=True):
             'algo'            : 'tile_aggregation_quick',
             'config_filepath' : 'variant3-32',
             'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4',
-            'sensitivity'     : 0.4215,
             'nms_thresh'      : 0.8,
+            'sensitivity'     : 0.4215,
         }
     else:
         detection_config = {
             'algo'            : 'tile_aggregation',
             'config_filepath' : 'variant3-32',
             'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4',
-            'sensitivity'     : 0.5077,
             'nms_thresh'      : 0.8,
+            'sensitivity'     : 0.5077,
         }
     return detection_config
 
