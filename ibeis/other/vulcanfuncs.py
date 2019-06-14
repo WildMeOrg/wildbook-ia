@@ -3322,14 +3322,14 @@ def vulcan_localizer_count_residuals_exploration(ibs, target_species='elephant_s
             else:
                 net_bias += bias
         net_bias_ = -1 * abs(net_bias)
-        result = (correct, net_bias_, net_bias, detection_config)
-        print(result)
+        result = (correct, net_bias_, net_bias, ut.to_json(detection_config))
+        print(ut.repr3(result))
         running_list.append(result)
 
         if len(running_list) >= snapshot:
             running_list = sorted(running_list, reverse=True)
             running_list = running_list[:keep]
-            print(running_list)
+            print(ut.repr3(running_list))
 
     return running_list
 

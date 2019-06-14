@@ -454,7 +454,7 @@ def vulcan_pipeline(ibs, images,
 
             results = []
             for result in result_list:
-                bboxes, classes, confs, clusters = result[:-1]
+                bboxes, classes, confs, clusters = result
                 zipped = zip(bboxes, classes, confs, clusters)
                 result_ = []
                 for bbox, class_, conf, cluster in zipped:
