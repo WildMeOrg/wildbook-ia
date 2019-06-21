@@ -794,6 +794,10 @@ def ensure_testdb_curvrank():
     return ensure_db_from_url(const.ZIPPED_URLS.DF_CURVRANK)
 
 
+def ensure_testdb_identification_example():
+    return ensure_db_from_url(const.ZIPPED_URLS.ID_EXAMPLE)
+
+
 def ensure_db_from_url(zipped_db_url):
     """ SeeAlso ibeis.init.sysres """
     from ibeis import sysres

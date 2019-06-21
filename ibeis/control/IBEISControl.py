@@ -909,7 +909,10 @@ class IBEISController(BASE_CLASS):
         return ibs.logsdir
 
     def get_logdir_global(ibs, local=False):
-        return ut.get_logging_dir(appname='ibeis')
+        if const.CONTAINERIZED:
+            return ibs.get_logdir_local()
+        else:
+            return ut.get_logging_dir(appname='ibeis')
 
     def get_dbdir(ibs):
         """ database dir with ibs internal directory """
@@ -925,7 +928,7 @@ class IBEISController(BASE_CLASS):
         return ibs.dbcache.fpath
 
     def get_shelves_path(ibs):
-        return join(ibs.get_cachedir(), 'shelves')
+        return join(ibs.get_cachedir(), 'engine_shelves')
 
     def get_trashdir(ibs):
         return ibs.trashdir
@@ -1145,7 +1148,10 @@ class IBEISController(BASE_CLASS):
         # typestr = ut.type_str(type(ibs)).split('.')[-1]
         typestr = ibs.__class__.__name__
         dbname = ibs.get_dbname()
-        ibsstr = '<%s(%s) at %s>' % (typestr, dbname, hex(id(ibs)))
+        # hash_str = hex(id(ibs))
+        # ibsstr = '<%s(%s) at %s>' % (typestr, dbname, hash_str, )
+        hash_str = ibs.get_db_init_uuid()
+        ibsstr = '<%s(%s) with UUID %s>' % (typestr, dbname, hash_str, )
         return ibsstr
 
     def __str__(ibs):
