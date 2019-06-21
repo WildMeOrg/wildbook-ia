@@ -1282,6 +1282,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
             }
 
         collecter_data[jobid]['status'] = status
+        print('Notify %s' % ut.repr3(collecter_data[jobid]))
 
         lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
         if status == 'received':
@@ -1363,6 +1364,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
             'input'  : shelve_input_filepath,
             'output' : shelve_output_filepath,
         }
+        print('Register %s' % ut.repr3(collecter_data[jobid]))
         reply['jobid'] = jobid
     elif action == 'metadata':
         # From the Engine
@@ -1385,6 +1387,8 @@ def on_collect_request(ibs, collect_request, collecter_data,
             shelf[key] = metadata
         finally:
             shelf.close()
+
+        print('Store Metadata %s' % ut.repr3(collecter_data[jobid]))
 
         # Release memory
         metadata = None
@@ -1412,6 +1416,8 @@ def on_collect_request(ibs, collect_request, collecter_data,
 
         # Release memory
         engine_result = None
+
+        print('Store Result %s' % ut.repr3(collecter_data[jobid]))
 
         if callback_url is not None:
 
@@ -1466,12 +1472,14 @@ def on_collect_request(ibs, collect_request, collecter_data,
         reply['jobstatus'] = collecter_data.get(jobid, {}).get('status', 'unknown')
     elif action == 'job_status_dict':
         # From a Client
+        print('Fetch Status %s' % ut.repr3(collecter_data))
+
         json_result = {}
         for jobid in collecter_data:
             status = collecter_data[jobid]['status']
 
             shelve_input_filepath = collecter_data[jobid]['input']
-            shelf = shelve.open(shelve_input_filepath)
+            shelf = shelve.open(shelve_input_filepath, 'r')
             try:
                 key = str('metadata')
                 metadata = shelf[key]
@@ -1512,8 +1520,10 @@ def on_collect_request(ibs, collect_request, collecter_data,
             assert 'input' in collecter_data[jobid]
             assert 'output' in collecter_data[jobid]
 
+            print('Fetch Input %s' % ut.repr3(collecter_data[jobid]))
+
             shelve_input_filepath = collecter_data[jobid]['input']
-            shelf = shelve.open(shelve_input_filepath)
+            shelf = shelve.open(shelve_input_filepath, 'r')
             try:
                 key = str('metadata')
                 metadata = shelf[key]
@@ -1533,23 +1543,32 @@ def on_collect_request(ibs, collect_request, collecter_data,
             reply['status'] = 'invalid'
             reply['json_result'] = None
         else:
+            assert 'status' in collecter_data[jobid]
             assert 'input' in collecter_data[jobid]
             assert 'output' in collecter_data[jobid]
 
+            status = collecter_data[jobid]['status']
+            print('Fetch Result %s' % ut.repr3(collecter_data[jobid]))
+
             shelve_output_filepath = collecter_data[jobid]['output']
-            shelf = shelve.open(shelve_output_filepath)
-            try:
-                key = str('result')
-                engine_result = shelf[key]
-            finally:
-                shelf.close()
+            shelf = shelve.open(shelve_output_filepath, 'r')
+            if shelf is None:
+                # Job failed to store output
+                reply['status'] = 'incomplete'
+                reply['json_result'] = None
+            else:
+                try:
+                    key = str('result')
+                    engine_result = shelf[key]
+                finally:
+                    shelf.close()
 
-            reply['status'] = engine_result['exec_status']
-            json_result = engine_result['json_result']
-            reply['json_result'] = ut.from_json(json_result)
+                reply['status'] = engine_result['exec_status']
+                json_result = engine_result['json_result']
+                reply['json_result'] = ut.from_json(json_result)
 
-            # Clear loaded memory
-            engine_result = None
+                # Clear loaded memory
+                engine_result = None
     else:
         # Other
         print('...error unknown action=%r' % (action,))
