@@ -1472,7 +1472,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
         reply['jobstatus'] = collecter_data.get(jobid, {}).get('status', 'unknown')
     elif action == 'job_status_dict':
         # From a Client
-        print('Fetch Status %s' % ut.repr3(collecter_data))
+        # print('Fetch Status %s' % ut.repr3(collecter_data))
 
         json_result = {}
         for jobid in collecter_data:
