@@ -76,8 +76,12 @@ def get_pyqt():
             from guitool import __PYQT__ as PyQt
             pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
         else:
-            import PyQt4 as PyQt
-            pyqt_version = 4
+            try:
+                import PyQt5 as PyQt
+                pyqt_version = 5
+            except ImportError:
+                import PyQt4 as PyQt
+                pyqt_version = 4
     except ImportError:
         PyQt = None
         pyqt_version = None
