@@ -1483,7 +1483,7 @@ def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
 def plot(*args, **kwargs):
     yscale = kwargs.pop('yscale', 'linear')
     xscale = kwargs.pop('xscale', 'linear')
-    logscale_kwargs = kwargs.pop('logscale_kwargs', {'nonposx': 'clip'})
+    logscale_kwargs = kwargs.pop('logscale_kwargs', {})  # , {'nonposx': 'clip'})
     plot = plt.plot(*args, **kwargs)
     ax = plt.gca()
 
@@ -3592,7 +3592,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                     modifysize=False,
                     new_return=False,
                     draw_fmatch=True, darken=DARKEN, H1=None, H2=None,
-                    sel_fm=[], ax=None, heatmask=False, **kwargs):
+                    sel_fm=[], ax=None, heatmask=False,
+                    white_background=False, **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
@@ -3736,7 +3737,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     # Stack the compared chips
     # modifysize = True
     match_img, offset_tup, sf_tup = vt.stack_images(
-        rchip1_, rchip2_, vert, modifysize=modifysize, return_sf=True)
+        rchip1_, rchip2_, vert, modifysize=modifysize, return_sf=True,
+        white_background=white_background)
 
     (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)

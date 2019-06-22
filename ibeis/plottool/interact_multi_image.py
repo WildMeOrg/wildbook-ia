@@ -36,7 +36,7 @@ class MultiImageInteraction(BASE_CLASS):
         >>> # ENABLE_DOCTEST
         >>> from plottool.interact_multi_image import *  # NOQA
         >>> import utool as ut
-        >>> TEST_IMAGES_URL = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
+        >>> TEST_IMAGES_URL = 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
         >>> test_image_dir = ut.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
         >>> # test image paths
         >>> imgpaths       = ut.list_images(test_image_dir, fullpath=True, recursive=False)
