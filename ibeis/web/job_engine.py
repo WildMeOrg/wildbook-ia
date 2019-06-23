@@ -1551,12 +1551,12 @@ def on_collect_request(ibs, collect_request, collecter_data,
             print('Fetch Result %s' % ut.repr3(collecter_data[jobid]))
 
             shelve_output_filepath = collecter_data[jobid]['output']
-            shelf = shelve.open(shelve_output_filepath, 'r')
-            if shelf is None:
+            if shelve_output_filepath is None:
                 # Job failed to store output
                 reply['status'] = 'incomplete'
                 reply['json_result'] = None
             else:
+                shelf = shelve.open(shelve_output_filepath, 'r')
                 try:
                     key = str('result')
                     engine_result = shelf[key]
