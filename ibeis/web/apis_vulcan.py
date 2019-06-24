@@ -655,6 +655,103 @@ def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
     return vulcan_pipeline_batch(ibs, images, *args, **kwargs)
 
 
+@register_ibs_method
+def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, *args, **kwargs):
+    ut.embed()
+
+    images = [
+        sequence_['image']
+        for sequence_ in sequence_list
+        if sequence_['image'] is not None
+    ]
+
+    results = ibs.vulcan_pipeline(images, *args, **kwargs)
+    pass
+
+
+@register_api(_prefix('count/sequence'), methods=['POST'])
+def vulcan_count_sequence(ibs, sequence, async=True,
+                           callback_url=None, callback_method=None,
+                           *args, **kwargs):
+    r"""
+    A wrapper around running the detection pipeline on a sequence and aggregating a count.
+    ---
+    parameters:
+    - name: sequence
+      in: body
+      description: A Sequence model to process with the pipeline.
+      required: true
+      schema:
+        $ref: "#/definitions/Sequence"
+    - name: overlap
+      in: body
+      description: The amount of global overlap expected between the images along the x-axis.  [passed to ibs.vulcan_count_pipeline()]
+      required: false
+      type: float
+      default: 0.0
+    - name: callback_url
+      in: body
+      description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a 'body' parameter called `task` which will provide a Task model
+      required: false
+      type: string
+      format: url
+    - name: callback_method
+      in: body
+      description: The HTTP method for which to make the callback
+      required: false
+      default: post
+      type: string
+      enum:
+      - get
+      - post
+      - put
+      - delete
+    responses:
+      200:
+        description: Returns a Task model
+        schema:
+          $ref: "#/definitions/Task"
+      400:
+        description: Invalid input parameter
+      x-task-response:
+        description: The task returns an array of arrays of results, in parallel lists with the provided Image models
+    """
+    ibs = current_app.ibs
+
+    # Input argument validation
+    sequence_dict = vulcan_sequence_images(ibs, sequence)
+    sequence_list = sequence_dict['sequence']
+
+    try:
+        parameter = 'async'
+        assert isinstance(async, bool), 'Asynchronous flag must be a boolean'
+
+        parameter = 'callback_url'
+        assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
+        if callback_url is not None:
+            assert callback_url.startswith('http://') or callback_url.startswith('https://'), 'Callback URL must start with http:// or https://'
+
+        parameter = 'callback_method'
+        assert callback_method is None or isinstance(callback_method, str), 'Callback URL must be a string'
+        if callback_method is not None:
+            callback_method = callback_method.lower()
+            assert callback_method in ['get', 'post', 'put', 'delete'], 'Unsupported callback method, must be one of ("get", "post", "put", "delete")'
+    except AssertionError as ex:
+        raise controller_inject.WebInvalidInput(str(ex), parameter)
+
+    # Load images
+    args = (sequence_list, )
+    if async:
+        taskid = ibs.job_manager.jobiface.queue_job('vulcan_count_pipeline',
+                                                    callback_url, callback_method,
+                                                    *args, **kwargs)
+        response = _task(ibs, taskid)
+    else:
+        response = ibs.vulcan_count_pipeline(*args, **kwargs)
+
+    return response
+
+
 @register_api(_prefix('task'), methods=['GET'])
 def vulcan_task_status(ibs, task):
     r"""
