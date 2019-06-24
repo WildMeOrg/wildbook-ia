@@ -657,16 +657,57 @@ def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
 
 @register_ibs_method
 def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, *args, **kwargs):
-    ut.embed()
+    index_external = 0
+    images = []
+    index_mapping = {}
+    for sequence_ in sequence_list:
+        index_internal = sequence_.get('index', None)
+        image = sequence_.get('image', None)
 
-    images = [
-        sequence_['image']
-        for sequence_ in sequence_list
-        if sequence_['image'] is not None
-    ]
+        assert index_internal is not None
+        if image is not None:
+            images.append(image)
+            index_mapping[index_internal] = index_external
+            index_external += 1
 
     results = ibs.vulcan_pipeline(images, *args, **kwargs)
-    pass
+    results = results['results']
+
+    ut.embed()
+
+    count = 0
+    neighbor = None
+    positive_image_list = []
+    for index_internal, sequence_ in enumerate(sequence_list):
+        image = sequence_.get('image', None)
+
+        if image is None:
+            neighbor = None
+            continue
+
+        index_external = index_mapping[index_internal]
+        result = results[index_external]
+
+        num_detects = len(result)
+        if num_detects > 0:
+            positive_image_list.append(image)
+            print('Case: Non-empty (%d)' % (num_detects, ))
+            if neighbor is None:
+                print('\tSubcase: Neighbor Empty')
+                count += num_detects
+            else:
+                print('\tSubcase: Neighbor Non-empty')
+            neighbor = index_external
+        else:
+            print('Case: Empty')
+            neighbor = None
+
+    response = {
+        'count': count,
+        'images': positive_image_list,
+    }
+
+    return response
 
 
 @register_api(_prefix('count/sequence'), methods=['POST'])
