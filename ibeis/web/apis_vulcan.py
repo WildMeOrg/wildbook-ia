@@ -5,8 +5,9 @@ from ibeis.control import controller_inject
 from flask_swagger import swagger
 from flask import current_app
 from flask import jsonify
-import traceback
+import numpy as np
 import utool as ut
+import traceback
 import uuid
 
 
@@ -656,7 +657,21 @@ def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
 
 
 @register_ibs_method
-def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, *args, **kwargs):
+def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, direction='right',
+                          *args, **kwargs):
+
+    try:
+        parameter = 'overlap'
+        assert isinstance(overlap, float), 'overlap must be a float'
+        assert 0.0 <= overlap and overlap < 0.5, 'overlap must be in the range [0.0, 0.5)'
+
+        parameter = 'direction'
+        assert isinstance(direction, str), 'direction must be a string'
+        direction = direction.lower()
+        assert direction in ['left', 'right'], 'direction must be either "left" or "right"'
+    except AssertionError as ex:
+        raise controller_inject.WebInvalidInput(str(ex), parameter)
+
     index_external = 0
     images = []
     index_mapping = {}
@@ -673,12 +688,12 @@ def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, *args, **kwargs):
     results = ibs.vulcan_pipeline(images, *args, **kwargs)
     results = results['results']
 
-    ut.embed()
-
-    count = 0
+    boxes = 0
+    count = 0.0
     neighbor = None
     positive_image_list = []
     for index_internal, sequence_ in enumerate(sequence_list):
+        print('Internal Index: %d (Running Count: %0.02f)' % (index_internal, count, ))
         image = sequence_.get('image', None)
 
         if image is None:
@@ -689,21 +704,93 @@ def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, *args, **kwargs):
         result = results[index_external]
 
         num_detects = len(result)
+        boxes += num_detects
         if num_detects > 0:
             positive_image_list.append(image)
-            print('Case: Non-empty (%d)' % (num_detects, ))
+            print('\tCase: Non-empty (%d)' % (num_detects, ))
             if neighbor is None:
-                print('\tSubcase: Neighbor Empty')
+                print('\t\tSubcase: Neighbor Empty')
                 count += num_detects
             else:
-                print('\tSubcase: Neighbor Non-empty')
+                args =  (index_external, )
+                print('\t\tSubcase: Neighbor Non-empty (index_external = %d)' % args)
+
+                # Retrieve model
+                pindex_external = index_mapping[index_internal]
+                presult = results[pindex_external]
+                psequence = sequence_list[pindex_external]
+                pimage = psequence.get('image')
+                assert pimage is not None
+
+                # Retrieve UUIDs and RowIDs
+                image_uuid = uuid.UUID(image['uuid'])
+                pimage_uuid = uuid.UUID(pimage['uuid'])
+                pgid, gid = ibs.get_image_gids_from_uuid([pimage_uuid, image_uuid])
+
+                # Retrieve sizes, and margins
+                assert None not in [pgid, gid]
+                psize, size = ibs.get_image_sizes([pgid, gid])
+                pwidth, pheight = psize
+                width, height = size
+                pmargin = int(np.around(pwidth * overlap))
+                margin = int(np.around(width * overlap))
+
+                # Filter for annotations from the previous image
+                print('\t\tRunning Count: %0.02f' % (count, ))
+                for detection in presult:
+                    xtl, ytl, w, h = detection['bbox']
+                    cx = xtl + w // 2
+                    # cy = ytl + h // 2
+                    if direction == 'right':
+                        plmargin = pwidth - pmargin
+                        prmargin = pwidth
+                    else:
+                        plmargin = 0
+                        prmargin = pmargin
+                    if plmargin <= cx and cx <= prmargin:
+                        score = cx / plmargin
+                        score = score / (prmargin - plmargin)
+                        assert 0.0 <= score and score <= 1.0, 'Computation error'
+                        if direction == 'right':
+                            score = 1.0 - score
+                        # Remove this annotation's full count weight from the previous count
+                        count -= 1
+                        # Replace it with a weighted version
+                        count += score
+                print('\t\tAdjusted Count: %0.02f' % (count, ))
+
+                # Filter for annotations for the current image
+                for detection in result:
+                    xtl, ytl, w, h = detection['bbox']
+                    cx = xtl + w // 2
+                    # cy = ytl + h // 2
+                    if direction == 'right':
+                        lmargin = 0
+                        rmargin = pmargin
+                    else:
+                        lmargin = width - margin
+                        rmargin = width
+                    if lmargin <= cx and cx <= rmargin:
+                        score = cx / lmargin
+                        score = score / (rmargin - lmargin)
+                        assert 0.0 <= score and score <= 1.0, 'Computation error'
+                        if direction == 'right':
+                            score = 1.0 - score
+                        # Add this annotation's weighted score since it will never be seen again
+                        count += score
+                    else:
+                        # This annotation is outside the overlap margin, simply add
+                        count += 1
             neighbor = index_external
         else:
-            print('Case: Empty')
+            print('\tCase: Empty')
             neighbor = None
 
+    count = int(np.around(count))
+    boxes = int(boxes)
     response = {
         'count': count,
+        'boxes': boxes,
         'images': positive_image_list,
     }
 
