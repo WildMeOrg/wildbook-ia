@@ -1544,7 +1544,14 @@ def view_jobs(**kwargs):
 
     jobs = response['json_result']
     job_list = []
-    for jobid in jobs.keys():
+
+    jobid_list = list(jobs.keys())
+    job_values = [jobs[jobid] for jobid in jobid_list]
+    jobnumber_list = ut.take_column(job_values, 'jobcounter')
+    index_list = np.argsort(jobnumber_list)
+    jobid_list_ = ut.take(jobid_list, index_list)
+
+    for jobid in jobid_list_:
         job = jobs[jobid]
         jov_status = job['status']
         job_state = 0
@@ -3832,7 +3839,7 @@ def turk_identification_hardcase(*args, **kwargs):
 @register_route('/turk/identification/graph/', methods=['GET'])
 def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                               annot_uuid_list=None, hardcase=None,
-                              view_orientation='horizontal', view_version=1,
+                              view_orientation='vertical', view_version=1,
                               hogwild=False, hogwild_species=None,
                               creation_imageset_rowid_list=None,
                               kaia=False,
@@ -3861,6 +3868,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     if ibs.dbname == 'ZEBRA_Kaia':
         kaia = True
+        view_orientation = 'horizontal'
 
     if hogwild_species == 'None':
         hogwild_species = None
