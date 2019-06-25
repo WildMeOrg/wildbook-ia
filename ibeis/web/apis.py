@@ -283,32 +283,36 @@ def image_upload(cleanup=True, **kwargs):
         Method: POST
         URL:    /api/upload/image/
     """
-    ibs = current_app.ibs
-    print('request.files = %s' % (request.files,))
+    with ut.Tmer('Uploading... get filestore'):
+        ibs = current_app.ibs
+        print('request.files = %s' % (request.files,))
 
-    filestore = request.files.get('image', None)
-    if filestore is None:
-        raise controller_inject.WebMissingInput('Missing required image parameter', 'image')
-        # raise IOError('Image not given')
+        filestore = request.files.get('image', None)
+        if filestore is None:
+            raise controller_inject.WebMissingInput('Missing required image parameter', 'image')
+            # raise IOError('Image not given')
 
-    uploads_path = ibs.get_uploadsdir()
-    ut.ensuredir(uploads_path)
-    current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+    with ut.Tmer('Uploading... write file to disk'):
+        uploads_path = ibs.get_uploadsdir()
+        ut.ensuredir(uploads_path)
+        current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
 
-    modifier = 1
-    upload_filename = 'upload_%s.png' % (current_time)
-    while exists(upload_filename):
-        upload_filename = 'upload_%s_%04d.png' % (current_time, modifier)
-        modifier += 1
+        modifier = 1
+        upload_filename = 'upload_%s.png' % (current_time)
+        while exists(upload_filename):
+            upload_filename = 'upload_%s_%04d.png' % (current_time, modifier)
+            modifier += 1
 
-    upload_filepath = join(uploads_path, upload_filename)
-    filestore.save(upload_filepath)
+        upload_filepath = join(uploads_path, upload_filename)
+        filestore.save(upload_filepath)
 
-    gid_list = ibs.add_images([upload_filepath], **kwargs)
-    gid = gid_list[0]
+    with ut.Tmer('Uploading... add images'):
+        gid_list = ibs.add_images([upload_filepath], **kwargs)
+        gid = gid_list[0]
 
-    if cleanup and exists(upload_filepath):
-        ut.delete(upload_filepath)
+    with ut.Tmer('Uploading... cleanup'):
+        if cleanup and exists(upload_filepath):
+            ut.delete(upload_filepath)
 
     return gid
 
