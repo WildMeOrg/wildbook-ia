@@ -353,7 +353,11 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
         template = rawreturn
     elif VULCAN_API_ENABLED and not __skip_vulcan_validation__:
         if rawreturn is not None:
-            assert isinstance(rawreturn, dict), 'Vulcan APIs must return a Python dictionary'
+            try:
+                assert isinstance(rawreturn, dict), 'Vulcan APIs must return a Python dictionary'
+            except Exception:
+                print(ut.repr3(rawreturn))
+                raise
         template = rawreturn
     else:
         if code is None:

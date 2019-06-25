@@ -803,6 +803,10 @@ def vulcan_count_sequence(ibs, sequence, async=True,
                            *args, **kwargs):
     r"""
     A wrapper around running the detection pipeline on a sequence and aggregating a count.
+
+    By default, we aggregate image sequence counts by weighting the annotations near the
+    edge of the image.
+
     ---
     parameters:
     - name: sequence
@@ -813,10 +817,16 @@ def vulcan_count_sequence(ibs, sequence, async=True,
         $ref: "#/definitions/Sequence"
     - name: overlap
       in: body
-      description: The amount of global overlap expected between the images along the x-axis.  [passed to ibs.vulcan_count_pipeline()]
+      description: The amount of global overlap expected between the images along the x-axis.  [Value passed to ibs.vulcan_count_pipeline()]
       required: false
       type: float
       default: 0.0
+    - name: direction
+      in: body
+      description: The direction of travel of the camera, used to calibrate the overlap margin at the end-points of the sequence.  Valid values include ['left' and 'right'].  For example, when the direction is "right" the direction of travel for the plane from image N-1, N and N+1 as the sequence (N-1, N, N+1).  The direction of "left" means the direction of travel is reversed and has the sequence (N+1, N, N-1).  [Value passed to ibs.vulcan_count_pipeline()]
+      required: false
+      type: string
+      default: left
     - name: callback_url
       in: body
       description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a 'body' parameter called `task` which will provide a Task model
