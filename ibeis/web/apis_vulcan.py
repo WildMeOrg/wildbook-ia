@@ -688,8 +688,6 @@ def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, direction='right',
     results = ibs.vulcan_pipeline(images, *args, **kwargs)
     results = results['results']
 
-    ut.embed()
-
     boxes = 0
     count = 0.0
     neighbor = None
@@ -773,7 +771,7 @@ def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, direction='right',
                         lmargin = width - margin
                         rmargin = width
                     if lmargin <= cx and cx <= rmargin:
-                        score = cx / lmargin
+                        score = cx - lmargin
                         score = score / (rmargin - lmargin)
                         assert 0.0 <= score and score <= 1.0, 'Computation error'
                         if direction == 'right':
