@@ -308,7 +308,7 @@ def compute_image_uuids(ibs, gpath_list, **kwargs):
 @register_api('/api/image/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False,
                auto_localize=None, location_for_names=None, ensure_unique=False,
-               ensure_loadable=True, ensure_exif=True, **kwargs):
+               ensure_loadable=False, ensure_exif=False, **kwargs):
     r"""
     Adds a list of image paths to the database.
 
