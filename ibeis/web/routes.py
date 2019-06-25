@@ -3737,7 +3737,7 @@ def _princeton_kaia_filtering(ibs, desired_species=None, tier=1, **kwargs):
     if tier == 2:
         # Get all siblings of these animals
         gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
-        current_aids = ibs.get_image_aids(gid_list)
+        current_aids = ut.flatten(ibs.get_image_aids(gid_list))
         new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
     return new_aid_list
