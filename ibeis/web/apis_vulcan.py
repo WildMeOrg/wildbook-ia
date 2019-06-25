@@ -688,6 +688,8 @@ def vulcan_count_pipeline(ibs, sequence_list, overlap=0.0, direction='right',
     results = ibs.vulcan_pipeline(images, *args, **kwargs)
     results = results['results']
 
+    ut.embed()
+
     boxes = 0
     count = 0.0
     neighbor = None

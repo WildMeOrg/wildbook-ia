@@ -283,7 +283,7 @@ def image_upload(cleanup=True, **kwargs):
         Method: POST
         URL:    /api/upload/image/
     """
-    with ut.Tmer('Uploading... get filestore'):
+    with ut.Timer('Uploading... get filestore'):
         ibs = current_app.ibs
         print('request.files = %s' % (request.files,))
 
@@ -292,7 +292,7 @@ def image_upload(cleanup=True, **kwargs):
             raise controller_inject.WebMissingInput('Missing required image parameter', 'image')
             # raise IOError('Image not given')
 
-    with ut.Tmer('Uploading... write file to disk'):
+    with ut.Timer('Uploading... write file to disk'):
         uploads_path = ibs.get_uploadsdir()
         ut.ensuredir(uploads_path)
         current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
@@ -306,11 +306,11 @@ def image_upload(cleanup=True, **kwargs):
         upload_filepath = join(uploads_path, upload_filename)
         filestore.save(upload_filepath)
 
-    with ut.Tmer('Uploading... add images'):
+    with ut.Timer('Uploading... add images'):
         gid_list = ibs.add_images([upload_filepath], **kwargs)
         gid = gid_list[0]
 
-    with ut.Tmer('Uploading... cleanup'):
+    with ut.Timer('Uploading... cleanup'):
         if cleanup and exists(upload_filepath):
             ut.delete(upload_filepath)
 
