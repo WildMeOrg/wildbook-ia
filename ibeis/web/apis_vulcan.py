@@ -194,7 +194,7 @@ def vulcan_core_status(*args, **kwargs):
 
 
 @register_api(_prefix('image'), methods=['POST'])
-def vulcan_image_upload(ibs, precompute=True, return_times=False, *args, **kwargs):
+def vulcan_image_upload(ibs, precompute=False, return_times=False, *args, **kwargs):
     r"""
     Upload an image for future processing.
 
@@ -214,7 +214,7 @@ def vulcan_image_upload(ibs, precompute=True, return_times=False, *args, **kwarg
       description: A boolean flag to precompute the tiles for this image
       required: false
       type: boolean
-      default: true
+      default: false
     produces:
     - application/json
     responses:
