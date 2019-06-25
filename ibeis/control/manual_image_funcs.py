@@ -362,102 +362,111 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         >>> # Clean things up
         >>> ibs.delete_images(new_gids1)
     """
-    print('[ibs] add_images')
-    print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-    if auto_localize is None:
-        # grab value from config
-        auto_localize = ibs.cfg.other_cfg.auto_localize
+    with ut.Timer('Add Images ...params'):
+        print('[ibs] add_images')
+        print('[ibs] len(gpath_list) = %d' % len(gpath_list))
+        if auto_localize is None:
+            # grab value from config
+            auto_localize = ibs.cfg.other_cfg.auto_localize
 
-    location_for_names = None
-    if location_for_names is None:
-        location_for_names = ibs.cfg.other_cfg.location_for_names
+        location_for_names = None
+        if location_for_names is None:
+            location_for_names = ibs.cfg.other_cfg.location_for_names
 
-    compute_params = params_list is None
-    if compute_params:
-        params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
+        compute_params = params_list is None
+        if compute_params:
+            params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
 
-    # <DEBUG>
-    debug = False
-    if debug:
-        uuid_colx = IMAGE_COLNAMES.index('image_uuid')
-        uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
-        gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
-        valid_gids = ibs.get_valid_gids()
-        valid_uuids = ibs.get_image_uuids(valid_gids)
-        print('[preadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
-        print('[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
-    # </DEBUG>
+    with ut.Timer('Add Images ...debug'):
+        # <DEBUG>
+        debug = False
+        if debug:
+            uuid_colx = IMAGE_COLNAMES.index('image_uuid')
+            uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
+            gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
+            valid_gids = ibs.get_valid_gids()
+            valid_uuids = ibs.get_image_uuids(valid_gids)
+            print('[preadd] uuid / gid_ = ' + ut.indentjoin(zip(uuid_list, gid_list_)))
+            print('[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
+        # </DEBUG>
 
-    # Execute SQL Add
-    from distutils.version import LooseVersion
+        # Execute SQL Add
+        from distutils.version import LooseVersion
 
-    if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
-        colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
-        params_list = [tuple(params) + (gpath, location_for_names)
-                        if params is not None else None
-                        for params, gpath in zip(params_list, gpath_list)]
+        if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
+            colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
+            params_list = [tuple(params) + (gpath, location_for_names)
+                            if params is not None else None
+                            for params, gpath in zip(params_list, gpath_list)]
 
-    all_gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
-                                      ibs.get_image_gids_from_uuid)
+    with ut.Timer('Add Images ...add cleanly'):
+        all_gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
+                                          ibs.get_image_gids_from_uuid)
 
-    # Filter for valid images and de-duplicate
-    none_set = set([None])
-    all_gid_set = set(all_gid_list)
-    all_valid_gid_set = all_gid_set - none_set
-    all_valid_gid_list = list(all_valid_gid_set)
-
-    if auto_localize:
-        # Move to ibeis database local cache
-        ibs.localize_images(all_valid_gid_list)
-
-    # Check for duplicates
-    has_duplicates = ut.duplicates_exist(all_gid_list)
-    if ensure_unique and has_duplicates:
-        debug_gpath_list = ibs.get_image_paths(all_gid_list)
-        debug_guuid_list = ibs.get_image_uuids(all_gid_list)
-        debug_gext_list  = ibs.get_image_exts(all_gid_list)
-        ut.debug_duplicate_items(all_gid_list, debug_gpath_list, debug_guuid_list, debug_gext_list)
-
-    # Check loadable
-    if ensure_loadable or ensure_exif:
-        valid_gpath_list = ibs.get_image_paths(all_valid_gid_list)
-        bad_load_list, bad_exif_list = ibs.check_image_loadable(all_valid_gid_list)
-        bad_load_set = set(bad_load_list)
-        bad_exif_set = set(bad_exif_list)
-
-        delete_gid_set = set([])
-        for valid_gid, valid_gpath in zip(all_valid_gid_list, valid_gpath_list):
-            if ensure_loadable and valid_gid in bad_load_set:
-                print('Loadable Image Validation: Failed to load %r' % (valid_gpath, ))
-                delete_gid_set.add(valid_gid)
-            if ensure_exif and valid_gid in bad_exif_set:
-                print('Loadable EXIF Validation:  Failed to load %r' % (valid_gpath, ))
-                delete_gid_set.add(valid_gid)
-
-        delete_gid_list = list(delete_gid_set)
-        ibs.delete_images(delete_gid_list, trash_images=False)
-
-        all_valid_gid_set = all_gid_set - delete_gid_set - none_set
+    with ut.Timer('Add Images ...localize'):
+        # Filter for valid images and de-duplicate
+        none_set = set([None])
+        all_gid_set = set(all_gid_list)
+        all_valid_gid_set = all_gid_set - none_set
         all_valid_gid_list = list(all_valid_gid_set)
 
-    if not compute_params:
-        # We need to double check that the UUIDs are valid, considering we received the UUIDs
-        guuid_list = ibs.get_image_uuids(all_gid_list)
-        guuid_list_ = ibs.compute_image_uuids(gpath_list)
-        assert guuid_list == guuid_list_
+        if auto_localize:
+            # Move to ibeis database local cache
+            ibs.localize_images(all_valid_gid_list)
 
-    if as_annots:
-        # Add succesfull imports as annotations
-        aid_list = ibs.use_images_as_annotations(all_valid_gid_list)
-        print('[ibs] added %d annotations' % (len(aid_list),))
+    with ut.Timer('Add Images ...duplicates'):
+        # Check for duplicates
+        has_duplicates = ut.duplicates_exist(all_gid_list)
+        if ensure_unique and has_duplicates:
+            debug_gpath_list = ibs.get_image_paths(all_gid_list)
+            debug_guuid_list = ibs.get_image_uuids(all_gid_list)
+            debug_gext_list  = ibs.get_image_exts(all_gid_list)
+            ut.debug_duplicate_items(all_gid_list, debug_gpath_list, debug_guuid_list, debug_gext_list)
 
-    # None out any gids that didn't pass the validity check
-    assert None not in all_valid_gid_set
-    all_gid_list = [
-        aid if aid in all_valid_gid_set else None
-        for aid in all_gid_list
-    ]
-    assert len(gpath_list) == len(all_gid_list)
+    with ut.Timer('Add Images ...check loadable'):
+        # Check loadable
+        if ensure_loadable or ensure_exif:
+            valid_gpath_list = ibs.get_image_paths(all_valid_gid_list)
+            bad_load_list, bad_exif_list = ibs.check_image_loadable(all_valid_gid_list)
+            bad_load_set = set(bad_load_list)
+            bad_exif_set = set(bad_exif_list)
+
+            delete_gid_set = set([])
+            for valid_gid, valid_gpath in zip(all_valid_gid_list, valid_gpath_list):
+                if ensure_loadable and valid_gid in bad_load_set:
+                    print('Loadable Image Validation: Failed to load %r' % (valid_gpath, ))
+                    delete_gid_set.add(valid_gid)
+                if ensure_exif and valid_gid in bad_exif_set:
+                    print('Loadable EXIF Validation:  Failed to load %r' % (valid_gpath, ))
+                    delete_gid_set.add(valid_gid)
+
+            delete_gid_list = list(delete_gid_set)
+            ibs.delete_images(delete_gid_list, trash_images=False)
+
+            all_valid_gid_set = all_gid_set - delete_gid_set - none_set
+            all_valid_gid_list = list(all_valid_gid_set)
+
+    with ut.Timer('Add Images ...compute params'):
+        if not compute_params:
+            # We need to double check that the UUIDs are valid, considering we received the UUIDs
+            guuid_list = ibs.get_image_uuids(all_gid_list)
+            guuid_list_ = ibs.compute_image_uuids(gpath_list)
+            assert guuid_list == guuid_list_
+
+    with ut.Timer('Add Images ...cleanup'):
+        if as_annots:
+            # Add succesfull imports as annotations
+            aid_list = ibs.use_images_as_annotations(all_valid_gid_list)
+            print('[ibs] added %d annotations' % (len(aid_list),))
+
+        # None out any gids that didn't pass the validity check
+        assert None not in all_valid_gid_set
+        all_gid_list = [
+            aid if aid in all_valid_gid_set else None
+            for aid in all_gid_list
+        ]
+        assert len(gpath_list) == len(all_gid_list)
+
     return all_gid_list
 
 
