@@ -31,8 +31,9 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     def _get_primary_species(aid_list):
         if len(aid_list) == 0:
             species = '____'
-        species_list = ibs.get_annot_species_texts(aid_list)
-        species = max(set(species_list), key=species_list.count)
+        else:
+            species_list = ibs.get_annot_species_texts(aid_list)
+            species = max(set(species_list), key=species_list.count)
         return species
 
     if ibs.dbname == 'ZEBRA_Kaia':
