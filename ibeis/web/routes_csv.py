@@ -19,12 +19,21 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
     nids_list = ibs.get_imageset_nids(imageset_list)
 
+    ibs.delete_empty_nids()
+
     def _associate(dict_, name1, name2, time_):
         if name1 not in dict_:
             dict_[name1] = {}
         if name2 not in dict_[name1]:
             dict_[name1][name2] = []
         dict_[name1][name2].append('%s' % (time_, ))
+
+    def _get_primary_species(aid_list):
+        if len(aid_list) == 0:
+            species = '____'
+        species_list = ibs.get_annot_species_texts(aid_list)
+        species = max(set(species_list), key=species_list.count)
+        return species
 
     if ibs.dbname == 'ZEBRA_Kaia':
         valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, tier=tier))
@@ -34,10 +43,6 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     assoc_dict = {}
     for imageset_rowid, time_, nid_list in zip(imageset_list, time_list, nids_list):
         if desired_species is not None:
-            def _get_primary_species(aid_list):
-                species_list = ibs.get_annot_species_texts(aid_list)
-                species = max(set(species_list), key=species_list.count)
-                return species
 
             aids_list = ibs.get_name_aids(nid_list)
             # Filter for valid aids
@@ -230,7 +235,7 @@ def get_demographic_info(**kwargs):
                 age_list.append('YEARLING')
             elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
                 age_list.append('2 YEARS')
-            elif 36 <= min_age and (36 <= max_age or max_age is None):
+            elif 36 <= min_age and (max_age is None or 36 <= max_age):
                 age_list.append('3+ YEARS')
             else:
                 age_list.append('UNKNOWN')
