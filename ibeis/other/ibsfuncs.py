@@ -3397,7 +3397,7 @@ def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
 @register_ibs_method
 def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     def sanitize_list(data_list):
-        data_list = [ str(data).replace(',', '<COMMA>') for data in list(data_list) ]
+        data_list = [ str(data).replace(',', ':COMMA:') for data in list(data_list) ]
         return_str = (','.join(data_list))
         return_str = return_str.replace(',None,', ',NONE,')
         return_str = return_str.replace(',%s,' % (const.UNKNOWN, ) , ',UNKNOWN,')

@@ -98,6 +98,10 @@ def download_associations_list(**kwargs):
     for name1 in assoc_dict:
         for name2 in assoc_dict[name1]:
             id_list = sorted(set(assoc_dict[name1][name2]))
+            id_list = [
+                id_.replace(',', ':COMMA:')
+                for id_ in id_list
+            ]
             max_length = max(max_length, len(id_list))
             args = (
                 name1,
@@ -109,10 +113,11 @@ def download_associations_list(**kwargs):
             combined_list.append(combined_str)
 
     if max_length == 1:
+        # name_header_str = 'TIME'
         name_header_str = 'ENCOUTNER'
     else:
+        # name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
         name_header_str = ','.join([ 'ENCOUNTER%d' % (i + 1, ) for i in range(max_length) ])
-        name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
     combined_str = '\n'.join(combined_list)
     combined_str = 'NAME1,NAME2,ASSOCIATIONS,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
