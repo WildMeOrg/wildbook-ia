@@ -13,7 +13,7 @@ from ibeis.web import routes
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def get_associations_dict(ibs, target_species=None, **kwargs):
+def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
@@ -26,20 +26,34 @@ def get_associations_dict(ibs, target_species=None, **kwargs):
             dict_[name1][name2] = []
         dict_[name1][name2].append('%s' % (time_, ))
 
+    if ibs.dbname == 'ZEBRA_Kaia':
+        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, tier=tier))
+    else:
+        valid_aid_set = set(ibs.get_valid_aids())
+
     assoc_dict = {}
     for imageset_rowid, time_, nid_list in zip(imageset_list, time_list, nids_list):
-        if target_species is not None:
+        if desired_species is not None:
             def _get_primary_species(aid_list):
                 species_list = ibs.get_annot_species_texts(aid_list)
                 species = max(set(species_list), key=species_list.count)
                 return species
 
             aids_list = ibs.get_name_aids(nid_list)
+            # Filter for valid aids
+            aids_list = [
+                [
+                    aid_
+                    for aid_ in aid_list_
+                    if aid_ in valid_aid_set
+                ]
+                for aid_list_ in aids_list
+            ]
             species_list = map(_get_primary_species, aids_list)
             nid_list = [
                 nid
                 for nid, species in zip(nid_list, species_list)
-                if species == target_species
+                if species == desired_species
             ]
 
         name_list = ibs.get_name_texts(nid_list)
@@ -118,7 +132,7 @@ def download_associations_matrix(**kwargs):
 @register_route('/csv/princeton/sightings/', methods=['GET'])
 def download_sightings(**kwargs):
     filename = 'sightings.csv'
-    sightings = routes.sightings(html_encode=False)
+    sightings = routes.sightings(html_encode=False, **kwargs)
     return appf.send_csv_file(sightings, filename)
 
 
@@ -127,6 +141,12 @@ def get_image_info(**kwargs):
     import datetime
     ibs = current_app.ibs
     filename = 'images.csv'
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        valid_aid_set = set(ibs._princeton_kaia_filtering(**kwargs))
+    else:
+        valid_aid_set = set(ibs.get_valid_aids())
+
     gid_list = sorted(ibs.get_valid_gids())
     gname_list = ibs.get_image_gnames(gid_list)
     datetime_list = ibs.get_image_unixtime(gid_list)
@@ -152,6 +172,14 @@ def get_image_info(**kwargs):
     zipped_list = zip(gid_list, gname_list, datetime_list_, lat_list, lon_list,
                       party_list, contributor_list, note_list)
     aids_list = ibs.get_image_aids(gid_list)
+    aids_list = [
+        [
+            aid_
+            for aid_ in aid_list_
+            if aid_ in valid_aid_set
+        ]
+        for aid_list_ in aids_list
+    ]
     names_list = [ ibs.get_annot_name_texts(aid_list) for aid_list in aids_list ]
     combined_list = [
         ','.join( map(str, list(zipped) + name_list) )
@@ -195,16 +223,21 @@ def get_demographic_info(**kwargs):
             age_list.append('UNREVIEWED')
             continue
         # Bins
-        if (min_age is None or min_age < 12) and max_age < 12:
-            age_list.append('FOAL')
-        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
-            age_list.append('YEARLING')
-        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
-            age_list.append('2 YEARS')
-        elif 36 <= min_age and (36 <= max_age or max_age is None):
-            age_list.append('3+ YEARS')
-        else:
-            age_list.append('UNKNOWN')
+        try:
+            if (min_age is None or min_age < 12) and max_age < 12:
+                age_list.append('FOAL')
+            elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
+                age_list.append('YEARLING')
+            elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
+                age_list.append('2 YEARS')
+            elif 36 <= min_age and (36 <= max_age or max_age is None):
+                age_list.append('3+ YEARS')
+            else:
+                age_list.append('UNKNOWN')
+        except:
+            value = 'ERROR (%s, %s)' % (min_age, max_age)
+            print(value)
+            age_list.append(value)
 
     zipped_list = zip(nid_list, name_list, sex_list, age_list)
     combined_list = [
@@ -217,7 +250,7 @@ def get_demographic_info(**kwargs):
 
 
 @register_route('/csv/princeton/special/monica-laurel-max/', methods=['GET'])
-def get_annotation_special_monica_laurel_max(target_species=None, **kwargs):
+def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
     ibs = current_app.ibs
     filename = 'special.monica-laurel-max.csv'
 
@@ -332,7 +365,7 @@ def get_annotation_special_monica_laurel_max(target_species=None, **kwargs):
 
         contrib_str = '' if contrib is None else contrib.split(',')[0].upper()
 
-        if target_species is not None and species != target_species:
+        if desired_species is not None and species != desired_species:
             continue
 
         if nid <= 0:

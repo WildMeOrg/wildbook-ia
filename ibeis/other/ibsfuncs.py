@@ -3453,10 +3453,14 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         return header_list, line_list
 
     # Grab primitives
-    if complete:
-        aid_list   = ibs.get_valid_aids()
+    if ibs.dbname == 'ZEBRA_Kaia':
+        aid_list = ibs._princeton_kaia_filtering(**kwargs)
     else:
-        aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+        if complete:
+            aid_list   = ibs.get_valid_aids()
+        else:
+            aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+
     gid_list       = ibs.get_annot_gids(aid_list)
     bbox_list      = ibs.get_annot_bboxes(aid_list)
     xtl_list       = [ bbox[0] for bbox in bbox_list ]

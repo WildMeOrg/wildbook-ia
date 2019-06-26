@@ -3720,13 +3720,15 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_ibs_method
-def _princeton_kaia_filtering(ibs, desired_species=None, tier=1, **kwargs):
+def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, **kwargs):
 
-    current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
-    current_gids = ibs.get_imageset_gids(current_imageset_rowid)
-    current_aids = ut.flatten(ibs.get_image_aids(current_gids))
-    current_aoi_list = ibs.get_annot_interest(current_aids)
-    current_aids = ut.compress(current_aids, current_aoi_list)
+    if current_aids is None:
+        current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
+        current_gids = ibs.get_imageset_gids(current_imageset_rowid)
+        current_aids = ut.flatten(ibs.get_image_aids(current_gids))
+        current_aoi_list = ibs.get_annot_interest(current_aids)
+        current_aids = ut.compress(current_aids, current_aoi_list)
+
     # current_nids = ibs.get_annot_nids(current_aids)
 
     # x = [current_nid for current_nid in current_nids if current_nid <= 0]
@@ -4495,10 +4497,10 @@ def group_review(**kwargs):
 
 
 @register_route('/sightings/', methods=['GET'])
-def sightings(html_encode=True):
+def sightings(html_encode=True, **kwargs):
     ibs = current_app.ibs
     complete = request.args.get('complete', None) is not None
-    sightings = ibs.report_sightings_str(complete=complete, include_images=True)
+    sightings = ibs.report_sightings_str(complete=complete, include_images=True, **kwargs)
     if html_encode:
         sightings = sightings.replace('\n', '<br/>')
     return sightings
