@@ -16,17 +16,18 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
+    imageset_text_list = ibs.get_imageset_text(imageset_list)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
     nids_list = ibs.get_imageset_nids(imageset_list)
 
     ibs.delete_empty_nids()
 
-    def _associate(dict_, name1, name2, time_):
+    def _associate(dict_, name1, name2, label):
         if name1 not in dict_:
             dict_[name1] = {}
         if name2 not in dict_[name1]:
             dict_[name1][name2] = []
-        dict_[name1][name2].append('%s' % (time_, ))
+        dict_[name1][name2].append('%s' % (label, ))
 
     def _get_primary_species(aid_list):
         if len(aid_list) == 0:
@@ -41,9 +42,19 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     else:
         valid_aid_set = set(ibs.get_valid_aids())
 
+    black_list_text_set = set([
+        'Miscellaneous Found Images',
+        'Candidate Images',
+        'LEWA ALL',
+        'MPALA ALL',
+        'SAMBURU ALL',
+    ])
+
     assoc_dict = {}
-    for imageset_rowid, time_, nid_list in zip(imageset_list, time_list, nids_list):
+    for imageset_text, time_, nid_list in zip(imageset_text_list, time_list, nids_list):
         if desired_species is not None:
+            if imageset_text in black_list_text_set:
+                continue
 
             aids_list = ibs.get_name_aids(nid_list)
             # Filter for valid aids
@@ -65,11 +76,13 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
         for name in name_list:
-            _associate(assoc_dict, name, name, time_)
+            _associate(assoc_dict, name, name, imageset_text)
+            # _associate(assoc_dict, name, name, time_)
         # Add pairs
         comb_list = itertools.combinations(name_list, 2)
         for name1, name2 in sorted(list(comb_list)):
-            _associate(assoc_dict, name1, name2, time_)
+            _associate(assoc_dict, name1, name2, imageset_text)
+            # _associate(assoc_dict, name, name, time_)
 
     return assoc_dict
 
@@ -96,8 +109,9 @@ def download_associations_list(**kwargs):
             combined_list.append(combined_str)
 
     if max_length == 1:
-        name_header_str = 'TIME'
+        name_header_str = 'ENCOUTNER'
     else:
+        name_header_str = ','.join([ 'ENCOUNTER%d' % (i + 1, ) for i in range(max_length) ])
         name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
     combined_str = '\n'.join(combined_list)
     combined_str = 'NAME1,NAME2,ASSOCIATIONS,%s\n' % (name_header_str, ) + combined_str
