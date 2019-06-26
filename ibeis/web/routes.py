@@ -4497,7 +4497,7 @@ def group_review(**kwargs):
 
 
 @register_route('/sightings/', methods=['GET'])
-def sightings(html_encode=True, complete=False, include_images=False, **kwargs):
+def sightings(html_encode=True, complete=True, include_images=False, **kwargs):
     ibs = current_app.ibs
     sightings = ibs.report_sightings_str(complete=complete, include_images=include_images,
                                          **kwargs)

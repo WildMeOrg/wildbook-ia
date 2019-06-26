@@ -31,7 +31,7 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
 
     def _get_primary_species(aid_list):
         if len(aid_list) == 0:
-            species = '____'
+            species = None
         else:
             species_list = ibs.get_annot_species_texts(aid_list)
             species = max(set(species_list), key=species_list.count)
@@ -208,7 +208,8 @@ def get_image_info(**kwargs):
     names_list = [ ibs.get_annot_name_texts(aid_list) for aid_list in aids_list ]
     combined_list = [
         ','.join( map(str, list(zipped) + name_list) )
-        for zipped, name_list in zip(zipped_list, names_list)
+        for zipped, aid_list, name_list in zip(zipped_list, aids_list, names_list)
+        if ibs.dbdir != 'ZEBRA_Kaia' or len(aid_list) > 0
     ]
     max_length = 0
     for name_list in names_list:
@@ -232,6 +233,14 @@ def get_demographic_info(**kwargs):
     min_ages_list = ibs.get_name_age_months_est_min(nid_list)
     max_ages_list = ibs.get_name_age_months_est_max(nid_list)
 
+    def _get_primary_species(aid_list):
+        if len(aid_list) == 0:
+            species = None
+        else:
+            species_list = ibs.get_annot_species_texts(aid_list)
+            species = max(set(species_list), key=species_list.count)
+        return species
+
     age_list = []
     for min_ages, max_ages in zip(min_ages_list, max_ages_list):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
@@ -248,21 +257,23 @@ def get_demographic_info(**kwargs):
             age_list.append('UNREVIEWED')
             continue
         # Bins
-        try:
-            if (min_age is None or min_age < 12) and max_age < 12:
-                age_list.append('FOAL')
-            elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
-                age_list.append('YEARLING')
-            elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
-                age_list.append('2 YEARS')
-            elif 36 <= min_age and (max_age is None or 36 <= max_age):
-                age_list.append('3+ YEARS')
-            else:
-                age_list.append('UNKNOWN')
-        except:
-            value = 'ERROR (%s, %s)' % (min_age, max_age)
-            print(value)
-            age_list.append(value)
+        if min_age is None and max_age == 2:
+            age = '0-3 Months'
+        elif min_age == 3 and max_age == 5:
+            age = '3-6 Months'
+        elif min_age == 6 and max_age == 11:
+            age = '6-12 Months'
+        elif min_age == 12 and max_age == 23:
+            age = 'Yearling'
+        elif min_age == 24 and max_age == 35:
+            age = '2-Year-Old'
+        elif min_age == 36 and max_age is None:
+            age = 'Adult'
+        elif min_age is None and max_age is None:
+            age = 'Unknown'
+        else:
+            age = 'Unknown'
+        age_list.append(age)
 
     zipped_list = zip(nid_list, name_list, sex_list, age_list)
     combined_list = [
