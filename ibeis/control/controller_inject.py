@@ -777,7 +777,8 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     print('Registering API rule=%r' % (rule_, ))
 
             try:
-                assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'
+                if not MICROSOFT_API_ENABLED:
+                    assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'
                 assert 'imgset' not in rule, 'An API should use "imageset" instead of imgset(s)"'
                 assert '_' not in rule, 'An API should never contain an underscore'
                 assert '-' not in rule, 'An API should never contain a hyphen'
