@@ -13,43 +13,76 @@ from ibeis.web import routes
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def get_associations_dict(ibs, target_species=None, **kwargs):
+def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
+    imageset_text_list = ibs.get_imageset_text(imageset_list)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
     nids_list = ibs.get_imageset_nids(imageset_list)
 
-    def _associate(dict_, name1, name2, time_):
+    ibs.delete_empty_nids()
+
+    def _associate(dict_, name1, name2, label):
         if name1 not in dict_:
             dict_[name1] = {}
         if name2 not in dict_[name1]:
             dict_[name1][name2] = []
-        dict_[name1][name2].append('%s' % (time_, ))
+        dict_[name1][name2].append('%s' % (label, ))
+
+    def _get_primary_species(aid_list):
+        if len(aid_list) == 0:
+            species = None
+        else:
+            species_list = ibs.get_annot_species_texts(aid_list)
+            species = max(set(species_list), key=species_list.count)
+        return species
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, tier=tier))
+    else:
+        valid_aid_set = set(ibs.get_valid_aids())
+
+    black_list_text_set = set([
+        'Miscellaneous Found Images',
+        'Candidate Images',
+        'LEWA ALL',
+        'MPALA ALL',
+        'SAMBURU ALL',
+    ])
 
     assoc_dict = {}
-    for imageset_rowid, time_, nid_list in zip(imageset_list, time_list, nids_list):
-        if target_species is not None:
-            def _get_primary_species(aid_list):
-                species_list = ibs.get_annot_species_texts(aid_list)
-                species = max(set(species_list), key=species_list.count)
-                return species
+    for imageset_text, time_, nid_list in zip(imageset_text_list, time_list, nids_list):
+        if desired_species is not None:
+            if imageset_text in black_list_text_set:
+                continue
 
             aids_list = ibs.get_name_aids(nid_list)
+            # Filter for valid aids
+            aids_list = [
+                [
+                    aid_
+                    for aid_ in aid_list_
+                    if aid_ in valid_aid_set
+                ]
+                for aid_list_ in aids_list
+            ]
             species_list = map(_get_primary_species, aids_list)
             nid_list = [
                 nid
                 for nid, species in zip(nid_list, species_list)
-                if species == target_species
+                if species == desired_species
             ]
 
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
         for name in name_list:
-            _associate(assoc_dict, name, name, time_)
+            _associate(assoc_dict, name, name, imageset_text)
+            # _associate(assoc_dict, name, name, time_)
         # Add pairs
         comb_list = itertools.combinations(name_list, 2)
         for name1, name2 in sorted(list(comb_list)):
-            _associate(assoc_dict, name1, name2, time_)
+            _associate(assoc_dict, name1, name2, imageset_text)
+            # _associate(assoc_dict, name, name, time_)
 
     return assoc_dict
 
@@ -65,6 +98,10 @@ def download_associations_list(**kwargs):
     for name1 in assoc_dict:
         for name2 in assoc_dict[name1]:
             id_list = sorted(set(assoc_dict[name1][name2]))
+            id_list = [
+                id_.replace(',', ':COMMA:')
+                for id_ in id_list
+            ]
             max_length = max(max_length, len(id_list))
             args = (
                 name1,
@@ -76,9 +113,11 @@ def download_associations_list(**kwargs):
             combined_list.append(combined_str)
 
     if max_length == 1:
-        name_header_str = 'TIME'
+        # name_header_str = 'TIME'
+        name_header_str = 'ENCOUTNER'
     else:
-        name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
+        # name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
+        name_header_str = ','.join([ 'ENCOUNTER%d' % (i + 1, ) for i in range(max_length) ])
     combined_str = '\n'.join(combined_list)
     combined_str = 'NAME1,NAME2,ASSOCIATIONS,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
@@ -118,7 +157,7 @@ def download_associations_matrix(**kwargs):
 @register_route('/csv/princeton/sightings/', methods=['GET'])
 def download_sightings(**kwargs):
     filename = 'sightings.csv'
-    sightings = routes.sightings(html_encode=False)
+    sightings = routes.sightings(html_encode=False, **kwargs)
     return appf.send_csv_file(sightings, filename)
 
 
@@ -127,6 +166,12 @@ def get_image_info(**kwargs):
     import datetime
     ibs = current_app.ibs
     filename = 'images.csv'
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        valid_aid_set = set(ibs._princeton_kaia_filtering(**kwargs))
+    else:
+        valid_aid_set = set(ibs.get_valid_aids())
+
     gid_list = sorted(ibs.get_valid_gids())
     gname_list = ibs.get_image_gnames(gid_list)
     datetime_list = ibs.get_image_unixtime(gid_list)
@@ -152,10 +197,19 @@ def get_image_info(**kwargs):
     zipped_list = zip(gid_list, gname_list, datetime_list_, lat_list, lon_list,
                       party_list, contributor_list, note_list)
     aids_list = ibs.get_image_aids(gid_list)
+    aids_list = [
+        [
+            aid_
+            for aid_ in aid_list_
+            if aid_ in valid_aid_set
+        ]
+        for aid_list_ in aids_list
+    ]
     names_list = [ ibs.get_annot_name_texts(aid_list) for aid_list in aids_list ]
     combined_list = [
         ','.join( map(str, list(zipped) + name_list) )
-        for zipped, name_list in zip(zipped_list, names_list)
+        for zipped, aid_list, name_list in zip(zipped_list, aids_list, names_list)
+        if ibs.dbdir != 'ZEBRA_Kaia' or len(aid_list) > 0
     ]
     max_length = 0
     for name_list in names_list:
@@ -179,6 +233,14 @@ def get_demographic_info(**kwargs):
     min_ages_list = ibs.get_name_age_months_est_min(nid_list)
     max_ages_list = ibs.get_name_age_months_est_max(nid_list)
 
+    def _get_primary_species(aid_list):
+        if len(aid_list) == 0:
+            species = None
+        else:
+            species_list = ibs.get_annot_species_texts(aid_list)
+            species = max(set(species_list), key=species_list.count)
+        return species
+
     age_list = []
     for min_ages, max_ages in zip(min_ages_list, max_ages_list):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
@@ -195,16 +257,23 @@ def get_demographic_info(**kwargs):
             age_list.append('UNREVIEWED')
             continue
         # Bins
-        if (min_age is None or min_age < 12) and max_age < 12:
-            age_list.append('FOAL')
-        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
-            age_list.append('YEARLING')
-        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
-            age_list.append('2 YEARS')
-        elif 36 <= min_age and (36 <= max_age or max_age is None):
-            age_list.append('3+ YEARS')
+        if min_age is None and max_age == 2:
+            age = '0-3 Months'
+        elif min_age == 3 and max_age == 5:
+            age = '3-6 Months'
+        elif min_age == 6 and max_age == 11:
+            age = '6-12 Months'
+        elif min_age == 12 and max_age == 23:
+            age = 'Yearling'
+        elif min_age == 24 and max_age == 35:
+            age = '2-Year-Old'
+        elif min_age == 36 and max_age is None:
+            age = 'Adult'
+        elif min_age is None and max_age is None:
+            age = 'Unknown'
         else:
-            age_list.append('UNKNOWN')
+            age = 'Unknown'
+        age_list.append(age)
 
     zipped_list = zip(nid_list, name_list, sex_list, age_list)
     combined_list = [
@@ -217,7 +286,7 @@ def get_demographic_info(**kwargs):
 
 
 @register_route('/csv/princeton/special/monica-laurel-max/', methods=['GET'])
-def get_annotation_special_monica_laurel_max(target_species=None, **kwargs):
+def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
     ibs = current_app.ibs
     filename = 'special.monica-laurel-max.csv'
 
@@ -332,7 +401,7 @@ def get_annotation_special_monica_laurel_max(target_species=None, **kwargs):
 
         contrib_str = '' if contrib is None else contrib.split(',')[0].upper()
 
-        if target_species is not None and species != target_species:
+        if desired_species is not None and species != desired_species:
             continue
 
         if nid <= 0:

@@ -101,6 +101,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
     (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
+    # 'ibeis_plugin_identification_example',
     #'ibeis.web.apis_engine',
 ]
 

@@ -553,6 +553,8 @@ class JobInterface(object):
     def queue_interrupted_jobs(jobiface):
         import tqdm
 
+        MAX_ATTEMPTS = 5
+
         ibs = jobiface.ibs
         if ibs is not None:
             record_filepath_list = _get_engine_job_paths(ibs)
@@ -565,13 +567,17 @@ class JobInterface(object):
                 engine_request = record.get('request',   None)
                 attempts       = record.get('attempts',  0)
                 completed      = record.get('completed', False)
-                assert engine_request is not None
+                suppressed     = attempts >= MAX_ATTEMPTS
 
-                if completed:
-                    assert not exists(lock_filepath)
+                if exists(lock_filepath):
+                    ut.delete(lock_filepath)
+
+                assert engine_request is not None
+                if completed or suppressed:
+                    status = 'completed' if completed else 'suppressed'
                     reply_notify = {
                         'jobid': jobid,
-                        'status': 'completed',
+                        'status': status,
                         'action': 'register',
                     }
                     jobiface.collect_deal_sock.send_json(reply_notify)
@@ -579,9 +585,6 @@ class JobInterface(object):
                     jobid_ = reply['jobid']
                     assert jobid_ == jobid
                 else:
-                    if exists(lock_filepath):
-                        ut.delete(lock_filepath)
-                    assert attempts <= 5, 'Job has failed 5 times to compute by causing the container to crash'
                     with ut.Indenter('[client %d] ' % (jobiface.id_)):
                         color = 'brightblue' if attempts == 0 else 'brightred'
                         print_ = partial(ut.colorprint, color=color)
@@ -1349,17 +1352,44 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 shelf.close()
             metadata = None  # Release memory
     elif action == 'register':
-        jobid    = collect_request['jobid']
-        status   = collect_request['status']
+        jobid     = collect_request['jobid']
+        status    = collect_request['status']
+        completed = status == 'completed'
 
         shelve_input_filepath  = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
         shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid, )))
 
-        # Ensure these shelves are valid
-        shelf = shelve.open(shelve_input_filepath, 'r')
-        shelf = None
-        shelf = shelve.open(shelve_output_filepath, 'r')
-        shelf = None
+        if completed:
+            assert status == 'completed'
+
+            # Ensure these shelves are valid
+            assert exists(shelve_input_filepath)
+            shelf = shelve.open(shelve_input_filepath, 'r')
+            shelf = None
+
+            assert exists(shelve_output_filepath)
+            shelf = shelve.open(shelve_output_filepath, 'r')
+            shelf = None
+        else:
+            assert status == 'suppressed'
+
+            # Ensure these shelves are valid
+            assert exists(shelve_input_filepath)
+            shelf = shelve.open(shelve_input_filepath, 'r')
+            shelf = None
+
+            if not exists(shelve_output_filepath):
+                shelve_output_filepath = None
+            else:
+                # shelve exists, try to load it, otherwise, just ignore it
+                try:
+                    shelf = shelve.open(shelve_output_filepath, 'r')
+                    shelf = None
+                except:
+                    # The shelve exists, but appears to be corrupted, delete it
+                    if exists(shelve_output_filepath):
+                        ut.delete(shelve_output_filepath)
+                    shelve_output_filepath = None
 
         collecter_data[jobid] = {
             'status' : status,
@@ -1555,7 +1585,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
             shelve_output_filepath = collecter_data[jobid]['output']
             if shelve_output_filepath is None:
                 # Job failed to store output
-                reply['status'] = 'incomplete'
+                reply['status'] = 'incomplete' if status != 'suppressed' else 'suppressed'
                 reply['json_result'] = None
             else:
                 shelf = shelve.open(shelve_output_filepath, 'r')

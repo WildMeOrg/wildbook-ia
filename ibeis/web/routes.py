@@ -3714,61 +3714,82 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                          EMBEDDED_JAVASCRIPT=None)
 
 
-@register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(imgsetid, **kwargs):
-    ibs = current_app.ibs
+@register_ibs_method
+def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
+    total = 0
+    species_dict = {}
+    species_list = ibs.get_annot_species_texts(current_aids)
+    viewpoint_list = ibs.get_annot_viewpoints(current_aids)
+    for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
+        if viewpoint is None:
+            print(aid)
+            continue
+        if species not in species_dict:
+            species_dict[species] = []
+        if species == 'zebra_plains':
+            if 'left' in viewpoint:
+                species_dict[species].append(aid)
+                total += 1
+        if species == 'zebra_grevys':
+            if 'right' in viewpoint:
+                species_dict[species].append(aid)
+                total += 1
+        if species == 'zebra_hybrid':
+            if 'right' in viewpoint:
+                species_dict[species].append(aid)
+                total += 1
 
-    if ibs.dbname == 'ZEBRA_Kaia':
-        assert imgsetid == 3925
+    aid_list = species_dict[desired_species]
 
-        # desired_species = 'zebra_grevys'
-        desired_species = 'zebra_plains'
+    metadata_dict_list = ibs.get_annot_metadata(aid_list)
+    excluded_list = [
+        metadata_dict.get('excluded', False)
+        for metadata_dict in metadata_dict_list
+    ]
+    new_aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
 
+    return new_aid_list
+
+
+@register_ibs_method
+def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, **kwargs):
+
+    if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
         current_gids = ibs.get_imageset_gids(current_imageset_rowid)
         current_aids = ut.flatten(ibs.get_image_aids(current_gids))
         current_aoi_list = ibs.get_annot_interest(current_aids)
         current_aids = ut.compress(current_aids, current_aoi_list)
-        # current_nids = ibs.get_annot_nids(current_aids)
 
-        # x = [current_nid for current_nid in current_nids if current_nid <= 0]
-        # print(len(x))
+    # current_nids = ibs.get_annot_nids(current_aids)
 
-        total = 0
-        species_dict = {}
-        species_list = ibs.get_annot_species_texts(current_aids)
-        viewpoint_list = ibs.get_annot_viewpoints(current_aids)
-        for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
-            if viewpoint is None:
-                print(aid)
-                continue
-            if species not in species_dict:
-                species_dict[species] = []
-            if species == 'zebra_plains':
-                if 'left' in viewpoint:
-                    species_dict[species].append(aid)
-                    total += 1
-            if species == 'zebra_grevys':
-                if 'right' in viewpoint:
-                    species_dict[species].append(aid)
-                    total += 1
-            if species == 'zebra_hybrid':
-                if 'right' in viewpoint:
-                    species_dict[species].append(aid)
-                    total += 1
+    # x = [current_nid for current_nid in current_nids if current_nid <= 0]
+    # print(len(x))
 
-        aid_list = species_dict[desired_species]
+    new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
-        metadata_dict_list = ibs.get_annot_metadata(aid_list)
-        excluded_list = [
-            metadata_dict.get('excluded', False)
-            for metadata_dict in metadata_dict_list
-        ]
-        aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
+    if tier == 2:
+        # Get all siblings of these animals
+        gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
+        current_aids = ut.flatten(ibs.get_image_aids(gid_list))
+        new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
+
+    return new_aid_list
+
+
+@register_route('/turk/identification/graph/refer/', methods=['GET'])
+def turk_identification_graph_refer(imgsetid, species=None, tier=1, **kwargs):
+    ibs = current_app.ibs
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        assert imgsetid == 3925
+
+        assert species in ['zebra_plains', 'zebra_grevys']
+        aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=tier)
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
-        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=desired_species,
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid], kaia=True)
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
@@ -4508,10 +4529,10 @@ def group_review(**kwargs):
 
 
 @register_route('/sightings/', methods=['GET'])
-def sightings(html_encode=True):
+def sightings(html_encode=True, complete=True, include_images=False, **kwargs):
     ibs = current_app.ibs
-    complete = request.args.get('complete', None) is not None
-    sightings = ibs.report_sightings_str(complete=complete, include_images=True)
+    sightings = ibs.report_sightings_str(complete=complete, include_images=include_images,
+                                         **kwargs)
     if html_encode:
         sightings = sightings.replace('\n', '<br/>')
     return sightings

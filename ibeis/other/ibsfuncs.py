@@ -3446,7 +3446,7 @@ def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
 @register_ibs_method
 def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     def sanitize_list(data_list):
-        data_list = [ str(data).replace(',', '<COMMA>') for data in list(data_list) ]
+        data_list = [ str(data).replace(',', ':COMMA:') for data in list(data_list) ]
         return_str = (','.join(data_list))
         return_str = return_str.replace(',None,', ',NONE,')
         return_str = return_str.replace(',%s,' % (const.UNKNOWN, ) , ',UNKNOWN,')
@@ -3470,6 +3470,8 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
                 ('annotation_sex',       sex_list),
                 ('annotation_age_min',   age_min_list),
                 ('annotation_age_max',   age_max_list),
+                ('annotation_age',       age_list),
+                ('annotation_comment',   comment_list),
                 ('annotation_name',      name_list),
                 ('image_id',             gid_list),
                 ('image_contributor',    contributor_list),
@@ -3502,10 +3504,14 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         return header_list, line_list
 
     # Grab primitives
-    if complete:
-        aid_list   = ibs.get_valid_aids()
+    if ibs.dbname == 'ZEBRA_Kaia':
+        aid_list = ibs._princeton_kaia_filtering(**kwargs)
     else:
-        aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+        if complete:
+            aid_list   = ibs.get_valid_aids()
+        else:
+            aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+
     gid_list       = ibs.get_annot_gids(aid_list)
     bbox_list      = ibs.get_annot_bboxes(aid_list)
     xtl_list       = [ bbox[0] for bbox in bbox_list ]
@@ -3514,13 +3520,39 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     height_list    = [ bbox[3] for bbox in bbox_list ]
     species_list   = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-    quality_list   = ibs.get_annot_quality_texts(aid_list)
+    # quality_list   = ibs.get_annot_quality_texts(aid_list)
+    quality_list   = ibs.get_annot_qualities(aid_list)
+    metadata_list  = ibs.get_annot_metadata(aid_list)
+    comment_list   = [
+        metadata.get('turk', {}).get('match', {}).get('comment', '')
+        for metadata in metadata_list
+    ]
     contributor_list   = ibs.get_image_contributor_tag(gid_list)
     car_list       = [ _split_car_contributor_tag(contributor_tag) for contributor_tag in contributor_list ]
     uri_list       = ibs.get_image_uris(gid_list)
     sex_list       = ibs.get_annot_sex_texts(aid_list)
     age_min_list   = ibs.get_annot_age_months_est_min(aid_list)
     age_max_list   = ibs.get_annot_age_months_est_max(aid_list)
+    age_list       = []
+    for age_min, age_max in zip(age_min_list, age_max_list):
+        if age_min is None and age_max == 2:
+            age = '0-3 Months'
+        elif age_min == 3 and age_max == 5:
+            age = '3-6 Months'
+        elif age_min == 6 and age_max == 11:
+            age = '6-12 Months'
+        elif age_min == 12 and age_max == 23:
+            age = 'Yearling'
+        elif age_min == 24 and age_max == 35:
+            age = '2-Year-Old'
+        elif age_min == 36 and age_max is None:
+            age = 'Adult'
+        elif age_min is None and age_max is None:
+            age = 'Unknown'
+        else:
+            age = 'Unknown'
+        age_list.append(age)
+
     name_list      = ibs.get_annot_names(aid_list)
     unixtime_list  = ibs.get_image_unixtime(gid_list)
     datetime_list = [
@@ -3561,9 +3593,11 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         species_list   = filler
         viewpoint_list = filler
         quality_list   = filler
+        comment_list   = filler
         sex_list       = filler
         age_min_list   = filler
         age_max_list   = filler
+        age_list       = filler
         name_list      = filler
         gid_list       = missing_gid_list
         contributor_list   = ibs.get_image_contributor_tag(missing_gid_list)
