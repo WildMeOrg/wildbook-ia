@@ -1360,14 +1360,12 @@ def on_collect_request(ibs, collect_request, collecter_data,
             assert status == 'completed'
 
             # Ensure these shelves are valid
-            assert exists(shelve_input_filepath)
             try:
                 shelf = shelve.open(shelve_input_filepath, 'r')
             except:
                 shelf = shelve.open(shelve_input_filepath)
             shelf = None
 
-            assert exists(shelve_output_filepath)
             try:
                 shelf = shelve.open(shelve_input_filepath, 'r')
             except:
@@ -1377,28 +1375,21 @@ def on_collect_request(ibs, collect_request, collecter_data,
             assert status == 'suppressed'
 
             # Ensure these shelves are valid
-            assert exists(shelve_input_filepath)
             try:
                 shelf = shelve.open(shelve_input_filepath, 'r')
             except:
                 shelf = shelve.open(shelve_input_filepath)
             shelf = None
 
-            if not exists(shelve_output_filepath):
-                shelve_output_filepath = None
-            else:
-                # shelve exists, try to load it, otherwise, just ignore it
+            try:
                 try:
-                    try:
-                        shelf = shelve.open(shelve_input_filepath, 'r')
-                    except:
-                        shelf = shelve.open(shelve_input_filepath)
-                    shelf = None
+                    shelf = shelve.open(shelve_input_filepath, 'r')
                 except:
-                    # The shelve exists, but appears to be corrupted, delete it
-                    if exists(shelve_output_filepath):
-                        ut.delete(shelve_output_filepath)
-                    shelve_output_filepath = None
+                    shelf = shelve.open(shelve_input_filepath)
+                shelf = None
+            except:
+                # The shelve appears to be corrupted, ignore it
+                shelve_output_filepath = None
 
         collecter_data[jobid] = {
             'status' : status,
