@@ -1070,7 +1070,7 @@ def engine_loop(id_, port_dict, dbdir, containerized):
         try:
             while True:
                 # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
-                ibs = ibeis.opendb(dbdir=dbdir, web=False)
+                ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
                 update_proctitle('engine_loop', dbname=ibs.dbname)
 
                 idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
@@ -1203,7 +1203,7 @@ def collector_loop(port_dict, dbdir, containerized):
         if VERBOSE_JOBS:
             print('connect collect_url2  = %r' % (port_dict['collect_url2'],))
 
-        ibs = ibeis.opendb(dbdir=dbdir, web=False)
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
 
         # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
