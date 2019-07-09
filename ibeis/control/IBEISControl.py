@@ -319,7 +319,7 @@ class IBEISController(BASE_CLASS):
         print('[ibs.__init__] PRODUCTION: %s\n' % (ibs.production, ))
 
         # Hack to store HTTPS flag (deliver secure content in web)
-        ibs.https = False
+        ibs.https = const.HTTPS
 
         print('[ibs.__init__] END new IBEISController\n')
 
@@ -929,7 +929,13 @@ class IBEISController(BASE_CLASS):
         return ibs.dbcache.fpath
 
     def get_shelves_path(ibs):
-        return join(ibs.get_cachedir(), 'engine_shelves')
+        engine_slot = const.ENGINE_SLOT
+        engine_slot = str(engine_slot).lower()
+        if engine_slot in ['none', 'null', '1', 'default']:
+            engine_shelve_dir = 'engine_shelves'
+        else:
+            engine_shelve_dir = 'engine_shelves_%s' % (engine_slot, )
+        return join(ibs.get_cachedir(), engine_shelve_dir)
 
     def get_trashdir(ibs):
         return ibs.trashdir
