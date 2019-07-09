@@ -15,7 +15,11 @@ ut.noinject('[const]')
 
 
 CONTAINERIZED = ut.get_argflag('--containerized')
-PRODUCTION = ut.get_argflag('--production')
+PRODUCTION    = ut.get_argflag('--production')
+HTTPS         = ut.get_argflag('--https')
+
+
+ENGINE_SLOT = ut.get_argval('--engine-slot', type_=str, default='default')
 
 
 PI  = math.pi
