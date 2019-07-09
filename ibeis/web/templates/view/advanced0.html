@@ -223,7 +223,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript"
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k&libraries=visualization">
+    src="https://maps.googleapis.com/maps/api/js?key={{ API_KEY }}&libraries=visualization">
 </script>
 <script type="text/javascript">
   // var imagesetNumber  = new countUp("imageset-total",             0, {{ num_imgsetids }}, 0, 2.0);

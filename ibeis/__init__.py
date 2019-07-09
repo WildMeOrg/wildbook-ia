@@ -318,7 +318,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 # __version__ = VERSION_CURRENT
-__version__ = '1.9.2.vulcan'
+__version__ = '2.0.0.vulcan'
 
 # __version__ = '1.6.0'
 # if __version__ != VERSION_CURRENT:

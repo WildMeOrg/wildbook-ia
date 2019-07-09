@@ -1666,6 +1666,11 @@ def update_1_8_3(db, ibs=None):
     ))
 
 
+def update_2_0_0(db, ibs=None):
+    # This update is simply a status marker for the software state
+    pass
+
+
 def update_1_9_0_vulcan(db, ibs=None):
     db.modify_table(const.IMAGE_TABLE, (
         (None, 'image_tile_parent_rowid',    'INTEGER',           None),
@@ -1685,6 +1690,10 @@ def update_1_9_1_vulcan(db, ibs=None):
 
 def update_1_9_2_vulcan(db, ibs=None):
     update_1_8_3(db, ibs)
+
+
+def update_2_0_0_vulcan(db, ibs=None):
+    update_2_0_0(db, ibs)
 
 
 # ========================
@@ -1748,6 +1757,7 @@ VALID_VERSIONS = ut.odict([
     ('1.9.0.vulcan', (None,                 update_1_9_0_vulcan, None                )),
     ('1.9.1.vulcan', (None,                 update_1_9_1_vulcan, None                )),
     ('1.9.2.vulcan', (None,                 update_1_9_2_vulcan, None                )),
+    ('2.0.0.vulcan', (None,                 update_2_0_0_vulcan, None                )),
 ])
 """
 SeeAlso:

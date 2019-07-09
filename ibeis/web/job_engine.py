@@ -1071,9 +1071,8 @@ def engine_loop(id_, port_dict, dbdir, containerized):
 
         try:
             while True:
-                # ibs = ibeis.opendb(dbdir=dbdir)
                 # ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
-                ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+                ibs = ibeis.opendb(dbdir=dbdir, web=False)
                 update_proctitle('engine_loop', dbname=ibs.dbname)
 
                 idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
@@ -1206,7 +1205,7 @@ def collector_loop(port_dict, dbdir, containerized):
         if VERBOSE_JOBS:
             print('connect collect_url2  = %r' % (port_dict['collect_url2'],))
 
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+        ibs = ibeis.opendb(dbdir=dbdir, web=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
 
         # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
@@ -1363,33 +1362,36 @@ def on_collect_request(ibs, collect_request, collecter_data,
             assert status == 'completed'
 
             # Ensure these shelves are valid
-            assert exists(shelve_input_filepath)
-            shelf = shelve.open(shelve_input_filepath, 'r')
+            try:
+                shelf = shelve.open(shelve_input_filepath, 'r')
+            except:
+                shelf = shelve.open(shelve_input_filepath)
             shelf = None
 
-            assert exists(shelve_output_filepath)
-            shelf = shelve.open(shelve_output_filepath, 'r')
+            try:
+                shelf = shelve.open(shelve_input_filepath, 'r')
+            except:
+                shelf = shelve.open(shelve_input_filepath)
             shelf = None
         else:
             assert status == 'suppressed'
 
             # Ensure these shelves are valid
-            assert exists(shelve_input_filepath)
-            shelf = shelve.open(shelve_input_filepath, 'r')
+            try:
+                shelf = shelve.open(shelve_input_filepath, 'r')
+            except:
+                shelf = shelve.open(shelve_input_filepath)
             shelf = None
 
-            if not exists(shelve_output_filepath):
-                shelve_output_filepath = None
-            else:
-                # shelve exists, try to load it, otherwise, just ignore it
+            try:
                 try:
-                    shelf = shelve.open(shelve_output_filepath, 'r')
-                    shelf = None
+                    shelf = shelve.open(shelve_input_filepath, 'r')
                 except:
-                    # The shelve exists, but appears to be corrupted, delete it
-                    if exists(shelve_output_filepath):
-                        ut.delete(shelve_output_filepath)
-                    shelve_output_filepath = None
+                    shelf = shelve.open(shelve_input_filepath)
+                shelf = None
+            except:
+                # The shelve appears to be corrupted, ignore it
+                shelve_output_filepath = None
 
         collecter_data[jobid] = {
             'status' : status,
@@ -1511,7 +1513,10 @@ def on_collect_request(ibs, collect_request, collecter_data,
             status = collecter_data[jobid]['status']
 
             shelve_input_filepath = collecter_data[jobid]['input']
-            shelf = shelve.open(shelve_input_filepath, 'r')
+            try:
+                shelf = shelve.open(shelve_input_filepath, 'r')
+            except:
+                shelf = shelve.open(shelve_input_filepath)
             try:
                 key = str('metadata')
                 metadata = shelf[key]
@@ -1555,7 +1560,10 @@ def on_collect_request(ibs, collect_request, collecter_data,
             print('Fetch Input %s' % ut.repr3(collecter_data[jobid]))
 
             shelve_input_filepath = collecter_data[jobid]['input']
-            shelf = shelve.open(shelve_input_filepath, 'r')
+            try:
+                shelf = shelve.open(shelve_input_filepath, 'r')
+            except:
+                shelf = shelve.open(shelve_input_filepath)
             try:
                 key = str('metadata')
                 metadata = shelf[key]
@@ -1588,7 +1596,10 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 reply['status'] = 'incomplete' if status != 'suppressed' else 'suppressed'
                 reply['json_result'] = None
             else:
-                shelf = shelve.open(shelve_output_filepath, 'r')
+                try:
+                    shelf = shelve.open(shelve_input_filepath, 'r')
+                except:
+                    shelf = shelve.open(shelve_input_filepath)
                 try:
                     key = str('result')
                     engine_result = shelf[key]
