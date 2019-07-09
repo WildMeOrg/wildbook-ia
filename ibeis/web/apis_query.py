@@ -712,7 +712,7 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True,
-                      cache_images=True, n=50, view_orientation='horizontal',
+                      cache_images=True, n=10, view_orientation='horizontal',
                       return_summary=True, **kwargs):
     from ibeis.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
