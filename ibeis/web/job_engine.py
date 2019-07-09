@@ -1269,6 +1269,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
     reply = {
         'status': 'ok',
     }
+
     action = collect_request['action']
     if VERBOSE_JOBS:
         print('...building action=%r response' % (action,))
@@ -1369,9 +1370,9 @@ def on_collect_request(ibs, collect_request, collecter_data,
             shelf = None
 
             try:
-                shelf = shelve.open(shelve_input_filepath, 'r')
+                shelf = shelve.open(shelve_output_filepath, 'r')
             except:
-                shelf = shelve.open(shelve_input_filepath)
+                shelf = shelve.open(shelve_output_filepath)
             shelf = None
         else:
             assert status == 'suppressed'
@@ -1385,9 +1386,9 @@ def on_collect_request(ibs, collect_request, collecter_data,
 
             try:
                 try:
-                    shelf = shelve.open(shelve_input_filepath, 'r')
+                    shelf = shelve.open(shelve_output_filepath, 'r')
                 except:
-                    shelf = shelve.open(shelve_input_filepath)
+                    shelf = shelve.open(shelve_output_filepath)
                 shelf = None
             except:
                 # The shelve appears to be corrupted, ignore it
@@ -1597,9 +1598,9 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 reply['json_result'] = None
             else:
                 try:
-                    shelf = shelve.open(shelve_input_filepath, 'r')
+                    shelf = shelve.open(shelve_output_filepath, 'r')
                 except:
-                    shelf = shelve.open(shelve_input_filepath)
+                    shelf = shelve.open(shelve_output_filepath)
                 try:
                     key = str('result')
                     engine_result = shelf[key]
@@ -1616,6 +1617,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
         # Other
         print('...error unknown action=%r' % (action,))
         reply['status'] = 'error'
+
     return reply
 
 
