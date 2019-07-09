@@ -1666,6 +1666,11 @@ def update_1_8_3(db, ibs=None):
     ))
 
 
+def update_2_0_0(db, ibs=None):
+    # This update is simply a status marker for the software state
+    pass
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1726,6 +1731,7 @@ VALID_VERSIONS = ut.odict([
     ('1.8.1',    (None,                 update_1_8_1,       None                )),
     ('1.8.2',    (None,                 update_1_8_2,       None                )),
     ('1.8.3',    (None,                 update_1_8_3,       None                )),
+    ('2.0.0',    (None,                 update_2_0_0,       None                )),
 ])
 """
 SeeAlso:
