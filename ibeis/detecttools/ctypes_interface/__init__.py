@@ -12,16 +12,15 @@ import ctypes as C
 
 __QUIET__ = '--quiet' in sys.argv
 __VERBOSE__ = '--verbose' in sys.argv
-__VERYVERBOSE__ = '--veryverbose' in sys.argv or '--very-verbose' in sys.argv
 
 
 def get_lib_fname_list(libname):
     """
     Args:
-        <libname>: library name (e.g. 'hesaff', not 'libhesaff')
+        libname (str): library name (e.g. 'hesaff', not 'libhesaff')
 
     Returns:
-        <libnames>: list of plausible library file names
+        list: list of plausible library file names
     """
     if sys.platform.startswith('win32'):
         libnames = ['lib' + libname + '.dll', libname + '.dll']
@@ -39,10 +38,10 @@ def get_lib_dpath_list(root_dir):
     returns possible lib locations
 
     Args:
-        <root_dir>: deepest directory to look for a library (dll, so, dylib)
+        root_dir (str): deepest directory to look for a library (dll, so, dylib)
 
     Returns:
-        returns <libnames>: list of plausible directories to look.
+        list: plausible directories to look for libraries
     """
     get_lib_dpath_list = [root_dir,
                           join(root_dir, 'lib'),
@@ -51,20 +50,20 @@ def get_lib_dpath_list(root_dir):
     return get_lib_dpath_list
 
 
-def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, veryverbose=None):
+def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
     """ Search for the library """
-    if veryverbose is None:
-        veryverbose = __VERYVERBOSE__
     lib_fname_list = get_lib_fname_list(libname)
     tried_fpaths = []
     while root_dir is not None:
         for lib_fname in lib_fname_list:
             for lib_dpath in get_lib_dpath_list(root_dir):
                 lib_fpath = normpath(join(lib_dpath, lib_fname))
+                if verbose:
+                    print('\tChecking %r' % (lib_fpath, ))
                 if exists(lib_fpath):
                     if verbose:
-                        print('\n[C] Checked: '.join(tried_fpaths))
-                    if __VERBOSE__ and not __QUIET__:
+                        print('\n[c] Checked: '.join(tried_fpaths))
+                    if (verbose or __VERBOSE__) and not __QUIET__:
                         print('using: %r' % lib_fpath)
                     return lib_fpath
                 else:
@@ -81,10 +80,10 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, veryverb
 
     msg = ('\n[C!] ERROR: load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
            (libname, root_dir, recurse_down, verbose) +
-           '\n[C!] Cannot find dynamic library')
-    if veryverbose:
+           '\n[c!] Cannot FIND dynamic library')
+    if verbose:
         print(msg)
-        print('\n[C!] Checked: '.join(tried_fpaths))
+        print('\n[c!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
 
 
@@ -93,13 +92,13 @@ def load_clib(libname, root_dir):
     Does the work.
 
     Args:
-        libname:  library name (e.g. 'hesaff', not 'libhesaff')
+        libname (str):  library name (e.g. 'hesaff', not 'libhesaff')
 
-        root_dir: the deepest directory searched for the
-                  library file (dll, dylib, or so).
+        root_dir (str): the deepest directory searched for the library file
+                        (dll, dylib, or so).
 
     Returns:
-        clib: a ctypes object used to interface with the library
+        ctypes.cdll: clib a ctypes object used to interface with the library
     """
     lib_fpath = find_lib_fpath(libname, root_dir)
     try:
@@ -115,9 +114,12 @@ def load_clib(libname, root_dir):
     except OSError as ex:
         print('[C!] Caught OSError:\n%s' % ex)
         errsuffix = 'Is there a missing dependency?'
+    except AttributeError as ex:
+        print('[C!] Caught Exception:\n%s' % ex)
+        errsuffix = 'Was the library correctly compiled? Maybe rebuild?'
     except Exception as ex:
         print('[C!] Caught Exception:\n%s' % ex)
-        errsuffix = 'Was the library correctly compiled?'
+        errsuffix = 'Was the library correctly compiled? Maybe rebuild?'
     print('[C!] cwd=%r' % os.getcwd())
     print('[C!] load_clib(libname=%r root_dir=%r)' % (libname, root_dir))
     print('[C!] lib_fpath = %r' % lib_fpath)

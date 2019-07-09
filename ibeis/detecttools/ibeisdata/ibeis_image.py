@@ -10,7 +10,7 @@ from . import common as com
 from .ibeis_object import IBEIS_Object
 
 
-class IBEIS_Image(object):
+class IBEIS_Image(object):  # NOQA
 
     def __init__(ibsi, filename_xml, absolute_dataset_path, **kwargs):
         with open(filename_xml, 'r') as _xml:
@@ -120,6 +120,13 @@ class IBEIS_Image(object):
     def __len__(ibsi):
         return len(ibsi.objects)
 
+    def __lt__(ibsi1, ibsi2):
+        if ibsi1.filename < ibsi2.filename:
+            return -1
+        if ibsi1.filename < ibsi2.filename:
+            return 1
+        return 0
+
     def _distance(pt1, pt2):
         (x1, y1) = pt1
         (x2, y2) = pt2
@@ -225,19 +232,20 @@ class IBEIS_Image(object):
         assert recall != 0
         return precision / recall, true_positive, false_positive, false_negative
 
-    def show(ibsi, objects=True, parts=True, display=True, prediction_list=None, category=None, alpha=0.5):
+    def show(ibsi, objects=True, parts=True, display=True, prediction_list=None, category=None, alpha=0.5, label=True):
 
-        def _draw_box(img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, top=True):
+        def _draw_box(img, annotation, xmin, ymin, xmax, ymax, color, stroke=2, position='top'):
             font = cv2.FONT_HERSHEY_SIMPLEX
             scale = 0.5
             width, height = cv2.getTextSize(annotation, font, scale, -1)[0]
             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, stroke)
-            if top:
-                cv2.rectangle(img, (xmin, ymin - height), (xmin + width, ymin), color, -1)
-                cv2.putText(img, annotation, (xmin + 5, ymin), font, 0.4, (255, 255, 255))
-            else:
-                cv2.rectangle(img, (xmin, ymax - height), (xmin + width, ymax), color, -1)
-                cv2.putText(img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255))
+            if label:
+                if position in ['top']:
+                    cv2.rectangle(img, (xmin, ymin), (xmin + width, ymin + height), color, -1)
+                    cv2.putText(img, annotation, (xmin + 5, ymin + height), font, 0.4, (255, 255, 255))
+                elif position in ['bottom']:
+                    cv2.rectangle(img, (xmin, ymax - height), (xmin + width, ymax), color, -1)
+                    cv2.putText(img, annotation, (xmin + 5, ymax), font, 0.4, (255, 255, 255))
 
         original = com.openImage(ibsi.image_path(), color=True)
         color_dict = {}
@@ -298,12 +306,11 @@ class IBEIS_Image(object):
                     else:
                         annotation = 'DETECT [FALSE POS]'
                         color = [0, 0, 255]
-                    _draw_box(original, annotation, int(minx), int(miny), int(maxx), int(maxy), color, stroke=1, top=False)
+                    _draw_box(original, annotation, int(minx), int(miny), int(maxx), int(maxy), color, stroke=1, position=False)
 
         if display:
             cv2.imshow(ibsi.filename + " with Bounding Boxes", original)
-            cont = raw_input()
+            cv2.waitKey(0)
             cv2.destroyAllWindows()
-            return cont == ""
         else:
             return original
