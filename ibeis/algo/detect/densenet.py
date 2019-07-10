@@ -576,7 +576,7 @@ def test_ensemble(filepath_list, weights_path_list, classifier_weight_filepath,
 
         results_list = []
         for model_index in range(len(weights_path_list)):
-            if =class:
+            if multiclass:
                 classifier_two_weight_filepath_ = '%s:%d' % (classifier_weight_filepath, model_index, )
                 config = {
                     'classifier_two_algo': 'densenet',
