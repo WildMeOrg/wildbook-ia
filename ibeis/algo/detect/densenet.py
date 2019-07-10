@@ -2,6 +2,7 @@
 """Interface to Lightnet object proposals."""
 from __future__ import absolute_import, division, print_function
 from os.path import expanduser, join
+from ibeis import constants as const
 import utool as ut
 import numpy as np
 import cv2
@@ -14,6 +15,7 @@ import PIL
 (print, rrr, profile) = ut.inject2(__name__, '[densenet]')
 
 
+PARALLEL = not const.CONTAINERIZED
 INPUT_SIZE = 224
 
 
@@ -385,7 +387,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
     plt.imsave(canvas_filepath, canvas)
 
 
-def train(data_path, output_path, batch_size=96, class_weights={}, multi=True, sample_multiplier=1.0, **kwargs):
+def train(data_path, output_path, batch_size=96, class_weights={}, multi=PARALLEL, sample_multiplier=1.0, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
@@ -480,7 +482,7 @@ def train(data_path, output_path, batch_size=96, class_weights={}, multi=True, s
     return weights_path
 
 
-def test_single(filepath_list, weights_path, batch_size=1792, multi=True, **kwargs):
+def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **kwargs):
 
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -730,7 +732,7 @@ def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **k
         )
 
 
-def features(filepath_list, batch_size=512, multi=True, **kwargs):
+def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
     # Detect if we have a GPU available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
