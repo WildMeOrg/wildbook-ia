@@ -503,36 +503,25 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
-    post_multi = multi
-    try:
-        # Pre-multi
-        if multi:
-            model = nn.DataParallel(model)
+    # Convert any weights to non-parallel version
+    from collections import OrderedDict
+    new_state = OrderedDict()
+    for k, v in state.items():
+        k = k.replace('module.', '')
+        new_state[k] = v
 
-        model.load_state_dict(state)
-        post_multi = False
-    except:
-        model = torchvision.models.densenet201()
-        num_ftrs = model.classifier.in_features
-        model.classifier = nn.Linear(num_ftrs, num_classes)
-        model.load_state_dict(state)
+    # Load state without parallel
+    model.load_state_dict(new_state)
 
-    # Add LogSoftmax and Softmax to network output
-    try:
-        model.classifier = nn.Sequential(
-            model.classifier,
-            nn.LogSoftmax(),
-            nn.Softmax()
-        )
-    except AttributeError:
-        model.module.classifier = nn.Sequential(
-            model.module.classifier,
-            nn.LogSoftmax(),
-            nn.Softmax()
-        )
-        post_multi = False
+    # Add softmax
+    model.classifier = nn.Sequential(
+        model.classifier,
+        nn.LogSoftmax(),
+        nn.Softmax()
+    )
 
-    if post_multi:
+    # Make parallel at end
+    if multi:
         model = nn.DataParallel(model)
 
     # Send the model to GPU

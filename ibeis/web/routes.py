@@ -4153,24 +4153,24 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
     except:
         original_filename_2_str = 'UNKNOWN'
 
-    sex1, sex2 = ibs.get_annot_sex([aid1, aid2])
+    # sex1, sex2 = ibs.get_annot_sex([aid1, aid2])
     age1_min, age2_min = ibs.get_annot_age_months_est_min([aid1, aid2])
     age1_max, age2_max = ibs.get_annot_age_months_est_max([aid1, aid2])
     condition1, condition2 = ibs.get_annot_qualities([aid1, aid2])
 
-    if sex1 == 1:
-        sex1 = 'male'
-    elif sex1 == 0:
-        sex1 = 'female'
-    else:
-        sex1 = 'unknown'
+    # if sex1 == 1:
+    #     sex1 = 'male'
+    # elif sex1 == 0:
+    #     sex1 = 'female'
+    # else:
+    #     sex1 = 'unknown'
 
-    if sex2 == 1:
-        sex2 = 'male'
-    elif sex2 == 0:
-        sex2 = 'female'
-    else:
-        sex2 = 'unknown'
+    # if sex2 == 1:
+    #     sex2 = 'male'
+    # elif sex2 == 0:
+    #     sex2 = 'female'
+    # else:
+    #     sex2 = 'unknown'
 
     if age1_min is None and age1_max == 2:
         age1 = 'age1'
@@ -4213,8 +4213,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
 
     assert age1 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
     assert age2 in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
-    assert sex1 in ['male', 'female', 'unknown']
-    assert sex2 in ['male', 'female', 'unknown']
+    # assert sex1 in ['male', 'female', 'unknown']
+    # assert sex2 in ['male', 'female', 'unknown']
     assert 0 <= condition1 and condition1 <= 5
     assert 0 <= condition2 and condition2 <= 5
 
@@ -4251,8 +4251,8 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                          hogwild=hogwild,
                          age1=age1,
                          age2=age2,
-                         sex1=sex1,
-                         sex2=sex2,
+                         # sex1=sex1,
+                         # sex2=sex2,
                          condition1=condition1,
                          condition2=condition2,
                          comment1=comment1,
