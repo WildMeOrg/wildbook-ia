@@ -165,7 +165,7 @@ def initialize_job_manager(ibs):
         ibs.job_manager.reciever = JobBackend(use_static_ports=True)
     else:
         record_filepath_list = _get_engine_job_paths(ibs)
-        job_counter = len(record_filepath_list)
+        job_counter = len(record_filepath_list) + 1
         ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
         ibs.job_manager.reciever.initialize_background_processes(
             dbdir=ibs.get_dbdir(),
