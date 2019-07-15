@@ -464,7 +464,10 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     # print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
-    print('[TRANSLATE] Calling: %s' % (funcstr,))
+    if 'heartbeat' in funcstr:
+        pass
+    else:
+        print('[TRANSLATE] Calling: %s' % (funcstr,))
 
     try:
         key_list = sorted(list(kwargs.keys()))
