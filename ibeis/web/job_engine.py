@@ -553,7 +553,7 @@ class JobInterface(object):
     def queue_interrupted_jobs(jobiface):
         import tqdm
 
-        MAX_ATTEMPTS = 5
+        MAX_ATTEMPTS = 20
 
         ibs = jobiface.ibs
         if ibs is not None:
