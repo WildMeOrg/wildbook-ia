@@ -1445,70 +1445,70 @@ def localizer_precision_recall(ibs, config_dict=None, output_path=None,
             #     {},
             # ),
 
-            'seadragon_weedy_v0': (
+            'seadragon_weedy_v1': (
                 [
-                    {'label': 'Weedy SD NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy'])},
-                    {'label': 'Weedy SD NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy'])},
+                    {'label': 'Weedy Body NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy'])},
                 ],
                 {},
             ),
 
-            'seadragon_leafy_v0': (
+            'seadragon_leafy_v1': (
                 [
-                    {'label': 'Leafy SD NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy'])},
-                    {'label': 'Leafy SD NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy'])},
+                    {'label': 'Leafy Body NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy'])},
                 ],
                 {},
             ),
 
-            'seadragon_weedy_head_v0': (
+            'seadragon_weedy_head_v1': (
                 [
-                    {'label': 'Weedy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy+head'])},
-                    {'label': 'Weedy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_leafy+head'])},
+                    {'label': 'Weedy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_leafy+head'])},
                 ],
                 {},
             ),
 
-            'seadragon_leafy_head_v0': (
+            'seadragon_leafy_head_v1': (
                 [
-                    {'label': 'Leafy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy+head'])},
-                    {'label': 'Leafy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v0', 'weight_filepath' : 'seadragon_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 0%',            'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 10%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 20%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 30%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 40%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 50%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 60%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 70%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 80%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 90%',           'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : set(['seadragon_weedy+head'])},
+                    {'label': 'Leafy Head NMS 100%',          'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seadragon_v1', 'weight_filepath' : 'seadragon_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : set(['seadragon_weedy+head'])},
                 ],
                 {},
             ),
@@ -2741,7 +2741,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     # kwargs['labeler_weight_filepath'] = 'spotted_skunk_v0'
     # kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
     # kwargs['labeler_weight_filepath'] = 'spotted_dolphin_v0'
-    kwargs['labeler_weight_filepath'] = 'seadragon_v0'
+    kwargs['labeler_weight_filepath'] = 'seadragon_v1'
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      test_gid_set=test_gid_set, **kwargs)
@@ -2766,9 +2766,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
         # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
         # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
         {'label': 'Weedy SD ',                'category_list': ['seadragon_weedy']},
-        # {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
+        {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
         {'label': 'Leafy SD ',                'category_list': ['seadragon_leafy']},
-        # {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
+        {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
 
     ]
     color_list = [(0.0, 0.0, 0.0)]
