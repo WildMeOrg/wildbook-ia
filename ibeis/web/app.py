@@ -52,6 +52,10 @@ class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
 
         timestamp = ut.timestamp()
         request_time = 1000.0 * request.request_time()
+
+        if status_code == 200 and request.uri in ['/api/test/heartbeat/']:
+            return
+
         log_method(
             "WALL=%s STATUS=%s METHOD=%s URL=%s IP=%s TIME=%.2fms",
             timestamp,
