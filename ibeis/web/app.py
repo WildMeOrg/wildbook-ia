@@ -15,6 +15,15 @@ from tornado.log import access_log
 import utool as ut
 
 
+try:
+    from werkzeug.wsgi import DispatcherMiddleware
+    import prometheus_client
+    from ibeis.web import prometheus  # NOQA
+    PROMETHEUS = True
+except ImportError:
+    PROMETHEUS = False
+
+
 def tst_html_error():
     r"""
     This test will show what our current errors look like
@@ -64,6 +73,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
     def _start_tornado(ibs_, port_):
         # Get Flask app
         app = controller_inject.get_flask_app()
+
         app.ibs = ibs_
         # Try to ascertain the socket's domain name
         socket.setdefaulttimeout(0.1)
@@ -82,6 +92,19 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             import webbrowser
             print('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
+
+        if PROMETHEUS:
+            # Add prometheus wsgi middleware to route /metrics requests
+            print('LOADING PROMETHEUS')
+            app_ = DispatcherMiddleware(app, {
+                '/metrics': prometheus_client.make_wsgi_app(),
+            })
+            # Migrate the most essential settings
+            app_.server_port = app.server_port
+            app_.server_url = app.server_url
+            app_.ibs = app.ibs
+            app = app_
+
         # Start the tornado web handler
         # WSGI = Web Server Gateway Interface
         # WSGI is Python standard described in detail in PEP 3333
@@ -95,6 +118,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         #     pass
 
         http_server = tornado.httpserver.HTTPServer(wsgi_container)
+
         try:
             http_server.listen(app.server_port)
         except socket.error:
