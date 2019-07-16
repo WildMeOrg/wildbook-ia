@@ -348,33 +348,32 @@ DBNAME_ALIAS = {
 
 
 class TEST_SPECIES(object):
-    BEAR_POLAR      = 'bear_polar'
-    BUILDING        = 'building'
-    GIR_RETICULATED = 'giraffe_reticulated'
-    GIR_MASAI       = 'giraffe_masai'
-    WHALE_FLUKE     = 'whale_fluke',
-    WHALE_HUMPBACK  = 'whale_humpback',
-    ZEB_GREVY       = 'zebra_grevys'
-    ZEB_HYBRID      = 'zebra_hybrid'
     ZEB_PLAIN       = 'zebra_plains'
-    LYNX            = 'lynx'
-    JAGUAR          = 'jaguar'
-    CHEETAH         = 'cheetah'
-    SHARK_SANDTIGER = 'shark_sandtiger'
-    UNKNOWN         = UNKNOWN
+    ZEB_GREVY       = 'zebra_grevys'
+    BEAR_POLAR      = 'bear_polar'
+    GIR_MASAI       = 'giraffe_masai'
 
 
 SPECIES_WITH_DETECTORS = (
-    TEST_SPECIES.ZEB_GREVY,
-    TEST_SPECIES.ZEB_PLAIN,
-    TEST_SPECIES.GIR_RETICULATED,
-    TEST_SPECIES.GIR_MASAI,
-    TEST_SPECIES.WHALE_FLUKE,
-    TEST_SPECIES.WHALE_HUMPBACK,
-    TEST_SPECIES.LYNX,
-    TEST_SPECIES.CHEETAH,
-    TEST_SPECIES.JAGUAR,
+    'cheetah',
+    'giraffe_masai',
+    'giraffe_reticulated',
+    'jaguar',
+    'lynx',
+    'lynx_pardinus',
+    'manta_ray_giant',
+    'seadragon_leafy',
+    'seadragon_leafy+head',
+    'seadragon_weedy',
+    'seadragon_weedy+head',
+    'skunk_spotted',
+    'turtle_sea',
+    'whale_fluke',
+    'whale_humpback',
+    'zebra_grevys',
+    'zebra_plains',
 )
+
 
 SPECIES_MAPPING = {
     'antelope'               :       ('ANTEL', 'Antelope'),
