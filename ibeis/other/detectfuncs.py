@@ -2742,7 +2742,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     # kwargs['labeler_weight_filepath'] = 'spotted_skunk_v0'
     # kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
     # kwargs['labeler_weight_filepath'] = 'spotted_dolphin_v0'
-    kwargs['labeler_weight_filepath'] = 'seadragon_v1'
+    # kwargs['labeler_weight_filepath'] = 'seadragon_v1'
+    kwargs['labeler_weight_filepath'] = 'seadragon_v2'
     kwargs['labeler_axis_aligned']    = use_axis_aligned_chips
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,

@@ -40,6 +40,7 @@ ARCHIVE_URL_DICT = {
 
     'seadragon_v0'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seadragon.v0.zip',
     'seadragon_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seadragon.v1.zip',
+    'seadragon_v2'              : 'https://cthulhu.dyn.wildme.io/public/models/labeler.seadragon.v2.zip',
 
     'flukebook_v1'              : 'https://cthulhu.dyn.wildme.io/public/models/classifier2.flukebook.v1.zip',
 }
