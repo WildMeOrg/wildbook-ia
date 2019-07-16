@@ -3745,8 +3745,44 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
     return new_aid_list
 
 
+def _zebra_annot_filtering(ibs, current_aids, desired_species):
+    total = 0
+    species_dict = {}
+    species_list = ibs.get_annot_species_texts(current_aids)
+    viewpoint_list = ibs.get_annot_viewpoints(current_aids)
+    for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
+        if viewpoint is None:
+            # print(aid)
+            continue
+        if species not in species_dict:
+            species_dict[species] = []
+        if species == 'zebra_plains':
+            if 'left' in viewpoint:
+                species_dict[species].append(aid)
+                total += 1
+        if species == 'zebra_grevys':
+            if 'right' in viewpoint:
+                species_dict[species].append(aid)
+                total += 1
+        if species == 'zebra_hybrid':
+            if 'right' in viewpoint:
+                species_dict[species].append(aid)
+                total += 1
+
+    aid_list = species_dict[desired_species]
+
+    metadata_dict_list = ibs.get_annot_metadata(aid_list)
+    excluded_list = [
+        metadata_dict.get('excluded', False)
+        for metadata_dict in metadata_dict_list
+    ]
+    new_aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
+
+    return new_aid_list
+
+
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(imgsetid, species=None, tier=1, **kwargs):
+def turk_identification_graph_refer(imgsetid, species=None, tier=1, option=None, **kwargs):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
@@ -3759,6 +3795,21 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, **kwargs):
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
         return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
                                          creation_imageset_rowid_list=[imgsetid], kaia=True)
+    elif option in ['rosemary']:
+        imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
+
+        assert imgsetid == imgsetid_
+        assert species in ['zebra_plains', 'zebra_grevys']
+        assert tier == 1
+
+        gid_list = ibs.get_imageset_gids(imgsetid)
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        aid_list_ = _zebra_annot_filtering(ibs, current_aids=aid_list, desired_species=species)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list_)
+        return turk_identification_graph(annot_uuid_list=annot_uuid_list, hogwild_species=species,
+                                         creation_imageset_rowid_list=[imgsetid])
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
