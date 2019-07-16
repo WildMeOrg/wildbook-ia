@@ -2710,7 +2710,8 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={},
 @register_ibs_method
 def labeler_precision_recall_algo_display(ibs, category_list=None, species_mapping={}, viewpoint_mapping={},
                                           category_mapping=None, fuzzy_dict=None,
-                                          figsize=(30, 9), test_gid_set=None, **kwargs):
+                                          figsize=(30, 9), test_gid_set=None,
+                                          use_axis_aligned_chips=False, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2742,6 +2743,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
     # kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
     # kwargs['labeler_weight_filepath'] = 'spotted_dolphin_v0'
     kwargs['labeler_weight_filepath'] = 'seadragon_v1'
+    kwargs['labeler_axis_aligned']    = use_axis_aligned_chips
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      test_gid_set=test_gid_set, **kwargs)

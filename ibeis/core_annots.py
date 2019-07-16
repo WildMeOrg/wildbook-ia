@@ -266,6 +266,7 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('medianblur_thresh', 50, hideif=lambda cfg: not cfg['medianblur']),
         ut.ParamInfo('medianblur_ksize1', 3, hideif=lambda cfg: not cfg['medianblur']),
         ut.ParamInfo('medianblur_ksize2', 5, hideif=lambda cfg: not cfg['medianblur']),
+        ut.ParamInfo('axis_aligned',      False, hideif=False),
         # ---
         ut.ParamInfo('pad', 0, hideif=0, type_=eval),
         ut.ParamInfo('ext', '.png', hideif='.png'),
@@ -358,7 +359,34 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
     dim_size = config['dim_size']
     dim_tol = config['dim_tol']
     resize_dim = config['resize_dim']
+    axis_aligned = config['axis_aligned']
     #cfghashid = config.get_hashid()
+
+    if axis_aligned:
+        # Over-write bbox and theta with a friendlier, axis-aligned version
+        bbox_list_ = []
+        theta_list_ = []
+        for bbox, theta in zip(bbox_list, theta_list):
+            # Transformation matrix
+            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+            # Get verticies of the annotation polygon
+            verts = vt.verts_from_bbox(bbox, close=True)
+            # Rotate and transform vertices
+            xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+            trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            x_points = [pt[0] for pt in new_verts]
+            y_points = [pt[1] for pt in new_verts]
+            xtl = int(min(x_points))
+            xbr = int(max(x_points))
+            ytl = int(min(y_points))
+            ybr = int(max(y_points))
+            bbox_ = (xtl, ytl, xbr - xtl, ybr - ytl)
+            theta_ = 0.0
+            bbox_list_.append(bbox_)
+            theta_list_.append(theta_)
+        bbox_list = bbox_list_
+        theta_list = theta_list_
 
     if 0.0 < pad and pad < 1.0:
         for index in range(len(bbox_list)):
@@ -1785,7 +1813,8 @@ def compute_canonical(depc, aid_list, config=None):
 class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
-        ut.ParamInfo('labeler_weight_filepath', None),
+        ut.ParamInfo('labeler_weight_filepath',  None),
+        ut.ParamInfo('labeler_axis_aligned',     False, hideif=False),
     ]
     _sub_config_list = [
         ChipConfig
@@ -1850,6 +1879,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         config_ = {
             'dim_size': (128, 128),
             'resize_dim': 'wh',
+            'axis_aligned': config['labeler_axis_aligned'],
         }
         chip_list = depc.get_property('chips', aid_list, 'img', config=config_)
         result_gen = ibs.generate_chip_label_list(chip_list, **config)
@@ -1862,6 +1892,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         config_ = {
             'dim_size': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
             'resize_dim': 'wh',
+            'axis_aligned': config['labeler_axis_aligned'],
         }
         chip_filepath_list = depc.get_property('chips', aid_list, 'img', config=config_,
                                                read_extern=False, ensure=True)

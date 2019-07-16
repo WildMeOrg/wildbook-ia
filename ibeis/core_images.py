@@ -1022,8 +1022,34 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
 
 def get_localization_chips_worker(gid, img, bbox_list, theta_list,
-                                  target_size):
+                                  target_size, axis_aligned=False):
     target_size_list = [target_size] * len(bbox_list)
+
+    if axis_aligned:
+        # Over-write bbox and theta with a friendlier, axis-aligned version
+        bbox_list_ = []
+        theta_list_ = []
+        for bbox, theta in zip(bbox_list, theta_list):
+            # Transformation matrix
+            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+            # Get verticies of the annotation polygon
+            verts = vt.verts_from_bbox(bbox, close=True)
+            # Rotate and transform vertices
+            xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+            trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            x_points = [pt[0] for pt in new_verts]
+            y_points = [pt[1] for pt in new_verts]
+            xtl = int(min(x_points))
+            xbr = int(max(x_points))
+            ytl = int(min(y_points))
+            ybr = int(max(y_points))
+            bbox_ = (xtl, ytl, xbr - xtl, ybr - ytl)
+            theta_ = 0.0
+            bbox_list_.append(bbox_)
+            theta_list_.append(theta_)
+        bbox_list = bbox_list_
+        theta_list = theta_list_
 
     # Build transformation from image to chip
     M_list = [
@@ -1080,7 +1106,7 @@ def get_localization_masks_worker(gid, img, bbox_list, theta_list, target_size):
     return gid_list, mask_list
 
 
-def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
+def get_localization_chips(ibs, loc_id_list, target_size=(128, 128), axis_aligned=False):
     depc = ibs.depc_image
     gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
     assert len(gid_list_) == len(loc_id_list)
@@ -1102,6 +1128,33 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         # Flatten all of these lists for efficiency
         bbox_list      = ut.flatten(bboxes_list)
         theta_list     = ut.flatten(thetas_list)
+
+        if axis_aligned:
+            # Over-write bbox and theta with a friendlier, axis-aligned version
+            bbox_list_ = []
+            theta_list_ = []
+            for bbox, theta in zip(bbox_list, theta_list):
+                # Transformation matrix
+                R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+                # Get verticies of the annotation polygon
+                verts = vt.verts_from_bbox(bbox, close=True)
+                # Rotate and transform vertices
+                xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+                trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+                x_points = [pt[0] for pt in new_verts]
+                y_points = [pt[1] for pt in new_verts]
+                xtl = int(min(x_points))
+                xbr = int(max(x_points))
+                ytl = int(min(y_points))
+                ybr = int(max(y_points))
+                bbox_ = (xtl, ytl, xbr - xtl, ybr - ytl)
+                theta_ = 0.0
+                bbox_list_.append(bbox_)
+                theta_list_.append(theta_)
+            bbox_list = bbox_list_
+            theta_list = theta_list_
+
         gid_list       = ut.flatten(gids_list)
         bbox_size_list = ut.take_column(bbox_list, [2, 3])
         newsize_list   = [target_size] * len(bbox_list)
@@ -1138,9 +1191,10 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
             chip_list.append(chip)
     else:
         target_size_list = [target_size] * len(bboxes_list)
+        axis_aligned_list = [axis_aligned] * len(bboxes_list)
         img_list = [ibs.get_images(gid) for gid in gid_list_]
         arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
-                            target_size_list))
+                            target_size_list, axis_aligned_list))
         result_list = ut.util_parallel.generate2(get_localization_chips_worker,
                                                  arg_iter, ordered=True)
         # Compute results
@@ -1711,7 +1765,8 @@ def compute_localizations_features(depc, loc_id_list, config=None):
 class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_algo', 'pipeline', valid_values=['azure', 'cnn', 'pipeline', 'densenet']),
-        ut.ParamInfo('labeler_weight_filepath', None),
+        ut.ParamInfo('labeler_weight_filepath',  None),
+        ut.ParamInfo('labeler_axis_aligned',     False, hideif=False),
     ]
 
 
@@ -1762,7 +1817,8 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
 
     if config['labeler_algo'] in ['pipeline', 'cnn']:
         gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
-                                                                target_size=(128, 128))
+                                                                target_size=(128, 128),
+                                                                axis_aligned=config['labeler_axis_aligned'])
         result_list = ibs.generate_chip_label_list(chip_list, **config)
     elif config['labeler_algo'] in ['azure']:
         raise NotImplementedError('Azure is not implemented for images')
@@ -1770,7 +1826,8 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         from ibeis.algo.detect import densenet
         target_size = (densenet.INPUT_SIZE, densenet.INPUT_SIZE, )
         gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
-                                                                target_size=target_size)
+                                                                target_size=target_size,
+                                                                axis_aligned=config['labeler_axis_aligned'])
         config = dict(config)
         config['classifier_weight_filepath'] = config['labeler_weight_filepath']
         nonce = ut.random_nonce()[:16]
