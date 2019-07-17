@@ -422,6 +422,7 @@ def train(data_path, output_path, batch_size=48, class_weights={}, multi=PARALLE
 
     # Multi-GPU
     if multi:
+        print('USING MULTI-GPU MODEL')
         model = nn.DataParallel(model)
 
     print('Print Examples of Training Augmentation...')
@@ -525,6 +526,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
 
     # Make parallel at end
     if multi:
+        print('USING MULTI-GPU MODEL')
         model = nn.DataParallel(model)
 
     # Send the model to GPU
@@ -534,12 +536,19 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
 
     start = time.time()
 
+    counter = 0
     outputs = []
     for inputs, in tqdm.tqdm(dataloader, desc='test'):
+        print('Loading batch %d from disk' % (counter, ))
         inputs = inputs.to(device)
+        print('Moving batch %d to GPU' % (counter, ))
         with torch.set_grad_enabled(False):
+            print('Pre-model inference %d' % (counter, ))
             output = model(inputs)
+            print('Post-model inference %d' % (counter, ))
             outputs += output.tolist()
+            print('Outputs done %d' % (counter, ))
+        counter += 1
 
     time_elapsed = time.time() - start
     print('Testing complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
@@ -736,6 +745,7 @@ def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
     model = model.to(device)
 
     if multi:
+        print('USING MULTI-GPU MODEL')
         model = nn.DataParallel(model)
 
     model.eval()

@@ -1588,7 +1588,8 @@ def view_jobs(**kwargs):
     jobid_list = list(jobs.keys())
     job_values = [jobs[jobid] for jobid in jobid_list]
     jobnumber_list = ut.take_column(job_values, 'jobcounter')
-    index_list = np.argsort(jobnumber_list, reverse=True)
+    index_list = np.argsort(jobnumber_list)
+    index_list = index_list[::-1]
     jobid_list_ = ut.take(jobid_list, index_list)
 
     for jobid in jobid_list_:

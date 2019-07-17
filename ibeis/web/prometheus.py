@@ -1,10 +1,8 @@
-from prometheus_client import Info, Gauge
+from prometheus_client import Info, Gauge, Enum
 # import ibeis
 
-prom_data = {
+PROMETHEUS_DATA = {
     'info'    : Info('ibeis_db', 'Description of IBEIS database'),
     'images'  : Gauge('ibeis_db_images', 'Number of Images'),
+    'status'  : Enum('ibeis_engine_status', 'The current status of the job engine', states=['waiting', 'queued', 'working', 'stopped', 'error'])
 }
-
-prom_data['info'].info({'version': '2.0.0'})
-prom_data['images'].set(10)

@@ -20,8 +20,10 @@ try:
     import prometheus_client
     from ibeis.web import prometheus  # NOQA
     PROMETHEUS = True
+    PROMETHEUS_DATA = prometheus.PROMETHEUS_DATA
 except ImportError:
     PROMETHEUS = False
+    PROMETHEUS_DATA = {}
 
 
 def tst_html_error():

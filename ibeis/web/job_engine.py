@@ -593,7 +593,22 @@ class JobInterface(object):
                         print_(ut.repr3(record_filepath))
                         print_(ut.repr3(record))
 
+                        ut.embed()
+                        shelve_path = ibs.get_shelves_path()
+                        shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
+
+                        try:
+                            shelf = shelve.open(shelve_input_filepath, 'r')
+                        except:
+                            shelf = shelve.open(shelve_input_filepath)
+
+                        key = str('metadata')
+                        metadata = shelf[key]
+                        times = metadata.get('times', {})
+                        received = times['received']
+
                         engine_request['restart_jobid'] = jobid
+                        engine_request['restart_received'] = received
                         jobiface.engine_deal_sock.send_json(engine_request)
                         reply = jobiface.engine_deal_sock.recv_json()
                         jobid_ = reply['jobid']
@@ -601,6 +616,7 @@ class JobInterface(object):
 
                         record['attempts'] = attempts + 1
                         ut.save_cPkl(record_filepath, record)
+                        shelf = None
 
     def queue_job(jobiface, action, callback_url=None, callback_method=None, *args, **kwargs):
         r"""
@@ -916,23 +932,29 @@ def engine_queue_loop(port_dict, job_counter=0):
 
                     # jobid = 'jobid-%04d' % (job_counter,)
                     jobid = '%s' % (uuid.uuid4(), )
+                    received = _timestamp()
+
                     job_counter += 1
                     print('Creating jobid %r (counter %d)' % (jobid, job_counter, ))
 
                     # CALLER: job_client
                     idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
 
-                    action          = engine_request['action']
-                    args            = engine_request['args']
-                    kwargs          = engine_request['kwargs']
-                    callback_url    = engine_request['callback_url']
-                    callback_method = engine_request['callback_method']
-                    request         = engine_request['request']
-                    restart_jobid   = engine_request.get('restart_jobid', None)
+                    action           = engine_request['action']
+                    args             = engine_request['args']
+                    kwargs           = engine_request['kwargs']
+                    callback_url     = engine_request['callback_url']
+                    callback_method  = engine_request['callback_method']
+                    request          = engine_request['request']
+                    restart_jobid    = engine_request.get('restart_jobid', None)
+                    restart_received = engine_request.get('restart_received', None)
 
                     if restart_jobid is not None:
                         '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (jobid, restart_jobid, )
                         jobid = restart_jobid
+
+                    if restart_received is not None:
+                        received = restart_received
 
                     ######################################################################
                     # Status: Received (Notify Collector)
@@ -962,20 +984,22 @@ def engine_queue_loop(port_dict, job_counter=0):
                     metadata_notify = {
                         'jobid': jobid,
                         'metadata': {
-                            'jobcounter'      : job_counter,
-                            'action'          : action,
-                            'args'            : args,
-                            'kwargs'          : kwargs,
-                            'callback_url'    : callback_url,
-                            'callback_method' : callback_method,
-                            'request'         : request,
-                            'times'           : {
-                                'received'    : _timestamp(),
-                                'started'     : None,
-                                'runtime'     : None,
-                                'updated'     : None,
-                                'completed'   : None,
-                                'turnaround'  : None,
+                            'jobcounter'         : job_counter,
+                            'action'             : action,
+                            'args'               : args,
+                            'kwargs'             : kwargs,
+                            'callback_url'       : callback_url,
+                            'callback_method'    : callback_method,
+                            'request'            : request,
+                            'times'              : {
+                                'received'       : received,
+                                'started'        : None,
+                                'updated'        : None,
+                                'completed'      : None,
+                                'runtime'        : None,
+                                'turnaround'     : None,
+                                'runtime_sec'    : None,
+                                'turnaround_sec' : None,
                             }
                         },
                         'action': 'metadata',
@@ -1330,10 +1354,10 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 try:
                     assert runtime is None
                     TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                    started = ' '.join(started.split(' ')[:-1])
-                    completed = ' '.join(completed.split(' ')[:-1])
-                    started_date = datetime.strptime(started, TIMESTAMP_FMTSTR_)
-                    completed_date = datetime.strptime(completed, TIMESTAMP_FMTSTR_)
+                    started_ = ' '.join(started.split(' ')[:-1])
+                    completed_ = ' '.join(completed.split(' ')[:-1])
+                    started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
+                    completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
                     delta = completed_date - started_date
                     total_seconds = int(delta.total_seconds())
                     total_seconds_ = total_seconds
@@ -1344,6 +1368,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
                     seconds = total_seconds
                     args = (hours, minutes, seconds, total_seconds_, )
                     times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                    times['runtime_sec'] = total_seconds_
                 except:
                     times['runtime'] = 'ERROR'
 
@@ -1351,10 +1376,10 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 try:
                     assert turnaround is None
                     TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                    received = ' '.join(received.split(' ')[:-1])
-                    completed = ' '.join(completed.split(' ')[:-1])
-                    received_date = datetime.strptime(received, TIMESTAMP_FMTSTR_)
-                    completed_date = datetime.strptime(completed, TIMESTAMP_FMTSTR_)
+                    received_ = ' '.join(received.split(' ')[:-1])
+                    completed_ = ' '.join(completed.split(' ')[:-1])
+                    received_date = datetime.strptime(received_, TIMESTAMP_FMTSTR_)
+                    completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
                     delta = completed_date - received_date
                     total_seconds = int(delta.total_seconds())
                     total_seconds_ = total_seconds
@@ -1365,6 +1390,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
                     seconds = total_seconds
                     args = (hours, minutes, seconds, total_seconds_, )
                     times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                    times['turnaround_sec'] = total_seconds_
                 except:
                     times['turnaround'] = 'ERROR'
 
@@ -1434,16 +1460,49 @@ def on_collect_request(ibs, collect_request, collecter_data,
         times = metadata.get('times', {})
 
         received   = times.get('received', None)
+        started    = times.get('started', None)
         completed  = times.get('completed', None)
+        runtime    = times.get('runtime', None)
         turnaround = times.get('turnaround', None)
 
-        if turnaround is None and None not in [received, completed]:
+        runtime_sec    = times.get('runtime_sec', None)
+        turnaround_sec = times.get('turnaround_sec', None)
+
+        if runtime_sec is None:
+            runtime = None
+        if turnaround_sec is None:
+            turnaround = None
+
+        if runtime in [None, 'ERROR'] and None not in [started, completed]:
             try:
+                assert runtime is None
                 TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                received = ' '.join(received.split(' ')[:-1])
-                completed = ' '.join(completed.split(' ')[:-1])
-                received_date = datetime.strptime(received, TIMESTAMP_FMTSTR_)
-                completed_date = datetime.strptime(completed, TIMESTAMP_FMTSTR_)
+                started_ = ' '.join(started.split(' ')[:-1])
+                completed_ = ' '.join(completed.split(' ')[:-1])
+                started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
+                completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
+                delta = completed_date - started_date
+                total_seconds = int(delta.total_seconds())
+                total_seconds_ = total_seconds
+                hours = total_seconds // (60 * 60)
+                total_seconds -= hours * 60 * 60
+                minutes = total_seconds // 60
+                total_seconds -= minutes * 60
+                seconds = total_seconds
+                args = (hours, minutes, seconds, total_seconds_, )
+                times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                times['runtime_sec'] = total_seconds_
+            except:
+                times['runtime'] = 'ERROR'
+
+        if turnaround in [None, 'ERROR'] and None not in [received, completed]:
+            try:
+                assert turnaround is None
+                TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
+                received_ = ' '.join(received.split(' ')[:-1])
+                completed_ = ' '.join(completed.split(' ')[:-1])
+                received_date = datetime.strptime(received_, TIMESTAMP_FMTSTR_)
+                completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
                 delta = completed_date - received_date
                 total_seconds = int(delta.total_seconds())
                 total_seconds_ = total_seconds
@@ -1454,6 +1513,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 seconds = total_seconds
                 args = (hours, minutes, seconds, total_seconds_, )
                 times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                times['turnaround_sec'] = total_seconds_
             except:
                 times['turnaround'] = 'ERROR'
 
@@ -1592,17 +1652,19 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 request = {}
 
             json_result[jobid] = {
-                'status'          : status,
-                'jobcounter'      : metadata.get('jobcounter', None),
-                'action'          : metadata.get('action', None),
-                'endpoint'        : request.get('endpoint', None),
-                'function'        : request.get('function', None),
-                'time_received'   : times.get('received', None),
-                'time_started'    : times.get('started', None),
-                'time_runtime'    : times.get('runtime', None),
-                'time_updated'    : times.get('updated', None),
-                'time_completed'  : times.get('completed', None),
-                'time_turnaround' : times.get('turnaround', None),
+                'status'              : status,
+                'jobcounter'          : metadata.get('jobcounter', None),
+                'action'              : metadata.get('action', None),
+                'endpoint'            : request.get('endpoint', None),
+                'function'            : request.get('function', None),
+                'time_received'       : times.get('received', None),
+                'time_started'        : times.get('started', None),
+                'time_runtime'        : times.get('runtime', None),
+                'time_updated'        : times.get('updated', None),
+                'time_completed'      : times.get('completed', None),
+                'time_turnaround'     : times.get('turnaround', None),
+                'time_runtime_sec'    : times.get('runtime_sec', None),
+                'time_turnaround_sec' : times.get('turnaround_sec', None),
             }
 
         metadata = None  # Release memory
