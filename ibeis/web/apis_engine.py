@@ -505,6 +505,11 @@ def start_identify_annots_query(ibs,
     else:
         daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
+    # Ensure that the daid_list is non-empty after filtering out qaid_list
+    daid_remaining_set = set(daid_list) - set(qaid_list)
+    if len(daid_remaining_set) == 0:
+        raise controller_inject.WebInvalidMatchException(qaid_list, daid_list)
+
     # Ensure names
     # FIXME: THE QREQ STRUCTURE SHOULD HANDLE NAMES.
     if qname_list is not None:
