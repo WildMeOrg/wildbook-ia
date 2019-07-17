@@ -975,6 +975,7 @@ def engine_queue_loop(port_dict, job_counter=0):
                                 'runtime'     : None,
                                 'updated'     : None,
                                 'completed'   : None,
+                                'turnaround'  : None,
                             }
                         },
                         'action': 'metadata',
@@ -1301,6 +1302,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
             record = ut.load_cPkl(record_filepath)
             record['completed'] = True
             ut.save_cPkl(record_filepath, record)
+            record = None
 
         shelve_input_filepath = collecter_data.get(jobid, {}).get('input', None)
         if shelve_input_filepath is not None:
@@ -1318,9 +1320,11 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 times['completed'] = _timestamp()
 
             # Calculate runtime
-            started   = times.get('started', None)
-            completed = times.get('completed', None)
-            runtime   = times.get('runtime', None)
+            received   = times.get('received', None)
+            started    = times.get('started', None)
+            completed  = times.get('completed', None)
+            runtime    = times.get('runtime', None)
+            turnaround = times.get('turnaround', None)
 
             if None not in [started, completed]:
                 try:
@@ -1342,6 +1346,27 @@ def on_collect_request(ibs, collect_request, collecter_data,
                     times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
                 except:
                     times['runtime'] = 'ERROR'
+
+            if None not in [received, completed]:
+                try:
+                    assert turnaround is None
+                    TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
+                    received = ' '.join(received.split(' ')[:-1])
+                    completed = ' '.join(completed.split(' ')[:-1])
+                    received_date = datetime.strptime(received, TIMESTAMP_FMTSTR_)
+                    completed_date = datetime.strptime(completed, TIMESTAMP_FMTSTR_)
+                    delta = completed_date - received_date
+                    total_seconds = int(delta.total_seconds())
+                    total_seconds_ = total_seconds
+                    hours = total_seconds // (60 * 60)
+                    total_seconds -= hours * 60 * 60
+                    minutes = total_seconds // 60
+                    total_seconds -= minutes * 60
+                    seconds = total_seconds
+                    args = (hours, minutes, seconds, total_seconds_, )
+                    times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                except:
+                    times['turnaround'] = 'ERROR'
 
             # Save result to shelf
             try:
@@ -1399,6 +1424,45 @@ def on_collect_request(ibs, collect_request, collecter_data,
         }
         print('Register %s' % ut.repr3(collecter_data[jobid]))
         reply['jobid'] = jobid
+
+        # Check if turnaround time has been computed
+        shelve_input_filepath = collecter_data[jobid]['input']
+        shelf = shelve.open(shelve_input_filepath, writeback=True)
+
+        key = str('metadata')
+        metadata = shelf[key]
+        times = metadata.get('times', {})
+
+        received   = times.get('received', None)
+        completed  = times.get('completed', None)
+        turnaround = times.get('turnaround', None)
+
+        if turnaround is None and None not in [received, completed]:
+            try:
+                TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
+                received = ' '.join(received.split(' ')[:-1])
+                completed = ' '.join(completed.split(' ')[:-1])
+                received_date = datetime.strptime(received, TIMESTAMP_FMTSTR_)
+                completed_date = datetime.strptime(completed, TIMESTAMP_FMTSTR_)
+                delta = completed_date - received_date
+                total_seconds = int(delta.total_seconds())
+                total_seconds_ = total_seconds
+                hours = total_seconds // (60 * 60)
+                total_seconds -= hours * 60 * 60
+                minutes = total_seconds // 60
+                total_seconds -= minutes * 60
+                seconds = total_seconds
+                args = (hours, minutes, seconds, total_seconds_, )
+                times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+            except:
+                times['turnaround'] = 'ERROR'
+
+        # Save result to shelf
+        try:
+            shelf[key] = metadata
+        finally:
+            shelf.close()
+        metadata = None  # Release memory
     elif action == 'metadata':
         # From the Engine
         jobid    = collect_request['jobid']
@@ -1528,16 +1592,17 @@ def on_collect_request(ibs, collect_request, collecter_data,
                 request = {}
 
             json_result[jobid] = {
-                'status'         : status,
-                'jobcounter'     : metadata.get('jobcounter', None),
-                'action'         : metadata.get('action', None),
-                'endpoint'       : request.get('endpoint', None),
-                'function'       : request.get('function', None),
-                'time_received'  : times.get('received', None),
-                'time_started'   : times.get('started', None),
-                'time_runtime'   : times.get('runtime', None),
-                'time_updated'   : times.get('updated', None),
-                'time_completed' : times.get('completed', None),
+                'status'          : status,
+                'jobcounter'      : metadata.get('jobcounter', None),
+                'action'          : metadata.get('action', None),
+                'endpoint'        : request.get('endpoint', None),
+                'function'        : request.get('function', None),
+                'time_received'   : times.get('received', None),
+                'time_started'    : times.get('started', None),
+                'time_runtime'    : times.get('runtime', None),
+                'time_updated'    : times.get('updated', None),
+                'time_completed'  : times.get('completed', None),
+                'time_turnaround' : times.get('turnaround', None),
             }
 
         metadata = None  # Release memory

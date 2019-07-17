@@ -307,6 +307,17 @@ class WebInvalidUUIDException(WebException):
         super(WebInvalidUUIDException, self).__init__(message, rawreturn, code)
 
 
+class WebInvalidMatchException(WebException):
+    def __init__(self, qaid_list, daid_list):
+        message = 'The ID request is invalid because the daid_list is empty (after filtering out the qaid_list)'
+        rawreturn = {
+            'qaid_list' : qaid_list,
+            'daid_list' : daid_list,
+        }
+        code = 609
+        super(WebInvalidMatchException, self).__init__(message, rawreturn, code)
+
+
 class WebMissingInput(WebException):
     def __init__(self, message, key=None):
         rawreturn = {}
