@@ -593,7 +593,6 @@ class JobInterface(object):
                         print_(ut.repr3(record_filepath))
                         print_(ut.repr3(record))
 
-                        ut.embed()
                         shelve_path = ibs.get_shelves_path()
                         shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
 
