@@ -3699,14 +3699,17 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
         if species == 'zebra_plains':
             if 'left' in viewpoint:
                 species_dict[species].append(aid)
+                species_dict['zebra'].append(aid)
                 total += 1
         if species == 'zebra_grevys':
             if 'right' in viewpoint:
                 species_dict[species].append(aid)
+                species_dict['zebra'].append(aid)
                 total += 1
         if species == 'zebra_hybrid':
             if 'right' in viewpoint:
                 species_dict[species].append(aid)
+                species_dict['zebra'].append(aid)
                 total += 1
 
     aid_list = species_dict[desired_species]
@@ -3717,12 +3720,13 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
         for metadata_dict in metadata_dict_list
     ]
     new_aid_list = ut.compress(aid_list, ut.not_list(excluded_list))
+    new_aid_list = list(set(new_aid_list))
 
     return new_aid_list
 
 
 @register_ibs_method
-def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, **kwargs):
+def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2016, **kwargs):
 
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
@@ -3738,11 +3742,59 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
 
     new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
-    if tier == 2:
+    if tier in [2, 3]:
         # Get all siblings of these animals
         gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
         current_aids = ut.flatten(ibs.get_image_aids(gid_list))
         new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
+
+    if tier in [3]:
+        include_list = [
+            'Kaia Loops (+)',
+            'More Photo from Loops (+)',
+            'More Photo from Loops3 (+)',
+        ]
+        exclude_list = [
+            ('August', '2015'),
+            ('September', '2015'),
+            ('October', '2015'),
+            ('December', '2015'),
+            ('February', '2016'),
+            ('March', '2016'),
+            ('April', '2016'),
+            ('May', '2016'),
+            ('June', '2016'),
+            ('July', '2016'),
+        ]
+
+        imageset_rowid_list = ibs.get_valid_imgsetids()
+        imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
+
+        new_gid_list = []
+        for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
+            accepted_years = list(map(str, list(range(2015, year + 1))))
+            flag = False
+            for accepted_year in accepted_years:
+                if accepted_year in imageset_text:
+                    flag = True
+            if not flag:
+                continue
+            for include_ in include_list:
+                if include_ in imageset_text:
+                    valid = True
+                    for exclude1, exclude2 in exclude_list:
+                        if exclude1 in imageset_text and exclude2 in imageset_text:
+                            valid = False
+                            break
+                    if valid:
+                        new_gid_list += ibs.get_imageset_gids(imageset_rowid)
+
+        new_gid_list = list(set(new_gid_list))
+        new_aid_list_ = ut.flatten(ibs.get_image_aids(new_gid_list))
+        new_aid_list_ = ibs._princeton_kaia_annot_filtering(new_aid_list_, desired_species)
+
+        new_aid_list = new_aid_list + new_aid_list_
+        new_aid_list = list(set(new_aid_list))
 
     return new_aid_list
 
@@ -3784,14 +3836,17 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(imgsetid, species=None, tier=1, option=None, **kwargs):
+def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2016, option=None, **kwargs):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
+        from ibeis.algo.graph import mixin_loops
+        mixin_loops.PRINCETON_KAIA_EDGE_FILTERING = True
+
         assert imgsetid == 3925
 
         assert species in ['zebra_plains', 'zebra_grevys']
-        aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=tier)
+        aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=tier, year=year)
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)

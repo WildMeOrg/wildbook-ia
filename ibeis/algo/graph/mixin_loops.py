@@ -12,6 +12,9 @@ from ibeis.algo.graph.refresh import RefreshCriteria
 print, rrr, profile = ut.inject2(__name__)
 
 
+PRINCETON_KAIA_EDGE_FILTERING = False
+
+
 class InfrLoops(object):
     """
     Algorithm control flow loops
@@ -301,6 +304,15 @@ class InfrLoops(object):
             candgen = serial_gen()
             # else:
             #     candgen = thread_gen()
+
+            include_filter_set = None
+
+            if PRINCETON_KAIA_EDGE_FILTERING:
+                print('[mixin_loops] FILTERING EDGES FOR KAIA')
+                # Sanity check, make sure that one of the edges is in the tier 1 dataset
+                aid_tier1_list = infr.ibs._princeton_kaia_filtering(desired_species='zebra', tier=1)
+                include_filter_set = set(aid_tier1_list)
+
             for new_edges in candgen:
                 if infr.ibs is not None:
                     ibs = infr.ibs
@@ -312,6 +324,9 @@ class InfrLoops(object):
                             continue
                         if q2 is not None and q2 < ibs.const.QUAL.OK:
                             continue
+                        if include_filter_set is not None:
+                            if u not in include_filter_set and v not in include_filter_set:
+                                continue
                         valid_edges.append((u, v))
                     if len(valid_edges) > 0:
                         yield valid_edges
