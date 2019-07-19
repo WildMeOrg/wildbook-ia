@@ -451,30 +451,30 @@ def heartbeat(ibs, *args, **kwargs):
             'production': str(int(ibs.production)),
         })
 
-    job_status_dict = ibs.get_job_status()['json_result']
-    job_uuid_list = list(job_status_dict.keys())
+        job_status_dict = ibs.get_job_status()['json_result']
+        job_uuid_list = list(job_status_dict.keys())
 
-    status_dict = {
-        'received'   : 0,
-        'accepted'   : 0,
-        'queued'     : 0,
-        'working'    : 0,
-        'publishing' : 0,
-        'completed'  : 0,
-        'exception'  : 0,
-        'suppressed' : 0,
-    }
-    for job_uuid in job_uuid_list:
-        job_status = job_status_dict[job_uuid]
-        status = job_status['status']
-        if status not in status_dict:
-            print('UNRECOGNIZED STATUS %r' % (status, ))
-        status_dict[status] += 1
+        status_dict = {
+            'received'   : 0,
+            'accepted'   : 0,
+            'queued'     : 0,
+            'working'    : 0,
+            'publishing' : 0,
+            'completed'  : 0,
+            'exception'  : 0,
+            'suppressed' : 0,
+        }
+        for job_uuid in job_uuid_list:
+            job_status = job_status_dict[job_uuid]
+            status = job_status['status']
+            if status not in status_dict:
+                print('UNRECOGNIZED STATUS %r' % (status, ))
+            status_dict[status] += 1
 
-    print(ut.repr3(status_dict))
-    for status in status_dict:
-        number = status_dict[status]
-        PROMETHEUS_DATA['engine'].labels(status=status).set(number)
+        print(ut.repr3(status_dict))
+        for status in status_dict:
+            number = status_dict[status]
+            PROMETHEUS_DATA['engine'].labels(status=status).set(number)
 
     return True
 
