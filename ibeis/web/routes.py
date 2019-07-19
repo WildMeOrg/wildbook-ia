@@ -3687,7 +3687,9 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
 @register_ibs_method
 def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
     total = 0
-    species_dict = {}
+    species_dict = {
+        'zebra': []
+    }
     species_list = ibs.get_annot_species_texts(current_aids)
     viewpoint_list = ibs.get_annot_viewpoints(current_aids)
     for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
