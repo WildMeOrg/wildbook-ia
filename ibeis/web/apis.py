@@ -471,7 +471,7 @@ def heartbeat(ibs, *args, **kwargs):
                 print('UNRECOGNIZED STATUS %r' % (status, ))
             status_dict[status] += 1
 
-        print(ut.repr3(status_dict))
+        # print(ut.repr3(status_dict))
         for status in status_dict:
             number = status_dict[status]
             PROMETHEUS_DATA['engine'].labels(status=status).set(number)
