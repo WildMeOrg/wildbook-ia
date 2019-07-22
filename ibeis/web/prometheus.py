@@ -1,6 +1,9 @@
 from prometheus_client import Info, Gauge, Enum
 # import ibeis
 
+PROMETHEUS_COUNTER = 0
+PROMETHEUS_LIMIT = 5
+
 PROMETHEUS_DATA = {
     'info'    : Info('ibeis_db', 'Description of IBEIS database'),
     'engine'  : Gauge('ibeis_engine_jobs', 'Job engine status', ['status']),
