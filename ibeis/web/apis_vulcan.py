@@ -167,7 +167,7 @@ def vulcan_core_specification_swagger(*args, **kwargs):
 
 
 @register_api(_prefix('status'), methods=['GET'], __api_plural_check__=False)
-def vulcan_core_status(*args, **kwargs):
+def vulcan_core_status(ibs, *args, **kwargs):
     r"""
     Returns the health status of the API back-end; optionally can be used as a service heatbeat.
     ---
@@ -189,6 +189,7 @@ def vulcan_core_status(*args, **kwargs):
         - application/json:
             status: healthy
     """
+    ibs.heartbeat()
     status = 'healthy'
     return {'status': status}
 
