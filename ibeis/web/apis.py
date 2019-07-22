@@ -15,7 +15,7 @@ import utool as ut
 import vtool as vt
 import uuid as uuid_module
 import six
-from ibeis.web.app import PROMETHEUS, PROMETHEUS_DATA
+from ibeis.web.app import PROMETHEUS, PROMETHEUS_DATA, PROMETHEUS_COUNTER, PROMETHEUS_LIMIT
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -442,39 +442,47 @@ def heartbeat(ibs, *args, **kwargs):
     # ut.embed()
 
     if PROMETHEUS:
-        PROMETHEUS_DATA['info'].info({
-            'uuid': str(ibs.get_db_init_uuid()),
-            'dbname': ibs.dbname,
-            'hostname': ut.get_computer_name(),
-            'version': ibs.db.get_db_version(),
-            'containerized': str(int(ibs.containerized)),
-            'production': str(int(ibs.production)),
-        })
+        global PROMETHEUS_COUNTER
 
-        job_status_dict = ibs.get_job_status()['json_result']
-        job_uuid_list = list(job_status_dict.keys())
+        PROMETHEUS_COUNTER = PROMETHEUS_COUNTER + 1  # NOQA
+        print('PROMETHEUS LIMIT %d / %d' % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))
 
-        status_dict = {
-            'received'   : 0,
-            'accepted'   : 0,
-            'queued'     : 0,
-            'working'    : 0,
-            'publishing' : 0,
-            'completed'  : 0,
-            'exception'  : 0,
-            'suppressed' : 0,
-        }
-        for job_uuid in job_uuid_list:
-            job_status = job_status_dict[job_uuid]
-            status = job_status['status']
-            if status not in status_dict:
-                print('UNRECOGNIZED STATUS %r' % (status, ))
-            status_dict[status] += 1
+        if PROMETHEUS_COUNTER >= PROMETHEUS_LIMIT:
+            PROMETHEUS_COUNTER = 0
 
-        # print(ut.repr3(status_dict))
-        for status in status_dict:
-            number = status_dict[status]
-            PROMETHEUS_DATA['engine'].labels(status=status).set(number)
+            PROMETHEUS_DATA['info'].info({
+                'uuid': str(ibs.get_db_init_uuid()),
+                'dbname': ibs.dbname,
+                'hostname': ut.get_computer_name(),
+                'version': ibs.db.get_db_version(),
+                'containerized': str(int(ibs.containerized)),
+                'production': str(int(ibs.production)),
+            })
+
+            job_status_dict = ibs.get_job_status()['json_result']
+            job_uuid_list = list(job_status_dict.keys())
+
+            status_dict = {
+                'received'   : 0,
+                'accepted'   : 0,
+                'queued'     : 0,
+                'working'    : 0,
+                'publishing' : 0,
+                'completed'  : 0,
+                'exception'  : 0,
+                'suppressed' : 0,
+            }
+            for job_uuid in job_uuid_list:
+                job_status = job_status_dict[job_uuid]
+                status = job_status['status']
+                if status not in status_dict:
+                    print('UNRECOGNIZED STATUS %r' % (status, ))
+                status_dict[status] += 1
+
+            # print(ut.repr3(status_dict))
+            for status in status_dict:
+                number = status_dict[status]
+                PROMETHEUS_DATA['engine'].labels(status=status).set(number)
 
     return True
 

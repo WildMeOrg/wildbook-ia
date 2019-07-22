@@ -7,6 +7,7 @@ import tornado.wsgi
 import tornado.httpserver
 import logging
 import socket
+import numpy as np
 from ibeis.control import controller_inject
 from ibeis.web import apis_engine
 from ibeis.web import job_engine
@@ -21,9 +22,13 @@ try:
     from ibeis.web import prometheus  # NOQA
     PROMETHEUS = True
     PROMETHEUS_DATA = prometheus.PROMETHEUS_DATA
+    PROMETHEUS_COUNTER = prometheus.PROMETHEUS_COUNTER
+    PROMETHEUS_LIMIT = prometheus.PROMETHEUS_LIMIT
 except ImportError:
     PROMETHEUS = False
     PROMETHEUS_DATA = {}
+    PROMETHEUS_COUNTER = 0
+    PROMETHEUS_LIMIT = np.inf
 
 
 def tst_html_error():
