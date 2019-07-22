@@ -19,6 +19,8 @@ from ibeis.web.app import PROMETHEUS, PROMETHEUS_DATA, PROMETHEUS_COUNTER, PROME
 print, rrr, profile = ut.inject2(__name__)
 
 
+CLASS_INJECT_KEY, register_ibs_method = (
+    controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -439,6 +441,7 @@ def hello_world(*args, **kwargs):
     print('L____________ HELLO WORLD ____________')
 
 
+@register_ibs_method
 @register_api('/api/test/heartbeat/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def heartbeat(ibs, *args, **kwargs):
     """
@@ -446,47 +449,51 @@ def heartbeat(ibs, *args, **kwargs):
     # ut.embed()
 
     if PROMETHEUS:
-        global PROMETHEUS_COUNTER
+        with ut.Timer('PROMETHEUS ENGINE'):
+            global PROMETHEUS_COUNTER
 
-        PROMETHEUS_COUNTER = PROMETHEUS_COUNTER + 1  # NOQA
-        print('PROMETHEUS LIMIT %d / %d' % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))
+            PROMETHEUS_COUNTER = PROMETHEUS_COUNTER + 1  # NOQA
+            # print('PROMETHEUS LIMIT %d / %d' % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))
 
-        if PROMETHEUS_COUNTER >= PROMETHEUS_LIMIT:
-            PROMETHEUS_COUNTER = 0
+            if PROMETHEUS_COUNTER >= PROMETHEUS_LIMIT:
+                PROMETHEUS_COUNTER = 0
 
-            PROMETHEUS_DATA['info'].info({
-                'uuid': str(ibs.get_db_init_uuid()),
-                'dbname': ibs.dbname,
-                'hostname': ut.get_computer_name(),
-                'version': ibs.db.get_db_version(),
-                'containerized': str(int(ibs.containerized)),
-                'production': str(int(ibs.production)),
-            })
+                with ut.Timer('PROMETHEUS IBEIS STATUS'):
+                    PROMETHEUS_DATA['info'].info({
+                        'uuid': str(ibs.get_db_init_uuid()),
+                        'dbname': ibs.dbname,
+                        'hostname': ut.get_computer_name(),
+                        'version': ibs.db.get_db_version(),
+                        'containerized': str(int(ibs.containerized)),
+                        'production': str(int(ibs.production)),
+                    })
 
-            job_status_dict = ibs.get_job_status()['json_result']
-            job_uuid_list = list(job_status_dict.keys())
+                with ut.Timer('PROMETHEUS ENGINE JOB STATUS'):
+                    job_status_dict = ibs.get_job_status()['json_result']
 
-            status_dict = {
-                'received'   : 0,
-                'accepted'   : 0,
-                'queued'     : 0,
-                'working'    : 0,
-                'publishing' : 0,
-                'completed'  : 0,
-                'exception'  : 0,
-                'suppressed' : 0,
-            }
-            for job_uuid in job_uuid_list:
-                job_status = job_status_dict[job_uuid]
-                status = job_status['status']
-                if status not in status_dict:
-                    print('UNRECOGNIZED STATUS %r' % (status, ))
-                status_dict[status] += 1
+                job_uuid_list = list(job_status_dict.keys())
+                status_dict = {
+                    'received'   : 0,
+                    'accepted'   : 0,
+                    'queued'     : 0,
+                    'working'    : 0,
+                    'publishing' : 0,
+                    'completed'  : 0,
+                    'exception'  : 0,
+                    'suppressed' : 0,
+                }
+                for job_uuid in job_uuid_list:
+                    job_status = job_status_dict[job_uuid]
+                    status = job_status['status']
+                    if status not in status_dict:
+                        print('UNRECOGNIZED STATUS %r' % (status, ))
+                    status_dict[status] += 1
 
-            # print(ut.repr3(status_dict))
-            for status in status_dict:
-                number = status_dict[status]
-                PROMETHEUS_DATA['engine'].labels(status=status).set(number)
+                # print(ut.repr3(status_dict))
+                with ut.Timer('PROMETHEUS ENGINE UPDATE'):
+                    for status in status_dict:
+                        number = status_dict[status]
+                        PROMETHEUS_DATA['engine'].labels(status=status).set(number)
 
     return True
 
