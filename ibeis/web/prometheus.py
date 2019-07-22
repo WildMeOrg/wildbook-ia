@@ -3,6 +3,7 @@ from prometheus_client import Info, Gauge, Enum
 
 PROMETHEUS_DATA = {
     'info'    : Info('ibeis_db', 'Description of IBEIS database'),
-    'images'  : Gauge('ibeis_db_images', 'Number of Images'),
-    'status'  : Enum('ibeis_engine_status', 'The current status of the job engine', states=['waiting', 'queued', 'working', 'stopped', 'error'])
+    'engine'  : Gauge('ibeis_engine_jobs', 'Job engine status', ['status']),
+    # 'images'  : Gauge('ibeis_db_images', 'Number of Images'),
+    # 'status'  : Enum('ibeis_engine_status', 'The current status of the job engine', states=['waiting', 'queued', 'working', 'stopped', 'error'])
 }

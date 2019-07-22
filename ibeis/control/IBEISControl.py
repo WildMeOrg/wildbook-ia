@@ -45,7 +45,6 @@ from ibeis.init import sysres
 from ibeis.dbio import ingest_hsdb
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
-from ibeis.web.app import PROMETHEUS, PROMETHEUS_DATA
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__)
@@ -322,16 +321,6 @@ class IBEISController(BASE_CLASS):
 
         # Hack to store HTTPS flag (deliver secure content in web)
         ibs.https = const.HTTPS
-
-        if PROMETHEUS:
-            PROMETHEUS_DATA['info'].info({
-                'uuid': str(ibs.get_db_init_uuid()),
-                'dbname': ibs.dbname,
-                'hostname': ut.get_computer_name(),
-                'version': ibs.db.get_db_version(),
-                'containerized': ibs.containerized,
-                'production': ibs.production,
-            })
 
         print('[ibs.__init__] END new IBEISController\n')
 

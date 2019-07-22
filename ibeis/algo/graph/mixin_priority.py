@@ -43,6 +43,18 @@ class Priority(object):
         else:
             tiebreaker = edge
         infr.assert_edge(edge)
+
+        from ibeis.algo.graph.mixin_loops import PRINCETON_KAIA_EDGE_FILTERING
+        if PRINCETON_KAIA_EDGE_FILTERING:
+            print('[Priority._push] FILTERING EDGES FOR KAIA')
+            # Sanity check, make sure that one of the edges is in the tier 1 dataset
+            aid_tier1_list = infr.ibs._princeton_kaia_filtering(desired_species='zebra', tier=1)
+            include_filter_set = set(aid_tier1_list)
+
+            u, v = edge
+            if u not in include_filter_set and v not in include_filter_set:
+                return
+
         # tiebreaker = (chaotic(chaotic(u) + chaotic(v)), u, v)
         infr.queue[edge] = (-priority, tiebreaker)
 

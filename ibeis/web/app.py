@@ -138,8 +138,10 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
                 raise RuntimeError(
                     (('The specified IBEIS web port %d is not available, '
                       'but %d is') % (app.server_port, fallback_port)))
+
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()
+
 
     # Set logging level
     logging.getLogger().setLevel(logging.INFO)

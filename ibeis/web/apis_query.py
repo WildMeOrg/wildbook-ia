@@ -1319,14 +1319,25 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
         if data is None:
             raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
-    edge, priority, data_dict = data
+    from ibeis.algo.graph.mixin_loops import PRINCETON_KAIA_EDGE_FILTERING
 
-    edge_ = [
+    edge, priority, data_dict = data
+    edge = [
         int(edge[0]),
         int(edge[1]),
     ]
+    aid_1, aid_2 = edge
+    annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
+    annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
+
+    if PRINCETON_KAIA_EDGE_FILTERING:
+        # Sanity check, make sure that one of the edges is in the tier 1 dataset
+        aid_tier1_list = ibs._princeton_kaia_filtering(desired_species='zebra', tier=1)
+        aid_tier1_set = set(aid_tier1_list)
+        assert aid_1 in aid_tier1_set or aid_2 in aid_tier1_set, 'Sanity check failed, showing match to user that does not intersect with tier 1'
+
     if previous_edge_list is not None:
-        previous_edge_list.append(edge_)
+        previous_edge_list.append(edge)
         if len(previous_edge_list) > EDGES_MAX:
             cutoff = int(-1.0 * EDGES_MAX)
             previous_edge_list = previous_edge_list[cutoff:]
@@ -1336,10 +1347,6 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     args = (edge, priority, )
     print('Sampled edge %r with priority %0.02f' % args)
     print('Data: ' + ut.repr4(data_dict))
-
-    aid_1, aid_2 = edge
-    annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
-    annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
 
     feat_extract_config = {
         'match_config': ({} if graph_client.extr is None else
