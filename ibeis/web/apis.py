@@ -19,6 +19,8 @@ from ibeis.web.app import PROMETHEUS, PROMETHEUS_DATA, PROMETHEUS_COUNTER, PROME
 print, rrr, profile = ut.inject2(__name__)
 
 
+CLASS_INJECT_KEY, register_ibs_method = (
+    controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -435,6 +437,7 @@ def hello_world(*args, **kwargs):
     print('L____________ HELLO WORLD ____________')
 
 
+@register_ibs_method
 @register_api('/api/test/heartbeat/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def heartbeat(ibs, *args, **kwargs):
     """

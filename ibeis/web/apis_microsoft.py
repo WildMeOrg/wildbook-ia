@@ -324,7 +324,7 @@ def microsoft_core_specification_swagger(*args, **kwargs):
 
 
 @register_api(_prefix('status'), methods=['GET'], __api_plural_check__=False)
-def microsoft_core_status(*args, **kwargs):
+def microsoft_core_status(ibs, *args, **kwargs):
     r"""
     Returns the health status of the API back-end; optionally can be used as a service heatbeat.
     ---
@@ -346,6 +346,7 @@ def microsoft_core_status(*args, **kwargs):
           application/json:
             status: healthy
     """
+    ibs.heartbeat()
     status = 'healthy'
     return {'status': status}
 
