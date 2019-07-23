@@ -86,14 +86,14 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             _associate(assoc_dict, name1, name2, imageset_text)
             # _associate(assoc_dict, name, name, time_)
 
-    FILTER_DUPLCATES_KAIA_LOOPS = True
-    if FILTER_DUPLCATES_KAIA_LOOPS:
-        for name1 in assoc_dict:
-            for name2 in assoc_dict[name1]:
-                id_list = sorted(set(assoc_dict[name1][name2]))
-                if len(id_list) > 2:
-                    print(id_list)
-    for
+    # FILTER_DUPLCATES_KAIA_LOOPS = True
+    # if FILTER_DUPLCATES_KAIA_LOOPS:
+    #     for name1 in assoc_dict:
+    #         for name2 in assoc_dict[name1]:
+    #             id_list = sorted(set(assoc_dict[name1][name2]))
+    #             if len(id_list) > 2:
+    #                 print(id_list)
+
     return assoc_dict
 
 
