@@ -91,9 +91,10 @@ def prometheus_update(ibs, *args, **kwargs):
                 assert started is not None
                 TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
                 started_ = ' '.join(started.split(' ')[:-1])
-                started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
                 timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
+                started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
                 current_date = datetime.now(timezone)
+                started_date = started_date.replace(tzinfo=current_date.tzinfo)
                 delta = current_date - started_date
                 total_seconds = int(delta.total_seconds())
                 print('ELAPSED (%s): %d seconds...' % (job_uuid, total_seconds, ))
