@@ -85,6 +85,9 @@ TIMESTAMP_FMTSTR = '%Y-%m-%d %H:%M:%S %Z'
 TIMESTAMP_TIMEZONE = 'US/Pacific'
 
 
+JOB_STATUS_CACHE = {}
+
+
 def update_proctitle(procname, dbname=None):
     try:
         import setproctitle
@@ -1288,6 +1291,8 @@ def on_collect_request(ibs, collect_request, collecter_data,
     """ Run whenever the collector recieves a message """
     import requests
 
+    global JOB_STATUS_CACHE
+
     reply = {
         'status': 'ok',
     }
@@ -1310,6 +1315,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
 
         collecter_data[jobid]['status'] = status
         print('Notify %s' % ut.repr3(collecter_data[jobid]))
+        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
 
         lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
         if status == 'received':
@@ -1449,6 +1455,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
         }
         print('Register %s' % ut.repr3(collecter_data[jobid]))
         reply['jobid'] = jobid
+        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
 
         # Check if turnaround time has been computed
         shelve_input_filepath = collecter_data[jobid]['input']
@@ -1536,6 +1543,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
 
         shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
         collecter_data[jobid]['input'] = shelve_input_filepath
+        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
 
         shelf = shelve.open(shelve_input_filepath, writeback=True)
         try:
@@ -1562,6 +1570,7 @@ def on_collect_request(ibs, collect_request, collecter_data,
 
         shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid, )))
         collecter_data[jobid]['output'] = shelve_output_filepath
+        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
 
         shelf = shelve.open(shelve_output_filepath, writeback=True)
         try:
@@ -1632,39 +1641,45 @@ def on_collect_request(ibs, collect_request, collecter_data,
 
         json_result = {}
         for jobid in collecter_data:
-            status = collecter_data[jobid]['status']
+            job_status_data = JOB_STATUS_CACHE.get(jobid, None)
 
-            shelve_input_filepath = collecter_data[jobid]['input']
-            try:
-                shelf = shelve.open(shelve_input_filepath, 'r')
-            except:
-                shelf = shelve.open(shelve_input_filepath)
-            try:
-                key = str('metadata')
-                metadata = shelf[key]
-            finally:
-                shelf.close()
+            if job_status_data is None:
+                status = collecter_data[jobid]['status']
 
-            times = metadata.get('times', {})
-            request = metadata.get('request', {})
-            if request is None:
-                request = {}
+                shelve_input_filepath = collecter_data[jobid]['input']
+                try:
+                    shelf = shelve.open(shelve_input_filepath, 'r')
+                except:
+                    shelf = shelve.open(shelve_input_filepath)
+                try:
+                    key = str('metadata')
+                    metadata = shelf[key]
+                finally:
+                    shelf.close()
 
-            json_result[jobid] = {
-                'status'              : status,
-                'jobcounter'          : metadata.get('jobcounter', None),
-                'action'              : metadata.get('action', None),
-                'endpoint'            : request.get('endpoint', None),
-                'function'            : request.get('function', None),
-                'time_received'       : times.get('received', None),
-                'time_started'        : times.get('started', None),
-                'time_runtime'        : times.get('runtime', None),
-                'time_updated'        : times.get('updated', None),
-                'time_completed'      : times.get('completed', None),
-                'time_turnaround'     : times.get('turnaround', None),
-                'time_runtime_sec'    : times.get('runtime_sec', None),
-                'time_turnaround_sec' : times.get('turnaround_sec', None),
-            }
+                times = metadata.get('times', {})
+                request = metadata.get('request', {})
+                if request is None:
+                    request = {}
+
+                JOB_STATUS_CACHE[jobid] = {
+                    'status'              : status,
+                    'jobcounter'          : metadata.get('jobcounter', None),
+                    'action'              : metadata.get('action', None),
+                    'endpoint'            : request.get('endpoint', None),
+                    'function'            : request.get('function', None),
+                    'time_received'       : times.get('received', None),
+                    'time_started'        : times.get('started', None),
+                    'time_runtime'        : times.get('runtime', None),
+                    'time_updated'        : times.get('updated', None),
+                    'time_completed'      : times.get('completed', None),
+                    'time_turnaround'     : times.get('turnaround', None),
+                    'time_runtime_sec'    : times.get('runtime_sec', None),
+                    'time_turnaround_sec' : times.get('turnaround_sec', None),
+                }
+                job_status_data = JOB_STATUS_CACHE.get(jobid, None)
+
+            json_result[jobid] = job_status_data
 
         metadata = None  # Release memory
         reply['json_result'] = json_result

@@ -2,7 +2,7 @@ from prometheus_client import Info, Gauge, Enum
 # import ibeis
 
 PROMETHEUS_COUNTER = 0
-PROMETHEUS_LIMIT = 60
+PROMETHEUS_LIMIT = 1
 
 PROMETHEUS_DATA = {
     'info'    : Info('ibeis_db', 'Description of IBEIS database'),
