@@ -13,7 +13,7 @@ from ibeis.web import routes
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
+def get_associations_dict(ibs, desired_species=None, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
     imageset_text_list = ibs.get_imageset_text(imageset_list)
@@ -38,7 +38,7 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
         return species
 
     if ibs.dbname == 'ZEBRA_Kaia':
-        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, tier=tier))
+        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
     else:
         valid_aid_set = set(ibs.get_valid_aids())
 
@@ -54,6 +54,8 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
     for imageset_text, time_, nid_list in zip(imageset_text_list, time_list, nids_list):
         if desired_species is not None:
             if imageset_text in black_list_text_set:
+                continue
+            if 'Candidate Images' in imageset_text:
                 continue
 
             aids_list = ibs.get_name_aids(nid_list)
@@ -83,6 +85,14 @@ def get_associations_dict(ibs, desired_species=None, tier=1, **kwargs):
         for name1, name2 in sorted(list(comb_list)):
             _associate(assoc_dict, name1, name2, imageset_text)
             # _associate(assoc_dict, name, name, time_)
+
+    # FILTER_DUPLCATES_KAIA_LOOPS = True
+    # if FILTER_DUPLCATES_KAIA_LOOPS:
+    #     for name1 in assoc_dict:
+    #         for name2 in assoc_dict[name1]:
+    #             id_list = sorted(set(assoc_dict[name1][name2]))
+    #             if len(id_list) > 2:
+    #                 print(id_list)
 
     return assoc_dict
 
