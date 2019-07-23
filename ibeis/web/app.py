@@ -53,7 +53,13 @@ class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
         timestamp = ut.timestamp()
         request_time = 1000.0 * request.request_time()
 
-        if status_code == 200 and request.uri in ['/api/test/heartbeat/']:
+        quiet_list = [
+            '/api/test/heartbeat',
+            '/api/test/heartbeat/',
+            '/metrics',
+            '/metrics/',
+        ]
+        if status_code == 200 and request.uri in quiet_list:
             return
 
         log_method(
