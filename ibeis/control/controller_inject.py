@@ -477,6 +477,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
     if 'heartbeat' in funcstr:
         pass
+    elif 'metrics' in funcstr:
+        pass
     else:
         print('[TRANSLATE] Calling: %s' % (funcstr,))
 

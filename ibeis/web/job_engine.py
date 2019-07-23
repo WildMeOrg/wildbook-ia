@@ -697,7 +697,7 @@ class JobInterface(object):
     def get_job_id_list(jobiface):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
             print = partial(ut.colorprint, color='teal')
-            if jobiface.verbose >= 1:
+            if False:  # jobiface.verbose >= 1:
                 print('----')
                 print('Request list of job ids')
             pair_msg = dict(action='job_id_list')
@@ -729,7 +729,7 @@ class JobInterface(object):
     def get_job_status_dict(jobiface):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
             print = partial(ut.colorprint, color='teal')
-            if jobiface.verbose >= 1:
+            if False:  # jobiface.verbose >= 1:
                 print('----')
                 print('Request list of job ids')
             pair_msg = dict(action='job_status_dict')
