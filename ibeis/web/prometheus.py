@@ -116,7 +116,7 @@ def prometheus_update(ibs, *args, **kwargs):
                     PROMETHUS_JOB_CACHE_DICT[job_uuid]['turnaround'] = turnaround_sec
                     PROMETHEUS_DATA['turnaround'].observe(turnaround_sec)
 
-            if is_working:
+            if not is_working:
                 PROMETHEUS_DATA['elapsed'].set(0.0)
 
             # print(ut.repr3(status_dict))
