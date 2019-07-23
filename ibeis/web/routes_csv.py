@@ -305,6 +305,7 @@ def get_annotation_special_kaia_dung_samples(**kwargs):
     flag_list = [len(dungsample) > 0 for dungsample in dungsample_list]
     aid_list = ut.compress(aid_list, flag_list)
     dungsample_list = ut.compress(dungsample_list, flag_list)
+    nid_list = ibs.get_annot_nids(aid_list)
     name_list = ibs.get_annot_name_texts(aid_list)
 
     assoc_dict = get_associations_dict(ibs, desired_species='zebra', tier=1)
@@ -396,13 +397,13 @@ def get_annotation_special_kaia_dung_samples(**kwargs):
     else:
         name_header_str = ','.join([ 'ENCOUNTER%d' % (i + 1, ) for i in range(max_length) ])
 
-    zipped_list = zip(name_list, dungsample_list, age_list_, sex_list_, condition_list_, encounter_str_list)
+    zipped_list = sorted(zip(name_list, nid_list, aid_list, dungsample_list, age_list_, sex_list_, condition_list_, encounter_str_list))
     combined_list = [
         ','.join( map(str, list(zipped_)) )
         for zipped_ in zipped_list
     ]
     combined_str = '\n'.join(combined_list)
-    combined_str = 'NAME,DUNGSAMPLE,AGE,SEX,CONDITION,%s\n' % (name_header_str, ) + combined_str
+    combined_str = 'NAME,NID,AID,DUNGSAMPLE,AGE,SEX,CONDITION,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
