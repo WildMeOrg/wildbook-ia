@@ -45,9 +45,11 @@ CONFIG_URL_DICT = {
     'hendrik_elephant_ears_left' : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.elephant.ears.left.py',
     'hendrik_dorsal'             : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.hendrik.dorsal.py',
 
-    'spotted_skunk_v0'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.skunk_spotted.v0.py',
-    'spotted_dolphin_v0'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.dolphin_spotted.v0.py',
     'nassau_grouper_v0'          : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.grouper_nassau.v0.py',
+    'spotted_dolphin_v0'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.dolphin_spotted.v0.py',
+    'spotted_skunk_v0'           : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.skunk_spotted.v0.py',
+
+    'spotted_dolphin_v1'         : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.dolphin_spotted.v1.py',
 
     'seadragon_v0'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.seadragon.v0.py',
     'seadragon_v1'               : 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.seadragon.v1.py',

@@ -356,6 +356,8 @@ class TEST_SPECIES(object):
 
 SPECIES_WITH_DETECTORS = (
     'cheetah',
+    'dolphin_spotted',
+    'dolphin_spotted+fin_dorsal',
     'giraffe_masai',
     'giraffe_reticulated',
     'jaguar',
