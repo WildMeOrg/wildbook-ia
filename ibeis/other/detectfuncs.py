@@ -2711,7 +2711,8 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, species_mapping={},
 def labeler_precision_recall_algo_display(ibs, category_list=None, species_mapping={}, viewpoint_mapping={},
                                           category_mapping=None, fuzzy_dict=None,
                                           figsize=(30, 9), test_gid_set=None,
-                                          use_axis_aligned_chips=False, **kwargs):
+                                          use_axis_aligned_chips=False,
+                                          labeler_weight_filepath=None, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -2732,48 +2733,52 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
 
     print('Compiling raw numbers...')
     kwargs['labeler_algo'] = 'densenet'
-    # kwargs['labeler_weight_filepath'] = 'zebra_v1'
-    # kwargs['labeler_weight_filepath'] = 'seaturtle'
-    # kwargs['labeler_weight_filepath'] = 'giraffe_v1'
-    # kwargs['labeler_weight_filepath'] = 'lynx_v3'
-    # kwargs['labeler_weight_filepath'] = 'seaturtle_v3'
-    # kwargs['labeler_weight_filepath'] = 'jaguar_v3'
-    # kwargs['labeler_weight_filepath'] = 'hendrik_dorsal_v2'
-    # kwargs['labeler_weight_filepath'] = 'spotted_skunk_v0'
-    # kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
-    # kwargs['labeler_weight_filepath'] = 'spotted_dolphin_v0'
-    # kwargs['labeler_weight_filepath'] = 'seadragon_v1'
-    kwargs['labeler_weight_filepath'] = 'seadragon_v2'
+    if labeler_weight_filepath is None:
+        # kwargs['labeler_weight_filepath'] = 'zebra_v1'
+        # kwargs['labeler_weight_filepath'] = 'seaturtle'
+        # kwargs['labeler_weight_filepath'] = 'giraffe_v1'
+        # kwargs['labeler_weight_filepath'] = 'lynx_v3'
+        # kwargs['labeler_weight_filepath'] = 'seaturtle_v3'
+        # kwargs['labeler_weight_filepath'] = 'jaguar_v3'
+        # kwargs['labeler_weight_filepath'] = 'hendrik_dorsal_v2'
+        # kwargs['labeler_weight_filepath'] = 'spotted_skunk_v0'
+        # kwargs['labeler_weight_filepath'] = 'nassau_grouper_v0'
+        # kwargs['labeler_weight_filepath'] = 'spotted_dolphin_v0'
+        # kwargs['labeler_weight_filepath'] = 'seadragon_v1'
+        kwargs['labeler_weight_filepath'] = 'seadragon_v2'
+    else:
+        kwargs['labeler_weight_filepath'] = labeler_weight_filepath
     kwargs['labeler_axis_aligned']    = use_axis_aligned_chips
 
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, species_mapping=species_mapping, viewpoint_mapping=viewpoint_mapping,
                                      test_gid_set=test_gid_set, **kwargs)
 
-    config_list = [
-        # {'label': 'Giraffe',                'category_list': None},
-        # {'label': 'Masai Giraffe',          'category_list': ['giraffe_masai']},
-        # {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
-        # {'label': 'Lynx',                   'category_list': ['lynx_pardinus']},
-        # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
-        # {'label': 'Sea Turtle Head',        'category_list': ['turtle_sea+head']},
-        # {'label': 'Manta',                  'category_list': ['manta_ray_giant']},
-        # {'label': 'Jaguar',                 'category_list': ['jaguar']},
-        # {'label': 'Dorsal Fin',             'category_list': ['dolphin_bottlenose_fin']},
-        # {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
-        # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
-        # {'label': 'Whale Fluke',            'category_list': ['whale_fluke']},
-        # {'label': 'Grevy\'s Zebra',         'category_list': ['zebra_grevys']},
-        # {'label': 'Plains Zebra',           'category_list': ['zebra_plains']},
-        # {'label': 'Spotted Skunk',          'category_list': ['skunk_spotted']},
-        # {'label': 'Nassau Grouper',           'category_list': ['grouper_nassau']},
-        # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
-        # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
-        {'label': 'Weedy SD ',                'category_list': ['seadragon_weedy']},
-        {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
-        {'label': 'Leafy SD ',                'category_list': ['seadragon_leafy']},
-        {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
+    if config_list is None:
+        config_list = [
+            # {'label': 'Giraffe',                'category_list': None},
+            # {'label': 'Masai Giraffe',          'category_list': ['giraffe_masai']},
+            # {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
+            # {'label': 'Lynx',                   'category_list': ['lynx_pardinus']},
+            # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
+            # {'label': 'Sea Turtle Head',        'category_list': ['turtle_sea+head']},
+            # {'label': 'Manta',                  'category_list': ['manta_ray_giant']},
+            # {'label': 'Jaguar',                 'category_list': ['jaguar']},
+            # {'label': 'Dorsal Fin',             'category_list': ['dolphin_bottlenose_fin']},
+            # {'label': 'Reticulated Giraffe',    'category_list': ['giraffe_reticulated']},
+            # {'label': 'Sea Turtle',             'category_list': ['turtle_sea']},
+            # {'label': 'Whale Fluke',            'category_list': ['whale_fluke']},
+            # {'label': 'Grevy\'s Zebra',         'category_list': ['zebra_grevys']},
+            # {'label': 'Plains Zebra',           'category_list': ['zebra_plains']},
+            # {'label': 'Spotted Skunk',          'category_list': ['skunk_spotted']},
+            # {'label': 'Nassau Grouper',           'category_list': ['grouper_nassau']},
+            # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
+            # {'label': 'Spotted Dolphin',           'category_list': ['dolphin_spotted']},
+            {'label': 'Weedy SD ',                'category_list': ['seadragon_weedy']},
+            {'label': 'Weedy Head',               'category_list': ['seadragon_weedy+head']},
+            {'label': 'Leafy SD ',                'category_list': ['seadragon_leafy']},
+            {'label': 'Leafy Head',               'category_list': ['seadragon_leafy+head']},
+        ]
 
-    ]
     color_list = [(0.0, 0.0, 0.0)]
     color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
