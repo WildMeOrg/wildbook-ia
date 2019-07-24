@@ -2712,7 +2712,8 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, species_mappi
                                           category_mapping=None, fuzzy_dict=None,
                                           figsize=(30, 9), test_gid_set=None,
                                           use_axis_aligned_chips=False,
-                                          labeler_weight_filepath=None, **kwargs):
+                                          labeler_weight_filepath=None,
+                                          config_list=None, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
