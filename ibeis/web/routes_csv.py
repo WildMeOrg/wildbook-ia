@@ -72,7 +72,7 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             nid_list = [
                 nid
                 for nid, species in zip(nid_list, species_list)
-                if species == desired_species
+                if species == desired_species or ibs.dbname == 'ZEBRA_Kaia'
             ]
 
         name_list = ibs.get_name_texts(nid_list)
@@ -292,6 +292,118 @@ def get_demographic_info(**kwargs):
     ]
     combined_str = '\n'.join(combined_list)
     combined_str = 'NID,NAME,SEX,AGE\n' + combined_str
+    return appf.send_csv_file(combined_str, filename)
+
+
+@register_route('/csv/princeton/special/kaia-dung-samples/', methods=['GET'])
+def get_annotation_special_kaia_dung_samples(**kwargs):
+    ibs = current_app.ibs
+
+    filename = 'dungsamples.csv'
+    aid_list = ibs.get_valid_aids()
+    dungsample_list = ibs.get_annot_notes(aid_list)
+    flag_list = [len(dungsample) > 0 for dungsample in dungsample_list]
+    aid_list = ut.compress(aid_list, flag_list)
+    dungsample_list = ut.compress(dungsample_list, flag_list)
+    nid_list = ibs.get_annot_nids(aid_list)
+    name_list = ibs.get_annot_name_texts(aid_list)
+
+    assoc_dict = get_associations_dict(ibs, desired_species='zebra', tier=1)
+    encounter_str_list = []
+    max_length = 0
+    for name in name_list:
+        id_list = sorted(set(assoc_dict[name][name]))
+        id_list = [
+            id_.replace(',', ':COMMA:')
+            for id_ in id_list
+        ]
+        max_length = max(max_length, len(id_list))
+        encounter_str = ','.join(id_list)
+        encounter_str_list.append(encounter_str)
+
+    sex_list = ibs.get_annot_sex(aid_list)
+    age_min_list = ibs.get_annot_age_months_est_min(aid_list)
+    age_max_list = ibs.get_annot_age_months_est_max(aid_list)
+    condition_list = ibs.get_annot_qualities(aid_list)
+
+    sex_list_ = []
+    age_list_ = []
+    condition_list_ = []
+    zipped = zip(sex_list, age_min_list, age_max_list, condition_list)
+    for sex_, age_min, age_max, condition_ in zipped:
+        if sex_ == 1:
+            sex_ = 'male'
+        elif sex_ == 0:
+            sex_ = 'female'
+        else:
+            sex_ = 'unknown'
+
+        if age_min is None and age_max == 2:
+            age_ = 'age1'
+        elif age_min == 3 and age_max == 5:
+            age_ = 'age2'
+        elif age_min == 6 and age_max == 11:
+            age_ = 'age3'
+        elif age_min == 12 and age_max == 23:
+            age_ = 'age4'
+        elif age_min == 24 and age_max == 35:
+            age_ = 'age5'
+        elif age_min == 36 and age_max is None:
+            age_ = 'age6'
+        elif age_min is None and age_max is None:
+            age_ = 'unknown'
+        else:
+            age_ = 'unknown'
+
+        if condition_ is None:
+            condition_ = 0
+
+        assert age_ in ['age1', 'age2', 'age3', 'age4', 'age5', 'age6', 'unknown']
+        assert sex_ in ['male', 'female', 'unknown']
+        assert 0 <= condition_ and condition_ <= 5
+
+        if sex_ == 'male':
+            sex_ = 'Male'
+        elif sex_ == 'female':
+            sex_ = 'Female'
+        elif sex_ == 'unknown':
+            sex_ = 'Unknown'
+        else:
+            sex_ = 'Unknown'
+
+        if age_ == 'age1':
+            age_ = '0-3 Months'
+        elif age_ == 'age2':
+            age_ = '3-6 Months'
+        elif age_ == 'age3':
+            age_ = '6-12 Months'
+        elif age_ == 'age4':
+            age_ = 'Yearling'
+        elif age_ == 'age5':
+            age_ = '2-Year-Old'
+        elif age_ == 'age6':
+            age_ = 'Adult'
+        elif age_ == 'unknown':
+            age_ = 'Unknown'
+        else:
+            age_ = 'Unknown'
+
+        sex_list_.append(sex_)
+        age_list_.append(age_)
+        condition_list_.append(condition_)
+
+    if max_length == 1:
+        name_header_str = 'ENCOUTNER'
+    else:
+        name_header_str = ','.join([ 'ENCOUNTER%d' % (i + 1, ) for i in range(max_length) ])
+
+    zipped_list = sorted(zip(name_list, nid_list, aid_list, dungsample_list, age_list_, sex_list_, condition_list_, encounter_str_list))
+    combined_list = [
+        ','.join( map(str, list(zipped_)) )
+        for zipped_ in zipped_list
+    ]
+    combined_str = '\n'.join(combined_list)
+    combined_str = 'NAME,NID,AID,DUNGSAMPLE,AGE,SEX,CONDITION,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
