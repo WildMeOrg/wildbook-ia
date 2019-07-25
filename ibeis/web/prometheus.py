@@ -26,10 +26,6 @@ PROMETHEUS_DATA = {
         'ibeis_elapsed_seconds',
         'Number of elapsed seconds for the current working job',
     ),
-    'elapsed'    : Gauge(
-        'ibeis_elapsed_seconds',
-        'Number of elapsed seconds for the current working job',
-    ),
     'runtime'    : Gauge(
         'ibeis_runtime_seconds',
         'Number of runtime seconds for the current working job',
