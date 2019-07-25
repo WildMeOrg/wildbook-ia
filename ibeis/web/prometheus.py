@@ -109,12 +109,12 @@ def prometheus_update(ibs, *args, **kwargs):
             runtime_sec = job_status.get('time_runtime_sec', None)
             if runtime_sec is not None and 'runtime' not in PROMETHUS_JOB_CACHE_DICT[job_uuid]:
                 PROMETHUS_JOB_CACHE_DICT[job_uuid]['runtime'] = runtime_sec
-                PROMETHEUS_DATA['runtime'].observe(runtime_sec)
+                PROMETHEUS_DATA['runtime'].set(runtime_sec)
 
             turnaround_sec = job_status.get('time_turnaround_sec', None)
             if turnaround_sec is not None and 'turnaround' not in PROMETHUS_JOB_CACHE_DICT[job_uuid]:
                 PROMETHUS_JOB_CACHE_DICT[job_uuid]['turnaround'] = turnaround_sec
-                PROMETHEUS_DATA['turnaround'].observe(turnaround_sec)
+                PROMETHEUS_DATA['turnaround'].set(turnaround_sec)
 
         if not is_working:
             PROMETHEUS_DATA['elapsed'].set(0.0)
