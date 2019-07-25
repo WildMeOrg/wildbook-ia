@@ -1034,6 +1034,7 @@ class FeatConfig(dtool.Config):
     colnames=['num_feats', 'kpts', 'vecs'],
     coltypes=[int, np.ndarray, np.ndarray],
     configclass=FeatConfig,
+    rm_extern_on_delete=True,
     fname='featcache', chunksize=1024,
 )
 def compute_feats(depc, cid_list, config=None):
@@ -1216,6 +1217,7 @@ class FeatWeightConfig(dtool.Config):
     colnames=['fwg'],
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
+    rm_extern_on_delete=True,
     fname='featcache', chunksize=64 if const.PRODUCTION else 512,
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
