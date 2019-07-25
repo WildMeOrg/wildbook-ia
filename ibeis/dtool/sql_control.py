@@ -865,10 +865,16 @@ class SQLDatabaseController(object):
     def get_where_eq_set(db, tblname, colnames, params_iter, where_colnames,
                          unpack_scalars=True, eager=True, op='AND', **kwargs):
         params_iter_ = list(params_iter)
+        params_length = len(params_iter_)
+
+        args = (tblname, params_length, )
+        print('Using sql_control.get_where_eq_set() for %r on %d params' % args)
+
+        if params_length == 0:
+            return []
 
         assert len(where_colnames) == 1
         assert len(params_iter_[0]) == 1
-
         where_colname = where_colnames[0]
         where_set = list(set(ut.flatten(params_iter_)))
 
