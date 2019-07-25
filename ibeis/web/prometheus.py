@@ -26,15 +26,17 @@ PROMETHEUS_DATA = {
         'ibeis_elapsed_seconds',
         'Number of elapsed seconds for the current working job',
     ),
-    'runtime'    : Histogram(
-        'ibeis_runtime_seconds',
-        'Number of seconds to compute results for all completed jobs',
-        buckets=[0, 10, 20, 30, 40, 50, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 900, 1200, 1800, 2400, 3000, 3600, 5400, 7200, 9000, 10800, 18000, 28800, 43200, 86400],
+    'elapsed'    : Gauge(
+        'ibeis_elapsed_seconds',
+        'Number of elapsed seconds for the current working job',
     ),
-    'turnaround' : Histogram(
+    'runtime'    : Gauge(
+        'ibeis_runtime_seconds',
+        'Number of runtime seconds for the current working job',
+    ),
+    'turnaround' : Gauge(
         'ibeis_turnaround_seconds',
-        'Number of seconds to return results for all completed jobs',
-        buckets=[0, 10, 20, 30, 40, 50, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 900, 1200, 1800, 2400, 3000, 3600, 5400, 7200, 9000, 10800, 18000, 28800, 43200, 86400]
+        'Number of turnaround seconds for the current working job',
     ),
 }
 
