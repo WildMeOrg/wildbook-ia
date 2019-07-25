@@ -98,6 +98,7 @@ failed_shelltests.txt
 T*.sh
 tempfile*.txt
 testdb*
+branch.sync.sh
 
 # Place to store all the local data you want to ignore
 localdata
