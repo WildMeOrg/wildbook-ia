@@ -370,6 +370,8 @@ SPECIES_WITH_DETECTORS = (
     'seadragon_weedy',
     'seadragon_weedy+head',
     'skunk_spotted',
+    'stenella_frontalis',
+    'stenella_frontalis+dorsal',
     'turtle_green',
     'turtle_green+head',
     'turtle_hawksbill',
