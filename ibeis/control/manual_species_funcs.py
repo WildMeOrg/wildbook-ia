@@ -282,7 +282,7 @@ def delete_species(ibs, species_rowid_list):
 
 
 @register_ibs_method
-@accessor_decors.deleter
+# @accessor_decors.deleter
 def delete_empty_species(ibs):
     r"""
     deletes empty species from the database
@@ -293,6 +293,7 @@ def delete_empty_species(ibs):
     unused_species_text_set = species_text_set - used_species_text_set
     unused_species_text_list = list(unused_species_text_set)
     unused_species_rowid_list = ibs.get_species_rowids_from_text(unused_species_text_list)
+    print('Deleting unused species: %r' % (unused_species_text_list, ))
     ibs.delete_species(unused_species_rowid_list)
 
 
