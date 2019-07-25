@@ -21,6 +21,7 @@ from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
+import ibeis.constants as const
 #import warnings
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -250,9 +251,19 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     # candetect = (len(unique_species) == 1 and
     #              ibs.has_species_detector(unique_species[0]))
 
+    ut.cprint(
+        'unique_species = %r' % (unique_species, ),
+        'yellow'
+    )
     candetect = True
     for species in set(unique_species):
+        if species == const.UNKNOWN:
+            continue
         if not ibs.has_species_detector(species):
+            ut.cprint(
+                'Species %r is not supported with ibs.has_species_detector()' % (species, ),
+                'yellow'
+            )
             candetect = False
             break
 
@@ -260,7 +271,8 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
         if ut.NOT_QUIET:
             ut.cprint(
                 '[qreq] HACKING FG_WEIGHT OFF (db species is not supported)',
-                'yellow')
+                'yellow'
+            )
             if verbose > 1:
                 if len(unique_species) != 1:
                     print('[qreq]  * len(unique_species) = %r' % len(unique_species))
