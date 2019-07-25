@@ -31,9 +31,6 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 GRAPH_CLIENT_PEEK = 100
 
 
-ANNOT_INFR_PEAK_MAX = 50
-
-
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/query/annot/rowid/', methods=['GET'])
