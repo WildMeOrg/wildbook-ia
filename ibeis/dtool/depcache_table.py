@@ -2275,6 +2275,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             if ut.VERBOSE or len(non_none_rowids) > 0:
                 print('Deleting %d non-None rows from %s' % (
                     len(non_none_rowids), table.tablename))
+                print('...done!')
 
         # Finalize: Delete rows from this table
         if not dry:

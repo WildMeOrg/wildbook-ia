@@ -862,6 +862,31 @@ class SQLDatabaseController(object):
         return db.get_where(tblname, colnames, params_iter, where_clause,
                             unpack_scalars=unpack_scalars, eager=eager, **kwargs)
 
+    def get_where_eq_set(db, tblname, colnames, params_iter, where_colnames,
+                         unpack_scalars=True, eager=True, op='AND', **kwargs):
+        params_iter_ = list(params_iter)
+
+        assert len(where_colnames) == 1
+        assert len(params_iter_[0]) == 1
+
+        where_colname = where_colnames[0]
+        where_set = list(set(ut.flatten(params_iter_)))
+
+        where_set_str = ['%r' % (where_value,) for where_value in where_set]
+
+        operation_fmt = '''
+        SELECT {colnames}
+        FROM {tblname}
+        WHERE {where_colname} IN ( {where_set} )
+        '''
+        fmtdict = {
+            'tblname'       : tblname,
+            'colnames'      : ', '.join(colnames),
+            'where_colname' :  where_colname,
+            'where_set'     : ', '.join(where_set_str),
+        }
+        return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+
     @profile
     def get_where(db, tblname, colnames, params_iter, where_clause,
                   unpack_scalars=True, eager=True,
