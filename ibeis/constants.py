@@ -379,6 +379,9 @@ SPECIES_WITH_DETECTORS = (
     'whale_humpback',
     'zebra_grevys',
     'zebra_plains',
+    'megaptera_novaeangliae',
+    # 'physeter_macrocephalus',
+    'eubalaena_australis',
 )
 
 
