@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+_cached_pairwise_features# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool as vt
@@ -370,7 +370,7 @@ class PairwiseFeatureExtractor(object):
         X[pd.isnull(X)] = np.nan
         X[np.isinf(X)] = np.nan
         # Re-order column names to ensure dimensions are consistent
-        X = X.reindex_axis(sorted(X.columns), axis=1)
+        X = X.reindex(sorted(X.columns), axis=1)
 
         # hack to fix feature validity
         if 'global(speed)' in X.columns:

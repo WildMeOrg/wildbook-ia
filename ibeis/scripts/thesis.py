@@ -560,7 +560,7 @@ class Chap5(DBInputs):
                 order = ['truth', 'decision', 'tags', 'prob_match']
                 order = df.columns.intersection(order)
                 neworder = ut.partial_order(df.columns, order)
-                df = df.reindex_axis(neworder, axis=1)
+                df = df.reindex(neworder, axis=1)
 
                 df_str = df.to_string()
                 cols = ['blue', 'red', 'green', 'teal']
@@ -3492,7 +3492,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
 
         df = pd.DataFrame(infos['qual'])
         df = df.rename(columns={'species_nice': 'Database'})
-        df = df.reindex_axis(ut.partial_order(
+        df = df.reindex(ut.partial_order(
             df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
         df = df.set_index('Database')
         df.index.name = None
@@ -3514,7 +3514,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         order = ut.partial_order(
             df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
                          'B', 'None'])
-        df = df.reindex_axis(order, axis=1)
+        df = df.reindex(order, axis=1)
         df = df.set_index('Database')
         df.index.name = None
         df.index = ut.emap(upper_one, df.index)

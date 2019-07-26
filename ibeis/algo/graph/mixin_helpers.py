@@ -130,7 +130,7 @@ class AttrAccess(object):
 
         part = ['evidence_decision', 'meta_decision', 'tags', 'user_id']
         neworder = ut.partial_order(edge_df.columns, part)
-        edge_df = edge_df.reindex_axis(neworder, axis=1)
+        edge_df = edge_df.reindex(neworder, axis=1)
         if not all:
             edge_df = edge_df.drop(['review_id', 'timestamp', 'timestamp_s1',
                                     'timestamp_c2', 'timestamp_c1'], axis=1)
@@ -250,7 +250,7 @@ class Convenience(object):
                 df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
                 part = ['nid1', 'nid2', 'evidence_decision', 'tags', 'user_id']
                 neworder = ut.partial_order(df.columns, part)
-                df = df.reindex_axis(neworder, axis=1)
+                df = df.reindex(neworder, axis=1)
                 df = df.drop(['review_id', 'timestamp'], axis=1)
             return df
 
