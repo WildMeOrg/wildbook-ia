@@ -5730,7 +5730,7 @@ def get_annot_occurrence_text(ibs, aids):
         >>> print(result)
     """
     imgset_ids = ibs.get_annot_imgsetids(aids)
-    flags = ibs.unflat_map(ibs.get_imageset_isoccurrence, imgset_ids)
+    flags = ibs.unflat_map(ibs.get_imageset_occurrence_flags, imgset_ids)
     #flags = [[text.lower().startswith('occurrence') for text in texts]
     #         for texts in imgset_texts]
     imgset_ids = ut.zipcompress(imgset_ids, flags)

@@ -778,7 +778,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
             assert 'methods' in options, 'An api should always have a specified methods list'
             rule_ = rule + ':'.join(options['methods'])
             if rule_ in API_SEEN_SET:
-                msg = 'An API rule has been duplicated'
+                msg = 'An API rule (%s) has been duplicated' % (rule_, )
                 warnings.warn(msg + '. Ignoring duplicate (may break web)')
                 return ut.identity
                 # raise AssertionError(msg)
