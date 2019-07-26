@@ -382,7 +382,7 @@ SPECIES_WITH_DETECTORS = (
     'zebra_grevys',
     'zebra_plains',
     'megaptera_novaeangliae',
-    # 'physeter_macrocephalus',
+    'physeter_macrocephalus',
     'eubalaena_australis',
 )
 
