@@ -257,6 +257,7 @@ class ChipConfig(dtool.Config):
         # ut.ParamInfo('preserve_aspect', True, hideif=True),
         # ---
         ut.ParamInfo('histeq', False, hideif=False),
+        ut.ParamInfo('greyscale', False, hideif=False),
         # ---
         ut.ParamInfo('adapteq', False, hideif=False),
         ut.ParamInfo('adapteq_ksize', 16, hideif=lambda cfg: not cfg['adapteq']),
@@ -298,7 +299,8 @@ def compute_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        ibeis --tf compute_chip --show
+        python -m ibeis.core_annots --exec-compute_chip:0 --show
+        python -m ibeis.core_annots --exec-compute_chip:0 --show --greyscale
         ibeis --tf compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
         ibeis --tf compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
         ibeis --tf compute_chip --show --db humpbacks
@@ -360,6 +362,7 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
     dim_tol = config['dim_tol']
     resize_dim = config['resize_dim']
     axis_aligned = config['axis_aligned']
+    greyscale    = config['greyscale']
     #cfghashid = config.get_hashid()
 
     if axis_aligned:
@@ -481,6 +484,8 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
         gen = ut.generate2(gen_chip_worker, args_gen, gen_kw, nTasks=len(gpath_list),
                            force_serial=ibs.force_serial)
         for chipBGR, width, height, M in gen:
+            if greyscale:
+                chipBGR = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2GRAY)
             yield chipBGR, width, height, M
     else:
         #arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
@@ -507,6 +512,8 @@ def gen_chip_configure_and_compute(ibs, gid_list, rowid_list, bbox_list, theta_l
             if filter_list:
                 chipBGR = ipreproc.preprocess(chipBGR, filter_list)
             width, height = vt.get_size(chipBGR)
+            if greyscale:
+                chipBGR = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2GRAY)
             yield (chipBGR, width, height, M)
 
 
