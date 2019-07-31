@@ -19,6 +19,7 @@ PRODUCTION    = ut.get_argflag('--production')
 HTTPS         = ut.get_argflag('--https')
 
 
+CONTAINER_NAME = ut.get_argval('--container-name', type_=str, default=ut.get_computer_name())
 ENGINE_SLOT = ut.get_argval('--engine-slot', type_=str, default='default')
 
 

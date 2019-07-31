@@ -98,12 +98,12 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.core_parts',
     'ibeis.algo.smk.vocab_indexer',
     'ibeis.algo.smk.smk_pipeline',
+
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
-    #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
+    (('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
     (('--no-curvrank', '--nocurvrank'), 'ibeis_curvrank._plugin'),
     # 'ibeis_plugin_identification_example',
-    #'ibeis.web.apis_engine',
 ]
 
 """
@@ -266,13 +266,7 @@ class IBEISController(BASE_CLASS):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
-        # HACK
-        try:
-            from ibeis_flukematch import plugin  # NOQA
-        except Exception as ex:
-            msg = ('Cannot import the flukematch plugin. '
-                   'It does not exist or has not been built.')
-            ut.printex(ex, msg, iswarning=True)
+
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
