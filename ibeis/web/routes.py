@@ -60,7 +60,7 @@ def root(**kwargs):
     dbdir = ibs.dbdir
 
     if ibs.containerized:
-        hostname = ut.get_computer_name()
+        hostname = const.CONTAINER_NAME
     else:
         hostname = None
 
