@@ -6,6 +6,7 @@ from ibeis.other import dbinfo
 from ibeis.other import duct_tape
 from ibeis.other import detectgrave
 from ibeis.other import detectcore
+from ibeis.other import detectexport
 from ibeis.other import detectfuncs
 from ibeis.other import detecttrain
 from ibeis.other import ibsfuncs
@@ -65,6 +66,7 @@ def reload_subs(verbose=True):
     get_rrr(dbinfo)(verbose=verbose)
     get_rrr(duct_tape)(verbose=verbose)
     get_rrr(detectfuncs)(verbose=verbose)
+    get_rrr(detectexport)(verbose=verbose)
     get_rrr(detectcore)(verbose=verbose)
     get_rrr(detectgrave)(verbose=verbose)
     get_rrr(detecttrain)(verbose=verbose)
@@ -81,6 +83,7 @@ IMPORT_TUPLES = [
     ('dbinfo', None),
     ('duct_tape', None),
     ('detectfuncs', None),
+    ('detectexport', None),
     ('detectcore', None),
     ('detectgrave', None),
     ('detecttrain', None),

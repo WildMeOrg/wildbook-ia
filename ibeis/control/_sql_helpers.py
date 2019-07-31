@@ -177,8 +177,9 @@ def copy_database(src_fpath, dst_fpath):
     import dtool
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
+    timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
     db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
-                                     inmemory=False)
+                                     inmemory=False, timeout=timeout)
     db.backup(dst_fpath)
 
 
