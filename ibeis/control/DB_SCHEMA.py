@@ -839,7 +839,7 @@ def update_1_3_4(db, ibs=None):
         return yaw
 
     from dtool.sql_control import SQLDatabaseController
-    assert isinstance(db,  SQLDatabaseController)
+    assert isinstance(db, SQLDatabaseController)
 
     db.modify_table(const.IMAGE_TABLE, (
         # Add original image path to image table for more data persistance and
