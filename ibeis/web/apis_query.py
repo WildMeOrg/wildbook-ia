@@ -898,6 +898,16 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
     return result_dict
 
 
+def load_match_image(zebra_query, result):
+    query_uuid = zebra_query[0]['__UUID__']
+    best_annotation_match = result['summary_annot'][0]
+    matching_result = result['cm_dict'][query_uuid]
+    args = (matching_result['dannot_extern_reference'], query_uuid, best_annotation_match['duuid']['__UUID__'], )
+    route = 'query/graph/match/thumb/?extern_reference=%s&query_annot_uuid={"__UUID__":"%s"}&database_annot_uuid={"__UUID__":"%s"}&version=heatmask' % args
+    url = _url(route, postfix=False)
+    src = Image.open(BytesIO(requests.get(url).content))
+
+
 @register_route('/api/query/graph/match/thumb/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
 def query_chips_graph_match_thumb(extern_reference, query_annot_uuid,
                                   database_annot_uuid, version):
