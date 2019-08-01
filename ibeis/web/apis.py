@@ -450,6 +450,32 @@ def heartbeat(ibs, *args, **kwargs):
     return True
 
 
+@register_ibs_method
+@register_api('/api/test/dataset/id/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+def api_test_datasets_id(ibs, dataset, *args, **kwargs):
+    assert dataset in ['zebra', 'dolphin', 'humpback']
+
+    if dataset in ['zebra']:
+        qtext = 'Grevy\'s Zebra Query'
+        dtext = 'Grevy\'s Zebra Database'
+    elif dataset in ['dolphin']:
+        qtext = 'Dorsal Query'
+        dtext = 'Dorsal Database'
+    elif dataset in ['humpback']:
+        qtext = 'Fluke Query'
+        dtext = 'Fluke Database'
+
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text([qtext, dtext])
+    qaid_list, daid_list = ibs.get_imageset_aids(imageset_rowid_list)
+
+    response = {
+        'query'    : qaid_list,
+        'database' : daid_list,
+    }
+
+    return response
+
+
 if __name__ == '__main__':
     """
     CommandLine:

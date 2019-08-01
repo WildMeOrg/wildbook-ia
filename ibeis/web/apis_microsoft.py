@@ -1391,25 +1391,11 @@ def microsoft_get_test_data(ibs, dataset):
       400:
         description: Invalid input parameter
     """
-    assert dataset in ['zebra', 'dolphin', 'humpback']
+    response = ibs.api_test_datasets_id(dataset)
 
-    if dataset in ['zebra']:
-        qtext = 'Grevy\'s Zebra Query'
-        dtext = 'Grevy\'s Zebra Database'
-    elif dataset in ['dolphin']:
-        qtext = 'Dorsal Query'
-        dtext = 'Dorsal Database'
-    elif dataset in ['humpback']:
-        qtext = 'Fluke Query'
-        dtext = 'Fluke Database'
-
-    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text([qtext, dtext])
-    qaid_list, daid_list = ibs.get_imageset_aids(imageset_rowid_list)
-
-    response = {
-        'query'    : [_annotation(ibs, qaid) for qaid in qaid_list],
-        'database' : [_annotation(ibs, daid) for daid in daid_list],
-    }
+    for key in response:
+        aid_list = response[key]
+        response[key] = [_annotation(ibs, aid) for aid in aid_list]
 
     return response
 
