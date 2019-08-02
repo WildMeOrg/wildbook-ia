@@ -106,6 +106,11 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     # 'ibeis_plugin_identification_example',
 ]
 
+if ut.get_argflag('--deepsense'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-deepsense', '--nodeepsense'), 'ibeis_deepsense._plugin'),
+    ]
+
 """
 # Should import
 python -c "import ibeis"
