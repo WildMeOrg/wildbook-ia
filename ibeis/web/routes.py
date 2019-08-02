@@ -3694,7 +3694,7 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
     viewpoint_list = ibs.get_annot_viewpoints(current_aids)
     for aid, species, viewpoint in zip(current_aids, species_list, viewpoint_list):
         if viewpoint is None:
-            print(aid)
+            # print(aid)
             continue
         if species not in species_dict:
             species_dict[species] = []
@@ -3730,6 +3730,47 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 @register_ibs_method
 def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2016, **kwargs):
 
+    include_list = [
+        'Kaia Loops (+)',
+        'More Photo from Loops (+)',
+        'More Photo from Loops3 (+)',
+    ]
+    exclude_list = [
+        ('August', '2015'),
+        ('September', '2015'),
+        ('October', '2015'),
+        ('December', '2015'),
+        ('February', '2016'),
+        ('March', '2016'),
+        ('April', '2016'),
+        ('May', '2016'),
+        ('June', '2016'),
+        ('July', '2016'),
+    ]
+
+    imageset_rowid_list = ibs.get_valid_imgsetids()
+    imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
+
+    valid_imageset_rowid_list = []
+    for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
+        accepted_years = list(map(str, list(range(2015, year + 1))))
+        flag = False
+        for accepted_year in accepted_years:
+            if accepted_year in imageset_text:
+                flag = True
+        if not flag:
+            continue
+        for include_ in include_list:
+            if include_ in imageset_text:
+                valid = True
+                for exclude1, exclude2 in exclude_list:
+                    if exclude1 in imageset_text and exclude2 in imageset_text:
+                        valid = False
+                        break
+                if valid:
+                    valid_imageset_rowid_list.append(imageset_rowid)
+    valid_imageset_rowid_list = list(set(valid_imageset_rowid_list))
+
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
         current_gids = ibs.get_imageset_gids(current_imageset_rowid)
@@ -3751,52 +3792,37 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
         new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
     if tier in [3]:
-        include_list = [
-            'Kaia Loops (+)',
-            'More Photo from Loops (+)',
-            'More Photo from Loops3 (+)',
-        ]
-        exclude_list = [
-            ('August', '2015'),
-            ('September', '2015'),
-            ('October', '2015'),
-            ('December', '2015'),
-            ('February', '2016'),
-            ('March', '2016'),
-            ('April', '2016'),
-            ('May', '2016'),
-            ('June', '2016'),
-            ('July', '2016'),
-        ]
-
-        imageset_rowid_list = ibs.get_valid_imgsetids()
-        imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
-
-        new_gid_list = []
-        for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
-            accepted_years = list(map(str, list(range(2015, year + 1))))
-            flag = False
-            for accepted_year in accepted_years:
-                if accepted_year in imageset_text:
-                    flag = True
-            if not flag:
-                continue
-            for include_ in include_list:
-                if include_ in imageset_text:
-                    valid = True
-                    for exclude1, exclude2 in exclude_list:
-                        if exclude1 in imageset_text and exclude2 in imageset_text:
-                            valid = False
-                            break
-                    if valid:
-                        new_gid_list += ibs.get_imageset_gids(imageset_rowid)
-
-        new_gid_list = list(set(new_gid_list))
+        new_gid_list = list(set(ut.flatten(ibs.get_imageset_gids(valid_imageset_rowid_list))))
         new_aid_list_ = ut.flatten(ibs.get_image_aids(new_gid_list))
         new_aid_list_ = ibs._princeton_kaia_annot_filtering(new_aid_list_, desired_species)
 
         new_aid_list = new_aid_list + new_aid_list_
         new_aid_list = list(set(new_aid_list))
+
+    if tier in [4, 5]:
+        ibs.delete_empty_nids()
+
+        valid_nid_set = set([])
+        new_nid_list = ibs.get_annot_nids(new_aid_list)
+        for new_aid, new_nid in zip(new_aid_list, new_nid_list):
+            if new_nid > 0:
+                valid_nid_set.add(new_nid)
+
+        all_aid_list = ibs.get_valid_aids()
+        all_aid_list = ibs._princeton_kaia_annot_filtering(all_aid_list, desired_species)
+        all_nid_list = ibs.get_annot_nids(all_aid_list)
+        all_flag_list = [all_nid in valid_nid_set for all_nid in all_nid_list]
+
+        named_aid_list = ut.compress(all_aid_list, all_flag_list)
+        new_aid_list = sorted(list(set(new_aid_list + named_aid_list)))
+
+    if tier in [5]:
+        gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
+        imageset_rowid_list = list(set(ut.flatten(ibs.get_image_imgsetids(gid_list))))
+        imageset_rowid_list_ = list(set(imageset_rowid_list) & set(valid_imageset_rowid_list))
+        candidate_aid_list = list(set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_))))
+
+        new_aid_list = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
 
     return new_aid_list
 
@@ -3843,7 +3869,7 @@ def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2016, o
 
     if ibs.dbname == 'ZEBRA_Kaia':
         from ibeis.algo.graph import mixin_loops
-        mixin_loops.PRINCETON_KAIA_EDGE_FILTERING = True
+        mixin_loops.PRINCETON_KAIA_EDGE_LIST = ibs._princeton_kaia_filtering(desired_species='zebra', tier=4)
 
         assert imgsetid == 3925
 

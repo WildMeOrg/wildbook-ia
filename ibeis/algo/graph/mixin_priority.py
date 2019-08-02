@@ -7,6 +7,7 @@ from ibeis import constants as const
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV)
 from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
+from ibeis.algo.graph import mixin_loops
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -44,12 +45,10 @@ class Priority(object):
             tiebreaker = edge
         infr.assert_edge(edge)
 
-        from ibeis.algo.graph.mixin_loops import PRINCETON_KAIA_EDGE_FILTERING
-        if PRINCETON_KAIA_EDGE_FILTERING:
-            print('[Priority._push] FILTERING EDGES FOR KAIA')
+        if mixin_loops.PRINCETON_KAIA_EDGE_LIST is not None:
+            # print('[Priority._push] FILTERING EDGES FOR KAIA')
             # Sanity check, make sure that one of the edges is in the tier 1 dataset
-            aid_tier1_list = infr.ibs._princeton_kaia_filtering(desired_species='zebra', tier=1)
-            include_filter_set = set(aid_tier1_list)
+            include_filter_set = set(mixin_loops.PRINCETON_KAIA_EDGE_LIST)
 
             u, v = edge
             if u not in include_filter_set and v not in include_filter_set:
