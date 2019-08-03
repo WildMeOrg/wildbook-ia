@@ -4089,7 +4089,7 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
                     'algo.hardcase'      : True,
                 }
             elif kaia:
-                print('[routes] Graph is in hardcase-mode')
+                print('[routes] Graph is in Kaia-mode')
                 query_config_dict = {
                     'redun.enabled'   : False,
                 }
