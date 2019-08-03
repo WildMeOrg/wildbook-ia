@@ -3785,7 +3785,7 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
 
     new_aid_list = ibs._princeton_kaia_annot_filtering(current_aids, desired_species)
 
-    if tier in [2, 3]:
+    if tier in [2, 3, 4, 5]:
         # Get all siblings of these animals
         gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
         current_aids = ut.flatten(ibs.get_image_aids(gid_list))
@@ -4082,11 +4082,16 @@ def turk_identification_graph(graph_uuid=None, aid1=None, aid2=None,
             if hardcase:
                 print('[routes] Graph is in hardcase-mode')
                 query_config_dict = {
-                    'ranking.enabled' : False,
+                    'ranking.enabled'    : False,
                     'autoreview.enabled' : False,
+                    'redun.enabled'      : False,
+                    'queue.conf.thresh'  : 'absolutely_sure',
+                    'algo.hardcase'      : True,
+                }
+            elif kaia:
+                print('[routes] Graph is in hardcase-mode')
+                query_config_dict = {
                     'redun.enabled'   : False,
-                    'queue.conf.thresh' : 'absolutely_sure',
-                    'algo.hardcase' : True,
                 }
             else:
                 print('[routes] Graph is not in hardcase-mode')
