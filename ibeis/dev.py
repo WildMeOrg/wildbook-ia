@@ -711,7 +711,7 @@ def devmain():
     #
     #
     # Development code
-    RUN_DEV = True  # RUN_DEV = '__IPYTHON__' in vars()
+    RUN_DEV = True
     if RUN_DEV:
         dev_locals = run_dev(main_locals['ibs'])
         dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')

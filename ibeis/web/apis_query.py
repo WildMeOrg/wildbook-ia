@@ -898,16 +898,6 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
     return result_dict
 
 
-def load_match_image(zebra_query, result):
-    query_uuid = zebra_query[0]['__UUID__']
-    best_annotation_match = result['summary_annot'][0]
-    matching_result = result['cm_dict'][query_uuid]
-    args = (matching_result['dannot_extern_reference'], query_uuid, best_annotation_match['duuid']['__UUID__'], )
-    route = 'query/graph/match/thumb/?extern_reference=%s&query_annot_uuid={"__UUID__":"%s"}&database_annot_uuid={"__UUID__":"%s"}&version=heatmask' % args
-    url = _url(route, postfix=False)
-    src = Image.open(BytesIO(requests.get(url).content))
-
-
 @register_route('/api/query/graph/match/thumb/', methods=['GET'], __route_prefix_check__=False, __route_authenticate__=False)
 def query_chips_graph_match_thumb(extern_reference, query_annot_uuid,
                                   database_annot_uuid, version):
@@ -1326,8 +1316,6 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
         if data is None:
             raise controller_inject.WebReviewNotReadyException(graph_uuid)
 
-    from ibeis.algo.graph.mixin_loops import PRINCETON_KAIA_EDGE_FILTERING
-
     edge, priority, data_dict = data
     edge = [
         int(edge[0]),
@@ -1336,12 +1324,6 @@ def review_graph_match_config_v2(ibs, graph_uuid, aid1=None, aid2=None,
     aid_1, aid_2 = edge
     annot_uuid_1 = str(ibs.get_annot_uuids(aid_1))
     annot_uuid_2 = str(ibs.get_annot_uuids(aid_2))
-
-    if PRINCETON_KAIA_EDGE_FILTERING:
-        # Sanity check, make sure that one of the edges is in the tier 1 dataset
-        aid_tier1_list = ibs._princeton_kaia_filtering(desired_species='zebra', tier=1)
-        aid_tier1_set = set(aid_tier1_list)
-        assert aid_1 in aid_tier1_set or aid_2 in aid_tier1_set, 'Sanity check failed, showing match to user that does not intersect with tier 1'
 
     if previous_edge_list is not None:
         previous_edge_list.append(edge)
