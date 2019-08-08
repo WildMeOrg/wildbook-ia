@@ -79,11 +79,6 @@ def ensure_qtapp():
             print('[guitool] Using parent QApplication')
         QAPP = parent_qapp
         IS_ROOT_WINDOW = False
-    try:
-        # You are not root if you are in IPYTHON
-        __IPYTHON__
-    except NameError:
-        pass
     return QAPP, IS_ROOT_WINDOW
 
 
