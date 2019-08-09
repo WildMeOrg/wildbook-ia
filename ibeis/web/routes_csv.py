@@ -52,7 +52,10 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
                 else:
                     species_list = ibs.get_annot_species(aid_list)
                     species = max(set(species_list), key=species_list.count)
-                    flag = species == desired_species
+                    if ibs.dbname == 'ZEBRA_Kaia' and desired_species == 'zebra':
+                        flag = species in ['zebra_plains', 'zebra_grevys']
+                    else:
+                        flag = species == desired_species
                 flag_list.append(flag)
             nid_list = ut.compress(nid_list, flag_list)
 
