@@ -36,48 +36,23 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             dict_[name1][name2] = []
         dict_[name1][name2].append('%s' % (label, ))
 
-    def _get_primary_species(aid_list):
-        if len(aid_list) == 0:
-            species = None
-        else:
-            species_list = ibs.get_annot_species_texts(aid_list)
-            species = max(set(species_list), key=species_list.count)
-        return species
-
-    ut.embed()
-
-    black_list_text_set = set([
-        'Miscellaneous Found Images',
-        'Candidate Images',
-        'LEWA ALL',
-        'MPALA ALL',
-        'SAMBURU ALL',
-    ])
-
     assoc_dict = {}
     for imageset_text, time_, nid_list in zip(imageset_text_list, time_list, nids_list):
         if desired_species is not None:
-            if imageset_text in black_list_text_set:
-                continue
-            if 'Candidate Images' in imageset_text:
-                continue
-
             aids_list = ibs.get_name_aids(nid_list)
-            # Filter for valid aids
-            aids_list = [
-                [
-                    aid_
-                    for aid_ in aid_list_
-                    if aid_ in valid_aid_set
-                ]
-                for aid_list_ in aids_list
-            ]
-            species_list = map(_get_primary_species, aids_list)
-            nid_list = [
-                nid
-                for nid, species in zip(nid_list, species_list)
-                if species == desired_species or ibs.dbname == 'ZEBRA_Kaia'
-            ]
+
+            flag_list = []
+            for nid, aid_list in zip(nid_list, aids_list):
+                aid_list = list(set(aid_list) & set(valid_aid_set))
+                if len(aid_list) == 0:
+                    flag = False
+                else:
+                    species_list = ibs.get_annot_species(aid_list)
+                    species = max(set(species_list), key=species_list.count)
+                    flag = species == desired_species
+                    print(species_list, species)
+                flag_list.append(flag)
+            nid_list = ut.compress(nid_list, flag_list)
 
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
@@ -96,7 +71,16 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
 @register_route('/csv/princeton/associations/list/', methods=['GET'])
 def download_associations_list(**kwargs):
     ibs = current_app.ibs
-    filename = 'associations.list.csv'
+
+    key_str_list = []
+    for key in sorted(kwargs.keys()):
+        key_str = '%s=%s' % (key, kwargs[key], )
+        key_str_list.append(key_str)
+    key_str = '.'.join(key_str_list)
+    if len(key_str) > 0:
+        key_str += '.'
+
+    filename = 'associations.list.%scsv' % (key_str, )
     assoc_dict = get_associations_dict(ibs, **kwargs)
 
     combined_list = []
@@ -132,7 +116,17 @@ def download_associations_list(**kwargs):
 @register_route('/csv/princeton/associations/matrix/', methods=['GET'])
 def download_associations_matrix(**kwargs):
     ibs = current_app.ibs
-    filename = 'associations.matrix.csv'
+
+    key_str_list = []
+    for key in sorted(kwargs.keys()):
+        key_str = '%s=%s' % (key, kwargs[key], )
+        key_str_list.append(key_str)
+    key_str = '.'.join(key_str_list)
+    if len(key_str) > 0:
+        key_str += '.'
+
+    filename = 'associations.matrix.%scsv' % (key_str, )
+
     assoc_dict = get_associations_dict(ibs, **kwargs)
     assoc_list = sorted(assoc_dict.keys())
     max_length = len(assoc_list)
