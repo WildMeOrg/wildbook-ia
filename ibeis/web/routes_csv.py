@@ -33,6 +33,8 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
     ibs.delete_empty_nids()
 
     def _associate(dict_, name1, name2, label):
+        if name2 < name2:
+            name1, name2 = name2, name1
         if name1 not in dict_:
             dict_[name1] = {}
         if name2 not in dict_[name1]:
@@ -135,7 +137,7 @@ def download_associations_matrix(**kwargs):
 
     assoc_dict = get_associations_dict(ibs, **kwargs)
     assoc_list = sorted(assoc_dict.keys())
-    max_length = len(assoc_list)
+    # max_length = len(assoc_list)
 
     combined_list = []
     for index1, name1 in enumerate(assoc_list):
@@ -151,10 +153,11 @@ def download_associations_matrix(**kwargs):
         temp_str = ','.join(temp_list)
         combined_list.append(temp_str)
 
-    if max_length == 1:
-        name_header_str = 'NAME'
-    else:
-        name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
+    # if max_length == 1:
+    #     name_header_str = 'NAME'
+    # else:
+    #     name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
+    name_header_str = ','.join(assoc_list)
     combined_str = '\n'.join(combined_list)
     combined_str = 'MATRIX,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
