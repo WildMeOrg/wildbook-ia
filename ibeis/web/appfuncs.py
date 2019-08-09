@@ -477,13 +477,14 @@ def imageset_annot_demographics_processed(ibs, aid_list):
         aid: -1 not in age and age.count(None) <= 1
         for aid, age in zip(aid_list, age_list)
     }
-    value_list = list(sex_dict.values())
+    value_list = list(age_dict.values())
     print('[demographics] Found %d set age annotations' % (sum(value_list), ))
 
     annots_reviewed = [
         sex_dict.get(aid, True) and age_dict.get(aid, True)
         for aid in aid_list
     ]
+    value_list = list(annots_reviewed.values())
     print('[demographics] Found %d reviewed annotations' % (sum(value_list), ))
     return annots_reviewed
 
