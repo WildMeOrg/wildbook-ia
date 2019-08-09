@@ -464,7 +464,7 @@ def imageset_annot_demographics_processed(ibs, aid_list):
     aid_list_ = ut.filterfalse_items(aid_list, flag_list)
     print('[demographics] Found %d named annotations' % (len(aid_list_), ))
 
-    sex_list = ibs.get_annot_sex(aid_list)
+    sex_list = ibs.get_annot_sex(aid_list_)
     sex_dict = {
         aid: sex in [0, 1, 2]
         for aid, sex in zip(aid_list_, sex_list)

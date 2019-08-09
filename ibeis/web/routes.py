@@ -4495,7 +4495,7 @@ def turk_quality(**kwargs):
 
 
 @register_route('/turk/demographics/', methods=['GET'])
-def turk_demographics(species='zebra_grevys', **kwargs):
+def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
     with ut.Timer('turk_demographics'):
         ibs = current_app.ibs
         imgsetid = request.args.get('imgsetid', '')
@@ -4507,11 +4507,15 @@ def turk_demographics(species='zebra_grevys', **kwargs):
                 aid_list = ut.flatten(ibs.get_image_aids(gid_list))
                 aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
             elif ibs.dbname == 'ZEBRA_Kaia':
-                aid_list = ibs._princeton_kaia_filtering(desired_species=species, **kwargs)
-                print('Using Kaia filtering with %r, found %d annotations' % (kwargs, len(aid_list), ))
+                aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=5, year=2019)
+                nid_list = ibs.get_annot_nids(aid_list)
+                flag_list = [ nid <= 0 for nid in nid_list ]
+                aid_list = ut.filterfalse_items(aid_list, flag_list)
             else:
                 aid_list = ibs.get_valid_aids()
+
             reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
+            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
 
         print('!' * 100)
         print('Demographics Progress')
@@ -4525,16 +4529,12 @@ def turk_demographics(species='zebra_grevys', **kwargs):
             progress = '0.00'
 
         imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
-        aid = request.args.get('aid', '')
-        if len(aid) > 0:
+        if aid is not None:
             aid = int(aid)
+        elif len(aid_list_) == 0:
+            aid = None
         else:
-            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
-            if len(aid_list_) == 0:
-                aid = None
-            else:
-                # aid = aid_list_[0]
-                aid = random.choice(aid_list_)
+            aid = random.choice(aid_list_)
 
         previous = request.args.get('previous', None)
         value_sex = ibs.get_annot_sex([aid])[0]
