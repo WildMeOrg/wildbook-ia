@@ -23,6 +23,9 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
         valid_aid_set = set(ibs.get_valid_aids())
         imageset_list = ibs.get_valid_imgsetids(is_special=False)
 
+    valid_nid_set = ibs.get_annot_nids(valid_aid_set)
+    valid_nid_set = set([nid for nid in valid_nid_set if nid > 0])
+
     imageset_text_list = ibs.get_imageset_text(imageset_list)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
     nids_list = ibs.get_imageset_nids(imageset_list)
@@ -50,10 +53,10 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
                     species_list = ibs.get_annot_species(aid_list)
                     species = max(set(species_list), key=species_list.count)
                     flag = species == desired_species
-                    print(species_list, species)
                 flag_list.append(flag)
             nid_list = ut.compress(nid_list, flag_list)
 
+        nid_list = list(set(nid_list) & valid_nid_set)
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
         for name in name_list:
