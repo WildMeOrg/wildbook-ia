@@ -33,7 +33,7 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
     ibs.delete_empty_nids()
 
     def _associate(dict_, name1, name2, label):
-        if name2 < name2:
+        if name2 < name1:
             name1, name2 = name2, name1
         if name1 not in dict_:
             dict_[name1] = {}
