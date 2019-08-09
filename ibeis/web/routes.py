@@ -1497,6 +1497,7 @@ def view_graphs(sync=False, **kwargs):
 
         species_list = ['zebra_grevys', 'giraffe_reticulated']
         for species in species_list:
+            assert ibs.dbname == 'GGR2-IBEIS'
             aid_list = ibs.check_ggr_valid_aids(aid_list_, species=species, threshold=0.75)
             ibs.set_annot_names_to_different_new_names(aid_list, notify_wildbook=False)
 
@@ -4494,9 +4495,15 @@ def turk_demographics(species='zebra_grevys', **kwargs):
         imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
         with ut.Timer('turk_demographics 0'):
-            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-            aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-            aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+            if ibs.dbname == 'GGR2-IBEIS':
+                gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+                aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+                aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+            elif ibs.dbname == 'ZEBRA_Kaia':
+                aid_list = ibs._princeton_kaia_filtering(desired_species=species, **kwargs)
+                print('Using Kaia filtering with %r, found %d annotations' % (kwargs, len(aid_list), ))
+            else:
+                aid_list = ibs.get_valid_aids()
             reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
 
         print('!' * 100)

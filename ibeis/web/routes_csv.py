@@ -86,14 +86,6 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             _associate(assoc_dict, name1, name2, imageset_text)
             # _associate(assoc_dict, name, name, time_)
 
-    # FILTER_DUPLCATES_KAIA_LOOPS = True
-    # if FILTER_DUPLCATES_KAIA_LOOPS:
-    #     for name1 in assoc_dict:
-    #         for name2 in assoc_dict[name1]:
-    #             id_list = sorted(set(assoc_dict[name1][name2]))
-    #             if len(id_list) > 2:
-    #                 print(id_list)
-
     return assoc_dict
 
 
@@ -105,8 +97,8 @@ def download_associations_list(**kwargs):
 
     combined_list = []
     max_length = 0
-    for name1 in assoc_dict:
-        for name2 in assoc_dict[name1]:
+    for name1 in sorted(assoc_dict.keys()):
+        for name2 in sorted(assoc_dict[name1].keys()):
             id_list = sorted(set(assoc_dict[name1][name2]))
             id_list = [
                 id_.replace(',', ':COMMA:')
@@ -311,7 +303,7 @@ def get_annotation_special_kaia_dung_samples(**kwargs):
     assoc_dict = get_associations_dict(ibs, desired_species='zebra', tier=1)
     encounter_str_list = []
     max_length = 0
-    for name in name_list:
+    for name in sorted(name_list):
         id_list = sorted(set(assoc_dict[name][name]))
         id_list = [
             id_.replace(',', ':COMMA:')

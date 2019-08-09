@@ -1121,7 +1121,9 @@ def submit_quality(**kwargs):
 def submit_demographics(species='zebra_grevys', **kwargs):
     ibs = current_app.ibs
 
-    DAN_SPECIAL_WRITE_AGE_TO_ALL_ANOTATIONS = True
+    GGR_UPDATE_AGE_FOR_ALL_NAMED_ANOTATIONS = False
+    if ibs.dbname in ['GGR-IBEIS', 'GGR2-IBEIS']:
+        GGR_UPDATE_AGE_FOR_ALL_NAMED_ANOTATIONS = True
 
     method = request.form.get('demographics-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -1171,7 +1173,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
 
         ibs.set_annot_sex([aid], [sex])
         nid = ibs.get_annot_name_rowids(aid)
-        if nid is not None and DAN_SPECIAL_WRITE_AGE_TO_ALL_ANOTATIONS:
+        if nid is not None and GGR_UPDATE_AGE_FOR_ALL_NAMED_ANOTATIONS:
             aid_list = ibs.get_name_aids(nid)
         else:
             aid_list = [aid]
