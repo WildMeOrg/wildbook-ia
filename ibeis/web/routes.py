@@ -4512,10 +4512,15 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             elif ibs.dbname == 'ZEBRA_Kaia':
                 global GLOBAL_KAIA_CACHE
                 if species not in GLOBAL_KAIA_CACHE:
-                    aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=5, year=2019)
-                    nid_list = ibs.get_annot_nids(aid_list)
-                    flag_list = [ nid <= 0 for nid in nid_list ]
-                    aid_list = ut.filterfalse_items(aid_list, flag_list)
+                    aid_list_ = ibs._princeton_kaia_filtering(desired_species=species, tier=3, year=2019)
+                    nid_list_ = ibs.get_annot_nids(aid_list_)
+                    flag_list = [ nid > 0 for nid in nid_list_ ]
+                    aid_list = ut.compress(aid_list_, flag_list)
+                    nid_list = ut.compress(nid_list_, flag_list)
+                    nid_list_ = list(set(nid_list_))
+                    nid_list = list(set(nid_list))
+                    print('Checking %d annotations for %d names' % (len(aid_list_), len(nid_list_), ))
+                    print('Found %d annotations for %d names' % (len(aid_list), len(nid_list), ))
                     GLOBAL_KAIA_CACHE[species] = aid_list
                 aid_list = GLOBAL_KAIA_CACHE[species]
             else:
