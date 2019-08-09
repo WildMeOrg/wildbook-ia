@@ -4659,10 +4659,14 @@ def group_review(**kwargs):
 
 
 @register_route('/sightings/', methods=['GET'])
-def sightings(html_encode=True, complete=True, include_images=False, **kwargs):
+def sightings(html_encode=True, complete=True, include_images=False, kaia=False, **kwargs):
     ibs = current_app.ibs
-    sightings = ibs.report_sightings_str(complete=complete, include_images=include_images,
-                                         **kwargs)
+    sightings = ibs.report_sightings_str(
+        complete=complete,
+        include_images=include_images,
+        kaia=kaia,
+        **kwargs
+    )
     if html_encode:
         sightings = sightings.replace('\n', '<br/>')
     return sightings

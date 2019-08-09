@@ -143,10 +143,7 @@ def download_associations_matrix(**kwargs):
     for index1, name1 in enumerate(assoc_list):
         temp_list = [name1]
         for index2, name2 in enumerate(assoc_list):
-            if index2 > index1:
-                value = []
-            else:
-                value = assoc_dict[name1].get(name2, [])
+            value = assoc_dict[name1].get(name2, [])
             value_len = len(value)
             value_str = '' if value_len == 0 else value_len
             temp_list.append('%s' % (value_str, ))
@@ -165,8 +162,10 @@ def download_associations_matrix(**kwargs):
 
 @register_route('/csv/princeton/sightings/', methods=['GET'])
 def download_sightings(**kwargs):
+    ibs = current_app.ibs
     filename = 'sightings.csv'
-    sightings = routes.sightings(html_encode=False, **kwargs)
+    kaia = ibs.dbname == 'ZEBRA_Kaia'
+    sightings = routes.sightings(html_encode=False, kaia=kaia, **kwargs)
     return appf.send_csv_file(sightings, filename)
 
 
