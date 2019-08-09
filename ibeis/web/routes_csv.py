@@ -15,7 +15,14 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 def get_associations_dict(ibs, desired_species=None, **kwargs):
     import itertools
-    imageset_list = ibs.get_valid_imgsetids(is_special=False)
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
+        imageset_list = ibs._princeton_kaia_imageset_filtering(**kwargs)
+    else:
+        valid_aid_set = set(ibs.get_valid_aids())
+        imageset_list = ibs.get_valid_imgsetids(is_special=False)
+
     imageset_text_list = ibs.get_imageset_text(imageset_list)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
     nids_list = ibs.get_imageset_nids(imageset_list)
@@ -37,10 +44,7 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             species = max(set(species_list), key=species_list.count)
         return species
 
-    if ibs.dbname == 'ZEBRA_Kaia':
-        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
-    else:
-        valid_aid_set = set(ibs.get_valid_aids())
+    ut.embed()
 
     black_list_text_set = set([
         'Miscellaneous Found Images',

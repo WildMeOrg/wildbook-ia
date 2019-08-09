@@ -3729,8 +3729,7 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_ibs_method
-def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2016, **kwargs):
-
+def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
     include_list = [
         'Kaia Loops (+)',
         'More Photo from Loops (+)',
@@ -3771,6 +3770,14 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
                 if valid:
                     valid_imageset_rowid_list.append(imageset_rowid)
     valid_imageset_rowid_list = list(set(valid_imageset_rowid_list))
+
+    return valid_imageset_rowid_list
+
+
+@register_ibs_method
+def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2016, **kwargs):
+
+    valid_imageset_rowid_list = ibs._princeton_kaia_imageset_filtering(year=year)
 
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
