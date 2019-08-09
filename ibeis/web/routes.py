@@ -4494,6 +4494,9 @@ def turk_quality(**kwargs):
                          review=review)
 
 
+GLOBAL_KAIA_CACHE = {}
+
+
 @register_route('/turk/demographics/', methods=['GET'])
 def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
     with ut.Timer('turk_demographics'):
@@ -4507,10 +4510,14 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
                 aid_list = ut.flatten(ibs.get_image_aids(gid_list))
                 aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
             elif ibs.dbname == 'ZEBRA_Kaia':
-                aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=5, year=2019)
-                nid_list = ibs.get_annot_nids(aid_list)
-                flag_list = [ nid <= 0 for nid in nid_list ]
-                aid_list = ut.filterfalse_items(aid_list, flag_list)
+                global GLOBAL_KAIA_CACHE
+                if species not in GLOBAL_KAIA_CACHE:
+                    aid_list = ibs._princeton_kaia_filtering(desired_species=species, tier=5, year=2019)
+                    nid_list = ibs.get_annot_nids(aid_list)
+                    flag_list = [ nid <= 0 for nid in nid_list ]
+                    aid_list = ut.filterfalse_items(aid_list, flag_list)
+                    GLOBAL_KAIA_CACHE[species] = aid_list
+                aid_list = GLOBAL_KAIA_CACHE[species]
             else:
                 aid_list = ibs.get_valid_aids()
 
