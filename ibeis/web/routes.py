@@ -3731,8 +3731,8 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 @register_ibs_method
 def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
     whitelist_list = [
-        'Miscellaneous Found Images',
-        'Candidate Images',
+        # 'Miscellaneous Found Images',
+        # 'Candidate Images',
     ]
     include_list = [
         'Kaia Field Season',
