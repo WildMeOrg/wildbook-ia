@@ -17,7 +17,8 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
     import itertools
 
     if ibs.dbname == 'ZEBRA_Kaia':
-        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
+        # valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
+        valid_aid_set = set(ibs.get_valid_aids())
         imageset_list = ibs._princeton_kaia_imageset_filtering(**kwargs)
     else:
         valid_aid_set = set(ibs.get_valid_aids())
