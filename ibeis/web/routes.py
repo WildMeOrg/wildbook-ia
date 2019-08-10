@@ -3731,26 +3731,27 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 @register_ibs_method
 def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
     include_list = [
-        'Kaia Loops (+)',
-        'More Photo from Loops (+)',
-        'More Photo from Loops3 (+)',
+        'Kaia Field Season',
+        'Kaia Loops',
+        'More Photo from Loops',
     ]
     exclude_list = [
-        ('August', '2015'),
-        ('September', '2015'),
-        ('October', '2015'),
-        ('December', '2015'),
-        ('February', '2016'),
-        ('March', '2016'),
-        ('April', '2016'),
-        ('May', '2016'),
-        ('June', '2016'),
-        ('July', '2016'),
+        # ('August', '2015'),
+        # ('September', '2015'),
+        # ('October', '2015'),
+        # ('December', '2015'),
+        # ('February', '2016'),
+        # ('March', '2016'),
+        # ('April', '2016'),
+        # ('May', '2016'),
+        # ('June', '2016'),
+        # ('July', '2016'),
     ]
 
     imageset_rowid_list = ibs.get_valid_imgsetids()
     imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
 
+    invalid_text_list = []
     valid_imageset_rowid_list = []
     for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
         accepted_years = list(map(str, list(range(2015, year + 1))))
@@ -3759,6 +3760,7 @@ def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
             if accepted_year in imageset_text:
                 flag = True
         if not flag:
+            invalid_text_list.append(imageset_text)
             continue
         for include_ in include_list:
             if include_ in imageset_text:
@@ -3769,6 +3771,9 @@ def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
                         break
                 if valid:
                     valid_imageset_rowid_list.append(imageset_rowid)
+                else:
+                    invalid_text_list.append(imageset_text)
+
     valid_imageset_rowid_list = list(set(valid_imageset_rowid_list))
 
     return valid_imageset_rowid_list
