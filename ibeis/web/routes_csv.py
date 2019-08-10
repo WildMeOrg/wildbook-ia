@@ -16,8 +16,6 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 def get_associations_dict(ibs, desired_species=None, **kwargs):
     import itertools
 
-    ut.embed()
-
     if ibs.dbname == 'ZEBRA_Kaia':
         # valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
         valid_aid_set = set(ibs.get_valid_aids())
