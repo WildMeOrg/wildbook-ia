@@ -3729,7 +3729,11 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_ibs_method
-def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
+def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
+    whitelist_list = [
+        'Miscellaneous Found Images',
+        'Candidate Images',
+    ]
     include_list = [
         'Kaia Field Season',
         'Kaia Loops',
@@ -3754,6 +3758,9 @@ def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
     invalid_text_list = []
     valid_imageset_rowid_list = []
     for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
+        if imageset_text in whitelist_list:
+            valid_imageset_rowid_list.append(imageset_rowid)
+            continue
         accepted_years = list(map(str, list(range(2015, year + 1))))
         flag = False
         for accepted_year in accepted_years:
@@ -3780,7 +3787,7 @@ def _princeton_kaia_imageset_filtering(ibs, year=2016, **kwargs):
 
 
 @register_ibs_method
-def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2016, **kwargs):
+def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2019, **kwargs):
 
     valid_imageset_rowid_list = ibs._princeton_kaia_imageset_filtering(year=year)
 
@@ -3877,7 +3884,7 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2016, option=None, **kwargs):
+def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, option=None, **kwargs):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
