@@ -11,6 +11,8 @@ from ibeis.control import DB_SCHEMA
 from ibeis.control import IBEISControl
 from ibeis.control import _sql_helpers
 from ibeis.control import accessor_decors
+from ibeis.control import controller_inject
+from ibeis.control import docker_control
 import utool
 print, rrr, profile = utool.inject2(__name__)
 
@@ -22,6 +24,8 @@ def reload_subs(verbose=True):
     getattr(IBEISControl, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(_sql_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(accessor_decors, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(controller_inject, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(docker_control, 'rrr', lambda verbose: None)(verbose=verbose)
     rrr(verbose=verbose)
 rrrr = reload_subs
 
@@ -30,6 +34,8 @@ IMPORT_TUPLES = [
     ('IBEISControl', None, False),
     ('_sql_helpers', None, False),
     ('accessor_decors', None, False),
+    ('controller_inject', None, False),
+    ('docker_control', None, False),
 ]
 """
 Regen Command:
