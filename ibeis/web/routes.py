@@ -3791,6 +3791,21 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
 
     valid_imageset_rowid_list = ibs._princeton_kaia_imageset_filtering(year=year)
 
+    if tier in [6]:
+        all_aid_list = ibs.get_valid_aids()
+        all_nid_list = ibs.get_annot_nids(all_aid_list)
+        flag_list = [nid > 0 for nid in all_nid_list]
+        new_aid_list = ut.compress(all_aid_list, flag_list)
+        new_nid_list = ut.compress(all_nid_list, flag_list)
+
+        gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
+        imageset_rowid_list = list(set(ut.flatten(ibs.get_image_imgsetids(gid_list))))
+        imageset_rowid_list_ = list(set(imageset_rowid_list) & set(valid_imageset_rowid_list))
+        candidate_aid_list = list(set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_))))
+
+        new_aid_list = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
+
+
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
         current_gids = ibs.get_imageset_gids(current_imageset_rowid)
