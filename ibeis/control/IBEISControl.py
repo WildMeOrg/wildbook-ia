@@ -88,6 +88,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_chip_funcs',
     'ibeis.control.manual_feat_funcs',
     #'ibeis.algo.hots.query_request',
+    'ibeis.control.docker_control',
     'ibeis.web.apis_detect',
     'ibeis.web.apis_engine',
     'ibeis.web.apis_query',
