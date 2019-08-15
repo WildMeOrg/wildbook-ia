@@ -3444,7 +3444,7 @@ def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
 
 
 @register_ibs_method
-def report_sightings(ibs, complete=True, include_images=False, **kwargs):
+def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwargs):
     def sanitize_list(data_list):
         data_list = [ str(data).replace(',', ':COMMA:') for data in list(data_list) ]
         return_str = (','.join(data_list))
@@ -3504,13 +3504,10 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         return header_list, line_list
 
     # Grab primitives
-    if ibs.dbname == 'ZEBRA_Kaia':
-        aid_list = ibs._princeton_kaia_filtering(**kwargs)
+    if complete:
+        aid_list   = ibs.get_valid_aids()
     else:
-        if complete:
-            aid_list   = ibs.get_valid_aids()
-        else:
-            aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+        aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
 
     gid_list       = ibs.get_annot_gids(aid_list)
     bbox_list      = ibs.get_annot_bboxes(aid_list)

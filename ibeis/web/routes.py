@@ -1457,6 +1457,7 @@ def view_graphs(sync=False, **kwargs):
 
         species_list = ['zebra_grevys', 'giraffe_reticulated']
         for species in species_list:
+            assert ibs.dbname == 'GGR2-IBEIS'
             aid_list = ibs.check_ggr_valid_aids(aid_list_, species=species, threshold=0.75)
             ibs.set_annot_names_to_different_new_names(aid_list, notify_wildbook=False)
 
@@ -3760,37 +3761,45 @@ def _princeton_kaia_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_ibs_method
-def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2016, **kwargs):
-
+def _princeton_kaia_imageset_filtering(ibs, year=2019, **kwargs):
+    whitelist_list = [
+        # 'Miscellaneous Found Images',
+        # 'Candidate Images',
+    ]
     include_list = [
-        'Kaia Loops (+)',
-        'More Photo from Loops (+)',
-        'More Photo from Loops3 (+)',
+        'Kaia Field Season',
+        'Kaia Loops',
+        'More Photo from Loops',
     ]
     exclude_list = [
-        ('August', '2015'),
-        ('September', '2015'),
-        ('October', '2015'),
-        ('December', '2015'),
-        ('February', '2016'),
-        ('March', '2016'),
-        ('April', '2016'),
-        ('May', '2016'),
-        ('June', '2016'),
-        ('July', '2016'),
+        # ('August', '2015'),
+        # ('September', '2015'),
+        # ('October', '2015'),
+        # ('December', '2015'),
+        # ('February', '2016'),
+        # ('March', '2016'),
+        # ('April', '2016'),
+        # ('May', '2016'),
+        # ('June', '2016'),
+        # ('July', '2016'),
     ]
 
     imageset_rowid_list = ibs.get_valid_imgsetids()
     imageset_text_list = ibs.get_imageset_text(imageset_rowid_list)
 
+    invalid_text_list = []
     valid_imageset_rowid_list = []
     for imageset_rowid, imageset_text in zip(imageset_rowid_list, imageset_text_list):
+        if imageset_text in whitelist_list:
+            valid_imageset_rowid_list.append(imageset_rowid)
+            continue
         accepted_years = list(map(str, list(range(2015, year + 1))))
         flag = False
         for accepted_year in accepted_years:
             if accepted_year in imageset_text:
                 flag = True
         if not flag:
+            invalid_text_list.append(imageset_text)
             continue
         for include_ in include_list:
             if include_ in imageset_text:
@@ -3801,7 +3810,33 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
                         break
                 if valid:
                     valid_imageset_rowid_list.append(imageset_rowid)
+                else:
+                    invalid_text_list.append(imageset_text)
+
     valid_imageset_rowid_list = list(set(valid_imageset_rowid_list))
+
+    return valid_imageset_rowid_list
+
+
+@register_ibs_method
+def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier=1, year=2019, **kwargs):
+
+    valid_imageset_rowid_list = ibs._princeton_kaia_imageset_filtering(year=year)
+
+    if tier in [6]:
+        all_aid_list = ibs.get_valid_aids()
+        all_nid_list = ibs.get_annot_nids(all_aid_list)
+        flag_list = [nid > 0 for nid in all_nid_list]
+        new_aid_list = ut.compress(all_aid_list, flag_list)
+        new_nid_list = ut.compress(all_nid_list, flag_list)
+
+        gid_list = list(set(ibs.get_annot_gids(new_aid_list)))
+        imageset_rowid_list = list(set(ut.flatten(ibs.get_image_imgsetids(gid_list))))
+        imageset_rowid_list_ = list(set(imageset_rowid_list) & set(valid_imageset_rowid_list))
+        candidate_aid_list = list(set(ut.flatten(ibs.get_imageset_aids(imageset_rowid_list_))))
+
+        new_aid_list = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
+
 
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
@@ -3896,7 +3931,7 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
 
 
 @register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2016, option=None, **kwargs):
+def turk_identification_graph_refer(imgsetid, species=None, tier=1, year=2019, option=None, **kwargs):
     ibs = current_app.ibs
 
     if ibs.dbname == 'ZEBRA_Kaia':
@@ -4518,18 +4553,40 @@ def turk_quality(**kwargs):
                          review=review)
 
 
+GLOBAL_KAIA_CACHE = {}
+
+
 @register_route('/turk/demographics/', methods=['GET'])
-def turk_demographics(species='zebra_grevys', **kwargs):
+def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
     with ut.Timer('turk_demographics'):
         ibs = current_app.ibs
         imgsetid = request.args.get('imgsetid', '')
         imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
         with ut.Timer('turk_demographics 0'):
-            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-            aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-            aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+            if ibs.dbname == 'GGR2-IBEIS':
+                gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+                aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+                aid_list = ibs.check_ggr_valid_aids(aid_list, species=species, threshold=0.75)
+            elif ibs.dbname == 'ZEBRA_Kaia':
+                global GLOBAL_KAIA_CACHE
+                if species not in GLOBAL_KAIA_CACHE:
+                    aid_list_ = ibs.get_valid_aids()
+                    nid_list_ = ibs.get_annot_nids(aid_list_)
+                    flag_list = [ nid > 0 for nid in nid_list_ ]
+                    aid_list = ut.compress(aid_list_, flag_list)
+                    nid_list = ut.compress(nid_list_, flag_list)
+                    nid_list_ = list(set(nid_list_))
+                    nid_list = list(set(nid_list))
+                    print('Checking %d annotations for %d names' % (len(aid_list_), len(nid_list_), ))
+                    print('Found %d annotations for %d names' % (len(aid_list), len(nid_list), ))
+                    GLOBAL_KAIA_CACHE[species] = aid_list
+                aid_list = GLOBAL_KAIA_CACHE[species]
+            else:
+                aid_list = ibs.get_valid_aids()
+
             reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list)
+            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
 
         print('!' * 100)
         print('Demographics Progress')
@@ -4543,16 +4600,12 @@ def turk_demographics(species='zebra_grevys', **kwargs):
             progress = '0.00'
 
         imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
-        aid = request.args.get('aid', '')
-        if len(aid) > 0:
+        if aid is not None:
             aid = int(aid)
+        elif len(aid_list_) == 0:
+            aid = None
         else:
-            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
-            if len(aid_list_) == 0:
-                aid = None
-            else:
-                # aid = aid_list_[0]
-                aid = random.choice(aid_list_)
+            aid = random.choice(aid_list_)
 
         previous = request.args.get('previous', None)
         value_sex = ibs.get_annot_sex([aid])[0]
@@ -4670,10 +4723,14 @@ def group_review(**kwargs):
 
 
 @register_route('/sightings/', methods=['GET'])
-def sightings(html_encode=True, complete=True, include_images=False, **kwargs):
+def sightings(html_encode=True, complete=True, include_images=False, kaia=False, **kwargs):
     ibs = current_app.ibs
-    sightings = ibs.report_sightings_str(complete=complete, include_images=include_images,
-                                         **kwargs)
+    sightings = ibs.report_sightings_str(
+        complete=complete,
+        include_images=include_images,
+        kaia=kaia,
+        **kwargs
+    )
     if html_encode:
         sightings = sightings.replace('\n', '<br/>')
     return sightings

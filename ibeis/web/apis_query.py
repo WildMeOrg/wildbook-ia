@@ -394,7 +394,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke'):
+    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense'):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -528,6 +528,10 @@ def review_query_chips_test(**kwargs):
     elif 'use_curvrank_fluke' in request.args:
         query_config_dict = {
             'pipeline_root' : 'CurvRankFluke'
+        }
+    elif 'use_deepsense' in request.args:
+        query_config_dict = {
+            'pipeline_root' : 'Deepsense'
         }
     else:
         query_config_dict = {}

@@ -15,7 +15,17 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 def get_associations_dict(ibs, desired_species=None, **kwargs):
     import itertools
-    imageset_list = ibs.get_valid_imgsetids(is_special=False)
+
+    if ibs.dbname == 'ZEBRA_Kaia':
+        valid_aid_set = set(ibs.get_valid_aids())
+        imageset_list = ibs._princeton_kaia_imageset_filtering(**kwargs)
+    else:
+        valid_aid_set = set(ibs.get_valid_aids())
+        imageset_list = ibs.get_valid_imgsetids(is_special=False)
+
+    valid_nid_set = ibs.get_annot_nids(valid_aid_set)
+    valid_nid_set = set([nid for nid in valid_nid_set if nid > 0])
+
     imageset_text_list = ibs.get_imageset_text(imageset_list)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
     nids_list = ibs.get_imageset_nids(imageset_list)
@@ -23,58 +33,35 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
     ibs.delete_empty_nids()
 
     def _associate(dict_, name1, name2, label):
+        if name2 < name1:
+            name1, name2 = name2, name1
         if name1 not in dict_:
             dict_[name1] = {}
         if name2 not in dict_[name1]:
             dict_[name1][name2] = []
         dict_[name1][name2].append('%s' % (label, ))
 
-    def _get_primary_species(aid_list):
-        if len(aid_list) == 0:
-            species = None
-        else:
-            species_list = ibs.get_annot_species_texts(aid_list)
-            species = max(set(species_list), key=species_list.count)
-        return species
-
-    if ibs.dbname == 'ZEBRA_Kaia':
-        valid_aid_set = set(ibs._princeton_kaia_filtering(desired_species=desired_species, **kwargs))
-    else:
-        valid_aid_set = set(ibs.get_valid_aids())
-
-    black_list_text_set = set([
-        'Miscellaneous Found Images',
-        'Candidate Images',
-        'LEWA ALL',
-        'MPALA ALL',
-        'SAMBURU ALL',
-    ])
-
     assoc_dict = {}
     for imageset_text, time_, nid_list in zip(imageset_text_list, time_list, nids_list):
         if desired_species is not None:
-            if imageset_text in black_list_text_set:
-                continue
-            if 'Candidate Images' in imageset_text:
-                continue
-
             aids_list = ibs.get_name_aids(nid_list)
-            # Filter for valid aids
-            aids_list = [
-                [
-                    aid_
-                    for aid_ in aid_list_
-                    if aid_ in valid_aid_set
-                ]
-                for aid_list_ in aids_list
-            ]
-            species_list = map(_get_primary_species, aids_list)
-            nid_list = [
-                nid
-                for nid, species in zip(nid_list, species_list)
-                if species == desired_species or ibs.dbname == 'ZEBRA_Kaia'
-            ]
 
+            flag_list = []
+            for nid, aid_list in zip(nid_list, aids_list):
+                aid_list = list(set(aid_list) & set(valid_aid_set))
+                if len(aid_list) == 0:
+                    flag = False
+                else:
+                    species_list = ibs.get_annot_species(aid_list)
+                    species = max(set(species_list), key=species_list.count)
+                    if ibs.dbname == 'ZEBRA_Kaia' and desired_species == 'zebra':
+                        flag = species in ['zebra_plains', 'zebra_grevys']
+                    else:
+                        flag = species == desired_species
+                flag_list.append(flag)
+            nid_list = ut.compress(nid_list, flag_list)
+
+        nid_list = list(set(nid_list) & valid_nid_set)
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
         for name in name_list:
@@ -86,27 +73,28 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             _associate(assoc_dict, name1, name2, imageset_text)
             # _associate(assoc_dict, name, name, time_)
 
-    # FILTER_DUPLCATES_KAIA_LOOPS = True
-    # if FILTER_DUPLCATES_KAIA_LOOPS:
-    #     for name1 in assoc_dict:
-    #         for name2 in assoc_dict[name1]:
-    #             id_list = sorted(set(assoc_dict[name1][name2]))
-    #             if len(id_list) > 2:
-    #                 print(id_list)
-
     return assoc_dict
 
 
 @register_route('/csv/princeton/associations/list/', methods=['GET'])
 def download_associations_list(**kwargs):
     ibs = current_app.ibs
-    filename = 'associations.list.csv'
+
+    key_str_list = []
+    for key in sorted(kwargs.keys()):
+        key_str = '%s=%s' % (key, kwargs[key], )
+        key_str_list.append(key_str)
+    key_str = '.'.join(key_str_list)
+    if len(key_str) > 0:
+        key_str += '.'
+
+    filename = 'associations.list.%scsv' % (key_str, )
     assoc_dict = get_associations_dict(ibs, **kwargs)
 
     combined_list = []
     max_length = 0
-    for name1 in assoc_dict:
-        for name2 in assoc_dict[name1]:
+    for name1 in sorted(assoc_dict.keys()):
+        for name2 in sorted(assoc_dict[name1].keys()):
             id_list = sorted(set(assoc_dict[name1][name2]))
             id_list = [
                 id_.replace(',', ':COMMA:')
@@ -136,29 +124,37 @@ def download_associations_list(**kwargs):
 @register_route('/csv/princeton/associations/matrix/', methods=['GET'])
 def download_associations_matrix(**kwargs):
     ibs = current_app.ibs
-    filename = 'associations.matrix.csv'
+
+    key_str_list = []
+    for key in sorted(kwargs.keys()):
+        key_str = '%s=%s' % (key, kwargs[key], )
+        key_str_list.append(key_str)
+    key_str = '.'.join(key_str_list)
+    if len(key_str) > 0:
+        key_str += '.'
+
+    filename = 'associations.matrix.%scsv' % (key_str, )
+
     assoc_dict = get_associations_dict(ibs, **kwargs)
     assoc_list = sorted(assoc_dict.keys())
-    max_length = len(assoc_list)
+    # max_length = len(assoc_list)
 
     combined_list = []
     for index1, name1 in enumerate(assoc_list):
         temp_list = [name1]
         for index2, name2 in enumerate(assoc_list):
-            if index2 > index1:
-                value = []
-            else:
-                value = assoc_dict[name1].get(name2, [])
+            value = assoc_dict[name1].get(name2, [])
             value_len = len(value)
             value_str = '' if value_len == 0 else value_len
             temp_list.append('%s' % (value_str, ))
         temp_str = ','.join(temp_list)
         combined_list.append(temp_str)
 
-    if max_length == 1:
-        name_header_str = 'NAME'
-    else:
-        name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
+    # if max_length == 1:
+    #     name_header_str = 'NAME'
+    # else:
+    #     name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
+    name_header_str = ','.join(assoc_list)
     combined_str = '\n'.join(combined_list)
     combined_str = 'MATRIX,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
@@ -166,8 +162,10 @@ def download_associations_matrix(**kwargs):
 
 @register_route('/csv/princeton/sightings/', methods=['GET'])
 def download_sightings(**kwargs):
+    ibs = current_app.ibs
     filename = 'sightings.csv'
-    sightings = routes.sightings(html_encode=False, **kwargs)
+    kaia = ibs.dbname == 'ZEBRA_Kaia'
+    sightings = routes.sightings(html_encode=False, kaia=kaia, **kwargs)
     return appf.send_csv_file(sightings, filename)
 
 
@@ -177,10 +175,7 @@ def get_image_info(**kwargs):
     ibs = current_app.ibs
     filename = 'images.csv'
 
-    if ibs.dbname == 'ZEBRA_Kaia':
-        valid_aid_set = set(ibs._princeton_kaia_filtering(**kwargs))
-    else:
-        valid_aid_set = set(ibs.get_valid_aids())
+    valid_aid_set = set(ibs.get_valid_aids())
 
     gid_list = sorted(ibs.get_valid_gids())
     gname_list = ibs.get_image_gnames(gid_list)
@@ -311,7 +306,7 @@ def get_annotation_special_kaia_dung_samples(**kwargs):
     assoc_dict = get_associations_dict(ibs, desired_species='zebra', tier=1)
     encounter_str_list = []
     max_length = 0
-    for name in name_list:
+    for name in sorted(name_list):
         id_list = sorted(set(assoc_dict[name][name]))
         id_list = [
             id_.replace(',', ':COMMA:')

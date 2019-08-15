@@ -360,6 +360,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     WITH_CUSTOM_TPL = True
     WITH_FLUKEMATCH = True
     WITH_CURVRANK = True
+    WITH_DEEPSENSE = True
     #-----------
     # IBEIS project repos
     #-----------
@@ -432,6 +433,11 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     if WITH_CURVRANK:
         ibeis_rman.add_repos([
             'https://github.com/WildbookOrg/ibeis-curvrank-module.git'
+        ])
+
+    if WITH_DEEPSENSE:
+        ibeis_rman.add_repos([
+            'https://github.com/WildbookOrg/ibeis-deepsense-module.git'
         ])
 
     if WITH_PYRF:

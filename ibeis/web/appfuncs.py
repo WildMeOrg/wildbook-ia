@@ -457,27 +457,35 @@ def imageset_part_contour_processed(ibs, part_rowid_list, reviewed_flag_progress
 
 
 def imageset_annot_demographics_processed(ibs, aid_list):
+    print('[demographics] Check %d total annotations' % (len(aid_list), ))
+
     nid_list = ibs.get_annot_nids(aid_list)
-    flag_list = [ nid < 0 for nid in nid_list ]
+    flag_list = [ nid <= 0 for nid in nid_list ]
     aid_list_ = ut.filterfalse_items(aid_list, flag_list)
+    print('[demographics] Found %d named annotations' % (len(aid_list_), ))
 
     sex_list = ibs.get_annot_sex(aid_list_)
-    sex_list = [-2 if sex is None else sex for sex in sex_list]
     sex_dict = {
-        aid: sex >= 0
+        aid: sex in [0, 1, 2]
         for aid, sex in zip(aid_list_, sex_list)
     }
+    value_list = list(sex_dict.values())
+    print('[demographics] Found %d set sex annotations' % (sum(value_list), ))
 
-    age_list = ibs.get_annot_age_months_est(aid_list_)
+    age_list = ibs.get_annot_age_months_est(aid_list)
     age_dict = {
-        aid: -1 not in age and age.count(None) < 2
-        for aid, age in zip(aid_list_, age_list)
+        aid: -1 not in age and age.count(None) <= 1
+        for aid, age in zip(aid_list, age_list)
     }
+    value_list = list(age_dict.values())
+    print('[demographics] Found %d set age annotations' % (sum(value_list), ))
 
     annots_reviewed = [
         sex_dict.get(aid, True) and age_dict.get(aid, True)
         for aid in aid_list
     ]
+    value_list = annots_reviewed
+    print('[demographics] Found %d reviewed annotations' % (sum(value_list), ))
     return annots_reviewed
 
 
