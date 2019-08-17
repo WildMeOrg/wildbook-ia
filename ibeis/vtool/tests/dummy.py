@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from vtool import keypoint as ktool
-import vtool.math as mtool
+import vtool.util_math as mtool
 import numpy as np
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)

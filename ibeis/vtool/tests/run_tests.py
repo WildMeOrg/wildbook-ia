@@ -46,7 +46,7 @@ def run_tests():
             'vtool.linalg',
             'vtool.geometry',
             'vtool.other',
-            'vtool.math',
+            'vtool.util_math',
             'vtool.score_normalization',
             'vtool.test_constrained_matching',
             'vtool.keypoint',

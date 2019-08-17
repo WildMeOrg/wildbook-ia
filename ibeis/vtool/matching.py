@@ -10,15 +10,15 @@ import six
 import warnings
 import pandas as pd
 import utool as ut
+import ubelt as ub
 import numpy as np
 import parse
+from collections import namedtuple
 try:
     import pyhesaff
 except ImportError:
     pyhesaff = None
     pass
-from collections import namedtuple
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 AssignTup = namedtuple('AssignTup', ('fm', 'match_dist', 'norm_fx1', 'norm_dist'))
@@ -98,16 +98,20 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
     # hashid based on the state of the code
     if not apply:
         use_cache = False
-    hashid = ut.hashstr27(ut.get_func_sourcecode(vt.matching.PairwiseMatch))
-    cfgstr = ut.get_dict_hashid(cfgdict) + hashid
-    cacher = ut.Cacher('test_match_v5', cfgstr=cfgstr, appname='vtool',
-                       enabled=use_cache)
+    function_sig = ut.get_func_sourcecode(vt.matching.PairwiseMatch)
+    hashid = ut.hash_data(function_sig)
+    cfgstr = ub.hash_data(cfgdict.items()) + hashid
+    cacher = ub.Cacher(
+        'test_match_v5',
+        cfgstr=cfgstr,
+        appname='vtool',
+        enabled=use_cache
+    )
     match = cacher.tryload()
     annot1 = lazy_test_annot('easy1.png')
     annot2 = lazy_test_annot('easy2.png')
     if match is None or recompute:
         match = vt.PairwiseMatch(annot1, annot2)
-
         if apply:
             match.apply_all(cfgdict)
         cacher.save(match)
@@ -117,8 +121,7 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
     return match
 
 
-@ut.reloadable_class
-class PairwiseMatch(ut.NiceRepr):
+class PairwiseMatch(ub.NiceRepr):
     """
     Newest (Sept-16-2016) object oriented one-vs-one matching interface
 
@@ -145,8 +148,8 @@ class PairwiseMatch(ut.NiceRepr):
 
         match.verbose = False
 
-        match.local_measures = ut.odict([])
-        match.global_measures = ut.odict([])
+        match.local_measures = ub.odict([])
+        match.global_measures = ub.odict([])
         match._inplace_default = False
 
     @staticmethod
@@ -342,7 +345,7 @@ class PairwiseMatch(ut.NiceRepr):
         if match.fm is not None:
             match_.fm = match.fm.copy()
             match_.fs = match.fs.copy()
-        match_.local_measures = ut.map_vals(
+        match_.local_measures = ub.map_vals(
                 lambda a: a.copy(), match.local_measures)
         return match_
 
@@ -352,7 +355,7 @@ class PairwiseMatch(ut.NiceRepr):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.compress(flags, axis=0)
         match_.fs = match.fs.compress(flags, axis=0)
-        match_.local_measures = ut.map_vals(
+        match_.local_measures = ub.map_vals(
                 lambda a: a.compress(flags), match.local_measures)
         return match_
 
@@ -360,7 +363,7 @@ class PairwiseMatch(ut.NiceRepr):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.take(indicies, axis=0)
         match_.fs = match.fs.take(indicies, axis=0)
-        match_.local_measures = ut.map_vals(
+        match_.local_measures = ub.map_vals(
                 lambda a: a.take(indicies), match.local_measures)
         return match_
 
@@ -413,9 +416,8 @@ class PairwiseMatch(ut.NiceRepr):
         ratio_score = (1.0 - ratio)
 
         # remove local measure that can no longer apply
-        ut.delete_dict_keys(match.local_measures, ['sver_err_xy',
-                                                   'sver_err_scale',
-                                                   'sver_err_ori'])
+        match.local_measures = ub.dict_diff(match.local_measures, [
+            'sver_err_xy', 'sver_err_scale', 'sver_err_ori'])
 
         match.local_measures['match_dist'] = match_dist
         match.local_measures['norm_dist'] = norm_dist
@@ -1601,7 +1603,7 @@ def normalized_nearest_neighbors(flann1, vecs2, K, checks=800):
 
 def assign_symmetric_matches(fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist,
                              K, Knorm=None):
-    """
+    r"""
     import vtool as vt
     from vtool.matching import *
     K = 2
@@ -1909,11 +1911,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.matching
-        python -m vtool.matching --allexamples
-        python -m vtool.matching --allexamples --noface --nosrc
+        python ~/code/vtool/vtool/matching.py
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

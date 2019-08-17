@@ -28,7 +28,7 @@ IMPORT_TUPLES = [
     ('chip', None),
     ('spatial_verification', None),
     ('trig', None),
-    ('math', None),
+    ('util_math', None),
     ('matching', None),
     ('geometry', None),
     ('nearest_neighbors', None),
@@ -56,7 +56,7 @@ from vtool import patch
 from vtool import chip
 from vtool import spatial_verification
 from vtool import trig
-from vtool import math
+from vtool import util_math
 from vtool import matching
 from vtool import geometry
 from vtool import nearest_neighbors
@@ -67,7 +67,7 @@ from vtool import confusion
 from vtool import score_normalization
 from vtool import symbolic
 
-# TODO: incorporate into utoolification
+# TODO: de-utoolificaiton: replace utool with ubelt
 from vtool import histogram as htool
 from vtool import linalg as ltool
 from vtool import image as gtool
@@ -79,7 +79,7 @@ from vtool import chip as ctool
 from vtool import spatial_verification as svtool
 from vtool import clustering2 as clustertool
 from vtool import trig
-from vtool import math as mtool
+from vtool import util_math as mtool
 from vtool.tests.dummy import get_dummy_kpts
 from vtool.tests import dummy
 
@@ -127,7 +127,7 @@ if DOELSE:
     from vtool import chip
     from vtool import spatial_verification
     from vtool import trig
-    from vtool import math
+    from vtool import util_math
     from vtool import matching
     from vtool import geometry
     from vtool import nearest_neighbors
@@ -286,7 +286,7 @@ if DOELSE:
                                             testdata_matching_affine_inliers_normalized,
                                             try_svd, unnormalize_transform,)
     from vtool.trig import (atan2,)
-    from vtool.math import (beaton_tukey_loss, beaton_tukey_weight,
+    from vtool.util_math import (beaton_tukey_loss, beaton_tukey_weight,
                             breakup_equal_streak, ensure_monotone_decreasing,
                             ensure_monotone_increasing,
                             ensure_monotone_strictly_decreasing,
@@ -485,7 +485,7 @@ if DOELSE:
         get_rrr(chip)(verbose > 1)
         get_rrr(spatial_verification)(verbose > 1)
         get_rrr(trig)(verbose > 1)
-        get_rrr(math)(verbose > 1)
+        get_rrr(util_math)(verbose > 1)
         get_rrr(matching)(verbose > 1)
         get_rrr(geometry)(verbose > 1)
         get_rrr(nearest_neighbors)(verbose > 1)

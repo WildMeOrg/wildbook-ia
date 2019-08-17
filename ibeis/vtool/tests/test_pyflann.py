@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import utool
+import ubelt as ub
+# import utool
 import numpy as np
 from numpy.random import randint
 try:
     import pyflann
 except ImportError:
     pass
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[test_pyflann]', DEBUG=False)
+# (print, print_, printDBG, rrr, profile) = utool.inject(
+#     __name__, '[test_pyflann]', DEBUG=False)
 
 """
 remove_points does not currently have bindings
@@ -128,10 +129,7 @@ def test_pyflann_hkmeans():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.test_pyflann import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = test_pyflann_hkmeans()
-        >>> # verify results
         >>> print(result)
     """
 
@@ -144,7 +142,7 @@ def test_pyflann_hkmeans():
     pts = testdata_points(nPts=1009)
     hkmean_centroids = flann.hierarchical_kmeans(pts, branch_size, num_branches,
                                                  max_iterations=1000, dtype=None)
-    print(utool.truncate_str(str(hkmean_centroids)))
+    # print(utool.truncate_str(str(hkmean_centroids)))
     print('hkmean_centroids.shape = %r' % (hkmean_centroids.shape,))
     nHKMeansCentroids = (branch_size - 1) * num_branches + 1
     target_shape = (nHKMeansCentroids, pts.shape[1])
@@ -170,10 +168,7 @@ def test_pyflann_kmeans():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.test_pyflann import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = test_pyflann_kmeans()
-        >>> # verify results
         >>> print(result)
     """
     print('Kmeans')
@@ -182,7 +177,7 @@ def test_pyflann_kmeans():
     pts = testdata_points(nPts=1009)
     kmeans_centroids = flann.kmeans(pts, num_clusters, max_iterations=None,
                                     dtype=None)
-    print(utool.truncate_str(str(kmeans_centroids)))
+    # print(utool.truncate_str(str(kmeans_centroids)))
     print('kmeans_centroids.shape = %r' % (kmeans_centroids.shape,))
     target_shape = (num_clusters, pts.shape[1])
     test_shape = kmeans_centroids.shape
@@ -197,10 +192,7 @@ def test_pyflann_add_point():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.test_pyflann import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = test_pyflann_add_point()
-        >>> # verify results
         >>> print(result)
     """
     # Test parameters
@@ -218,14 +210,14 @@ def test_pyflann_add_point():
     print('NN_Index')
     indices1, dists1 = flann.nn_index(qpts, num_neighbors=num_neighbors)
     assert np.all(indices1 < pts.shape[0]), 'indicies should be less than num pts'
-    print(utool.hz_str('indices1, dists1 = ', indices1,  dists1))
+    print(ub.hzcat('indices1, dists1 = ', indices1,  dists1))
 
     print('Adding points')
     flann.add_points(newpts, rebuild_threshold=2)
 
     print('NN_Index')
     indices2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
-    print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
+    print(ub.hzcat('indices2, dists2 = ', indices2,  dists2))
     assert np.any(indices2 > pts.shape[0]), 'should be some indexes into new points'
     assert np.all(indices2 < pts.shape[0] + newpts.shape[0]), 'but not more than the points being added'
 
@@ -238,10 +230,7 @@ def test_pyflann_searches():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.test_pyflann import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = test_pyflann_searches()
-        >>> # verify results
         >>> print(result)
     """
     try:
@@ -257,14 +246,14 @@ def test_pyflann_searches():
         print('NN_OnTheFly')
         # build nn_index on the fly
         indices1, dists1 = flann.nn(pts, qpts, num_neighbors, algorithm='hierarchical')
-        print(utool.hz_str('indices1, dists1 = ', indices1,  dists1))
+        print(ub.hzcat('indices1, dists1 = ', indices1,  dists1))
 
         _build_params = flann.build_index(pts, algorithm='kmeans')
         del _build_params
 
         print('NN_Index')
         indices2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
-        print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
+        print(ub.hzcat('indices2, dists2 = ', indices2,  dists2))
 
         # this can only be called on one query point at a time
         # because the output size is unknown
@@ -292,10 +281,7 @@ def test_pyflann_tune():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.test_pyflann import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = test_pyflann_tune()
-        >>> # verify results
         >>> print(result)
     """
     print('Create random qpts and database data')
@@ -320,9 +306,9 @@ def test_pyflann_tune():
     tuned_params = flann_tuned.build_index(pts, **flannkw)
     index_tuned, dist_tuned = flann_tuned.nn_index(qpts, num_neighbors=num_neighbors)
 
-    print(utool.hz_str('index_tuned, dist_tuned     = ', index_tuned,  dist_tuned))
+    print(ub.hzcat('index_tuned, dist_tuned     = ', index_tuned,  dist_tuned))
     print('')
-    print(utool.hz_str('index_untuned, dist_untuned = ', index_untuned,  dist_untuned))
+    print(ub.hzcat('index_untuned, dist_untuned = ', index_untuned,  dist_untuned))
 
     print(dist_untuned >= dist_tuned)
 
@@ -354,7 +340,7 @@ def test_pyflann_io():
 
     # Build kd-tree index over the data
     print('Build the kd tree')
-    with utool.Timer('Buliding the kd-tree with %d pts' % (len(pts),)):
+    with ub.Timer('Buliding the kd-tree with %d pts' % (len(pts),)):
         _build_params = flann.build_index(pts)  # noqa
 
     # Find the closest few points to num_neighbors
@@ -375,7 +361,7 @@ def test_pyflann_io():
     flann2 = pyflann.FLANN()
     flann2.load_index('test_pyflann_index.flann', pts2)
     indices2, dists2 = flann2.nn_index(qpts, num_neighbors=num_neighbors)
-    #print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
+    #print(ub.hzcat('indices2, dists2 = ', indices2,  dists2))
 
     print('Find the same nearest neighbors?')
 
@@ -388,12 +374,7 @@ def test_pyflann_io():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.tests.test_pyflann
-        python -m vtool.tests.test_pyflann --allexamples
-        python -m vtool.tests.test_pyflann --allexamples --noface --nosrc
+        python ~/code/vtool/vtool/tests/test_pyflann.py all
     """
-    np.random.seed(1)
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

@@ -45,7 +45,14 @@ if cv2 is not None:
         'borderMode': cv2.BORDER_CONSTANT
     }
 
-    IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
+    try:
+        IMREAD_COLOR = cv2.IMREAD_COLOR
+    except AttributeError:
+        from distutils.version import LooseVersion
+        cv2_version = LooseVersion(cv2.__version__)
+        print('UNKNOWN cv2_version = {!r}'.format(cv2_version))
+        assert cv2_version.version[0] <= 2
+        IMREAD_COLOR = cv2.CV_LOAD_IMAGE_COLOR
 else:
     # Hacks
     cv2 = ut.DynStruct()
@@ -1753,7 +1760,7 @@ def find_pixel_value_index(img, pixel):
         pixel (ndarray or scalar):
 
     CommandLine:
-        python -m vtool.math --test-find_pixel_value_index
+        python -m vtool.util_math --test-find_pixel_value_index
 
     References:
         http://stackoverflow.com/questions/21407815/get-column-row-index-from-numpy-array-that-meets-a-boolean-condition
