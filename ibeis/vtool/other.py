@@ -38,17 +38,17 @@ def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
         >>> # test2
         >>> tup = (np.array([[1, 2, 3]]), np.array([[]]))
         >>> s = vt.safe_cat(tup, axis=0)
-        >>> print(ub.hzcat('s = ', ub.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 3))
         >>> # test3
         >>> tup = (np.array([[1, 2, 3]]), np.array([[3, 4, 5]]))
         >>> s = vt.safe_cat(tup, axis=1)
-        >>> print(ub.hzcat('s = ', ub.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 6))
         >>> # test3
         >>> tup = (np.array(1), np.array(2), np.array(3))
         >>> s = vt.safe_cat(tup, axis=1)
-        >>> print(ub.hzcat('s = ', ub.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 6))
     """
     if tup is None or len(tup) == 0:
@@ -114,19 +114,8 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> reverse = True
         >>> rng = np.random.RandomState(0)
         >>> idxs_list = argsort_groups(scores_list, reverse, rng)
-        >>> #import vtool as vt
-        >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
-        >>> #result = 'sorted_scores = %s' % (ub.repr2(sorted_scores),)
         >>> result = 'idxs_list = %s' % (ut.repr4(idxs_list, with_dtype=False),)
         >>> print(result)
-        idxs_list = [
-            np.array([1, 0]),
-            np.array([1, 0]),
-            np.array([0, 1, 2]),
-            np.array([4, 7, 0, 5, 6, 1, 2, 3]),
-            np.array([1, 0]),
-            np.array([5, 3, 1, 2, 0, 4]),
-        ]
 
     """
     scores_list_ = [np.array(scores, copy=True).astype(np.float) for scores in scores_list]
@@ -649,7 +638,6 @@ def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):
         >>> new_fs = weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs)
         >>> result = new_fs
         >>> print(result)
-        [ 0.08585277  0.17123899  0.21611761  0.23367671  0.11675666]
 
     """
     weight_fs    = fsv.T.take(weight_filtxs, axis=0).T.prod(axis=1)
@@ -760,7 +748,6 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr_ = atleast_nd(arr, n)
         >>> result = ub.repr2(arr_.tolist())
         >>> print(result)
-        [[1], [1], [1]]
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -777,14 +764,6 @@ def atleast_nd(arr, n, tofront=False):
         >>> result3 = ub.repr2(arr3_.tolist())
         >>> result = '\n'.join([result1, result2, result3])
         >>> print(result)
-        [[[[1]]], [[[1]]], [[[1]]]]
-        [[[[0]]]]
-        [[[[[1]]]]]
-
-    Ignore:
-        # Hmm, mine is actually faster
-        %timeit atleast_nd(arr, 3)
-        %timeit np.atleast_3d(arr)
     """
     arr_ = np.asanyarray(arr)
     ndims = len(arr_.shape)
@@ -1066,7 +1045,6 @@ def intersect2d_indices(A, B):
         >>> # verify results
         >>> result = str((ax_list, bx_list))
         >>> print(result)
-        (array([0, 3, 4]), array([1, 2, 6]))
     """
     flag_list1, flag_list2 = intersect2d_flags(A, B)
     ax_list = np.flatnonzero(flag_list1)
@@ -1099,7 +1077,6 @@ def intersect2d_flags(A, B):
         >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
         >>> result = str((flag_list1, flag_list2))
         >>> print(result)
-        (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
     """
     A_, B_, C_  = intersect2d_structured_numpy(A, B)
     flag_list1 = flag_intersection(A_, C_)
@@ -1123,7 +1100,6 @@ def flag_intersection(arr1, arr2):
         >>> assert len(flags) == len(arr1)
         >>> result = ('flags = %s' % (ub.repr2(flags),))
         >>> print(result)
-        flags = np.array([False, False,  True, False,  True, False])
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1136,7 +1112,6 @@ def flag_intersection(arr1, arr2):
         >>> assert len(flags) == len(arr1)
         >>> result = ('flags = %s' % (ub.repr2(flags),))
         >>> print(result)
-        flags = np.array([False, False,  True, False,  True, False])
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -1485,28 +1460,6 @@ def and_lists(*args):
     return np.logical_and.reduce(args)
 
 
-def axiswise_operation2(arr1, arr2, op, axis=0):
-    """
-    Apply opperation to each row
-
-    >>> arr1 = (255 * np.random.rand(5, 128)).astype(np.uint8)
-    >>> arr2 = vecs.mean(axis=0)
-    >>> op = np.subtract
-    >>> axis = 0
-
-    performs an operation between an
-    (N x A x B ... x Z) array with an
-    (N x 1) array
-
-    %timeit op(arr1, arr2[np.newaxis, :])
-    %timeit op(arr1, arr2[None, :])
-    %timeit op(arr1, arr2.reshape(1, arr2.shape[0]))
-    arr2.shape = (1, arr2.shape[0])
-    %timeit op(arr1, arr2)
-    """
-    raise NotImplementedError()
-
-
 def rowwise_operation(arr1, arr2, op):
     """
     DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING AND
@@ -1580,18 +1533,14 @@ def norm01(array, dim=None):
     Returns:
         ndarray:
 
-    CommandLine:
-        python -m vtool.other --test-norm01
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
         >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
         >>> dim = None
         >>> array_norm = norm01(array, dim)
-        >>> result = np.array_str(array_norm, precision=3)
+        >>> result = ub.repr2(array_norm, precision=3)
         >>> print(result)
-        [ 0.512  0.     0.049  0.024  0.22   1.   ]
     """
     if not ut.is_float(array):
         array = array.astype(np.float32)
@@ -1646,12 +1595,8 @@ def weighted_geometic_mean(data, weights):
         >>> data = [img1, img2]
         >>> weights = np.array([.5, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
-        >>> result = ub.hzcat('gmean_ = ', ub.repr2(gmean_, precision=2, with_dtype=True))
+        >>> result = ub.hzcat(['gmean_ = ', ub.repr2(gmean_, precision=2, with_dtype=True)])
         >>> print(result)
-        gmean_ = np.array([[ 0.11,  0.77,  0.68,  0.69],
-                           [ 0.64,  0.72,  0.45,  0.83],
-                           [ 0.34,  0.5 ,  0.34,  0.71],
-                           [ 0.54,  0.62,  0.14,  0.26]], dtype=np.float64)
 
     Ignore:
         res1 = ((img1 ** .5 * img2 ** .5)) ** 1
@@ -1678,7 +1623,7 @@ def grab_webcam_image():
         >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> img = grab_webcam_image()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> vt.imwrite('webcap.jpg', img)
@@ -2273,7 +2218,7 @@ def find_elbow_point(curve):
         >>> result = ('tradeoff_idx = %s' % (ub.repr2(tradeoff_idx),))
         >>> print(result)
         >>> assert tradeoff_idx == 76
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> import vtool as vt
         >>> point = [tradeoff_idx, curve[tradeoff_idx]]
@@ -2415,7 +2360,7 @@ def inbounds(num, low, high, eq=False):
         scalar or ndarray: is_inbounds
 
     CommandLine:
-        python -m utool.util_alg --test-inbounds
+        xdoctest -m ~/code/vtool/vtool/other.py inbounds
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2430,9 +2375,6 @@ def inbounds(num, low, high, eq=False):
         >>> is_inbounds = inbounds(num, low, high, eq)
         >>> result = ub.repr2(is_inbounds, with_dtype=True)
         >>> print(result)
-        np.array([[False, False,  True],
-                  [ True,  True, False],
-                  [ True,  True,  True]], dtype=bool)
 
     """
     import operator as op

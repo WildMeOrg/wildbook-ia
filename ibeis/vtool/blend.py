@@ -154,12 +154,12 @@ def blend_images_average(img1, img2, alpha=.5):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_average
@@ -210,7 +210,7 @@ def blend_images_average_stack(images, alpha=None):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
@@ -254,12 +254,12 @@ def blend_images_mult_average(img1, img2, alpha=.5):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_mult_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_mult_average
@@ -313,12 +313,12 @@ def blend_images_multiply(img1, img2, alpha=0.5):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_multiply(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_multiply
@@ -365,13 +365,7 @@ def blend_images_multiply(img1, img2, alpha=0.5):
 def gridsearch_addWeighted():
     r"""
     CommandLine:
-        python -m vtool.blend --test-gridsearch_addWeighted --show
-
-    Example:
-        >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
-        >>> gridsearch_addWeighted()
-        >>> ut.show_if_requested()
+        xdoctest -m ~/code/vtool/vtool/blend.py gridsearch_addWeighted
     """
     import cv2
     import vtool as vt
@@ -403,8 +397,8 @@ def gamma_adjust(img, gamma=1.0):
     CommandLine:
         python -m vtool.blend --test-gamma_adjust:0 --show
 
-    Example2:
-        >>> # GRIDSEARCH
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> from vtool.blend import *  # NOQA
         >>> import vtool as vt
         >>> test_func = gamma_adjust

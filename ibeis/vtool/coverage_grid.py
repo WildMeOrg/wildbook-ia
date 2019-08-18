@@ -45,7 +45,7 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         >>> # verify result
         >>> result = str(weightgrid)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(weightgrid)
         >>> ut.show_if_requested()
@@ -153,7 +153,7 @@ def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, 
         >>> grid_steps = 2
         >>> grid_sigma = 1.6
         >>> coverage_gridtup = sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin, grid_steps, grid_sigma)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> show_coverage_grid(*coverage_gridtup)
         >>> pt.show_if_requested()

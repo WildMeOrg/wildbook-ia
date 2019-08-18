@@ -101,7 +101,7 @@ def get_no_symbol(variant='symbol', size=(100, 100)):
         >>> # ENABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> errorimg = get_no_symbol()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(errorimg)
         >>> ut.show_if_requested()
@@ -294,14 +294,14 @@ def inverted_sift_patch(sift, dim=32):
         python -m vtool.patch test_sift_viz --show --name=stripe
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> import vtool as vt
         >>> patch = vt.get_test_patch(ut.get_argval('--name', default='star'))
         >>> sift = vt.extract_feature_from_patch(patch)
         >>> siftimg = test_sift_viz(sift)
         >>> # Need to do some image blending
-        >>> import plottool as pt
-        >>> #pt.imshow(siftimg)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.figure(fnum=1, pnum=(1, 2, 1))
         >>> pt.mpl_sift.draw_sift_on_patch(siftimg, sift)
@@ -352,7 +352,7 @@ def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
         >>> style = 'step'
         >>> theta = np.pi / 4
         >>> patch = vt.gradient_fill(shape, theta, style=style)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(vt.rectify_to_uint8(patch))
         >>> ut.show_if_requested()
@@ -462,7 +462,7 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         >>> gausspatch = gaussian_patch(shape, sigma)
         >>> sum_ = gausspatch.sum()
         >>> ut.assert_almost_eq(sum_, 1.0)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(vt.norm01(gausspatch) * 255)
         >>> ut.show_if_requested()
@@ -585,7 +585,7 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
         >>> # verify results
         >>> print(np.array(warped_patches).shape)
         >>> print(ub.repr2(np.array(warped_subkpts), precision=2))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(warped_patches[0])
         >>> #pt.draw_kpts2(warped_subkpts, pts=True, rect=True)
@@ -974,7 +974,7 @@ def GaussianBlurInplace(img, sigma, size=None):
         >>> GaussianBlurInplace(img4, sigma1, size)
         >>> GaussianBlurInplace(img4, sigma2, size)
         >>> print((img4 - img3).sum())
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> fig = pt.figure(fnum=1, pnum=(2, 4, 1))
         >>> ksize = (size, size)
         >>> #fig.add_subplot(1, 3, 1, projection='3d')

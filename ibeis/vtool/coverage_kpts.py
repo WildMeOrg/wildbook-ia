@@ -33,6 +33,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(module:plottool)
         >>> from vtool.coverage_kpts import *  # NOQA
         >>> import vtool as vt
         >>> import pyhesaff
@@ -44,7 +45,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
         >>> heatmask = make_kpts_heatmask(kpts, chipsize)
         >>> img1 = heatmask
         >>> img2 = chip
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.qtensure()
         >>> img3 = vt.overlay_alpha_images(heatmask, chip)
@@ -52,17 +53,6 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
         >>> #pt.imshow(heatmask)
         >>> #pt.draw_kpts2(kpts)
         >>> pt.show_if_requested()
-
-    # >>> x, y = np.meshgrid(np.arange(chip.shape[0]), np.arange(chip.shape[1]))
-    # >>> #pt.gca().contourf(x, y, mask, alpha=0.5)
-    # >>> pt.gca().pcolormesh(x, y, mask, alpha=0.5)
-
-    # Ignore:
-    #     >>> #redmask = np.ones(chip.shape[0:2] + (3,)) * pt.RED[None, None, 0:3][:, :, ::-1]
-    #     >>> redmask = np.dstack((redmask, mask))
-    #     >>> pt.qtensure()
-    #     >>> pt.imshow(heatmap)
-    #     >>> pt.show_if_requested()
     """
     # use a disk instead of a gaussian
     import skimage.morphology
@@ -95,19 +85,11 @@ def make_heatmask(mask, cmap='plasma'):
     heatmask = pt.plt.get_cmap(cmap)(mask)
     # conver to bgr
     heatmask[:, :, 0:3] = heatmask[:, :, 0:3][:, :, ::-1]
-    # apply alpha channel
-    # print('\n'.join([
-    #     'mask: ',
-    #     '  dtype: ' + str(mask.dtype),
-    #     '  shape: ' + str(mask.shape),
-    #     '  stats: ' + ub.repr2(ut.get_stats(mask.ravel()), precision=2),
-    # ]))
     heatmask[:, :, 3] = mask
     # print('heatmask = {!r}'.format(heatmask))
     return heatmask
 
 
-#@ut.memprof
 def make_kpts_coverage_mask(
         kpts, chipsize,
         weights=None,
@@ -139,15 +121,9 @@ def make_kpts_coverage_mask(
     Returns:
         tuple (ndarray, ndarray): dstimg, patch
 
-    CommandLine:
-        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask:0 --show
-        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask:1 --show
-        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask
-
-        python -m vtool.patch --test-test_show_gaussian_patches2 --show
-
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(module:plottool)
         >>> from vtool.coverage_kpts import *  # NOQA
         >>> import vtool as vt
         >>> import plottool as pt
@@ -160,7 +136,7 @@ def make_kpts_coverage_mask(
         >>> # execute function
         >>> dstimg, patch = make_kpts_coverage_mask(kpts, chipsize, resize=True, return_patch=True, cov_size_penalty_on=False, cov_blur_on=False)
         >>> # show results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> mask = dstimg
         >>> show_coverage_map(chip, mask, patch, kpts)
         >>> pt.show_if_requested()
@@ -259,7 +235,7 @@ def warp_patch_onto_kpts(
         >>> #print(patch.sum())
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
         >>> # show results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> mask = dstimg
         >>> show_coverage_map(chip, mask, patch, kpts)

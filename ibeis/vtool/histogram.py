@@ -72,7 +72,7 @@ def argsubmaxima(hist, centers=None, maxima_thresh=None, _debug=False):
         >>> (submaxima_x, submaxima_y) = argsubmaxima(hist, centers, maxima_thresh)
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_hist_subbin_maxima(hist, centers)
         >>> pt.show_if_requested()
@@ -192,12 +192,11 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> op = 'min'
         >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, xdata, thresh_factor)
         >>> result = str((subextrema_x, subextrema_y))
-        >>> prkeysint(result)
-        >>> ut.quit_if_noshow()
+        >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_hist_subbin_maxima(ydata, xdata)
         >>> pt.show_if_requested()
-        (array([ 3.03374251]), array([ 37.2719012]))
 
     Doctest:
         >>> from vtool.histogram import *  # NOQA
@@ -208,7 +207,7 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, thresh_factor=thresh_factor)
         >>> result = str((subextrema_x, subextrema_y))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.qtensure()
         >>> xdata = np.arange(len(ydata))
@@ -421,7 +420,6 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=None):
         >>> maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
         >>> result = str((maxima_x, maxima_y, argmaxima))
         >>> print(result)
-        (array([ 0.39,  2.75]), array([  8.69,  34.62]), array([1, 4]))
     """
     # FIXME: Not handling general cases
     # [0] index because argrelmaxima returns a tuple
@@ -524,7 +522,7 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>> res = (submaxima_x, submaxima_y)
         >>> result = ub.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.ensureqt()
         >>> pt.figure(fnum=pt.ensure_fnum(None))

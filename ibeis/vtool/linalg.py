@@ -242,6 +242,8 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
 
     CommandLine:
         python -m vtool.linalg affine_around_mat3x3 --show
+    CommandLine:
+        xdoctest -m ~/code/vtool/vtool/linalg.py affine_around_mat3x3
 
     Example:
         >>> from vtool.linalg import *  # NOQA
@@ -256,6 +258,7 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         >>> Aff = affine_around_mat3x3(x, y, sx, sy, theta, shear,
         >>>                            tx, ty, x2, y2)
         >>> trans_pts = vt.transform_points_with_homography(Aff, orig_pts.T).T
+        >>> # xdoc: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(x, y, 'bx', label='center')
@@ -268,42 +271,42 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         >>> pt.plt.ylim(0, 40)
         >>> ut.show_if_requested()
 
-    Timeit:
-        >>> from vtool.linalg import *  # NOQA
-        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = (
-        >>>     256.0, 256.0, 1.5, 1.0, 0.78, 0.2, 0, 100, 500.0, 500.0)
-        >>> for timer in ub.Timerit(1000, 'old'):  # 19.0697 µs
-        >>>     with timer:
-        >>>         tr1_ = translation_mat3x3(-x, -y)
-        >>>         Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
-        >>>         tr2_ = translation_mat3x3(x2, y2)
-        >>>         Aff1 = tr2_.dot(Aff_).dot(tr1_)
-        >>> for timer in ub.Timerit(1000, 'new'):  # 11.0242 µs
-        >>>     with timer:
-        >>>         Aff2 = affine_around_mat3x3(x, y, sx, sy, theta, shear,
-        >>>                                     tx, ty, x2, y2)
-        >>> assert np.all(np.isclose(Aff2, Aff1))
+    # Timeit:
+    #     >>> from vtool.linalg import *  # NOQA
+    #     >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = (
+    #     >>>     256.0, 256.0, 1.5, 1.0, 0.78, 0.2, 0, 100, 500.0, 500.0)
+    #     >>> for timer in ub.Timerit(1000, 'old'):  # 19.0697 µs
+    #     >>>     with timer:
+    #     >>>         tr1_ = translation_mat3x3(-x, -y)
+    #     >>>         Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
+    #     >>>         tr2_ = translation_mat3x3(x2, y2)
+    #     >>>         Aff1 = tr2_.dot(Aff_).dot(tr1_)
+    #     >>> for timer in ub.Timerit(1000, 'new'):  # 11.0242 µs
+    #     >>>     with timer:
+    #     >>>         Aff2 = affine_around_mat3x3(x, y, sx, sy, theta, shear,
+    #     >>>                                     tx, ty, x2, y2)
+    #     >>> assert np.all(np.isclose(Aff2, Aff1))
 
-    Sympy:
-        >>> from vtool.linalg import *  # NOQA
-        >>> import vtool as vt
-        >>> import sympy
-        >>> # Shows the symbolic construction of the code
-        >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-        >>> from sympy.abc import theta
-        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = sympy.symbols(
-        >>>     'x, y, sx, sy, theta, shear, tx, ty, x2, y2')
-        >>> theta = sx = sy = tx = ty = 0
-        >>> # move to center xy, apply affine transform, move center xy2
-        >>> tr1_ = translation_mat3x3(-x, -y, dtype=None)
-        >>> Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty, trig=sympy)
-        >>> tr2_ = translation_mat3x3(x2, y2, dtype=None)
-        >>> # combine transformations
-        >>> Aff = vt.sympy_mat(tr2_.dot(Aff_).dot(tr1_))
-        >>> vt.evalprint('Aff')
-        >>> print('-------')
-        >>> print('Numpy')
-        >>> vt.sympy_numpy_repr(Aff)
+    # Sympy:
+    #     >>> from vtool.linalg import *  # NOQA
+    #     >>> import vtool as vt
+    #     >>> import sympy
+    #     >>> # Shows the symbolic construction of the code
+    #     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+    #     >>> from sympy.abc import theta
+    #     >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = sympy.symbols(
+    #     >>>     'x, y, sx, sy, theta, shear, tx, ty, x2, y2')
+    #     >>> theta = sx = sy = tx = ty = 0
+    #     >>> # move to center xy, apply affine transform, move center xy2
+    #     >>> tr1_ = translation_mat3x3(-x, -y, dtype=None)
+    #     >>> Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty, trig=sympy)
+    #     >>> tr2_ = translation_mat3x3(x2, y2, dtype=None)
+    #     >>> # combine transformations
+    #     >>> Aff = vt.sympy_mat(tr2_.dot(Aff_).dot(tr1_))
+    #     >>> vt.evalprint('Aff')
+    #     >>> print('-------')
+    #     >>> print('Numpy')
+    #     >>> vt.sympy_numpy_repr(Aff)
     """
     x2 = x if x2 is None else x2
     y2 = y if y2 is None else y2
@@ -363,7 +366,6 @@ def whiten_xy_points(xy_m):
         >>> xy_norm, T = tup
         >>> result = (ub.hash_data(tup))
         >>> print(result)
-        ripouamvkahpcjfrcuuylqfrswgvageg
     """
     mu_xy  = xy_m.mean(1)  # center of mass
     std_xy = xy_m.std(1)
@@ -385,18 +387,12 @@ def add_homogenous_coordinate(_xys):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
         >>> _xys = np.array([[ 2.,  0.,  0.,  2.],
         ...                  [ 2.,  2.,  0.,  0.]], dtype=np.float32)
-        >>> # execute function
         >>> _xyzs = add_homogenous_coordinate(_xys)
-        >>> # verify results
         >>> assert np.all(_xys == remove_homogenous_coordinate(_xyzs))
         >>> result = ub.repr2(_xyzs, with_dtype=True)
         >>> print(result)
-        np.array([[ 2.,  0.,  0.,  2.],
-                  [ 2.,  2.,  0.,  0.],
-                  [ 1.,  1.,  1.,  1.]], dtype=np.float32)
     """
     assert _xys.shape[0] == 2
     _zs = np.ones((1, _xys.shape[1]), dtype=_xys.dtype)
@@ -426,8 +422,6 @@ def remove_homogenous_coordinate(_xyzs):
         >>> _xys = remove_homogenous_coordinate(_xyzs)
         >>> result = ub.repr2(_xys, precision=3, with_dtype=True)
         >>> print(result)
-        np.array([[ 1.667,  0.   ,  0.   ,  1.   ],
-                  [ 1.667,  2.   ,  0.   ,  0.   ]], dtype=np.float32)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -438,8 +432,6 @@ def remove_homogenous_coordinate(_xyzs):
         >>> _xys = remove_homogenous_coordinate(_xyzs)
         >>> result = ub.repr2(_xys, precision=3)
         >>> print(result)
-        np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
-                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
     """
     assert _xyzs.shape[0] == 3
     with warnings.catch_warnings():
@@ -485,18 +477,16 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> from vtool.linalg import *  # NOQA
         >>> arr = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
         >>> arr_normed = normalize(arr, axis=1)
-        >>> result = ub.hzcat('arr_normed = ', ub.repr2(arr_normed, precision=2, with_dtype=True))
+        >>> result = ub.hzcat(['arr_normed = ', ub.repr2(arr_normed, precision=2, with_dtype=True)])
         >>> assert np.allclose((arr_normed ** 2).sum(axis=1), [1, 1])
         >>> print(result)
-        arr_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
-                               [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
         >>> arr = np.array([ 0.6,  0.1, -0.6])
         >>> arr_normed = normalize(arr)
-        >>> result = ub.hzcat('arr_normed = ', ub.repr2(arr_normed, precision=2))
+        >>> result = ub.hzcat(['arr_normed = ', ub.repr2(arr_normed, precision=2)])
         >>> assert np.allclose((arr_normed ** 2).sum(), [1])
         >>> print(result)
 
@@ -507,14 +497,6 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> normed = [(ord, normalize(arr, ord=ord)) for ord in ord_list]
         >>> result = ub.repr2(normed, precision=2, with_dtype=True)
         >>> print(result)
-        [
-            (0, np.array([ 0.2 ,  0.03, -0.17], dtype=np.float64)),
-            (1, np.array([ 0.5 ,  0.08, -0.42], dtype=np.float64)),
-            (2, np.array([ 0.76,  0.13, -0.64], dtype=np.float64)),
-            (inf, np.array([ 1.  ,  0.17, -0.83], dtype=np.float64)),
-            (-inf, np.array([ 6.,  1., -5.], dtype=np.float64)),
-        ]
-
     """
     norm_ = np.linalg.norm(arr, ord=ord, axis=axis, keepdims=True)
     arr_normed = np.divide(arr, norm_, out=out)
@@ -553,7 +535,7 @@ def random_affine_args(zoom_pdf=None,
         tuple: affine_args
 
     CommandLine:
-        python -m vtool.linalg --exec-random_affine_args --show
+        xdoctest -m ~/code/vtool/vtool/linalg.py random_affine_args
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -573,12 +555,11 @@ def random_affine_args(zoom_pdf=None,
         >>> print('affine_args = %s' % (ub.repr2(affine_args),))
         >>> (sx, sy, theta, shear, tx, ty) = affine_args
         >>> Aff = vt.affine_mat3x3(sx, sy, theta, shear, tx, ty)
-        >>> result = ub.repr2(Aff)
+        >>> result = ub.repr2(Aff, precision=3, nl=1, with_dtype=0)
         >>> print(result)
-        np.array([[ 1.00934827, -0.        ,  1.6946192 ],
-                  [ 0.        ,  1.0418724 ,  2.58357645],
-                  [ 0.        ,  0.        ,  1.        ]])
-
+        np.array([[ 1.009, -0.   ,  1.695],
+                  [ 0.   ,  1.042,  2.584],
+                  [ 0.   ,  0.   ,  1.   ]])
     """
     if zoom_pdf is None:
         sx = sy = 1.0

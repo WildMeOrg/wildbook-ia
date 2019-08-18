@@ -186,7 +186,7 @@ def get_grid_kpts(wh=(300, 300), wh_stride=None, scale=20, wh_num=None,
         >>> assert len(kpts) == np.prod(wh_num)
         >>> result = ('kpts = %s' % (ub.repr2(kpts.shape),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.show_kpts(kpts)
         >>> pt.dark_background()
@@ -272,7 +272,6 @@ def get_sqrd_scales(kpts):
         >>> _scales_sqrd = get_sqrd_scales(kpts)
         >>> result = (ub.repr2(_scales_sqrd, precision=2))
         >>> print(result)
-        np.array([125.98,  56.88, 128.62, 188.37, 188.38])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -280,7 +279,6 @@ def get_sqrd_scales(kpts):
         >>> _scales_sqrd = get_sqrd_scales([])
         >>> result = (ub.repr2(_scales_sqrd, precision=2))
         >>> print(result)
-        np.array([])
     """
     if len(kpts) == 0:
         return np.empty(0)
@@ -395,13 +393,8 @@ def get_invVR_mats2x2(kpts):
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
         ... ])
         >>> invVR_mats2x2 = get_invVR_mats2x2(kpts)
-        >>> # verify results
         >>> result = kpts_repr(invVR_mats2x2)
         >>> print(result)
-        array([[[ 1.,  0.],
-                [ 2.,  3.]],
-               [[ 0., -1.],
-                [ 3., -2.]]])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -675,13 +668,6 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         %timeit vt.get_invVR_mats3x3(kpts)
         %timeit vt.get_invV_mats3x3(kpts) <- THIS IS ACTUALLY MUCH FASTER
 
-    Ignore::
-        %pylab qt4
-        import plottool as pt
-        pt.imshow(chip)
-        pt.draw_kpts2(kpts)
-        pt.update()
-
     Timeit:
         sa_list1 = np.array([S2.dot(A) for A in invVR_aff2Ds])
         sa_list2 = matrix_multiply(S2, invVR_aff2Ds)
@@ -785,7 +771,7 @@ def get_kpts_eccentricity(kpts):
         >>> ecc = get_kpts_eccentricity(kpts)
         >>> result = 'ecc = %s' % (ub.repr2(ecc, precision=2))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> colors = pt.scores_to_color(ecc)
         >>> pt.draw_kpts2(kpts, color=colors, ell_linewidth=6)
@@ -832,7 +818,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> # verify results (hack + 0. to fix negative 0)
         >>> result = ut.repr3((kpts, kpts_ + 0.), precision=2, nobr=True, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_kpts2(kpts, color=pt.ORANGE, ell_linewidth=6)
         >>> pt.draw_kpts2(kpts_, color=pt.LIGHT_BLUE, ell_linewidth=4)
@@ -898,39 +884,6 @@ def transform_kpts(kpts, M):
                   [300.   , 600.   , 122.166, 242.357, 105.287,   0.   ],
                   [310.   , 600.   , 133.556, 309.899, 141.041,   0.   ],
                   [320.   , 630.   , 160.527, 194.6  , 117.354,   0.   ]], dtype=np.float64)
-
-    IGNORE:
-        >>> # HOW DO WE KEEP SHAPE AFTER HOMOGRAPHY?
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
-        >>> kpts = vt.demodata.get_dummy_kpts()
-        >>> M = np.array([[ 3.,  3.,  5.],
-        ...               [ 2.,  3.,  6.],
-        ...               [ 1.,  1.,  2.]])
-        >>> invVR_mats3x3 = get_invVR_mats3x3(kpts)
-        >>> MinvVR_mats3x3 = matrix_multiply(M, invVR_mats3x3)
-        >>> MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
-        >>> MinvVR = MinvVR_mats3x3[0]
-        >>> result = kpts_repr(MinvVR)
-        >>> print(result)
-
-        # Inspect matrix decompositions
-        import numpy.linalg as npl
-        print(ub.hzcat('MinvVR = ', kpts_repr(MinvVR)))
-        U, s, Vt = npl.svd(MinvVR)
-        S = np.diagflat(s)
-        print(ub.hzcat('SVD: U * S * Vt = ', U, ' * ', S, ' * ', Vt, precision=3))
-        Q, R = npl.qr(MinvVR)
-        print(ub.hzcat('QR: Q * R = ', Q, ' * ', R, precision=3))
-        #print('cholesky = %r' % (npl.cholesky(MinvVR),))
-        #npl.cholesky(MinvVR)
-
-
-        print(ub.hzcat('MinvVR = ', kpts_repr(MinvVR)))
-        MinvVR_ = MinvVR / MinvVR[None, 2, :]
-        print(ub.hzcat('MinvVR_ = ', kpts_repr(MinvVR_)))
-
     """
     invVR_mats3x3 = get_invVR_mats3x3(kpts)
     MinvVR_mats3x3 = matrix_multiply(M, invVR_mats3x3)
@@ -940,13 +893,6 @@ def transform_kpts(kpts, M):
     except AssertionError as ex:  # NOQA
         # THERE IS NO WAY TO GET KEYPOINTS TRANFORMED BY A HOMOGENOUS
         # TRANSFORM MATRIX INTO THE 6 COMPONENT KEYPOINT VECTOR.
-        #print(ex)
-        #oris = get_invVR_mats_oris(MinvVR_mats3x3)
-        #Lmats = [linalgtool.rotation_mat3x3(-ori) for ori in oris]
-        #matrix_multiply(MinvVR_mats3x3, Lmats)
-        #matrix_multiply(Lmats, MinvVR_mats3x3)
-        #scipy.linalg.lu(MinvVR_mats3x3[0])
-        #scipy.linalg.qr(MinvVR_mats3x3[0])
         import warnings
         warnings.warn('WARNING: [vtool.keypoint] transform produced non-affine keypoint')
         # We can approximate it very very roughly
@@ -1101,7 +1047,6 @@ def get_invVR_mats_oris(invVR_mats):
         >>> invVR_mats = np.random.rand(7, 2, 2).astype(np.float64)
         >>> output = get_invVR_mats_oris(invVR_mats)
         >>> result = ub.repr2(output, precision=2, with_dtype=True)
-        np.array([5.37, 5.29, 5.9 , 5.26, 4.74, 5.6 , 4.9 ], dtype=np.float64)
 
     Sympy:
         >>> # DISABLE_DOCTEST
@@ -1544,7 +1489,7 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> kpts2 = flatten_invV_mats_to_kpts(invVR_mats2)
         >>> # Scale down in y a bit
         >>> kpts2.T[1] += 100
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.show_kpts(np.vstack([kpts, kpts2]), ori=1, eig=True,
         >>>              ori_color='green', rect=True)
@@ -1790,7 +1735,7 @@ def invert_invV_mats(invV_mats):
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> invV_mats = vt.get_invVR_mats3x3(kpts)
         >>> V_mats = invert_invV_mats(invV_mats)
-        >>> test = vt.matrix_multiply(invV_mats, V_mats)
+        >>> test = matrix_multiply(invV_mats, V_mats)
         >>> # This should give us identity
         >>> assert np.allclose(test, np.eye(3))
     """
@@ -1867,7 +1812,7 @@ def get_kpts_wh(kpts, outer=True):
         >>> xyexnts = get_kpts_wh(kpts)
         >>> result = ub.repr2(xyexnts)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.cla()
         >>> pt.draw_kpts2(kpts, color='red', ell_linewidth=6, rect=True)
@@ -1961,7 +1906,7 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
         >>> extent = get_kpts_image_extent(kpts, outer=False)
         >>> result = ub.repr2(np.array(extent), precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_kpts2(kpts, bbox=True)
         >>> ax = pt.gca()
@@ -2161,16 +2106,8 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>>                        [3, 1, 5, 0]], dtype=np.int32)
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
-        >>> # verify results
         >>> result = ub.repr2(fx2_to_xyerr, precision=3)
         >>> print(result)
-        np.array([[ 82.848, 186.238, 183.979, 192.639],
-                  [382.988, 374.356, 122.179, 289.16 ],
-                  [387.563, 378.93 , 126.389, 292.391],
-                  [419.246, 176.668, 400.175, 167.411],
-                  [174.269, 274.289, 281.03 ,  33.521],
-                  [ 54.083, 269.645,  94.711, 277.706]])
-
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -2189,12 +2126,8 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>>                        [2, 1, 0]], dtype=np.int32)
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
-        >>> # verify results
         >>> result = ub.repr2(fx2_to_xyerr, precision=3)
         >>> print(result)
-        np.array([[ 0.   , 16.125, 10.44 ],
-                  [ 7.616, 13.153,  3.   ],
-                  [ 4.   , 12.166,  6.708]])
     """
     DEBUG = True
     if DEBUG:
@@ -2238,7 +2171,7 @@ def get_uneven_point_sample(kpts):
         >>> import vtool as vt
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> ellipse_pts1 = get_uneven_point_sample(kpts)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_line_segments(ellipse_pts1)
         >>> pt.set_title('uneven sample points')
@@ -2267,7 +2200,7 @@ def get_even_point_sample(kpts):
         >>> import vtool as vt
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> ell_border_pts_list = get_even_point_sample(kpts)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_line_segments(ell_border_pts_list)
         >>> pt.set_title('even sample points')

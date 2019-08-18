@@ -75,7 +75,7 @@ class ConfusionMetrics(ub.NiceRepr):
         >>> assert np.all(np.isclose(c.ppv, c.recall * c.prev / c.bias))
         >>> assert np.all(np.isclose(
         >>>    c.wracc, 4 * c.c * (c.tpr - c.fpr) / (1 + c.c) ** 2))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> confusions.draw_roc_curve()
         >>> ut.show_if_requested()
     """
@@ -593,8 +593,8 @@ class ConfusionMetrics(ub.NiceRepr):
             >>> at_metric = 'n_false_pos'
             >>> at_value = 0
             >>> subindex = False
-            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=True)
-            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=False)
+            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker='minthresh')
+            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker= 'maxthresh')
             >>> assert idx1 == 3
             >>> assert idx2 == 0
         """
@@ -896,7 +896,7 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         >>> recall_domain, p_interp = interpolate_precision_recall(confusions.precision, recall, nSamples=11)
         >>> result = ub.repr2(p_interp, precision=1, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> draw_precision_recall_curve(recall_domain, p_interp)
         >>> ut.show_if_requested()
         np.array([ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  0.9,  0.9,  0.8,  0.6], dtype=np.float64)
@@ -944,11 +944,11 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
         >>> print(ut.make_csv_table(
         >>>   [confusions.fpr, confusions.tpr, confusions.thresholds],
         >>>   ['fpr', 'tpr', 'thresh']))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ROCInteraction = interact_roc_factory(confusions, target_tpr=.4, show_operating_point=True)
         >>> inter = ROCInteraction()
         >>> inter.show_page()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """

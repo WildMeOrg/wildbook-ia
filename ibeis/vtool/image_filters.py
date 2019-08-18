@@ -24,7 +24,7 @@ class IntensityPreproc(object):
         >>> ]
         >>> self = IntensityPreproc()
         >>> chipBGR2 = self.preprocess(chipBGR, filter_list)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(chipBGR, pnum=(1, 2, 1), fnum=1)
         >>> pt.imshow(chipBGR2, pnum=(1, 2, 2), fnum=1)
@@ -104,7 +104,7 @@ def adapteq_fn(chipBGR):
         >>> import utool as ut
         >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
         >>> chip2 = adapteq_fn(chipBGR)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(chipBGR, pnum=(1, 2, 1), fnum=1)
         >>> pt.imshow(chip2, pnum=(1, 2, 2), fnum=1)
@@ -129,7 +129,7 @@ def medianfilter_fn(chipBGR):
         >>> import utool as ut
         >>> chipBGR = vt.imread(ut.grab_file_url('http://i.imgur.com/qVWQaex.jpg'))
         >>> chip2 = adapteq_fn(chipBGR)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(chipBGR, pnum=(1, 2, 1), fnum=1)
         >>> pt.imshow(chip2, pnum=(1, 2, 2), fnum=1)

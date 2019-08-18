@@ -73,6 +73,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+        >>> import ubelt as ub
         >>> result = (ub.repr2(Mx9[0:2], suppress_small=True, precision=2, with_dtype=True))
         >>> print(result)
         np.array([[  0.00e+00,   0.00e+00,   0.00e+00,  -3.20e+01,  -2.72e+01,
@@ -173,6 +174,7 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
         >>> xy1_man = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_man = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx6 = build_affine_lstsqrs_Mx6(xy1_man, xy2_man)
+        >>> import ubelt as ub
         >>> print(ub.repr2(Mx6))
         >>> result = ut.hashstr(Mx6)
         >>> print(result)
@@ -274,7 +276,7 @@ def compute_affine(xy1_man, xy2_man):
         >>> A /= A[2, 2]
         >>> result = np.array_str(A, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> rchip2_blendA = pt.draw_sv.get_blended_chip(rchip1, rchip2, A)
         >>> pt.imshow(rchip2_blendA)
         >>> ut.show_if_requested()
@@ -340,7 +342,7 @@ def compute_homog(xy1_mn, xy2_mn):
         >>> H /= H[2, 2]
         >>> result = np.array_str(H, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> rchip2_blendH = pt.draw_sv.get_blended_chip(rchip1, rchip2, H)
         >>> pt.imshow(rchip2_blendH)
         >>> ut.show_if_requested()
@@ -432,26 +434,13 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+        >>> import ubelt as ub
         >>> output_str = ub.repr2(output, precision=2, suppress_small=True)
         >>> print('output_str = %s' % (output_str,))
         >>> hypo_inliers, hypo_errors = output
         >>> # Inverting matrices is different in python2
         >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hash_data(output))
         >>> print(result)
-        nInliers=1 hash=mvbcrvpbtylihsytiowbtcsmozlmoaun
-
-    Ignore:
-        kpts = kpts1_m
-        ut.hash_data(kpts)
-        ut.hash_data(invVR2s_m)
-        ut.hash_data(kpts1_m)
-        ut.hash_data(RV1s_m)
-        hist1, hist2 = xy2_m.T, _xy1_mt.T
-        dtype = SV_DTYPE
-
-    Timeit:
-        %timeit xy_err < xy_thresh_sqrd
-        %timeit np.less(xy_err, xy_thresh_sqrd)
     """
     # Map keypoints from image 1 onto image 2
     invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
@@ -525,28 +514,6 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> aff_inliers_list, aff_errors_list, Aff_mats = output
         >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hash_data(output_str))
         >>> print(result)
-        nInliers=9 hash=lwmgwuyvameoegkgmfrrvkjkykqxlapd
-
-    Ignore::
-        from vtool.spatial_verification import *  # NOQA
-        import vtool.demodata as demodata
-        import vtool.keypoint as ktool
-        kpts1, kpts2 = demodata.get_dummy_kpts_pair((100, 100))
-        a = kpts1[fm.T[0]]
-        b = kpts1.take(fm.T[0])
-
-        align = fm.dtype.itemsize * fm.shape[1]
-        align2 = [fm.dtype.itemsize, fm.dtype.itemsize]
-        viewtype1 = np.dtype(np.void, align)
-        viewtype2 = np.dtype(np.int32, align2)
-        c = np.ascontiguousarray(fm).view(viewtype1)
-        fm_view = np.ascontiguousarray(fm).view(viewtype1)
-        qfx = fm.view(np.dtype(np.int32 np.int32.itemsize))
-        dfx = fm.view(np.dtype(np.int32, np.int32.itemsize))
-        d = np.ascontiguousarray(c).view(viewtype2)
-
-        fm.view(np.dtype(np.void, align))
-        np.ascontiguousarray(fm).view(np.dtype((np.void, Z.dtype.itemsize * Z.shape[1])))
     """
     #http://ipython-books.github.io/featured-01/
     kpts1_m = kpts1.take(fm.T[0], axis=0)
@@ -733,7 +700,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         >>> full_homog_checks = not ut.get_argflag('--no-full-homog-checks')
         >>> homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks)
         >>> homog_tup = (homog_tup1[0], homog_tup1[2])
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
         >>> ut.show_if_requested()
 
@@ -762,7 +729,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         ...     ut.exec_func_src(test_homog_errors, globals(), locals(),
         ...     'kpts1_m, kpts2_m, off_xy1_m, off_xy1_mt, dxy1_m, dxy1_mt, xy2_m, xy1_m, xy1_mt, scale_err, xy_err, ori_err'.split(', '))
         >>> #---------------
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.figure(fnum=1, pnum=(1, 2, 1), title='orig points and offset point')
         >>> segments_list1 = np.array(list(zip(xy1_m.T.tolist(), off_xy1_m.T.tolist())))
         >>> pt.draw_line_segments(segments_list1, color=pt.LIGHT_BLUE)
@@ -894,18 +861,9 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> xy_thresh_sqrd = .01 * ktool.get_kpts_dlen_sqrd(kpts2)
         >>> homogtup = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> refined_inliers, refined_errors, H = homogtup
+        >>> import ubelt as ub
         >>> result = ub.repr2(homogtup, precision=2, nl=True, suppress_small=True, nobr=True)
         >>> print(result)
-        np.array([0, 1, 2, 3, 4, 5, 6, 7, 8]),
-        (
-            np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
-                        25.83,    3.82]),
-            np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47]),
-            np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43]),
-        ),
-        np.array([[  9.18e-01,  -4.82e-02,   7.21e+00],
-                  [ -6.86e-03,   9.09e-01,   4.13e+00],
-                  [ -1.21e-04,  -3.45e-04,   1.00e+00]]),
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -915,7 +873,7 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
         >>> homog_tup1 = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> homog_tup = (homog_tup1[0], homog_tup1[2])
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
         >>> ut.show_if_requested()
 
@@ -1019,10 +977,11 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> print('aff_inliers = %r' % (aff_inliers,))
         >>> print('refined_inliers = %r' % (refined_inliers,))
         >>> #print('refined_errors = %r' % (refined_errors,))
+        >>> import ubelt as ub
         >>> result = ut.list_type_profile(svtup, with_dtype=False)
         >>> #result = ub.repr2(svtup, precision=3)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> homog_tup = (refined_inliers, H)
         >>> aff_tup = (aff_inliers, Aff)

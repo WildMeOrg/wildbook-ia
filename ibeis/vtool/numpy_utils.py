@@ -45,7 +45,6 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr_ = atleast_nd(arr, n)
         >>> result = ub.repr2(arr_.tolist())
         >>> print(result)
-        [[1], [1], [1]]
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -62,14 +61,6 @@ def atleast_nd(arr, n, tofront=False):
         >>> result3 = ub.repr2(arr3_.tolist())
         >>> result = '\n'.join([result1, result2, result3])
         >>> print(result)
-        [[[[1]]], [[[1]]], [[[1]]]]
-        [[[[0]]]]
-        [[[[[1]]]]]
-
-    Ignore:
-        # Hmm, mine is actually faster
-        %timeit atleast_nd(arr, 3)
-        %timeit np.atleast_3d(arr)
     """
     arr_ = np.asanyarray(arr)
     ndims = len(arr_.shape)

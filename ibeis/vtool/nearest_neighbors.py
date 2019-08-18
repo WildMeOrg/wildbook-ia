@@ -8,11 +8,7 @@ from os.path import exists, normpath, join
 import utool as ut
 import ubelt as ub
 import numpy as np
-
-try:
-    import pyflann
-except ImportError:
-    print('Warning: pyflann failed to import')
+from .clustering2 import FLANN_CLS
 
 
 class AnnoyWrapper(object):
@@ -47,7 +43,6 @@ class AnnoyWrapper(object):
 
 def test_annoy():
     from vtool import demodata
-    import pyflann
     import annoy
     import utool
     qvecs = demodata.testdata_dummy_sift(2 * 1000)
@@ -77,7 +72,7 @@ def test_annoy():
 
     for timer in utool.Timerit(trials, label='build flann'):
         with timer:
-            flann = pyflann.FLANN()
+            flann = FLANN_CLS()
             flann.build_index(dvecs, algorithm='kdtree', trees=num_trees,
                               checks=checks, cores=1)
 
@@ -257,14 +252,14 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(
+    (qx2_dx, qx2_dist) = FLANN_CLS().nn(
         dpts, qpts, num_neighbors, **flann_params)
     return (qx2_dx, qx2_dist)
 
 
 def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
     """ Helper for akmeans """
-    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(
+    (qx2_dx, qx2_dist) = FLANN_CLS().nn(
         dpts, qpts, num_neighbors, **flann_params)
     return qx2_dx
 
@@ -354,7 +349,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                                   use_data_hash=use_data_hash, appname=appname,
                                   verbose=verbose)
     # Load the index if it exists
-    flann = pyflann.FLANN()
+    flann = FLANN_CLS()
     flann.flann_fpath = flann_fpath
     if use_cache and exists(flann_fpath):
         try:
@@ -371,7 +366,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         print('...flann cache miss.')
     num_dpts = len(dpts)
     if flann is None:
-        flann = pyflann.FLANN()
+        flann = FLANN_CLS()
     if verbose > 1 or (verbose > 0 and num_dpts > 1E6):
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     if num_dpts == 0:
@@ -553,7 +548,7 @@ def tune_flann(dpts,
     with ut.Timer('tuning flann'):
         print('Autotuning flann with %d %dD vectors' % (dpts.shape[0], dpts.shape[1]))
         print('a sample of %d vectors will be used' % (int(dpts.shape[0] * sample_fraction)))
-        flann = pyflann.FLANN()
+        flann = FLANN_CLS()
         #num_data = len(dpts)
         flann_atkwargs = dict(algorithm='autotuned',
                               target_precision=target_precision,
@@ -577,6 +572,7 @@ def tune_flann(dpts,
         for key in ['algorithm', 'centers_init', 'log_level']:
             val = tuned_params.get(key, None)
             if val == 'default':
+                import pyflann
                 dict_ = pyflann.FLANNParameters._translation_[key]
                 other_algs = ut.dict_find_other_sameval_keys(dict_, 'default')
                 assert len(other_algs) == 1, 'more than 1 default for key=%r' % (key,)
@@ -653,7 +649,6 @@ def flann_index_time_experiment():
         >>> print(result)
     """
     import vtool as vt
-    import pyflann
     import itertools
 
     class TestDataPool(object):
@@ -692,7 +687,7 @@ def flann_index_time_experiment():
             #    break
             data = pool.get_testdata(num)
             print('object size ' + ut.get_object_size_str(data, 'data'))
-            flann = pyflann.FLANN(**flann_params)
+            flann = FLANN_CLS(**flann_params)
             with ut.Timer(verbose=False) as t:
                 flann.build_index(data)
             print('t.ellapsed = %r' % (t.ellapsed,))

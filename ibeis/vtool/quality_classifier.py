@@ -20,11 +20,12 @@ def compute_average_contrast(img):
         >>> # ENABLE_DOCTEST
         >>> from vtool.quality_classifier import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> average_contrast, gradmag_sqrd = compute_average_contrast(img)
+        >>> # xdoctest: +REQUIRES(module:plottool)
         >>> import plottool as pt
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.figure(fnum=1)
         >>> pt.plt.imshow(gradmag_sqrd)
         >>> ut.show_if_requested()
@@ -83,7 +84,8 @@ def test_average_contrast():
     x_list = np.arange(0, nCols) + .5
     pt.plot(x_list, y_list, 'bo-')
     sorted_imgs = list(ub.take(img_list, sortx))
-    for px, img in ut.ProgressIter(enumerate(sorted_imgs, start=1)):
+
+    for px, img in ub.ProgIter(enumerate(sorted_imgs, start=1)):
         pt.imshow(img, fnum=fnum, pnum=(2, nCols, nCols + px))
 
 
@@ -103,10 +105,8 @@ def fourier_devtest(img):
         >>> # DISABLE_DOCTEST
         >>> from vtool.quality_classifier import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> img = vt.imread(img_fpath, grayscale=True)
-        >>> # execute function
         >>> magnitude_spectrum = fourier_devtest(img)
     """
     import plottool as pt

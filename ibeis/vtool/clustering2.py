@@ -9,15 +9,21 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, map  # NOQA
 import ubelt as ub
 import numpy as np
+import utool as ut
 
 
-# try:
-#     import pyflann
-#     FLANN_CLS = pyflann.FLANN
-# except ImportError:
-# print('no pyflann, using cv2.flann_Index')
-import cv2
-FLANN_CLS = cv2.flann_Index
+try:
+    import pyflann
+    FLANN_CLS = pyflann.FLANN
+except ImportError:
+    print('no pyflann, using cv2.flann_Index')
+    class _DUMMY_FLANN_CLS:
+        def __init__(self):
+            raise RuntimeError('flann not installed')
+    FLANN_CLS = _DUMMY_FLANN_CLS
+
+# import cv2
+# FLANN_CLS = cv2.flann_Index
 # print('FLANN_CLS = {!r}'.format(FLANN_CLS))
 
 
@@ -136,16 +142,16 @@ def group_indices(idx2_groupid, assume_sorted=False):
         tuple (ndarray, list of ndarrays): (keys, groupxs)
 
     CommandLine:
-        python -m vtool.clustering2 --test-group_indices
-        python -m vtool.clustering2 --exec-group_indices:1
-        utprof.py -m vtool.clustering2 --test-group_indices:2
+        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices
+        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices:0
+        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices:1
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([1, 2, 3], dtype=np.int64),
         [
@@ -162,7 +168,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> # 2d arrays must be flattened before coming into this function so
         >>> # information is on the last axis
         >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([ 24, 129, 659, 822], dtype=np.int64),
         [
@@ -177,7 +183,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([True, True, False, True, False, False, True])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([False,  True], dtype=np.bool),
         [
@@ -188,7 +194,6 @@ def group_indices(idx2_groupid, assume_sorted=False):
     Time:
         >>> # xdoctest: +SKIP
         >>> import vtool as vt
-        >>> import utool as ut
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
         >>> print(setup)
         >>> stmt_list = ut.codeblock(
@@ -558,12 +563,11 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> import utool as ut
         >>> num = 100
         >>> ndim = 3
         >>> pts = uniform_sampe_hypersphere(num, ndim)
         >>> print(pts)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> if ndim == 2:
         >>>     pt.plot(pts.T[0], pts.T[1], 'gx')
@@ -600,7 +604,6 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
 
         >>> # synthetic data
         >>> import vtool as vt
-        >>> import utool as ut
         >>> size = 100
         >>> thresh = 50
         >>> np.random.randint(0, 1)
@@ -644,7 +647,6 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> from vtool.clustering2 import *  # NOQA
         >>> import networkx as nx
         >>> import plottool as pt
-        >>> import utool as ut
         >>> rng = np.random.RandomState(443284320)
         >>> pt.ensureqt()
         >>> #

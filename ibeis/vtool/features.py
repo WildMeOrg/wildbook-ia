@@ -55,7 +55,7 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         >>> result = str((kpts, vecs))
         >>> print(result)
         >>> # Show keypoints
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> #pt.figure(fnum=1, doclf=True, docla=True)
         >>> #pt.imshow(imgBGR)

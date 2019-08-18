@@ -115,7 +115,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> print('arr = %r' % (np.diff(arr),))
         >>> assert non_decreasing(arr), 'ensure nondecreasing failed2'
         >>> assert strictly_increasing(arr), 'ensure strict monotonic failed2'
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_increasing(arr_)
@@ -166,7 +166,7 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         >>> result = str(arr)
         >>> print(result)
         >>> assert strictly_decreasing(arr), 'ensure strict monotonic failed'
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_decreasing(arr_)
@@ -408,7 +408,7 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True, newmode=True
         >>> arr = ensure_monotone_increasing(arr_, fromleft=False, fromright=True)
         >>> result = str(arr)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (increasing)', equal_aspect=False)
@@ -456,7 +456,7 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
         >>> arr = ensure_monotone_decreasing(arr_, fromright=True, fromleft=True)
         >>> result = str(arr)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (decreasing)', equal_aspect=False)
@@ -561,7 +561,7 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
         >>> # verify results
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
@@ -595,7 +595,7 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
         >>> # verify results
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
@@ -621,7 +621,7 @@ def logistic_01(x):
         >>> from vtool.util_math import *  # NOQA
         >>> x = np.linspace(0, 1)
         >>> y = logistic_01(x)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot(x, y)
         >>> ut.show_if_requested()

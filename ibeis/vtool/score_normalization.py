@@ -155,7 +155,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         >>> X, y = vt.demodata.testdata_binary_scores()
         >>> attrs = {'index': np.arange(len(y)) * ((2 * y) - 1)}
         >>> encoder.fit(X, y, attrs)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> encoder.visualize()
         >>> ut.show_if_requested()
     """
@@ -332,7 +332,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> #encoder, X, y = testdata_score_normalier([(0, 64)], [(-.1, 12)], adjust=8, min_clip=0)
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
-            >>> ut.quit_if_noshow()
+            >>> # xdoctest: +REQUIRES(--show)
             >>> import plottool as pt
             >>> pt.ensureqt()
             >>> #pt.plot(xdata[0:-2], np.diff(np.diff(closeness)))
@@ -1194,7 +1194,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         >>> #np.set_printoptions(suppress=True)
         >>> result = ub.repr2(prob, precision=2, suppress_small=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(score_domain, p_tp_given_score, 'r-x', equal_aspect=False, label='learned probability')
         >>> pt.plot2(scores, prob, 'yo', equal_aspect=False, title='Normalized scores', pad=.2, label='query points')
@@ -1261,6 +1261,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         >>> # Get a training sample
         >>> tp_support = randstate.normal(loc=6.5, size=(256,))
         >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> # xdoctest: +REQUIRES(module:plottool)
         >>> test_score_normalization(tp_support, tn_support, verbose=verbose)
         >>> ut.show_if_requested()
 
@@ -1612,9 +1613,6 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
     Returns:
         ndarray: data_pdf
 
-    CommandLine:
-        python -m vtool.score_normalization estimate_pdf --show
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.score_normalization import *  # NOQA
@@ -1622,23 +1620,10 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         >>> rng = np.random.RandomState(0)
         >>> data = rng.randn(1000)
         >>> data_pdf = vt.estimate_pdf(data)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
-        >>> #pt.plot(data_pdf.support, data_pdf.cdf)
-        >>> #pt.plot(data_pdf.support, data_pdf.density)
         >>> pt.plot(data_pdf.support[:-1], np.diff(data_pdf.cdf))
-        >>> #pt.plot(data_pdf.cumhazard)
         >>> ut.show_if_requested()
-
-    Ignore:
-        mx = data_pdf.support.max()
-        mn = data_pdf.support.min()
-        scipy.integrate.quad(data_pdf.evaluate, mn, mx)
-
-        assert np.isclose(np.sum(np.diff(data_pdf.support)[0] * data_pdf.density), 1)
-        assert np.isclose(np.trapz(data_pdf.density, data_pdf.support), 1)
-
-        np.trapz(data_pdf.density, data_pdf.support)
     """
     import utool as ut
     import numpy as np

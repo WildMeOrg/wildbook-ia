@@ -175,7 +175,7 @@ def font_demo():
         >>> result = font_demo()
         >>> import utool as ut
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
@@ -209,7 +209,7 @@ def get_text_test_img(text):
         >>> text_img = get_text_test_img(text)
         >>> result = ('text_img = %s' % (ub.repr2(text_img),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(text_img)
         >>> ut.show_if_requested()

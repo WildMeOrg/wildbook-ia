@@ -94,7 +94,7 @@ def demo_grabcut(bgr_img):
         >>> result = demo_grabcut(bgr_img)
         >>> # verify results
         >>> print(result)
-        >>> #ut.quit_if_noshow()
+        >>> ## xdoctest: +REQUIRES(--show)
         >>> pt.show_if_requested()
     """
     import plottool as pt

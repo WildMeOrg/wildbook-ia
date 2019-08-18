@@ -74,7 +74,7 @@ class MatchInspector(INSPECT_BASE):
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match)
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
@@ -96,7 +96,7 @@ class MatchInspector(INSPECT_BASE):
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match, cfgdict=cfgdict)
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """

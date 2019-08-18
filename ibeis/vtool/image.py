@@ -136,7 +136,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> dst, debug_info = montage(img_list, dsize, rng, method=method,
         >>>                           return_debug=True)
         >>> place_img = debug_info.get('place_img_', np.ones((2, 2)))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(dst, pnum=(1, 2, 1))
         >>> pt.imshow(place_img / place_img.max(), pnum=(1, 2, 2))
@@ -296,7 +296,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> assert imgBGR1.shape == (512, 512, 3)
         >>> assert imgBGR2.shape == (512, 512)
         >>> assert np.all(imgBGR1 == imgBGR3)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgBGR1, pnum=(2, 2, 1))
         >>> pt.imshow(imgBGR2, pnum=(2, 2, 2))
@@ -319,7 +319,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> print(result)
         >>> print('num_diff_pxls=%r/%r' % (num_diff_pxls, diff_pxls.size))
         >>> assert num_diff_pxls == 0
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> diffMag = np.linalg.norm(imgBGR2 / 255. - imgBGR1 / 255., axis=2)
         >>> pt.imshow(imgBGR1, pnum=(1, 3, 1))
@@ -336,7 +336,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> delete_if_corrupted = False
         >>> grayscale = False
         >>> imgBGR = imread(img_fpath, grayscale=grayscale)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgBGR)
         >>> ut.show_if_requested()
@@ -732,7 +732,7 @@ def warpAffine(img, Aff, dsize):
         >>> Aff = vt.rotation_mat3x3(TAU / 8)
         >>> dsize = vt.get_size(img)
         >>> warped_img = warpAffine(img, Aff, dsize)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(warped_img)
         >>> ut.show_if_requested()
@@ -806,7 +806,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (150, 150)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((150, 75), 0.75)
 
@@ -816,7 +816,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, 1000)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((2000, 1000), 10.0)
 
@@ -826,7 +826,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
 
@@ -836,7 +836,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (None, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
     """
@@ -947,7 +947,7 @@ def make_white_transparent(imgBGR):
         >>> imgBGRA = make_white_transparent(imgBGR)
         >>> result = ('imgBGRA = %s' % (ub.repr2(imgBGRA),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
@@ -1175,7 +1175,7 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
         >>> y_shear = -0.05
         >>> dsize = None
         >>> imgSh = shear(img, x_shear, y_shear, dsize)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgSh)
         >>> ut.show_if_requested()
@@ -1217,7 +1217,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy,
         ...     theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize,
         ...     borderMode=borderMode, flags=flags, borderValue=(.5, .5, .5))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow((img_warped * 255.0).astype(np.uint8))
         >>> ut.show_if_requested()
@@ -1425,7 +1425,7 @@ def convert_colorspace(img, colorspace, src_colorspace='BGR'):
         >>> imgAB_BGR = convert_colorspace(imgAB_LAB, src_colorspace, colorspace)
         >>> imgA_BGR = convert_colorspace(imgA_LAB, src_colorspace, colorspace)
         >>> imgB_BGR = convert_colorspace(imgB_LAB, src_colorspace, colorspace)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> #imgAB_HSV = convert_colorspace(convert_colorspace(imgAB_LAB, 'LAB', 'BGR'), 'BGR', 'HSV')
         >>> imgAB_HSV = convert_colorspace(img, 'HSV', 'BGR')
@@ -1502,7 +1502,7 @@ def padded_resize(img, target_size=(64, 64), interpolation=None):
         >>> img3_list = [padded_resize(img, target_size) for img in [imgA, imgB, imgC]]
         >>> # verify results
         >>> assert ut.allsame([vt.get_size(img3) for img3 in img3_list])
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.imshow(img3_list[0], pnum=pnum_())
@@ -1553,7 +1553,7 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
         >>> img_square2 = embed_in_square_image(img, target_size, img_origin, target_origin)
         >>> assert img_square.sum() == img.sum()
         >>> assert vt.get_size(img_square) == target_size
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img_square, pnum=(1, 2, 1))
         >>> pt.imshow(img_square2, pnum=(1, 2, 2))
@@ -1700,7 +1700,7 @@ def resize_to_maxdims(img, max_dsize=(64, 64),
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
@@ -1731,7 +1731,7 @@ def resize_thumb(img, max_dsize=(64, 64), interpolation=None):
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
@@ -1814,7 +1814,7 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
         >>>     vt.draw_text(img, text, org,
         ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
         ...                  fontScale=fontScale, thickness=thickness)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> ut.show_if_requested()
@@ -1841,7 +1841,7 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
         >>>     vt.draw_text(img, text, org,
         ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
         ...                  fontScale=fontScale, thickness=thickness)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> ut.show_if_requested()
@@ -1874,7 +1874,7 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
 #        >>> img_fpath = ut.grab_test_imgpath('lena.png')
 #        >>> img = vt.imread(img_fpath)
 #        >>> img2 = testing(img)
-#        >>> ut.quit_if_noshow()
+#        >>> # xdoctest: +REQUIRES(--show)
 #        >>> import plottool as pt
 #        >>> pt.imshow(img, pnum=(1, 2, 1))
 #        >>> pt.imshow(img2, pnum=(1, 2, 2))
@@ -1907,7 +1907,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
         >>> #scale = 32.0
         >>> scale = 64.0
         >>> img = perlin_noise(size, scale)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img, pnum=(1, 1, 1))
         >>> ut.show_if_requested()
@@ -2025,7 +2025,7 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
         >>> initial_sf = None
         >>> initial_sf = .5
         >>> imgB, offset_list, sf_list = stack_image_list_special(img1, img_list, num_bot, vert, use_larger, initial_sf)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> wh_list = np.array([vt.get_size(img1)] + list(map(vt.get_size, img_list)))
         >>> wh_list_ = wh_list * sf_list
         >>> import plottool as pt
@@ -2158,7 +2158,7 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
         >>> result = ut.remove_doublspaces(ub.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(stacked_img)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list[::-1] + img_list + img_list])
@@ -2274,7 +2274,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # verify results
         >>> result = ub.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list])
@@ -2489,7 +2489,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> # verify results
         >>> result = str((imgB.shape, woff, hoff))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> wh1 = np.multiply(vt.get_size(img1), sf_tup[0])
@@ -2635,7 +2635,7 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         >>> # execute function
         >>> imgB = stack_image_recurse(img_list1, img_list2, vert)
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> imshow(imgB)
         >>> #wh1 = img1.shape[0:2][::-1]

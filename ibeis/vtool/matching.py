@@ -99,7 +99,8 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
         use_cache = False
     function_sig = ut.get_func_sourcecode(vt.matching.PairwiseMatch)
     hashid = ut.hash_data(function_sig)
-    cfgstr = ub.hash_data(cfgdict.items()) + hashid
+    ub.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions()
+    cfgstr = ub.hash_data(cfgdict) + hashid
     cacher = ub.Cacher(
         'test_match_v5',
         cfgstr=cfgstr,
@@ -290,7 +291,7 @@ class PairwiseMatch(ub.NiceRepr):
             >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
-            >>> ut.quit_if_noshow()
+            >>> # xdoctest: +REQUIRES(--show)
             >>> gt.qtapp_loop(qwin=self, freq=10)
         """
         from vtool.inspect_matches import MatchInspector

@@ -85,7 +85,6 @@ def signed_ori_distance(ori1, ori2):
         >>> result = ('ori_dist = %s' % (ub.repr2(ori_dist, precision=3),))
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        ori_dist = np.array([ 3.   , -2.283, -3.   ,  2.283, -3.142,  3.042])
     """
     ori_dist = ori2 - ori1
     ori_dist = (ori_dist + np.pi) % TAU - np.pi
@@ -148,9 +147,6 @@ def ori_distance(ori1, ori2, out=None):
         >>> result += '\n' + ub.repr2(dist_, precision=1)
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        np.array([ 0.3,  1.4,  0.6,  0.3, -0.5,  0.9, -0.4,  2.5,  2.9, -0.7])
-        np.array([ 1.8,  0.2,  0.4,  2.7, -2.7, -2.6, -3. ,  2.1,  1.7,  2.3])
-        np.array([ 1.5,  1.2,  0.2,  2.4,  2.2,  2.8,  2.6,  0.4,  1.2,  3.1])
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -161,7 +157,6 @@ def ori_distance(ori1, ori2, out=None):
         >>> result = ub.repr2(dist_, precision=2)
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        np.array([ 0.22,  1.72,  0.  ,  0.08])
 
     Example3:
         >>> # ENABLE_DOCTEST
@@ -171,7 +166,6 @@ def ori_distance(ori1, ori2, out=None):
         >>> dist_ = ori_distance(ori1, ori2)
         >>> result = ub.repr2(dist_, precision=2)
         >>> print(result)
-        0.22
 
     Ignore:
         # This also works
@@ -209,43 +203,6 @@ def cyclic_distance(arr1, arr2, modulo, out=None):
         >>> result = ('arr_dist =\n%s' % (ub.repr2(arr_dist),))
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        arr_dist =
-        np.array([[  0.,   1.,   2.,   3.,   4.,   3.,   2.,   1.,  nan],
-                  [  1.,   0.,   1.,   2.,   3.,   4.,   3.,   2.,  nan],
-                  [  2.,   1.,   0.,   1.,   2.,   3.,   4.,   3.,  nan],
-                  [  3.,   2.,   1.,   0.,   1.,   2.,   3.,   4.,  nan],
-                  [  4.,   3.,   2.,   1.,   0.,   1.,   2.,   3.,  nan],
-                  [  3.,   4.,   3.,   2.,   1.,   0.,   1.,   2.,  nan],
-                  [  2.,   3.,   4.,   3.,   2.,   1.,   0.,   1.,  nan],
-                  [  1.,   2.,   3.,   4.,   3.,   2.,   1.,   0.,  nan],
-                  [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan]])
-
-
-    Ignore:
-        d1 = cyclic_distance(arr1, arr2, modulo)
-        # d2 = modulo - np.abs(np.abs(arr1 - arr2) - modulo)
-        # d1 == d2
-
-        >>> a1 = np.linspace(1, 1000, 2000)
-        %timeit cyclic_distance(a1, a2, modulo, out=out)
-        %timeit cyclic_distance(a1, a2, modulo, out=None)
-        %timeit np.minimum(np.abs(arr1 - arr2), modulo - np.abs(arr1 - arr2))
-
-
-        >>> a1 = np.arange(1, 1000)
-        >>> a2 = a1[:, None]
-
-        # This is faster as long as out has the right datatype
-        import ubelt
-        for timer in ubelt.Timerit(100):
-            out = -np.ones((len(a1), len(a2)), dtype=a1.dtype)
-            with timer:
-                cyclic_distance(a1, a2, modulo, out=out)
-
-        # This is only faster if out has a different dtype
-        for timer in ubelt.Timerit(100):
-            with timer:
-                cyclic_distance(a1, a2, modulo)
     """
     arr_diff = np.subtract(arr1, arr2, out=out)
     abs_diff = np.abs(arr_diff, out=out)
@@ -275,7 +232,6 @@ def det_distance(det1, det2):
         >>> result = ub.repr2(scaledist, precision=2, threshold=2)
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        np.array([ 1.58,  1.47,  1.72,  1.36,  1.68])
     """
     det_dist = det1 / det2
     # Flip ratios that are less than 1
@@ -310,7 +266,6 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         >>> result = ub.repr2(l2dist, precision=2, threshold=2)
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        np.array([ 0.6 ,  0.17,  0.05,  0.01,  0.1 ])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -319,26 +274,6 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         >>> hist2 = 0
         >>> result = L2_sqrd(hist1, hist2)
         >>> print(result)
-        9.0
-
-    Cyth::
-        #CYTH_INLINE
-        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=2] hist1
-            np.ndarray[np.float64_t, ndim=2] hist2
-        #if CYTH
-        cdef:
-            size_t cx, rx
-        cdef unsigned int rows = hist1.shape[0]
-        cdef unsigned int cols = hist1.shape[1]
-        # Prealloc output
-        cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((rows,), dtype=hist1.dtype)
-        for rx in range(rows):
-            for cx in range(cols):
-                out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
-        return out
-        #else
     """
     # Carefull, this will not return the correct result if the types are unsigned.
     hist1_ = np.asarray(hist1, dtype)
@@ -444,8 +379,6 @@ def understanding_pseudomax_props(mode=2):
 
 def L2(hist1, hist2):
     """ returns L2 (aka euclidean or standard) distance between two histograms """
-    #return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
-    #((hist1.astype(TEMP_VEC_DTYPE) - hist2.astype(TEMP_VEC_DTYPE)) ** 2).sum(-1))
     return np.sqrt(L2_sqrd(hist1, hist2))
 
 
@@ -458,8 +391,6 @@ def hist_isect(hist1, hist2):
         hisect_dist = hisect_dist[0]
     return hisect_dist
 
-#from six.moves import zip
-#from utool import util_inject
 VALID_DISTS = [
     'L1',
     'L2',
@@ -486,14 +417,6 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
     Returns:
         dict: dist_dict
 
-    Ignore:
-        # Build valid dist list programtically
-        import vtool
-        func_list = ut.get_module_owned_functions(vtool.distance)
-        funcname_list = [ut.get_funcname(x) for x in func_list]
-        funcname_list = [n for n in funcname_list if n not in ['compute_distances']]
-        print('VALID_DISTS = ' + ub.repr2(sorted(funcname_list)))
-
     CommandLine:
         python -m vtool.distance --test-compute_distances
 
@@ -506,10 +429,6 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
         >>> dist_dict = compute_distances(hist1, hist2, dist_list)
         >>> result = ub.repr2(dist_dict, precision=3)
         >>> print(result)
-        {
-            'L1': np.array([ 0.,  1.,  4.], dtype=np.float64),
-            'L2': np.array([ 0.   ,  1.   ,  2.828], dtype=np.float64),
-        }
     """
     dtype_ = np.float64
     hist1 = np.array(hist1, dtype=dtype_)
@@ -523,11 +442,11 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
 
 def bar_L2_sift(hist1, hist2):
     """
+    Normalized SIFT L2
+
     Args:
         hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
         hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
-
-    1 - Normalized SIFT L2
 
     CommandLine:
         python -m vtool.distance --test-bar_L2_sift
@@ -540,7 +459,6 @@ def bar_L2_sift(hist1, hist2):
         >>> result = ub.repr2(barl2_dist, precision=2)
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        np.array([ 0.55,  0.51,  0.49,  0.51,  0.49,  0.52,  0.48,  0.48,  0.51,  0.45])
     """
     return 1.0 - L2_sift(hist1, hist2)
 
@@ -650,16 +568,10 @@ def cos_sift(hist1, hist2):
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> result = ub.repr2(l2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.77,  0.74,  0.72,  0.74,  0.72,  0.75,  0.71,  0.72,  0.74,  0.68])
     """
     psuedo_max = 512.0
     sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
     sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
-    #if DEBUG_DIST:
-    #    _assert_siftvec(sift1)
-    #    _assert_siftvec(sift2)
-    #sift1 /= np.linalg.norm(sift1, axis=-1)
-    #sift2 /= np.linalg.norm(sift2, axis=-1)
     return (sift1 * sift2).sum(-1)
 
 
@@ -676,19 +588,6 @@ def emd(hist1, hist2, cost_matrix='sift'):
     """
     earth mover's distance by robjects(lpSovle::lp.transport)
     require: lpsolve55-5.5.0.9.win32-py2.7.exe
-
-    Ignore:
-        #http://docs.opencv.org/modules/imgproc/doc/histograms.html
-        import re
-        [x for x in cv2.__dict__.keys() if x.find('emd') > -1 or x.find('EMD') > -1]
-        import re
-        [x for x in cv2.__dict__.keys() if re.search('emd|earth', x, flags=re.IGNORECASE)]
-        [x for x in cv2.__dict__.keys() if re.search('dist', x, flags=re.IGNORECASE)]
-        CV_COMP_CORREL Correlation
-        CV_COMP_CHISQR Chi-Square
-        CV_COMP_INTERSECT Intersection
-        CV_COMP_BHATTACHARYYA Bhattacharyya distance
-        CV_COMP_HELLINGER
 
     CommandLine:
         python -m vtool.distance --test-emd
@@ -732,44 +631,6 @@ def emd(hist1, hist2, cost_matrix='sift'):
     else:
         dist = pyemd.emd(hist1.astype(np.float), hist2.astype(np.float), cost_matrix)
     return dist
-
-    if False:
-        import cv2
-        try:
-            from cv2 import cv
-        except ImportError as ex:
-            #cv2.histComparse(
-            print(repr(ex))
-            print('Cannot import cv. Is opencv 2.4.9?. cv2.__version__=%r' % (cv2.__version__,))
-            raise
-            #return -1
-
-        # Stack weights into the first column
-        def add_weight(hist):
-            weights = np.ones(len(hist))
-            stacked = np.ascontiguousarray(np.vstack([weights, hist]).T)
-            return stacked
-
-        def convertCV32(stacked):
-            hist64 = cv.fromarray(stacked)
-            hist32 = cv.CreateMat(hist64.rows, hist64.cols, cv.CV_32FC1)
-            cv.Convert(hist64, hist32)
-            return hist32
-
-        def emd_(a32, b32):
-            return cv.CalcEMD2(a32, b32, cv.CV_DIST_L2)
-
-        # HACK
-        if len(hist1.shape) == 1 and len(hist2.shape) == 1:
-            a, b = add_weight(hist1), add_weight(hist2)
-            a32, b32 = convertCV32(a), convertCV32(b)
-            emd_dist = emd_(a32, b32)
-            return emd_dist
-        else:
-            ab_list   = [(add_weight(a), add_weight(b)) for a, b in zip(hist1, hist2)]
-            ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
-            emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
-            return emd_dists
 
 
 def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
@@ -858,14 +719,6 @@ def haversine(latlon1, latlon2):
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> result = ('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2, with_dtype=True),))
         >>> print(result)
-        dist_matrix_list = [
-            np.array([[    0.  ,  9417.52,  9527.8 ,  9527.8 ],
-                      [ 9417.52,     0.  ,   111.13,   111.13],
-                      [ 9527.8 ,   111.13,     0.  ,     0.  ],
-                      [ 9527.8 ,   111.13,     0.  ,     0.  ]], dtype=np.float64),
-            np.array([[     0.  ,  14197.57],
-                      [ 14197.57,      0.  ]], dtype=np.float64),
-        ]
     """
     # FIXME; lat, lon should be different columns not different rows
     # convert decimal degrees to radians
