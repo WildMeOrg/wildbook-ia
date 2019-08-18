@@ -15,6 +15,7 @@ import numpy as np
 import parse
 from collections import namedtuple
 from .util_math import TAU
+
 try:
     import pyhesaff
 except ImportError:

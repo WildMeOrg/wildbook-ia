@@ -165,9 +165,8 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     Finds the approximate nearest neighbors of qpts in dpts
 
-
     CommandLine:
-        python -m vtool.nearest_neighbors --test-ann_flann_once:0
+        xdoctest -m ~/code/vtool/vtool/nearest_neighbors.py ann_flann_once
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -238,8 +237,8 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> qmag = np.sqrt(np.power(qpts.astype(np.float64), 2).sum(1))
         >>> dmag = np.sqrt(np.power(dpts.astype(np.float64), 2).sum(1))
         >>> # FIX TO ACTUALLY BE AT THE RIGHT NORM
-        >>> dpts = dpts * (512 / np.linalg.norm(dpts, axis=1))[:, None]
-        >>> qpts = qpts * (512 / np.linalg.norm(qpts, axis=1))[:, None]
+        >>> dpts = (dpts * (512 / np.linalg.norm(dpts, axis=1))[:, None]).astype(np.float32)
+        >>> qpts = (qpts * (512 / np.linalg.norm(qpts, axis=1))[:, None]).astype(np.float32)
         >>> print(np.linalg.norm(dpts))
         >>> print(np.linalg.norm(qpts))
         >>> dist = np.sqrt(np.sum((qpts - dpts) ** 2, 1))
@@ -252,14 +251,21 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    (qx2_dx, qx2_dist) = FLANN_CLS().nn(
-        dpts, qpts, num_neighbors, **flann_params)
+    import cv2
+    obj = cv2.flann_Index()
+    if 'algorithm' not in flann_params:
+        flann_params['algorithm'] = 0
+        # flann_params['trees'] = 5
+    obj.build(dpts, flann_params)
+    (qx2_dx, qx2_dist) = obj.knnSearch(qpts, num_neighbors)
+    # flann.build_index(dpts, **flann_params)
+    # (qx2_dx, qx2_dist) = .nn_index(qpts, num_neighbors)
     return (qx2_dx, qx2_dist)
 
 
 def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
     """ Helper for akmeans """
-    (qx2_dx, qx2_dist) = FLANN_CLS().nn(
+    (qx2_dx, qx2_dist) = FLANN_CLS().nn_index(
         dpts, qpts, num_neighbors, **flann_params)
     return qx2_dx
 
@@ -351,6 +357,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     # Load the index if it exists
     flann = FLANN_CLS()
     flann.flann_fpath = flann_fpath
+
     if use_cache and exists(flann_fpath):
         try:
             flann.load_index(flann_fpath, dpts)
@@ -372,6 +379,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     if num_dpts == 0:
         print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
         return flann
+
     flann.build_index(dpts, **flann_params)
     if verbose > 1:
         print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=2))
