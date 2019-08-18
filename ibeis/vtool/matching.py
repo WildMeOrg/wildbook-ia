@@ -1758,10 +1758,6 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         >>> fm, match_dist, norm_fx1, norm_dist = assigntup
         >>> result = ub.repr2(assigntup, precision=3, nobr=True, with_dtype=True)
         >>> print(result)
-        np.array([], shape=(0, 2), dtype=np.int32),
-        np.array([], dtype=np.float64),
-        np.array([], dtype=np.int32),
-        np.array([], dtype=np.float64),
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1871,14 +1867,6 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
         >>> assert np.all(fx2_to_flagsA == fx2_to_flagsB)
         >>> result = ub.repr2(fx2_to_flagsB)
         >>> print(result)
-        np.array([[ True, False],
-                  [ True,  True],
-                  [False, False],
-                  [False,  True]])
-
-    Ignore:
-        %timeit flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
-        %timeit flag_sym_slow(fx2_to_fx1, fx1_to_fx2, K)
     """
     match_12 = fx1_to_fx2.T[:K].T
     match_21 = fx2_to_fx1.T[:K].T

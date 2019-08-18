@@ -289,7 +289,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> imgBGR1 = imread(img_fpath, grayscale=False)
         >>> imgBGR2 = imread(img_fpath, grayscale=True)
         >>> imgBGR3 = imread(img_fpath, orient=True)
@@ -727,7 +727,7 @@ def warpAffine(img, Aff, dsize):
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> Aff = vt.rotation_mat3x3(TAU / 8)
         >>> dsize = vt.get_size(img)
@@ -1169,7 +1169,7 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> x_shear = 0.05
         >>> y_shear = -0.05
@@ -1202,7 +1202,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath) / 255.0
         >>> img = img.astype(np.float32)
         >>> dsize = (1000, 1000)
@@ -1871,7 +1871,7 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
 #        >>> # DISABLE_DOCTEST
 #        >>> from vtool.image import *  # NOQA
 #        >>> import vtool as vt
-#        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+#        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
 #        >>> img = vt.imread(img_fpath)
 #        >>> img2 = testing(img)
 #        >>> # xdoctest: +REQUIRES(--show)
@@ -1995,7 +1995,7 @@ def testdata_imglist():
     # build test data
     import vtool as vt
     img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-    img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+    img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
     img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
     img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
     img5 = vt.imread(ut.grab_test_imgpath('star.png'))
@@ -2409,7 +2409,7 @@ def ensure_3channel(patch):
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> patch1 = vt.imread(ut.grab_test_imgpath('lena.png'))[0:512, 0:500, :]
+        >>> patch1 = vt.imread(ut.grab_test_imgpath('astro.png'))[0:512, 0:500, :]
         >>> patch2 = vt.imread(ut.grab_test_imgpath('ada.jpg'))[:, :, 0:1]
         >>> patch3 = vt.imread(ut.grab_test_imgpath('jeff.png'))[0:390, 0:400, 0]
         >>> res1 = ensure_3channel(patch1)
@@ -2475,7 +2475,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> import vtool as vt
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
         >>> vert = True
         >>> modifysize = False
         >>> # execute function
@@ -2625,7 +2625,7 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         >>> import vtool as vt
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
         >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
         >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
         >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
@@ -2712,7 +2712,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> gpaths = [ut.grab_test_imgpath('carl.jpg'),
-        >>>           ut.grab_test_imgpath('lena.png')]
+        >>>           ut.grab_test_imgpath('astro.png')]
         >>> flags = filterflags_valid_images(gpaths)
         >>> assert all(flags)
     """

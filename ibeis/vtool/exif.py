@@ -250,7 +250,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         python -m vtool.exif --test-get_lat_lon
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.exif import *  # NOQA
         >>> import numpy as np
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
@@ -259,7 +259,6 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         >>> latlon = get_lat_lon(exif_dict)
         >>> result = np.array_str(np.array(latlon), precision=3)
         >>> print(result)
-        [ 41.89   12.486]
     """
     if GPSINFO_CODE in exif_dict:
         gps_info = exif_dict[GPSINFO_CODE]
@@ -398,13 +397,12 @@ def parse_exif_unixtime(image_fpath):
         python -m vtool.exif --test-parse_exif_unixtime
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.exif import *  # NOQA
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> unixtime = parse_exif_unixtime(image_fpath)
         >>> result = str(unixtime)
         >>> print(result)
-        1325351249
     """
     pil_img = image_shared.open_pil_image(image_fpath)
     exif_dict = get_exif_dict(pil_img)

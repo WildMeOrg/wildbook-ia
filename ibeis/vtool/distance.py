@@ -483,15 +483,11 @@ def L2_sift(hist1, hist2):
         >>> hist1, hist2 = testdata_hist()
         >>> sift1, sift2, sift3, sift4, sift5 = testdata_sift2()
         >>> l2_dist = L2_sift(hist1, hist2)
-        >>> #l2_dist1 = L2_sift(sift1, sift2)
-        >>> #l2_dist2 = L2_sift(sift1, sift3)
-        >>> #L2_sift(sift2, sift3)
         >>> max_dist = L2_sift(sift4, sift5)
         >>> assert np.isclose(max_dist, 1.0)
         >>> result = ub.repr2(l2_dist, precision=2)
         >>> #xdoctest: +IGNORE_WHITESPACE
         >>> print(result)
-        np.array([ 0.45,  0.49,  0.51,  0.49,  0.51,  0.48,  0.52,  0.52,  0.49,  0.55])
     """
     # The corret number is 512, because thats what is used in siftdesc.cpp
     # remove the pseudo max hack
