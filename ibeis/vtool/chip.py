@@ -11,7 +11,6 @@ except ImportError as ex:
     print('ERROR: import cv2 is failing!')
     cv2 = ut.DynStruct()
     cv2.INTER_LANCZOS4 = None
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_image_to_chip_transform(bbox, chipsz, theta):
@@ -344,10 +343,10 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.chip import *  # NOQA
+        >>> from vtool.util_math import TAU
         >>> # build test data
         >>> gfpath = ut.grab_test_imgpath('carl.jpg')
         >>> bbox = (100, 3, 100, 100)
-        >>> TAU = 2 * np.pi
         >>> theta = TAU / 8
         >>> new_size = (32, 32)
         >>> filter_list = []
@@ -465,12 +464,9 @@ def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, m
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.chip
-        python -m vtool.chip --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool.chip
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

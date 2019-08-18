@@ -4,11 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip
 import numpy as np
 import utool as ut
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-(print, rrr, profile) = ut.inject2(__name__, '[geom]', DEBUG=False)
+import ubelt as ub
+import cv2
 
 
 def bboxes_from_vert_list(verts_list, castint=False):
@@ -19,15 +16,6 @@ def bboxes_from_vert_list(verts_list, castint=False):
 def verts_list_from_bboxes_list(bboxes_list):
     """ Create a four-vertex polygon from the bounding rectangle """
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
-
-
-#def mask_from_verts(verts):
-#    h, w = shape[0:2]
-#    y, x = np.mgrid[:h, :w]
-#    points = np.transpose((x.ravel(), y.ravel()))
-#    #mask = nxutils.points_inside_poly(points, verts)
-#    mask = _nxutils_points_inside_poly(points, verts)
-#    return mask.reshape(h, w)
 
 
 def verts_from_bbox(bbox, close=False):
@@ -382,7 +370,7 @@ def extent_from_bbox(bbox):
         >>> from vtool.geometry import *  # NOQA
         >>> bbox = [0, 0, 10, 10]
         >>> extent = extent_from_bbox(bbox)
-        >>> result = ('extent = %s' % (ut.repr2(extent),))
+        >>> result = ('extent = %s' % (ub.repr2(extent),))
         >>> print(result)
         extent = [0, 10, 0, 10]
     """
@@ -407,7 +395,7 @@ def bbox_from_extent(extent):
         >>> from vtool.geometry import *  # NOQA
         >>> extent = [0, 10, 0, 10]
         >>> bbox = bbox_from_extent(extent)
-        >>> result = ('bbox = %s' % (ut.repr2(bbox),))
+        >>> result = ('bbox = %s' % (ub.repr2(bbox),))
         >>> print(result)
         bbox = [0, 0, 10, 10]
     """
@@ -564,7 +552,7 @@ def point_inside_bbox(point, bbox):
         >>> bbox = (3, 2, 5, 7)
         >>> flag = point_inside_bbox(point, bbox)
         >>> flag = flag.astype(np.int)
-        >>> result = ('flag = %s' % (ut.repr2(flag),))
+        >>> result = ('flag = %s' % (ub.repr2(flag),))
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -587,11 +575,7 @@ def point_inside_bbox(point, bbox):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.geometry
-        python -m vtool.geometry --allexamples
-        python -m vtool.geometry --allexamples --noface --nosrc
+        xdoctest -m vtool.geometry
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

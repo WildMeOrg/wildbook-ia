@@ -5,9 +5,9 @@ These functions might be PR quality for numpy.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 from six import next
 from six.moves import zip, range
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def atleast_nd(arr, n, tofront=False):
@@ -43,7 +43,7 @@ def atleast_nd(arr, n, tofront=False):
         >>> n = 2
         >>> arr = np.array([1, 1, 1])
         >>> arr_ = atleast_nd(arr, n)
-        >>> result = ut.repr2(arr_.tolist())
+        >>> result = ub.repr2(arr_.tolist())
         >>> print(result)
         [[1], [1], [1]]
 
@@ -57,9 +57,9 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr1_ = atleast_nd(arr1, n)
         >>> arr2_ = atleast_nd(arr2, n)
         >>> arr3_ = atleast_nd(arr3, n)
-        >>> result1 = ut.repr2(arr1_.tolist())
-        >>> result2 = ut.repr2(arr2_.tolist())
-        >>> result3 = ut.repr2(arr3_.tolist())
+        >>> result1 = ub.repr2(arr1_.tolist())
+        >>> result2 = ub.repr2(arr2_.tolist())
+        >>> result3 = ub.repr2(arr3_.tolist())
         >>> result = '\n'.join([result1, result2, result3])
         >>> print(result)
         [[[[1]]], [[[1]]], [[[1]]]]
@@ -347,7 +347,7 @@ def unique_row_indexes(arr):
         >>> from vtool.numpy_utils import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> unique_rowx = unique_row_indexes(arr)
-        >>> result = ('unique_rowx = %s' % (ut.repr2(unique_rowx),))
+        >>> result = ('unique_rowx = %s' % (ub.repr2(unique_rowx),))
         >>> print(result)
         unique_rowx = np.array([0, 1, 2, 3, 5], dtype=np.int64)
 
@@ -366,12 +366,9 @@ def unique_row_indexes(arr):
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.numpy_utils
-        python -m vtool.numpy_utils --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool.numpy_utils
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

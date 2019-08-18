@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 import six
 import scipy.interpolate
 from functools import partial
-print, rrr, profile = ut.inject2(__name__)
 
 
 def check_unused_kwargs(kwargs, expected_keys):
@@ -130,7 +130,6 @@ class ScoreNormVisualizeClass(object):
                            cfgstr='', fnum=fnum, pnum=pnum)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
     """
     Conforms to scikit-learn Estimator interface
@@ -153,7 +152,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         >>> from vtool.score_normalization import *  # NOQA
         >>> import vtool as vt
         >>> encoder = ScoreNormalizer()
-        >>> X, y = vt.tests.dummy.testdata_binary_scores()
+        >>> X, y = vt.demodata.testdata_binary_scores()
         >>> attrs = {'index': np.arange(len(y)) * ((2 * y) - 1)}
         >>> encoder.fit(X, y, attrs)
         >>> ut.quit_if_noshow()
@@ -246,12 +245,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             ut.printex(ex, 'could not learn thresh', iswarning=True)
 
     @staticmethod
-    # @ut.apply_docstr(flatten_scores)
     def _to_xy(tp_scores, tn_scores, part_attrs=None):
         return flatten_scores(tp_scores, tn_scores, part_attrs)
 
     @staticmethod
-    # @ut.apply_docstr(partition_scores)
     def _to_partitioned(X, y, attrs={}):
         return partition_scores(X, y, attrs)
 
@@ -615,8 +612,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> (fp_indicies, fn_indicies) = encoder.get_error_indicies(X, y)
             >>> fp_X = X.take(fp_indicies)[0:3]
             >>> fn_X = X.take(fn_indicies)[0:3]
-            >>> result =    'fp_X = ' + ut.repr2(fp_X)
-            >>> result += '\nfn_X = ' + ut.repr2(fn_X)
+            >>> result =    'fp_X = ' + ub.repr2(fp_X)
+            >>> result += '\nfn_X = ' + ub.repr2(fn_X)
             >>> print(result)
             fp_X = np.array([ 6.196,  5.912,  5.804])
             fn_X = np.array([ 3.947,  4.277,  4.43 ])
@@ -658,8 +655,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> (tp_indicies, tn_indicies) = encoder.get_correct_indices(X, y)
             >>> tp_X = X.take(tp_indicies)[0:3]
             >>> tn_X = X.take(tn_indicies)[0:3]
-            >>> result =    'tp_X = ' + ut.repr2(tp_X)
-            >>> result += '\ntn_X = ' + ut.repr2(tn_X)
+            >>> result =    'tp_X = ' + ub.repr2(tp_X)
+            >>> result += '\ntn_X = ' + ub.repr2(tn_X)
             >>> print(result)
             tp_X = np.array([ 8.883,  8.77 ,  8.759])
             tn_X = np.array([ 0.727,  0.76 ,  0.841])
@@ -732,7 +729,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
             >>> encoder = ScoreNormalizer()
-            >>> X, y = vt.tests.dummy.testdata_binary_scores()
+            >>> X, y = vt.demodata.testdata_binary_scores()
             >>> encoder.fit(X, y)
             >>> kwargs = dict(
             >>>     with_pr=True, interactive=True, with_roc=True,
@@ -745,7 +742,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
             >>> encoder = ScoreNormalizer()
-            >>> X, y = vt.tests.dummy.testdata_binary_scores()
+            >>> X, y = vt.demodata.testdata_binary_scores()
             >>> encoder.fit(X, y)
             >>> kwargs = dict(
             >>>     with_pr=True, interactive=True, with_roc=True, with_hist=True,
@@ -821,7 +818,7 @@ def partition_scores(X, y, attrs=None):
         >>> tup = partition_scores(X, y, attrs)
         >>> resdict = ut.odict(zip(
         >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
-        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
+        >>> result = ub.repr2(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=1, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
@@ -884,7 +881,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         >>> (X, y, attrs) = tup
         >>> y = y.astype(np.int)
         >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
-        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
+        >>> result = ub.repr2(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=1, nl=1)
         >>> print(result)
         X=np.array([5, 6, 6, 7, 1, 2, 2]),
@@ -1195,7 +1192,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         >>> scores = np.array([-1, 0.0, 0.01, 2.3, 8.0, 9.99, 10.0, 10.1, 11.1])
         >>> prob = normalize_scores(score_domain, p_tp_given_score, scores)
         >>> #np.set_printoptions(suppress=True)
-        >>> result = ut.repr2(prob, precision=2, suppress_small=True)
+        >>> result = ub.repr2(prob, precision=2, suppress_small=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -1311,7 +1308,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         if figtitle is not None:
             pt.set_figtitle(figtitle)
         else:
-            pt.set_figtitle('ScoreNorm test' + ut.repr2(normkw, newlines=False))
+            pt.set_figtitle('ScoreNorm test' + ub.repr2(normkw, newlines=False))
 
     locals_ = locals()
     return locals_
@@ -1709,11 +1706,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.score_normalization
-        python -m vtool.score_normalization --allexamples
-        python -m vtool.score_normalization --allexamples --noface --nosrc
+        xdoctest -m vtool.score_normalization
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

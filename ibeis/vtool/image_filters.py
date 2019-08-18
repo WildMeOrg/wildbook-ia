@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
-# LICENCE
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 import numpy as np
 import utool as ut
-try:
-    import cv2
-except ImportError as ex:
-    print('ERROR: import cv2 is failing!')
-# ---------------
-# Preprocessing funcs
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
+import cv2
 
 
 class IntensityPreproc(object):
@@ -207,57 +201,12 @@ def grabcut_fn(chipBGR):
     seg_chipBGR = cv2.cvtColor(chipHSV, cv2.COLOR_HSV2BGR)
     return seg_chipBGR
 
-"""
-#def maxcontr_fn(chip):
-    #with warnings.catch_warnings():
-        #warnings.simplefilter("ignore")
-        #chip_ = pil2_float_img(chip)
-        ##p2 = np.percentile(chip_, 2)
-        ##p98 = np.percentile(chip_, 98)
-        #chip_ = skimage.exposure.equalize_hist(chip_)
-        #retchip = Image.fromarray(skimage.utool.img_as_ubyte(chip_)).convert('L')
-    #return retchip
-
-
-#def localeq_fn(chip):
-    #with warnings.catch_warnings():
-        #warnings.simplefilter("ignore")
-        #chip_ = skimage.utool.img_as_uint(chip)
-        #chip_ = skimage.exposure.equalize_adapthist(chip_, clip_limit=0.03)
-        #retchip = Image.fromarray(skimage.utool.img_as_ubyte(chip_)).convert('L')
-    #return retchip
-
-
-#def rankeq_fn(chip):
-    ##chip_ = skimage.utool.img_as_ubyte(chip)
-    #with warnings.catch_warnings():
-        #warnings.simplefilter("ignore")
-        #chip_ = pil2_float_img(chip)
-        #selem = skimage.morphology.disk(30)
-        #chip_ = skimage.filter.rank.equalize(chip_, selem=selem)
-        #retchip = Image.fromarray(skimage.utool.img_as_ubyte(chip_)).convert('L')
-        #return retchip
-
-
-#def skimage_historam_equalize(chip):
-    #with warnings.catch_warnings():
-        #warnings.simplefilter("ignore")
-        #chip_ = pil2_float_img(chip)
-        #p2 = np.percentile(chip_, 2)
-        #p98 = np.percentile(chip_, 98)
-        #chip_ = skimage.exposure.rescale_intensity(chip_, in_range=(p2, p98))
-        #retchip = Image.fromarray(skimage.utool.img_as_ubyte(chip_)).convert('L')
-    #return retchip
-"""
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.image_filters
-        python -m vtool.image_filters --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool.image_filters
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

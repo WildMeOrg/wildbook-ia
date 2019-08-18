@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, range, map  # NOQA
 import numpy as np
 import utool as ut
+import ubelt as ub
 import cv2
 from vtool import coverage_kpts
-print, print_, profile = ut.inject2(__name__)
 
 
 # TODO: integrate more
@@ -299,11 +299,11 @@ def gridsearch_coverage_grid():
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
     coverage_gridtup_list = [
         sparse_grid_coverage(kpts, chipsize, weights, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+        for cfgdict in ub.ProgIter(cfgdict_list, desc='coverage grid')
     ]
 
     fnum = 1
-    with ut.Timer('plotting gridsearch'):
+    with ub.Timer('plotting gridsearch'):
         ut.interact_gridsearch_result_images(
             show_coverage_grid, cfgdict_list, cfglbl_list,
             coverage_gridtup_list, fnum=fnum, figtitle='coverage grid', unpack=True,
@@ -329,7 +329,7 @@ def gridsearch_coverage_grid_mask():
     kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
     gridmask_list = [
         255 *  make_grid_coverage_mask(kpts, chipsize, weights, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+        for cfgdict in ub.ProgIter(cfgdict_list, desc='coverage grid')
     ]
     NORMHACK = False
     if NORMHACK:
@@ -350,11 +350,7 @@ def gridsearch_coverage_grid_mask():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.coverage_grid
-        python -m vtool.coverage_grid --allexamples
-        python -m vtool.coverage_grid --allexamples --noface --nosrc
+        xdoctest -m vtool.coverage_grid
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

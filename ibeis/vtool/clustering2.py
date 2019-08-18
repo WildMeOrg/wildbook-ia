@@ -13,17 +13,17 @@ import numpy as np
 
 # try:
 #     import pyflann
-#     _FLANN_CLS = pyflann.FLANN
+#     FLANN_CLS = pyflann.FLANN
 # except ImportError:
 # print('no pyflann, using cv2.flann_Index')
 import cv2
-_FLANN_CLS = cv2.flann_Index
-# print('_FLANN_CLS = {!r}'.format(_FLANN_CLS))
+FLANN_CLS = cv2.flann_Index
+# print('FLANN_CLS = {!r}'.format(FLANN_CLS))
 
 
 
 def tune_flann2(data):
-    flann = _FLANN_CLS()
+    flann = FLANN_CLS()
     flann_atkwargs = dict(algorithm='autotuned',
                           target_precision=.6,
                           build_weight=0.01,
@@ -110,7 +110,7 @@ def groupedzip(id_list, datas_list):
         >>> grouped_tuples = list(grouped_iter)
         >>> # verify results
         >>> result = str(groupxs) + '\n'
-        >>> result += ut.repr2(grouped_tuples, nl=1)
+        >>> result += ub.repr2(grouped_tuples, nl=1)
         >>> print(result)
         [1 2 3]
         [
@@ -486,14 +486,14 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_y = pca_centroids[:, 1]
     nCentroids = K = len(centroids)
     if labels == 'centroids':
-        (datax2_label, dists) = _FLANN_CLS().nn(centroids, data, 1)
+        (datax2_label, dists) = FLANN_CLS().nn(centroids, data, 1)
     else:
         datax2_label = labels
     datax2_label = np.array(datax2_label, dtype=np.int32)
     print(datax2_label)
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     #if datax2_centroids is None:
-    #    (datax2_centroidx, _) = p _FLANN_CLS().nn(centroids, data, 1)
+    #    (datax2_centroidx, _) = p FLANN_CLS().nn(centroids, data, 1)
     #data_colors = colors[np.array(datax2_centroidx, dtype=np.int32)]
     nColors = datax2_label.max() - datax2_label.min() + 1
     print('nColors=%r' % (nColors,))

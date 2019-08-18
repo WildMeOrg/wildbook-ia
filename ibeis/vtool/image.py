@@ -8,17 +8,12 @@ from os.path import splitext
 from six.moves import zip, map, range  # NOQA
 import numpy as np
 from PIL import Image
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-    cv2 = None
+import cv2
+from .util_math import TAU
 from vtool import exif
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 
-
-TAU = np.pi * 2
 
 if cv2 is not None:
 
@@ -133,7 +128,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
         >>> num = 4
-        >>> img_list = ut.flatten([img_list1] * num)
+        >>> img_list = list(ub.flatten([img_list1] * num))
         >>> dsize = (700, 700)
         >>> rng = np.random.RandomState(42)
         >>> method = 'unused'
@@ -375,8 +370,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
         except cv2.error as cv2ex:
             ut.printex(cv2ex, 'opencv error', iswarning=True)
-            #print('cv2error dict = ' + ut.repr2(cv2ex.__dict__))
-            #print('cv2error dirlist = ' + ut.repr2(dir(cv2ex)))
+            #print('cv2error dict = ' + ub.repr2(cv2ex.__dict__))
+            #print('cv2error dirlist = ' + ub.repr2(dir(cv2ex)))
             #print('cv2error args = ' + repr(cv2ex.args))
             #print('cv2error message = ' + repr(cv2ex.message))
             #cv2error args =
@@ -544,7 +539,7 @@ def imwrite(img_fpath, imgBGR, fallback=False):
         >>> import utool as ut
         >>> img_fpath1 = ut.grab_test_imgpath('zebra.png')
         >>> imgBGR = vt.imread(img_fpath1)
-        >>> img_dpath = ut.ensure_app_resource_dir('vtool', 'testwrite')
+        >>> img_dpath = ub.ensure_app_cache_dir('vtool', 'testwrite')
         >>> img_fpath2 = ut.unixjoin(img_dpath, 'zebra.png')
         >>> fallback = False
         >>> imwrite(img_fpath2, imgBGR, fallback=fallback)
@@ -734,7 +729,6 @@ def warpAffine(img, Aff, dsize):
         >>> import vtool as vt
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
         >>> img = vt.imread(img_fpath)
-        >>> TAU = np.pi * 2
         >>> Aff = vt.rotation_mat3x3(TAU / 8)
         >>> dsize = vt.get_size(img)
         >>> warped_img = warpAffine(img, Aff, dsize)
@@ -812,7 +806,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (150, 150)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
         >>> print(result)
         (dsize, ratio) = ((150, 75), 0.75)
 
@@ -822,7 +816,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, 1000)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
         >>> print(result)
         (dsize, ratio) = ((2000, 1000), 10.0)
 
@@ -832,7 +826,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
 
@@ -842,7 +836,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (None, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio)),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
     """
@@ -894,7 +888,7 @@ def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
         >>> value = 0
         >>> borderType = 0
         >>> out_fpath = pad_image_ondisk(img_fpath, pad_, out_fpath, value, borderType)
-        >>> result = ('out_fpath = %s' % (ut.repr2(out_fpath),))
+        >>> result = ('out_fpath = %s' % (ub.repr2(out_fpath),))
         >>> print(result)
     """
     imgBGR = imread(img_fpath)
@@ -951,7 +945,7 @@ def make_white_transparent(imgBGR):
         >>> from vtool.image import *  # NOQA
         >>> imgBGR = imread(ut.get_argval('--fpath', type_=str))
         >>> imgBGRA = make_white_transparent(imgBGR)
-        >>> result = ('imgBGRA = %s' % (ut.repr2(imgBGRA),))
+        >>> result = ('imgBGRA = %s' % (ub.repr2(imgBGRA),))
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -1293,7 +1287,7 @@ def rectify_to_uint8(img):
     if img.dtype.kind in ('f'):
         if img.max() <= 1.0 or img.min() >= 0.0:
             raise ValueError('Bad input image. Stats={}'.format(
-                ut.repr2(ut.get_stats(img.ravel()), precision=2)))
+                ub.repr2(ut.get_stats(img.ravel()), precision=2)))
         img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
@@ -2162,7 +2156,7 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         >>> vert = False
         >>> tup = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
         >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
-        >>> result = ut.remove_doublspaces(ut.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
+        >>> result = ut.remove_doublspaces(ub.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -2278,7 +2272,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> # verify results
-        >>> result = ut.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
+        >>> result = ub.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -2853,11 +2847,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.image
-        python -m vtool.image --allexamples
-        python -m vtool.image --allexamples --noface --nosrc
+        xdoctest -m vtool.image
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

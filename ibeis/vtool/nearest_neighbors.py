@@ -6,8 +6,8 @@ python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors)
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import utool as ut
+import ubelt as ub
 import numpy as np
-(print, rrr, profile) = ut.inject2(__name__)
 
 try:
     import pyflann
@@ -46,12 +46,12 @@ class AnnoyWrapper(object):
 
 
 def test_annoy():
-    from vtool.tests import dummy
+    from vtool import demodata
     import pyflann
     import annoy
     import utool
-    qvecs = dummy.testdata_dummy_sift(2 * 1000)
-    dvecs = dummy.testdata_dummy_sift(100 * 1000)
+    qvecs = demodata.testdata_dummy_sift(2 * 1000)
+    dvecs = demodata.testdata_dummy_sift(100 * 1000)
     dim = dpts.shape[1]
 
     checks = 200
@@ -106,7 +106,7 @@ def test_cv2_flann():
         ut.grab_zipped_url('https://priithon.googlecode.com/archive/a6117f5e81ec00abcfb037f0f9da2937bb2ea47f.tar.gz', download_dir='.')
     """
     import cv2
-    from vtool.tests import dummy
+    from vtool import demodata
     import plottool as pt
     import vtool as vt
     img1 = vt.imread(ut.grab_test_imgpath('easy1.png'))
@@ -142,8 +142,8 @@ def test_cv2_flann():
     cv2.drawKeypoints(img1, kp1, outImage=out)
     pt.imshow(out)
 
-    vecs1 = dummy.testdata_dummy_sift(10)
-    vecs2 = dummy.testdata_dummy_sift(10)  # NOQA
+    vecs1 = demodata.testdata_dummy_sift(10)
+    vecs2 = demodata.testdata_dummy_sift(10)  # NOQA
 
     FLANN_INDEX_KDTREE = 0  # bug: flann enums are missing
     #flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=4)
@@ -320,8 +320,8 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     if cache_dir == 'default':
         if verbose:
             print('[flann] using default cache dir')
-        cache_dir = ut.get_app_resource_dir(appname)
-        ut.ensuredir(cache_dir)
+        cache_dir = ub.ensure_app_cache_dir(appname)
+        ub.ensuredir(cache_dir)
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
                                     use_params_hash=use_params_hash,
                                     use_data_hash=use_data_hash)
@@ -393,9 +393,9 @@ def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.nearest_neighbors import *  # NOQA
-        >>> import vtool.tests.dummy as dummy  # NOQA
-        >>> dpts = dummy.get_dummy_dpts(ut.get_nth_prime(10))
-        >>> new_dpts = dummy.get_dummy_dpts(ut.get_nth_prime(9))
+        >>> import vtool.demodata as demodata  # NOQA
+        >>> dpts = demodata.get_dummy_dpts(ut.get_nth_prime(10))
+        >>> new_dpts = demodata.get_dummy_dpts(ut.get_nth_prime(9))
         >>> cache_dir = ut.get_app_resource_dir('vtool')
         >>> cfgstr = '_testcfg'
         >>> new_cfgstr = '_new_testcfg'
@@ -443,7 +443,7 @@ def get_flann_params(algorithm='kdtree', **kwargs):
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> algorithm = ut.get_argval('--algo', default='kdtree')
         >>> flann_params = get_flann_params(algorithm)
-        >>> result = ('flann_params = %s' % (ut.repr2(flann_params),))
+        >>> result = ('flann_params = %s' % (ub.repr2(flann_params),))
         >>> print(result)
     """
     _algorithm_options = [
@@ -565,7 +565,7 @@ def tune_flann(dpts,
         for badchar in badchar_list:
             suffix = suffix.replace(badchar, '')
         print('flann_atkwargs:')
-        print(ut.repr2(flann_atkwargs))
+        print(ub.repr2(flann_atkwargs))
         print('starting optimization')
         tuned_params = flann.build_index(dpts, **flann_atkwargs)
         print('finished optimization')
@@ -619,21 +619,21 @@ def tune_flann(dpts,
         #    'sorted',
         #]
         out_file = 'flann_tuned' + suffix
-        ut.write_to(out_file, ut.repr2(tuned_params, sorted_=True, newlines=True))
+        ut.write_to(out_file, ub.repr2(tuned_params, sorted_=True, newlines=True))
         flann.delete_index()
         if tuned_params['algorithm'] in relevant_params_dict:
             print('relevant_params=')
             relevant_params = relevant_params_dict[tuned_params['algorithm']]
-            print(ut.repr2(ut.dict_subset(tuned_params, relevant_params),
+            print(ub.repr2(ut.dict_subset(tuned_params, relevant_params),
                               sorted_=True, newlines=True))
             print('irrelevant_params=')
-            print(ut.repr2(ut.dict_setdiff(tuned_params, relevant_params),
+            print(ub.repr2(ut.dict_setdiff(tuned_params, relevant_params),
                               sorted_=True, newlines=True))
         else:
             print('unknown tuned algorithm=%r' % (tuned_params['algorithm'],))
 
         print('all_tuned_params=')
-        print(ut.repr2(tuned_params, sorted_=True, newlines=True))
+        print(ub.repr2(tuned_params, sorted_=True, newlines=True))
     return tuned_params
 
 
@@ -668,7 +668,7 @@ def flann_index_time_experiment():
         def alloc_pool(self, num):
             print('[alloc] num = %r' % (num,))
             self.num = num
-            self.data_pool = vt.tests.dummy.testdata_dummy_sift(num)
+            self.data_pool = vt.demodata.testdata_dummy_sift(num)
             print('[alloc] object size ' + ut.get_object_size_str(self.data_pool, 'data_pool'))
 
         def get_testdata(self, num):
@@ -680,7 +680,7 @@ def flann_index_time_experiment():
 
     def get_buildtime_data(**kwargs):
         flann_params = vt.get_flann_params(**kwargs)
-        print('flann_params = %r' % (ut.repr2(flann_params),))
+        print('flann_params = %r' % (ub.repr2(flann_params),))
         data_list = []
         num = 1000
         print('-----')
@@ -771,54 +771,23 @@ def invertible_stack(vecs_list, label_list):
     # generate featx inverted index for each feature in each annotation
     _ax2_fx = [list(range(nFeat)) for nFeat in nFeat_iter]
     # generate label inverted index for each feature in each annotation
-    '''
-    # this is not a real test the code just happened to be here. syntax is good though
-    #-ifdef CYTH_TEST_SWAP
     _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
-    #-else
-    '''
-    _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
-    # endif is optional. the end of the functionscope counts as an #endif
-    '#-endif'
     # Flatten generators into the inverted index
-    _flatlabels = ut.iflatten(_ax2_label)
-    _flatfeatxs = ut.iflatten(_ax2_fx)
+    _flatlabels = ub.flatten(_ax2_label)
+    _flatfeatxs = ub.flatten(_ax2_fx)
 
     idx2_label = np.fromiter(_flatlabels, np.int32, nFeats)
     idx2_fx = np.fromiter(_flatfeatxs, np.int32, nFeats)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
     idx2_vec = np.vstack(vecs_list)
-    '#pragma cyth_returntup'
     return idx2_vec, idx2_label, idx2_fx
 
-#import cyth
-#if cyth.DYNAMIC:
-#    exec(cyth.import_cyth_execstr(__name__))
-#else:
-#    # <AUTOGEN_CYTH>
-#    # Regen command: python -c "import vtool.nearest_neighbors" --cyth-write
-#    try:
-#        if not cyth.WITH_CYTH:
-#            raise ImportError('no cyth')
-#        import vtool._nearest_neighbors_cyth
-#        _invertible_stack_cyth = vtool._nearest_neighbors_cyth._invertible_stack_cyth
-#        invertible_stack_cyth = vtool._nearest_neighbors_cyth._invertible_stack_cyth
-#        CYTHONIZED = True
-#    except ImportError:
-#        invertible_stack_cyth = invertible_stack
-#        CYTHONIZED = False
-#    # </AUTOGEN_CYTH>
-#    pass
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.nearest_neighbors
-        python -m vtool.nearest_neighbors --allexamples
-        python -m vtool.nearest_neighbors --allexamples --noface --nosrc
+        xdoctest -m vtool.nearest_neighbors
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

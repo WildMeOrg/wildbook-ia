@@ -10,6 +10,8 @@ from vtool import linalg as ltool
 from vtool import image as gtool
 from vtool import trig
 import utool as ut
+import ubelt as ub
+from .util_math import TAU
 try:
     import cv2
 except ImportError as ex:
@@ -19,10 +21,6 @@ except ImportError as ex:
     cv2.INTER_CUBIC = None
     cv2.BORDER_CONSTANT = None
     cv2.BORDER_REPLICATE = None
-(print, rrr, profile) = ut.inject2(__name__)
-
-
-TAU = np.pi * 2  # References: tauday.com
 
 
 def patch_gradient(patch, ksize=1, gaussian_weighted=False):
@@ -63,10 +61,8 @@ def get_test_patch(key='star', jitter=False):
         >>> # DISABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> import plottool as pt
-        >>> # build test data
         >>> key = 'star2'
         >>> jitter = False
-        >>> # execute function
         >>> patch = get_test_patch(key, jitter)
         >>> pt.imshow(255 * patch)
         >>> pt.show_if_requested()
@@ -588,7 +584,7 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
         >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode, use_cpp=use_cpp)
         >>> # verify results
         >>> print(np.array(warped_patches).shape)
-        >>> print(ut.repr2(np.array(warped_subkpts), precision=2))
+        >>> print(ub.repr2(np.array(warped_subkpts), precision=2))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(warped_patches[0])
@@ -1422,7 +1418,6 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     # Get wrapped histogram (because we are finding a direction)
     flat_oris = gori.flatten()
     flat_weights = gori_weights.flatten()
-    TAU = np.pi * 2
     range_ = (0, TAU)
     # FIXME: this does not do linear interpolation
     #hist_, edges_ = np.histogram(flat_oris, range=range_, bins=bins, weights=flat_weights)
@@ -1437,17 +1432,6 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     return hist, centers
 
 
-# if __name__ == '__main__':
-#     """
-#     CommandLine:
-#         python -m vtool.patch
-#         python -m vtool.patch --allexamples
-#         python -m vtool.patch --allexamples --noface --nosrc
-#     """
-#     import multiprocessing
-#     multiprocessing.freeze_support()  # for win32
-#     import utool as ut  # NOQA
-#     ut.doctest_funcs()
 if __name__ == '__main__':
     r"""
     CommandLine:

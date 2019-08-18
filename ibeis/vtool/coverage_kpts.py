@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map, reduce  # NOQA
-#import six
-#from six import next
 import cv2
 import numpy as np
 import utool as ut
+import ubelt as ub
 from vtool import patch as ptool
 from vtool import keypoint as ktool
-print, rrr, profile = ut.inject2(__name__)
 
 
 # TODO: integrate more
@@ -102,7 +100,7 @@ def make_heatmask(mask, cmap='plasma'):
     #     'mask: ',
     #     '  dtype: ' + str(mask.dtype),
     #     '  shape: ' + str(mask.shape),
-    #     '  stats: ' + ut.repr2(ut.get_stats(mask.ravel()), precision=2),
+    #     '  stats: ' + ub.repr2(ut.get_stats(mask.ravel()), precision=2),
     # ]))
     heatmask[:, :, 3] = mask
     # print('heatmask = {!r}'.format(heatmask))
@@ -154,7 +152,6 @@ def make_kpts_coverage_mask(
         >>> import vtool as vt
         >>> import plottool as pt
         >>> import pyhesaff
-        >>> #img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
         >>> kpts = kpts[::10]
@@ -245,8 +242,8 @@ def warp_patch_onto_kpts(
         >>> srcshape = (19, 19)
         >>> radius = srcshape[0] / 2.0
         >>> sigma = 0.4 * radius
-        >>> SQUARE = ut.get_argflag('--square')
-        >>> HOLE = ut.get_argflag('--hole')
+        >>> SQUARE = ub.argflag('--square')
+        >>> HOLE = ub.argflag('--hole')
         >>> if SQUARE:
         >>>     patch = np.ones(srcshape)
         >>> else:
@@ -389,10 +386,7 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.coverage_kpts import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> patch = get_gaussian_weight_patch()
-        >>> # verify results
         >>> result = str(patch)
         >>> print(result)
     """
@@ -466,7 +460,7 @@ def gridsearch_kpts_coverage_mask():
     imgmask_list = [
         255 *  make_kpts_coverage_mask(kpts, chipsize, weights,
                                        return_patch=False, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+        for cfgdict in ub.ProgIter(cfgdict_list, label='coverage grid')
     ]
     #NORMHACK = True
     #if NORMHACK:
@@ -485,11 +479,11 @@ def testdata_coverage(fname=None):
     """ testing function """
     import vtool as vt
     # build test data
-    kpts, vecs = vt.dummy.get_testdata_kpts(fname, with_vecs=True)
+    kpts, vecs = vt.demodata.get_testdata_kpts(fname, with_vecs=True)
     # HACK IN DISTINCTIVENESS
     if fname is not None:
         from ibeis.algo.hots import distinctiveness_normalizer
-        cachedir = ut.get_app_resource_dir('ibeis', 'distinctiveness_model')
+        cachedir = ub.ensure_app_cache_dir('ibeis', 'distinctiveness_model')
         species = 'zebra_plains'
         dstcnvs_normer = distinctiveness_normalizer.DistinctivnessNormalizer(species, cachedir=cachedir)
         dstcnvs_normer.load(cachedir)
@@ -512,7 +506,6 @@ def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
     pnum_ = pt.get_pnum_func(nRows=2, nCols=2)
     if patch is not None:
         pt.imshow((patch * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(0), title='patch')
-        #ut.embed()
         pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(1), title='mask')
     else:
         pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=(2, 1, 1), title='mask')
@@ -528,11 +521,7 @@ def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.coverage_kpts
-        python -m vtool.coverage_kpts --allexamples
-        python -m vtool.coverage_kpts --allexamples --noface --nosrc
+        xdoctest -m vtool.coverage_kpts
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

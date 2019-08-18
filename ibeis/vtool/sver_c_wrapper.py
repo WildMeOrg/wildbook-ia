@@ -15,11 +15,9 @@ import numpy as np
 import vtool.keypoint as ktool
 import utool as ut
 from os.path import dirname, join, realpath
-# TODO: move to utool?
 from vtool.other import asserteq, compare_implementations  # NOQA
-print, rrr, profile = ut.inject2(__name__)
+from .util_math import TAU
 
-TAU = 2 * np.pi  # References: tauday.com
 c_double_p = C.POINTER(C.c_double)
 
 # copied/adapted from _pyhesaff.py
@@ -189,8 +187,8 @@ def test_sver_wrapper2():
 
         #print(sv_tup[0])
         #print(sv_tup[3])
-    print('unique cases affine inliers: ' + ut.repr2(list(set(inliers_list))))
-    print('unique cases homog inliers: ' + ut.repr2(list(set(homog_inliers_list))))
+    print('unique cases affine inliers: ' + ub.repr2(list(set(inliers_list))))
+    print('unique cases homog inliers: ' + ub.repr2(list(set(homog_inliers_list))))
 
 
 def test_sver_wrapper():
@@ -201,7 +199,7 @@ def test_sver_wrapper():
         python -m vtool.sver_c_wrapper --test-test_sver_wrapper
         python -m vtool.sver_c_wrapper --test-test_sver_wrapper --rebuild-sver
         python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show
-        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --dummy
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --demodata
         python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --fname1=easy1.png --fname2=easy2.png
         python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --fname1=easy1.png --fname2=hard3.png
         python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --fname1=carl.jpg --fname2=hard3.png
@@ -216,18 +214,18 @@ def test_sver_wrapper():
         %timeit get_affine_inliers_cpp(*args)
     """
     import vtool.spatial_verification as sver
-    import vtool.tests.dummy as dummy
+    import vtool.demodata as demodata
     xy_thresh_sqrd    = ktool.KPTS_DTYPE(.4)
     scale_thresh_sqrd = ktool.KPTS_DTYPE(2.0)
     ori_thresh        = ktool.KPTS_DTYPE(TAU / 4.0)
     keys = 'xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh'.split(', ')
-    print(ut.repr2(ut.dict_subset(locals(), keys)))
+    print(ub.repr2(ut.dict_subset(locals(), keys)))
 
     def report_errors():
         pass
 
-    if ut.get_argflag('--dummy'):
-        testtup = dummy.testdata_dummy_matches()
+    if ut.get_argflag('--demodata'):
+        testtup = demodata.testdata_dummy_matches()
         (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
         fm_input = fm_input.astype(fm_dtype)
         #fm_input = fm_input[0:10].astype(fm_dtype)
@@ -235,7 +233,7 @@ def test_sver_wrapper():
     else:
         fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
-        testtup = dummy.testdata_ratio_matches(fname1, fname2)
+        testtup = demodata.testdata_ratio_matches(fname1, fname2)
         (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
 
     # pack up call to aff hypothesis
@@ -245,7 +243,7 @@ def test_sver_wrapper():
     scales2 = vt.get_scales(kpts2.take(fm_input.T[1], axis=0))
     #fs_input = 1 / scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
     fs_input = scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
-    print('fs_input = ' + ut.repr2(fs_input))
+    print('fs_input = ' + ub.repr2(fs_input))
     #fs_input[0:-9] = 0
     #fs_input = np.ones(len(fm_input), dtype=fs_dtype)
     #ut.embed()
@@ -307,11 +305,7 @@ def call_hello():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.sver_c_wrapper
-        python -m vtool.sver_c_wrapper --allexamples
-        python -m vtool.sver_c_wrapper --allexamples --noface --nosrc
+        xdoctest -m vtool.sver_c_wrapper
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
