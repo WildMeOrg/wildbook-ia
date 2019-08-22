@@ -178,15 +178,11 @@ def initialize_job_manager(ibs):
 
     if ut.get_argflag('--fg'):
         ibs.job_manager.reciever = JobBackend(use_static_ports=True)
-        record_filepath_list = []
     else:
-        record_filepath_list = _get_engine_job_paths(ibs)
-        job_counter = len(record_filepath_list) + 1
         ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
         ibs.job_manager.reciever.initialize_background_processes(
             dbdir=ibs.get_dbdir(),
             containerized=ibs.containerized,
-            job_counter=job_counter,
         )
 
     # Delete any leftover locks from before
@@ -204,7 +200,7 @@ def initialize_job_manager(ibs):
         if result['status'] == 'ok':
             break
 
-    ibs.job_manager.jobiface.queue_interrupted_jobs(record_filepath_list)
+    ibs.job_manager.jobiface.queue_interrupted_jobs()
 
     # import ibeis
     # #dbdir = '/media/raid/work/testdb1'
@@ -483,7 +479,7 @@ class JobBackend(object):
         }
 
     def initialize_background_processes(self, dbdir=None, containerized=False,
-                                        thread=True, job_counter=0):
+                                        thread=True):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
@@ -501,7 +497,7 @@ class JobBackend(object):
             return proc
 
         if self.spawn_queue:
-            self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict, job_counter=job_counter)
+            self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict)
             self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
 
         if self.spawn_collector:
@@ -644,15 +640,21 @@ class JobInterface(object):
         if jobiface.verbose:
             print('connect collect_url1 = %r' % (jobiface.port_dict['collect_url1'],))
 
-    def queue_interrupted_jobs(jobiface, record_filepath_list):
+    def queue_interrupted_jobs(jobiface):
         import tqdm
 
         MAX_ATTEMPTS = 20
 
         ibs = jobiface.ibs
-        if ibs is not None:
-            engine_request_list = []
 
+        if ibs is not None:
+            record_filepath_list = _get_engine_job_paths(ibs)
+
+            restart_jobcounter_list = []
+            restart_jobid_list      = []
+            restart_request_list    = []
+
+            completed_jobcounter = 0
             print('Reloading %d engine jobs...' % (len(record_filepath_list), ))
             for record_filepath in tqdm.tqdm(record_filepath_list):
                 jobid = splitext(basename(record_filepath))[0]
@@ -685,12 +687,16 @@ class JobInterface(object):
                             corrupted = True
                         else:
                             times = metadata.get('times', {})
+                            jobcounter = metadata['jobcounter']
                             received = times['received']
 
                             engine_request['restart_jobid'] = jobid
+                            engine_request['restart_jobcounter'] = jobcounter
                             engine_request['restart_received'] = received
-                            engine_request_ = engine_request.copy()
-                            engine_request_list.append((jobid, engine_request_))
+
+                            restart_jobcounter_list.append(jobcounter)
+                            restart_jobid_list.append(jobid)
+                            restart_request_list.append(engine_request)
 
                             record['attempts'] = attempts + 1
                             ut.save_cPkl(record_filepath, record, verbose=False)
@@ -713,12 +719,30 @@ class JobInterface(object):
                     reply = jobiface.collect_deal_sock.recv_json()
                     jobid_ = reply['jobid']
                     assert jobid_ == jobid
+                    completed_jobcounter += 1
 
-            print('Re-sending %d engine jobs...' % (len(engine_request_list), ))
-            for jobid, engine_request in tqdm.tqdm(engine_request_list):
+            # Update the jobcounter to be up to date
+            update_notify = {
+                '__set_jobcounter__': completed_jobcounter,
+            }
+            print('Updating completed job counter: %r' % (update_notify, ))
+            jobiface.engine_deal_sock.send_json(update_notify)
+            reply = jobiface.engine_deal_sock.recv_json()
+            jobcounter_ = reply['jobcounter']
+            assert jobcounter_ == completed_jobcounter
+
+            print('Re-sending %d engine jobs...' % (len(restart_jobcounter_list), ))
+
+            index_list = np.argsort(restart_jobcounter_list)
+            zipped = list(zip(restart_jobcounter_list, restart_jobid_list, restart_request_list))
+            zipped = ut.take(zipped, index_list)
+
+            for jobcounter, jobid, engine_request in tqdm.tqdm(zipped):
                 jobiface.engine_deal_sock.send_json(engine_request)
                 reply = jobiface.engine_deal_sock.recv_json()
+                jobcounter_ = reply['jobcounter']
                 jobid_ = reply['jobid']
+                assert jobcounter_ == jobcounter
                 assert jobid_ == jobid
 
     def queue_job(jobiface, action, callback_url=None, callback_method=None, *args, **kwargs):
@@ -754,13 +778,15 @@ class JobInterface(object):
                 pass
 
             engine_request = {
-                'action'          : action,
-                'args'            : args,
-                'kwargs'          : kwargs,
-                'callback_url'    : callback_url,
-                'callback_method' : callback_method,
-                'request'         : request,
-                'restart_jobid'   : None,
+                'action'             : action,
+                'args'               : args,
+                'kwargs'             : kwargs,
+                'callback_url'       : callback_url,
+                'callback_method'    : callback_method,
+                'request'            : request,
+                'restart_jobid'      : None,
+                'restart_jobcounter' : None,
+                'restart_received'   : None,
             }
             if jobiface.verbose >= 2:
                 print('Queue job: %s' % (engine_request))
@@ -962,7 +988,7 @@ def make_queue_loop(name='collect'):
 collect_queue_loop = make_queue_loop(name='collect')
 
 
-def engine_queue_loop(port_dict, job_counter=0):
+def engine_queue_loop(port_dict):
     """
     Specialized queue loop
     """
@@ -1004,34 +1030,52 @@ def engine_queue_loop(port_dict, job_counter=0):
         poller = zmq.Poller()
         poller.register(rout_sock, zmq.POLLIN)
         poller.register(deal_sock, zmq.POLLIN)
+
+        # always start at 0
+        global_jobcounter = 0
+
         try:
             while True:
                 evts = dict(poller.poll())
                 if rout_sock in evts:
-                    # HACK GET REQUEST FROM CLIENT
-
-                    # jobid = 'jobid-%04d' % (job_counter,)
-                    jobid = '%s' % (uuid.uuid4(), )
-                    received = _timestamp()
-
-                    job_counter += 1
-                    print('Creating jobid %r (counter %d)' % (jobid, job_counter, ))
-
                     # CALLER: job_client
                     idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
 
-                    action           = engine_request['action']
-                    args             = engine_request['args']
-                    kwargs           = engine_request['kwargs']
-                    callback_url     = engine_request['callback_url']
-                    callback_method  = engine_request['callback_method']
-                    request          = engine_request['request']
-                    restart_jobid    = engine_request.get('restart_jobid', None)
-                    restart_received = engine_request.get('restart_received', None)
+                    set_jobcounter = engine_request.get('__set_jobcounter__', None)
+                    if set_jobcounter is not None:
+                        global_jobcounter = set_jobcounter
+                        reply_notify = {
+                            'jobcounter': global_jobcounter,
+                        }
+                        print('... notifying client that jobcounter was updated to %d' % (global_jobcounter, ))
+                        # RETURNS: job_client_return
+                        send_multipart_json(rout_sock, idents, reply_notify)
+                        continue
+
+                    # jobid = 'jobid-%04d' % (jobcounter,)
+                    jobid = '%s' % (uuid.uuid4(), )
+                    jobcounter = global_jobcounter + 1
+                    received = _timestamp()
+
+                    action             = engine_request['action']
+                    args               = engine_request['args']
+                    kwargs             = engine_request['kwargs']
+                    callback_url       = engine_request['callback_url']
+                    callback_method    = engine_request['callback_method']
+                    request            = engine_request['request']
+                    restart_jobid      = engine_request.get('restart_jobid', None)
+                    restart_jobcounter = engine_request.get('restart_jobcounter', None)
+                    restart_received   = engine_request.get('restart_received', None)
 
                     if restart_jobid is not None:
                         '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (jobid, restart_jobid, )
                         jobid = restart_jobid
+
+                    if restart_jobcounter is not None:
+                        '[RESTARTING] Replacing jobcounter=%s with previous restart_jobcounter=%s' % (jobcounter, restart_jobcounter, )
+                        jobcounter = restart_jobcounter
+
+                    print('Creating jobid %r (counter %d)' % (jobid, jobcounter, ))
 
                     if restart_received is not None:
                         received = restart_received
@@ -1040,9 +1084,10 @@ def engine_queue_loop(port_dict, job_counter=0):
                     # Status: Received (Notify Collector)
                     # Reply immediately with a new jobid
                     reply_notify = {
-                        'jobid': jobid,
-                        'status': 'received',
-                        'action': 'notification',
+                        'jobid'      : jobid,
+                        'jobcounter' : jobcounter,
+                        'status'     : 'received',
+                        'action'     : 'notification',
                     }
 
                     if VERBOSE_JOBS:
@@ -1064,7 +1109,7 @@ def engine_queue_loop(port_dict, job_counter=0):
                     metadata_notify = {
                         'jobid': jobid,
                         'metadata': {
-                            'jobcounter'         : job_counter,
+                            'jobcounter'         : jobcounter,
                             'action'             : action,
                             'args'               : args,
                             'kwargs'             : kwargs,
@@ -1092,6 +1137,10 @@ def engine_queue_loop(port_dict, job_counter=0):
 
                     ######################################################################
                     # Status: Accepted (Metadata Processed)
+
+                    # We have been accepted, let's update the global_jobcounter
+                    global_jobcounter = jobcounter
+
                     # Reply immediately with a new jobid
                     reply_notify = {
                         'jobid': jobid,
