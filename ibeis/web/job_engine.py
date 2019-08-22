@@ -63,9 +63,11 @@ import shelve
 import random
 from datetime import datetime
 import pytz
+import flask
 from os.path import join, exists, abspath, splitext, basename
 from functools import partial
 from ibeis.control import controller_inject
+import threading
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -79,6 +81,9 @@ ctx = zmq.Context.instance()
 URL = 'tcp://127.0.0.1'
 NUM_ENGINES = 1
 VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
+
+
+GLOBAL_SHELVE_LOCK = threading.Lock()
 
 
 TIMESTAMP_FMTSTR = '%Y-%m-%d %H:%M:%S %Z'
@@ -110,6 +115,13 @@ def _get_engine_job_paths(ibs):
     ut.ensuredir(shelve_path)
     record_filepath_list = list(ut.iglob(join(shelve_path, '*.pkl')))
     return record_filepath_list
+
+
+def _get_engine_lock_paths(ibs):
+    shelve_path = ibs.get_shelves_path()
+    ut.ensuredir(shelve_path)
+    lock_filepath_list = list(ut.iglob(join(shelve_path, '*.lock')))
+    return lock_filepath_list
 
 
 @register_ibs_method
@@ -166,6 +178,7 @@ def initialize_job_manager(ibs):
 
     if ut.get_argflag('--fg'):
         ibs.job_manager.reciever = JobBackend(use_static_ports=True)
+        record_filepath_list = []
     else:
         record_filepath_list = _get_engine_job_paths(ibs)
         job_counter = len(record_filepath_list) + 1
@@ -176,6 +189,12 @@ def initialize_job_manager(ibs):
             job_counter=job_counter,
         )
 
+    # Delete any leftover locks from before
+    lock_filepath_list = _get_engine_lock_paths(ibs)
+    print('Deleting %d leftover engine locks' % (len(lock_filepath_list), ))
+    for lock_filepath in lock_filepath_list:
+        ut.delete(lock_filepath)
+
     ibs.job_manager.jobiface = JobInterface(0, ibs.job_manager.reciever.port_dict, ibs=ibs)
     ibs.job_manager.jobiface.initialize_client_thread()
     # Wait until the collector becomes live
@@ -184,7 +203,8 @@ def initialize_job_manager(ibs):
         print('result = %r' % (result,))
         if result['status'] == 'ok':
             break
-    ibs.job_manager.jobiface.queue_interrupted_jobs()
+
+    ibs.job_manager.jobiface.queue_interrupted_jobs(record_filepath_list)
 
     # import ibeis
     # #dbdir = '/media/raid/work/testdb1'
@@ -515,6 +535,77 @@ class JobBackend(object):
                 assert engine.is_alive(), 'engine died too soon'
 
 
+def get_shelve_lock_filepath(shelve_filepath):
+    shelve_lock_filepath = '%s.lock' % (shelve_filepath, )
+    return shelve_lock_filepath
+
+
+def touch_shelve_lock_file(shelve_filepath):
+    shelve_lock_filepath = get_shelve_lock_filepath(shelve_filepath)
+    assert not exists(shelve_lock_filepath)
+    ut.touch(shelve_lock_filepath, verbose=False)
+    assert exists(shelve_lock_filepath)
+
+
+def delete_shelve_lock_file(shelve_filepath):
+    shelve_lock_filepath = get_shelve_lock_filepath(shelve_filepath)
+    assert exists(shelve_lock_filepath)
+    ut.delete(shelve_lock_filepath, verbose=False)
+    assert not exists(shelve_lock_filepath)
+
+
+def wait_for_shelve_lock_file(shelve_filepath, timeout=600):
+    shelve_lock_filepath = get_shelve_lock_filepath(shelve_filepath)
+    start_time = time.time()
+    while exists(shelve_lock_filepath):
+        current_time = time.time()
+        elapsed = current_time - start_time
+        if elapsed >= timeout:
+            return False
+        time.sleep(1)
+        if int(elapsed) % 5 == 0:
+            print('Waiting for %0.02f seconds for lock so far' % (elapsed, ))
+    return True
+
+
+def get_shelve_value(shelve_filepath, key):
+    wait_for_shelve_lock_file(shelve_filepath)
+    with GLOBAL_SHELVE_LOCK:
+        wait_for_shelve_lock_file(shelve_filepath)
+        touch_shelve_lock_file(shelve_filepath)
+    value = None
+    try:
+        with shelve.open(shelve_filepath, 'r') as shelf:
+            value = shelf.get(key)
+    except:
+        pass
+    delete_shelve_lock_file(shelve_filepath)
+    return value
+
+
+def set_shelve_value(shelve_filepath, key, value):
+    wait_for_shelve_lock_file(shelve_filepath)
+    with GLOBAL_SHELVE_LOCK:
+        wait_for_shelve_lock_file(shelve_filepath)
+        touch_shelve_lock_file(shelve_filepath)
+    flag = False
+    try:
+        with shelve.open(shelve_filepath) as shelf:
+            shelf[key] = value
+        flag = True
+    except:
+        pass
+    delete_shelve_lock_file(shelve_filepath)
+    return flag
+
+
+def get_shelve_filepaths(ibs, jobid):
+    shelve_path = ibs.get_shelves_path()
+    shelve_input_filepath  = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
+    shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid, )))
+    return shelve_input_filepath, shelve_output_filepath
+
+
 class JobInterface(object):
     def __init__(jobiface, id_, port_dict, ibs=None):
         jobiface.id_ = id_
@@ -553,31 +644,66 @@ class JobInterface(object):
         if jobiface.verbose:
             print('connect collect_url1 = %r' % (jobiface.port_dict['collect_url1'],))
 
-    def queue_interrupted_jobs(jobiface):
+    def queue_interrupted_jobs(jobiface, record_filepath_list):
         import tqdm
 
         MAX_ATTEMPTS = 20
 
         ibs = jobiface.ibs
         if ibs is not None:
-            record_filepath_list = _get_engine_job_paths(ibs)
-            print('Found %d engine jobs to reload...' % (len(record_filepath_list), ))
+            engine_request_list = []
+
+            print('Reloading %d engine jobs...' % (len(record_filepath_list), ))
             for record_filepath in tqdm.tqdm(record_filepath_list):
-                lock_filepath = record_filepath.replace('.pkl', '.lock')
-                record = ut.load_cPkl(record_filepath)
                 jobid = splitext(basename(record_filepath))[0]
 
+                # Load the engine record
+                record = ut.load_cPkl(record_filepath, verbose=False)
+
+                # Load the record info
                 engine_request = record.get('request',   None)
                 attempts       = record.get('attempts',  0)
                 completed      = record.get('completed', False)
+
+                # Check status
                 suppressed     = attempts >= MAX_ATTEMPTS
+                corrupted      = engine_request is None
 
-                if exists(lock_filepath):
-                    ut.delete(lock_filepath)
+                if True not in [completed, suppressed, corrupted]:
+                    with ut.Indenter('[client %d] ' % (jobiface.id_)):
+                        color = 'brightblue' if attempts == 0 else 'brightred'
+                        print_ = partial(ut.colorprint, color=color)
 
-                assert engine_request is not None
-                if completed or suppressed:
-                    status = 'completed' if completed else 'suppressed'
+                        print_('RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)' % (attempts + 1, ))
+                        print_(ut.repr3(record_filepath))
+                        # print_(ut.repr3(record))
+
+                        shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                        metadata = get_shelve_value(shelve_input_filepath, 'metadata')
+
+                        if metadata is None:
+                            corrupted = True
+                        else:
+                            times = metadata.get('times', {})
+                            received = times['received']
+
+                            engine_request['restart_jobid'] = jobid
+                            engine_request['restart_received'] = received
+                            engine_request_ = engine_request.copy()
+                            engine_request_list.append((jobid, engine_request_))
+
+                            record['attempts'] = attempts + 1
+                            ut.save_cPkl(record_filepath, record, verbose=False)
+
+                # We may have suppressed this for being corrupted
+                if True in [completed, suppressed, corrupted]:
+                    if completed:
+                        status = 'completed'
+                    elif suppressed:
+                        status = 'suppressed'
+                    else:
+                        status = 'corrupted'
+
                     reply_notify = {
                         'jobid': jobid,
                         'status': status,
@@ -587,38 +713,13 @@ class JobInterface(object):
                     reply = jobiface.collect_deal_sock.recv_json()
                     jobid_ = reply['jobid']
                     assert jobid_ == jobid
-                else:
-                    with ut.Indenter('[client %d] ' % (jobiface.id_)):
-                        color = 'brightblue' if attempts == 0 else 'brightred'
-                        print_ = partial(ut.colorprint, color=color)
 
-                        print_('RESTARTING FAILED JOB FROM RESTART (ATTEMPT %d)' % (attempts + 1, ))
-                        print_(ut.repr3(record_filepath))
-                        print_(ut.repr3(record))
-
-                        shelve_path = ibs.get_shelves_path()
-                        shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
-
-                        try:
-                            shelf = shelve.open(shelve_input_filepath, 'r')
-                        except:
-                            shelf = shelve.open(shelve_input_filepath)
-
-                        key = str('metadata')
-                        metadata = shelf[key]
-                        times = metadata.get('times', {})
-                        received = times['received']
-
-                        engine_request['restart_jobid'] = jobid
-                        engine_request['restart_received'] = received
-                        jobiface.engine_deal_sock.send_json(engine_request)
-                        reply = jobiface.engine_deal_sock.recv_json()
-                        jobid_ = reply['jobid']
-                        assert jobid_ == jobid
-
-                        record['attempts'] = attempts + 1
-                        ut.save_cPkl(record_filepath, record)
-                        shelf = None
+            print('Re-sending %d engine jobs...' % (len(engine_request_list), ))
+            for jobid, engine_request in tqdm.tqdm(engine_request_list):
+                jobiface.engine_deal_sock.send_json(engine_request)
+                reply = jobiface.engine_deal_sock.recv_json()
+                jobid_ = reply['jobid']
+                assert jobid_ == jobid
 
     def queue_job(jobiface, action, callback_url=None, callback_method=None, *args, **kwargs):
         r"""
@@ -641,9 +742,8 @@ class JobInterface(object):
             if jobiface.verbose >= 1:
                 print('----')
 
-            request = None
+            request = {}
             try:
-                import flask
                 if flask.request:
                     request = {
                         'endpoint': flask.request.path,
@@ -665,21 +765,16 @@ class JobInterface(object):
             if jobiface.verbose >= 2:
                 print('Queue job: %s' % (engine_request))
 
-            # Flow of information tags:
-            # CALLS: engine_queue
+            # Send request to job
             jobiface.engine_deal_sock.send_json(engine_request)
-            if jobiface.verbose >= 3:
-                print('..sent, waiting for response')
-            # RETURNED FROM: job_client_return
             reply_notify = jobiface.engine_deal_sock.recv_json()
-            if jobiface.verbose >= 2:
-                print('Got reply: %s' % ( reply_notify))
             jobid = reply_notify['jobid']
 
             ibs = jobiface.ibs
             if ibs is not None:
                 shelve_path = ibs.get_shelves_path()
                 ut.ensuredir(shelve_path)
+
                 record_filename = '%s.pkl' % (jobid, )
                 record_filepath = join(shelve_path, record_filename)
                 record = {
@@ -687,10 +782,16 @@ class JobInterface(object):
                     'attempts':  0,
                     'completed': False,
                 }
-                ut.save_cPkl(record_filepath, record)
+                ut.save_cPkl(record_filepath, record, verbose=False)
 
-            # Release memory
-            engine_request = None
+            # Release memor
+            action          = None
+            args            = None
+            kwargs          = None
+            callback_url    = None
+            callback_method = None
+            request         = None
+            engine_request  = None
 
             return jobid
 
@@ -703,11 +804,7 @@ class JobInterface(object):
             pair_msg = dict(action='job_id_list')
             # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
-            if jobiface.verbose >= 3:
-                print('... waiting for collector reply')
             reply = jobiface.collect_deal_sock.recv_json()
-            if jobiface.verbose >= 2:
-                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
         return reply
 
     def get_job_status(jobiface, jobid):
@@ -719,11 +816,7 @@ class JobInterface(object):
             pair_msg = dict(action='job_status', jobid=jobid)
             # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
-            if jobiface.verbose >= 3:
-                print('... waiting for collector reply')
             reply = jobiface.collect_deal_sock.recv_json()
-            if jobiface.verbose >= 2:
-                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
         return reply
 
     def get_job_status_dict(jobiface):
@@ -735,11 +828,7 @@ class JobInterface(object):
             pair_msg = dict(action='job_status_dict')
             # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
-            if jobiface.verbose >= 3:
-                print('... waiting for collector reply')
             reply = jobiface.collect_deal_sock.recv_json()
-            if jobiface.verbose >= 2:
-                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
         return reply
 
     def get_job_metadata(jobiface, jobid):
@@ -751,11 +840,7 @@ class JobInterface(object):
             pair_msg = dict(action='job_input', jobid=jobid)
             # CALLS: collector_request_metadata
             jobiface.collect_deal_sock.send_json(pair_msg)
-            if jobiface.verbose >= 3:
-                print('... waiting for collector reply')
             reply = jobiface.collect_deal_sock.recv_json()
-            if jobiface.verbose >= 2:
-                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
         return reply
 
     def get_job_result(jobiface, jobid):
@@ -767,11 +852,7 @@ class JobInterface(object):
             pair_msg = dict(action='job_result', jobid=jobid)
             # CALLER: collector_request_result
             jobiface.collect_deal_sock.send_json(pair_msg)
-            if jobiface.verbose >= 3:
-                print('... waiting for collector reply')
             reply = jobiface.collect_deal_sock.recv_json()
-            if jobiface.verbose >= 2:
-                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
         return reply
 
     def get_unpacked_result(jobiface, jobid):
@@ -785,9 +866,6 @@ class JobInterface(object):
         except Exception as ex:
             ut.printex(ex, 'Failed to unpack result', keys=['json_result'])
             result = reply['json_result']
-            # raise
-            # raise
-        #print('Job %r result = %s' % (jobid, ut.repr2(result, truncate=True),))
         # Release raw JSON result
         json_result = None
         return result
@@ -1233,14 +1311,10 @@ def collector_loop(port_dict, dbdir, containerized):
         ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
 
-        # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
         shelve_path = ibs.get_shelves_path()
         ut.ensuredir(shelve_path)
 
-        # if exists(shelve_path):
-        #     ut.delete(shelve_path)
-
-        collecter_data = {}
+        collector_data = {}
 
         try:
             while True:
@@ -1252,16 +1326,14 @@ def collector_loop(port_dict, dbdir, containerized):
                 # CALLER: collector_request_result
                 idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
                 try:
-                    reply = on_collect_request(ibs, collect_request, collecter_data,
+                    reply = on_collect_request(ibs, collect_request, collector_data,
                                                shelve_path, containerized=containerized)
                 except Exception as ex:
                     import traceback
-                    import sys
                     print(ut.repr3(collect_request))
                     ut.printex(ex, 'ERROR in collection')
                     print(traceback.format_exc())
-                    # or
-                    print(sys.exc_info()[0])
+                    reply = {}
                 send_multipart_json(collect_rout_sock, idents, reply)
 
                 idents = None
@@ -1286,383 +1358,268 @@ def _timestamp():
     return timestamp
 
 
-def on_collect_request(ibs, collect_request, collecter_data,
+def invalidate_global_cache(jobid):
+    global JOB_STATUS_CACHE
+    JOB_STATUS_CACHE.pop(jobid, None)
+
+
+def get_collector_shelve_filepaths(collector_data, jobid):
+    if jobid is None:
+        return None, None
+    shelve_input_filepath  = collector_data.get(jobid, {}).get('input', None)
+    shelve_output_filepath = collector_data.get(jobid, {}).get('output', None)
+    return shelve_input_filepath, shelve_output_filepath
+
+
+def calculate_timedelta(start, end):
+    TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
+
+    start_ = ' '.join(start.split(' ')[:-1])
+    start_date = datetime.strptime(start_, TIMESTAMP_FMTSTR_)
+
+    end_ = ' '.join(end.split(' ')[:-1])
+    end_date = datetime.strptime(end_, TIMESTAMP_FMTSTR_)
+
+    delta = end_date - start_date
+
+    total_seconds = int(delta.total_seconds())
+    total_seconds_ = total_seconds
+
+    hours = total_seconds_ // (60 * 60)
+    total_seconds_ -= hours * 60 * 60
+    minutes = total_seconds_ // 60
+    total_seconds_ -= minutes * 60
+    seconds = total_seconds_
+
+    return hours, minutes, seconds, total_seconds
+
+
+def on_collect_request(ibs, collect_request, collector_data,
                        shelve_path, containerized=False):
     """ Run whenever the collector recieves a message """
     import requests
 
-    global JOB_STATUS_CACHE
+    action = collect_request.get('action', None)
+    jobid  = collect_request.get('jobid',  None)
+    status = collect_request.get('status', None)
 
     reply = {
         'status': 'ok',
+        'jobid': jobid,
     }
 
-    action = collect_request['action']
-    if VERBOSE_JOBS:
-        print('...building action=%r response' % (action,))
-
-    if action == 'notification':
-        # From the Queue
-        jobid = collect_request['jobid']
-        status = collect_request['status']
-
-        if jobid not in collecter_data:
-            collecter_data[jobid] = {
+    # Ensure we have a collector record for the jobid
+    if jobid is not None:
+        if jobid not in collector_data:
+            collector_data[jobid] = {
                 'status' : None,
                 'input'  : None,
                 'output' : None,
             }
+        runtime_lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
+    else:
+        runtime_lock_filepath = None
 
-        collecter_data[jobid]['status'] = status
-        print('Notify %s' % ut.repr3(collecter_data[jobid]))
-        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
+    args = get_collector_shelve_filepaths(collector_data, jobid)
+    collector_shelve_input_filepath, collector_shelve_output_filepath = args
 
-        lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
+    if action == 'notification':
+        assert None not in [jobid, runtime_lock_filepath]
+
+        collector_data[jobid]['status'] = status
+
+        print('Notify %s' % ut.repr3(collector_data[jobid]))
+        invalidate_global_cache(jobid)
+
         if status == 'received':
-            # Make waiting lock
-            ut.touch(lock_filepath)
-        elif status == 'completed':
-            if exists(lock_filepath):
-                ut.delete(lock_filepath)
+            ut.touch(runtime_lock_filepath)
+
+        if status == 'completed':
+            if exists(runtime_lock_filepath):
+                ut.delete(runtime_lock_filepath)
 
             # Mark the engine request as finished
             record_filename = '%s.pkl' % (jobid, )
             record_filepath = join(shelve_path, record_filename)
-            record = ut.load_cPkl(record_filepath)
+            record = ut.load_cPkl(record_filepath, verbose=False)
             record['completed'] = True
-            ut.save_cPkl(record_filepath, record)
+            ut.save_cPkl(record_filepath, record, verbose=False)
             record = None
 
-        shelve_input_filepath = collecter_data.get(jobid, {}).get('input', None)
-        if shelve_input_filepath is not None:
-            shelve_input_filepath = collecter_data[jobid]['input']
-            shelf = shelve.open(shelve_input_filepath, writeback=True)
-
-            key = str('metadata')
-            metadata = shelf[key]
+        # Update relevant times in the shelf
+        metadata = get_shelve_value(collector_shelve_input_filepath, 'metadata')
+        if metadata is not None:
             times = metadata.get('times', {})
-
             times['updated'] = _timestamp()
+
             if status == 'working':
                 times['started'] = _timestamp()
+
             if status == 'completed':
                 times['completed'] = _timestamp()
 
             # Calculate runtime
-            received   = times.get('received', None)
-            started    = times.get('started', None)
-            completed  = times.get('completed', None)
-            runtime    = times.get('runtime', None)
+            received   = times.get('received',   None)
+            started    = times.get('started',    None)
+            completed  = times.get('completed',  None)
+            runtime    = times.get('runtime',    None)
             turnaround = times.get('turnaround', None)
 
-            if None not in [started, completed]:
-                try:
-                    assert runtime is None
-                    TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                    started_ = ' '.join(started.split(' ')[:-1])
-                    completed_ = ' '.join(completed.split(' ')[:-1])
-                    started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
-                    completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
-                    delta = completed_date - started_date
-                    total_seconds = int(delta.total_seconds())
-                    total_seconds_ = total_seconds
-                    hours = total_seconds // (60 * 60)
-                    total_seconds -= hours * 60 * 60
-                    minutes = total_seconds // 60
-                    total_seconds -= minutes * 60
-                    seconds = total_seconds
-                    args = (hours, minutes, seconds, total_seconds_, )
-                    times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
-                    times['runtime_sec'] = total_seconds_
-                except:
-                    times['runtime'] = 'ERROR'
+            if None not in [started, completed] and runtime is None:
+                hours, minutes, seconds, total_seconds = calculate_timedelta(started, completed)
+                args = (hours, minutes, seconds, total_seconds, )
+                times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                times['runtime_sec'] = total_seconds
 
-            if None not in [received, completed]:
-                try:
-                    assert turnaround is None
-                    TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                    received_ = ' '.join(received.split(' ')[:-1])
-                    completed_ = ' '.join(completed.split(' ')[:-1])
-                    received_date = datetime.strptime(received_, TIMESTAMP_FMTSTR_)
-                    completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
-                    delta = completed_date - received_date
-                    total_seconds = int(delta.total_seconds())
-                    total_seconds_ = total_seconds
-                    hours = total_seconds // (60 * 60)
-                    total_seconds -= hours * 60 * 60
-                    minutes = total_seconds // 60
-                    total_seconds -= minutes * 60
-                    seconds = total_seconds
-                    args = (hours, minutes, seconds, total_seconds_, )
-                    times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
-                    times['turnaround_sec'] = total_seconds_
-                except:
-                    times['turnaround'] = 'ERROR'
+            if None not in [received, completed] and turnaround is None:
+                hours, minutes, seconds, total_seconds = calculate_timedelta(received, completed)
+                args = (hours, minutes, seconds, total_seconds, )
+                times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
+                times['turnaround_sec'] = total_seconds
 
-            # Save result to shelf
-            try:
-                shelf[key] = metadata
-            finally:
-                shelf.close()
+            metadata['times'] = times
+            set_shelve_value(collector_shelve_input_filepath, 'metadata', metadata)
+
             metadata = None  # Release memory
+
     elif action == 'register':
-        jobid     = collect_request['jobid']
-        status    = collect_request['status']
-        completed = status == 'completed'
+        assert None not in [jobid]
 
-        shelve_input_filepath  = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
-        shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid, )))
+        invalidate_global_cache(jobid)
 
-        if completed:
-            assert status == 'completed'
+        shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+        metadata = get_shelve_value(shelve_input_filepath, 'metadata')
+        engine_result = get_shelve_value(shelve_output_filepath, 'result')
 
-            # Ensure these shelves are valid
-            try:
-                shelf = shelve.open(shelve_input_filepath, 'r')
-            except:
-                shelf = shelve.open(shelve_input_filepath)
-            shelf = None
+        if status == 'completed':
+            # Ensure we can read the data we expect out of a completed job
+            if None in [metadata, engine_result]:
+                status = 'corrupted'
 
-            try:
-                shelf = shelve.open(shelve_output_filepath, 'r')
-            except:
-                shelf = shelve.open(shelve_output_filepath)
-            shelf = None
-        else:
-            assert status == 'suppressed'
-
-            # Ensure these shelves are valid
-            try:
-                shelf = shelve.open(shelve_input_filepath, 'r')
-            except:
-                shelf = shelve.open(shelve_input_filepath)
-            shelf = None
-
-            try:
-                try:
-                    shelf = shelve.open(shelve_output_filepath, 'r')
-                except:
-                    shelf = shelve.open(shelve_output_filepath)
-                shelf = None
-            except:
-                # The shelve appears to be corrupted, ignore it
-                shelve_output_filepath = None
-
-        collecter_data[jobid] = {
+        collector_data[jobid] = {
             'status' : status,
             'input'  : shelve_input_filepath,
             'output' : shelve_output_filepath,
         }
-        print('Register %s' % ut.repr3(collecter_data[jobid]))
-        reply['jobid'] = jobid
-        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
+        print('Register %s' % ut.repr3(collector_data[jobid]))
 
-        # Check if turnaround time has been computed
-        shelve_input_filepath = collecter_data[jobid]['input']
-        shelf = shelve.open(shelve_input_filepath, writeback=True)
+        metadata, engine_result = None, None  # Release memory
 
-        key = str('metadata')
-        metadata = shelf[key]
-        times = metadata.get('times', {})
-
-        received   = times.get('received', None)
-        started    = times.get('started', None)
-        completed  = times.get('completed', None)
-        runtime    = times.get('runtime', None)
-        turnaround = times.get('turnaround', None)
-
-        runtime_sec    = times.get('runtime_sec', None)
-        turnaround_sec = times.get('turnaround_sec', None)
-
-        if runtime_sec is None:
-            runtime = None
-        if turnaround_sec is None:
-            turnaround = None
-
-        if runtime in [None, 'ERROR'] and None not in [started, completed]:
-            try:
-                assert runtime is None
-                TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                started_ = ' '.join(started.split(' ')[:-1])
-                completed_ = ' '.join(completed.split(' ')[:-1])
-                started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
-                completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
-                delta = completed_date - started_date
-                total_seconds = int(delta.total_seconds())
-                total_seconds_ = total_seconds
-                hours = total_seconds // (60 * 60)
-                total_seconds -= hours * 60 * 60
-                minutes = total_seconds // 60
-                total_seconds -= minutes * 60
-                seconds = total_seconds
-                args = (hours, minutes, seconds, total_seconds_, )
-                times['runtime'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
-                times['runtime_sec'] = total_seconds_
-            except:
-                times['runtime'] = 'ERROR'
-
-        if turnaround in [None, 'ERROR'] and None not in [received, completed]:
-            try:
-                assert turnaround is None
-                TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                received_ = ' '.join(received.split(' ')[:-1])
-                completed_ = ' '.join(completed.split(' ')[:-1])
-                received_date = datetime.strptime(received_, TIMESTAMP_FMTSTR_)
-                completed_date = datetime.strptime(completed_, TIMESTAMP_FMTSTR_)
-                delta = completed_date - received_date
-                total_seconds = int(delta.total_seconds())
-                total_seconds_ = total_seconds
-                hours = total_seconds // (60 * 60)
-                total_seconds -= hours * 60 * 60
-                minutes = total_seconds // 60
-                total_seconds -= minutes * 60
-                seconds = total_seconds
-                args = (hours, minutes, seconds, total_seconds_, )
-                times['turnaround'] = '%d hours %d min. %s sec. (total: %d sec.)' % args
-                times['turnaround_sec'] = total_seconds_
-            except:
-                times['turnaround'] = 'ERROR'
-
-        # Save result to shelf
-        try:
-            shelf[key] = metadata
-        finally:
-            shelf.close()
-        metadata = None  # Release memory
     elif action == 'metadata':
+        invalidate_global_cache(jobid)
+
         # From the Engine
-        jobid    = collect_request['jobid']
         metadata = collect_request.get('metadata', None)
 
-        if jobid not in collecter_data:
-            collecter_data[jobid] = {
-                'status' : None,
-                'input'  : None,
-                'output' : None,
-            }
+        shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+        collector_data[jobid]['input'] = shelve_input_filepath
 
-        shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid, )))
-        collecter_data[jobid]['input'] = shelve_input_filepath
-        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
+        set_shelve_value(shelve_input_filepath, 'metadata', metadata)
 
-        shelf = shelve.open(shelve_input_filepath, writeback=True)
-        try:
-            key = str('metadata')
-            shelf[key] = metadata
-        finally:
-            shelf.close()
+        print('Stored Metadata %s' % ut.repr3(collector_data[jobid]))
 
-        print('Store Metadata %s' % ut.repr3(collecter_data[jobid]))
+        metadata = None  # Release memory
 
-        # Release memory
-        metadata = None
-
-        if VERBOSE_JOBS:
-            print('stored metadata')
     elif action == 'store':
+        invalidate_global_cache(jobid)
+
         # From the Engine
-        engine_result   = collect_request['engine_result']
-        callback_url    = collect_request['callback_url']
-        callback_method = collect_request['callback_method']
+        engine_result   = collect_request.get('engine_result',   None)
+        callback_url    = collect_request.get('callback_url',    None)
+        callback_method = collect_request.get('callback_method', None)
 
-        jobid = engine_result['jobid']
-        assert jobid in collecter_data
+        # Get the engine result jobid
+        jobid = engine_result.get('jobid', jobid)
+        assert jobid in collector_data
 
-        shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid, )))
-        collecter_data[jobid]['output'] = shelve_output_filepath
-        JOB_STATUS_CACHE.pop(jobid, None)  # Invalidate in-memory cache
+        shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+        collector_data[jobid]['output'] = shelve_output_filepath
 
-        shelf = shelve.open(shelve_output_filepath, writeback=True)
-        try:
-            key = str('result')
-            shelf[key] = engine_result
-        finally:
-            shelf.close()
+        set_shelve_value(shelve_output_filepath, 'result', engine_result)
 
-        # Release memory
-        engine_result = None
+        print('Stored Result %s' % ut.repr3(collector_data[jobid]))
 
-        print('Store Result %s' % ut.repr3(collecter_data[jobid]))
+        engine_result = None  # Release memory
 
         if callback_url is not None:
-
             if containerized:
                 callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
 
             if callback_method is None:
-                callback_method = 'post'
-            else:
-                callback_method = callback_method.lower()
+                callback_method = 'POST'
 
-            # if VERBOSE_JOBS:
-            print('calling callback_url using callback_method')
+            callback_method = callback_method.upper()
+            message = 'callback_method %r unsupported' % (callback_method, )
+            assert callback_method in ['POST', 'GET', 'PUT'], message
 
             try:
-                args = (callback_url, callback_method)
-                print('ATTEMPTING CALLBACK TO %r\n\tMETHOD: %r' % args)
-
-                # requests.get(callback_url)
                 data_dict = {'jobid': jobid}
-                if callback_method == 'post':
+                args = (callback_url, callback_method, data_dict, )
+                print('Attempting job completion callback to %r\n\tHTTP Method: %r\n\tData Payload: %r' % args)
+
+                # Perform callback
+                if callback_method == 'POST':
                     response = requests.post(callback_url, data=data_dict)
-                elif callback_method == 'get':
+                elif callback_method == 'GET':
                     response = requests.get(callback_url, params=data_dict)
-                elif callback_method == 'put':
+                elif callback_method == 'PUT':
                     response = requests.put(callback_url, data=data_dict)
                 else:
-                    raise ValueError('callback_method %r unsupported' %
-                                     (callback_method, ))
+                    raise RuntimeError()
+
+                # Check response
                 try:
-                    text = response.text
-                    text = unicode(text).encode('utf-8')
+                    text = unicode(response.text).encode('utf-8')
                 except:
                     text = None
 
-                args = (callback_url, callback_method, data_dict, response, text, )
-                print('CALLBACK COMPLETED TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
+                args = (response, text, )
+                print('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
+            except:
+                print('Callback FAILED!')
 
-            except Exception as ex:
-                msg = (('ERROR in collector. '
-                        'Tried to call callback_url=%r with callback_method=%r')
-                       % (callback_url, callback_method, ))
-                print(msg)
-                ut.printex(ex, msg)
-            #requests.post(callback_url)
-        if VERBOSE_JOBS:
-            print('stored result')
     elif action == 'job_status':
-        # From a Client
-        jobid = collect_request['jobid']
-        reply['jobid'] = jobid
-        reply['jobstatus'] = collecter_data.get(jobid, {}).get('status', 'unknown')
+        reply['jobstatus'] = collector_data.get(jobid, {}).get('status', 'unknown')
+
     elif action == 'job_status_dict':
-        # From a Client
-        # print('Fetch Status %s' % ut.repr3(collecter_data))
-
         json_result = {}
-        for jobid in collecter_data:
-            job_status_data = JOB_STATUS_CACHE.get(jobid, None)
 
-            if job_status_data is None:
-                status = collecter_data[jobid]['status']
+        for jobid in collector_data:
 
-                shelve_input_filepath = collecter_data[jobid]['input']
-                try:
-                    shelf = shelve.open(shelve_input_filepath, 'r')
-                except:
-                    shelf = shelve.open(shelve_input_filepath)
-                try:
-                    key = str('metadata')
-                    metadata = shelf[key]
-                finally:
-                    shelf.close()
+            if jobid in JOB_STATUS_CACHE:
+                job_status_data = JOB_STATUS_CACHE.get(jobid, None)
+            else:
+                status = collector_data[jobid]['status']
 
-                times = metadata.get('times', {})
-                request = metadata.get('request', {})
+                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                metadata = get_shelve_value(shelve_input_filepath, 'metadata')
+
+                cache = True
+                if metadata is None:
+                    if status in ['corrupted']:
+                        status = 'corrupted'
+                    elif status in ['suppressed']:
+                        status = 'suppressed'
+                    elif status in ['completed']:
+                        status = 'corrupted'
+                    else:
+                        # status = 'pending'
+                        cache = False
+
+                    metadata = {
+                        'jobcounter': -1,
+                        'times': {},
+                        'request': {},
+                    }
+                else:
+                    times = metadata.get('times', {})
+                    request = metadata.get('request', {})
+
+                # Support legacy jobs
                 if request is None:
                     request = {}
 
-                JOB_STATUS_CACHE[jobid] = {
+                job_status_data = {
                     'status'              : status,
                     'jobcounter'          : metadata.get('jobcounter', None),
                     'action'              : metadata.get('action', None),
@@ -1677,81 +1634,61 @@ def on_collect_request(ibs, collect_request, collecter_data,
                     'time_runtime_sec'    : times.get('runtime_sec', None),
                     'time_turnaround_sec' : times.get('turnaround_sec', None),
                 }
-                job_status_data = JOB_STATUS_CACHE.get(jobid, None)
+                if cache:
+                    JOB_STATUS_CACHE[jobid]  = job_status_data
 
             json_result[jobid] = job_status_data
 
-        metadata = None  # Release memory
         reply['json_result'] = json_result
+
+        metadata = None  # Release memory
+
     elif action == 'job_id_list':
-        reply['jobid_list'] = sorted(list(collecter_data.keys()))
+        reply['jobid_list'] = sorted(list(collector_data.keys()))
+
     elif action == 'job_input':
-        # From a Client
-        jobid = collect_request['jobid']
-        reply['jobid'] = jobid
-
-        if jobid not in collecter_data:
+        if jobid not in collector_data:
             reply['status'] = 'invalid'
-            reply['json_result'] = None
-        else:
-            assert 'input' in collecter_data[jobid]
-            assert 'output' in collecter_data[jobid]
-
-            print('Fetch Input %s' % ut.repr3(collecter_data[jobid]))
-
-            shelve_input_filepath = collecter_data[jobid]['input']
-            try:
-                shelf = shelve.open(shelve_input_filepath, 'r')
-            except:
-                shelf = shelve.open(shelve_input_filepath)
-            try:
-                key = str('metadata')
-                metadata = shelf[key]
-            finally:
-                shelf.close()
-
-            reply['json_result'] = metadata
-
-            # Clear loaded memory
             metadata = None
-    elif action == 'job_result':
-        # From a Client
-        jobid = collect_request['jobid']
-        reply['jobid'] = jobid
-
-        if jobid not in collecter_data:
-            reply['status'] = 'invalid'
-            reply['json_result'] = None
         else:
-            assert 'status' in collecter_data[jobid]
-            assert 'input' in collecter_data[jobid]
-            assert 'output' in collecter_data[jobid]
+            metadata = get_shelve_value(collector_shelve_input_filepath, 'metadata')
+            if metadata is None:
+                reply['status'] = 'corrupted'
 
-            status = collecter_data[jobid]['status']
-            print('Fetch Result %s' % ut.repr3(collecter_data[jobid]))
+        reply['json_result'] = metadata
 
-            shelve_output_filepath = collecter_data[jobid]['output']
-            if shelve_output_filepath is None:
-                # Job failed to store output
-                reply['status'] = 'incomplete' if status != 'suppressed' else 'suppressed'
-                reply['json_result'] = None
+        metadata = None  # Release memory
+
+    elif action == 'job_result':
+        if jobid not in collector_data:
+            reply['status'] = 'invalid'
+            result = None
+        else:
+            status = collector_data[jobid]['status']
+
+            engine_result = get_shelve_value(collector_shelve_output_filepath, 'result')
+
+            if engine_result is None:
+                if status in ['corrupted']:
+                    status = 'corrupted'
+                elif status in ['suppressed']:
+                    status = 'suppressed'
+                elif status in ['completed']:
+                    status = 'corrupted'
+                else:
+                    # status = 'pending'
+                    pass
+                reply['status'] = status
+                result = None
             else:
-                try:
-                    shelf = shelve.open(shelve_output_filepath, 'r')
-                except:
-                    shelf = shelve.open(shelve_output_filepath)
-                try:
-                    key = str('result')
-                    engine_result = shelf[key]
-                finally:
-                    shelf.close()
-
                 reply['status'] = engine_result['exec_status']
-                json_result = engine_result['json_result']
-                reply['json_result'] = ut.from_json(json_result)
 
-                # Clear loaded memory
-                engine_result = None
+                json_result = engine_result['json_result']
+                result = ut.from_json(json_result)
+
+        reply['json_result'] = result
+
+        engine_result = None  # Release memory
     else:
         # Other
         print('...error unknown action=%r' % (action,))

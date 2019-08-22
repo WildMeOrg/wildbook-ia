@@ -480,6 +480,16 @@ def start_identify_annots_query(ibs,
     if database_annot_uuid_list is not None and dname_list is not None:
         assert len(database_annot_uuid_list) == len(dname_list)
 
+    proot = query_config_dict.get('pipeline_root', 'vsmany')
+    proot = query_config_dict.get('proot', proot)
+    if proot.lower() in ('curvrankdorsal', 'curvrankfluke'):
+        curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', '')
+        if len(curvrank_daily_tag) > 144:
+            message = 'The curvrank_daily_tag cannot have more than 128 characters, please shorten and try again.'
+            key = 'query_config_dict["curvrank_daily_tag"]'
+            value = curvrank_daily_tag
+            raise controller_inject.WebInvalidInput(message, key, value)
+
     # Check UUIDs
     if dname_list is not None:
         vals = web_check_annot_uuids_with_names(database_annot_uuid_list, dname_list)
