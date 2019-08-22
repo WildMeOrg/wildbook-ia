@@ -758,10 +758,40 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             score_list = cm.score_list
             daid_list_ = cm.daid_list
 
-            zipped = sorted(zip(score_list, daid_list_), reverse=True)
-            n_ = min(n, len(zipped))
-            zipped = zipped[:n_]
-            daid_set = set(ut.take_column(zipped, 1))
+            proot = query_config_dict.get('pipeline_root', 'vsmany')
+            proot = query_config_dict.get('proot', proot)
+            if proot.lower() in ('deepsense'):
+                DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME = 3
+
+                unique_nids = cm.unique_nids
+                name_score_list = cm.name_score_list
+
+                zipped = sorted(zip(name_score_list, unique_nids), reverse=True)
+                n_ = min(n, len(zipped))
+                zipped = zipped[:n_]
+                dnid_set = set(ut.take_column(zipped, 1))
+                aids_list = ibs.get_name_aids(dnid_set)
+
+                daid_set = []
+                for aid_list in aids_list:
+                    # Assume that the highest AIDs are the newest sightings, visualize the most recent X sightings per name
+                    aid_list = sorted(aid_list, reverse=True)
+                    num_per_name = len(aid_list) if DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME is None else DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME
+                    limit = min(len(aid_list), num_per_name)
+                    aid_list = aid_list[:limit]
+                    daid_set += aid_list
+
+                daid_set = set(daid_set)
+                daid_set = daid_set & set(daid_list_)  # Filter by supplied query daids
+                args = (len(daid_set), len(dnid_set), )
+                print('[apis_query] Deepsense: visualizing %d annotations for best %d names' % args)
+            else:
+                zipped = sorted(zip(score_list, daid_list_), reverse=True)
+                n_ = min(n, len(zipped))
+                zipped = zipped[:n_]
+                daid_set = set(ut.take_column(zipped, 1))
+
+            # Add top N names as well,
 
             extern_flag_list = []
             for daid in daid_list_:

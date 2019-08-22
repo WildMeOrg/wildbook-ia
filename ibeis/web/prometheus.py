@@ -21,22 +21,22 @@ PROMETHEUS_DATA = {
     'engine'     : Gauge(
         'ibeis_engine_jobs',
         'Job engine status',
-        ['status', 'name'],
+        ['status', 'name', 'endpoint'],
     ),
     'elapsed'    : Gauge(
         'ibeis_elapsed_seconds',
         'Number of elapsed seconds for the current working job',
-        ['name'],
+        ['name', 'endpoint'],
     ),
     'runtime'    : Gauge(
         'ibeis_runtime_seconds',
         'Number of runtime seconds for the current working job',
-        ['name'],
+        ['name', 'endpoint'],
     ),
     'turnaround' : Gauge(
         'ibeis_turnaround_seconds',
         'Number of turnaround seconds for the current working job',
-        ['name'],
+        ['name', 'endpoint'],
     ),
 }
 
@@ -70,7 +70,7 @@ def prometheus_update(ibs, *args, **kwargs):
         job_status_dict = ibs.get_job_status()['json_result']
 
         job_uuid_list = list(job_status_dict.keys())
-        status_dict = {
+        status_dict_template = {
             'received'   : 0,
             'accepted'   : 0,
             'queued'     : 0,
@@ -79,35 +79,40 @@ def prometheus_update(ibs, *args, **kwargs):
             'completed'  : 0,
             'exception'  : 0,
             'suppressed' : 0,
+            'corrupted'  : 0,
+        }
+        status_dict = {
+            '*': status_dict_template.copy()
         }
 
-        is_working = False
+        endpoints = set([])
+        working_endpoint = None
+
         for job_uuid in job_uuid_list:
             job_status = job_status_dict[job_uuid]
+
             status = job_status['status']
+            endpoint = job_status['endpoint']
+
+            if endpoint not in status_dict:
+                status_dict[endpoint] = status_dict_template.copy()
+
+            endpoints.add(endpoint)
 
             if status in ['working']:
-                from ibeis.web.job_engine import TIMESTAMP_FMTSTR, TIMESTAMP_TIMEZONE
-                from datetime import datetime
-                import pytz
-
+                from ibeis.web.job_engine import calculate_timedelta, _timestamp
                 started = job_status['time_started']
-                assert started is not None
-                TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
-                started_ = ' '.join(started.split(' ')[:-1])
-                timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
-                started_date = datetime.strptime(started_, TIMESTAMP_FMTSTR_)
-                current_date = datetime.now(timezone)
-                started_date = started_date.replace(tzinfo=current_date.tzinfo)
-                delta = current_date - started_date
-                total_seconds = int(delta.total_seconds())
+                now = _timestamp()
+                hours, minutes, seconds, total_seconds = calculate_timedelta(started, now)
                 print('ELAPSED (%s): %d seconds...' % (job_uuid, total_seconds, ))
-                PROMETHEUS_DATA['elapsed'].labels(name=CONTAINER_NAME).set(total_seconds)
-                is_working = True
+                PROMETHEUS_DATA['elapsed'].labels(name=CONTAINER_NAME, endpoint=endpoint).set(total_seconds)
+                PROMETHEUS_DATA['elapsed'].labels(name=CONTAINER_NAME, endpoint='*').set(total_seconds)
+                working_endpoint = endpoint
 
-            if status not in status_dict:
+            if status not in status_dict_template:
                 print('UNRECOGNIZED STATUS %r' % (status, ))
-            status_dict[status] += 1
+            status_dict[endpoint][status] += 1
+            status_dict['*'][status] += 1
 
             if job_uuid not in PROMETHUS_JOB_CACHE_DICT:
                 PROMETHUS_JOB_CACHE_DICT[job_uuid] = {}
@@ -115,17 +120,25 @@ def prometheus_update(ibs, *args, **kwargs):
             runtime_sec = job_status.get('time_runtime_sec', None)
             if runtime_sec is not None and 'runtime' not in PROMETHUS_JOB_CACHE_DICT[job_uuid]:
                 PROMETHUS_JOB_CACHE_DICT[job_uuid]['runtime'] = runtime_sec
-                PROMETHEUS_DATA['runtime'].labels(name=CONTAINER_NAME).set(runtime_sec)
+                PROMETHEUS_DATA['runtime'].labels(name=CONTAINER_NAME, endpoint=endpoint).set(runtime_sec)
+                PROMETHEUS_DATA['runtime'].labels(name=CONTAINER_NAME, endpoint='*').set(runtime_sec)
 
             turnaround_sec = job_status.get('time_turnaround_sec', None)
             if turnaround_sec is not None and 'turnaround' not in PROMETHUS_JOB_CACHE_DICT[job_uuid]:
                 PROMETHUS_JOB_CACHE_DICT[job_uuid]['turnaround'] = turnaround_sec
-                PROMETHEUS_DATA['turnaround'].labels(name=CONTAINER_NAME).set(turnaround_sec)
+                PROMETHEUS_DATA['turnaround'].labels(name=CONTAINER_NAME, endpoint=endpoint).set(turnaround_sec)
+                PROMETHEUS_DATA['turnaround'].labels(name=CONTAINER_NAME, endpoint='*').set(turnaround_sec)
 
-        if not is_working:
-            PROMETHEUS_DATA['elapsed'].labels(name=CONTAINER_NAME).set(0.0)
+        if working_endpoint is None:
+            PROMETHEUS_DATA['elapsed'].labels(name=CONTAINER_NAME, endpoint='*').set(0.0)
+
+        for endpoint in endpoints:
+            if endpoint == working_endpoint:
+                continue
+            PROMETHEUS_DATA['elapsed'].labels(name=CONTAINER_NAME, endpoint=endpoint).set(0.0)
 
         # print(ut.repr3(status_dict))
-        for status in status_dict:
-            number = status_dict[status]
-            PROMETHEUS_DATA['engine'].labels(status=status, name=CONTAINER_NAME).set(number)
+        for endpoint in status_dict:
+            for status in status_dict[endpoint]:
+                number = status_dict[endpoint][status]
+                PROMETHEUS_DATA['engine'].labels(status=status, name=CONTAINER_NAME, endpoint=endpoint).set(number)
