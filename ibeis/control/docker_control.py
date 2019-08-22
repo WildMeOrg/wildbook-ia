@@ -245,15 +245,17 @@ def docker_ensure(ibs, container_name, check_container=True):
 
 
 @register_ibs_method
-def docker_check_container(ibs, container_name, retry_count=4, retry_timeout=15):
+def docker_check_container(ibs, container_name, retry_count=20, retry_timeout=15):
     config = ibs.docker_get_config(container_name)
     check_func = config['container_check_func']
     if check_func is None:
         return True
     url = ibs.docker_container_url_from_name(container_name)
     for retry_index in range(retry_count):
+        print('[docker_control] Performing container check (attempt %d, max %d)' % (retry_index + 1, retry_count, ))
         if check_func(url):
             return True
+        print('[docker_control] ERROR!  Container failed the plugin-defined check, sleeping for %d seconds and will try again' % (retry_timeout, ))
         time.sleep(retry_timeout)
     return False
 
