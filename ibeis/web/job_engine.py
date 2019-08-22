@@ -1605,15 +1605,12 @@ def on_collect_request(ibs, collect_request, collector_data,
                     else:
                         # status = 'pending'
                         cache = False
-
                     metadata = {
                         'jobcounter': -1,
-                        'times': {},
-                        'request': {},
                     }
-                else:
-                    times = metadata.get('times', {})
-                    request = metadata.get('request', {})
+
+                times = metadata.get('times', {})
+                request = metadata.get('request', {})
 
                 # Support legacy jobs
                 if request is None:
