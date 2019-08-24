@@ -727,6 +727,19 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             uuid_ = nid
         return uuid_
 
+    proot = query_config_dict.get('pipeline_root', 'vsmany')
+    proot = query_config_dict.get('proot', proot)
+
+    curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
+    if curvrank_daily_tag is not None:
+        if len(curvrank_daily_tag) > 144:
+            curvrank_daily_tag_ = ut.hashstr27(curvrank_daily_tag)
+            curvrank_daily_tag_ = 'ibeis-shortened-%s' % (curvrank_daily_tag_, )
+            print('[WARNING] curvrank_daily_tag too long (Probably an old job)')
+            print('[WARNING] Original: %r' % (curvrank_daily_tag, ))
+            print('[WARNING] Shortened: %r' % (curvrank_daily_tag_, ))
+            query_config_dict['curvrank_daily_tag'] = curvrank_daily_tag_
+
     cm_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list,
                                      cfgdict=query_config_dict, return_request=True)
 
@@ -758,8 +771,6 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             score_list = cm.score_list
             daid_list_ = cm.daid_list
 
-            proot = query_config_dict.get('pipeline_root', 'vsmany')
-            proot = query_config_dict.get('proot', proot)
             if proot.lower() in ('deepsense'):
                 DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME = 3
 
