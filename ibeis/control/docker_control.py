@@ -80,7 +80,9 @@ def docker_run(ibs, image_name, container_name, override_run_args, ensure_new=Fa
 
     # h/t https://github.com/docker/docker-py/issues/2128
     container.reload()
-    return ibs.docker_container_url(container)
+    url_list = ibs.docker_container_urls(container)
+
+    return url_list
 
 
 @register_ibs_method
@@ -183,33 +185,59 @@ def docker_container_status(ibs, name):
 
 
 @register_ibs_method
-def docker_container_IP_port(ibs, container):
-    ports = container.attrs['NetworkSettings']['Ports']
+def docker_container_IP_port_options(ibs, container):
+    networksettings = container.attrs['NetworkSettings']
+
+    option_list = []
+
+    networks = networksettings['Networks']
+    for network in networks:
+        ipaddress = networks[network]['IPAddress']
+        option = (ipaddress, None)
+        option_list.append(option)
+
     #TODO: understand the container.attrs['NetworkSettings']['Ports']: a dict (??) of lists (??) of dicts (only one '?')
+    ports = networksettings['Ports']
     for key in ports:
         # ports is a dict keyed by e.g. '5000/tcp'. This is the only key I've seen so far on our containers.
         for dict in ports[key]:
             # ports[key] is a list of dicts
             if 'HostPort' in dict:
                 # just return the first HostPort we find. Doesn't seem right... but what better logic?
-                return (dict['HostIp'], dict['HostPort'])
+                option = (dict['HostIp'], dict['HostPort'], )
+                option_list.append(option)
+
     # should we throw an assert/error here?
-    return (None, None)
+    return option_list
 
 
 @register_ibs_method
-def docker_container_url_from_name(ibs, name):
+def docker_container_urls_from_name(ibs, name):
     if ibs.docker_container_status(name) != 'running':
         return None
     container = ibs.docker_get_container(name)
-    return ibs.docker_container_url(container)
+    url_list = ibs.docker_container_urls(container)
+    return url_list
 
 
 @register_ibs_method
-def docker_container_url(ibs, container):
-    ip, port = ibs.docker_container_IP_port(container)
-    assert None not in [ip, port]
-    return(str(ip) + ':' + str(port))
+def docker_container_urls(ibs, container):
+    docker_get_config = ibs.docker_get_config(container.name)
+    _internal_port = docker_get_config.get('run_args', {}).get('_internal_port', None)
+    print('[docker_container_urls] Found _internal_port: %s' % (_internal_port, ))
+    option_list = ibs.docker_container_IP_port_options(container)
+    url_list = []
+    for option in option_list:
+        ip, port = option
+        if port is None:
+            # Try to use internal port, if known
+            port = _internal_port
+        if port is None:
+            url = '%s' % (ip, )
+        else:
+            url = '%s:%s' % (ip, port, )
+        url_list.append(url)
+    return url_list
 
 
 @register_ibs_method
@@ -232,32 +260,41 @@ def docker_ensure(ibs, container_name, check_container=True):
     config = ibs.docker_get_config(container_name)
 
     # Check for container in running containers
-    if ibs.docker_container_status(container_name) == 'running':
-        return ibs.docker_container_url_from_name(container_name)
+    if ibs.docker_container_status(container_name) != 'running':
+        image_name = config['image']
+        ibs.docker_ensure_image(image_name)
+        ibs.docker_run(image_name, container_name, config['run_args'])
 
+    original_url_list = ibs.docker_container_urls_from_name(container_name)
     # If not, check if the image has been downloaded from the config
-    image_name = config['image']
-    ibs.docker_ensure_image(image_name)
-    url = ibs.docker_run(image_name, container_name, config['run_args'])
+
     if check_container:
-        assert ibs.docker_check_container(container_name)
-    return url
+        valid_url_list = ibs.docker_check_container(container_name)
+        assert len(valid_url_list) > 0, 'Could not validate container'
+        return valid_url_list
+    else:
+        return original_url_list
 
 
 @register_ibs_method
 def docker_check_container(ibs, container_name, retry_count=20, retry_timeout=15):
     config = ibs.docker_get_config(container_name)
     check_func = config['container_check_func']
+    url_list = ibs.docker_container_urls_from_name(container_name)
     if check_func is None:
-        return True
-    url = ibs.docker_container_url_from_name(container_name)
+        return url_list
+    valid_url_list = []
     for retry_index in range(retry_count):
         print('[docker_control] Performing container check (attempt %d, max %d)' % (retry_index + 1, retry_count, ))
-        if check_func(url):
-            return True
+        for url in url_list:
+            print('\tChecking URL: %s' % (url, ))
+            if check_func(url):
+                valid_url_list.append(url)
+        if len(valid_url_list) > 0:
+            break
         print('[docker_control] ERROR!  Container failed the plugin-defined check, sleeping for %d seconds and will try again' % (retry_timeout, ))
         time.sleep(retry_timeout)
-    return False
+    return valid_url_list
 
 
 @register_ibs_method
@@ -268,9 +305,9 @@ def docker_get_config(ibs, container_name):
     return config
 
 
-@register_ibs_method
-def docker_embed(ibs):
-    ut.embed()
+# @register_ibs_method
+# def docker_embed(ibs):
+#     ut.embed()
 
 
 if __name__ == '__main__':
