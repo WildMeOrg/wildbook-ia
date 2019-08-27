@@ -50,7 +50,6 @@ def make_depcache_decors(root_tablename):
     function belongs to the root node, and may depend on a set of root nodes
     rather than just a single one.
     """
-
     @ut.apply_docstr(REG_PREPROC_DOC)
     def register_preproc(*args, **kwargs):
         """
@@ -941,6 +940,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         * on root modification, call depc.on_root_modified
         * use decorators to register relevant functions
     """
+
     def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
                  controller=None, default_fname=None,
                  #root_asobject=None,
@@ -973,6 +973,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             # HACK
             get_root_uuid = ut.identity
         depc.get_root_uuid = get_root_uuid
+        depc.delete_exclude_tables = {}
         depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
 
     def get_tablenames(depc):
@@ -1024,8 +1025,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         edge_type_parts.append('multi')
                         # local_input_id += '*'
                     if parent_data['isnwise']:
-                        edge_type_parts.append('nwise_%s' % (
-                             parent_data['nwise_idx'],))
+                        args = (parent_data['nwise_idx'], )
+                        edge_type_parts.append('nwise_%s' % args)
                         # local_input_id += six.text_type(parent_data['nwise_idx'])
                         # edge_type_parts.append('nwise_%s_%s_%s' % (
                         #     parentkey, tablekey, parent_data['nwise_idx'],))
@@ -1316,7 +1317,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     def root(depc):
         return depc.root_tablename
 
-    def delete_root(depc, root_rowids, delete_extern=None, _debug=False, table_config_filter=None):
+    def delete_root(depc, root_rowids, delete_extern=None, _debug=False, table_config_filter=None, prop=None):
         r"""
         Deletes all properties of a root object regardless of config
 
@@ -1348,10 +1349,22 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         for tablename, table_rowids in rowid_dict.items():
             if tablename == depc.root:
                 continue
+            # Specific prop exclusion
+            delete_exclude_table_set_prop = depc.delete_exclude_tables.get(prop, [])
+            delete_exclude_table_set_all = depc.delete_exclude_tables.get(None, [])
+            if tablename in delete_exclude_table_set_prop or tablename in delete_exclude_table_set_all:
+                continue
             table = depc[tablename]
             num_deleted += table.delete_rows(table_rowids,
                                              delete_extern=delete_extern)
         return num_deleted
+
+    def register_delete_table_exclusion(depc, tablename, prop):
+        if prop not in depc.delete_exclude_tables:
+            depc.delete_exclude_tables[prop] = set([])
+        depc.delete_exclude_tables[prop].add(tablename)
+        args = (ut.repr3(depc.delete_exclude_tables), )
+        print('[depc] Updated delete tables: %s' % args)
 
     def get_allconfig_descendant_rowids(depc, root_rowids, table_config_filter=None):
         import networkx as nx
@@ -1413,7 +1426,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         # TODO: check which properties were invalidated by this prop
         # TODO; remove invalidated properties
         if force_delete:
-            depc.delete_root(root_rowids)
+            depc.delete_root(root_rowids, prop=prop)
 
     def clear_all(depc):
         print('Clearning all cached data in %r' % (depc,))
