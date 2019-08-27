@@ -9,6 +9,7 @@ from os.path import join, dirname, abspath, exists
 from flask import url_for, request, current_app
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
+import numpy as np
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -844,6 +845,7 @@ def detect_cnn_lightnet(ibs, gid_list, model_tag=None, commit=True, testing=Fals
 def commit_localization_results(ibs, gid_list, results_list, note=None,
                                 labeler_algo='pipeline', labeler_model_tag=None,
                                 use_labeler_species=False,
+                                orienter_algo=None, orienter_model_tag=None,
                                 update_json_log=True, **kwargs):
     zipped_list = list(zip(gid_list, results_list))
     aids_list = []
@@ -875,6 +877,19 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
         if use_labeler_species:
             species_list   = ibs.depc_annot.get_property('labeler', aid_list, 'species', config=labeler_config)
             ibs.set_annot_species(aid_list, species_list)
+
+    if orienter_algo is not None:
+        orienter_config = {}
+        orienter_config['orienter_algo'] = orienter_algo
+        orienter_config['orienter_weight_filepath'] = orienter_model_tag
+        result_list = ibs.depc_annot.get_property('orienter', aid_list, None, config=orienter_config)
+        xtl_list    = list(map(int, map(np.around, ut.take_column(result_list, 0))))
+        ytl_list    = list(map(int, map(np.around, ut.take_column(result_list, 1))))
+        w_list      = list(map(int, map(np.around, ut.take_column(result_list, 2))))
+        h_list      = list(map(int, map(np.around, ut.take_column(result_list, 3))))
+        theta_list  = ut.take_column(result_list, 4)
+        bbox_list   = list(zip(xtl_list, ytl_list, w_list, h_list))
+        ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
 
     ibs._clean_species()
     if update_json_log:

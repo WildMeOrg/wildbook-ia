@@ -18,6 +18,36 @@ PROMETHEUS_DATA = {
         'ibeis_db',
         'Description of IBEIS database',
     ),
+    'imagesets'     : Gauge(
+        'ibeis_assets_imagesets',
+        'Number of imagesets in IBEIS database',
+        ['name'],
+    ),
+    'images'     : Gauge(
+        'ibeis_assets_images',
+        'Number of images in IBEIS database',
+        ['name'],
+    ),
+    'annotations': Gauge(
+        'ibeis_assets_annotations',
+        'Number of annotations in IBEIS database',
+        ['name'],
+    ),
+    'parts'      : Gauge(
+        'ibeis_assets_parts',
+        'Number of parts in IBEIS database',
+        ['name'],
+    ),
+    'names'      : Gauge(
+        'ibeis_assets_names',
+        'Number of names in IBEIS database',
+        ['name'],
+    ),
+    'species'    : Gauge(
+        'ibeis_assets_species',
+        'Number of species in IBEIS database',
+        ['name'],
+    ),
     'engine'     : Gauge(
         'ibeis_engine_jobs',
         'Job engine status',
@@ -68,6 +98,22 @@ def prometheus_update(ibs, *args, **kwargs):
                     'containerized': str(int(ibs.containerized)),
                     'production': str(int(ibs.production)),
                 })
+            except:
+                pass
+
+            try:
+                num_imageset_rowids = len(ibs._get_all_imageset_rowids())
+                num_gids = len(ibs._get_all_gids())
+                num_aids = len(ibs._get_all_aids())
+                num_pids = len(ibs._get_all_part_rowids())
+                num_nids = len(ibs._get_all_name_rowids())
+                num_species = len(ibs._get_all_species_rowids())
+                PROMETHEUS_DATA['imagesets'].labels(name=CONTAINER_NAME).set(num_imageset_rowids)
+                PROMETHEUS_DATA['images'].labels(name=CONTAINER_NAME).set(num_gids)
+                PROMETHEUS_DATA['annotations'].labels(name=CONTAINER_NAME).set(num_aids)
+                PROMETHEUS_DATA['parts'].labels(name=CONTAINER_NAME).set(num_pids)
+                PROMETHEUS_DATA['names'].labels(name=CONTAINER_NAME).set(num_nids)
+                PROMETHEUS_DATA['species'].labels(name=CONTAINER_NAME).set(num_species)
             except:
                 pass
 

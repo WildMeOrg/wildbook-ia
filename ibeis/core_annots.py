@@ -1976,6 +1976,103 @@ def compute_aoi2(depc, aid_list, config=None):
         yield result
 
 
+class OrienterConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('orienter_algo', 'deepsense', valid_values=['deepsense']),
+        ut.ParamInfo('orienter_weight_filepath',  None),
+    ]
+    _sub_config_list = [
+        ChipConfig
+    ]
+
+
+@derived_attribute(
+    tablename='orienter', parents=['annotations'],
+    colnames=['xtl', 'ytl', 'w', 'h', 'theta'],
+    coltypes=[float, float, float, float, float],
+    configclass=OrienterConfig,
+    fname='detectcache',
+    chunksize=8 if const.PRODUCTION else 128,
+)
+def compute_orients_annotations(depc, aid_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        python -m ibeis.core_annots --exec-compute_orients_annotations --deepsense
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'testdb_identification'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[-16:-8]
+        >>> config = {'orienter_algo': 'deepsense'}
+        >>> # depc.delete_property('orienter', aid_list)
+        >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
+        >>> xtl_list    = list(map(int, map(np.around, ut.take_column(result_list, 0))))
+        >>> ytl_list    = list(map(int, map(np.around, ut.take_column(result_list, 1))))
+        >>> w_list      = list(map(int, map(np.around, ut.take_column(result_list, 2))))
+        >>> h_list      = list(map(int, map(np.around, ut.take_column(result_list, 3))))
+        >>> theta_list  = ut.take_column(result_list, 4)
+        >>> bbox_list   = list(zip(xtl_list, ytl_list, w_list, h_list))
+        >>> ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
+        >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
+        >>> print(result_list)
+    """
+    print('[ibs] Process Annotation Labels')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    depc = ibs.depc_annot
+
+    if config['orienter_algo'] in ['deepsense']:
+        print('[ibs] orienting using Deepsense Orienter')
+        try:
+            bbox_list = ibs.get_annot_bboxes(aid_list)
+            annot_uuid_list = ibs.get_annot_uuids(aid_list)
+
+            result_gen = []
+            for bbox, annot_uuid in zip(bbox_list, annot_uuid_list):
+                xtl, ytl, w, h = bbox
+
+                cx = xtl + w // 2
+                cy = ytl + h // 2
+                diameter = max(w, h)
+                radius = diameter // 2
+
+                xtl = cx - radius
+                ytl = cy - radius
+                w = diameter
+                h = diameter
+
+                response = ibs.ibeis_plugin_deepsense_keypoint(annot_uuid)
+                angle = response['keypoints']['angle']
+                angle -= 90
+                theta = ut.deg_to_rad(angle)
+
+                result = (xtl, ytl, w, h, theta, )
+                result_gen.append(result)
+        except:
+            raise RuntimeError('Deepsense orienter not working!')
+    else:
+        raise ValueError('specified orienter algo is not supported in config = %r' % (config, ))
+
+    # yield detections
+    for result in result_gen:
+        yield result
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
