@@ -263,7 +263,8 @@ def docker_ensure(ibs, container_name, check_container=True):
     if ibs.docker_container_status(container_name) != 'running':
         image_name = config['image']
         ibs.docker_ensure_image(image_name)
-        ibs.docker_run(image_name, container_name, config['run_args'])
+        run_args = config['run_args'].copy()
+        ibs.docker_run(image_name, container_name, run_args)
 
     original_url_list = ibs.docker_container_urls_from_name(container_name)
     # If not, check if the image has been downloaded from the config

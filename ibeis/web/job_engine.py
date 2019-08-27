@@ -61,7 +61,7 @@ import uuid  # NOQA
 import numpy as np
 import shelve
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import flask
 from os.path import join, exists, abspath, splitext, basename
@@ -643,11 +643,28 @@ class JobInterface(object):
     def queue_interrupted_jobs(jobiface):
         import tqdm
 
-        MAX_ATTEMPTS = 20
-
         ibs = jobiface.ibs
 
         if ibs is not None:
+            MAX_ATTEMPTS = 20
+            ARCHIVE_DAYS = 14
+
+            timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
+            now = datetime.now(timezone)
+            now = now.replace(microsecond=0)
+            now = now.replace(second=0)
+            now = now.replace(minute=0)
+            now = now.replace(hour=0)
+
+            archive_delta = timedelta(days=ARCHIVE_DAYS)
+            archive_date = now - archive_delta
+            archive_timestamp = archive_date.strftime(TIMESTAMP_FMTSTR)
+
+            shelve_path = ibs.get_shelves_path()
+            shelve_path = shelve_path.rstrip('/')
+            shelve_archive_path = '%s_ARCHIVE' % (shelve_path, )
+            ut.ensuredir(shelve_archive_path)
+
             record_filepath_list = _get_engine_job_paths(ibs)
 
             restart_jobcounter_list = []
@@ -655,6 +672,7 @@ class JobInterface(object):
             restart_request_list    = []
 
             completed_jobcounter = 0
+            num_registered, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
             print('Reloading %d engine jobs...' % (len(record_filepath_list), ))
             for record_filepath in tqdm.tqdm(record_filepath_list):
                 jobid = splitext(basename(record_filepath))[0]
@@ -671,7 +689,48 @@ class JobInterface(object):
                 suppressed     = attempts >= MAX_ATTEMPTS
                 corrupted      = engine_request is None
 
-                if True not in [completed, suppressed, corrupted]:
+                # Load metadata
+                shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
+                metadata = get_shelve_value(shelve_input_filepath, 'metadata')
+
+                if metadata is None:
+                    print('Missing metadata...corrupted')
+                    corrupted = True
+
+                archive_flag = False
+                if not corrupted:
+                    jobcounter = metadata.get('jobcounter', None)
+                    times = metadata.get('times', {})
+
+                    if jobcounter is None:
+                        print('Missing jobcounter...corrupted')
+                        corrupted = True
+
+                    job_age = None
+                    if not corrupted and completed:
+                        completed_timestamp = times.get('completed', None)
+                        if completed_timestamp is not None:
+                            try:
+                                archive_elapsed = calculate_timedelta(completed_timestamp, archive_timestamp)
+                                job_age = archive_elapsed[-1]
+                                archive_flag = job_age > 0
+                            except:
+                                args = (completed_timestamp, archive_timestamp, )
+                                print('[job_engine] Could not determine archive status!\n\tCompleted: %r\n\tArchive: %r' % args)
+
+                        if archive_flag:
+                            with ut.Indenter('[client %d] ' % (jobiface.id_)):
+                                color = 'brightmagenta'
+                                print_ = partial(ut.colorprint, color=color)
+                                print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age, ))
+                                job_scr_filepath_list = list(ut.iglob(join(shelve_path, '%s*' % (jobid, ))))
+                                for job_scr_filepath in job_scr_filepath_list:
+                                    job_dst_filepath = job_scr_filepath.replace(shelve_path, shelve_archive_path)
+                                    ut.copy(job_scr_filepath, job_dst_filepath, overwrite=True)  # ut.copy allows for overwrite, ut.move does not
+                                    ut.delete(job_scr_filepath)
+                            num_archived += 1
+
+                if not archive_flag and True not in [completed, suppressed, corrupted]:
                     with ut.Indenter('[client %d] ' % (jobiface.id_)):
                         color = 'brightblue' if attempts == 0 else 'brightred'
                         print_ = partial(ut.colorprint, color=color)
@@ -680,35 +739,30 @@ class JobInterface(object):
                         print_(ut.repr3(record_filepath))
                         # print_(ut.repr3(record))
 
-                        shelve_input_filepath, shelve_output_filepath = get_shelve_filepaths(ibs, jobid)
-                        metadata = get_shelve_value(shelve_input_filepath, 'metadata')
+                        times = metadata.get('times', {})
+                        received = times['received']
 
-                        if metadata is None:
-                            corrupted = True
-                        else:
-                            times = metadata.get('times', {})
-                            jobcounter = metadata['jobcounter']
-                            received = times['received']
+                        engine_request['restart_jobid'] = jobid
+                        engine_request['restart_jobcounter'] = jobcounter
+                        engine_request['restart_received'] = received
 
-                            engine_request['restart_jobid'] = jobid
-                            engine_request['restart_jobcounter'] = jobcounter
-                            engine_request['restart_received'] = received
+                        restart_jobcounter_list.append(jobcounter)
+                        restart_jobid_list.append(jobid)
+                        restart_request_list.append(engine_request)
 
-                            restart_jobcounter_list.append(jobcounter)
-                            restart_jobid_list.append(jobid)
-                            restart_request_list.append(engine_request)
-
-                            record['attempts'] = attempts + 1
-                            ut.save_cPkl(record_filepath, record, verbose=False)
+                        record['attempts'] = attempts + 1
+                        ut.save_cPkl(record_filepath, record, verbose=False)
 
                 # We may have suppressed this for being corrupted
-                if True in [completed, suppressed, corrupted]:
+                if not archive_flag and True in [completed, suppressed, corrupted]:
                     if completed:
                         status = 'completed'
                     elif suppressed:
                         status = 'suppressed'
+                        num_suppressed += 1
                     else:
                         status = 'corrupted'
+                        num_corrupted += 1
 
                     reply_notify = {
                         'jobid': jobid,
@@ -717,9 +771,18 @@ class JobInterface(object):
                     }
                     jobiface.collect_deal_sock.send_json(reply_notify)
                     reply = jobiface.collect_deal_sock.recv_json()
+                    # jobcounter_ = reply['jobcounter']
                     jobid_ = reply['jobid']
+                    # assert jobcounter_ == jobcounter
                     assert jobid_ == jobid
-                    completed_jobcounter += 1
+                    if not corrupted and jobcounter is not None:
+                        completed_jobcounter = max(completed_jobcounter, jobcounter)
+                    num_registered += 1
+
+            print('Registered %d jobs...' % (num_registered, ))
+            print('\t %d suppressed jobs' % (num_suppressed, ))
+            print('\t %d corrupted jobs' % (num_corrupted, ))
+            print('Archived %d jobs...' % (num_archived, ))
 
             # Update the jobcounter to be up to date
             update_notify = {
@@ -1420,15 +1483,16 @@ def get_collector_shelve_filepaths(collector_data, jobid):
     return shelve_input_filepath, shelve_output_filepath
 
 
-def calculate_timedelta(start, end):
+def convert_to_date(timestamp):
     TIMESTAMP_FMTSTR_ = ' '.join(TIMESTAMP_FMTSTR.split(' ')[:-1])
+    timestamp_ = ' '.join(timestamp.split(' ')[:-1])
+    timestamp_date = datetime.strptime(timestamp_, TIMESTAMP_FMTSTR_)
+    return timestamp_date
 
-    start_ = ' '.join(start.split(' ')[:-1])
-    start_date = datetime.strptime(start_, TIMESTAMP_FMTSTR_)
 
-    end_ = ' '.join(end.split(' ')[:-1])
-    end_date = datetime.strptime(end_, TIMESTAMP_FMTSTR_)
-
+def calculate_timedelta(start, end):
+    start_date = convert_to_date(start)
+    end_date = convert_to_date(end)
     delta = end_date - start_date
 
     total_seconds = int(delta.total_seconds())

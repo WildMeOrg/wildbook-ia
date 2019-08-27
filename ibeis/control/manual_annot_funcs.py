@@ -3244,7 +3244,7 @@ def set_annot_verts(ibs, aid_list, verts_list,
                 config2_ = {'thumbsize': 221}
                 ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
 
-        with ut.Timer('set_annot_verts...uuids'):
+        with ut.Timer('set_annot_verts...visual uuids'):
             if update_visual_uuids:
                 ibs.update_annot_visual_uuids(aid_list)
 
