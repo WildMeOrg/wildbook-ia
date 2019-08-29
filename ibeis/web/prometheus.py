@@ -137,7 +137,8 @@ def prometheus_update(ibs, *args, **kwargs):
                     '_error'     : 0,
                 }
                 status_dict = {
-                    '*': status_dict_template.copy()
+                    '*': status_dict_template.copy(),
+                    'max': status_dict_template.copy(),
                 }
 
                 endpoints = set([])
@@ -151,6 +152,7 @@ def prometheus_update(ibs, *args, **kwargs):
 
                     status = job_status['status']
                     endpoint = job_status['endpoint']
+                    jobcounter = job_status['jobcounter']
 
                     status = '%s' % (status, )
                     endpoint = '%s' % (endpoint, )
@@ -183,6 +185,9 @@ def prometheus_update(ibs, *args, **kwargs):
                         print('UNRECOGNIZED STATUS %r' % (status, ))
                     status_dict[endpoint][status] += 1
                     status_dict['*'][status] += 1
+
+                    current_max = status_dict['max'][status]
+                    status_dict['max'][status] = max(current_max, jobcounter)
 
                     if job_uuid not in PROMETHUS_JOB_CACHE_DICT:
                         PROMETHUS_JOB_CACHE_DICT[job_uuid] = {}
