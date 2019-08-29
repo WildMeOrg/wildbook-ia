@@ -555,6 +555,7 @@ def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, *
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {
+        'grid'        : False,
         'algo'        : 'yolo',
         'sensitivity' : 0.2,
         'nms'         : True,
