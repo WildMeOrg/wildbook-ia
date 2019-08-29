@@ -358,12 +358,12 @@ class TEST_SPECIES(object):
 SPECIES_WITH_DETECTORS = (
     'cheetah',
     'dolphin_spotted',
+    'dolphin_spotted+dorsal',
     'dolphin_spotted+fin_dorsal',
     'giraffe_masai',
     'giraffe_reticulated',
     'jaguar',
     'lynx',
-    'lynx_pardinus',
     'manta_ray_giant',
     'right_whale_head',
     'seadragon_leafy',
@@ -371,8 +371,6 @@ SPECIES_WITH_DETECTORS = (
     'seadragon_weedy',
     'seadragon_weedy+head',
     'skunk_spotted',
-    'stenella_frontalis',
-    'stenella_frontalis+dorsal',
     'turtle_green',
     'turtle_green+head',
     'turtle_hawksbill',
@@ -382,9 +380,15 @@ SPECIES_WITH_DETECTORS = (
     'whale_humpback',
     'zebra_grevys',
     'zebra_plains',
+    # Latin (Flukebook)
+    'eubalaena_australis',
+    'eubalaena_glacialis',
+    'lynx_pardinus',
     'megaptera_novaeangliae',
     'physeter_macrocephalus',
-    'eubalaena_australis',
+    'stenella_frontalis',
+    'stenella_frontalis+dorsal',
+    'stenella_frontalis+fin_dorsal',
 )
 
 
