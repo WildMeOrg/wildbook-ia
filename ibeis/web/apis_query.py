@@ -685,6 +685,38 @@ def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kw
 
 
 @register_ibs_method
+@register_api('/test/query/chip/deepsense/', methods=['GET'])
+def query_chips_test_deepsense(ibs, aid=None, **kwargs):
+    """
+    CommandLine:
+        python -m ibeis.web.apis_query query_chips_test
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
+        >>> ibs = qreq_.ibs
+        >>> result_dict = ibs.query_chips_test_deepsense()
+        >>> print(result_dict)
+    """
+    from random import shuffle  # NOQA
+    # Compile test data
+    aid_list = ibs.get_valid_aids()
+    if aid is None:
+        shuffle(aid_list)
+        qaid_list = aid_list[:1]
+    else:
+        qaid_list = [aid]
+    daid_list = aid_list
+
+    query_config_dict = {'pipeline_root': 'Deepsense'}
+    result_dict = ibs.query_chips_graph(qaid_list, daid_list, query_config_dict=query_config_dict, **kwargs)
+    return result_dict
+
+
+@register_ibs_method
 @register_api('/api/query/graph/complete/', methods=['GET', 'POST'])
 def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwargs):
     import theano  # NOQA
@@ -713,7 +745,7 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True,
-                      cache_images=True, n=10, view_orientation='horizontal',
+                      cache_images=True, n=16, view_orientation='horizontal',
                       return_summary=True, **kwargs):
     from ibeis.unstable.orig_graph_iden import OrigAnnotInference
     import theano  # NOQA
@@ -729,6 +761,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
+    print('query_config_dict = %r' % (query_config_dict, ))
 
     curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
     if curvrank_daily_tag is not None:
@@ -751,6 +784,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
     cache_path = None
     reference = None
+
     if cache_images:
         reference = ut.hashstr27(qreq_.get_cfgstr())
         cache_path = join(cache_dir, 'qreq_cfgstr_%s' % (reference, ))
@@ -771,38 +805,54 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             score_list = cm.score_list
             daid_list_ = cm.daid_list
 
-            if proot.lower() in ('deepsense'):
-                DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME = 3
+            # Get best names
+            print('Visualizing name matches')
+            DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME = 3
 
-                unique_nids = cm.unique_nids
-                name_score_list = cm.name_score_list
+            unique_nids = cm.unique_nids
+            name_score_list = cm.name_score_list
 
-                zipped = sorted(zip(name_score_list, unique_nids), reverse=True)
-                n_ = min(n, len(zipped))
-                zipped = zipped[:n_]
-                dnid_set = set(ut.take_column(zipped, 1))
-                aids_list = ibs.get_name_aids(dnid_set)
+            zipped = sorted(zip(name_score_list, unique_nids), reverse=True)
+            n_ = min(n, len(zipped))
+            zipped = zipped[:n_]
+            print('Top %d names: %r' % (n_, zipped, ))
+            dnid_set = set(ut.take_column(zipped, 1))
+            aids_list = ibs.get_name_aids(dnid_set)
 
-                daid_set = []
-                for aid_list in aids_list:
-                    # Assume that the highest AIDs are the newest sightings, visualize the most recent X sightings per name
-                    aid_list = sorted(aid_list, reverse=True)
-                    num_per_name = len(aid_list) if DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME is None else DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME
-                    limit = min(len(aid_list), num_per_name)
-                    aid_list = aid_list[:limit]
-                    daid_set += aid_list
+            daid_set = []
+            for nid, aid_list in zip(dnid_set, aids_list):
+                # Assume that the highest AIDs are the newest sightings, visualize the most recent X sightings per name
+                aid_list = sorted(aid_list, reverse=True)
+                num_per_name = len(aid_list) if DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME is None else DEEPSENSE_NUM_TO_VISUALIZE_PER_NAME
+                limit = min(len(aid_list), num_per_name)
+                args = (nid, len(aid_list), limit, )
+                print('\tFiltering NID %d from %d -> %d' % args)
+                aid_list = aid_list[:limit]
+                daid_set += aid_list
 
-                daid_set = set(daid_set)
-                daid_set = daid_set & set(daid_list_)  # Filter by supplied query daids
-                args = (len(daid_set), len(dnid_set), )
-                print('[apis_query] Deepsense: visualizing %d annotations for best %d names' % args)
-            else:
-                zipped = sorted(zip(score_list, daid_list_), reverse=True)
-                n_ = min(n, len(zipped))
-                zipped = zipped[:n_]
-                daid_set = set(ut.take_column(zipped, 1))
+            args = (len(daid_set), daid_set, )
+            print('Found %d candidate name aids: %r' % args)
+            daid_set = set(daid_set)
+            name_daid_set = daid_set & set(daid_list_)  # Filter by supplied query daids
 
-            # Add top N names as well,
+            args = (len(name_daid_set), len(dnid_set), name_daid_set, )
+            print('Found %d overlapping aids for %d nids: %r' % args)
+
+            args = (len(name_daid_set), len(dnid_set), )
+            print('Visualizing %d annotations for best %d names' % args)
+
+            # Get best annotations
+            print('Visualizing annotation matches')
+            zipped = sorted(zip(score_list, daid_list_), reverse=True)
+            n_ = min(n, len(zipped))
+            zipped = zipped[:n_]
+            print('Top %d annots: %r' % (n_, zipped, ))
+            annot_daid_set = set(ut.take_column(zipped, 1))
+
+            # Combine names and annotations
+            daid_set = list(name_daid_set) + list(annot_daid_set)
+            daid_set = list(set(daid_set))
+            print('Visualizing %d annots: %r' % (len(daid_set), daid_set, ))
 
             extern_flag_list = []
             for daid in daid_list_:
