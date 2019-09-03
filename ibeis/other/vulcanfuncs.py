@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.algo.detect.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
+from ibeis.other.detectexport import get_cnn_classifier_cameratrap_binary_training_images_pytorch
 from os.path import expanduser, join, abspath, exists
 from ibeis.control import controller_inject
 from ibeis.algo.detect import densenet
