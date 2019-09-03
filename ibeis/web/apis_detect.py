@@ -889,8 +889,11 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
         w_list      = list(map(int, map(np.around, ut.take_column(result_list, 2))))
         h_list      = list(map(int, map(np.around, ut.take_column(result_list, 3))))
         theta_list  = ut.take_column(result_list, 4)
-        bbox_list   = list(zip(xtl_list, ytl_list, w_list, h_list))
-        ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
+        bbox_list = list(zip(xtl_list, ytl_list, w_list, h_list))
+        assert len(aid_list) == len(bbox_list)
+        assert len(aid_list) == len(theta_list)
+        if len(bbox_list) > 0:
+            ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
 
     ibs._clean_species()
     if update_json_log:
