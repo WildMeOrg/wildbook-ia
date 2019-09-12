@@ -1,5 +1,8 @@
+from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_toydata(rng):

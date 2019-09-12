@@ -41,6 +41,9 @@ import utool as ut
 import vtool as vt
 import parse
 
+(print, rrr, profile) = ut.inject2(__name__)
+
+
 """
 New Lynx
 
@@ -53,6 +56,7 @@ class Ingestable(object):
     """
     Temporary structure representing how to ingest a databases
     """
+
     def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
                  adjust_percent=0.0, postingest_func=None, zipfile=None,
                  species=None, images_as_annots=False):
@@ -466,7 +470,7 @@ def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey=None):
     return name_list
 
 
-class FMT_KEYS(object):
+class FMT_KEYS(object):   # NOQA
     name_fmt = '{name:*}[id:d].{ext}'
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
     giraffe1_fmt = '{name:*}_{id:d}.{ext}'

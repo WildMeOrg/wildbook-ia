@@ -1,4 +1,9 @@
-# flake8: noqa
+from __future__ import print_function, division, absolute_import
+import utool as ut
+import numpy as np
+
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     r"""

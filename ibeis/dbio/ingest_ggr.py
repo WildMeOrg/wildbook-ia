@@ -7,6 +7,8 @@ from os.path import join, exists
 import utool as ut
 import ibeis
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def _fix_ggr2018_directory_structure(ggr_path):
 

@@ -11,6 +11,8 @@ import vtool as vt
 import numpy as np
 import cv2
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)

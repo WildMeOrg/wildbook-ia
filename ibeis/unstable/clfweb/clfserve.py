@@ -12,6 +12,9 @@ import socket
 import flask
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
+
+
 task_data = {
     0: {
         'index': 0, 'dbname': 'testdb1', 'task': 'match_state',

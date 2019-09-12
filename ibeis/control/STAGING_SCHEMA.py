@@ -11,6 +11,9 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 try:
     from ibeis.control import STAGING_SCHEMA_CURRENT
@@ -20,7 +23,7 @@ except:
     UPDATE_CURRENT  = None
     VERSION_CURRENT = None
     print("[dbcache] NO STAGING_SCHEMA_CURRENT AUTO-GENERATED!")
-import utool as ut
+
 profile = ut.profile
 
 

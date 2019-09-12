@@ -29,6 +29,8 @@ import utool as ut
 from pkg_resources import parse_version
 from utool._internal.meta_util_six import get_funcname
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 ASSERT_FUNCS = []
 
 

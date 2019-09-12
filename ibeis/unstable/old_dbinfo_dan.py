@@ -5,6 +5,8 @@ import utool as ut
 import numpy as np
 from ibeis.algo.graph.state import POSTV, NEGTV
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
     """
@@ -1071,8 +1073,6 @@ def print_feature_info(testres):
     ##np.set_printoptions(**_printopts)
     #print('[dbinfo] ---/LaTeX --- ')
     #return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
-
-
 
 
 def tst_name_consistency(ibs):

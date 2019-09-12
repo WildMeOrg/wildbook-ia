@@ -6,10 +6,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def draw_em_graph(P, Pn, PL, gam, num_labels):
     """
-        python -m ibeis.algo.hots.testem test_em --show --no-cnn
+    python -m ibeis.algo.hots.testem test_em --show --no-cnn
     """
     num_labels = PL.shape[1]
     name_nodes = ['N%d' % x for x in list(range(1, num_labels + 1))]

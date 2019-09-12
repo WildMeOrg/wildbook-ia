@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 #print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hsexcept]', DEBUG=False)
 import utool as ut
 
-ut.noinject(__name__, '[hsecept]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 class QueryException(Exception):

@@ -16,6 +16,7 @@ import utool as ut
 import numpy as np
 import os
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
@@ -2079,426 +2080,425 @@ def turk_detection(gid=None, only_aid=None, refer_aid=None, imgsetid=None,
                    previous=None, previous_only_aid=None, staged_super=False,
                    progress=None, is_tile=False, **kwargs):
 
-    with ut.Timer('load'):
-        ibs = current_app.ibs
+    ibs = current_app.ibs
 
-        staged_reviews_required = 3
+    staged_reviews_required = 3
 
-        default_list = [
-            ('autointerest',            False),
-            ('interest_bypass',         False),
-            ('metadata',                True),
-            ('metadata_viewpoint',      True),
-            ('metadata_quality',        True),
-            ('metadata_flags',          True),
-            ('metadata_flags_aoi',      True),
-            ('metadata_flags_multiple', True),
-            ('metadata_species',        True),
-            ('metadata_label',          True),
-            ('metadata_quickhelp',      True),
-            ('parts',                   True),
-            ('modes_rectangle',         True),
-            ('modes_diagonal',          True),
-            ('modes_diagonal2',         True),
-            ('staged',                  False),
-            ('canonical',               False),
-        ]
+    default_list = [
+        ('autointerest',            False),
+        ('interest_bypass',         False),
+        ('metadata',                True),
+        ('metadata_viewpoint',      True),
+        ('metadata_quality',        True),
+        ('metadata_flags',          True),
+        ('metadata_flags_aoi',      True),
+        ('metadata_flags_multiple', True),
+        ('metadata_species',        True),
+        ('metadata_label',          True),
+        ('metadata_quickhelp',      True),
+        ('parts',                   True),
+        ('modes_rectangle',         True),
+        ('modes_diagonal',          True),
+        ('modes_diagonal2',         True),
+        ('staged',                  False),
+        ('canonical',               False),
+    ]
 
-        config_kwargs = kwargs.get('config', {})
-        config = {
-            key: kwargs.get(key, config_kwargs.get(key, default))
-            for key, default in default_list
-        }
-        config_str_list = [
-            '%s=%s' % (key, 'true' if config[key] else 'false', )
-            for key in config.keys()
-        ]
-        config_str = '&'.join(config_str_list)
+    config_kwargs = kwargs.get('config', {})
+    config = {
+        key: kwargs.get(key, config_kwargs.get(key, default))
+        for key, default in default_list
+    }
+    config_str_list = [
+        '%s=%s' % (key, 'true' if config[key] else 'false', )
+        for key in config.keys()
+    ]
+    config_str = '&'.join(config_str_list)
 
-        is_staged = config['staged']
-        is_staged = is_staged and appf.ALLOW_STAGED
+    is_staged = config['staged']
+    is_staged = is_staged and appf.ALLOW_STAGED
 
-        is_canonical = config['canonical']
+    imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
+    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
 
-        imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
-        imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
+    is_canonical = config['canonical']
 
-        if not is_canonical:
-            gid_list = ibs.get_valid_gids(imgsetid=imgsetid, is_tile=is_tile)
-            reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
-                                                          reviews_required=staged_reviews_required)
+    if not is_canonical:
+        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+        reviewed_list = appf.imageset_image_processed(ibs, gid_list, is_staged=is_staged,
+                                                      reviews_required=staged_reviews_required)
 
-            try:
-                progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
-            except ZeroDivisionError:
-                progress = '100.0'
+        try:
+            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+        except ZeroDivisionError:
+            progress = '100.0'
 
-            if is_staged:
-                staged_progress = appf.imageset_image_staged_progress(
-                    ibs,
-                    gid_list,
-                    reviews_required=staged_reviews_required
-                )
-                staged_progress = '%0.2f' % (100.0 * staged_progress, )
-            else:
-                staged_progress = None
-
-            if gid is None:
-                gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
-                if len(gid_list_) == 0:
-                    gid = None
-                else:
-                    # gid = gid_list_[0]
-                    gid = random.choice(gid_list_)
+        if is_staged:
+            staged_progress = appf.imageset_image_staged_progress(
+                ibs,
+                gid_list,
+                reviews_required=staged_reviews_required
+            )
+            staged_progress = '%0.2f' % (100.0 * staged_progress, )
         else:
             staged_progress = None
 
-        finished = gid is None
-        review = 'review' in request.args.keys()
-        display_instructions = False  # request.cookies.get('ia-detection_instructions_seen', 1) == 1
-        display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
-        display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
-
-        if not finished:
-            # image_src = routes_ajax.image_src(gid, resize=False)
-            image_src = ibs.depc_image.get('web_src', gid, 'src')
-
-            width, height = ibs.get_image_sizes(gid)
-            staged_user = controller_inject.get_user()
-            if staged_user is None:
-                staged_user = {}
-            staged_user_id = staged_user.get('username', None)
-
-            # Get annotations
-            aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
-
-            if is_canonical:
-                assert only_aid in aid_list, 'Specified only_aid is not in this image'
-                aid_list = [only_aid]
-
-            if is_staged:
-                # Filter aids for current user
-                annot_user_id_list = ibs.get_annot_staged_user_ids(aid_list)
-                aid_list = [
-                    aid
-                    for aid, annot_user_id in zip(aid_list, annot_user_id_list)
-                    if staged_super or annot_user_id == staged_user_id
-                ]
-
-            annot_bbox_list = ibs.get_annot_bboxes(aid_list)
-            annot_theta_list = ibs.get_annot_thetas(aid_list)
-            species_list = ibs.get_annot_species_texts(aid_list)
-            viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-            quality_list = ibs.get_annot_qualities(aid_list)
-            multiple_list = ibs.get_annot_multiple(aid_list)
-            interest_list = ibs.get_annot_interest(aid_list)
-
-            # Get annotation bounding boxes
-            mapping_dict = {}
-            annotation_list = []
-            zipped = list(zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list))
-            for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
-                if quality in [-1, None]:
-                    quality = 0
-                elif quality <= 2:
-                    quality = 1
-                elif quality > 2:
-                    quality = 2
-
-                viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
-
-                temp = {}
-                temp['id']         = aid
-                temp['left']       = 100.0 * (annot_bbox[0] / width)
-                temp['top']        = 100.0 * (annot_bbox[1] / height)
-                temp['width']      = 100.0 * (annot_bbox[2] / width)
-                temp['height']     = 100.0 * (annot_bbox[3] / height)
-                temp['theta']      = float(annot_theta)
-                temp['viewpoint1'] = viewpoint1
-                temp['viewpoint2'] = viewpoint2
-                temp['viewpoint3'] = viewpoint3
-                temp['quality']    = quality
-                temp['multiple']   = 'true' if multiple == 1 else 'false'
-                temp['interest']   = 'true' if interest == 1 else 'false'
-                temp['species']    = species
-
-                mapping_dict[aid] = len(annotation_list)
-                annotation_list.append(temp)
-
-            # Get parts
-            part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list, is_staged=is_staged))
-
-            if is_staged:
-                # Filter part_rowids for current user
-                part_user_id_list = ibs.get_part_staged_user_ids(part_rowid_list)
-                part_rowid_list = [
-                    part_rowid
-                    for part_rowid, part_user_id in zip(part_rowid_list, part_user_id_list)
-                    if staged_super or part_user_id == staged_user_id
-                ]
-
-            part_aid_list = ibs.get_part_aids(part_rowid_list)
-            part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
-            part_theta_list = ibs.get_part_thetas(part_rowid_list)
-            part_viewpoint_list = ibs.get_part_viewpoints(part_rowid_list)
-            part_quality_list = ibs.get_part_qualities(part_rowid_list)
-            part_type_list = ibs.get_part_types(part_rowid_list)
-            # Get annotation bounding boxes
-
-            part_list = []
-            zipped = list(zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list))
-            for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
-
-                if is_canonical:
-                    if part_type != appf.CANONICAL_PART_TYPE:
-                        continue
-
-                if part_quality in [-1, None]:
-                    part_quality = 0
-                elif part_quality <= 2:
-                    part_quality = 1
-                elif part_quality > 2:
-                    part_quality = 2
-
-                viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(part_viewpoint)
-
-                temp = {}
-                temp['id']         = part_rowid
-                temp['parent']     = mapping_dict[part_aid]
-                temp['left']       = 100.0 * (part_bbox[0] / width)
-                temp['top']        = 100.0 * (part_bbox[1] / height)
-                temp['width']      = 100.0 * (part_bbox[2] / width)
-                temp['height']     = 100.0 * (part_bbox[3] / height)
-                temp['theta']      = float(part_theta)
-                temp['viewpoint1'] = viewpoint1
-                temp['quality']    = part_quality
-                temp['type']       = part_type
-                part_list.append(temp)
-
-            if len(species_list) > 0:
-                species = max(set(species_list), key=species_list.count)  # Get most common species
-            elif appf.default_species(ibs) is not None:
-                species = appf.default_species(ibs)
+        if gid is None:
+            gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
+            if len(gid_list_) == 0:
+                gid = None
             else:
-                species = KEY_DEFAULTS[SPECIES_KEY]
+                # gid = gid_list_[0]
+                gid = random.choice(gid_list_)
+    else:
+        staged_progress = None
 
-            staged_aid_list = ibs.get_image_aids(gid, is_staged=True)
-            staged_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(staged_aid_list, is_staged=True))
+    finished = gid is None
+    review = 'review' in request.args.keys()
+    display_instructions = False  # request.cookies.get('ia-detection_instructions_seen', 1) == 1
+    display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
+    display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
 
-            imgesetid_list = list(set(ibs.get_image_imgsetids(gid)) - set([imgsetid]))
-            imagesettext_list = ibs.get_imageset_text(imgesetid_list)
-            imagesettext_list = [_ for _ in imagesettext_list if not _.startswith('*')]
-            imagesettext_list_str = ', '.join(imagesettext_list)
-            original_filename = os.path.split(ibs.get_image_uris_original(gid))[1]
-        else:
-            species = None
-            image_src = None
-            annotation_list = []
-            part_list = []
-            staged_aid_list = []
-            staged_part_rowid_list = []
-            imagesettext_list_str = None
-            original_filename = None
+    if not finished:
+        # image_src = routes_ajax.image_src(gid, resize=False)
+        image_src = ibs.depc_image.get('web_src', gid, 'src')
 
-        staged_uuid_list = ibs.get_annot_staged_uuids(staged_aid_list)
-        staged_user_id_list = ibs.get_annot_staged_user_ids(staged_aid_list)
+        width, height = ibs.get_image_sizes(gid)
+        staged_user = controller_inject.get_user()
+        if staged_user is None:
+            staged_user = {}
+        staged_user_id = staged_user.get('username', None)
 
-        num_staged_aids = len(staged_aid_list)
-        num_staged_part_rowids = len(staged_part_rowid_list)
-        num_staged_sessions = len(set(staged_uuid_list))
-        num_staged_users = len(set(staged_user_id_list))
-
-        THROW_TEST_AOI_TURKING_MANIFEST = []
-        THROW_TEST_AOI_TURKING_AVAILABLE = False
-        if THROW_TEST_AOI_TURKING:
-            if random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
-                THROW_TEST_AOI_TURKING_AVAILABLE = True
-                annotation_list = list(annotation_list)
-                part_list = list(part_list)
-
-                key_list = list(THROW_TEST_AOI_TURKING_ERROR_MODES.keys())
-                throw_test_aoi_turking_mode = random.choice(key_list)
-                throw_test_aoi_turking_severity = random.choice(
-                    THROW_TEST_AOI_TURKING_ERROR_MODES[throw_test_aoi_turking_mode]
-                )
-                throw_test_aoi_turking_severity = min(
-                    throw_test_aoi_turking_severity,
-                    len(annotation_list)
-                )
-                args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
-                print('throw_test_aoi_turking: %r mode with %r severity' % args)
-
-                index_list = list(range(len(annotation_list)))
-                random.shuffle(index_list)
-                index_list = index_list[:throw_test_aoi_turking_severity]
-                index_list = sorted(index_list, reverse=True)
-
-                args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
-                if throw_test_aoi_turking_mode == 'addition':
-
-                    for index in index_list:
-                        width = random.uniform(0.0, 100.0)
-                        height = random.uniform(0.0, 100.0)
-                        left = random.uniform(0.0, 100.0 - width)
-                        top = random.uniform(0.0, 100.0 - height)
-                        species = random.choice(ibs.get_all_species_texts())
-                        annotation = {
-                            'id': None,
-                            'top': top,
-                            'left': left,
-                            'width': width,
-                            'height': height,
-                            'theta': 0.0,
-                            'species': species,
-                            'quality': 0,
-                            'interest': 'false',
-                            'multiple': 'false',
-                            'viewpoint1': -1,
-                            'viewpoint2': -1,
-                            'viewpoint3': -1,
-                        }
-                        annotation_list.append(annotation)
-                        THROW_TEST_AOI_TURKING_MANIFEST.append({
-                            'action': 'addition',
-                            'values': annotation,
-                        })
-                elif throw_test_aoi_turking_mode == 'deletion':
-                    if len(part_list) == 0:
-
-                        for index in index_list:
-                            annotation = annotation_list.pop(index)
-                            THROW_TEST_AOI_TURKING_MANIFEST.append({
-                                'action': 'deletion',
-                                'values': annotation,
-                            })
-                    else:
-                        THROW_TEST_AOI_TURKING_AVAILABLE = False
-                elif throw_test_aoi_turking_mode == 'alteration':
-                    for index in index_list:
-                        direction_list = ['left', 'right', 'up', 'down']
-                        direction = random.choice(direction_list)
-                        height = annotation_list[index]['height']
-                        width = annotation_list[index]['width']
-                        left = annotation_list[index]['left']
-                        top = annotation_list[index]['top']
-
-                        if direction == 'left':
-                            delta = width * 0.25
-                            left -= delta
-                            width += delta
-                        elif direction == 'right':
-                            delta = width * 0.25
-                            width += delta
-                        elif direction == 'up':
-                            delta = height * 0.25
-                            top -= delta
-                            height += delta
-                        elif direction == 'down':
-                            delta = height * 0.25
-                            height += delta
-
-                        annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
-                        annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
-                        annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
-                        annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
-
-                        THROW_TEST_AOI_TURKING_MANIFEST.append({
-                            'action': 'alteration-%s' % (direction, ),
-                            'values': annotation_list[index],
-                        })
-                elif throw_test_aoi_turking_mode == 'translation':
-                    for index in index_list:
-                        direction_list = ['left', 'right', 'up', 'down']
-                        direction = random.choice(direction_list)
-                        height = annotation_list[index]['height']
-                        width = annotation_list[index]['width']
-                        left = annotation_list[index]['left']
-                        top = annotation_list[index]['top']
-
-                        if direction == 'left':
-                            delta = width * 0.25
-                            left -= delta
-                        elif direction == 'right':
-                            delta = width * 0.25
-                            left += delta
-                        elif direction == 'up':
-                            delta = height * 0.25
-                            top -= delta
-                        elif direction == 'down':
-                            delta = height * 0.25
-                            top += delta
-
-                        annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
-                        annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
-                        annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
-                        annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
-
-                        THROW_TEST_AOI_TURKING_MANIFEST.append({
-                            'action': 'translation-%s' % (direction, ),
-                            'values': annotation_list[index],
-                        })
-                else:
-                    raise ValueError('Invalid throw_test_aoi_turking_mode')
-                print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
-
-        THROW_TEST_AOI_TURKING_MANIFEST = ut.to_json(THROW_TEST_AOI_TURKING_MANIFEST)
-
-        species_rowids = ibs._get_all_species_rowids()
-        species_nice_list = ibs.get_species_nice(species_rowids)
-
-        combined_list = sorted(zip(species_nice_list, species_rowids))
-        species_nice_list = [ combined[0] for combined in combined_list ]
-        species_rowids = [ combined[1] for combined in combined_list ]
-
-        species_text_list = ibs.get_species_texts(species_rowids)
-        species_list = list(zip(species_nice_list, species_text_list))
-        species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
-
-        # Collect mapping of species to parts
-        part_rowid_list = ibs.get_valid_part_rowids()
-        part_aid_list = ibs.get_part_aids(part_rowid_list)
-        part_species_text_list = ibs.get_annot_species_texts(part_aid_list)
-        part_types_list = ibs.get_part_types(part_rowid_list)
-        zipped = list(zip(part_species_text_list, part_types_list))
-
-        species_part_dict = {
-            const.UNKNOWN: set([])
-        }
-        for part_species_text, part_type_list in zipped:
-            if part_species_text not in species_part_dict:
-                species_part_dict[part_species_text] = set([const.UNKNOWN])
-            for part_type in part_type_list:
-                species_part_dict[part_species_text].add(part_type)
-                species_part_dict[const.UNKNOWN].add(part_type)
-
-        # Add any images that did not get added because they aren't assigned any annotations
-        for species_text in species_text_list:
-            if species_text not in species_part_dict:
-                species_part_dict[species_text] = set([const.UNKNOWN])
-        for key in species_part_dict:
-            species_part_dict[key] = sorted(list(species_part_dict[key]))
-        species_part_dict_json = json.dumps(species_part_dict)
-
-        orientation_flag = '0'
-        if species is not None and 'zebra' in species:
-            orientation_flag = '1'
-
-        settings_key_list = [
-            ('ia-detection-setting-orientation', orientation_flag),
-            ('ia-detection-setting-parts-assignments', '1'),
-            ('ia-detection-setting-toggle-annotations', '1'),
-            ('ia-detection-setting-toggle-parts', '0'),
-            ('ia-detection-setting-parts-show', '0'),
-            ('ia-detection-setting-parts-hide', '0'),
-        ]
-
-        settings = {
-            settings_key: request.cookies.get(settings_key, settings_default) == '1'
-            for (settings_key, settings_default) in settings_key_list
-        }
+        # Get annotations
+        aid_list = ibs.get_image_aids(gid, is_staged=is_staged)
 
         if is_canonical:
-            settings['ia-detection-setting-parts-show'] = True
+            assert only_aid in aid_list, 'Specified only_aid is not in this image'
+            aid_list = [only_aid]
+
+        if is_staged:
+            # Filter aids for current user
+            annot_user_id_list = ibs.get_annot_staged_user_ids(aid_list)
+            aid_list = [
+                aid
+                for aid, annot_user_id in zip(aid_list, annot_user_id_list)
+                if staged_super or annot_user_id == staged_user_id
+            ]
+
+        annot_bbox_list = ibs.get_annot_bboxes(aid_list)
+        annot_theta_list = ibs.get_annot_thetas(aid_list)
+        species_list = ibs.get_annot_species_texts(aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        quality_list = ibs.get_annot_qualities(aid_list)
+        multiple_list = ibs.get_annot_multiple(aid_list)
+        interest_list = ibs.get_annot_interest(aid_list)
+
+        # Get annotation bounding boxes
+        mapping_dict = {}
+        annotation_list = []
+        zipped = list(zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list))
+        for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
+            if quality in [-1, None]:
+                quality = 0
+            elif quality <= 2:
+                quality = 1
+            elif quality > 2:
+                quality = 2
+
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+
+            temp = {}
+            temp['id']         = aid
+            temp['left']       = 100.0 * (annot_bbox[0] / width)
+            temp['top']        = 100.0 * (annot_bbox[1] / height)
+            temp['width']      = 100.0 * (annot_bbox[2] / width)
+            temp['height']     = 100.0 * (annot_bbox[3] / height)
+            temp['theta']      = float(annot_theta)
+            temp['viewpoint1'] = viewpoint1
+            temp['viewpoint2'] = viewpoint2
+            temp['viewpoint3'] = viewpoint3
+            temp['quality']    = quality
+            temp['multiple']   = 'true' if multiple == 1 else 'false'
+            temp['interest']   = 'true' if interest == 1 else 'false'
+            temp['species']    = species
+
+            mapping_dict[aid] = len(annotation_list)
+            annotation_list.append(temp)
+
+        # Get parts
+        part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list, is_staged=is_staged))
+
+        if is_staged:
+            # Filter part_rowids for current user
+            part_user_id_list = ibs.get_part_staged_user_ids(part_rowid_list)
+            part_rowid_list = [
+                part_rowid
+                for part_rowid, part_user_id in zip(part_rowid_list, part_user_id_list)
+                if staged_super or part_user_id == staged_user_id
+            ]
+
+        part_aid_list = ibs.get_part_aids(part_rowid_list)
+        part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
+        part_theta_list = ibs.get_part_thetas(part_rowid_list)
+        part_viewpoint_list = ibs.get_part_viewpoints(part_rowid_list)
+        part_quality_list = ibs.get_part_qualities(part_rowid_list)
+        part_type_list = ibs.get_part_types(part_rowid_list)
+        # Get annotation bounding boxes
+
+        part_list = []
+        zipped = list(zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list))
+        for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
+
+            if is_canonical:
+                if part_type != appf.CANONICAL_PART_TYPE:
+                    continue
+
+            if part_quality in [-1, None]:
+                part_quality = 0
+            elif part_quality <= 2:
+                part_quality = 1
+            elif part_quality > 2:
+                part_quality = 2
+
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(part_viewpoint)
+
+            temp = {}
+            temp['id']         = part_rowid
+            temp['parent']     = mapping_dict[part_aid]
+            temp['left']       = 100.0 * (part_bbox[0] / width)
+            temp['top']        = 100.0 * (part_bbox[1] / height)
+            temp['width']      = 100.0 * (part_bbox[2] / width)
+            temp['height']     = 100.0 * (part_bbox[3] / height)
+            temp['theta']      = float(part_theta)
+            temp['viewpoint1'] = viewpoint1
+            temp['quality']    = part_quality
+            temp['type']       = part_type
+            part_list.append(temp)
+
+        if len(species_list) > 0:
+            species = max(set(species_list), key=species_list.count)  # Get most common species
+        elif appf.default_species(ibs) is not None:
+            species = appf.default_species(ibs)
+        else:
+            species = KEY_DEFAULTS[SPECIES_KEY]
+
+        staged_aid_list = ibs.get_image_aids(gid, is_staged=True)
+        staged_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(staged_aid_list, is_staged=True))
+
+        imgesetid_list = list(set(ibs.get_image_imgsetids(gid)) - set([imgsetid]))
+        imagesettext_list = ibs.get_imageset_text(imgesetid_list)
+        imagesettext_list = [_ for _ in imagesettext_list if not _.startswith('*')]
+        imagesettext_list_str = ', '.join(imagesettext_list)
+        original_filename = os.path.split(ibs.get_image_uris_original(gid))[1]
+    else:
+        species = None
+        image_src = None
+        annotation_list = []
+        part_list = []
+        staged_aid_list = []
+        staged_part_rowid_list = []
+        imagesettext_list_str = None
+        original_filename = None
+
+    staged_uuid_list = ibs.get_annot_staged_uuids(staged_aid_list)
+    staged_user_id_list = ibs.get_annot_staged_user_ids(staged_aid_list)
+
+    num_staged_aids = len(staged_aid_list)
+    num_staged_part_rowids = len(staged_part_rowid_list)
+    num_staged_sessions = len(set(staged_uuid_list))
+    num_staged_users = len(set(staged_user_id_list))
+
+    THROW_TEST_AOI_TURKING_MANIFEST = []
+    THROW_TEST_AOI_TURKING_AVAILABLE = False
+    if THROW_TEST_AOI_TURKING:
+        if random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
+            THROW_TEST_AOI_TURKING_AVAILABLE = True
+            annotation_list = list(annotation_list)
+            part_list = list(part_list)
+
+            key_list = list(THROW_TEST_AOI_TURKING_ERROR_MODES.keys())
+            throw_test_aoi_turking_mode = random.choice(key_list)
+            throw_test_aoi_turking_severity = random.choice(
+                THROW_TEST_AOI_TURKING_ERROR_MODES[throw_test_aoi_turking_mode]
+            )
+            throw_test_aoi_turking_severity = min(
+                throw_test_aoi_turking_severity,
+                len(annotation_list)
+            )
+            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            print('throw_test_aoi_turking: %r mode with %r severity' % args)
+
+            index_list = list(range(len(annotation_list)))
+            random.shuffle(index_list)
+            index_list = index_list[:throw_test_aoi_turking_severity]
+            index_list = sorted(index_list, reverse=True)
+
+            args = (throw_test_aoi_turking_mode, throw_test_aoi_turking_severity, )
+            if throw_test_aoi_turking_mode == 'addition':
+
+                for index in index_list:
+                    width = random.uniform(0.0, 100.0)
+                    height = random.uniform(0.0, 100.0)
+                    left = random.uniform(0.0, 100.0 - width)
+                    top = random.uniform(0.0, 100.0 - height)
+                    species = random.choice(ibs.get_all_species_texts())
+                    annotation = {
+                        'id': None,
+                        'top': top,
+                        'left': left,
+                        'width': width,
+                        'height': height,
+                        'theta': 0.0,
+                        'species': species,
+                        'quality': 0,
+                        'interest': 'false',
+                        'multiple': 'false',
+                        'viewpoint1': -1,
+                        'viewpoint2': -1,
+                        'viewpoint3': -1,
+                    }
+                    annotation_list.append(annotation)
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'addition',
+                        'values': annotation,
+                    })
+            elif throw_test_aoi_turking_mode == 'deletion':
+                if len(part_list) == 0:
+
+                    for index in index_list:
+                        annotation = annotation_list.pop(index)
+                        THROW_TEST_AOI_TURKING_MANIFEST.append({
+                            'action': 'deletion',
+                            'values': annotation,
+                        })
+                else:
+                    THROW_TEST_AOI_TURKING_AVAILABLE = False
+            elif throw_test_aoi_turking_mode == 'alteration':
+                for index in index_list:
+                    direction_list = ['left', 'right', 'up', 'down']
+                    direction = random.choice(direction_list)
+                    height = annotation_list[index]['height']
+                    width = annotation_list[index]['width']
+                    left = annotation_list[index]['left']
+                    top = annotation_list[index]['top']
+
+                    if direction == 'left':
+                        delta = width * 0.25
+                        left -= delta
+                        width += delta
+                    elif direction == 'right':
+                        delta = width * 0.25
+                        width += delta
+                    elif direction == 'up':
+                        delta = height * 0.25
+                        top -= delta
+                        height += delta
+                    elif direction == 'down':
+                        delta = height * 0.25
+                        height += delta
+
+                    annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
+                    annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
+                    annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
+                    annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
+
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'alteration-%s' % (direction, ),
+                        'values': annotation_list[index],
+                    })
+            elif throw_test_aoi_turking_mode == 'translation':
+                for index in index_list:
+                    direction_list = ['left', 'right', 'up', 'down']
+                    direction = random.choice(direction_list)
+                    height = annotation_list[index]['height']
+                    width = annotation_list[index]['width']
+                    left = annotation_list[index]['left']
+                    top = annotation_list[index]['top']
+
+                    if direction == 'left':
+                        delta = width * 0.25
+                        left -= delta
+                    elif direction == 'right':
+                        delta = width * 0.25
+                        left += delta
+                    elif direction == 'up':
+                        delta = height * 0.25
+                        top -= delta
+                    elif direction == 'down':
+                        delta = height * 0.25
+                        top += delta
+
+                    annotation_list[index]['height'] = min(max(height, 0.0), 100.0)
+                    annotation_list[index]['width']  = min(max(width, 0.0), 100.0)
+                    annotation_list[index]['left']   = min(max(left, 0.0), 100.0)
+                    annotation_list[index]['top']    = min(max(top, 0.0), 100.0)
+
+                    THROW_TEST_AOI_TURKING_MANIFEST.append({
+                        'action': 'translation-%s' % (direction, ),
+                        'values': annotation_list[index],
+                    })
+            else:
+                raise ValueError('Invalid throw_test_aoi_turking_mode')
+            print(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
+
+    THROW_TEST_AOI_TURKING_MANIFEST = ut.to_json(THROW_TEST_AOI_TURKING_MANIFEST)
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_list = list(zip(species_nice_list, species_text_list))
+    species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
+
+    # Collect mapping of species to parts
+    part_rowid_list = ibs.get_valid_part_rowids()
+    part_aid_list = ibs.get_part_aids(part_rowid_list)
+    part_species_text_list = ibs.get_annot_species_texts(part_aid_list)
+    part_types_list = ibs.get_part_types(part_rowid_list)
+    zipped = list(zip(part_species_text_list, part_types_list))
+
+    species_part_dict = {
+        const.UNKNOWN: set([])
+    }
+    for part_species_text, part_type_list in zipped:
+        if part_species_text not in species_part_dict:
+            species_part_dict[part_species_text] = set([const.UNKNOWN])
+        for part_type in part_type_list:
+            species_part_dict[part_species_text].add(part_type)
+            species_part_dict[const.UNKNOWN].add(part_type)
+
+    # Add any images that did not get added because they aren't assigned any annotations
+    for species_text in species_text_list:
+        if species_text not in species_part_dict:
+            species_part_dict[species_text] = set([const.UNKNOWN])
+    for key in species_part_dict:
+        species_part_dict[key] = sorted(list(species_part_dict[key]))
+    species_part_dict_json = json.dumps(species_part_dict)
+
+    orientation_flag = '0'
+    if species is not None and 'zebra' in species:
+        orientation_flag = '1'
+
+    settings_key_list = [
+        ('ia-detection-setting-orientation', orientation_flag),
+        ('ia-detection-setting-parts-assignments', '1'),
+        ('ia-detection-setting-toggle-annotations', '1'),
+        ('ia-detection-setting-toggle-parts', '0'),
+        ('ia-detection-setting-parts-show', '0'),
+        ('ia-detection-setting-parts-hide', '0'),
+    ]
+
+    settings = {
+        settings_key: request.cookies.get(settings_key, settings_default) == '1'
+        for (settings_key, settings_default) in settings_key_list
+    }
+
+    if is_canonical:
+        settings['ia-detection-setting-parts-show'] = True
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
@@ -3839,7 +3839,6 @@ def _princeton_kaia_filtering(ibs, current_aids=None, desired_species=None, tier
 
         new_aid_list = ibs._princeton_kaia_annot_filtering(candidate_aid_list, desired_species)
 
-
     if current_aids is None:
         current_imageset_rowid = ibs.get_imageset_imgsetids_from_text('Candidate Images')
         current_gids = ibs.get_imageset_gids(current_imageset_rowid)
@@ -4749,8 +4748,8 @@ def api_root(**kwargs):
             methods -= set(['HEAD', 'OPTIONS'])
             if len(methods) == 0:
                 continue
-            if len(methods) > 1:
-                print('methods = %r' % (methods,))
+            # if len(methods) > 1:
+                # print('methods = %r' % (methods,))
             method = list(methods)[0]
             if method not in rule_dict.keys(**kwargs):
                 rule_dict[method] = []

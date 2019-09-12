@@ -1,8 +1,10 @@
+from __future__ import absolute_import, division, print_function
 from prometheus_client import Info, Gauge, Enum, Histogram  # NOQA
 from ibeis.control import controller_inject
 import ibeis.constants as const
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))

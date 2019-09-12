@@ -8,6 +8,8 @@ import utool as ut
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def check_merge(ibs_src, ibs_dst):
     aid_list1 = ibs_src.get_valid_aids()

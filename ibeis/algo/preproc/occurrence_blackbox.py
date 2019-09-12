@@ -31,6 +31,8 @@ import utool as ut
 import scipy.cluster.hierarchy
 from scipy.spatial import distance
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 KM_PER_SEC = .002
 

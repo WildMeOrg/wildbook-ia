@@ -8,6 +8,8 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22,
                  dryrun=False):

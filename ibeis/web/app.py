@@ -14,6 +14,7 @@ from ibeis.web import appfuncs as appf
 from tornado.log import access_log
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 try:
     from werkzeug.wsgi import DispatcherMiddleware
@@ -143,11 +144,32 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
                     (('The specified IBEIS web port %d is not available, '
                       'but %d is') % (app.server_port, fallback_port)))
 
+        # Add more verbose logging
+        utool_logfile_handler = ut.util_logging.__CURRENT_LOGFILE_HANDLER__
+        if utool_logfile_handler is not None:
+            logger_list = [
+                app.app.logger,
+                logging.getLogger('concurrent'),
+                logging.getLogger('concurrent.futures'),
+                logging.getLogger('flask_cors.core'),
+                logging.getLogger('flask_cors'),
+                logging.getLogger('flask_cors.decorator'),
+                logging.getLogger('flask_cors.extension'),
+                logging.getLogger('urllib3'),
+                logging.getLogger('requests'),
+                logging.getLogger('tornado'),
+                logging.getLogger('tornado.access'),
+                logging.getLogger('tornado.application'),
+                logging.getLogger('tornado.general'),
+                logging.getLogger('websocket'),
+            ]
+            for logger in logger_list:
+                logger.setLevel(logging.INFO)
+                logger.addHandler(utool_logfile_handler)
+
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()
 
-    # Set logging level
-    logging.getLogger().setLevel(logging.INFO)
     # Get the port if unspecified
     if port is None:
         port = appf.DEFAULT_WEB_API_PORT

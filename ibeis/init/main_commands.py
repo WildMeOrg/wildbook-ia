@@ -49,8 +49,8 @@ def preload_commands(dbdir, **kwargs):
         sysres.set_workdir(params.args.set_workdir)
     if params.args.get_workdir:
         print(' Current work dir = %s' % sysres.get_workdir())
-    if params.args.logdir is not None:
-        sysres.set_logdir(params.args.logdir)
+    # if params.args.logdir is not None:
+    #     sysres.set_logdir(params.args.logdir)
     if params.args.get_logdir:
         print(' Current local  log dir = %s' % (sysres.get_logdir_local(),))
         print(' Current global log dir = %s' % (sysres.get_logdir_global(),))

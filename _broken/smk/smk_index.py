@@ -23,7 +23,7 @@ from vtool import clustering2 as clustertool
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots.smk import smk_scoring
 from ibeis.algo.hots.smk import smk_residuals
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_index]')
+(print, print_, printDBG, rrr, profile) = ut.inject2(__name__, '[smk_index]')
 
 USE_CACHE_WORDS = not ut.get_argflag('--nocache-words')
 WITH_TOTALTIME = True
@@ -181,7 +181,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
 @profile
 def compute_multiassign_weights_(_idx2_wx, _idx2_wdist, massign_alpha,
                                  massign_sigma, massign_equal_weights):
-    """
+    r"""
     Multi Assignment Filtering from Improving Bag of Features
 
     Args:
@@ -621,7 +621,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
 @profile
 def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
                        wx2_dmaws, smk_alpha, smk_thresh, verbose=False):
-    """
+    r"""
     Computes sccw normalization scalar for the database annotations.
     This is gamma from the SMK paper.
     sccw is a self consistency critiron weight --- a scalar which ensures
@@ -661,7 +661,6 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
         >>> invindex.report_memsize()
         >>> daid2_sccw = smk_index.compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf, wx2_dmaws, smk_alpha, smk_thresh, verbose)
     """
-
     #for wx in wx_sublist:
     #    print(len(wx2_dmaws
 

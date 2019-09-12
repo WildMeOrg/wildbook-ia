@@ -1,10 +1,14 @@
 """ Implements ThreadActor """
+from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
 from concurrent.futures import thread
 from ibeis.web.futures_utils import _base_actor
 import queue
 import threading
 import weakref
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 # Most of this code is duplicated from the concurrent.futures.thread and
 # concurrent.futures.process modules, writen by Brian Quinlan. The main

@@ -13,7 +13,8 @@ import utool as ut
 import vtool as vt
 from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import hstypes
-(print, rrr, profile) = ut.inject(__name__)
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reindex'))

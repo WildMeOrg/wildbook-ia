@@ -1,3 +1,9 @@
+from __future__ import print_function, division, absolute_import
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
+
+
 def load_multiclass_scores(self):
     # convert simple scores to multiclass scores
     import vtool as vt
@@ -288,6 +294,7 @@ def bigcache_vsone(qreq_, hyper_params):
         matches = cached_data[key_]
     return matches, infr
 
+
 def bigcache_vsone(qreq_, hyper_params):
     """
     Cached output of one-vs-one matches
@@ -555,7 +562,6 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
         # 'SV_LNBNN': matches_SV_LNBNN,
     }
     return cached_data
-
 
         from sklearn.metrics.classification import coo_matrix
         def quick_cm(y_true, y_pred, labels, sample_weight):

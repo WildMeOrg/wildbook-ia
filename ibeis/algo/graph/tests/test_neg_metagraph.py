@@ -5,6 +5,9 @@ Ensure they are run via run_tests even though they are not doctests.
 Consider moving to pytest and using xdoctest (because regular doctest does not
 accept the syntax of IBEIS doctests)
 """
+from __future__ import absolute_import, division, print_function
+import utool as ut
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def test_neg_metagraph_simple_add_remove():

@@ -26,7 +26,11 @@ nnkj/enerate this module automagically from
 """
 from __future__ import absolute_import, division, print_function
 from utool import util_arg
+import utool as ut
 import os
+
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 # Global command line arguments
 args = None     # Parsed arguments

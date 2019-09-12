@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-    This is a proof of concept for connecting to an authenticated Qubica Server
-"""
+"""This is a proof of concept for connecting to an authenticated Qubica Server"""
 from __future__ import print_function, division, absolute_import
 from hashlib import sha1
 import hmac
 import requests
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 # System variables
 APPLICATION_PROTOCOL   = 'http'
@@ -34,9 +34,7 @@ def get_authorization_header(uri, user_email=None, user_enc_pass=None):
 
 
 def _api_result(uri, method, user_email=None, user_enc_pass=None, **kwargs):
-    """
-        Make a general (method) API request to the server
-    """
+    """Make a general (method) API request to the server"""
     # Make GET request to server
     method = method.upper()
     url = '%s://%s:%s%s' % (APPLICATION_PROTOCOL, APPLICATION_DOMAIN, APPLICATION_PORT, uri)
@@ -57,17 +55,13 @@ def _api_result(uri, method, user_email=None, user_enc_pass=None, **kwargs):
 
 
 def get_api_result(uri, user_email=None, user_enc_pass=None, **kwargs):
-    """
-        Make a GET API request to the server
-    """
+    """Make a GET API request to the server"""
     return _api_result(uri, 'get', user_email=user_email,
                        user_enc_pass=user_enc_pass, **kwargs)
 
 
 def post_api_result(uri, user_email=None, user_enc_pass=None, **kwargs):
-    """
-        Make a GET API request to the server
-    """
+    """Make a GET API request to the server"""
     return _api_result(uri, 'post', user_email=user_email,
                        user_enc_pass=user_enc_pass, **kwargs)
 

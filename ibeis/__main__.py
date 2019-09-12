@@ -8,6 +8,7 @@ import multiprocessing
 import utool as ut
 import ibeis  # NOQA
 import sys
+(print, rrr, profile) = ut.inject2(__name__)
 
 CMD = ut.get_argflag('--cmd')
 

@@ -1,3 +1,7 @@
+from __future__ import print_function, division, absolute_import
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 """
 

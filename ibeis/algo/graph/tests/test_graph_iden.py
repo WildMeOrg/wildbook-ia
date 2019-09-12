@@ -1,6 +1,10 @@
+from __future__ import absolute_import, division, print_function
 import utool as ut
 from ibeis.algo.graph import demo
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
+
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def test_incomp_inference():

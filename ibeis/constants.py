@@ -11,7 +11,8 @@ import math
 import utool as ut
 from collections import OrderedDict
 from os.path import join
-ut.noinject('[const]')
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 CONTAINERIZED = ut.get_argflag('--containerized')

@@ -1,6 +1,10 @@
+from __future__ import absolute_import, division, print_function
 import networkx as nx
 import utool as ut
 import pandas as pd
+import numpy as np
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 edges = {
     2234: {5383: {'decision': 'match', 'reviewed_tags': ['needswork']}},

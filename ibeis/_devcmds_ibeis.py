@@ -16,6 +16,8 @@ from ibeis import sysres
 from ibeis.other import ibsfuncs
 from ibeis.dbio import ingest_hsdb
 
+(print, rrr, profile) = utool.inject2(__name__)
+
 
 def openworkdirs_test():
     """

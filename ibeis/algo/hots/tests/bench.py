@@ -1,4 +1,8 @@
+from __future__ import absolute_import, division, print_function
 import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def benchmark_knn():
     r"""

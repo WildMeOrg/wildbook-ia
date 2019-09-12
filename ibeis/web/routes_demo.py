@@ -3,15 +3,11 @@
 Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
-from flask import request, redirect, url_for, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
-from ibeis import constants as const
 import utool as ut
-import numpy as np
-import uuid
-import six
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 

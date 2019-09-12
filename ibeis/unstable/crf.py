@@ -1,5 +1,8 @@
+from __future__ import print_function, division, absolute_import
 import utool as ut
 import numpy as np
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def crftest():
@@ -70,7 +73,6 @@ def crftest():
     pairwise_scores = np.array([metric(*zz) for zz in pairwise_aidxs])
     pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
 
-
     graph = pystruct.models.EdgeFeatureGraphCRF(
         n_states=num_annots,
         n_features=num_names,
@@ -118,4 +120,3 @@ def chain_crf():
     X_train, X_test = X[folds == 1], X[folds != 1]
     y_train, y_test = y[folds == 1], y[folds != 1]
     len(X_train)
-

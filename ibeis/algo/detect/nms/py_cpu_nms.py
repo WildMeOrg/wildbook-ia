@@ -4,9 +4,11 @@
 # Licensed under The MIT License [see LICENSE for details]
 # Written by Ross Girshick
 # --------------------------------------------------------
-
-
+from __future__ import absolute_import, division, print_function
+import utool as ut
 import numpy as np
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def py_cpu_nms(dets, scores, thresh):

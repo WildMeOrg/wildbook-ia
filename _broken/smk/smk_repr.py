@@ -11,7 +11,7 @@ from ibeis.algo.hots import hstypes
 from ibeis.algo.hots.smk import smk_scoring
 from ibeis.algo.hots.smk import smk_index
 from collections import namedtuple
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_repr]')
+(print, print_, printDBG, rrr, profile) = ut.inject2(__name__, '[smk_repr]')
 
 
 DEBUG_SMK = ut.DEBUG2 or ut.get_argflag('--debug-smk')
@@ -51,6 +51,7 @@ class InvertedIndex(object):
         daid2_label  (dict of tuples): daid -> label (name, view)
 
     """
+
     def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx,
                  daids, daid2_label):
         invindex.words        = words
