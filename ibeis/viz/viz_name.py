@@ -7,7 +7,8 @@ from plottool import plot_helpers as ph
 import plottool as pt
 import utool as ut
 from ibeis.viz import viz_chip
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz]', DEBUG=False)
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def show_name_of(ibs, aid, **kwargs):

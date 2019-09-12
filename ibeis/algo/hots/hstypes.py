@@ -32,7 +32,8 @@ currently a weight of zero is hacked in
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
-ut.noinject('[hstypes]')
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 #INTEGER_TYPE = np.int32

@@ -31,6 +31,7 @@ from ibeis import constants as const
 import string
 import random
 import base64
+
 # <flask>
 # TODO: allow optional flask import
 try:
@@ -56,23 +57,25 @@ except Exception as ex:
         raise
 
 
-try:
-    from flask_cas import CAS
-    from flask_cas import login_required as login_required_cas
-    #from flask.ext.cas import CAS
-    #from flask.ext.cas import login_required
-    # HAS_FLASK_CAS = True
-    HAS_FLASK_CAS = False
-except Exception as ex:
-    HAS_FLASK_CAS = False
-    login_required_cas = ut.identity
-    msg = ('Missing flask.ext.cas.\n'
-           'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
-    ut.printex(ex, msg, iswarning=True)
-    # sudo
-    print('')
-    if ut.SUPER_STRICT:
-        raise
+# try:
+#     from flask_cas import CAS
+#     from flask_cas import login_required as login_required_cas
+#     #from flask.ext.cas import CAS
+#     #from flask.ext.cas import login_required
+#     # HAS_FLASK_CAS = True
+#     HAS_FLASK_CAS = False
+# except Exception as ex:
+#     HAS_FLASK_CAS = False
+#     login_required_cas = ut.identity
+#     msg = ('Missing flask.ext.cas.\n'
+#            'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
+#     ut.printex(ex, msg, iswarning=True)
+#     # sudo
+#     print('')
+#     if ut.SUPER_STRICT:
+#         raise
+
+
 # </flask>
 print, rrr, profile = ut.inject2(__name__)
 
@@ -135,12 +138,6 @@ def get_flask_app(templates_auto_reload=True):
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
 
-        # Add more verbose logging
-        import logging
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        GLOBAL_APP.logger.addHandler(stream_handler)
-
         if ut.VERBOSE:
             print('[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET, ))
         GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
@@ -154,12 +151,13 @@ def get_flask_app(templates_auto_reload=True):
 
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
-        if HAS_FLASK_CAS:
-            GLOBAL_CAS = CAS(GLOBAL_APP, '/cas')
-            GLOBAL_APP.config['SESSION_TYPE']    = 'memcached'
-            GLOBAL_APP.config['SECRET_KEY']      = GLOBAL_APP_SECRET
-            GLOBAL_APP.config['CAS_SERVER']      = 'https://cas-auth.rpi.edu'
-            GLOBAL_APP.config['CAS_AFTER_LOGIN'] = 'root'
+
+        # if HAS_FLASK_CAS:
+        #     GLOBAL_CAS = CAS(GLOBAL_APP, '/cas')
+        #     GLOBAL_APP.config['SESSION_TYPE']    = 'memcached'
+        #     GLOBAL_APP.config['SECRET_KEY']      = GLOBAL_APP_SECRET
+        #     GLOBAL_APP.config['CAS_SERVER']      = 'https://cas-auth.rpi.edu'
+        #     GLOBAL_APP.config['CAS_AFTER_LOGIN'] = 'root'
     return GLOBAL_APP
 
 # try and load flask
@@ -1039,7 +1037,8 @@ def get_ibeis_flask_route(__name__):
                 # and register it with flask.
                 app = get_flask_app()
 
-                login_required = login_required_cas if HAS_FLASK_CAS else login_required_session
+                # login_required = login_required_cas if HAS_FLASK_CAS else login_required_session
+                login_required = login_required_session
 
                 if not __route_authenticate__:
                     login_required = ut.identity

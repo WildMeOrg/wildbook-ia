@@ -9,6 +9,8 @@ from ibeis.web import appfuncs as appf
 import utool as ut
 import vtool as vt
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 

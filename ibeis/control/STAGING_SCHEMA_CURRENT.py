@@ -7,7 +7,9 @@ AutogenCommandLine:
 """
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 # =======================
 # Schema Version Current
@@ -31,21 +33,21 @@ def update_current(db, ibs=None):
     )
 
     db.add_table('reviews', [
-        ('review_rowid',                 'INTEGER PRIMARY KEY'),
-        ('review_uuid',                  'UUID NOT NULL'),
-        ('annot_1_rowid',                'INTEGER NOT NULL'),
-        ('annot_2_rowid',                'INTEGER NOT NULL'),
-        ('review_count',                 'INTEGER NOT NULL'),
-        ('review_evidence_decision',     'INTEGER'),
-        ('review_server_end_time_posix', 'INTEGER'),
-        ('review_user_identity',         'TEXT'),
-        ('review_tags',                  'TEXT'),
-        ('review_user_confidence',       'INTEGER'),
-        ('review_client_start_time_posix','INTEGER'),
-        ('review_client_end_time_posix', 'INTEGER'),
-        ('review_server_start_time_posix','INTEGER'),
-        ('review_meta_decision',         'INTEGER'),
-        ('review_metadata_json',         'TEXT'),
+        ('review_rowid',                   'INTEGER PRIMARY KEY'),
+        ('review_uuid',                    'UUID NOT NULL'),
+        ('annot_1_rowid',                  'INTEGER NOT NULL'),
+        ('annot_2_rowid',                  'INTEGER NOT NULL'),
+        ('review_count',                   'INTEGER NOT NULL'),
+        ('review_evidence_decision',       'INTEGER'),
+        ('review_server_end_time_posix',   'INTEGER'),
+        ('review_user_identity',           'TEXT'),
+        ('review_tags',                    'TEXT'),
+        ('review_user_confidence',         'INTEGER'),
+        ('review_client_start_time_posix', 'INTEGER'),
+        ('review_client_end_time_posix',   'INTEGER'),
+        ('review_server_start_time_posix', 'INTEGER'),
+        ('review_meta_decision',           'INTEGER'),
+        ('review_metadata_json',           'TEXT'),
     ],
         docstr='''
         Used to store completed user review states of two matched annotations

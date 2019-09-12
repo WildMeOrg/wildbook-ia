@@ -16,6 +16,7 @@ import simplejson as json
 import numpy as np
 import six
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
 TARGET_WIDTH = 1200.0
@@ -74,7 +75,7 @@ class NavbarClass(object):
         _link = request.path
         for link, nice in nav.item_list:
             active = _link == url_for(link)
-            print(_link, link, url_for(link))
+            # print(_link, link, url_for(link))
             yield active, link, nice
 
 

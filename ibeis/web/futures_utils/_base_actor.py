@@ -11,8 +11,11 @@ TODO:
         in a thread. Actors must have a way of interacting with this thread.
 
 """
-
+from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 class ActorExecutor(_base.Executor):
@@ -59,6 +62,7 @@ class Actor(object):
         >>> f = executor.post('message')
         >>> print(f.result())
     """
+
     @classmethod
     def executor(cls):
         """

@@ -8,6 +8,9 @@ from ibeis.other import ibsfuncs
 from detecttools.directory import Directory
 import utool
 
+(print, rrr, profile) = utool.inject2(__name__)
+
+
 if __name__ == '__main__':
     # FIX THIS TO POINT TO THE CORRECT DIRECTORY
     #prefix = expanduser(join('~', 'Desktop'))

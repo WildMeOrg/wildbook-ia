@@ -30,6 +30,8 @@ import sys
 from os.path import expanduser
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 TEST_GEN_FUNCS = []
 

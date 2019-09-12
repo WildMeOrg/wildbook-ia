@@ -8,7 +8,8 @@ import utool as ut
 import functools
 from ibeis import constants as const
 import guitool as gt
-ut.noinject(__name__, '[guimenus]')
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 class DummyBack(object):

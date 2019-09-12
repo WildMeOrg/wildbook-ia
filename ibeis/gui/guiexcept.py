@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-ut.noinject(__name__, '[guiexcept]')
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 class NeedsUserInput(Exception):

@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # UTool
 import utool
 
+(print, rrr, profile) = utool.inject2(__name__)
+
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(

@@ -13,6 +13,7 @@ import numpy as np
 import uuid
 import six
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 

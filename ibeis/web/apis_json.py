@@ -11,6 +11,7 @@ from ibeis.control import controller_inject
 import utool as ut
 import ibeis.constants as const
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 

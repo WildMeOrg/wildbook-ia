@@ -1,6 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import ubelt as ub
+import utool as ut
 import warnings
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def have_gpu(min_memory=8000):

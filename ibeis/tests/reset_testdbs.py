@@ -13,6 +13,8 @@ import six
 from itertools import cycle
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 __test__ = False  # This is not a test
 
 

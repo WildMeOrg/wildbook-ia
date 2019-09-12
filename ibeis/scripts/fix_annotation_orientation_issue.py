@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool as vt
 import numpy as np
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def fix_annotation_orientation(ibs, min_percentage=0.95):

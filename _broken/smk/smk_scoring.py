@@ -10,7 +10,7 @@ import numpy as np
 #from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import hstypes
 from six.moves import zip
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_scoring]')
+(print, print_, printDBG, rrr, profile) = utool.inject2(__name__, '[smk_scoring]')
 
 
 DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
@@ -247,7 +247,7 @@ def apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list):
 #@profile
 @profile
 def selectivity_function(wsim_list, smk_alpha, smk_thresh):
-    """ Selectivity function - sigma from SMK paper rscore = residual score
+    r""" Selectivity function - sigma from SMK paper rscore = residual score
 
     Downweights weak matches using power law normalization and thresholds
     anybody that is too weak

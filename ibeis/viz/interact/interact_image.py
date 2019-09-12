@@ -5,9 +5,8 @@ from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool import draw_func2 as df2
 from plottool import interact_helpers as ih
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
-                                                       '[interact_img]',
-                                                       DEBUG=False)
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 #@ut.indent_func
@@ -36,7 +35,7 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
 
     # Create callback wrapper
     def _on_image_click(event):
-        printDBG('[inter] clicked image')
+        print('[inter] clicked image')
         if ih.clicked_outside_axis(event):
             # Toggle draw lbls
             kwargs['draw_lbls'] = not kwargs.get('draw_lbls', True)
@@ -45,8 +44,8 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
             ax          = event.inaxes
             viztype     = vh.get_ibsdat(ax, 'viztype')
             annotation_centers = vh.get_ibsdat(ax, 'annotation_centers', default=[])
-            printDBG(' annotation_centers=%r' % annotation_centers)
-            printDBG(' viztype=%r' % viztype)
+            print(' annotation_centers=%r' % annotation_centers)
+            print(' viztype=%r' % viztype)
             if len(annotation_centers) == 0:
                 print(' ...no chips exist to click')
                 return

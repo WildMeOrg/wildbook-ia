@@ -21,6 +21,9 @@ NOT_QUIET = not QUIET
 USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 
+(print, rrr, profile) = ut.inject2(__name__)
+
+
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
     print('[ibeis.main_module] Caught ctrl+c in %s' % (proc_name,))
@@ -247,6 +250,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     Returns:
         dict: main_locals
     """
+    _preload()
     set_newfile_permissions()
     from ibeis.init import main_commands
     from ibeis.init import sysres
@@ -263,7 +267,6 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     back = None
     if NOT_QUIET:
         print('[main] ibeis.main_module.main()')
-    _preload()
     DIAGNOSTICS = NOT_QUIET
     if DIAGNOSTICS:
         import os
@@ -557,17 +560,21 @@ def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool as ut
     #from ibeis.init import main_helpers
-    from ibeis import params
-    if  multiprocessing.current_process().name != 'MainProcess':
+    # from ibeis import params
+    # from ibeis.init import sysres
+    if multiprocessing.current_process().name != 'MainProcess':
         return
     if ut.VERBOSE:
         print('[ibeis] _preload')
     _parse_args()
     # mpl backends
-    if logging and not params.args.nologging:
-        # Log in the configured ibeis log dir (which is maintained by utool)
-        # fix this to be easier to figure out where the logs actually are
-        ut.start_logging(appname='ibeis')
+    # if logging and not params.args.nologging:
+    #     if params.args.logdir is not None:
+    #         sysres.set_logdir(params.args.logdir)
+    #     else:
+    #         # Log in the configured ibeis log dir (which is maintained by utool)
+    #         # fix this to be easier to figure out where the logs actually are
+    #         ut.start_logging(appname='ibeis')
     if mpl:
         _init_matplotlib()
     # numpy print settings

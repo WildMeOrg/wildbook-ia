@@ -8,9 +8,11 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 import multiprocessing
-sys.path.append(os.path.expanduser('~/code/ibeis'))  # Put IBEIS in PYTHONPATH
+sys.path.append(os.path.expanduser('~/code/ibeis'))  # Put IBEIS in PYTHONPATH  # NOQA
 import ibeis  # IBEIS module
 import utool  # Useful Utility Tools
+
+(print, rrr, profile) = utool.inject2(__name__)
 
 
 def run_example(ibs):

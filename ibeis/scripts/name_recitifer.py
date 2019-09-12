@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def reasign_names1(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
     r"""

@@ -21,6 +21,9 @@ from guitool import mpl_widget
 from guitool import PrefWidget2
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
+(print, rrr, profile) = ut.inject2(__name__)
+
+
 GRAPH_REVIEW_CFG_DEFAULTS = {
     'ranks_top': 3,
     'ranks_bot': 2,
@@ -42,7 +45,6 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 
 class AnnotPairDialog(gt.GuitoolWidget):
     r"""
-
     ibeis AnnotPairDialog --show
     python -m ibeis.algo.graph.mixin_loops qt_review_loop --show
 
@@ -74,9 +76,9 @@ class AnnotPairDialog(gt.GuitoolWidget):
 
 
     """
+
     # skipped = QtCore.pyqtSignal()
     # request = QtCore.pyqtSignal(tuple)
-
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
                    cfgdict=None, standalone=True):
         """
@@ -84,7 +86,6 @@ class AnnotPairDialog(gt.GuitoolWidget):
         #     standalone (bool):
 
         """
-
         from ibeis.gui import inspect_gui
         self.infr = infr
 
@@ -353,6 +354,7 @@ class AnnotStateDialog(gt.GuitoolWidget):
         >>> self = AnnotStateDialog(ibs=ibs, aid=aid)
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
+
     def __init__(self, parent=None, **kwargs):
         # kwargs.pop('ori', kwargs.pop('ori', 'vert'))
         kwargs['ori'] = 'grid'
@@ -1846,7 +1848,6 @@ class EdgeAPIHelper(object):
         """
         These are partial api headers meant to augment edge headers
         """
-
         custom_edge_props = [
             # TODO: allow user to specify things like hardness / failed / passed or
             # whatever

@@ -1,4 +1,5 @@
 """ Implements ProcessActor """
+from __future__ import absolute_import, division, print_function
 from concurrent.futures import _base
 from concurrent.futures import process
 from multiprocessing.connection import wait
@@ -8,7 +9,9 @@ import queue
 import weakref
 import threading
 import multiprocessing
+import utool as ut
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 # Most of this code is duplicated from the concurrent.futures.thread and
 # concurrent.futures.process modules, writen by Brian Quinlan. The main
@@ -29,7 +32,6 @@ def _process_actor_eventloop(_call_queue, _result_queue, _ActorClass, *args,
     _call_queue. Results are placed in the _result_queue, which are then placed
     in Future objects.
     """
-
     actor = _ActorClass(*args, **kwargs)
     while True:
         call_item = _call_queue.get(block=True)
@@ -257,13 +259,13 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
             # Start the processes so that their sentinel are known.
             self._initialize_actor()
             self._queue_management_thread = threading.Thread(
-                    target=_queue_management_worker,
-                    args=(weakref.ref(self, weakref_cb),
-                          self._manager,
-                          self._pending_work_items,
-                          self._work_ids,
-                          self._call_queue,
-                          self._result_queue))
+                target=_queue_management_worker,
+                args=(weakref.ref(self, weakref_cb),
+                      self._manager,
+                      self._pending_work_items,
+                      self._work_ids,
+                      self._call_queue,
+                      self._result_queue))
             self._queue_management_thread.daemon = True
             self._queue_management_thread.start()
             # use structures already in futures as much as possible
@@ -275,10 +277,10 @@ class ProcessActorExecutor(_base_actor.ActorExecutor):
             self._did_initialize = True
             # We only maintain one thread process for an actor
             self._manager = multiprocessing.Process(
-                    target=_process_actor_eventloop,
-                    args=(self._call_queue,
-                          self._result_queue, self._ActorClass) + args,
-                    kwargs=kwargs)
+                target=_process_actor_eventloop,
+                args=(self._call_queue,
+                      self._result_queue, self._ActorClass) + args,
+                kwargs=kwargs)
             self._manager.start()
 
     def shutdown(self, wait=True):

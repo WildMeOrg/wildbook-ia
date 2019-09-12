@@ -19,8 +19,8 @@ import traceback
 import requests
 import six
 from datetime import datetime
-ut.noinject('[apis_query]')
 
+(print, rrr, profile) = ut.inject2(__name__)
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))

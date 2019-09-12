@@ -12,9 +12,8 @@ import guitool
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
 from plottool.abstract_interaction import AbstractInteraction
-ut.noinject(__name__, '[interact_query_decision]')
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
-#                                                       '[interact_query_decision]', DEBUG=False)
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 #==========================
@@ -41,6 +40,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         >>>     qreq_, cm, comp_aids, suggest_aids, progress_current=42, progress_total=1337)
         >>> ut.show_if_requested()
     """
+
     def __init__(self, qreq_, cm, comp_aids, suggest_aids, progress_current=None,
                  progress_total=None, update_callback=None,
                  backend_callback=None, name_decision_callback=None, **kwargs):

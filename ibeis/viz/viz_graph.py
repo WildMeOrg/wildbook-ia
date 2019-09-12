@@ -26,6 +26,8 @@ try:
 except ImportError as ex:
     ut.printex(ex, 'Cannot import networkx. pip install networkx', iswarning=True)
 
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def get_name_rowid_edges_from_nids(ibs, nids):
     aids_list = ibs.get_name_aids(nids)
@@ -729,7 +731,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
                                 ensure_edges=None, use_image=False,
                                 temp_nids=None, **kwargs):
-    """
+    r"""
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
             --aids=1,2,3,4,5,6,7,8,9 --show

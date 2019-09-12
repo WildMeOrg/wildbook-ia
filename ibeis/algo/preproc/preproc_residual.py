@@ -3,7 +3,7 @@
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[preproc_residual]')
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_residual]')
 
 
 def add_residual_params_gen(ibs, fid_list, qreq_=None):

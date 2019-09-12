@@ -1,5 +1,9 @@
+from __future__ import absolute_import, division, print_function
 from ibeis.web import futures_utils
 from concurrent import futures
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 class TestActorMixin(object):
@@ -9,6 +13,7 @@ class TestActorMixin(object):
 
     The handle method must be implemented by the user.
     """
+
     def __init__(actor, a=None, factor=1):
         print('init mixin with args')
         print('a = %r' % (a,))

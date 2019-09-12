@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import plottool.draw_sv as draw_sv
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sver]', DEBUG=False)
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 WRITE_SV_DEBUG = ut.get_argflag('--write-sv-debug')

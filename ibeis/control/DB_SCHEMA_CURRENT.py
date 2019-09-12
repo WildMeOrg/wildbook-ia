@@ -7,7 +7,8 @@ AutogenCommandLine:
 """
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-
+import utool as ut
+(print, rrr, profile) = ut.inject2(__name__)
 
 # =======================
 # Schema Version Current
@@ -116,16 +117,16 @@ def update_current(db, ibs=None):
     )
 
     db.add_table('annotmatch', [
-        ('annotmatch_rowid',             'INTEGER PRIMARY KEY'),
-        ('annot_rowid1',                 'INTEGER NOT NULL'),
-        ('annot_rowid2',                 'INTEGER NOT NULL'),
-        ('annotmatch_evidence_decision', 'INTEGER'),
-        ('annotmatch_confidence',        'INTEGER'),
-        ('annotmatch_tag_text',          'TEXT'),
-        ('annotmatch_reviewer',          'TEXT'),
-        ('annotmatch_posixtime_modified','INTEGER'),
-        ('annotmatch_count',             'INTEGER'),
-        ('annotmatch_meta_decision',     'INTEGER'),
+        ('annotmatch_rowid',              'INTEGER PRIMARY KEY'),
+        ('annot_rowid1',                  'INTEGER NOT NULL'),
+        ('annot_rowid2',                  'INTEGER NOT NULL'),
+        ('annotmatch_evidence_decision',  'INTEGER'),
+        ('annotmatch_confidence',         'INTEGER'),
+        ('annotmatch_tag_text',           'TEXT'),
+        ('annotmatch_reviewer',           'TEXT'),
+        ('annotmatch_posixtime_modified', 'INTEGER'),
+        ('annotmatch_count',              'INTEGER'),
+        ('annotmatch_meta_decision',      'INTEGER'),
     ],
         docstr='''
         Sparsely stores explicit matching / not matching information. This

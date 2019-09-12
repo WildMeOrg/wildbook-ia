@@ -7,7 +7,8 @@ IBEIS AGNOSTIC DEFINITIONS ARE NOW IN VTOOL
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[precision_recall]', DEBUG=False)
+
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_nTruePositive(atrank, was_retrieved, gt_ranks):

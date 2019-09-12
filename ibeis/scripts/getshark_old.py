@@ -1,3 +1,10 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+import utool as ut
+from os.path import join, dirname, basename
+
+(print, rrr, profile) = ut.inject2(__name__)
+
+
 def get_injured_sharks():
     """
     >>> from ibeis.scripts.getshark import *  # NOQA
@@ -461,8 +468,6 @@ def train_part_detector():
     ut.copy(labeler_model_path,    join(output_path, 'labeler.npy'))
 
     # ibs.detector_train()
-
-
 
 
 def purge_ensure_one_annot_per_images(ibs):

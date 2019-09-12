@@ -1,3 +1,9 @@
+from __future__ import print_function, division, absolute_import
+import numpy as np
+import utool as ut
+
+(print, rrr, profile) = ut.inject2(__name__)
+
 
 def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
     # Prepare lazy attributes for annotations
@@ -204,7 +210,6 @@ def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
 #     print('--------')
 
 
-
 def gridsearch_ratio_thresh(matches):
     import sklearn
     import sklearn.metrics
@@ -252,4 +257,3 @@ def gridsearch_ratio_thresh(matches):
     print('skf_results.append = %r' % (np.mean(skf_results),))
     import utool
     utool.embed()
-
