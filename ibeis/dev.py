@@ -242,8 +242,6 @@ def run_devprecmds():
                 return ret
         return False
 
-    ut.start_logging(appname='ibeis')
-
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
         if intest(*func_aliases):
@@ -658,6 +656,15 @@ def devmain():
 
         Examples:
     """
+    from ibeis import params
+    params.parse_args()
+
+    print('DEVMAIN INIT - PRELOGGING')
+    if params.args.logdir is not None:
+        sysres.set_logdir(params.args.logdir)
+    else:
+        ut.start_logging(appname='ibeis')
+    print('DEVMAIN INIT - POSTLOGGING')
 
     helpstr = ut.codeblock(
         '''
