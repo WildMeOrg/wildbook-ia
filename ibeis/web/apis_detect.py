@@ -849,25 +849,55 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
                                 use_labeler_species=False,
                                 orienter_algo=None, orienter_model_tag=None,
                                 update_json_log=True, **kwargs):
+    global_gid_list   = []
+    global_bbox_list  = []
+    global_theta_list = []
+    global_class_list = []
+    global_conf_list  = []
+    global_notes_list = []
+
     zipped_list = list(zip(gid_list, results_list))
-    aids_list = []
+
     for gid, results in zipped_list:
         score, bbox_list, theta_list, conf_list, class_list = results
-
         num = len(bbox_list)
-        notes_list = None if note is None else [note] * num
-        aid_list = ibs.add_annots(
-            [gid] * num,
-            bbox_list,
-            theta_list,
-            class_list,
-            detect_confidence_list=conf_list,
-            notes_list=notes_list,
-            quiet_delete_thumbs=True,
-            skip_cleaning=True
-        )
-        aids_list.append(aid_list)
+        gid_list_ = [gid] * num
+        notes_list = [note] * num
 
+        global_gid_list   += list(gid_list_)
+        global_bbox_list  += list(bbox_list)
+        global_theta_list += list(theta_list)
+        global_class_list += list(class_list)
+        global_conf_list  += list(conf_list)
+        global_notes_list += list(notes_list)
+
+    assert len(global_gid_list) == len(global_bbox_list)
+    assert len(global_gid_list) == len(global_theta_list)
+    assert len(global_gid_list) == len(global_class_list)
+    assert len(global_gid_list) == len(global_conf_list)
+    assert len(global_gid_list) == len(global_notes_list)
+
+    global_aid_list = ibs.add_annots(
+        global_gid_list,
+        global_bbox_list,
+        global_theta_list,
+        global_class_list,
+        detect_confidence_list=global_conf_list,
+        notes_list=global_notes_list,
+        quiet_delete_thumbs=True,
+        skip_cleaning=True
+    )
+
+    global_aid_set = set(global_aid_list)
+    aids_list = ibs.get_image_aids(gid_list)
+    aids_list = [
+        [
+            aid
+            for aid in aid_list_
+            if aid in global_aid_set
+        ]
+        for aid_list_ in aids_list
+    ]
     aid_list = ut.flatten(aids_list)
 
     if labeler_model_tag is not None:
@@ -899,6 +929,7 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
     ibs._clean_species()
     if update_json_log:
         ibs.log_detections(aid_list)
+
     return aids_list
 
 
