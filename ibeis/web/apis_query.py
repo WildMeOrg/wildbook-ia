@@ -899,17 +899,17 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                     if filepath_matches is not None:
                         args = ('matches', view_orientation, )
                         cache_filepath = cache_filepath_fmtstr % args
-                        ut.symlink(filepath_matches, cache_filepath)
+                        ut.symlink(filepath_matches, cache_filepath, overwrite=True)
 
                     if filepath_heatmask is not None:
                         args = ('heatmask', view_orientation, )
                         cache_filepath = cache_filepath_fmtstr % args
-                        ut.symlink(filepath_heatmask, cache_filepath)
+                        ut.symlink(filepath_heatmask, cache_filepath, overwrite=True)
 
                     if filepath_clean is not None:
                         args = ('clean', view_orientation, )
                         cache_filepath = cache_filepath_fmtstr % args
-                        ut.symlink(filepath_clean, cache_filepath)
+                        ut.symlink(filepath_clean, cache_filepath, overwrite=True)
 
                 extern_flag_list.append(extern_flag)
         else:
