@@ -382,6 +382,10 @@ SPECIES_WITH_DETECTORS = (
     'zebra_grevys',
     'zebra_plains',
     # Latin (Flukebook)
+    'chelonia_mydas',
+    'chelonia_mydas+head',
+    'eretmochelys_imbricata',
+    'eretmochelys_imbricata+head',
     'eubalaena_australis',
     'eubalaena_glacialis',
     'lynx_pardinus',
