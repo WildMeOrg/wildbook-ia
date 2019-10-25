@@ -200,11 +200,14 @@ def docker_container_IP_port_options(ibs, container):
     ports = networksettings['Ports']
     for key in ports:
         # ports is a dict keyed by e.g. '5000/tcp'. This is the only key I've seen so far on our containers.
-        for dict in ports[key]:
+        dict_list = ports[key]
+        if dict_list is None:
+            continue
+        for dict_ in dict_list:
             # ports[key] is a list of dicts
-            if 'HostPort' in dict:
+            if 'HostPort' in dict_:
                 # just return the first HostPort we find. Doesn't seem right... but what better logic?
-                option = (dict['HostIp'], dict['HostPort'], )
+                option = (dict_['HostIp'], dict_['HostPort'], )
                 option_list.append(option)
 
     # should we throw an assert/error here?
