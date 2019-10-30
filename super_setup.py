@@ -197,9 +197,9 @@ def define_argparse():
     # sub.add_argument('--fmt', dest='fmt', action='store',
     #                  choices=['ssh', 'https'], help='url type')
 
-    ## Setup options for parser_a
+    # # Setup options for parser_a
 
-    ## Add nargs="*" for zero or more other commands
+    # # Add nargs="*" for zero or more other commands
     # parser.add_argument('extra', nargs = "*", help = 'Other commands')
 
     # parser.add_argument('command', action='store_true', default=False,
@@ -353,14 +353,11 @@ def ensure_utool(CODE_DIR, pythoncmd):
 def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     import utool as ut
     WITH_CNN = True
-    WITH_PYRF = True
     #WITH_TPL = True
     WITH_QT = not ut.get_argflag('--no-qt')
     WITH_GUI = not ut.get_argflag('--no-gui')
     WITH_CUSTOM_TPL = True
-    WITH_FLUKEMATCH = True
-    WITH_CURVRANK = True
-    WITH_DEEPSENSE = True
+    WITH_PLUGINS = True
     #-----------
     # IBEIS project repos
     #-----------
@@ -425,23 +422,12 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/Lasagne/Lasagne.git',
         ])
 
-    if WITH_FLUKEMATCH:
+    if WITH_PLUGINS:
         ibeis_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis-flukematch-module.git'
-        ])
-
-    if WITH_CURVRANK:
-        ibeis_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis-curvrank-module.git'
-        ])
-
-    if WITH_DEEPSENSE:
-        ibeis_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis-deepsense-module.git'
-        ])
-
-    if WITH_PYRF:
-        ibeis_rman.add_repos([
+            'https://github.com/WildbookOrg/ibeis-flukematch-module.git',
+            'https://github.com/WildbookOrg/ibeis-curvrank-module.git',
+            'https://github.com/WildbookOrg/ibeis-deepsense-module.git',
+            'https://github.com/WildbookOrg/ibeis-finfindr-module.git',
             'https://github.com/WildbookOrg/pyrf.git',
         ])
 

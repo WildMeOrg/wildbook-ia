@@ -29,7 +29,7 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None,
                       else qreq_.extern_query_config2)
     tblhack = getattr(qreq_, 'tablename', None)
     #print('!!! query_config2_ = %r' % (query_config2_,))
-    if (not tblhack or tblhack.lower() in ['bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense']) and getattr(qreq_, '_isnewreq', None):
+    if (not tblhack or tblhack.lower() in ['bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense', 'finfindr']) and getattr(qreq_, '_isnewreq', None):
         if hasattr(qreq_, 'get_fmatch_overlayed_chip')  and draw_fmatches and draw_fmatches != 'hackoff':
             rchip1 = qreq_.get_fmatch_overlayed_chip(qaid, config=query_config2_)
             draw_fmatches = False
@@ -54,7 +54,7 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
     #print('!!! data_config2_ = %r' % (data_config2_,))
     #print('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
-    if (not tblhack or tblhack.lower() in ['bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense']) and getattr(qreq_, '_isnewreq', None):
+    if (not tblhack or tblhack.lower() in ['bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense', 'finfindr']) and getattr(qreq_, '_isnewreq', None):
         if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
             rchip2_list = qreq_.get_fmatch_overlayed_chip(aid_list, config=data_config2_)
             #rchip2_list = ibs.depc_annot.get_property('chips', aid_list, 'img', config=data_config2_)

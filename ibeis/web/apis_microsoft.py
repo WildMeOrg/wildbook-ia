@@ -984,7 +984,7 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
         $ref: "#/definitions/Annotation"
     - name: algorithm
       in: formData
-      description: The algorithm you with to run ID with.  Must be one of "HotSpotter", "CurvRank", or "Deepsense"
+      description: The algorithm you with to run ID with.  Must be one of "HotSpotter", "CurvRank", "Finfindr", or "Deepsense"
       required: true
       type: string
     - name: callback_url
@@ -1023,7 +1023,7 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
         parameter = 'algorithm'
         assert isinstance(algorithm, str), 'Must specify the algorithm as a string'
         algorithm = algorithm.lower()
-        assert algorithm in ['hotspotter', 'curvrank', 'deepsense'], 'Must specify the algorithm for ID as HotSpotter, CurvRank, or Deepsense'
+        assert algorithm in ['hotspotter', 'curvrank', 'deepsense', 'finfindr'], 'Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, or Finfindr'
 
         parameter = 'callback_url'
         assert callback_url is None or isinstance(callback_url, str), 'Callback URL must be a string'
@@ -1047,6 +1047,10 @@ def microsoft_identify(ibs, query_annotation, database_annotations, algorithm,
     elif algorithm in ['deepsense']:
         query_config_dict = {
             'pipeline_root' : 'Deepsense',
+        }
+    elif algorithm in ['finfindr']:
+        query_config_dict = {
+            'pipeline_root' : 'Finfindr',
         }
 
     user_feedback = {

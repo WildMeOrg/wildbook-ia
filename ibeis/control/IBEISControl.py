@@ -112,6 +112,12 @@ if ut.get_argflag('--deepsense'):
         (('--no-deepsense', '--nodeepsense'), 'ibeis_deepsense._plugin'),
     ]
 
+if ut.get_argflag('--finfindr'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-finfindr', '--nofinfindr'), 'ibeis_finfindr._plugin'),
+    ]
+
+
 """
 # Should import
 python -c "import ibeis"

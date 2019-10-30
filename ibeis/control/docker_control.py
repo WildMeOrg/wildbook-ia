@@ -317,7 +317,7 @@ def docker_get_config(ibs, container_name):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis_deepsense.docker_control --allexamples
+        python -m ibeis.control.docker_control --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
