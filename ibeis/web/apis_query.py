@@ -394,7 +394,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense'):
+    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense', 'finfindr'):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -532,6 +532,10 @@ def review_query_chips_test(**kwargs):
     elif 'use_deepsense' in request.args:
         query_config_dict = {
             'pipeline_root' : 'Deepsense'
+        }
+    elif 'use_finfindr' in request.args:
+        query_config_dict = {
+            'pipeline_root' : 'Finfindr'
         }
     else:
         query_config_dict = {}
@@ -681,38 +685,6 @@ def query_chips_test(ibs, aid=None, limited=False, census_annotations=True, **kw
         daid_list = ut.compress(daid_list, flag_list)
 
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
-    return result_dict
-
-
-@register_ibs_method
-@register_api('/test/query/chip/deepsense/', methods=['GET'])
-def query_chips_test_deepsense(ibs, aid=None, **kwargs):
-    """
-    CommandLine:
-        python -m ibeis.web.apis_query query_chips_test
-
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
-        >>> ibs = qreq_.ibs
-        >>> result_dict = ibs.query_chips_test_deepsense()
-        >>> print(result_dict)
-    """
-    from random import shuffle  # NOQA
-    # Compile test data
-    aid_list = ibs.get_valid_aids()
-    if aid is None:
-        shuffle(aid_list)
-        qaid_list = aid_list[:1]
-    else:
-        qaid_list = [aid]
-    daid_list = aid_list
-
-    query_config_dict = {'pipeline_root': 'Deepsense'}
-    result_dict = ibs.query_chips_graph(qaid_list, daid_list, query_config_dict=query_config_dict, **kwargs)
     return result_dict
 
 
