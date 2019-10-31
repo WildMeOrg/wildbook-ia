@@ -28,6 +28,17 @@ DOCKER_DEFAULT_RUN_ARGS = {
 }
 
 
+DOCKER_CLONE_FMTSTR = '%s_clone_%d'
+
+
+@register_ibs_method
+def docker_container_clone_name(container_name, clone=None):
+    if clone is None:
+        return container_name
+    container_clone_name = DOCKER_CLONE_FMTSTR % (container_name, clone, )
+    return container_clone_name
+
+
 @register_ibs_method
 # don't rely on the ibs object in this method; needs to be callable on import
 # container_check_func takes a url and returns a boolean
@@ -48,7 +59,7 @@ def docker_register_config(ibs, container_name, image_name, container_check_func
 
 @register_ibs_method
 # runs an image, returns url to container
-def docker_run(ibs, image_name, container_name, override_run_args, ensure_new=False):
+def docker_run(ibs, image_name, container_name, override_run_args, clone=None, ensure_new=False):
     if '_external_suggested_port' not in override_run_args:
         override_run_args['_external_suggested_port'] = 5000
     assert '_external_suggested_port' in override_run_args
@@ -68,19 +79,22 @@ def docker_run(ibs, image_name, container_name, override_run_args, ensure_new=Fa
     run_args['ports'] = {
         port_key: ext_port
     }
-    run_args['name'] = container_name
-    print('We\'re starting image_name %s as %s with args %r' % (image_name, container_name, run_args))
+    container_clone_name = docker_container_clone_name(container_name, clone=clone)
+    run_args['name'] = container_clone_name
+    print('We\'re starting image_name %s as %s with args %r' % (image_name, container_clone_name, run_args))
     try:
         container = DOCKER_CLIENT.containers.run(image_name, **run_args)
     except docker.errors.APIError as ex:
         if ensure_new:
             raise ex
         # get the container that's already running
-        container = ibs.docker_get_container(container_name)
+        container = ibs.docker_get_container(container_name, clone=clone)
 
     # h/t https://github.com/docker/docker-py/issues/2128
     container.reload()
-    url_list = ibs.docker_container_urls(container)
+
+    docker_get_config = ibs.docker_get_config(container_name)
+    url_list = ibs.docker_container_urls(container, docker_get_config)
 
     return url_list
 
@@ -176,10 +190,11 @@ def docker_container_status_dict(ibs):
 
 
 @register_ibs_method
-def docker_container_status(ibs, name):
+def docker_container_status(ibs, container_name, clone=None):
     container_dict = ibs.docker_container_status_dict()
+    clone_name = docker_container_clone_name(container_name, clone)
     for status in container_dict:
-        if name in container_dict[status]:
+        if clone_name in container_dict[status]:
             return status
     return None
 
@@ -215,17 +230,17 @@ def docker_container_IP_port_options(ibs, container):
 
 
 @register_ibs_method
-def docker_container_urls_from_name(ibs, name):
-    if ibs.docker_container_status(name) != 'running':
+def docker_container_urls_from_name(ibs, container_name, clone=None):
+    if ibs.docker_container_status(container_name, clone=clone) != 'running':
         return None
-    container = ibs.docker_get_container(name)
-    url_list = ibs.docker_container_urls(container)
+    container = ibs.docker_get_container(container_name, clone=clone)
+    docker_get_config = ibs.docker_get_config(container_name)
+    url_list = ibs.docker_container_urls(container, docker_get_config)
     return url_list
 
 
 @register_ibs_method
-def docker_container_urls(ibs, container):
-    docker_get_config = ibs.docker_get_config(container.name)
+def docker_container_urls(ibs, container, docker_get_config):
     _internal_port = docker_get_config.get('run_args', {}).get('_internal_port', None)
     print('[docker_container_urls] Found _internal_port: %s' % (_internal_port, ))
     option_list = ibs.docker_container_IP_port_options(container)
@@ -244,36 +259,37 @@ def docker_container_urls(ibs, container):
 
 
 @register_ibs_method
-def docker_get_container(ibs, container_name):
+def docker_get_container(ibs, container_name, clone=None):
+    container_clone_name = docker_container_clone_name(container_name, clone)
     for container in DOCKER_CLIENT.containers.list():
-        if container.name == container_name:
+        if container.name == container_clone_name:
             return container
     return None
 
 
-# am interested in benchmarking these two funcs
-@register_ibs_method
-def docker_get_container_oneliner(ibs, container_name):
-    return next((cont for cont in DOCKER_CLIENT.containers.list()
-                if cont.name == container_name), None)
+# # am interested in benchmarking these two funcs
+# @register_ibs_method
+# def docker_get_container_oneliner(ibs, container_name, clone=None):
+#     return next((cont for cont in DOCKER_CLIENT.containers.list()
+#                 if cont.name == docker_container_clone_name(container_name, clone)), None)
 
 
 @register_ibs_method
-def docker_ensure(ibs, container_name, check_container=True):
+def docker_ensure(ibs, container_name, check_container=True, clone=None):
     config = ibs.docker_get_config(container_name)
 
     # Check for container in running containers
-    if ibs.docker_container_status(container_name) != 'running':
+    if ibs.docker_container_status(container_name, clone=clone) != 'running':
         image_name = config['image']
         ibs.docker_ensure_image(image_name)
         run_args = config['run_args'].copy()
-        ibs.docker_run(image_name, container_name, run_args)
+        ibs.docker_run(image_name, container_name, run_args, clone=clone)
 
-    original_url_list = ibs.docker_container_urls_from_name(container_name)
+    original_url_list = ibs.docker_container_urls_from_name(container_name, clone=clone)
     # If not, check if the image has been downloaded from the config
 
     if check_container:
-        valid_url_list = ibs.docker_check_container(container_name)
+        valid_url_list = ibs.docker_check_container(container_name, clone=clone)
         assert len(valid_url_list) > 0, 'Could not validate container'
         return valid_url_list
     else:
@@ -281,10 +297,10 @@ def docker_ensure(ibs, container_name, check_container=True):
 
 
 @register_ibs_method
-def docker_check_container(ibs, container_name, retry_count=20, retry_timeout=15):
+def docker_check_container(ibs, container_name, clone=None, retry_count=20, retry_timeout=15):
     config = ibs.docker_get_config(container_name)
     check_func = config['container_check_func']
-    url_list = ibs.docker_container_urls_from_name(container_name)
+    url_list = ibs.docker_container_urls_from_name(container_name, clone=clone)
     if check_func is None:
         return url_list
     valid_url_list = []
