@@ -1,0 +1,161 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  .total-label
+  {
+    font-size: 100px;
+    margin: 0;
+    text-align: center;
+    display: inline-block;
+    color: #23527c !important;
+  }
+
+  .plusmn
+  {
+      display: inline-block;
+      font-size: 60px;
+      top: -23px;
+      position: relative;
+      margin: 0px 10px;
+      /*color: #23527c;*/
+  }
+
+  #gps-map-canvas1
+  {
+      width: 100%;
+      position: absolute !important;
+      height: 100%;
+      top: 0;
+      left: 0;
+  }
+
+  .container { 
+    width: 100%;
+   }
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row" style="text-align: center; height: 900px;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="height: 100%;">
+        <div id="gps-map-canvas1"></div>
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+    <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
+      Locations of named animals
+    </div>
+
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=visualization">
+</script>
+<script type="text/javascript">
+
+  {% autoescape false %}
+  var gps = {{ gps_list }};
+  var colors = {{ color_list }};
+  {% endautoescape %}
+
+  window.onload = function(){
+    Chart.defaults.global.defaultFontSize = 18;
+
+    var center = undefined;
+    var zoom = undefined;
+
+    loadGPSMap(gps, colors, center, zoom);
+  };
+
+  function loadGPSMap(gps, colors, center, zoom)
+  {
+    var styles = [
+        {
+            featureType: "poi.business",
+            // featureType: "poi",
+            elementType: "labels",
+            stylers: [
+                  { visibility: "off" }
+            ]
+        },
+        {
+            featureType: "administrative.province",
+            elementType: "all",
+            stylers: [ { visibility: "off" } ]
+        },
+    ];
+
+    var modify = true;
+    var bounds = new google.maps.LatLngBounds();
+
+    // Initialize the Google Maps API v3
+    var map1 = new google.maps.Map(document.getElementById('gps-map-canvas1'), {
+        zoom: zoom,
+        center: center,
+        // mapTypeId: google.maps.MapTypeId.HYBRID,
+        // mapTypeId: google.maps.MapTypeId.ROADMAP,
+        // mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
+        styles: styles,
+    });
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  var regions = {};
+
+  {% for path in path_dict %}
+    regions['{{path}}'] = new google.maps.Polygon({
+      paths: [{% for vertex in path_dict[path].vertices %}
+          new google.maps.LatLng({{vertex[0]}}, {{vertex[1]}}),{% endfor %}
+      ],{% if 'Zone' in path %}
+      borderColor: '#FF0000',
+      strokeColor: '#FF0000',
+      {% elif 'County' in path %}
+      borderColor: '#0000FF',
+      strokeColor: '#0000FF',
+      {% else %}
+      borderColor: '#00FFFF',
+      strokeColor: '#00FFFF',
+      {% endif %}
+      strokeOpacity: 0.3,
+      strokeWeight: 2,
+      backgroundColor: '#FFFFFF',
+      fillOpacity: 0.0,
+    });
+    regions['{{path}}'].setMap(map1);
+  {% endfor %}
+
+  {% for path in path_dict %}
+     {% for vertex in path_dict[path].vertices %}
+          gps1 = new google.maps.LatLng({{vertex[0]}}, {{vertex[1]}});
+          bounds.extend(gps1);
+     {% endfor %}
+  {% endfor %}
+
+  for (var index in gps)
+  {
+      vertex = gps[index];
+      gps1 = new google.maps.LatLng(vertex[0], vertex[1]);
+      bounds.extend(gps1);
+      gps2 = new google.maps.LatLng(vertex[0] + 0.0004, vertex[1] + 0.0004);
+      color = colors[index];
+      new google.maps.Polyline({
+          path: [gps1, gps2],
+          clickable: false,
+          borderColor: color,
+          strokeColor: color,
+          strokeOpacity: 1.0,
+          strokeWeight: 5,
+          map: map1
+      });
+  }
+
+  map1.fitBounds(bounds);
+}
+
+</script>
+{% endblock %}

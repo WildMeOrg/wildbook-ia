@@ -174,6 +174,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
         '__containerized__'  : ibs.containerized,
         '__https__'          : ibs.https,
         'user'               : controller_inject.get_user(),
+        'GOOGLE_MAPS_API_KEY': '<<INSERT GOOGLE API KEY>>',
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():

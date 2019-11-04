@@ -1327,6 +1327,44 @@ def view_advanced4(**kwargs):
                          **embedded)
 
 
+@register_route('/view/map/', methods=['GET'])
+def view_map(**kwargs):
+
+    ibs = current_app.ibs
+
+    gid_list = ibs.get_valid_gids()
+    gps_list_ = list(map(list, ibs.get_image_gps(gid_list)))
+
+    gps_list = []
+    color_list = []
+
+    color = "#CA4141"
+
+    JITTER_GPS = True
+    JITTER_AMOUNT = 0.0001
+    for gid, gps in list(zip(gid_list, gps_list_)):
+
+        if gps is None or gps == [-1, -1]:
+            continue
+
+        if JITTER_GPS:
+            gps[0] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT)
+            gps[1] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT)
+
+        gps_list.append(gps)
+        color_list.append(color)
+
+    path_dict = ibs.compute_ggr_path_dict()
+
+    if 'North' in path_dict:
+        path_dict.pop('North')
+    if 'Core' in path_dict:
+        path_dict.pop('Core')
+
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'map', **embedded)
+
+
 @register_route('/view/imagesets/', methods=['GET'])
 def view_imagesets(**kwargs):
     ibs = current_app.ibs
