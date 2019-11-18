@@ -429,6 +429,22 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
 
 
 @register_ibs_method
+def get_image_exif_original(ibs, gid_list):
+    import vtool.exif as vtexif
+    from PIL import Image
+
+    gpath_list = ibs.get_image_paths(gid_list)
+
+    exif_dict_list = []
+    for gpath in gpath_list:
+        pil_img = Image.open(gpath, 'r')
+        exif_dict = vtexif.get_exif_dict(pil_img)
+        exif_dict_list.append(exif_dict)
+
+    return exif_dict_list
+
+
+@register_ibs_method
 def localize_images(ibs, gid_list_=None):
     r"""
     Moves the images into the ibeis image cache.
@@ -957,6 +973,7 @@ def _set_image_orientation(ibs, gid_list, orientation_list):
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
     ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
+    ibs.delete_image_thumbs(gid_list)
 
 
 def update_image_rotate_90(ibs, gid_list, direction):
