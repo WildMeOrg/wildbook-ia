@@ -293,8 +293,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> imgBGR1 = imread(img_fpath, grayscale=False)
         >>> imgBGR2 = imread(img_fpath, grayscale=True)
         >>> imgBGR3 = imread(img_fpath, orient=True)
-        >>> assert imgBGR1.shape == (512, 512, 3)
-        >>> assert imgBGR2.shape == (512, 512)
+        >>> assert imgBGR1.shape == (250, 300, 3)
+        >>> assert imgBGR2.shape == (250, 300)
         >>> assert np.all(imgBGR1 == imgBGR3)
         >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt

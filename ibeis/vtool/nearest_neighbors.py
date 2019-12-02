@@ -8,7 +8,7 @@ from os.path import exists, normpath, join
 import utool as ut
 import ubelt as ub
 import numpy as np
-from .clustering2 import FLANN_CLS
+from vtool._pyflann_backend import FLANN_CLS, pyflann
 
 
 class AnnoyWrapper(object):
@@ -580,7 +580,6 @@ def tune_flann(dpts,
         for key in ['algorithm', 'centers_init', 'log_level']:
             val = tuned_params.get(key, None)
             if val == 'default':
-                import pyflann
                 dict_ = pyflann.FLANNParameters._translation_[key]
                 other_algs = ut.dict_find_other_sameval_keys(dict_, 'default')
                 assert len(other_algs) == 1, 'more than 1 default for key=%r' % (key,)

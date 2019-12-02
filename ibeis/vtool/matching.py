@@ -373,6 +373,7 @@ class PairwiseMatch(ub.NiceRepr):
         Assign feature correspondences between annots
 
         Example:
+            >>> # xdoctest
             >>> from vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True}
             >>> match = demodata_match({}, apply=False)

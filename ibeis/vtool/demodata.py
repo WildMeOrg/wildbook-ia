@@ -683,7 +683,7 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
     from vtool import features as feattool
 
     try:
-        import pyflann
+        from vtool._pyflann_backend import pyflann
     except ImportError:
         import pytest
         pytest.skip()
