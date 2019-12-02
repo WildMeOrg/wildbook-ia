@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip, range, map  # NOQA
+from six.moves import zip, range, map, reduce  # NOQA
 #import six
 #from six import next
 import cv2
@@ -8,7 +8,7 @@ import numpy as np
 import utool as ut
 from vtool import patch as ptool
 from vtool import keypoint as ktool
-print, rrr, profile = ut.inject2(__name__, '[cov]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__)
 
 
 # TODO: integrate more
@@ -26,7 +26,89 @@ COVKPTS_DEFAULT = ut.ParamInfoList('coverage_kpts', [
 ])
 
 
-@profile
+def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
+    """
+    makes a heatmap overlay for keypoints
+
+    CommandLine:
+        python -m vtool.coverage_kpts make_kpts_heatmask --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.coverage_kpts import *  # NOQA
+        >>> import vtool as vt
+        >>> import pyhesaff
+        >>> img_fpath = ut.grab_test_imgpath('carl.png')
+        >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
+        >>> chip = vt.imread(img_fpath)
+        >>> kpts = kpts[0:100]
+        >>> chipsize = chip.shape[0:2][::-1]
+        >>> heatmask = make_kpts_heatmask(kpts, chipsize)
+        >>> img1 = heatmask
+        >>> img2 = chip
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qtensure()
+        >>> img3 = vt.overlay_alpha_images(heatmask, chip)
+        >>> pt.imshow(img3)
+        >>> #pt.imshow(heatmask)
+        >>> #pt.draw_kpts2(kpts)
+        >>> pt.show_if_requested()
+
+    # >>> x, y = np.meshgrid(np.arange(chip.shape[0]), np.arange(chip.shape[1]))
+    # >>> #pt.gca().contourf(x, y, mask, alpha=0.5)
+    # >>> pt.gca().pcolormesh(x, y, mask, alpha=0.5)
+
+    # Ignore:
+    #     >>> #redmask = np.ones(chip.shape[0:2] + (3,)) * pt.RED[None, None, 0:3][:, :, ::-1]
+    #     >>> redmask = np.dstack((redmask, mask))
+    #     >>> pt.qtensure()
+    #     >>> pt.imshow(heatmap)
+    #     >>> pt.show_if_requested()
+    """
+    # use a disk instead of a gaussian
+    import skimage.morphology
+    cov_scale_factor = .25
+    radius = min(int((min(chipsize) * cov_scale_factor) // 2) - 1, 50)
+    patch = skimage.morphology.disk(radius)
+    mask = make_kpts_coverage_mask(kpts, chipsize, resize=True,
+                                   cov_size_penalty_on=False,
+                                   patch=patch,
+                                   cov_scale_factor=cov_scale_factor,
+                                   cov_blur_sigma=1.5,
+                                   cov_blur_on=True)
+    import plottool as pt
+    # heatmask = np.ones(tuple(chipsize) + (4,)) * pt.RED
+    heatmask = pt.plt.get_cmap(cmap)(mask)
+    # conver to bgr
+    heatmask[:, :, 0:3] = heatmask[:, :, 0:3][:, :, ::-1]
+    # apply alpha channel
+    heatmask[:, :, 3] = mask * .5
+    return heatmask
+
+
+def make_heatmask(mask, cmap='plasma'):
+    # import vtool as vt
+    # use a disk instead of a gaussian
+    import plottool as pt
+    import vtool as vt
+    assert len(mask.shape) == 2
+    mask = vt.rectify_to_float01(mask)
+    heatmask = pt.plt.get_cmap(cmap)(mask)
+    # conver to bgr
+    heatmask[:, :, 0:3] = heatmask[:, :, 0:3][:, :, ::-1]
+    # apply alpha channel
+    # print('\n'.join([
+    #     'mask: ',
+    #     '  dtype: ' + str(mask.dtype),
+    #     '  shape: ' + str(mask.shape),
+    #     '  stats: ' + ut.repr2(ut.get_stats(mask.ravel()), precision=2),
+    # ]))
+    heatmask[:, :, 3] = mask
+    # print('heatmask = {!r}'.format(heatmask))
+    return heatmask
+
+
 #@ut.memprof
 def make_kpts_coverage_mask(
         kpts, chipsize,
@@ -36,6 +118,7 @@ def make_kpts_coverage_mask(
         resize=False,
         out=None,
         cov_blur_on=True,
+        cov_disk_hack=None,
         cov_blur_ksize=(17, 17),
         cov_blur_sigma=5.0,
         cov_gauss_shape=(19, 19),
@@ -59,7 +142,8 @@ def make_kpts_coverage_mask(
         tuple (ndarray, ndarray): dstimg, patch
 
     CommandLine:
-        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask --show
+        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask:0 --show
+        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask:1 --show
         python -m vtool.coverage_kpts --test-make_kpts_coverage_mask
 
         python -m vtool.patch --test-test_show_gaussian_patches2 --show
@@ -71,13 +155,13 @@ def make_kpts_coverage_mask(
         >>> import plottool as pt
         >>> import pyhesaff
         >>> #img_fpath = ut.grab_test_imgpath('carl.jpg')
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.png')
         >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
         >>> kpts = kpts[::10]
         >>> chip = vt.imread(img_fpath)
         >>> chipsize = chip.shape[0:2][::-1]
         >>> # execute function
-        >>> dstimg, patch = make_kpts_coverage_mask(kpts, chipsize, resize=True, return_patch=True)
+        >>> dstimg, patch = make_kpts_coverage_mask(kpts, chipsize, resize=True, return_patch=True, cov_size_penalty_on=False, cov_blur_on=False)
         >>> # show results
         >>> ut.quit_if_noshow()
         >>> mask = dstimg
@@ -113,7 +197,6 @@ def make_kpts_coverage_mask(
         return dstimg
 
 
-@profile
 def warp_patch_onto_kpts(
         kpts, patch, chipshape,
         weights=None,
@@ -416,7 +499,7 @@ def testdata_coverage(fname=None):
         kpts = np.vstack((kpts, [0.01, 10, 1, 1, 1, 0]))
         kpts = np.vstack((kpts, [0.94, 11.5, 1, 1, 1, 0]))
         weights = np.ones(len(kpts))
-    chipsize = tuple(vt.iceil(vt.get_kpts_image_extent(kpts)).tolist())
+    chipsize = tuple(vt.iceil(vt.get_kpts_image_extent(kpts)[2:4]).tolist())
     return kpts, chipsize, weights
 
 

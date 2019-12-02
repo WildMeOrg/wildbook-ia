@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from vtool import keypoint as ktool
-import vtool.math as mtool
+import vtool.util_math as mtool
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[dummy]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
 TAU = np.pi * 2  # References: tauday.com
 
 
-def testdata_dummy_sift(nPts=10, rng=np.random):
+def testdata_dummy_sift(nPts=10, asint=True, rng=None):
     r"""
     Makes a dummy sift descriptor that has the uint8 * 512 hack
     like hesaff returns
@@ -33,6 +33,8 @@ def testdata_dummy_sift(nPts=10, rng=np.random):
         >>> #assert np.allclose(((sift / 512) ** 2).sum(axis=1), 1, rtol=.01), 'bad SIFT property'
         >>> #assert np.all(sift / 512 < .2), 'bad SIFT property'
     """
+    if rng is None:
+        rng = np.random
     import vtool as vt
     sift_ = rng.rand(nPts, 128)
     # normalize
@@ -43,7 +45,10 @@ def testdata_dummy_sift(nPts=10, rng=np.random):
     sift_ = vt.normalize_rows(rng.rand(nPts, 128))
     # compress into uint8
     #sift = (sift_ * 512).round().astype(np.uint8)
-    sift = (sift_ * 512).astype(np.uint8)
+    if asint:
+        sift = (sift_ * 512).astype(np.uint8)
+    else:
+        sift = sift_
     return sift
 
 
@@ -447,10 +452,8 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
-        >>> # build test data
         >>> kpts = get_dummy_kpts()
         >>> sf = 1.0
-        >>> # execute function
         >>> img =  get_kpts_dummy_img(kpts, sf, 10)
 
     Ignore::
@@ -462,7 +465,9 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
         pt.update()
 
     """
-    w, h = ktool.get_kpts_image_extent(kpts)
+    (x1, x2, y1, y2) = ktool.get_kpts_image_extent(kpts)
+    w = x2 - x1
+    h = y2 - y1
     img_w = w * sf
     img_h = h * sf
     img = dummy_img(img_w, img_h, intensity=intensity)
@@ -590,7 +595,7 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     kpts_ = kpts + aug
     # Ensure keypoint feasibility
     kpts_ = force_kpts_feasibility(kpts_)
-    #print(ut.dict_str({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
+    #print(ut.repr2({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
     #assert kpts_.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts_.dtype=%r' % (kpts_.dtype)
     return kpts_
 
@@ -606,10 +611,7 @@ def testdata_dummy_matches():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> matches_testtup = testdata_dummy_matches()
-        >>> # verify results
         >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = matches_testtup
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
@@ -668,10 +670,8 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
-        >>> # execute function
         >>> default_dict = vt.get_extract_features_default_params()
         >>> default_dict['ratio_thresh'] = .625
         >>> kwargs = ut.argparse_dict(default_dict)
@@ -696,7 +696,7 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
     ratio_thresh = kwargs.get('ratio_thresh', .625)
     print('ratio_thresh=%r' % (ratio_thresh,))
     featkw = vt.get_extract_features_default_params()
-    ut.updateif_haskey(featkw, kwargs)
+    ut.update_existing(featkw, kwargs)
     # Read Images
     fpath1 = ut.grab_test_imgpath(fname1)
     fpath2 = ut.grab_test_imgpath(fname2)

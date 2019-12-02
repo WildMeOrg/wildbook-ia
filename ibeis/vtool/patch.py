@@ -19,13 +19,12 @@ except ImportError as ex:
     cv2.INTER_CUBIC = None
     cv2.BORDER_CONSTANT = None
     cv2.BORDER_REPLICATE = None
-(print, rrr, profile) = ut.inject2(__name__, '[patch]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 TAU = np.pi * 2  # References: tauday.com
 
 
-@profile
 def patch_gradient(patch, ksize=1, gaussian_weighted=False):
     patch_ = np.array(patch, dtype=np.float64)
     gradx = cv2.Sobel(patch_, cv2.CV_64F, 1, 0, ksize=ksize)
@@ -94,7 +93,7 @@ def make_test_image_keypoints(imgBGR, scale=1.0, skew=0, theta=0, shift=(0, 0)):
     return kpts
 
 
-def get_no_symbol():
+def get_no_symbol(variant='symbol', size=(100, 100)):
     r"""
     Returns:
         ndarray: errorimg
@@ -112,16 +111,25 @@ def get_no_symbol():
         >>> ut.show_if_requested()
     """
     thickness = 2
-    errorimg = np.zeros((100, 100, 3))
-    center = (50, 50)
-    radius = 50 - thickness
+    shape = (size[1], size[0], 3)
+    errorimg = np.zeros(shape)
+    center = (size[0] // 2, size[1] // 2)
+    radius = min(center) - thickness
     color_bgr = [0, 0, 255]
     tau = 2 * np.pi
     angle = 45 / 360 * tau
     pt1 = (center[0] - int(np.sin(angle) * radius), center[1] - int(np.cos(angle) * radius))
     pt2 = (center[0] + int(np.sin(angle) * radius), center[1] + int(np.cos(angle) * radius))
-    cv2.circle(errorimg, center, radius, color_bgr, thickness)
-    cv2.line(errorimg, pt1, pt2, color_bgr, thickness)
+    if variant == 'symbol':
+        cv2.circle(errorimg, center, radius, color_bgr, thickness)
+        cv2.line(errorimg, pt1, pt2, color_bgr, thickness)
+    else:
+        import vtool as vt
+        fontFace = cv2.FONT_HERSHEY_PLAIN
+        org = (size[0] * .1, size[1] * .6)
+        fontkw = dict(bottomLeftOrigin=False, fontScale=2.5, fontFace=fontFace)
+        vt.draw_text(errorimg, 'NaN', org, thickness=2,
+                     textcolor_rgb=color_bgr[::-1], **fontkw)
     return errorimg
 
 
@@ -279,6 +287,111 @@ def show_gaussian_patch(shape, sigma1, sigma2):
                       cmap=mpl.cm.coolwarm, title=title)
 
 
+def inverted_sift_patch(sift, dim=32):
+    """
+    Idea for inverted sift visualization
+
+    CommandLine:
+        python -m vtool.patch test_sift_viz --show --name=star
+        python -m vtool.patch test_sift_viz --show --name=star2
+        python -m vtool.patch test_sift_viz --show --name=cross
+        python -m vtool.patch test_sift_viz --show --name=stripe
+
+    Example:
+        >>> from vtool.patch import *  # NOQA
+        >>> import vtool as vt
+        >>> patch = vt.get_test_patch(ut.get_argval('--name', default='star'))
+        >>> sift = vt.extract_feature_from_patch(patch)
+        >>> siftimg = test_sift_viz(sift)
+        >>> # Need to do some image blending
+        >>> import plottool as pt
+        >>> #pt.imshow(siftimg)
+        >>> import plottool as pt
+        >>> pt.figure(fnum=1, pnum=(1, 2, 1))
+        >>> pt.mpl_sift.draw_sift_on_patch(siftimg, sift)
+        >>> pt.figure(fnum=1, pnum=(1, 2, 2))
+        >>> patch2 = patch
+        >>> patch2 = vt.rectify_to_uint8(patch2)
+        >>> patch2 = vt.rectify_to_square(patch2)
+        >>> pt.mpl_sift.draw_sift_on_patch(patch2, sift)
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    # dim = 21
+    pad = dim // 2 + (dim % 2)
+    # pad = 0
+    blocks = []
+    for siftmags in ut.ichunks(sift, 8):
+        thetas = np.linspace(0, TAU, 8, endpoint=False)
+        # style = 'step'
+        style = 'linear'
+        block_parts = [gradient_fill(dim, theta, flip=0, style=style) * mag
+                       for theta, mag in zip(thetas, siftmags)]
+        block = np.add.reduce(block_parts)  # / sum(siftmags)
+        # block = block[pad:-pad, pad:-pad]
+        # block = gaussian_weight_patch(block, sigma=9)
+        blocks.append(block)
+
+    rows = []
+    for row_blocks in ut.ichunks(blocks, 4):
+        row = vt.stack_image_list(row_blocks, vert=False, overlap=pad)
+        rows.append(row)
+    siftimg = vt.stack_image_list(rows, vert=True, overlap=pad)
+    siftimg /= siftimg.max()
+    return siftimg
+
+
+def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
+    """
+    FIXME: angle does not work properly
+
+    CommandLine:
+        python -m vtool.patch gradient_fill --show
+
+    Example:
+        >>> from vtool.patch import *  # NOQA
+        >>> import vtool as vt
+        >>> shape = (9, 9)
+        >>> #style = 'linear'
+        >>> style = 'step'
+        >>> theta = np.pi / 4
+        >>> patch = vt.gradient_fill(shape, theta, style=style)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(vt.rectify_to_uint8(patch))
+        >>> ut.show_if_requested()
+    """
+    if not isinstance(shape, tuple):
+        shape = (shape, shape)
+    import vtool as vt
+    patch = np.zeros(shape)
+    if vert:
+        vals = np.linspace(0, 1, shape[0])
+    else:
+        vals = np.linspace(0, 1, shape[1])
+
+    if style == 'linear':
+        vals = vals
+    elif style == 'step':
+        vals = vals > .5
+
+    if flip:
+        vals = vals[::-1]
+
+    if vert:
+        patch.T[:] = vals
+    else:
+        patch[:] = vals
+
+    if theta != 0:
+        patch = vt.rotate_image(patch, theta, interpolation='linear',
+                                border_mode='replicate')
+
+    patch = np.clip(patch, 0, 1)
+
+    return patch
+
+
 def test_show_gaussian_patches(shape=(19, 19)):
     r"""
     CommandLine:
@@ -286,6 +399,7 @@ def test_show_gaussian_patches(shape=(19, 19)):
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=7,7
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=17,17
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,41
+        python -m vtool.patch --test-test_show_gaussian_patches --show --shape=29,29
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,7
 
     References:
@@ -341,23 +455,24 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         sigma (float):
 
     CommandLine:
-        python -m vtool.patch --test-gaussian_patch2
+        python -m vtool.patch --test-gaussian_patch --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
-        >>> # build test data
-        >>> shape = (7, 7)
-        >>> sigma = 1.0
-        >>> # execute function
+        >>> #shape = (7, 7)
+        >>> shape = (24, 24)
+        >>> sigma = None  # 1.0
         >>> gausspatch = gaussian_patch(shape, sigma)
-        >>> assert gausspatch.sum() == 1.0
-
-    Ignore:
-        import plottool as pt
-        pt.imshow(gausspatch * 255)
-        pt.update()
+        >>> sum_ = gausspatch.sum()
+        >>> ut.assert_almost_eq(sum_, 1.0)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(vt.norm01(gausspatch) * 255)
+        >>> ut.show_if_requested()
     """
+    if sigma is None:
+        sigma = 0.3 * ((min(shape) - 1) * 0.5 - 1) + 0.8
     if isinstance(sigma, (float)):
         sigma1 = sigma2 = sigma
     else:
@@ -396,7 +511,6 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
 #    return gausspatch
 
 
-@profile
 def get_unwarped_patches(img, kpts):
     r"""
     Returns cropped unwarped (keypoint is still elliptical) patch around a
@@ -411,7 +525,7 @@ def get_unwarped_patches(img, kpts):
 
     """
     _xs, _ys = ktool.get_xys(kpts)
-    xyexnts = ktool.get_xy_axis_extents(kpts)
+    xyexnts = ktool.get_kpts_wh(kpts)
     patches = []
     subkpts = []
 
@@ -431,7 +545,6 @@ def get_unwarped_patches(img, kpts):
     return patches, subkpts
 
 
-@profile
 def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
                        borderMode=cv2.BORDER_REPLICATE, patch_size=41,
                        use_cpp=False):
@@ -475,7 +588,7 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
         >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode, use_cpp=use_cpp)
         >>> # verify results
         >>> print(np.array(warped_patches).shape)
-        >>> print(ut.numpy_str(np.array(warped_subkpts), precision=2))
+        >>> print(ut.repr2(np.array(warped_subkpts), precision=2))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(warped_patches[0])
@@ -748,10 +861,20 @@ def gaussian_average_patch(patch, sigma=None, copy=True):
     return average
 
 
-def gaussian_weight_patch(patch):
+def gaussian_weight_patch(patch, sigma=None):
+    """
+    Applies two one dimensional gaussian operations to a patch which
+    effectively weights it by a 2-dimensional gaussian. This is efficient
+    because the actually 2-d gaussian never needs to be allocated.
+
+    test_show_gaussian_patches
+    """
     #patch = np.ones(patch.shape)
-    sigma0 = (patch.shape[0] / 2) * .95
-    sigma1 = (patch.shape[1] / 2) * .95
+    if sigma is None:
+        sigma0 = (patch.shape[0] / 2) * .95
+        sigma1 = (patch.shape[1] / 2) * .95
+    else:
+        sigma0 = sigma1 = sigma
     #sigma0 = (patch.shape[0] / 2) * .5
     #sigma1 = (patch.shape[1] / 2) * .5
     gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma0))
@@ -762,7 +885,6 @@ def gaussian_weight_patch(patch):
     return weighted_patch
 
 
-@profile
 def get_warped_patch(imgBGR, kp, gray=False, flags=cv2.INTER_LANCZOS4,
                      borderMode=cv2.BORDER_REPLICATE, patch_size=41):
     r"""
@@ -847,7 +969,7 @@ def GaussianBlurInplace(img, sigma, size=None):
         >>> sigma2 = .9
         >>> sigma3 = sigma1 + sigma2
         >>> size = 7
-        >>> # compoments
+        >>> # components
         >>> GaussianBlurInplace(img1, sigma1, size)
         >>> GaussianBlurInplace(img2, sigma2, size)
         >>> # all in one shot
@@ -884,7 +1006,6 @@ def GaussianBlurInplace(img, sigma, size=None):
     return img
 
 
-@profile
 def get_unwarped_patch(imgBGR, kp, gray=False):
     """Returns unwarped warped patch around a keypoint
 
@@ -903,7 +1024,6 @@ def get_unwarped_patch(imgBGR, kp, gray=False):
     return upatch, ukp
 
 
-@profile
 def find_kpts_direction(imgBGR, kpts, DEBUG_ROTINVAR=False):
     r"""
     Args:
@@ -936,7 +1056,7 @@ def draw_kp_ori_steps():
     Shows steps in orientation estimation
 
     CommandLine:
-        python -m vtool.patch --test-draw_kp_ori_steps --show --diskshow
+        python -m vtool.patch --test-draw_kp_ori_steps --show --fname=zebra.png --fx=121
         python -m vtool.patch --test-draw_kp_ori_steps --show --interact
         python -m vtool.patch --test-draw_kp_ori_steps --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
 
@@ -958,6 +1078,11 @@ def draw_kp_ori_steps():
     import plottool as pt
     from six.moves import input
     import vtool as vt
+
+    if True:
+        from ibeis.scripts.thesis import TMP_RC
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
     #import vtool as vt
     np.random.seed(0)
     USE_COMMANLINE = True
@@ -990,19 +1115,25 @@ def draw_kp_ori_steps():
     converge_lists = []
 
     def exec_internals_find_patch_dominant_orientations(patch, bins, maxima_thresh, old_ori):
+        # TODO: can use ut.exec_func_src instead
         # <HACKISH>
         # exec source code from find_patch_dominant_orientations to steal its
         # local variables
         # ARGS: patch, bins=36, maxima_thresh=.8, DEBUG_ROTINVAR
+
         DEBUG_ROTINVAR = False
         globals_ = globals()
         locals_ = locals()
-        sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
-        six.exec_(sourcecode, globals_, locals_)
-        submax_ori_offsets = locals_['submax_ori_offsets']
-        new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
         keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
-        internal_tup = ut.dict_take(locals_, keys)
+        internal_tup = ut.exec_func_src(find_patch_dominant_orientations, globals_, locals_, key_list=keys, update=True)
+        submax_ori_offsets = globals_['submax_ori_offsets']
+        new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
+        # sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
+        # six.exec_(sourcecode, globals_, locals_)
+        # submax_ori_offsets = locals_['submax_ori_offsets']
+        # new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
+        # keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
+        # internal_tup = ut.dict_take(locals_, keys)
         return new_oris, internal_tup
         # </HACKISH>
 
@@ -1047,7 +1178,7 @@ def draw_kp_ori_steps():
             input('next')
         else:
             show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights, fx=fx)
-            pt.present()
+            # pt.present()
             print('no interaction')
             break
 
@@ -1060,45 +1191,44 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag,
     # DRAW TEST INFO
     fnum = 1
     pt.figure(fnum=1, doclf=True, docla=True)
-    #gorimag = pt.color_orimag(gori, None, False)
     gorimag = pt.color_orimag(gori, gmag=gmag, gmag_is_01=False)
     nRows, nCols = pt.get_square_row_cols(8)
     nRows += 1
-    next_pnum = pt.make_pnum_nextgen(nRows, nCols)
+    pnum_ = pt.make_pnum_nextgen(nRows, nCols)
     # hack
     imgBGR_ = imgBGR if imgBGR.max() > 1 else imgBGR * 255
     patch_ = patch if patch.max() > 1 else patch * 255
-    pt.imshow(imgBGR_, update=True, fnum=fnum, pnum=next_pnum(), title='input image')
+    pt.imshow(imgBGR_, update=True, fnum=fnum, pnum=pnum_(), title='input image')
     colors = pt.distinct_colors(len(kpts))
-    #print(colors)
     if fx is None:
         pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
     else:
         pt.draw_kpts2(kpts[fx:fx + 1], rect=True, ori=True, colors=[pt.ORANGE])
-    pt.imshow(patch_, fnum=fnum, pnum=next_pnum(), title='sampled patch')
+    pt.imshow(patch_, fnum=fnum, pnum=pnum_(), title='sampled patch')
     def normalize_grad_img(grad_):
         #return np.abs(grad_) * 255
         return vt.norm01(np.abs(grad_)) * 255
         #return vt.norm01(grad_) * 255
-    pt.imshow(normalize_grad_img(gradx ** 2), fnum=fnum, pnum=next_pnum(), title='gradx ** 2')
-    pt.imshow(normalize_grad_img(grady ** 2), fnum=fnum, pnum=next_pnum(), title='grady ** 2')
-    pt.imshow(normalize_grad_img(gmag), fnum=fnum, pnum=next_pnum(), title='mag')
-    pt.imshow(normalize_grad_img(gori_weights), fnum=fnum, pnum=next_pnum(), title='weighted mag')
-    #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
-    pt.draw_vector_field(gradx, grady, pnum=next_pnum(), fnum=fnum, title='gori (vec)')
-    pt.imshow(gorimag, fnum=fnum, pnum=next_pnum(), title='ori-color')
+    pt.imshow(normalize_grad_img(gradx ** 2), fnum=fnum, pnum=pnum_(), title='gradx ** 2')
+    pt.imshow(normalize_grad_img(grady ** 2), fnum=fnum, pnum=pnum_(), title='grady ** 2')
+    pt.imshow(normalize_grad_img(gmag), fnum=fnum, pnum=pnum_(), title='mag')
+    pt.imshow(normalize_grad_img(gori_weights), fnum=fnum, pnum=pnum_(), title='weighted mag')
+    #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=pnum_(), title='ori')
+    stride = ut.get_argval('--stride', default=1)
+    pt.draw_vector_field(gradx, grady, stride=stride, pnum=pnum_(), fnum=fnum,
+                         title='gori (vec)')
+    pt.imshow(gorimag, fnum=fnum, pnum=pnum_(), title='ori-color')
     if not ut.get_argflag('--noweighted-gori'):
         pt.color_orimag_colorbar(gori * gori_weights)
     else:
         pt.color_orimag_colorbar(gori)
     pt.figure(fnum=fnum, pnum=(nRows, 1, nRows))
-    #ut.embed()
     bin_colors = pt.get_orientation_color(centers)
-    pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors)
-    #vt.show_hist_submaxima(hist, centers=centers)
-    pt.set_xlabel('radians')
-    pt.set_ylabel('weight')
-    #pt.update()
+    pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors,
+                               maxima_thresh=.8)
+    ax = pt.gca()
+    ax.set_xlabel('radians')
+    ax.set_ylabel('weight')
 
 
 def test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins=36,
@@ -1131,7 +1261,8 @@ def test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins=36,
     return find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
 
 
-def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8, DEBUG_ROTINVAR=False):
+def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8,
+                                     DEBUG_ROTINVAR=False):
     """
     helper
     """
@@ -1153,11 +1284,10 @@ def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8, DEBUG_ROT
     # FIXME: Not taking account to gmag
     #bins = 3
     #bins = 8
-    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins)
     # Find submaxima
-    submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers,
-                                                                 maxima_thresh=maxima_thresh,
-                                                                 DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    submaxima_x, submaxima_y = htool.argsubmaxima(hist, centers,
+                                                  maxima_thresh=maxima_thresh)
     if DEBUG_ROTINVAR:
         htool.show_ori_image(gori, gori_weights / 255.0, patch, gradx, grady)
         pt.set_figtitle('python orimg')
@@ -1168,6 +1298,18 @@ def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8, DEBUG_ROT
         pt.set_figtitle('python hist')
         pt.df2.plt.show()
     return submax_ori_offsets
+
+
+def testdata_patch():
+    import plottool as pt
+    kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
+    fx = ut.get_argval('--fx', type_=int, default=0)
+    kp = kpts[fx]
+    patch, wkp = get_warped_patch(imgBGR, kp, gray=True,
+                                  #flags=cv2.INTER_LANCZOS4,
+                                  flags=cv2.INTER_CUBIC,
+                                  borderMode=cv2.BORDER_CONSTANT)
+    return patch
 
 
 def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
@@ -1210,7 +1352,9 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
         >>> bins = 36
         >>> maxima_thresh = .8
         >>> # execute function
-        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh, DEBUG_ROTINVAR=True)
+        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins,
+        >>>                                          maxima_thresh,
+        >>>                                          DEBUG_ROTINVAR=True)
         >>> # verify results
         >>> result = 'new_oris = %r' % (new_oris,)
     """
@@ -1228,44 +1372,15 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
             pt.draw_kpts2(np.array([kp]), pts=True, rect=True)
             pt.imshow(patch, fnum=fnum, pnum=(1, 2, 2))
             pt.draw_kpts2(np.array([wkp]), pts=True, rect=True)
-            #pt.df2.plt.show()
-    #gradx, grady = patch_gradient(patch, gaussian_weighted=False)
-    #gori = patch_ori(gradx, grady)
-    #gmag = patch_mag(gradx, grady)
-    #gaussian_weighted = True
-    ## do gaussian weighting correctly
-    #gori_weights = gaussian_weight_patch(gmag) if gaussian_weighted else gmag
-    #if DEBUG_ROTINVAR:
-    #    print(ktool.kpts_docrepr(patch[::10, ::10], 'PATCH[::10]', False))
-    #    print(ktool.kpts_docrepr(gradx[::10, ::10], 'gradx[::10]', False))
-    #    print(ktool.kpts_docrepr(grady[::10, ::10], 'grady[::10]', False))
-    #    #print(ktool.kpts_docrepr(patch, 'PATCH', False))
-    #    print(ktool.kpts_docrepr(gori[::10, ::10], 'ORI[::10]', False))
-    #    print(ktool.kpts_docrepr(gmag[::10, ::10], 'MAG[::10]', False))
-    #    print(ktool.kpts_docrepr(gori_weights[::10, ::10], 'WEIGHTS[::10]', False))
-    ## FIXME: Not taking account to gmag
-    ##bins = 3
-    ##bins = 8
-    #hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
-    ## Find submaxima
-    #submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers,
-    #                                                             maxima_thresh=maxima_thresh,
-    #                                                             DEBUG_ROTINVAR=DEBUG_ROTINVAR)
-    #if DEBUG_ROTINVAR:
-    #    htool.show_ori_image(gori, gori_weights, patch, gradx, grady)
-    ##ut.embed()
-    #submax_ori_offsets = submaxima_x
     # Compute new orientation(s) for this keypoint
-    submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins,
+                                                          maxima_thresh=maxima_thresh,
+                                                          DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     old_ori = kp[-1]
     new_oris = (old_ori + (submax_ori_offsets + ktool.GRAVITY_THETA)) % TAU
-    #new_oris = (old_ori + (submax_ori_offsets - 0)) % TAU
-    #submax_ori = submaxima_x[submaxima_y.argmax()]
-    #ori_offsets = [submax_ori]  # normalize w.r.t. gravity
     return new_oris
 
 
-@profile
 def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False):
     r"""
     Args:
@@ -1315,21 +1430,28 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     hist_, edges_ = htool.interpolated_histogram(flat_oris, flat_weights,
                                                  range_, bins,
                                                  interpolation_wrap=True,
-                                                 DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+                                                 _debug=DEBUG_ROTINVAR)
     # Duplicate the first and last edges so neighbor information is contiguous
-    hist, edges = htool.wrap_histogram(hist_, edges_, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    hist, edges = htool.wrap_histogram(hist_, edges_, _debug=DEBUG_ROTINVAR)
     centers = htool.hist_edges_to_centers(edges)
     return hist, centers
 
 
+# if __name__ == '__main__':
+#     """
+#     CommandLine:
+#         python -m vtool.patch
+#         python -m vtool.patch --allexamples
+#         python -m vtool.patch --allexamples --noface --nosrc
+#     """
+#     import multiprocessing
+#     multiprocessing.freeze_support()  # for win32
+#     import utool as ut  # NOQA
+#     ut.doctest_funcs()
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m vtool.patch
-        python -m vtool.patch --allexamples
-        python -m vtool.patch --allexamples --noface --nosrc
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

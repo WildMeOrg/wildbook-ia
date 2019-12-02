@@ -5,10 +5,10 @@ import numpy as np
 def testdata_nondeterm_sver():
     r"""
     varstr_list = [
-         ut.hz_str('kpts1 = ', ut.numpy_str(kpts1, threshold=10000)),
-         ut.hz_str('kpts2 = ', ut.numpy_str(kpts2, threshold=10000)),
-         ut.hz_str('fm = ', ut.numpy_str(fm, threshold=10000)),
-         ut.hz_str('match_weights = ', ut.numpy_str(match_weights, threshold=10000)),
+         ut.hz_str('kpts1 = ', ut.repr2(kpts1, threshold=10000)),
+         ut.hz_str('kpts2 = ', ut.repr2(kpts2, threshold=10000)),
+         ut.hz_str('fm = ', ut.repr2(fm, threshold=10000)),
+         ut.hz_str('match_weights = ', ut.repr2(match_weights, threshold=10000)),
          ut.hz_str('xy_thresh = ', xy_thresh),
          ut.hz_str('scale_thresh = ', scale_thresh),
          ut.hz_str('ori_thresh = ', ori_thresh),

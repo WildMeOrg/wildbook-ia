@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
@@ -31,7 +31,7 @@ def run_tests():
         dpath_list = [dirname(vt.__file__)]
         doctest_modname_list = ut.find_doctestable_modnames(
             dpath_list, exclude_doctests_fnames, exclude_dirs)
-        print(ut.indent('doctest_modname_list = ' + ut.list_str(doctest_modname_list), ' ' * 8))
+        print(ut.indent('doctest_modname_list = ' + ut.repr2(doctest_modname_list), ' ' * 8))
 
         """
         doctest_modname_list = [
@@ -46,7 +46,7 @@ def run_tests():
             'vtool.linalg',
             'vtool.geometry',
             'vtool.other',
-            'vtool.math',
+            'vtool.util_math',
             'vtool.score_normalization',
             'vtool.test_constrained_matching',
             'vtool.keypoint',
@@ -67,6 +67,29 @@ def run_tests():
         doctest_modname_list = ut.find_doctestable_modnames(
             dpath_list, exclude_doctests_fnames, exclude_dirs)
 
+    coverage = ut.get_argflag(('--coverage', '--cov',))
+    if coverage:
+        import coverage
+        cov = coverage.Coverage(source=doctest_modname_list)
+        cov.start()
+        print('Starting coverage')
+
+        exclude_lines = [
+            'pragma: no cover',
+            'def __repr__',
+            'if self.debug:',
+            'if settings.DEBUG',
+            'raise AssertionError',
+            'raise NotImplementedError',
+            'if 0:',
+            'if ut.VERBOSE',
+            'if _debug:',
+            'if __name__ == .__main__.:',
+            'print(.*)',
+        ]
+        for line in exclude_lines:
+            cov.exclude(line)
+
     modname_list2 = []
     for modname in doctest_modname_list:
         try:
@@ -77,6 +100,14 @@ def run_tests():
                 raise
         else:
             modname_list2.append(modname)
+
+    if coverage:
+        print('Stoping coverage')
+        cov.stop()
+        print('Saving coverage')
+        cov.save()
+        print('Generating coverage html report')
+        cov.html_report()
 
     module_list = [sys.modules[name] for name in modname_list2]
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)

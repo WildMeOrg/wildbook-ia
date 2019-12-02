@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # This tests cython stuff not linalg stuff :P
 from __future__ import absolute_import, division, print_function
 import utool

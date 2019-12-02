@@ -6,150 +6,24 @@ TODO:
     http://nbviewer.jupyter.org/github/lmcinnes/hdbscan/blob/master/notebooks/Comparing%20Clustering%20Algorithms.ipynb
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import range, zip, map
-import six
-import utool
-import utool as ut
-import sys
+from six.moves import zip, map  # NOQA
+import ubelt as ub
 import numpy as np
-import scipy.sparse as spsparse
-import vtool.nearest_neighbors as nntool
-try:
-    import pyflann
-except ImportError:
-    pass
-
-(print, rrr, profile) = utool.inject2(__name__, '[clustering2]')
 
 
-CLUSTERS_FNAME = 'akmeans_centroids'
+# try:
+#     import pyflann
+#     _FLANN_CLS = pyflann.FLANN
+# except ImportError:
+# print('no pyflann, using cv2.flann_Index')
+import cv2
+_FLANN_CLS = cv2.flann_Index
+# print('_FLANN_CLS = {!r}'.format(_FLANN_CLS))
 
-
-def get_akmeans_cfgstr(data, nCentroids, max_iters=5, initmethod='akmeans++', flann_params={},
-                       use_data_hash=True, cfgstr='', akmeans_cfgstr=None):
-    if akmeans_cfgstr is None:
-        # compute a hashstr based on the data
-        cfgstr += '_nC=%d,nIter=%d,init=%s' % (nCentroids, max_iters, initmethod)
-        akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
-                                                 cfgstr, use_data_hash)
-    return akmeans_cfgstr
-
-
-def assert_centroids(centroids, data, nCentroids, clip_centroids):
-    dbgkeys = ['centroids.shape', 'nCentroids', 'data.shape', ]
-    try:
-        assert centroids.shape[0] == nCentroids, 'bad number of centroids'
-    except Exception as ex:
-        utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
-        if not clip_centroids:
-            raise
-    try:
-        assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
-    except Exception as ex:
-        utool.printex(ex, keys=dbgkeys)
-        raise
-
-
-def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
-                   cache_dir='default', force_recomp=False, use_data_hash=True,
-                   cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
-                   appname='vtool',  initmethod='akmeans++', clip_centroids=True):
-    """ precompute aproximate kmeans with builtin caching
-
-    Example:
-        >>> import numpy as np
-        >>> np.random.seed(42)
-        >>> nump = 100000
-        >>> dims = 128
-        >>> nCentroids = 800
-        >>> max_iters = 300
-        >>> dtype = np.uint8
-        >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-
-    Timeit:
-        import vtool.clustering2 as clustertool
-        max_iters = 300
-        flann = p yflann.FLANN()
-        centroids1 = flann.kmeans(data, nCentroids, max_iterations=max_iters, dtype=np.uint8)
-        centroids2 = clustertool.akmeans(data, nCentroids, max_iters, {})
-        %timeit clustertool.akmeans(data, nCentroids, max_iters, {})
-        %timeit flann.kmeans(data, nCentroids, max_iterations=max_iters)
-    """
-    if data.shape[0] < nCentroids:
-        dbgkeys = ['centroids.shape', 'nCentroids', 'data.shape', ]
-        ex = AssertionError('less data than centroids')
-        utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
-        if not clip_centroids:
-            raise ex
-        else:
-            nCentroids = data.shape[0]
-    print('+--- START CACHED AKMEANS')
-    # filename prefix constants
-    if cache_dir == 'default':
-        print('[akmeans] using default cache dir')
-        cache_dir = utool.get_app_resource_dir(appname)
-        utool.ensuredir(cache_dir)
-    # Build a cfgstr if the full one is not specified
-    akmeans_cfgstr = get_akmeans_cfgstr(data, nCentroids, max_iters,
-                                        initmethod, flann_params,
-                                        use_data_hash, cfgstr, akmeans_cfgstr) + initmethod
-    try:
-        # Try and load a previous centroiding
-        if not use_cache or force_recomp:
-            raise UserWarning('forceing recommpute')
-        centroids = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
-        print('[akmeans.precompute] load successful')
-        if refine:
-            # Refines the centroid centers if specified
-            centroids = refine_akmeans(data, centroids, max_iters=max_iters,
-                                       flann_params=flann_params,
-                                       cache_dir=cache_dir,
-                                       akmeans_cfgstr=akmeans_cfgstr)
-        try:
-            assert centroids.shape[0] == nCentroids, 'bad number of centroids'
-        except Exception as ex:
-            utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
-            if not clip_centroids:
-                raise
-        try:
-            assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
-        except Exception as ex:
-            utool.printex(ex, keys=dbgkeys)
-            raise
-        print('L___ END CACHED AKMEANS')
-        return centroids
-    except IOError as ex:
-        utool.printex(ex, 'cache miss', iswarning=True)
-    except UserWarning:
-        pass
-    # First time computation
-    print('[akmeans.precompute] pre_akmeans(): calling akmeans')
-    # FLANN.AKMEANS IS NOT APPROXIMATE KMEANS
-    #if use_external_kmeans:
-    #    import p yflann
-    #    #import utool
-    #    print('[akmeans.precompute] using flann.kmeans... (hope this is approximate)')
-    #    flann = p yflann.FLANN()
-    #    with utool.Timer('testing time of 1 kmeans iteration') as timer:
-    #        centroids = flann.kmeans(data, nCentroids, max_iterations=1)
-    #    estimated_time = max_iters * timer.ellapsed
-    #    print('Current time:            ' + utool.get_timestamp('printable'))
-    #    print('Estimated Total Time:    ' + utool.get_unix_timedelta_str(estimated_time))
-    #    print('Estimated finish time:   ' + utool.get_timestamp('printable', delta_seconds=estimated_time))
-    #    print('Begining computation...')
-    #    centroids = flann.kmeans(data, nCentroids, max_iterations=max_iters)
-    #    print('The true finish time is: ' + utool.get_timestamp('printable'))
-    #else:
-    centroids = akmeans(data, nCentroids, max_iters, initmethod, flann_params)
-    assert_centroids(centroids, data, nCentroids, clip_centroids)
-    print('[akmeans.precompute] save and return')
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
-    print('L___ END CACHED AKMEANS')
-    return centroids
 
 
 def tune_flann2(data):
-    flann = pyflann.FLANN()
+    flann = _FLANN_CLS()
     flann_atkwargs = dict(algorithm='autotuned',
                           target_precision=.6,
                           build_weight=0.01,
@@ -161,336 +35,47 @@ def tune_flann2(data):
     return tuned_params
 
 
-@profile
-def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
+class AnnoyWraper(object):
     """
-    Referencs:
-        http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
-
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> import utool as ut
-        >>> import numpy as np
-        >>> np.random.seed(42)
-        >>> K = 8000  # 64000
-        >>> nump = K * 2
-        >>> dims = 128
-        >>> max_iters = 300
-        >>> samples_per_iter = None
-        >>> dtype = np.uint8
-        >>> flann_params = None
-        >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-        >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter, flann_params)
-        >>> #result = str(initial_centers.sum())
-
-    130240088
-
-    Example2:
-        >>> # SLOW_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> data = np.vstack(ibs.get_annot_vecs(ibs.get_valid_aids()))
-        >>> flann_params = None
-        >>> samples_per_iter = 1000
-        >>> K = 8000  # 64000
-        >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter,  flann_params)
-
-    CommandLine:
-        utprof.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
-        python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+    flann-like interface to annnoy
     """
-    if samples_per_iter is None:
-        #sample_fraction = 32.0 / K
-        sample_fraction = 64.0 / K
-        #sample_fraction = 128.0 / K
-        samples_per_iter = int(len(data) * sample_fraction)
-    print('akmeans++ on %r points. samples_per_iter=%r. K=%r' % (len(data), samples_per_iter, K))
-    #import random
-    eps = np.sqrt(data.shape[1])
-    flann = pyflann.FLANN()
-    # Choose an index and "use" it
-    unusedx2_datax = np.arange(len(data), dtype=np.int32)
-    chosen_unusedx = np.random.randint(0, len(unusedx2_datax))
-    center_indices = [unusedx2_datax[chosen_unusedx]]
-    unusedx2_datax = np.delete(unusedx2_datax, chosen_unusedx)
 
-    if flann_params is None:
-        flann_params = {}
-        flann_params['target_precision'] = .6
-        flann_params['trees'] = 1
-        flann_params['checks'] = 8
-        #flann_params['algorithm'] = 'linear'
-        flann_params['algorithm'] = 'kdtree'
-        flann_params['iterations'] = 3
+    def __init__(self):
+        pass
 
-    # initalize flann index for approximate nn calculation
-    centers = data.take(center_indices, axis=0)
-    build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
-    num_sample = min(samples_per_iter, len(data))
-    progiter = utool.progiter(range(0, K), lbl='akmeans++ init', freq=200)
-    _iter = progiter.iter_rate()
-    six.next(_iter)
+    def build_annoy(self, centroids, trees=3):
+        import annoy
+        self.a = annoy.AnnoyIndex(centroids.shape[1], metric='euclidean')
+        for i, v in enumerate(centroids):
+            self.a.add_item(i, v)
+        self.a.build(trees)
 
-    #for count in range(1, K):
-    for count in _iter:
-        # Randomly choose a set of unused potential seed points
-        sx2_unusedx = np.random.randint(len(unusedx2_datax), size=num_sample)
-        sx2_datax = unusedx2_datax.take(sx2_unusedx)
-        # Distance from a random sample of data to current centers
-        # (this call takes 98% of the time. optimize here only)
-        sample_data = data.take(sx2_datax, axis=0)
-        sx2_dist = flann.nn_index(sample_data, 1, checks=flann_params['checks'])[1] + eps
-        # Choose data sample index that has a high probability of being a new cluster
-        sx2_prob = sx2_dist / sx2_dist.sum()
-        chosen_sx = np.where(sx2_prob.cumsum() >= np.random.random() * .98)[0][0]
-        chosen_unusedx = sx2_unusedx[chosen_sx]
-        chosen_datax = unusedx2_datax[chosen_unusedx]
-        # Remove the chosen index from unused indices
-        unusedx2_datax = np.delete(unusedx2_datax, chosen_unusedx)
-        center_indices.append(chosen_datax)
-        chosen_data = data.take(chosen_datax, axis=0)
-        # Append new center to data and flann index
-        flann.add_points(chosen_data)
-    center_indices = np.array(center_indices)
-    centers = data.take(center_indices, axis=0)
-    print('len(center_indices) = %r' % len(center_indices))
-    print('len(set(center_indices)) = %r' % len(set(center_indices)))
-    return centers
+    def query_annoy(self, query_vecs, num, checks=-1):
+        a = self.a
+        index_list = []
+        dist_list = []
+        for v in query_vecs:
+            idx, dist = a.get_nns_by_vector(v, num, search_k=checks, include_distances=True)
+            index_list.append(idx)
+            dist_list.append(dist)
+        return np.array(index_list), np.array(dist_list) ** 2
 
+    def nn(self, data_vecs, query_vecs, num, trees=3, checks=-1):
+        self.build_annoy(data_vecs, trees)
+        return self.query_annoy(query_vecs, num, checks)
 
-def akmeans(data, nCentroids, max_iters=5, initmethod='akmeans++',
-            flann_params={}, ave_unchanged_thresh=0, ave_unchanged_iterwin=10):
-    """
-    Approximiate K-Means (using FLANN)
-    Input: data - np.array with rows of data.
-    Description: Quickly partitions data into K=nCentroids centroids.  Cluster
-    centers are randomly assigned to datapoints.  Each datapoint is assigned to
-    its approximate nearest centroid center.  The centroid centers are recomputed.
-    Repeat until approximate convergence."""
-    # Setup iterations
-    centroids = initialize_centroids(nCentroids, data, initmethod)
-    centroids = akmeans_iterations(data, centroids, max_iters, flann_params,
-                                    ave_unchanged_thresh, ave_unchanged_iterwin)
-    return centroids
-
-
-def initialize_centroids(nCentroids, data, initmethod='akmeans++'):
-    """ Initializes centroids to random datapoints """
-    if initmethod == 'akmeans++':
-        centroids = np.copy(akmeans_plusplus_init(data, nCentroids))
-    elif initmethod == 'random':
-        nData = data.shape[0]
-        datax_rand = np.arange(0, nData, dtype=np.int32)
-        np.random.shuffle(datax_rand)
-        centroidx2_datax = datax_rand[0:nCentroids]
-        centroids = np.copy(data[centroidx2_datax])
-    else:
-        raise AssertionError('Unknown initmethod=%r' % (initmethod,))
-    return centroids
-
-
-def refine_akmeans(data, centroids, max_iters=5,
-                   flann_params={}, cache_dir='default', cfgstr='',
-                   use_data_hash=True, akmeans_cfgstr=None):
-    """
-    Cached refinement of approximates centroids
-    """
-    print('[akmeans.precompute] refining:')
-    if cache_dir == 'default':
-        cache_dir = utool.get_app_resource_dir('vtool')
-        utool.ensuredir(cache_dir)
-    if akmeans_cfgstr is None:
-        akmeans_cfgstr = nntool.get_flann_cfgstr(
-            data, flann_params, cfgstr, use_data_hash)
-    centroids = akmeans_iterations(data, centroids, max_iters, flann_params, 0, 10)
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
-    return centroids
-
-
-#def test_hdbscan():
-#    r"""
-#    CommandLine:
-#        python -m vtool.clustering2 --exec-test_hdbscan
-
-#    Example:
-#        >>> # SCRIPT
-#        >>> from vtool.clustering2 import *  # NOQA
-#        >>> from vtool.clustering2 import *  # NOQA
-#        >>> import numpy as np
-#        >>> rng = np.random.RandomState(42)
-#        >>> data = rng.randn(1000000, 128)
-#        >>> import hdbscan
-#        >>> with ut.Timer() as t:
-#        >>>     labels = hdbscan.HDBSCAN(min_cluster_size=15).fit_predict(data)
-
-#    """
-#    pass
-
-
-def akmeans_iterations(data, centroids, max_iters, flann_params,
-                       ave_unchanged_thresh, ave_unchanged_iterwin):
-    """
-    Helper function which continues the iterations of akmeans
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> import numpy as np
-        >>> rng = np.random.RandomState(42)
-        >>> data = rng.randn(100, 2)
-        >>> nCentroids = 5
-        >>> flann_params = {}
-        >>> max_iters = 100
-        >>> ave_unchanged_thresh = 100
-        >>> ave_unchanged_iterwin = 100
-        >>> centroids = initialize_centroids(nCentroids, data)
-        >>> centroids = akmeans_iterations(data, centroids, max_iters, flann_params, ave_unchanged_thresh, ave_unchanged_iterwin)
-        >>> ut.quit_if_noshow()
-        >>> plot_centroids(data, centroids)
-        >>> ut.show_if_requested()
-    """
-    nData = data.shape[0]
-    nCentroids = centroids.shape[0]
-    # Initialize assignments
-    datax2_centroidx_old = -np.ones(nData, dtype=np.int32)
-    # Keep track of how many points have changed over an iteration window
-    win2_unchanged = np.zeros(ave_unchanged_iterwin, dtype=centroids.dtype) + len(data)
-    print((
-        '[akmeans] akmeans: data.shape=%r ; nCentroids=%r\n'
-        '[akmeans] * max_iters=%r\n'
-        '[akmeans] * ave_unchanged_iterwin=%r ; ave_unchanged_thresh=%r\n'
-    ) % (data.shape, nCentroids, max_iters,
-         ave_unchanged_thresh, ave_unchanged_iterwin))
-    sys.stdout.flush()
-    for count in ut.ProgIter(range(0, max_iters), nTotal=max_iters, lbl='Akmeans: '):
-        # 1) Assign each datapoint to the nearest centroid
-        datax2_centroidx = approximate_assignments(centroids, data, 1, flann_params)
-        # 2) Compute new centroids based on assignments
-        centroids = compute_centroids(data, centroids, datax2_centroidx)
-        # 3) Convergence Check: which datapoints changed membership?
-        num_changed = (datax2_centroidx_old != datax2_centroidx).sum()
-        win2_unchanged[count % ave_unchanged_iterwin] = num_changed
-        ave_unchanged = win2_unchanged.mean()
-        if ave_unchanged < ave_unchanged_thresh:
-            break
-        else:
-            datax2_centroidx_old = datax2_centroidx
-    return centroids
-
-
-def approximate_distances(centroids, data, K, flann_params):
-    (_, qdist2_sdist) = pyflann.FLANN().nn(centroids, data, K, **flann_params)
-    return qdist2_sdist
-
-
-def approximate_assignments(seachedvecs, queryvecs, K, flann_params):
-    (qx2_sx, _) = pyflann.FLANN().nn(seachedvecs, queryvecs, K, **flann_params)
-    return qx2_sx
-
-
-def compute_centroids(data, centroids, datax2_centroidx):
-    """
-    Computes centroids given datax assignments
-    TODO: maybe use the grouping code instad of the LR algorithm
-
-    >>> from vtool.clustering2 import *  # NOQA
-    >>> import numpy as np
-    >>> rng = np.random.RandomState(42)
-    >>> data = rng.randn(100, 2)
-    >>> nCentroids = 5
-    >>> flann_params = {}
-    >>> centroids = initialize_centroids(nCentroids, data)
-    >>> centroids_ = centroids.copy()
-    >>> (datax2_centroidx, _) = p yflann.FLANN().nn(centroids, data, 1, **flann_params)
-    >>> out = compute_centroids(data, centroids, datax2_centroidx)
-    """
-    nData = data.shape[0]
-    nCentroids = centroids.shape[0]
-    # sort data by centroid
-    datax_sortx = datax2_centroidx.argsort()
-    datax_sort  = datax2_centroidx[datax_sortx]
-    # group datapoints by centroid using a sliding grouping algorithm
-    centroidx2_dataLRx = [None] * nCentroids
-    _L = 0
-    for _R in range(nData + 1):  # Slide R
-        if _R == nData or datax_sort[_L] != datax_sort[_R]:
-            centroidx2_dataLRx[datax_sort[_L]] = (_L, _R)
-            _L = _R
-    # Compute the centers of each group (centroid) of datapoints
-    for centroidx, dataLRx in enumerate(centroidx2_dataLRx):
-        if dataLRx is None:
-            continue  # ON EMPTY CLUSTER
-        (_L, _R) = dataLRx
-        # The centroid center is the mean of its datapoints
-        centroids[centroidx] = np.mean(data[datax_sortx[_L:_R]], axis=0)
-        #centroids[centroidx] = np.array(np.round(centroids[centroidx]), dtype=np.uint8)
-    return centroids
-
-
-#def group_indices2(idx2_groupid):
-#    """
-#    >>> idx2_groupid = np.array(np.random.randint(0, 4, size=100))
-#    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
-#    """
-#    # Sort items and idx2_groupid by groupid
-#    sortx = idx2_groupid.argsort()
-#    groupids_sorted = idx2_groupid[sortx]
-#    num_items = idx2_groupid.size
-#    # Find the boundaries between groups
-#    diff = np.ones(num_items + 1, idx2_groupid.dtype)
-#    diff[1:(num_items)] = np.diff(groupids_sorted)
-#    idxs = np.where(diff > 0)[0]
-#    num_groups = idxs.size - 1
-#    # Groups are between bounding indexes
-#    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
-#    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
-#    return groupxs
-
-
-#def group_indices_pandas(idx2_groupid):
-#    """
-#    DEPRICATED
-#    >>> from vtool.clustering2 import *
-#    >>> idx2_groupid = np.array(np.random.randint(0, 8000, size=1000000))
-
-#    keys1, groupxs2 = group_indices_pandas(idx2_groupid)
-#    keys2, groupxs2 = group_indices(idx2_groupid)
-
-#    %timeit group_indices_pandas(idx2_groupid)
-#    %timeit group_indices(idx2_groupid)
-#    """
-#    import pandas as pd
-#    # Pandas is actually unreasonably fast here
-#    #%timeit dataframe = pd.DataFrame(idx2_groupid, columns=['groupid'])  # 135 us
-#    #%timeit dfgroup = dataframe.groupby('groupid')  # 33.9 us
-#    #%timeit groupid2_idxs = dfgroup.indices  # 197 ns
-#    series = pd.Series(idx2_groupid)  # 66 us
-#    group = series.groupby(series)    # 32.9 us
-#    groupid2_idxs = group.indices     # 194 ns
-#    # Compute inverted index
-#    groupxs = list(groupid2_idxs.values())  # 412 ns
-#    keys    = list(groupid2_idxs.keys())    # 488 ns
-#    return keys, groupxs
-##    # Consistency check
-##    #for wx in _wx2_idxs.keys():
-##    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
-
-
-#@profile
 
 def jagged_group(groupids_list):
     """ flattens and returns group indexes into the flattened list """
-    #flatx2_itemx = np.array(utool.flatten(itemxs_iter))
-    flatids = np.array(utool.flatten(groupids_list))
+    #flatx2_itemx = np.array(list(ub.flatten(itemxs_iter)))
+    flatids = np.array(list(ub.flatten(groupids_list)))
     keys, groupxs = group_indices(flatids)
     return keys, groupxs
 
 
 def apply_jagged_grouping(unflat_items, groupxs):
     """ takes unflat_list and flat group indices. Returns the unflat grouping """
-    flat_items = np.array(utool.flatten(unflat_items))
+    flat_items = np.array(list(ub.flatten(unflat_items)))
     item_groups = apply_grouping(flat_items, groupxs)
     return item_groups
     #itemxs_iter = [[count] * len(idx2_groupid) for count, idx2_groupid in enumerate(groupids_list)]
@@ -525,7 +110,7 @@ def groupedzip(id_list, datas_list):
         >>> grouped_tuples = list(grouped_iter)
         >>> # verify results
         >>> result = str(groupxs) + '\n'
-        >>> result += ut.list_str(grouped_tuples, nl=1)
+        >>> result += ut.repr2(grouped_tuples, nl=1)
         >>> print(result)
         [1 2 3]
         [
@@ -540,8 +125,7 @@ def groupedzip(id_list, datas_list):
     return unique_ids, grouped_iter
 
 
-@profile
-def group_indices(idx2_groupid):
+def group_indices(idx2_groupid, assume_sorted=False):
     r"""
     group_indices
 
@@ -561,7 +145,7 @@ def group_indices(idx2_groupid):
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobraces=1)
+        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
         >>> print(result)
         np.array([1, 2, 3], dtype=np.int64),
         [
@@ -578,7 +162,7 @@ def group_indices(idx2_groupid):
         >>> # 2d arrays must be flattened before coming into this function so
         >>> # information is on the last axis
         >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
-        >>> result = ut.repr3((keys, groupxs), nobraces=1)
+        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
         >>> print(result)
         np.array([ 24, 129, 659, 822], dtype=np.int64),
         [
@@ -588,23 +172,29 @@ def group_indices(idx2_groupid):
             np.array([7], dtype=np.int64),
         ],
 
-
     Example2:
-        >>> # TIMING_TEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> rng = np.random.RandomState(0)
-        >>> idx2_groupid = rng.randint(100, 200, 1000)
-        >>> group_indices(idx2_groupid)
-        >>> [group_indices(rng.randint(100, 200, 1000)) for _ in range(1000)]
+        >>> idx2_groupid = np.array([True, True, False, True, False, False, True])
+        >>> (keys, groupxs) = group_indices(idx2_groupid)
+        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> print(result)
+        np.array([False,  True], dtype=np.bool),
+        [
+            np.array([2, 4, 5], dtype=np.int64),
+            np.array([0, 1, 3, 6], dtype=np.int64),
+        ],
 
     Time:
+        >>> # xdoctest: +SKIP
         >>> import vtool as vt
         >>> import utool as ut
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
+        >>> print(setup)
         >>> stmt_list = ut.codeblock(
                 '''
                 [sortx[lx:rx] for lx, rx in ut.itertwo(idxs)]
-                #[sortx[lx:rx] for lx, rx in zip(idxs[0:-1], idxs[1:])]
+                [sortx[lx:rx] for lx, rx in zip(idxs, idxs[1:])]
                 #[sortx[lx:rx] for lx, rx in ut.iter_window(idxs)]
                 #[sortx[slice(*_)] for _ in ut.itertwo(idxs)]
                 #[sortx[slice(lr, lx)] for lr, lx in ut.itertwo(idxs)]
@@ -615,6 +205,7 @@ def group_indices(idx2_groupid):
         >>> stmt_list = [x for x in stmt_list if not x.startswith('#')]
         >>> passed, times, outputs = ut.timeit_compare(stmt_list, setup, iterations=10000)
 
+        >>> # xdoctest: +SKIP
         >>> stmt_list = ut.codeblock(
                 '''
                 np.diff(groupids_sorted)
@@ -642,14 +233,23 @@ def group_indices(idx2_groupid):
         getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
     """
     # Sort items and idx2_groupid by groupid
-    # <len(data) bottlneck>
-    sortx = idx2_groupid.argsort()
-    groupids_sorted = idx2_groupid.take(sortx)
+    if assume_sorted:
+        sortx = np.arange(len(idx2_groupid))
+        groupids_sorted = idx2_groupid
+    else:
+        sortx = idx2_groupid.argsort()
+        groupids_sorted = idx2_groupid.take(sortx)
+
+    # Ensure bools are internally cast to integers
+    if groupids_sorted.dtype.kind == 'b':
+        cast_groupids = groupids_sorted.astype(np.int8)
+    else:
+        cast_groupids = groupids_sorted
+
     num_items = idx2_groupid.size
     # Find the boundaries between groups
-    diff = np.ones(num_items + 1, idx2_groupid.dtype)
-    np.subtract(groupids_sorted[1:], groupids_sorted[:-1], out=diff[1:num_items])
-    #diff[1:num_items] = np.subtract(groupids_sorted[1:], groupids_sorted[:-1])
+    diff = np.ones(num_items + 1, cast_groupids.dtype)
+    np.subtract(cast_groupids[1:], cast_groupids[:-1], out=diff[1:num_items])
     idxs = np.flatnonzero(diff)
     # Groups are between bounding indexes
     # <len(keys) bottlneck>
@@ -657,6 +257,21 @@ def group_indices(idx2_groupid):
     # Unique group keys
     keys = groupids_sorted[idxs[:-1]]
     return keys, groupxs
+
+
+def sorted_indices_ranges(groupids_sorted):
+    """
+    Like group sorted indices but returns a list of slices
+    """
+    num_items = groupids_sorted.size
+    # Ensure bools are cast to integers
+    dtype = np.find_common_type([], [groupids_sorted.dtype, np.int8])
+    # Find the boundaries between groups
+    diff = np.ones(num_items + 1, dtype)
+    np.subtract(groupids_sorted[1:], groupids_sorted[:-1], out=diff[1:num_items])
+    idxs = np.flatnonzero(diff)
+    group_ranges = [(lx, rx) for lx, rx in ut.itertwo(idxs)]  # 34.5%
+    return group_ranges
 
 
 def find_duplicate_items(item_arr):
@@ -676,12 +291,9 @@ def find_duplicate_items(item_arr):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> # build test data
         >>> np.random.seed(0)
         >>> item_arr = np.random.randint(100, size=30)
-        >>> # execute function
         >>> duplicate_items = find_duplicate_items(item_arr)
-        >>> # verify results
         >>> assert duplicate_items == list(six.iterkeys(ut.find_duplicate_items(item_arr)))
         >>> result = str(duplicate_items)
         >>> print(result)
@@ -700,7 +312,7 @@ def find_duplicate_items(item_arr):
     return duplicate_items
 
 
-def apply_grouping(items, groupxs):
+def apply_grouping(items, groupxs, axis=0):
     """
     applies grouping from group_indicies
     apply_grouping
@@ -722,10 +334,6 @@ def apply_grouping(items, groupxs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> #np.random.seed(42)
-        >>> #size = 10
-        >>> #idx2_groupid = np.array(np.random.randint(0, 4, size=size))
-        >>> #items = np.random.randint(5, 10, size=size)
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> items        = np.array([1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
@@ -736,7 +344,7 @@ def apply_grouping(items, groupxs):
     """
     # SHOULD DO A CONTIGUOUS CHECK HERE
     #items_ = np.ascontiguousarray(items)
-    return [items.take(xs, axis=0) for xs in groupxs]
+    return [items.take(xs, axis=axis) for xs in groupxs]
     #return [items[idxs] for idxs in groupxs]
 
 
@@ -760,13 +368,10 @@ def invert_apply_grouping(grouped_items, groupxs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> # build test data
         >>> grouped_items = [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
         >>> groupxs = [np.array([1, 3, 5]), np.array([0, 2, 4, 6]), np.array([ 7,  8,  9, 10])]
-        >>> # execute function
         >>> items = invert_apply_grouping(grouped_items, groupxs)
         >>> result = items
-        >>> # verify results
         >>> print(result)
         [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]
 
@@ -844,87 +449,10 @@ def groupby_dict(items, idx2_groupid):
     grouped = {key: val for key, val in groupby_gen(items, idx2_groupid)}
     return grouped
 
-
-def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False):
-    """
-    Takes corresponding lists as input and builds a double mapping.
-
-    DEPRICATE
-
-    Args:
-        inner_key_list (list): each value_i is a scalar key.
-        outer_keys_list (list): each value_i list of scalar keys
-        items_list (list): value_i is a list that corresponds to outer_keys_i
-
-    Returns:
-        utool.ddict of dicts: outerkey2_innerkey2_items
-
-    Examples:
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> inner_key_list = [100, 200, 300, 400]
-        >>> outer_keys_list = [[10, 20, 20], [30], [30, 10], [20]]
-        >>> items_list = [[1, 2, 3], [4], [5, 6], [7]]
-        >>> ensure_numpy = True
-        >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-        >>> print(utool.dict_str(outerkey2_innerkey2_items))
-        {
-            10: {300: array([6]), 100: array([1])},
-            20: {400: array([7]), 100: array([2, 3])},
-            30: {200: array([4]), 300: array([5])},
-        }
-
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> len_ = 3000
-        >>> incrementer = utool.make_incrementer()
-        >>> nOuterList = [np.random.randint(300) for _ in range(len_)]
-        >>> # Define big double_group input
-        >>> inner_key_list = np.random.randint(100, size=len_) * 1000 + 1000
-        >>> outer_keys_list = [np.random.randint(100, size=nOuter_) for nOuter_ in nOuterList]
-        >>> items_list = [np.array([incrementer() for _ in range(nOuter_)]) for nOuter_ in nOuterList]
-        >>> ensure_numpy = False
-        >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-        >>> print(utool.dict_str(outerkey2_innerkey2_items))
-        >>> print(utool.dict_str(outerkey2_innerkey2_items[0]))
-
-    Timeit:
-        %timeit double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-    """
-    if ensure_numpy:
-        inner_key_list = np.array(inner_key_list)
-        outer_keys_list = np.array(map(np.array, outer_keys_list))
-        items_list = np.array(map(np.array, items_list))
-    outerkey2_innerkey2_items = utool.ddict(dict)
-    _iter =  zip(inner_key_list, outer_keys_list, items_list)
-    for inner_key, outer_keys, items in _iter:
-        group_outerkeys, groupxs = group_indices(outer_keys)
-        subitem_iter = (items.take(xs, axis=0) for xs in groupxs)
-        for outer_key, subitems in zip(group_outerkeys, subitem_iter):
-            outerkey2_innerkey2_items[outer_key][inner_key] = subitems
-    return outerkey2_innerkey2_items
-    #daid2_wx2_drvecs = utool.ddict(lambda: utool.ddict(list))
-    #for wx, aids, rvecs in zip(wx_sublist, aids_list, rvecs_list1):
-    #    group_aids, groupxs = clustertool.group_indices(aids)
-    #    rvecs_group = clustertool.apply_grouping(rvecs, groupxs)
-    #    for aid, subrvecs in zip(group_aids, rvecs_group):
-    #        daid2_wx2_drvecs[aid][wx] = subrvecs
-
-
-def sparse_normalize_rows(csr_mat):
-    pass
-    #return sklearn.preprocessing.normalize(csr_mat, norm='l2', axis=1, copy=False)
-
-
-def sparse_multiply_rows(csr_mat, vec):
-    """ Row-wise multiplication of a sparse matrix by a sparse vector """
-    csr_vec = spsparse.csr_matrix(vec, copy=False)
-    #csr_vec.shape = (1, csr_vec.size)
-    sparse_stack = [row.multiply(csr_vec) for row in csr_mat]
-    return spsparse.vstack(sparse_stack, format='csr')
-
-
 # ---------------
 # Plotting Code
 # ---------------
+
 
 def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
                    labels='centroids', fnum=1, prefix=''):
@@ -933,12 +461,6 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     to the <num_pca_dims> principal components
     """
     # http://www.janeriksolem.net/2012/03/isomap-with-scikit-learn.html
-    if __debug__ and False:
-        utool.printex(Exception('INFO'), keys=[
-            (type, 'data'),
-            'data',
-            'data.shape',
-        ])
     from plottool import draw_func2 as df2
     data_dims = data.shape[1]
     show_dims = min(num_pca_dims, data_dims)
@@ -964,14 +486,14 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_y = pca_centroids[:, 1]
     nCentroids = K = len(centroids)
     if labels == 'centroids':
-        datax2_label = approximate_assignments(centroids, data, 1, {})
+        (datax2_label, dists) = _FLANN_CLS().nn(centroids, data, 1)
     else:
         datax2_label = labels
     datax2_label = np.array(datax2_label, dtype=np.int32)
     print(datax2_label)
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     #if datax2_centroids is None:
-    #    (datax2_centroidx, _) = p yflann.FLANN().nn(centroids, data, 1)
+    #    (datax2_centroidx, _) = p _FLANN_CLS().nn(centroids, data, 1)
     #data_colors = colors[np.array(datax2_centroidx, dtype=np.int32)]
     nColors = datax2_label.max() - datax2_label.min() + 1
     print('nColors=%r' % (nColors,))
@@ -979,15 +501,6 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     colors = np.array(df2.distinct_colors(nColors, brightness=.95))
     clus_colors = np.array(df2.distinct_colors(nCentroids, brightness=.95))
     assert labels != 'centroids' or nColors == K
-    if __debug__ and False:
-        utool.printex(Exception('INFO'), keys=[
-            'colors',
-            (utool.get_stats, 'colors'),
-            'colors.shape',
-            'datax2_label',
-            (utool.get_stats, 'datax2_label'),
-            'datax2_label.shape',
-        ])
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     data_colors = colors[datax2_label]
     # Create a figure
@@ -1012,7 +525,6 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
         ax.set_aspect('equal')
         df2.dark_background(ax)
         #ax.set_alpha(.1)
-        #utool.embed()
         #ax.set_frame_on(False)
     ax = df2.plt.gca()
     waswhitestr = ' +whitening' * whiten
@@ -1046,6 +558,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
+        >>> import utool as ut
         >>> num = 100
         >>> ndim = 3
         >>> pts = uniform_sampe_hypersphere(num, ndim)
@@ -1087,6 +600,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
 
         >>> # synthetic data
         >>> import vtool as vt
+        >>> import utool as ut
         >>> size = 100
         >>> thresh = 50
         >>> np.random.randint(0, 1)
@@ -1115,7 +629,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> cost_matrix = 2 * (cost_matrix - .5)
         >>> thresh = 0
         >>> labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
-        >>> diff = ut.compare_groupings(
+        >>> diff = ut.find_group_differences(
         >>>     list(ut.group_items(aids, encounter_lbls).values()),
         >>>     list(ut.group_items(aids, labels).values()))
         >>> print('diff = %r' % (diff,))
@@ -1130,8 +644,9 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> from vtool.clustering2 import *  # NOQA
         >>> import networkx as nx
         >>> import plottool as pt
+        >>> import utool as ut
         >>> rng = np.random.RandomState(443284320)
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> #
         >>> def make_test_costmatrix(name_labels, view_labels, separation=2):
         >>>     is_same = name_labels == name_labels[:, None]
@@ -1166,28 +681,28 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> graph = ut.nx_from_matrix(cost_matrix)
         >>> weights = nx.get_edge_attributes(graph, 'weight')
         >>> #
-        >>> floatfmt1 = ut.partial(ut.map_dict_vals, lambda x: 'w=%.2f' % x)
-        >>> floatfmt2 = ut.partial(ut.map_dict_vals, lambda x: 'l=%.2f' % x)
+        >>> floatfmt1 = ut.partial(ub.map_vals, lambda x: 'w=%.2f' % x)
+        >>> floatfmt2 = ut.partial(ub.map_vals, lambda x: 'l=%.2f' % x)
         >>> #
-        >>> lens = ut.map_dict_vals(lambda x: (1 - ((x + 1) / 2)) / 2, weights)
+        >>> lens = ub.map_vals(lambda x: (1 - ((x + 1) / 2)) / 2, weights)
         >>> labels = floatfmt1(weights)
         >>> #labels = floatfmt2(lens)
-        >>> nx.set_edge_attributes(graph, 'label', labels)
-        >>> #nx.set_edge_attributes(graph, 'len', lens)
-        >>> nx.set_node_attributes(graph, 'shape', 'ellipse')
+        >>> nx.set_edge_attributes(graph, name='label', values=labels)
+        >>> #nx.set_edge_attributes(graph, name='len', values=lens)
+        >>> nx.set_node_attributes(graph, name='shape', values='ellipse')
         >>> encounter_lbls_str = [str(x) for x in name_labels]
         >>> node_name_lbls = dict(zip(aids, encounter_lbls_str))
         >>> import vtool as vt
         >>> #
         >>> mcut_labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh=vt.eps)
-        >>> diff = ut.compare_groupings(
+        >>> diff = ut.find_group_differences(
         >>>     list(ut.group_items(aids, name_labels).values()),
         >>>     list(ut.group_items(aids, mcut_labels).values()))
         >>> print('diff = %r' % (diff,))
         >>> #
-        >>> nx.set_node_attributes(graph, 'label', node_name_lbls)
+        >>> nx.set_node_attributes(graph, name='label', values=node_name_lbls)
         >>> node_mcut_lbls = dict(zip(aids, mcut_labels))
-        >>> nx.set_node_attributes(graph, 'mcut_label', node_mcut_lbls)
+        >>> nx.set_node_attributes(graph, name='mcut_label', values=node_mcut_lbls)
         >>> #
         >>> print('mc_val(name) ' + str(multicut_value(cost_matrix, name_labels)))
         >>> print('mc_val(mcut) ' + str(multicut_value(cost_matrix, mcut_labels)))
@@ -1227,7 +742,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
     # Create nodes in the graphical model.  In this case there are <num_vars>
     # nodes and each node can be assigned to one of <num_vars> possible labels
     num_nodes = num_vars
-    space = np.full((num_nodes,), fill_value=num_vars, dtype=np.int)
+    space = np.full((num_nodes,), fill_value=num_vars, dtype=opengm.index_type)
     gm = opengm.gm(space)
 
     # Use one potts function for each edge
@@ -1238,7 +753,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         var_indicies = np.array([varx1, varx2])
         gm.addFactor(potts_func_id, var_indicies)
 
-    #pt.ensure_pylab_qt4()
+    #pt.ensureqt()
     #opengm.visualizeGm(gm=gm)
 
     # Not sure what parameters are allowed to be passed here.
@@ -1328,11 +843,8 @@ def example_binary():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.clustering2
-        python -m vtool.clustering2 --allexamples
-        python -m vtool.clustering2 --allexamples --noface --nosrc
+        python ~/code/vtool/vtool/clustering2.py all
+        python -m vtool.clustering2 all
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

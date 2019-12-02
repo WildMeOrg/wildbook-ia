@@ -1,9 +1,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
-# Science
 import numpy as np
 import numpy.linalg as npl
-# VTool
 from vtool import linalg as ltool
 from vtool import image as gtool
 import utool as ut
@@ -13,10 +11,9 @@ except ImportError as ex:
     print('ERROR: import cv2 is failing!')
     cv2 = ut.DynStruct()
     cv2.INTER_LANCZOS4 = None
-(print, rrr, profile) = ut.inject2(__name__, '[chip]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
-@profile
 def get_image_to_chip_transform(bbox, chipsz, theta):
     """
     transforms image space into chipspace
@@ -88,7 +85,6 @@ def get_image_to_chip_transform(bbox, chipsz, theta):
     return C
 
 
-@profile
 def _get_chip_to_image_transform(bbox, chipsz, theta):
     """ transforms chip space into imgspace
         bbox   - bounding box of chip in image space
@@ -100,7 +96,6 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
     return invC
 
 
-@profile
 def extract_chip_from_gpath(gfpath, bbox, theta, new_size, interpolation=cv2.INTER_LANCZOS4):
     imgBGR = gtool.imread(gfpath)  # Read parent image
     chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation)
@@ -121,7 +116,6 @@ def extract_chip_from_gpath_into_square(args):
     return extract_chip_into_square(imgBGR, bbox, theta, target_size)
 
 
-@profile
 def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER_LANCZOS4):
     """ Crops chip from image ; Rotates and scales;
 
@@ -196,7 +190,7 @@ def gridsearch_chipextract():
         old_size = bbox[2:4]
         #target_area = 700 ** 2
         target_area = 1200 ** 2
-        new_size = get_scaled_sizes_with_area(target_area, [old_size])[0]
+        new_size = ScaleStrat.area(target_area, old_size)
         print('old_size = %r' % (old_size,))
         print('new_size = %r' % (new_size,))
         #new_size = (677, 369)
@@ -234,85 +228,90 @@ def gridsearch_chipextract():
     pt.iup()
 
 
-def get_scaled_size_with_width(target_width, w, h, tol=0):
+class ScaleStrat(object):
     """
-    returns new_size which scales (w, h) as close to target_width as possible
-    and maintains aspect ratio
+    Scaling strategies
+    """
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.chip import *  # NOQA
-        >>> target_width = 128
-        >>> w, h = 600, 400
-        >>> new_size = get_scaled_size_with_width(target_width, w, h)
-        >>> result1 = str(new_size)
-        >>> wh_list = [(10, 10), (100, 100), (150, 150), (125, 125), (175, 175), (200, 200)]
-        >>> tol = 32
-        >>> result2 = [get_scaled_size_with_width(target_width, wh[0], wh[1], tol)
-        >>>            for wh in wh_list]
-        >>> result = str(result1) + '\n' + str(result2)
-        >>> print(result)
-        (128, 85)
-        [(96, 96), (100, 100), (150, 150), (125, 125), (160, 160), (160, 160)]
-    """
-    target_low = target_width - tol
-    target_high = target_width + tol
-    if tol > 0 and w > target_low and w  < target_high:
-        new_size = (w, h)
-    else:
-        if w < target_low:
-            target = target_low
+    @staticmethod
+    def maxwh(target, orig_wh, tol=0):
+        r"""
+        The maximum dimension becomes target
+
+        Args:
+            target (int): target size
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> ut.assert_eq(ScaleStrat.maxwh(800, (190, 220)), (691, 800))
+            >>> ut.assert_eq(ScaleStrat.maxwh(800, (220, 190)), (800, 691))
+        """
+        max_idx = np.argmax(orig_wh)
+        orig_dim_size = orig_wh[max_idx]
+        low, high = (target - tol, target + tol)
+        if low <= orig_dim_size and orig_dim_size <= high:
+            new_size = orig_wh
         else:
-            target = target_high
-        wt = target
-        sf = wt / w
-        ht = sf * h
-        new_size = (int(round(wt)), int(round(ht)))
-    return new_size
+            scale_factor = target / orig_dim_size
+            wt = int(round(orig_wh[0] * scale_factor))
+            ht = int(round(orig_wh[1] * scale_factor))
+            new_size = (wt, ht)
+        return new_size
 
+    @staticmethod
+    def width(target, orig_wh, tol=0):
+        r"""
+        The width becomes target
 
-def get_scaled_size_with_area(target_area, w, h, tol=0):
-    """
-    returns new_size which scales (w, h) as close to target_area as possible and
-    maintains aspect ratio
+        Args:
+            target (int): target size
 
-    Ignore:
-        np.array(result2).prod(axis=1)
-        np.array(wh_list).prod(axis=1)
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.chip import *  # NOQA
-        >>> target_area = 128 ** 2
-        >>> w, h = 600, 400
-        >>> new_size = get_scaled_size_with_area(target_area, w, h)
-        >>> result1 = str(new_size)
-        >>> wh_list = [(10, 10), (100, 100), (150, 150), (125, 125), (175, 175), (200, 200)]
-        >>> tol = 32 ** 2
-        >>> result2 = [get_scaled_size_with_area(target_area, wh[0], wh[1], tol)
-        >>>            for wh in wh_list]
-        >>> result = str(result1) + '\n' + str(result2)
-        >>> print(result)
-        (980, 653)
-    """
-    target_low = target_area - tol
-    target_high = target_area + tol
-    area = w * h
-    if tol > 0 and area > target_low and area  < target_high:
-        new_size = (w, h)
-    else:
-        if area < target_low:
-            target = target_low
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> ut.assert_eq(ScaleStrat.width(800, (190, 220)), (800, 926))
+            >>> ut.assert_eq(ScaleStrat.width(800, (220, 190)), (800, 691))
+        """
+        orig_dim_size = orig_wh[0]
+        low, high = (target - tol, target + tol)
+        if low <= orig_dim_size and orig_dim_size <= high:
+            new_size = orig_wh
         else:
-            target = target_high
-        ht = np.sqrt(target * h / w)
-        wt = w * ht / h
-        new_size = (int(round(wt)), int(round(ht)))
-    return new_size
+            scale_factor = target / orig_dim_size
+            wt = int(round(orig_wh[0] * scale_factor))
+            ht = int(round(orig_wh[1] * scale_factor))
+            new_size = (wt, ht)
+        return new_size
+
+    @staticmethod
+    def area(target, orig_wh, tol=0):
+        r"""
+        The area becomes target
+
+        Args:
+            target (int): target size
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> ut.assert_eq(ScaleStrat.area(800 ** 2, (190, 220)), (743, 861))
+            >>> ut.assert_eq(ScaleStrat.area(800 ** 2, (220, 190)), (861, 743))
+        """
+        w, h = orig_wh
+        area = w * h
+        low, high = (target - tol, target + tol)
+        if low <= area and area <= high:
+            new_size = orig_wh
+        else:
+            ht = np.sqrt(target * h / w)
+            wt = w * ht / h
+            new_size = (int(round(wt)), int(round(ht)))
+        return new_size
 
 
 def get_scaled_size_with_dlen(target_dlen, w, h):
-    """
+    r"""
     returns new_size which scales (w, h) as close to target_dlen as possible
     and maintains aspect ratio
     """
@@ -323,14 +322,11 @@ def get_scaled_size_with_dlen(target_dlen, w, h):
     #return new_size
 
 
-def get_scaled_sizes_with_area(target_area, size_list):
-    return [get_scaled_size_with_area(target_area, w, h) for (w, h) in size_list]
-
-
-#@profile
 def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
                  interpolation=cv2.INTER_LANCZOS4):
-    """ Extracts a chip and applies filters
+    r""" Extracts a chip and applies filters
+
+    DEPRICATE
 
     Args:
         gfpath (str):  image file path string
@@ -354,7 +350,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
         >>> TAU = 2 * np.pi
         >>> theta = TAU / 8
         >>> new_size = (32, 32)
-        >>> filter_list = []  # gfilt_tool.adapteq_fn]
+        >>> filter_list = []
         >>> # execute function
         >>> chipBGR = compute_chip(gfpath, bbox, theta, new_size, filter_list)
         >>> # verify results
@@ -372,7 +368,11 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
 
 
 def apply_filter_funcs(chipBGR, filter_funcs):
-    """ applies a list of preprocessing filters to a chip """
+    """ applies a list of preprocessing filters to a chip
+
+    DEPRICATE
+
+    """
     chipBGR_ = chipBGR
     for func in filter_funcs:
         chipBGR_ = func(chipBGR)
@@ -398,7 +398,7 @@ def get_extramargin_measures(bbox_gs, new_size, halfoffset_ms=(64, 64)):
         >>> gfpath = ut.grab_test_imgpath('carl.jpg')
         >>> bbox_gs = [40, 40, 150, 150]
         >>> theta = .15 * (np.pi * 2)
-        >>> new_size = get_scaled_size_with_width(150, *bbox_gs[2:4])
+        >>> new_size = (150, 150)
         >>> halfoffset_ms = (32, 32)
         >>> mbbox_gs, margin_size = get_extramargin_measures(bbox_gs, new_size, halfoffset_ms)
         >>> ut.quit_if_noshow()
@@ -465,11 +465,10 @@ def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, m
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m vtool.chip
         python -m vtool.chip --allexamples
-        python -m vtool.chip --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

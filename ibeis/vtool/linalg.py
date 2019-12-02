@@ -1,36 +1,36 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 TODO: Look at this file
     http://www.lfd.uci.edu/~gohlke/code/transformations.py.html
 
-Sympy:
-    >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-    >>> import vtool as vt
-    >>> import sympy
-    >>> from sympy.abc import theta
-    >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
-    >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
-    >>> vt.evalprint('R')
-    >>> #evalprint('R.inv()')
-    >>> vt.evalprint('sympy.simplify(R.inv())')
-    >>> #evalprint('sympy.simplify(R.inv().subs(theta, 4))')
-    >>> #print('-------')
-    >>> #invR = sympy_mat(vt.rotation_mat3x3(-theta, sin=sympy.sin, cos=sympy.cos))
-    >>> #evalprint('invR')
-    >>> #evalprint('invR.inv()')
-    >>> #evalprint('sympy.simplify(invR)')
-    >>> #evalprint('sympy.simplify(invR.subs(theta, 4))')
-    >>> print('-------')
-    >>> T = vt.sympy_mat(vt.translation_mat3x3(x, y, None))
-    >>> vt.evalprint('T')
-    >>> vt.evalprint('T.inv()')
-    >>> print('-------')
-    >>> S = vt.sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
-    >>> vt.evalprint('S')
-    >>> vt.evalprint('S.inv()')
-    >>> print('-------')
-    >>> print('LaTeX')
-    >>> print(ut.align('\\\\\n'.join(sympy.latex(R).split(r'\\')).replace('{matrix}', '{matrix}\n'), '&')
+# Sympy:
+#     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+#     >>> import vtool as vt
+#     >>> import sympy
+#     >>> from sympy.abc import theta
+#     >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
+#     >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
+#     >>> vt.evalprint('R')
+#     >>> #evalprint('R.inv()')
+#     >>> vt.evalprint('sympy.simplify(R.inv())')
+#     >>> #evalprint('sympy.simplify(R.inv().subs(theta, 4))')
+#     >>> #print('-------')
+#     >>> #invR = sympy_mat(vt.rotation_mat3x3(-theta, sin=sympy.sin, cos=sympy.cos))
+#     >>> #evalprint('invR')
+#     >>> #evalprint('invR.inv()')
+#     >>> #evalprint('sympy.simplify(invR)')
+#     >>> #evalprint('sympy.simplify(invR.subs(theta, 4))')
+#     >>> print('-------')
+#     >>> T = vt.sympy_mat(vt.translation_mat3x3(x, y, None))
+#     >>> vt.evalprint('T')
+#     >>> vt.evalprint('T.inv()')
+#     >>> print('-------')
+#     >>> S = vt.sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
+#     >>> vt.evalprint('S')
+#     >>> vt.evalprint('S.inv()')
+#     >>> print('-------')
+#     >>> print('LaTeX')
+#     >>> print(ut.align('\\\\\n'.join(sympy.latex(R).split(r'\\')).replace('{matrix}', '{matrix}\n'), '&')
 
 """
 from __future__ import absolute_import, division, print_function
@@ -41,21 +41,12 @@ try:
     import cv2
 except ImportError as ex:
     print('WARNING: import cv2 is failing!')
-#import six
-#import functools
 import numpy as np
 import numpy.linalg as npl
 import utool as ut
 import warnings  # NOQA
-
-#profile = ut.profile
 (print, rrr, profile) = ut.inject2(__name__, '[linalg]')
 
-'''
-#if CYTH
-cdef np.float64_t TAU = 2 * np.pi
-#endif
-'''
 TAU = 2 * np.pi  # References: tauday.com
 
 TRANSFORM_DTYPE = np.float64
@@ -98,25 +89,6 @@ def svd(M):
     return U, s, Vt
 
 
-def OLD_pdf_norm2d(x_, y_):
-    """  DEPRICATED """
-    import math
-    x = np.array([x_, y_])
-    sigma = np.eye(2)
-    mu = np.array([0, 0])
-    size = len(x)
-    if size == len(mu) and (size, size) == sigma.shape:
-        det = np.linalg.det(sigma)
-        if det == 0:
-            raise NameError('The covariance matrix cant be singular')
-    TAU = 2 * np.pi
-    norm_const = 1.0 / ( math.pow(TAU, float(size) / 2) * math.pow(det, 1.0 / 2))
-    x_mu = np.matrix(x - mu)
-    inv = np.linalg.inv(sigma)
-    result = math.pow(math.e, -0.5 * (x_mu * inv * x_mu.T))
-    return norm_const * result
-
-
 def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     """
     Input: x and y coordinate of a 2D gaussian
@@ -152,7 +124,7 @@ def rotation_mat3x3(radians, sin=np.sin, cos=np.cos):
     References:
         https://en.wikipedia.org/wiki/Rotation_matrix
     """
-    # TODO: handle array impouts
+    # TODO: handle array inputs
     sin_ = sin(radians)
     cos_ = cos(radians)
     R = np.array(((cos_, -sin_,  0),
@@ -170,18 +142,23 @@ def rotation_mat2x2(theta):
 
 
 def transform_around(M, x, y):
+    """ translates to origin, applies transform and then translates back """
     tr1_ = translation_mat3x3(-x, -y)
     tr2_ = translation_mat3x3(x, y)
     M_ = tr2_.dot(M).dot(tr1_)
     return M_
 
 
-def rotation_around_mat3x3(theta, x, y):
+def rotation_around_mat3x3(theta, x0, y0, x1=None, y1=None):
+    if x1 is None:
+        x1 = x0
+    if y1 is None:
+        y1 = y0
     # rot = rotation_mat3x3(theta)
     # return transform_around(rot, x, y)
-    tr1_ = translation_mat3x3(-x, -y)
+    tr1_ = translation_mat3x3(-x0, -y0)
     rot_ = rotation_mat3x3(theta)
-    tr2_ = translation_mat3x3(x, y)
+    tr2_ = translation_mat3x3(x1, y1)
     rot = tr2_.dot(rot_).dot(tr1_)
     return rot
 
@@ -191,11 +168,18 @@ def scale_around_mat3x3(sx, sy, x, y):
     return transform_around(scale_, x, y)
 
 
-def rotation_around_bbox_mat3x3(theta, bbox):
-    x, y, w, h = bbox
-    centerx = x + (w / 2)
-    centery = y + (h / 2)
-    return rotation_around_mat3x3(theta, centerx, centery)
+def rotation_around_bbox_mat3x3(theta, bbox0, bbox1=None):
+    x, y, w, h = bbox0
+    centerx0 = x + (w / 2)
+    centery0 = y + (h / 2)
+    if bbox1 is None:
+        centerx1 = None
+        centery1 = None
+    else:
+        x, y, w, h = bbox1
+        centerx1 = x + (w / 2)
+        centery1 = y + (h / 2)
+    return rotation_around_mat3x3(theta, centerx0, centery0, x1=centerx1, y1=centery1)
 
 
 def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
@@ -220,18 +204,23 @@ def shear_mat3x3(shear_x, shear_y, dtype=TRANSFORM_DTYPE):
     return shear
 
 
-def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
-    """
+def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0, trig=np):
+    r"""
     Args:
-        shear is angle in counterclockwise direction
+        sx (float): x scale factor (default = 1)
+        sy (float): y scale factor (default = 1)
+        theta (float): rotation angle (radians) in counterclockwise direction
+        shear (float): shear angle (radians) in counterclockwise directions
+        tx (float): x-translation (default = 0)
+        ty (float): y-translation (default = 0)
 
     References:
         https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
     """
-    sin1_ = np.sin(theta)
-    cos1_ = np.cos(theta)
-    sin2_ = np.sin(theta + shear)
-    cos2_ = np.cos(theta + shear)
+    sin1_ = trig.sin(theta)
+    cos1_ = trig.cos(theta)
+    sin2_ = trig.sin(theta + shear)
+    cos2_ = trig.cos(theta + shear)
     Aff = np.array([
         [sx * cos1_, -sy * sin2_, tx],
         [sx * sin1_,  sy * cos2_, ty],
@@ -240,56 +229,103 @@ def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
     return Aff
 
 
-def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
-    # move to center location
-    tr1_ = translation_mat3x3(-x, -y)
-    # apply affine transform
-    Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
-    # move to original location
-    tr2_ = translation_mat3x3(x, y)
-    # combine transformations
-    Aff = tr2_.dot(Aff_).dot(tr1_)
+def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
+                         ty=0.0, x2=None, y2=None):
+    r"""
+    Executes an affine transform around center point (x, y).
+    Equivalent to translation.dot(affine).dot(inv(translation))
+
+    Args:
+        x (float): center x location in input space
+        y (float):  center y location in input space
+        sx (float): x scale factor (default = 1)
+        sy (float): y scale factor (default = 1)
+        theta (float): counter-clockwise rotation angle in radians(default = 0)
+        shear (float): counter-clockwise shear angle in radians(default = 0)
+        tx (float): x-translation (default = 0)
+        ty (float): y-translation (default = 0)
+        x2 (float, optional): center y location in output space (default = x)
+        y2 (float, optional): center y location in output space (default = y)
+
+    CommandLine:
+        python -m vtool.linalg affine_around_mat3x3 --show
+
+    Example:
+        >>> from vtool.linalg import *  # NOQA
+        >>> import vtool as vt
+        >>> orig_pts = np.array(vt.verts_from_bbox([10, 10, 20, 20]))
+        >>> x, y = vt.bbox_center(vt.bbox_from_verts(orig_pts))
+        >>> sx, sy = 0.5, 1.0
+        >>> theta = 1 * np.pi / 4
+        >>> shear = .1 * np.pi / 4
+        >>> tx, ty = 5, 0
+        >>> x2, y2 = None, None
+        >>> Aff = affine_around_mat3x3(x, y, sx, sy, theta, shear,
+        >>>                            tx, ty, x2, y2)
+        >>> trans_pts = vt.transform_points_with_homography(Aff, orig_pts.T).T
+        >>> import plottool as pt
+        >>> pt.ensureqt()
+        >>> pt.plt.plot(x, y, 'bx', label='center')
+        >>> pt.plt.plot(orig_pts.T[0], orig_pts.T[1], 'b-', label='original')
+        >>> pt.plt.plot(trans_pts.T[0], trans_pts.T[1], 'r-', label='transformed')
+        >>> pt.plt.legend()
+        >>> pt.plt.title('Demo of affine_around_mat3x3')
+        >>> pt.plt.axis('equal')
+        >>> pt.plt.xlim(0, 40)
+        >>> pt.plt.ylim(0, 40)
+        >>> ut.show_if_requested()
+
+    Timeit:
+        >>> from vtool.linalg import *  # NOQA
+        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = (
+        >>>     256.0, 256.0, 1.5, 1.0, 0.78, 0.2, 0, 100, 500.0, 500.0)
+        >>> for timer in ut.Timerit(1000, 'old'):  # 19.0697 µs
+        >>>     with timer:
+        >>>         tr1_ = translation_mat3x3(-x, -y)
+        >>>         Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
+        >>>         tr2_ = translation_mat3x3(x2, y2)
+        >>>         Aff1 = tr2_.dot(Aff_).dot(tr1_)
+        >>> for timer in ut.Timerit(1000, 'new'):  # 11.0242 µs
+        >>>     with timer:
+        >>>         Aff2 = affine_around_mat3x3(x, y, sx, sy, theta, shear,
+        >>>                                     tx, ty, x2, y2)
+        >>> assert np.all(np.isclose(Aff2, Aff1))
+
+    Sympy:
+        >>> from vtool.linalg import *  # NOQA
+        >>> import vtool as vt
+        >>> import sympy
+        >>> # Shows the symbolic construction of the code
+        >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+        >>> from sympy.abc import theta
+        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = sympy.symbols(
+        >>>     'x, y, sx, sy, theta, shear, tx, ty, x2, y2')
+        >>> theta = sx = sy = tx = ty = 0
+        >>> # move to center xy, apply affine transform, move center xy2
+        >>> tr1_ = translation_mat3x3(-x, -y, dtype=None)
+        >>> Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty, trig=sympy)
+        >>> tr2_ = translation_mat3x3(x2, y2, dtype=None)
+        >>> # combine transformations
+        >>> Aff = vt.sympy_mat(tr2_.dot(Aff_).dot(tr1_))
+        >>> vt.evalprint('Aff')
+        >>> print('-------')
+        >>> print('Numpy')
+        >>> vt.sympy_numpy_repr(Aff)
+    """
+    x2 = x if x2 is None else x2
+    y2 = y if y2 is None else y2
+    # Make auxially varables to reduce the number of sin/cosine calls
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+    cos_shear_p_theta = np.cos(shear + theta)
+    sin_shear_p_theta = np.sin(shear + theta)
+    tx_ = -sx * x * cos_theta + sy * y * sin_shear_p_theta + tx + x2
+    ty_ = -sx * x * sin_theta - sy * y * cos_shear_p_theta + ty + y2
+    # Sympy compiled expression
+    Aff = np.array([[sx * cos_theta, -sy * sin_shear_p_theta, tx_],
+                    [sx * sin_theta,  sy * cos_shear_p_theta, ty_],
+                    [             0,                       0, 1]])
     return Aff
-
-
-#@ut.on_exception_report_input(force=True)
-#def scaleedoffset_mat3x3(offset, scale_factor):
-#    r"""
-#    Args:
-#        offset (tuple):
-#        scale_factor (scalar or tuple):
-#
-#    Returns:
-#        ndarray[ndims=2]: M
-#
-#    CommandLine:
-#        python -m vtool.linalg --test-scaleedoffset_mat3x3
-#
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from vtool.linalg import *  # NOQA
-#        >>> # build test data
-#        >>> offset = (11, 13)
-#        >>> scale_factor = (.3, .5)
-#        >>> # execute function
-#        >>> M = scaleedoffset_mat3x3(offset, scale_factor)
-#        >>> # verify results
-#        >>> result = ut.numpy_str(M, precision=2)
-#        >>> print(result)
-#        np.array([[  0.3,   0. ,  11. ],
-#                  [  0. ,   0.5,  13. ],
-#                  [  0. ,   0. ,   1. ]], dtype=np.float64)
-#    """
-#    try:
-#        sfx, sfy = scale_factor
-#    except TypeError:
-#        sfx = sfy = scale_factor
-#    #with ut.embed_on_exception_context:
-#    tx, ty = offset
-#    T = translation_mat3x3(tx, ty)
-#    S = scale_mat3x3(sfx, sfy)
-#    M = T.dot(S)
-#    return M
 
 
 # Ensure that a feature doesn't have multiple assignments
@@ -297,32 +333,20 @@ def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
 # Linear algebra functions on lower triangular matrices
 
 
-#PYX DEFINE
 def det_ltri(ltri):
-    #cdef det_ltri(FLOAT_2D ltri):
     """ Lower triangular determinant """
-    #PYX CDEF FLOAT_1D det
     det = ltri[0] * ltri[2]
     return det
 
 
-#PYX DEFINE
 def inv_ltri(ltri, det):
-    #cdef inv_ltri(FLOAT_2D ltri, FLOAT_1D det):
     """ Lower triangular inverse """
-    # PYX CDEF FLOAT_2D inv_ltri
     inv_ltri = np.array((ltri[2], -ltri[1], ltri[0]), dtype=ltri.dtype) / det
     return inv_ltri
 
 
-#PYX BEGIN
 def dot_ltri(ltri1, ltri2):
     """ Lower triangular dot product """
-    #cdef dot_ltri(FLOAT_2D ltri1, FLOAT_2D ltri2):
-    # PYX FLOAT_1D m11, m21, m22
-    # PYX FLOAT_1D n11, n21, n22
-    # PYX FLOAT_1D o11, o21, o22
-    # PYX FLOAT_2D ltri3
     # use m, n, and o as temporary matrixes
     m11, m21, m22 = ltri1
     n11, n21, n22 = ltri2
@@ -331,7 +355,6 @@ def dot_ltri(ltri1, ltri2):
     o22 = (m22 * n22)
     ltri3 = np.array((o11, o21, o22), dtype=ltri1.dtype)
     return ltri3
-# PYX END CDEF
 
 
 def whiten_xy_points(xy_m):
@@ -345,20 +368,9 @@ def whiten_xy_points(xy_m):
         >>> xy_m = dummy.get_dummy_xy()
         >>> tup = whiten_xy_points(xy_m)
         >>> xy_norm, T = tup
-        >>> result = (ut.hashstr(tup))
+        >>> result = (ut.hash_data(tup))
         >>> print(result)
-        wg%mpai0hxvil4p2
-
-    #CYTH_INLINE
-    #if CYTH
-    cdef:
-        np.ndarray[np.float64_t, ndim=2] xy_m
-        np.ndarray[np.float64_t, ndim=1] mu_xy
-        np.ndarray[np.float64_t, ndim=1] std_xy
-        np.ndarray[np.float64_t, ndim=2] T
-        np.float64_t tx, ty, sx, sy
-        np.ndarray[np.float64_t, ndim=2] xy_norm
-    #endif
+        ripouamvkahpcjfrcuuylqfrswgvageg
     """
     mu_xy  = xy_m.mean(1)  # center of mass
     std_xy = xy_m.std(1)
@@ -387,7 +399,7 @@ def add_homogenous_coordinate(_xys):
         >>> _xyzs = add_homogenous_coordinate(_xys)
         >>> # verify results
         >>> assert np.all(_xys == remove_homogenous_coordinate(_xyzs))
-        >>> result = ut.numpy_str(_xyzs)
+        >>> result = ut.repr2(_xyzs, with_dtype=True)
         >>> print(result)
         np.array([[ 2.,  0.,  0.,  2.],
                   [ 2.,  2.,  0.,  0.],
@@ -400,7 +412,7 @@ def add_homogenous_coordinate(_xys):
 
 
 def remove_homogenous_coordinate(_xyzs):
-    """
+    r"""
     normalizes 3d homogonous coordinates into 2d coordinates
 
     Args:
@@ -415,14 +427,11 @@ def remove_homogenous_coordinate(_xyzs):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
         >>> _xyzs = np.array([[ 2.,   0.,  0.,  2.],
         ...                   [ 2.,   2.,  0.,  0.],
         ...                   [ 1.2,  1.,  1.,  2.]], dtype=np.float32)
-        >>> # execute function
         >>> _xys = remove_homogenous_coordinate(_xyzs)
-        >>> # verify results
-        >>> result = ut.numpy_str(_xys, precision=3)
+        >>> result = ut.repr2(_xys, precision=3, with_dtype=True)
         >>> print(result)
         np.array([[ 1.667,  0.   ,  0.   ,  1.   ],
                   [ 1.667,  2.   ,  0.   ,  0.   ]], dtype=np.float32)
@@ -430,17 +439,14 @@ def remove_homogenous_coordinate(_xyzs):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
         >>> _xyzs = np.array([[ 140.,  167.,  185.,  185.,  194.],
         ...                   [ 121.,  139.,  156.,  155.,  163.],
         ...                   [  47.,   56.,   62.,   62.,   65.]])
-        >>> # execute function
         >>> _xys = remove_homogenous_coordinate(_xyzs)
-        >>> # verify results
-        >>> result = np.array_repr(_xys, precision=3)
+        >>> result = ut.repr2(_xys, precision=3)
         >>> print(result)
-        array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
-               [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
+        np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
+                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
     """
     assert _xyzs.shape[0] == 3
     with warnings.catch_warnings():
@@ -453,7 +459,7 @@ def transform_points_with_homography(H, _xys):
     """
     Args:
         H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
-        _xys (ndarray[ndim=2]): (N x 2) array
+        _xys (ndarray[ndim=2]): (2 x N) array
     """
     xyz  = add_homogenous_coordinate(_xys)
     xyz_t = matrix_multiply(H, xyz)
@@ -461,51 +467,65 @@ def transform_points_with_homography(H, _xys):
     return xy_t
 
 
-def normalize_rows(arr1, out=None):  # , out=None):
-    """
-    from vtool.linalg import *
+def normalize_rows(arr, out=None):
+    """ DEPRICATE """
+    assert len(arr.shape) == 2
+    return normalize(arr, axis=1, out=out)
+
+
+def normalize(arr, ord=None, axis=None, out=None):
+    r"""
+    Returns all row vectors normalized by their magnitude.
 
     Args:
-        arr1 (ndarray): row vectors to normalize
+        arr (ndarray): row vectors to normalize
+        ord (int): type of norm to use (defaults to 2-norm)
+            {non-zero int, inf, -inf}
+        axis (int): axis to normalize
+        out (ndarray): preallocated output
 
-    Returns:
-        ndarray: arr1_normed
-
-    CommandLine:
-        python -m vtool.linalg --test-normalize_rows
+    SeeAlso:
+        np.linalg.norm
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> arr1 = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
-        >>> arr1_normed = normalize_rows(arr1)
-        >>> result = ut.hz_str('arr1_normed = ', ut.numpy_str(arr1_normed, precision=2))
-        >>> assert np.allclose((arr1_normed ** 2).sum(axis=1), [1, 1])
+        >>> arr = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
+        >>> arr_normed = normalize(arr, axis=1)
+        >>> result = ut.hz_str('arr_normed = ', ut.repr2(arr_normed, precision=2, with_dtype=True))
+        >>> assert np.allclose((arr_normed ** 2).sum(axis=1), [1, 1])
         >>> print(result)
-        arr1_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
-                                [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
+        arr_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
+                               [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> arr = np.array([ 0.6,  0.1, -0.6])
+        >>> arr_normed = normalize(arr)
+        >>> result = ut.hz_str('arr_normed = ', ut.repr2(arr_normed, precision=2))
+        >>> assert np.allclose((arr_normed ** 2).sum(), [1])
+        >>> print(result)
+
+    Example:
+        >>> from vtool.linalg import *  # NOQA
+        >>> ord_list = [0, 1, 2, np.inf, -np.inf]
+        >>> arr = np.array([ 0.6,  0.1, -0.5])
+        >>> normed = [(ord, normalize(arr, ord=ord)) for ord in ord_list]
+        >>> result = ut.repr4(normed, precision=2, with_dtype=True)
+        >>> print(result)
+        [
+            (0, np.array([ 0.2 ,  0.03, -0.17], dtype=np.float64)),
+            (1, np.array([ 0.5 ,  0.08, -0.42], dtype=np.float64)),
+            (2, np.array([ 0.76,  0.13, -0.64], dtype=np.float64)),
+            (inf, np.array([ 1.  ,  0.17, -0.83], dtype=np.float64)),
+            (-inf, np.array([ 6.,  1., -5.], dtype=np.float64)),
+        ]
+
     """
-    assert len(arr1.shape) == 2
-    norm_ = npl.norm(arr1, axis=1)
-    if out is None:
-        # Hack this shouldn't need to happen
-        arr1_normed = np.divide(arr1, norm_[:, None])
-    else:
-        arr1_normed = np.divide(arr1, norm_[:, None], out=out)
-    return arr1_normed
-
-
-#try:
-#    import cyth
-#    if cyth.DYNAMIC:
-#        exec(cyth.import_cyth_execstr(__name__))
-#    else:
-#        # <AUTOGEN_CYTH>
-#        # Regen command: python -c "import vtool.linalg" --cyth-write
-#        pass
-#        # </AUTOGEN_CYTH>
-#except Exception as ex:
-#    pass
+    norm_ = np.linalg.norm(arr, ord=ord, axis=axis, keepdims=True)
+    arr_normed = np.divide(arr, norm_, out=out)
+    return arr_normed
 
 
 def random_affine_args(zoom_pdf=None,
@@ -520,7 +540,6 @@ def random_affine_args(zoom_pdf=None,
                        txy_pdf=None,
                        rng=np.random):
     r"""
-
     TODO: allow for a pdf of ranges for each dimension
 
     If pdfs are tuples it is interpreted as a default (uniform) distribution between the
@@ -561,11 +580,12 @@ def random_affine_args(zoom_pdf=None,
         >>> print('affine_args = %s' % (ut.repr2(affine_args),))
         >>> (sx, sy, theta, shear, tx, ty) = affine_args
         >>> Aff = vt.affine_mat3x3(sx, sy, theta, shear, tx, ty)
-        >>> result = ut.numpy_str2(Aff)
+        >>> result = ut.repr2(Aff)
         >>> print(result)
-        np.array([[ 1.009, -0.   ,  1.695],
-                  [ 0.   ,  1.042,  2.584],
-                  [ 0.   ,  0.   ,  1.   ]])
+        np.array([[ 1.00934827, -0.        ,  1.6946192 ],
+                  [ 0.        ,  1.0418724 ,  2.58357645],
+                  [ 0.        ,  0.        ,  1.        ]])
+
     """
     if zoom_pdf is None:
         sx = sy = 1.0

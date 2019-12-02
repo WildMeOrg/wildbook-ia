@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import utool
 import vtool.spatial_verification as sver
@@ -98,7 +98,7 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
         aff_inliers = inliers_list[mx]
         if utool.get_argflag('--print-error'):
             errors = pack_errors(*errors_list[mx])  # NOQA
-            print(utool.dict_str(errors, strvals=True))
+            print(utool.repr2(errors, strvals=True))
 
         homog_inliers, homog_errors, H = sver.get_homography_inliers(kpts1,
                                                                      kpts2, fm,

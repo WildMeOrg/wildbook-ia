@@ -12,15 +12,12 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import ctypes as C
 import numpy as np
-#import vtool
 import vtool.keypoint as ktool
 import utool as ut
 from os.path import dirname, join, realpath
-
 # TODO: move to utool?
 from vtool.other import asserteq, compare_implementations  # NOQA
-
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[sver_c]')
+print, rrr, profile = ut.inject2(__name__)
 
 TAU = 2 * np.pi  # References: tauday.com
 c_double_p = C.POINTER(C.c_double)
@@ -95,7 +92,6 @@ if __name__ != '__main__':
                                        inliers_t(1), errs_t(2), mats_t(2)]
 
 
-@profile
 def get_affine_inliers_cpp(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
@@ -116,7 +112,6 @@ def get_affine_inliers_cpp(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh_sq
     return out_inliers, out_errors, out_mats
 
 
-@profile
 def get_best_affine_inliers_cpp(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
                                 scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
@@ -194,8 +189,8 @@ def test_sver_wrapper2():
 
         #print(sv_tup[0])
         #print(sv_tup[3])
-    print('unique cases affine inliers: ' + ut.list_str(list(set(inliers_list))))
-    print('unique cases homog inliers: ' + ut.list_str(list(set(homog_inliers_list))))
+    print('unique cases affine inliers: ' + ut.repr2(list(set(inliers_list))))
+    print('unique cases homog inliers: ' + ut.repr2(list(set(homog_inliers_list))))
 
 
 def test_sver_wrapper():
@@ -226,7 +221,7 @@ def test_sver_wrapper():
     scale_thresh_sqrd = ktool.KPTS_DTYPE(2.0)
     ori_thresh        = ktool.KPTS_DTYPE(TAU / 4.0)
     keys = 'xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh'.split(', ')
-    print(ut.dict_str(ut.dict_subset(locals(), keys)))
+    print(ut.repr2(ut.dict_subset(locals(), keys)))
 
     def report_errors():
         pass
@@ -250,7 +245,7 @@ def test_sver_wrapper():
     scales2 = vt.get_scales(kpts2.take(fm_input.T[1], axis=0))
     #fs_input = 1 / scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
     fs_input = scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
-    print('fs_input = ' + ut.numpy_str(fs_input))
+    print('fs_input = ' + ut.repr2(fs_input))
     #fs_input[0:-9] = 0
     #fs_input = np.ones(len(fm_input), dtype=fs_dtype)
     #ut.embed()

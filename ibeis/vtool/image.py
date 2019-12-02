@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 # LICENCE
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import exists, join
-from six.moves import zip, map, range
+import six
+import os
+from os.path import exists, join  # NOQA
+from os.path import splitext
+from six.moves import zip, map, range  # NOQA
 import numpy as np
 from PIL import Image
 try:
@@ -12,7 +15,7 @@ except ImportError as ex:
     cv2 = None
 from vtool import exif
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[img]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 TAU = np.pi * 2
@@ -27,12 +30,29 @@ if cv2 is not None:
         'lanczos': cv2.INTER_LANCZOS4
     }
 
+    CV2_BORDER_TYPES = {
+        'constant': cv2.BORDER_CONSTANT,
+        'replicate': cv2.BORDER_REPLICATE,
+        'reflect':    cv2.BORDER_REFLECT,
+        'wrap': cv2.BORDER_WRAP,
+        'reflect101': cv2.BORDER_REFLECT101,
+        'tranparent':   cv2.BORDER_TRANSPARENT,
+        'isolated':  cv2.BORDER_ISOLATED,
+    }
+
     CV2_WARP_KWARGS = {
         'flags': CV2_INTERPOLATION_TYPES['lanczos'],
         'borderMode': cv2.BORDER_CONSTANT
     }
 
-    IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
+    try:
+        IMREAD_COLOR = cv2.IMREAD_COLOR
+    except AttributeError:
+        from distutils.version import LooseVersion
+        cv2_version = LooseVersion(cv2.__version__)
+        print('UNKNOWN cv2_version = {!r}'.format(cv2_version))
+        assert cv2_version.version[0] <= 2
+        IMREAD_COLOR = cv2.CV_LOAD_IMAGE_COLOR
 else:
     # Hacks
     cv2 = ut.DynStruct()
@@ -63,38 +83,39 @@ EXIF_TAG_DATETIME = 'DateTimeOriginal'
 #cv2.IMREAD_GRAYSCALE
 #cv2.IMREAD_UNCHANGED
 
-
-def imread_remote_s3(img_fpath, **kwargs):
-    import utool as ut
-    # import numpy as np
-    # import cv2
-    import io
-    try:
-        s3_dict = ut.s3_str_decode_to_dict(img_fpath)
-        contents = ut.read_s3_contents(**s3_dict)
-        # btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
-        # imgBGR = cv2.imdecode(btyedata, -1)
-        with io.BytesIO(contents) as image_file:
-            with Image.open(image_file) as pil_img:
-                imgBGR = fix_orient_pil_img(pil_img, **kwargs)
-    except AttributeError:
-        pass
-    return imgBGR
+def _rectify_border_mode(border_mode, default=cv2.BORDER_CONSTANT):
+    """ Converts argument to cv2 style """
+    if border_mode is None:
+        return default
+    elif isinstance(border_mode, six.text_type):
+        return CV2_BORDER_TYPES[border_mode]
+    else:
+        return border_mode
 
 
-def imread_remote_url(img_fpath, **kwargs):
-    from six.moves import urllib
-    import io
-    addinfourl = urllib.request.urlopen(img_fpath)
-    try:
-        with io.BytesIO(addinfourl.read()) as image_file:
-            with Image.open(image_file) as pil_img:
-                imgBGR = fix_orient_pil_img(pil_img, **kwargs)
-    except IOError:
-        pass
-    finally:
-        addinfourl.close()
-    return imgBGR
+def _rectify_interpolation(interp, default=cv2.INTER_LANCZOS4):
+    """
+    Converts interpolation into flags suitable cv2 functions
+
+    Args:
+        interp (int or str): string or cv2-style interpolation type
+        default (int): cv2 interpolation flag to use if `interp` is None
+
+    Returns:
+        int: flag specifying interpolation type that can be passed to
+           functions like cv2.resize, cv2.warpAffine, etc...
+    """
+    if interp is None:
+        return default
+    elif isinstance(interp, six.text_type):
+        try:
+            return CV2_INTERPOLATION_TYPES[interp]
+        except KeyError:
+            print('Valid values for interpolation are {}'.format(
+                list(CV2_INTERPOLATION_TYPES.keys())))
+            raise
+    else:
+        return interp
 
 
 def montage(img_list, dsize, rng=np.random, method='random', return_debug=False):
@@ -107,6 +128,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.image import *  # NOQA
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
@@ -127,6 +149,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> import random
         >>> from os.path import join, expanduser, abspath
@@ -243,21 +266,25 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
     return dst
 
 
-def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
-           flags=None, force_opencv=False):
+def imread(img_fpath, grayscale=False, orient=False, flags=None,
+           force_pil=None, delete_if_corrupted=False):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.
 
     Args:
-        img_fpath (?):
-        delete_if_corrupted (bool):
-        grayscale (bool):
+        img_fpath (str):  file path string
+        grayscale (bool): (default = False)
+        orient (bool): (default = False)
+        flags (None): opencv flags (default = None)
+        force_pil (bool): (default = None)
+        delete_if_corrupted (bool): (default = False)
 
     Returns:
         ndarray: imgBGR
 
     CommandLine:
         python -m vtool.image --test-imread
+        python -m vtool.image --test-imread:1
         python -m vtool.image --test-imread:2
 
     References:
@@ -268,63 +295,88 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> delete_if_corrupted = False
-        >>> grayscale = False
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
-        >>> result = str(imgBGR.shape)
-        >>> print(result)
-        (512, 512, 3)
+        >>> imgBGR1 = imread(img_fpath, grayscale=False)
+        >>> imgBGR2 = imread(img_fpath, grayscale=True)
+        >>> imgBGR3 = imread(img_fpath, orient=True)
+        >>> assert imgBGR1.shape == (512, 512, 3)
+        >>> assert imgBGR2.shape == (512, 512)
+        >>> assert np.all(imgBGR1 == imgBGR3)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgBGR1, pnum=(2, 2, 1))
+        >>> pt.imshow(imgBGR2, pnum=(2, 2, 2))
+        >>> pt.imshow(imgBGR3, pnum=(2, 2, 3))
+        >>> ut.show_if_requested()
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> delete_if_corrupted = False
-        >>> grayscale = True
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
-        >>> result = str(imgBGR.shape)
+        >>> img_url = 'http://images.summitpost.org/original/769474.JPG'
+        >>> img_fpath = ut.grab_file_url(img_url)
+        >>> imgBGR1 = imread(img_url)
+        >>> imgBGR2 = imread(img_fpath)
+        >>> #imgBGR2 = imread(img_fpath, force_pil=False, flags=cv2.IMREAD_UNCHANGED)
+        >>> print('imgBGR.shape = %r' % (imgBGR1.shape,))
+        >>> print('imgBGR2.shape = %r' % (imgBGR2.shape,))
+        >>> result = str(imgBGR1.shape)
+        >>> diff_pxls = imgBGR1 != imgBGR2
+        >>> num_diff_pxls = diff_pxls.sum()
         >>> print(result)
-        (512, 512)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> img_fpath = 'http://images.summitpost.org/original/769474.JPG'
-        >>> local_fpath = ut.grab_file_url(img_fpath)
-        >>> delete_if_corrupted = False
-        >>> grayscale = False
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
-        >>> imgBGR2 = imread(local_fpath, delete_if_corrupted, grayscale)
-        >>> result = str(imgBGR.shape)
-        >>> print(result)
-        >>> assert np.all(imgBGR2 == imgBGR)
+        >>> print('num_diff_pxls=%r/%r' % (num_diff_pxls, diff_pxls.size))
+        >>> assert num_diff_pxls == 0
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> diffMag = np.linalg.norm(imgBGR2 / 255. - imgBGR1 / 255., axis=2)
+        >>> pt.imshow(imgBGR1, pnum=(1, 3, 1))
+        >>> pt.imshow(diffMag / diffMag.max(), pnum=(1, 3, 2))
+        >>> pt.imshow(imgBGR2, pnum=(1, 3, 3))
+        >>> ut.show_if_requested()
         (2736, 3648, 3)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> url = 'http://www.sherv.net/cm/emo/funny/2/big-dancing-banana-smiley-emoticon.gif'
+        >>> img_fpath = ut.grab_file_url(url)
+        >>> delete_if_corrupted = False
+        >>> grayscale = False
+        >>> imgBGR = imread(img_fpath, grayscale=grayscale)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgBGR)
+        >>> ut.show_if_requested()
     """
+    path, ext = splitext(img_fpath)
+    orient_ = 'auto' if orient in ['auto', 'on', True] else False
+    use_pil = (orient_ or ext.lower() == '.gif' or force_pil is True)
     if img_fpath.startswith('http://') or img_fpath.startswith('https://'):
-        imgBGR = imread_remote_url(img_fpath, grayscale=grayscale, orient=orient)
+        imgBGR = imread_remote_url(img_fpath, grayscale=grayscale, orient=orient, use_pil=use_pil, flags=flags)
     elif img_fpath.startswith('s3://'):
-        imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale, orient=orient)
+        imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale, orient=orient, use_pil=use_pil, flags=flags)
     else:
         try:
-            if orient in ['auto', 'on', True] and not force_opencv:
-                # print('[vt.imread] USING PIL')
+            if use_pil:
                 # If we want to open with auto orient, only open once with PIL
-                # Otherwise, open with OpenCV (faster) and reorient if given the
-                # known orientation of the image
+                # Otherwise, open with OpenCV (faster) and reorient if given
+                # the known orientation of the image
+                #pil_img = Image.open(img_fpath)
+                #print("USE PIL")
                 with Image.open(img_fpath) as pil_img:
-                    imgBGR = fix_orient_pil_img(pil_img, grayscale=grayscale,
-                                                orient='auto')
+                    imgBGR = _fix_orient_pil_img(pil_img, grayscale=grayscale,
+                                                 orient=orient_)
+                #with Image.open(img_fpath) as pil_img: # breaks?
+                #pil_img.close()  # breaks?
             else:
-                # print('[vt.imread] USING OpenCV')
+                #print("USE OPENCV")
                 if flags is None:
                     flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
                 # TODO cv2.IMREAD_UNCHANGED
                 imgBGR = cv2.imread(img_fpath, flags=flags)
 
         except cv2.error as cv2ex:
-            ut.printex(cv2ex, iswarning=True)
-            #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
-            #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
+            ut.printex(cv2ex, 'opencv error', iswarning=True)
+            #print('cv2error dict = ' + ut.repr2(cv2ex.__dict__))
+            #print('cv2error dirlist = ' + ut.repr2(dir(cv2ex)))
             #print('cv2error args = ' + repr(cv2ex.args))
             #print('cv2error message = ' + repr(cv2ex.message))
             #cv2error args =
@@ -346,61 +398,130 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
         if imgBGR is None:
             #if not exists(img_fpath):
             if not ut.checkpath(img_fpath, verbose=True):
-                raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
+                raise IOError('cannot read img_fpath=%s does not exist.' % img_fpath)
             else:
-                msg = 'cannot read img_fpath=%s seems corrupted or memory error.' % img_fpath
-                print('[gtool] ' + msg)
+                if not os.access(img_fpath, os.R_OK):
+                    raise PermissionError(
+                        'cannot read img_fpath={} access denied.'.format(img_fpath))
                 if delete_if_corrupted:
-                    print('[gtool] deleting corrupted image')
+                    # Probably should depricate this. A bit out of scope
+                    msg = (
+                        'Cannot read corrupted img_fpath=%s, requires deletion.'
+                        % img_fpath
+                    )
+                    print('[vt.imread] deleting corrupted image')
                     ut.delete(img_fpath)
+                else:
+                    msg = (
+                        'Cannot read img_fpath=%s, '
+                        'seems corrupted or memory error.'
+                        % img_fpath
+                    )
+                print('[vt.imread] ' + msg)
                 raise IOError(msg)
         if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
-            print('[vt.imread] Applying orientation %r' % (orient, ))
-            imgBGR = fix_orientation(imgBGR, orient)
+            if False:
+                print('[vt.imread] Applying orientation %r' % (orient, ))
+            imgBGR = _fix_orientation(imgBGR, orient)
     return imgBGR
 
 
-def fix_orient_pil_img(pil_img, grayscale=False, orient=False):
+def imread_remote_s3(img_fpath, **kwargs):
+    import io
+    try:
+        s3_dict = ut.s3_str_decode_to_dict(img_fpath)
+        contents = ut.read_s3_contents(**s3_dict)
+        # btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
+        # imgBGR = cv2.imdecode(btyedata, -1)
+        with io.BytesIO(contents) as image_stream:
+            imgBGR = _imread_bytesio(image_stream, **kwargs)
+            #with Image.open(image_stream) as pil_img:
+            #    imgBGR = _fix_orient_pil_img(pil_img, **kwargs)
+    except AttributeError:
+        pass
+    return imgBGR
+
+
+def imread_remote_url(img_url, **kwargs):
+    from six.moves import urllib
+    import io
+    print("USE PIL REMOTE")
+    addinfourl = urllib.request.urlopen(img_url)
+    try:
+        # image_file = io.BytesIO(addinfourl.read())
+        # pil_img =  Image.open(image_file)
+        with io.BytesIO(addinfourl.read()) as image_stream:
+            imgBGR = _imread_bytesio(image_stream, **kwargs)
+            #nparr = np.fromstring(image_stream.getvalue(), np.uint8)
+            #imgBGR = cv2.imdecode(nparr, cv2.IMREAD_COLOR)  # cv2.IMREAD_COLOR in OpenCV 3.1
+            #imgBGR = cv2.imread(image_file)
+            #with Image.open(image_file) as pil_img:
+            #    imgBGR = _fix_orient_pil_img(pil_img, **kwargs)
+    except IOError:
+        pass
+    finally:
+        addinfourl.close()
+    return imgBGR
+
+
+def _imread_bytesio(image_stream, use_pil=False, flags=None, **kwargs):
+    if use_pil:
+        with Image.open(image_stream) as pil_img:
+            imgBGR = _fix_orient_pil_img(pil_img, **kwargs)
+    else:
+        if flags is None:
+            grayscale = kwargs.get('grayscale', False)
+            flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
+        nparr = np.fromstring(image_stream.getvalue(), np.uint8)
+        imgBGR = cv2.imdecode(nparr, flags=flags)  # cv2.IMREAD_COLOR in OpenCV 3.1
+    return imgBGR
+
+
+def _fix_orient_pil_img(pil_img, grayscale=False, orient=False):
     if orient == 'auto':
         exif_dict = exif.get_exif_dict(pil_img)
         orient = exif.get_orientation(exif_dict)
-    np_img = np.array(pil_img)
+    #if pil_img.format in ['MPO', 'GIF']:
+    np_img = np.array(pil_img.convert('RGB'))
+    #else:
+    #    np_img = np.array(pil_img)
     if grayscale:
         imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2GRAY)
     else:
         imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
-        imgBGR = fix_orientation(imgBGR, orient)
+        imgBGR = _fix_orientation(imgBGR, orient)
     return imgBGR
 
 
-def fix_orientation(imgBGR, orient, fallback=True):
+def _fix_orientation(imgBGR, orient, fallback=True):
     assert not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT
     orient_ = exif.ORIENTATION_DICT[orient]
     if orient_ == exif.ORIENTATION_000:
         return imgBGR
-    elif orient_ == exif.ORIENTATION_090:
-        return rotate_image(imgBGR, TAU * 0.25)
+
+    dsize_h, dsize_w = imgBGR.shape[:2]
+    if orient_ in [exif.ORIENTATION_090, exif.ORIENTATION_270]:
+        dsize = (dsize_h, dsize_w, )
+    else:
+        dsize = (dsize_w, dsize_h, )
+
+    # FIXME; rotation changes the shape of the images
+    # rotate_image does not do this, it must incorrectly clip areas.
+    # TODO 90 degree optimizations
+    if orient_ == exif.ORIENTATION_090:
+        #return np.rot90(imgBGR, k=1)
+        return rotate_image(imgBGR, TAU * 0.25, dsize=dsize)
     elif orient_ == exif.ORIENTATION_180:
-        return rotate_image(imgBGR, TAU * 0.50)
+        #return np.rot90(imgBGR, k=2)
+        return rotate_image(imgBGR, TAU * 0.50, dsize=dsize)
     elif orient_ == exif.ORIENTATION_270:
-        return rotate_image(imgBGR, TAU * 0.75)
+        #return np.rot90(imgBGR, k=3)
+        return rotate_image(imgBGR, TAU * 0.75, dsize=dsize)
     elif fallback:
         return imgBGR
     else:
         raise IOError('Could not fix the image orientation')
-
-
-def imwrite_fallback(img_fpath, imgBGR):
-    try:
-        import matplotlib.image as mpl_image
-        imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
-        mpl_image.imsave(img_fpath, imgRGB)
-        return None
-    except Exception as ex:
-        msg = '[gtool] FALLBACK ERROR writing: %s' % (img_fpath,)
-        ut.printex(ex, msg, keys=['imgBGR.shape'])
-        raise
 
 
 def imwrite(img_fpath, imgBGR, fallback=False):
@@ -438,7 +559,19 @@ def imwrite(img_fpath, imgBGR, fallback=False):
                 imwrite_fallback(img_fpath, imgBGR)
             except Exception as ex:
                 pass
-        msg = '[gtool] ERROR writing: %s' % (img_fpath,)
+        msg = '[vt.image] ERROR writing: %s' % (img_fpath,)
+        ut.printex(ex, msg, keys=['imgBGR.shape'])
+        raise
+
+
+def imwrite_fallback(img_fpath, imgBGR):
+    try:
+        import matplotlib.image as mpl_image
+        imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
+        mpl_image.imsave(img_fpath, imgRGB)
+        return None
+    except Exception as ex:
+        msg = '[vt.image] FALLBACK ERROR writing: %s' % (img_fpath,)
         ut.printex(ex, msg, keys=['imgBGR.shape'])
         raise
 
@@ -461,11 +594,11 @@ def get_num_channels(img):
     elif ndims == 3 and img.shape[2] == 1:
         nChannels = 1
     else:
-        raise Exception('Cannot determine number of channels')
+        raise ValueError('Cannot determine number of channels '
+                         'for img.shape={}'.format(img.shape))
     return nChannels
 
 
-@profile
 def subpixel_values(img, pts):
     """
     References:
@@ -524,8 +657,7 @@ def open_image_size(image_fpath):
     CommandLine:
         python -m vtool.image --test-open_image_size
 
-    Example:
-        >>> # DISABLE_DOCTEST
+    Doctest:
         >>> from vtool.image import *  # NOQA
         >>> image_fpath = ut.grab_test_imgpath('patsy.jpg')
         >>> size = open_image_size(image_fpath)
@@ -570,12 +702,6 @@ def open_image_size(image_fpath):
     return size
 
 
-def get_gpathlist_sizes(gpath_list):
-    """ reads the size of each image in gpath_list """
-    gsize_list = [open_image_size(gpath) for gpath in gpath_list]
-    return gsize_list
-
-
 def cvt_BGR2L(imgBGR):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]
@@ -587,7 +713,6 @@ def cvt_BGR2RGB(imgBGR):
     return imgRGB
 
 
-@profile
 def warpAffine(img, Aff, dsize):
     """
     dsize = (width, height) of return image
@@ -639,7 +764,6 @@ def warpAffine(img, Aff, dsize):
     return warped_img
 
 
-@profile
 def warpHomog(img, Homog, dsize):
     """
     dsize = (width, height) of return image
@@ -649,8 +773,7 @@ def warpHomog(img, Homog, dsize):
 
 
 def resize(img, dsize, interpolation=None):
-    if interpolation is None:
-        interpolation = cv2.INTER_LANCZOS4
+    interpolation = _rectify_interpolation(interpolation)
     return cv2.resize(img, dsize, interpolation=interpolation)
 
 
@@ -659,8 +782,121 @@ def resize_mask(mask, chip, interpolation=None):
     return resize(mask, dsize, interpolation)
 
 
+def resize_image_by_scale(img, scale, interpolation=None):
+    interpolation = _rectify_interpolation(interpolation)
+    dsize, tonew_sf = get_round_scaled_dsize(get_size(img), scale)
+    new_img = cv2.resize(img, dsize, interpolation=interpolation)
+    return new_img
+
+
+def resized_dims_and_ratio(img_size, max_dsize):
+    """
+    returns resized dimensions to get ``img_size`` to fit into ``max_dsize``
+
+    FIXME:
+        Should specifying a None force the use of the original dim?
+
+    Args:
+        img_size (tuple):
+        max_dsize (tuple):
+
+    Returns:
+        tuple: (dsize, ratio)
+
+    CommandLine:
+        python -m vtool.image resized_dims_and_ratio --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (150, 150)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((150, 75), 0.75)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (5000, 1000)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((2000, 1000), 10.0)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (5000, None)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((200, 100), 1.0)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (None, None)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((200, 100), 1.0)
+    """
+    #if isinstance(max_dsize, (tuple, list, np.ndarray)):
+    max_width, max_height = max_dsize
+    width, height = img_size
+    if False:
+        if max_width is not None and max_height is not None:
+            ratio = min(max_width / width, max_height / height)
+        elif max_width is not None:
+            ratio = max_width / width
+        elif max_width is not None:
+            ratio = max_height / height
+        else:
+            ratio = 1.0
+    else:
+        if max_width is None:
+            max_width = width
+        if max_height is None:
+            max_height = height
+        ratio = min(max_width / width, max_height / height)
+    dsize = (int(round(width * ratio)), int(round(height * ratio)))
+    return dsize, ratio
+
+
+def resized_clamped_thumb_dims(img_size, max_dsize):
+    dsize_, ratio = resized_dims_and_ratio(img_size, max_dsize)
+    dsize = img_size if ratio > 1 else dsize_
+    sx = dsize[0] / img_size[0]
+    sy = dsize[1] / img_size[1]
+    return dsize, sx, sy
+
+
 def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
                       borderType=cv2.BORDER_CONSTANT, **kwargs):
+    r"""
+    Returns:
+        str: out_fpath -  file path string
+
+    CommandLine:
+        python -m vtool.image pad_image_ondisk
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_fpath = ut.get_argval('--fpath', type_=str)
+        >>> pad_ = '?'
+        >>> out_fpath = None
+        >>> value = 0
+        >>> borderType = 0
+        >>> out_fpath = pad_image_ondisk(img_fpath, pad_, out_fpath, value, borderType)
+        >>> result = ('out_fpath = %s' % (ut.repr2(out_fpath),))
+        >>> print(result)
+    """
     imgBGR = imread(img_fpath)
     imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_,
                                  borderType=cv2.BORDER_CONSTANT, value=value)
@@ -668,9 +904,10 @@ def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
     imgBGR2[-pad_:, :] = value
     imgBGR2[:, :pad_] = value
     imgBGR2[:, -pad_:] = value
-    out_fpath_ = ut.augpath(img_fpath, '_pad=%r' % (pad_)) if out_fpath is None else out_fpath
-    imwrite(out_fpath_, imgBGR2)
-    return out_fpath_
+    if out_fpath is None:
+        out_fpath = ut.augpath(img_fpath, '_pad=%r' % (pad_))
+    imwrite(out_fpath, imgBGR2)
+    return out_fpath
 
 
 def pad_image(imgBGR, pad_, value=0, borderType=cv2.BORDER_CONSTANT):
@@ -779,42 +1016,76 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
         fillval = np.array([255] * get_num_channels(img))
     # for colored images
     #with ut.embed_on_exception_context:
-    isfill = get_pixel_dist(img, fillval, channel=channel) <= thresh
+    pixel = fillval
+    dist = get_pixel_dist(img, pixel, channel=channel)
+    isfill = dist <= thresh
+    # isfill should just be 2D
+    # Fix shape that comes back as (1, W, H)
+    if len(isfill.shape) == 3 and isfill.shape[0] == 1:
+        if np.all(np.greater(isfill.shape[1:2], [4, 4])):
+            isfill = isfill[0]
     rowslice, colslice = vt.get_crop_slices(isfill)
     cropped_img = img[rowslice, colslice]
     return cropped_img
 
 
 def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
+    r"""
+    Strips white borders off an image on disk
+
+    Args:
+        fpath_in (str):
+        fpath_out (None): (default = None)
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        str: fpath_out
+
+    CommandLine:
+        python -m vtool.image clipwhite_ondisk
+    """
     import vtool as vt
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
-    # thresh = 128
-    thresh = 64
-
     img = vt.imread(fpath_in, flags=cv2.IMREAD_UNCHANGED)
     if verbose:
         print('[clipwhite] img.shape = %r' % (img.shape,))
-
-    nChannels = get_num_channels(img)
-    if nChannels == 4:
-        # alpha
-        thresh = 12
-        fillval = 0
-        channel = 3
-        # imgBGRA
-        cropped_img = crop_out_imgfill(img, fillval, thresh=thresh, channel=channel)
-    else:
-        fillval = np.array([255] * nChannels)
-        cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    cropped_img = clipwhite(img)
     if verbose:
         print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
     vt.imwrite(fpath_out, cropped_img)
     return fpath_out
 
 
+def clipwhite(img):
+    """
+    Strips white borders off an image
+    """
+    nChannels = get_num_channels(img)
+    # thresh = 128
+    thresh = 64
+    if nChannels == 4:
+        # alpha
+        thresh = 12
+        fillval = 0
+        channel = 3
+        # imgBGRA
+        # Clip alpha first
+        cropped_img = crop_out_imgfill(img, fillval, thresh=thresh, channel=channel)
+        # Clip white next
+        fillval = np.array([255] * nChannels)
+        cropped_img = crop_out_imgfill(cropped_img, fillval=fillval, thresh=thresh)
+        # cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    else:
+        fillval = np.array([255] * nChannels)
+        cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    return cropped_img
+
+
 def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
     r"""
+    Rotates an image on disk
+
     Args:
         img_fpath (?):
         theta (?):
@@ -848,8 +1119,10 @@ def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
     return out_fpath_
 
 
-def rotate_image(img, theta, **kwargs):
+def rotate_image(img, theta, border_mode=None, interpolation=None, dsize=None):
     r"""
+    Rotates an image around its center
+
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
         theta (?):
@@ -873,12 +1146,17 @@ def rotate_image(img, theta, **kwargs):
         >>>     pt.show_if_requested()
     """
     from vtool import linalg as ltool
-    dsize = [img.shape[1], img.shape[0]]
-    bbox = [0, 0, img.shape[1], img.shape[0]]
-    R = ltool.rotation_around_bbox_mat3x3(theta, bbox)
-    warp_kwargs = CV2_WARP_KWARGS.copy()
-    warp_kwargs.update(kwargs)
-    imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), **warp_kwargs)
+    border_mode = _rectify_border_mode(border_mode)
+    interpolation = _rectify_interpolation(interpolation)
+    bbox0 = [0, 0, img.shape[1], img.shape[0]]
+    if dsize is None:
+        dsize = [img.shape[1], img.shape[0]]
+        bbox1 = bbox0
+    else:
+        bbox1 = [0, 0, dsize[0], dsize[1]]
+    R = ltool.rotation_around_bbox_mat3x3(theta, bbox0, bbox1=bbox1)
+    imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), borderMode=border_mode,
+                          flags=interpolation)
     return imgR
 
 
@@ -920,7 +1198,7 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
 
 def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
                               dsize=None, borderMode=cv2.BORDER_CONSTANT,
-                              flags=cv2.INTER_LANCZOS4, **kwargs):
+                              flags=cv2.INTER_LANCZOS4, out=None, **kwargs):
     r"""
 
     CommandLine:
@@ -952,22 +1230,16 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     """
     from vtool import linalg as ltool
     if dsize is None:
-        dsize = get_size(img)
+        dsize = (img.shape[1], img.shape[0])
+    else:
+        dsize = tuple(dsize)
     w2, h2 = dsize
     h1, w1 = img.shape[0:2]
     y1, x1 = h1 / 2.0, w1 / 2.0
     y2, x2 = h2 / 2.0, w2 / 2.0
     # MOVE AFFINE AROUND w.r.t new dsize
-    #Aff = ltool.affine_around(x, y, sx, sy, theta, shear, tx, ty)
-    # move to center location
-    tr1_ = ltool.translation_mat3x3(-x1, -y1)
-    # apply affine transform
-    Aff_ = ltool.affine_mat3x3(sx, sy, theta, shear, tx, ty)
-    # move to original location
-    tr2_ = ltool.translation_mat3x3(x2, y2)
-    # combine transformations
-    Aff = tr2_.dot(Aff_).dot(tr1_)
-    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize),
+    Aff = ltool.affine_around_mat3x3(x1, y1, sx, sy, theta, shear, tx, ty, x2, y2)
+    img_warped = cv2.warpAffine(img, Aff[0:2], dsize, dst=out,
                                 borderMode=borderMode, flags=flags, **kwargs)
     # Fix grayscale channel issues
     if len(img.shape) == 3 and len(img_warped.shape) == 2:
@@ -975,46 +1247,40 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     return img_warped
 
 
-def resize_image_by_scale(img, scale, interpolation=cv2.INTER_LANCZOS4):
-    dsize, tonew_sf = get_round_scaled_dsize(get_size(img), scale)
-    new_img = cv2.resize(img, dsize, interpolation=interpolation)
-    return new_img
-
-
-def get_round_scaled_dsize(dsize_old, scale):
-    w, h = dsize_old
-    dsize = int(round(w * scale)), int(round(h * scale))
-    tonew_sf = dsize[0] / w, dsize[1] / h
-    return dsize, tonew_sf
-
-
-def resized_dims_and_ratio(img_size, max_dsize):
+def get_round_scaled_dsize(dsize, scale):
     """
-    returns resized dimensions to get ``img_size`` to fit into ``max_dsize``
+    Returns an integer size and scale that best approximates
+    the floating point scale on the original size
+
+    Args:
+        dsize (tuple): original width height
+        scale (float or tuple): desired floating point scale factor
     """
-    #if isinstance(max_dsize, (tuple, list, np.ndarray)):
-    max_width, max_height = max_dsize
-    width, height = img_size
-    if max_width is None:
-        max_width = width
-    if max_height is None:
-        max_height = height
-    ratio = min(max_width / width, max_height / height)
-    dsize = (int(round(width * ratio)), int(round(height * ratio)))
-    return dsize, ratio
+    try:
+        sx, sy = scale
+    except TypeError:
+        sx = sy = scale
+    w, h = dsize
+    new_w = int(round(w * sx))
+    new_h = int(round(h * sy))
+    new_scale = new_w / w, new_h / h
+    new_dsize = (new_w, new_h)
+    return new_dsize, new_scale
 
 
-def resized_clamped_thumb_dims(img_size, max_dsize):
-    dsize_, ratio = resized_dims_and_ratio(img_size, max_dsize)
-    dsize = img_size if ratio > 1 else dsize_
-    sx = dsize[0] / img_size[0]
-    sy = dsize[1] / img_size[1]
-    return dsize, sx, sy
+def rectify_to_square(img, extreme='max'):
+    h, w = img.shape[0:2]
+    if w == h:
+        return img
+    else:
+        extreme_fn = {'max': max, 'min': min}[extreme]
+        d = extreme_fn(w, h)
+        return resize(img, (d, d))
 
 
 def rectify_to_float01(img, dtype=np.float32):
     """ Ensure that an image is encoded using a float properly """
-    if ut.is_int(img):
+    if img.dtype.kind in ('i', 'u'):
         assert img.max() <= 255
         img_ = img.astype(dtype) / 255.0
     else:
@@ -1024,9 +1290,10 @@ def rectify_to_float01(img, dtype=np.float32):
 
 def rectify_to_uint8(img):
     """ Ensure that an image is encoded in uint8 properly """
-    if ut.is_float(img):
-        assert img.max() <= 1.0
-        assert img.min() >= 0.0
+    if img.dtype.kind in ('f'):
+        if img.max() <= 1.0 or img.min() >= 0.0:
+            raise ValueError('Bad input image. Stats={}'.format(
+                ut.repr2(ut.get_stats(img.ravel()), precision=2)))
         img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
@@ -1034,19 +1301,81 @@ def rectify_to_uint8(img):
 
 
 def make_channels_comparable(img1, img2):
+    """
+    Broadcasts image arrays so they can have elementwise operations applied
+
+    CommandLine:
+        python -m vtool.image make_channels_comparable
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> wh_basis = [(5, 5), (3, 5), (5, 3), (1, 1), (1, 3), (3, 1)]
+        >>> for w, h in wh_basis:
+        >>>     shape_basis = [(w, h), (w, h, 1), (w, h, 3)]
+        >>>     # Test all permutations of shap inputs
+        >>>     for shape1, shape2 in ut.product(shape_basis, shape_basis):
+        >>>         print('*    input shapes: %r, %r' % (shape1, shape2))
+        >>>         img1 = np.empty(shape1)
+        >>>         img2 = np.empty(shape2)
+        >>>         img1, img2 = make_channels_comparable(img1, img2)
+        >>>         print('... output shapes: %r, %r' % (img1.shape, img2.shape))
+        >>>         elem = (img1 + img2)
+        >>>         print('... elem(+) shape: %r' % (elem.shape,))
+        >>>         assert elem.size == img1.size, 'outputs should have same size'
+        >>>         assert img1.size == img2.size, 'new imgs should have same size'
+        >>>         print('--------')
+    """
     import vtool as vt
+    # w1, h1 = get_size(img1)
+    # w2, h2 = get_size(img2)
+    # if not (w1 == w2 and h1 == h2):
+    #     raise AssertionError(
+    #         'Images must have same size, %r, %r' % ((w1, h1), (w2, h2)))
     if img1.shape != img2.shape:
-        channels1 = vt.get_num_channels(img1)
-        channels2 = vt.get_num_channels(img2)
-        if channels1 == 3 and channels2 == 1:
-            if len(img2.shape) == 2:
-                # convert (w, h) to (w, h, 1)
-                img2 = np.transpose(img2[None, :], (1, 2, 0))
-            if len(img2.shape) == 3:
-                # (w, h, 1) to (w, h, 3)
+        c1 = vt.get_num_channels(img1)
+        c2 = vt.get_num_channels(img2)
+        if len(img1.shape) == 2 and len(img2.shape) == 2:
+            raise AssertionError('UNREACHABLE: Both are 2-grayscale')
+        elif len(img1.shape) == 3 and len(img2.shape) == 2:
+            # Image 2 is grayscale
+            if c1 == 3:
+                img2 = np.tile(img2[..., None], 3)
+            else:
+                img2 = img2[..., None]
+        elif len(img1.shape) == 2 and len(img2.shape) == 3:
+            # Image 1 is grayscale
+            if c2 == 3:
+                img1 = np.tile(img1[..., None], 3)
+            else:
+                img1 = img1[..., None]
+        elif len(img1.shape) == 3 and len(img2.shape) == 3:
+            # Both images have 3 dims.
+            # Check if either have color, then check for alpha
+            if c1 == 1 and c2 == 1:
+                raise AssertionError('UNREACHABLE: Both are 3-grayscale')
+            elif c1 == 3 and c2 == 3:
+                raise AssertionError('UNREACHABLE: Both are 3-color')
+            elif c1 == 1 and c2 == 3:
+                img1 = np.tile(img1, 3)
+            elif c1 == 3 and c2 == 1:
                 img2 = np.tile(img2, 3)
-        elif channels1 == 1 and channels2 == 3:
-            return make_channels_comparable(img1, img2)
+            elif c1 == 3 and c2  == 4:
+                # raise NotImplementedError('alpha not handled yet')
+                # assumes img1 is in 0:1 format
+                img1 = np.dstack((img1, np.ones(img1.shape[0:2])))
+            elif c1 == 4 and c2  == 3:
+                # assumes img1 is in 0:1 format
+                img2 = np.dstack((img2, np.ones(img2.shape[0:2])))
+                # raise NotImplementedError('alpha not handled yet')
+            elif c1 == 1 and c2  == 4:
+                img1 = np.dstack((np.tile(img1, 3), np.ones(img1.shape[0:2])))
+            elif c1 == 4 and c2  == 1:
+                img2 = np.dstack((np.tile(img2, 3), np.ones(img2.shape[0:2])))
+            else:
+                raise AssertionError('Unknown shape case: %r, %r' % (img1.shape, img2.shape))
+        else:
+            raise AssertionError('Unknown shape case: %r, %r' % (img1.shape, img2.shape))
     return img1, img2
 
 
@@ -1156,7 +1485,7 @@ def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
     return image_list2
 
 
-def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
+def padded_resize(img, target_size=(64, 64), interpolation=None):
     r"""
     makes the image resize to the target size and pads the rest of the area with a fill value
 
@@ -1187,6 +1516,7 @@ def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
         >>> pt.imshow(img3_list[2], pnum=pnum_())
         >>> ut.show_if_requested()
     """
+    interpolation = _rectify_interpolation(interpolation)
     img2 = resize_to_maxdims(img, target_size, interpolation=interpolation)
     dsize2 = get_size(img2)
     if dsize2 != target_size:
@@ -1261,16 +1591,16 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
 
     ## Find start slice in the target image
     target_diff = np.floor(target_origin_abs - img_origin_abs)
-    target_rc_start = np.maximum(target_diff, 0)
+    target_rc_start = np.maximum(target_diff, 0).astype(np.int)
 
-    img_rc_start = -(target_diff - target_rc_start)
+    img_rc_start = (-(target_diff - target_rc_start)).astype(np.int)
     img_clip_rc_low = img_rc - img_rc_start
 
     end_hang = np.maximum((target_rc_start + img_clip_rc_low) - target_rc, 0)
     img_clip_rc = img_clip_rc_low - end_hang
 
-    img_rc_end = img_rc_start + img_clip_rc
-    target_rc_end = target_rc_start + img_clip_rc
+    img_rc_end = (img_rc_start + img_clip_rc).astype(np.int)
+    target_rc_end = (target_rc_start + img_clip_rc).astype(np.int)
 
     img_rc_slice = [slice(b, e) for (b, e) in zip(img_rc_start, img_rc_end)]
     target_rc_slice = [slice(b, e) for (b, e) in zip(target_rc_start, target_rc_end)]
@@ -1302,6 +1632,23 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
         # embed image at center
         img_sqare[rc_slice[0], rc_slice[1]] = img
     return img_sqare
+
+
+def _trimread(gpath):
+    """ Try an imread """
+    try:
+        return imread(gpath)
+    except Exception:
+        return None
+
+
+def get_scale_factor(src_img, dst_img):
+    """ returns scale factor from one image to the next """
+    src_h, src_w = src_img.shape[0:2]
+    dst_h, dst_w = dst_img.shape[0:2]
+    sx = dst_w / src_w
+    sy = dst_h / src_h
+    return (sx, sy)
 
 
 def resize_to_maxdims_ondisk(img_fpath, max_dsize, out_fpath=None):
@@ -1337,7 +1684,8 @@ def resize_to_maxdims_ondisk(img_fpath, max_dsize, out_fpath=None):
     imwrite(out_fpath_, img2)
 
 
-def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4):
+def resize_to_maxdims(img, max_dsize=(64, 64),
+                      interpolation=None):
     r"""
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
@@ -1351,11 +1699,9 @@ def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4)
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> max_dsize = (1024, 1024)
-        >>> # execute function
         >>> img2 = resize_to_maxdims(img, max_dsize)
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
@@ -1367,10 +1713,11 @@ def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4)
     """
     img_size = get_size(img)
     dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
-    return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
+    interpolation = _rectify_interpolation(interpolation)
+    return cv2.resize(img, dsize, interpolation=interpolation)
 
 
-def resize_thumb(img, max_dsize=(64, 64)):
+def resize_thumb(img, max_dsize=(64, 64), interpolation=None):
     """
     Resize an image such that its max width or height is:
 
@@ -1398,92 +1745,12 @@ def resize_thumb(img, max_dsize=(64, 64)):
     height, width = img.shape[0:2]
     img_size = (width, height)
     dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
+    interpolation = _rectify_interpolation(interpolation)
     if ratio > 1:
         return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # return cvt_BGR2RGB(img)
     else:
-        return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
-
-
-def _trimread(gpath):
-    """ Try an imread """
-    try:
-        return imread(gpath)
-    except Exception:
-        return None
-
-
-def get_scale_factor(src_img, dst_img):
-    """ returns scale factor from one image to the next """
-    src_h, src_w = src_img.shape[0:2]
-    dst_h, dst_w = dst_img.shape[0:2]
-    sx = dst_w / src_w
-    sy = dst_h / src_h
-    return (sx, sy)
-
-
-# Parallel code for resizing many images
-def resize_worker(tup):
-    """ worker function for parallel generator """
-    gfpath, new_gfpath, new_size = tup
-    #print('[preproc] writing thumbnail: %r' % new_gfpath)
-    #if not exists(new_gfpath):
-    #    return new_gfpath
-    img = imread(gfpath)
-    new_img = resize(img, new_size)
-    imwrite(new_gfpath, new_img)
-    return new_gfpath
-
-
-def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwargs):
-    """ Resizes images and yeilds results asynchronously  """
-    # Compute and write thumbnail in asychronous process
-    kwargs['force_serial'] = kwargs.get('force_serial', True)
-    kwargs['ordered']      = kwargs.get('ordered', True)
-    arg_iter = zip(gpath_list, new_gpath_list, newsize_list)
-    arg_list = list(arg_iter)
-    return ut.util_parallel.generate(resize_worker, arg_list, **kwargs)
-
-
-def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
-                                 sqrt_area=800, output_dir=None,
-                                 checkexists=True,
-                                 **kwargs):
-    """ Resizes images and yeilds results asynchronously  """
-    from vtool.chip import get_scaled_sizes_with_area
-    target_area = sqrt_area ** 2
-    # Read image sizes
-    gsize_list = get_gpathlist_sizes(gpath_list)
-    # Compute new sizes which preserve aspect ratio
-    newsize_list = get_scaled_sizes_with_area(target_area, gsize_list)
-    if new_gpath_list is None:
-        # Compute names for the new images if not given
-        if output_dir is None:
-            # Create an output directory if not specified
-            output_dir      = 'resized_sqrtarea%r' % sqrt_area
-        ut.ensuredir(output_dir)
-        size_suffix_list = ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
-        new_gname_list = ut.append_suffixlist_to_namelist(gpath_list, size_suffix_list)
-        new_gpath_list = [join(output_dir, gname) for gname in new_gname_list]
-        new_gpath_list = list(map(ut.unixpath, new_gpath_list))
-    assert len(new_gpath_list) == len(gpath_list), 'unequal len'
-    assert len(newsize_list) == len(gpath_list), 'unequal len'
-    # Evaluate generator
-    if checkexists:
-        exists_list = list(map(exists, new_gpath_list))
-        gpath_list_ = ut.filterfalse_items(gpath_list, exists_list)
-        new_gpath_list_ = ut.filterfalse_items(new_gpath_list, exists_list)
-        newsize_list_ = ut.filterfalse_items(newsize_list, exists_list)
-    else:
-        gpath_list_ = gpath_list
-        new_gpath_list_ = new_gpath_list
-        newsize_list_ = newsize_list
-    generator = resize_imagelist_generator(gpath_list_, new_gpath_list_,
-                                           newsize_list_, **kwargs)
-    for res in generator:
-        pass
-    #return [res for res in generator]
-    return new_gpath_list
+        return cv2.resize(img, dsize, interpolation=interpolation)
 
 
 def find_pixel_value_index(img, pixel):
@@ -1493,7 +1760,7 @@ def find_pixel_value_index(img, pixel):
         pixel (ndarray or scalar):
 
     CommandLine:
-        python -m vtool.math --test-find_pixel_value_index
+        python -m vtool.util_math --test-find_pixel_value_index
 
     References:
         http://stackoverflow.com/questions/21407815/get-column-row-index-from-numpy-array-that-meets-a-boolean-condition
@@ -1635,7 +1902,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
         http://www.siafoo.net/snippet/229
 
     CommandLine:
-        python -m vtool.image --test-perlin_noise --show
+        python -m vtool.image perlin_noise --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1657,8 +1924,8 @@ def perlin_noise(size, scale=32.0, rng=np.random):
 
         def __init__(self, size=None, n=None):
 
-            n = n if n else  256
-            self.size = size if size else (256, 256)
+            n = n if n is not None else  256
+            self.size = size if size is not None else (256, 256)
 
             self.order = len(self.size)
 
@@ -1683,7 +1950,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
 
             rng.shuffle(self.P)
 
-            self.idx_ar = np.indices(2 * np.ones(self.order),
+            self.idx_ar = np.indices(2 * np.ones(self.order, dtype=np.int8),
                                      dtype=np.int8).reshape(self.order, -1).T
             self.drop = np.poly1d((-6, 15, -10, 0, 0, 1.0))
 
@@ -1743,8 +2010,7 @@ def testdata_imglist():
 
 
 def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
-                             initial_sf=None,
-                             interpolation=cv2.INTER_LANCZOS4):
+                             initial_sf=None, interpolation=None):
     r"""
     # TODO: add initial scale down factor?
 
@@ -1776,6 +2042,7 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
         >>> ut.show_if_requested()
     """
     import vtool as vt
+    interpolation = _rectify_interpolation(interpolation)
     #img2 = img_list[0]
     img_list2 = img_list[:num]
     img_list3 = img_list[num:]
@@ -1837,8 +2104,9 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
 # Combine the stacks
 def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2,
                        sf_list2, vert=True, use_larger=False, modifysize=True,
-                       interpolation=cv2.INTER_NEAREST):
+                       interpolation=None):
     """ combines images that are already stacked """
+    interpolation = _rectify_interpolation(interpolation, default=cv2.INTER_NEAREST)
     if img1 is None:
         return img2, offset_list2, sf_list2
     if img2 is None:
@@ -1894,7 +2162,7 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         >>> vert = False
         >>> tup = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
         >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
-        >>> result = ut.remove_doublspaces(ut.numpy_str(np.array(stacked_offsets).T, precision=2, max_line_width=10000)).replace(' ,', ',')
+        >>> result = ut.remove_doublspaces(ut.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -1905,7 +2173,8 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         ...    pt.draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
         >>> ut.show_if_requested()
         np.array([[ 0., 0., 0., 0., 0., 512., 512., 512., 512., 512., 1024., 1024., 1024., 1024., 1024. ],
-         [ 0., 512.12, 1024.25, 1827., 2339., 0., 427., 939., 1742., 2254., 0., 250., 762., 1389., 1789. ]], dtype=np.float64)
+         [ 0., 512.12, 1024.25, 1827., 2339., 0., 427., 939., 1742., 2254., 0., 373.18, 1137.45, 2073.38, 2670.47]], dtype=np.float64)
+
 
     """
     stacked_img, offset_tups, sf_tups = stack_image_list(multiimg_list,
@@ -2009,7 +2278,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> # verify results
-        >>> result = ut.numpy_str(np.array(offset_list).T, precision=2)
+        >>> result = ut.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -2101,8 +2370,36 @@ def embed_channels(img, input_channels=(0,), nchannels=3, fill=0):
     return newimg
 
 
+def ensure_4channel(img):
+    assert len(img.shape) == 3
+
+    if len(img.shape) == 3 and img.shape[2] == 4:
+        img_alpha = img
+        return img_alpha
+
+    h, w = img.shape[0:2]
+    if img.dtype.kind in {'i', 'u'}:
+        alpha = np.full((h, w, 1), fill_value=255, dtype=img.dtype)
+    elif img.dtype.kind == 'f':
+        alpha = np.full((h, w, 1), fill_value=1, dtype=img.dtype)
+    else:
+        raise NotImplementedError('kind={}'.format(img.dtype.kind))
+
+    if img.shape[2] == 1:
+        img_alpha = np.dstack([img, img, img, alpha])
+    elif img.shape[2] == 3:
+        img_alpha = np.dstack([img, alpha])
+    else:
+        raise NotImplementedError('shape={}'.format(img.shape))
+    # print('img_alpha.shape = {!r}'.format(img_alpha.shape))
+
+    return img_alpha
+
+
 def ensure_3channel(patch):
     r"""
+    DEPRICATE IN FAVOR OF atleast_3channels?
+
     Ensures that there are 3 channels in the image
 
     Args:
@@ -2130,12 +2427,6 @@ def ensure_3channel(patch):
         >>> assert res1.shape[-1] == 3
         >>> assert res2.shape[-1] == 3
         >>> assert res3.shape[-1] == 3
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.imshow(res1, pnum=(1, 3, 1), fnum=1)
-        >>> pt.imshow(res2, pnum=(1, 3, 2), fnum=1)
-        >>> pt.imshow(res3, pnum=(1, 3, 3), fnum=1)
-        >>> ut.show_if_requested()
     """
     # TODO: should this use atleast_nd as a subroutine?
     # res = vt.atleast_nd(patch, 3)
@@ -2174,7 +2465,7 @@ def infer_vert(img1, img2, vert):
 
 
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
-                 use_larger=True, interpolation=cv2.INTER_NEAREST):
+                 use_larger=True, interpolation=None, overlap=0):
     r"""
 
     Args:
@@ -2191,39 +2482,50 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
-        >>> vert = None
+        >>> vert = True
         >>> modifysize = False
         >>> # execute function
         >>> return_sf = True
         >>> #(imgB, woff, hoff) = stack_images(img1, img2, vert, modifysize, return_sf=return_sf)
-        >>> imgB, offset2, sf_tup = stack_images(img1, img2, vert, modifysize, return_sf=return_sf)
+        >>> overlap = 100
+        >>> imgB, offset2, sf_tup = stack_images(img1, img2, vert, modifysize,
+        >>>                                      return_sf=return_sf,
+        >>>                                      overlap=overlap)
         >>> woff, hoff = offset2
         >>> # verify results
         >>> result = str((imgB.shape, woff, hoff))
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> imshow(imgB)
+        >>> pt.imshow(imgB)
         >>> wh1 = np.multiply(vt.get_size(img1), sf_tup[0])
         >>> wh2 = np.multiply(vt.get_size(img2), sf_tup[1])
         >>> pt.draw_bbox((0, 0, wh1[0], wh1[1]), bbox_color=(1, 0, 0))
-        >>> pt.draw_bbox((woff, hoff, wh2[0], wh2[0]), bbox_color=(0, 1, 0))
+        >>> pt.draw_bbox((woff[1], hoff[1], wh2[0], wh2[0]), bbox_color=(0, 1, 0))
         >>> pt.show_if_requested()
-        ((762, 512, 3), (0.0, 0.0), (0, 250))
+        ((662, 512, 3), (0.0, 0.0), (0, 150))
     """
     import operator
     import vtool as vt
+    interpolation = _rectify_interpolation(interpolation, default=cv2.INTER_NEAREST)
     # TODO: move this to the same place I'm doing the color gradient
     nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
     if nChannels1 == 1 and nChannels2 == 3:
-        img1 = vt.ensure_3channel(img1)
+        img1 = vt.atleast_3channels(img1, copy=False)
     if nChannels1 == 3 and nChannels2 == 1:
-        img2 = vt.ensure_3channel(img2)
+        img2 = vt.atleast_3channels(img2, copy=False)
     nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
     assert nChannels1 == nChannels2
+    # TODO: allow for some overlap / blending of the images
     vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
+    if overlap:
+        if vert:
+            hB -= overlap
+        else:
+            wB -= overlap
+    # Rectify both images to they are the same dimension
     if modifysize:
         side_index = 1 if vert else 0
         # Compre the lengths of the width and height
@@ -2246,17 +2548,56 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     else:
         tonew_sf1 = (1., 1.)
         tonew_sf2 = (1., 1.)
-    # concatentate images
+    # Do image concatentation
     dtype = img1.dtype
-    assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
+    assert img1.dtype == img2.dtype, (
+        'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype))
+
+    # if False:
+    #     if nChannels1 == 3 or len(img1.shape) > 2:
+    #         # Allocate new image for both
+    #         imgB = np.zeros((hB, wB, nChannels1), dtype)
+    #         # Insert the images
+    #         imgB[0:h1, 0:w1, :] = img1
+    #         imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
+    #     elif nChannels1 == 1:
+    #         # Allocate new image for both
+    #         imgB = np.zeros((hB, wB), dtype)
+    #         # Insert the images
+    #         imgB[0:h1, 0:w1] = img1
+    #         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+    # else:
     if nChannels1 == 3 or len(img1.shape) > 2:
-        imgB = np.zeros((hB, wB, nChannels1), dtype)
-        imgB[0:h1, 0:w1, :] = img1
-        imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
-    elif nChannels1 == 1:
-        imgB = np.zeros((hB, wB), dtype)
+        newshape = (hB, wB, nChannels1)
+    else:
+        newshape = (hB, wB)
+    # Allocate new image for both
+    imgB = np.zeros(newshape, dtype=dtype)
+
+    if overlap:
+        if vert:
+            hoff -= overlap
+        else:
+            woff -= overlap
+        # Insert the images
         imgB[0:h1, 0:w1] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+        # Blend the overlapping part
+        if vert:
+            part1 = img1[-overlap:, :]
+            part2 = imgB[hoff:(hoff + overlap), 0:w1]
+            alpha = vt.gradient_fill(part1.shape[0:2], vert=vert)
+            imgB[hoff:(hoff + overlap), 0:w1] = vt.blend_images_average(part1, part2, alpha=alpha)
+        else:
+            part1 = img1[:, -overlap:]
+            part2 = imgB[0:h1, woff:(woff + overlap)]
+            alpha = vt.gradient_fill(part1.shape[0:2], vert=vert)
+            imgB[0:h1, woff:(woff + overlap)] = vt.blend_images_average(part1, part2, alpha=alpha)
+    else:
+        # Insert the images
+        imgB[0:h1, 0:w1] = img1
+        imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+
     # return
     if return_sf:
         offset1 = (0.0, 0.0)
@@ -2269,7 +2610,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
 
 
 def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
-                        return_offsets=False, interpolation=cv2.INTER_NEAREST):
+                        return_offsets=False, interpolation=None):
     r"""
     TODO: return offsets as well
 
@@ -2309,6 +2650,7 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         >>> #pt.draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
         >>> pt.show_if_requested()
     """
+    interpolation = _rectify_interpolation(interpolation, default=cv2.INTER_NEAREST)
     if img_list2 is None:
         # Initialization and error checking
         if len(img_list1) == 0:
@@ -2350,16 +2692,49 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
 # /STACK IMAGES STUFF
 
 
-def filterflags_valid_images(gpath_list, valid_formats=None,
+def filterflags_valid_images(gpaths, valid_formats=None,
                              invalid_formats=None, verbose=True):
+    r"""
+    Flags images with a format that disagrees with its extension
+
+    Args:
+        gpaths (list): list of image paths
+        valid_formats (None): (default = None)
+        invalid_formats (None): (default = None)
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        list: isvalid_flags
+
+    CommandLine:
+        python -m vtool.image filterflags_valid_images --show
+
+    Notes:
+        An MPO (Multi Picture Object) file is a stereoscopic image and contains
+        two JPG images side-by-side, and allows them to be viewed as a single
+        3D image.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> gpaths = [ut.grab_test_imgpath('carl.jpg'),
+        >>>           ut.grab_test_imgpath('lena.png')]
+        >>> flags = filterflags_valid_images(gpaths)
+        >>> assert all(flags)
+    """
     from PIL import Image
     from os.path import splitext
-    import operator
-    import itertools
+    #import operator
+    #import itertools as it
+    # These are exact aliases
     img_format_alias_dict = {
         'JPG': 'JPEG',
         'TIF': 'TIFF',
     }
+    # These aliases are not exact but generally fine
+    #acceptable_alias = {
+    #    'MPO': 'JPEG'
+    #}
     def get_image_format_from_extension(gpath):
         gname, ext = splitext(gpath)
         ext_format = ext[1:].upper()
@@ -2368,42 +2743,111 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
 
     def get_image_format_from_pil(gpath):
         try:
-            return Image.open(gpath).format
+            pil_image = Image.open(gpath)
+            pil_format = pil_image.format
         except IOError:
-            return None
+            pil_format = None
+        #if pil_format == 'MPO':
+        #    print(pil_image.n_frames)
+        return pil_format
 
-    def check_image_format(gpath, verbose=True):
-        pil_foramt = get_image_format_from_pil(gpath)
-        ext_format = get_image_format_from_extension(gpath)
-        if verbose:
-            if ext_format != pil_foramt:
-                msg = ('gpath has %r extension but is encoded as %r' % (ext_format, pil_foramt))
-                print(msg)
-        return ext_format != pil_foramt
+    #def read_frames(gpath):
+    #    from PIL import Image, ImageSequence
+    #    import vtool as vt
+    #    import cv2
+    #    #pil_image.n_frames
+    #    pil_image = Image.open(gpath)
+    #    sequence = []
+    #    for frame in ImageSequence.Iterator(pil_image):
+    #        print('frame = %r' % (frame,))
+    #        #img = np.asarray(frame)
+    #        rgb_pil = frame.convert('RGB')
+    #        img = np.array(rgb_pil)
+    #        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    #        sequence.append(img)
+    #    stack = vt.stack_square_images(sequence)
+    #    import plottool as pt
+    #    pt.qt4ensure()
+    #    pt.imshow(stack)
+    #    ## btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
+    #    #print('frame = %r' % (frame,))
+    #    #frame.save("frame%d.png" % index)
+    #    #index = index + 1
+    #    pass
 
-    pil_foramt_list = list(map(get_image_format_from_pil, gpath_list))
-    ext_format_list = list(map(get_image_format_from_extension, gpath_list))
-    isvalid_list = list(itertools.starmap(operator.eq,
-                                          zip(ext_format_list, pil_foramt_list)))
+    def check_agrees(ext_format, pil_format):
+        #pil_format_ = acceptable_alias.get(pil_format, pil_format)
+        return pil_format == ext_format
+
+    pil_foramt_list = [
+        get_image_format_from_pil(gpath)
+        for gpath in ut.ProgIter(gpaths, lbl='check image pil-format',
+                                 enabled=verbose)
+    ]
+    ext_format_list = [
+        get_image_format_from_extension(gpath)
+        for gpath in ut.ProgIter(gpaths, lbl='check image ext-format',
+                                 enabled=verbose)
+    ]
+    #agree_flags = list(it.starmap(operator.eq, zip(ext_format_list,
+    #                                                pil_foramt_list)))
+    agree_flags = [check_agrees(e, p) for e, p, in zip(ext_format_list,
+                                                       pil_foramt_list)]
+    valid_flags = agree_flags
     if valid_formats is not None:
-        isvalid_list = ut.and_lists(
-            isvalid_list,
+        # explicitly mark valids
+        valid_flags = ut.and_lists(
+            valid_flags,
             [format_ in valid_formats for format_ in ext_format_list],
             [format_ in valid_formats for format_ in pil_foramt_list],
         )
     if invalid_formats is not None:
-        isvalid_list = ut.and_lists(
-            isvalid_list,
-            [format_ not in invalid_formats for format_ in ext_format_list],
-            [format_ not in invalid_formats for format_ in pil_foramt_list],
+        invalid_fmt_flags = ut.or_lists(
+            [format_ in invalid_formats for format_ in ext_format_list],
+            [format_ in invalid_formats for format_ in pil_foramt_list],
         )
-    if verbose:
-        fmt_list  = list(zip(ext_format_list, pil_foramt_list))
-        invalid_format_list = ut.compress(fmt_list, ut.not_list(isvalid_list))
-        invalid_format_hist = ut.dict_hist(invalid_format_list)
-        print('The following (ext,pil): count formats were marked as invalid')
-        print(ut.dict_str(invalid_format_hist))
-    return isvalid_list
+        valid_flags = ut.and_lists(
+            valid_flags,
+            ut.not_list(invalid_fmt_flags))
+    if verbose > 0:
+        # Inspect invalid items
+        invalid_flags = ut.not_list(valid_flags)
+
+        fmt_list = list(zip(ext_format_list, pil_foramt_list))
+        invalid_fmt_list = ut.compress(fmt_list, invalid_flags)
+        invalid_fmt_hist = ut.dict_hist(invalid_fmt_list)
+        print('The following {(ext,pil): count} formats are invalid')
+        print(ut.repr3(invalid_fmt_hist))
+        print('Total Invalid Files %r' % (sum(invalid_fmt_hist.values()),))
+
+        # Inspect valid items
+
+        valid_fmt_list = ut.compress(fmt_list, valid_flags)
+        valid_fmt_hist = ut.dict_hist(valid_fmt_list)
+        print('The following {(ext,pil): count} formats are valid')
+        print(ut.repr3(valid_fmt_hist))
+        print('Total Valid Files %r' % (sum(valid_fmt_hist.values()),))
+
+        if invalid_formats is not None:
+            invalid_fmt_flags
+
+        if verbose > 1:
+            num_examples = 3
+            print('Examples of invalid files:')
+            invalid_gpaths = ut.compress(gpaths, invalid_flags)
+            grouped_invalids = ut.group_items(invalid_gpaths, invalid_fmt_list)
+            for key in invalid_fmt_hist.keys():
+                val = grouped_invalids[key]
+                print(key)
+                print(ut.indentjoin(val[0:num_examples])[1:])
+            print('\nExamples of valid files:')
+            valid_gpaths = ut.compress(gpaths, valid_flags)
+            grouped_valids = ut.group_items(valid_gpaths, valid_fmt_list)
+            for key in valid_fmt_hist.keys():
+                val = grouped_valids[key]
+                print(key)
+                print(ut.indentjoin(val[0:num_examples])[1:])
+    return valid_flags
 
 
 if __name__ == '__main__':

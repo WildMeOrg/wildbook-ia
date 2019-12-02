@@ -37,7 +37,7 @@ import scipy.sparse.linalg as spsl
 from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
-import vtool.distance as dtool
+import vtool.distance
 try:
     import cv2
 except ImportError as ex:
@@ -55,7 +55,7 @@ except Exception as ex:
     if False:
         raise
 
-(print, rrr, profile) = ut.inject2(__name__, '[sver]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 VERBOSE_SVER = ut.get_argflag('--verb-sver')
@@ -65,7 +65,6 @@ INDEX_DTYPE = np.int32
 TAU = 2 * np.pi  # tauday.org
 
 
-@profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
@@ -80,10 +79,12 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
-        >>> print(ut.numpy_str(Mx9))
-        >>> result = ut.hashstr(Mx9)
+        >>> result = (ut.repr2(Mx9[0:2], suppress_small=True, precision=2, with_dtype=True))
         >>> print(result)
-        f@2l62+2!ppow8yw
+        np.array([[  0.00e+00,   0.00e+00,   0.00e+00,  -3.20e+01,  -2.72e+01,
+                    -1.00e+00,   8.82e+02,   7.49e+02,   2.76e+01],
+                  [  3.20e+01,   2.72e+01,   1.00e+00,   0.00e+00,   0.00e+00,
+                     0.00e+00,  -1.09e+03,  -9.28e+02,  -3.42e+01]], dtype=np.float64)
 
     Timeit:
         import numba
@@ -133,6 +134,7 @@ def try_svd(M):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> rng = np.random.RandomState(42)
@@ -146,6 +148,7 @@ def try_svd(M):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
         >>> num = np.ceil(np.sqrt(2000))
@@ -190,7 +193,7 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
         >>> xy1_man = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_man = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx6 = build_affine_lstsqrs_Mx6(xy1_man, xy2_man)
-        >>> print(ut.numpy_str(Mx6))
+        >>> print(ut.repr2(Mx6))
         >>> result = ut.hashstr(Mx6)
         >>> print(result)
 
@@ -254,7 +257,6 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
     #return Mx6
 
 
-@profile
 def compute_affine(xy1_man, xy2_man):
     """
     Args:
@@ -314,7 +316,6 @@ def compute_affine(xy1_man, xy2_man):
     return A
 
 
-@profile
 def compute_homog(xy1_mn, xy2_mn):
     """
     Generate 6 degrees of freedom homography transformation
@@ -410,11 +411,13 @@ def testdata_matching_affine_inliers_normalized():
     return xy1_man, xy2_man, rchip1, rchip2, T1, T2
 
 
-@profile
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     """
     Critical section code. Inner loop of _test_hypothesis_inliers
+
+    Returns:
+        tuple: hypo_inliers, hypo_errors
 
     CommandLine:
         python -m vtool.spatial_verification --test-_test_hypothesis_inliers
@@ -449,9 +452,22 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> result = ut.hashstr(output)
+        >>> output_str = ut.repr2(output, precision=2, suppress_small=True)
+        >>> print('output_str = %s' % (output_str,))
+        >>> hypo_inliers, hypo_errors = output
+        >>> # Inverting matrices is different in python2
+        >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hash_data(output))
         >>> print(result)
-        +%q&%je52nlyli5&
+        nInliers=1 hash=mvbcrvpbtylihsytiowbtcsmozlmoaun
+
+    Ignore:
+        kpts = kpts1_m
+        ut.hash_data(kpts)
+        ut.hash_data(invVR2s_m)
+        ut.hash_data(kpts1_m)
+        ut.hash_data(RV1s_m)
+        hist1, hist2 = xy2_m.T, _xy1_mt.T
+        dtype = SV_DTYPE
 
     Timeit:
         %timeit xy_err < xy_thresh_sqrd
@@ -465,9 +481,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     ## Check for projection errors
-    xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
-    scale_err = dtool.det_distance(_det1_mt, det2_m)
-    ori_err   = dtool.ori_distance(_ori1_mt, ori2_m)
+    xy_err    = vtool.distance.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
+    scale_err = vtool.distance.det_distance(_det1_mt, det2_m)
+    ori_err   = vtool.distance.ori_distance(_ori1_mt, ori2_m)
 
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = np.less(xy_err, xy_thresh_sqrd)
@@ -487,7 +503,6 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     return hypo_inliers, hypo_errors
 
 
-@profile
 def get_affine_inliers(kpts1, kpts2, fm, fs,
                         xy_thresh_sqrd,
                         scale_thresh_sqrd,
@@ -499,13 +514,18 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
     We transform from chip1 -> chip2
     The determinants are squared keypoint scales
 
-    FROM PERDOCH 2009::
-        H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
-        H = inv(Aj).dot(Ai)
-        The input invVs = perdoch.invA's
+    Returns:
+        tuple: aff_inliers_list, aff_errors_list, Aff_mats
+
+    Notes:
+        FROM PERDOCH 2009::
+            H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
+            H = inv(Aj).dot(Ai)
+            The input invVs = perdoch.invA's
 
     CommandLine:
-        python -m vtool.spatial_verification --test-get_affine_inliers
+        python2 -m vtool.spatial_verification --test-get_affine_inliers
+        python3 -m vtool.spatial_verification --test-get_affine_inliers
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -520,9 +540,12 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
         >>> output = get_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
         >>>                             scale_thresh_sqrd, ori_thresh)
-        >>> result = ut.hashstr(output)
+        >>> output_str = ut.repr3(output, precision=2, suppress_small=True)
+        >>> print('output_str = %s' % (output_str,))
+        >>> aff_inliers_list, aff_errors_list, Aff_mats = output
+        >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hash_data(output_str))
         >>> print(result)
-        89kz8nh6p+66t!+u
+        nInliers=9 hash=lwmgwuyvameoegkgmfrrvkjkykqxlapd
 
     Ignore::
         from vtool.spatial_verification import *  # NOQA
@@ -583,7 +606,6 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
     return aff_inliers_list, aff_errors_list, Aff_mats
 
 
-@profile
 def get_best_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
                             ori_thresh, forcepy=False):
     """ Tests each hypothesis and returns only the best transformation and inliers
@@ -802,7 +824,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     # You cannot test for scale or orientation easily here because
     # you no longer have an ellipse? (maybe, probably have a conic) when using a
     # projective transformation
-    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    xy_err = vtool.distance.L2_sqrd(xy1_mt.T, xy2_m.T)
     # Estimate final inliers
     #ut.embed()
     if full_homog_checks:
@@ -826,9 +848,9 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         _det1_mt = scales1_mt ** 2
         det2_m = ktool.get_sqrd_scales(kpts2_m)
         ori2_m = ktool.get_oris(kpts2_m)
-        #xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-        scale_err = dtool.det_distance(_det1_mt, det2_m)
-        ori_err   = dtool.ori_distance(oris1_mt, ori2_m)
+        #xy_err    = vtool.distance.L2_sqrd(xy2_m.T, _xy1_mt.T)
+        scale_err = vtool.distance.det_distance(_det1_mt, det2_m)
+        ori_err   = vtool.distance.ori_distance(oris1_mt, ori2_m)
         ###
         xy_inliers_flag = np.less(xy_err, xy_thresh_sqrd)
         scale_inliers_flag = np.less(scale_err, scale_thresh)
@@ -869,7 +891,6 @@ def test_affine_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd,
     return refined_tup1
 
 
-@profile
 def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
                    scale_thresh=2.0, ori_thresh=1.57, full_homog_checks=True,
                    refine_method='homog'):
@@ -893,18 +914,18 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> xy_thresh_sqrd = .01 * ktool.get_kpts_dlen_sqrd(kpts2)
         >>> homogtup = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> refined_inliers, refined_errors, H = homogtup
-        >>> result = ut.list_str(homogtup, precision=2, nl=True, suppress_small=True, label_list=['refined_inliers', 'refined_errors', 'H'])
+        >>> result = ut.repr2(homogtup, precision=2, nl=True, suppress_small=True, nobr=True)
         >>> print(result)
-        refined_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
-        refined_errors = (
-                             np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
-                                         25.83,    3.82], dtype=np.float64),
-                             np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
-                             np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43], dtype=np.float64),
-                         )
-        H = np.array([[ 0.92, -0.05,  7.21],
-                      [-0.01,  0.91,  4.13],
-                      [-0.  , -0.  ,  1.  ]], dtype=np.float64)
+        np.array([0, 1, 2, 3, 4, 5, 6, 7, 8]),
+        (
+            np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
+                        25.83,    3.82]),
+            np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47]),
+            np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43]),
+        ),
+        np.array([[  9.18e-01,  -4.82e-02,   7.21e+00],
+                  [ -6.86e-03,   9.09e-01,   4.13e+00],
+                  [ -1.21e-04,  -3.45e-04,   1.00e+00]]),
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -946,7 +967,6 @@ def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
     return aff_inliers, aff_errors, Aff
 
 
-#@profile
 def spatially_verify_kpts(kpts1, kpts2, fm,
                           xy_thresh=.01,
                           scale_thresh=2.0,
@@ -956,7 +976,9 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                           match_weights=None,
                           returnAff=False,
                           full_homog_checks=True,
-                          refine_method='homog'):
+                          refine_method='homog',
+                          max_nInliers=5000,
+                          ):
     """
     Driver function
     Spatially validates feature matches
@@ -976,6 +998,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         dlen_sqrd2 (float): diagonal length squared of image/chip 2
         min_nInliers (int): default=4
         returnAff (bool): returns best affine hypothesis as well
+        max_nInliers (int): homog is not considered after this threshold
 
     Returns:
         tuple : (refined_inliers, refined_errors, H, aff_inliers, aff_errors, Aff) if success else None
@@ -1017,7 +1040,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> print('refined_inliers = %r' % (refined_inliers,))
         >>> #print('refined_errors = %r' % (refined_errors,))
         >>> result = ut.list_type_profile(svtup, with_dtype=False)
-        >>> #result = ut.list_str(svtup, precision=3)
+        >>> #result = ut.repr2(svtup, precision=3)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -1068,6 +1091,13 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                   (len(aff_inliers),))
         svtup = None
         return svtup
+
+    if len(aff_inliers) >= max_nInliers:
+        # If there are a very large number of affine inliers, then the affine
+        # matrix is probably good enough.
+        svtup = (aff_inliers, aff_errors, Aff, aff_inliers, aff_errors, Aff)
+        return svtup
+
     # Refine inliers using a projective transformation (homography)
     try:
         refined_inliers, refined_errors, H = refine_inliers(
@@ -1078,7 +1108,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
-    except ValueError:
+    except ValueError as ex:
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'error cv2 in homog estimation.', iswarning=True)
         return None

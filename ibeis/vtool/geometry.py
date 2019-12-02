@@ -21,6 +21,15 @@ def verts_list_from_bboxes_list(bboxes_list):
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
 
 
+#def mask_from_verts(verts):
+#    h, w = shape[0:2]
+#    y, x = np.mgrid[:h, :w]
+#    points = np.transpose((x.ravel(), y.ravel()))
+#    #mask = nxutils.points_inside_poly(points, verts)
+#    mask = _nxutils_points_inside_poly(points, verts)
+#    return mask.reshape(h, w)
+
+
 def verts_from_bbox(bbox, close=False):
     r"""
     Args:
@@ -185,6 +194,20 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
 
 def closest_point_on_line_segment(p, e1, e2):
     """
+    Finds the closet point from p on line segment (e1, e2)
+
+    Args:
+        p (ndarray): and xy point
+        e1 (ndarray): the first xy endpoint of the segment
+        e2 (ndarray): the second xy endpoint of the segment
+
+    Returns:
+        ndarray: pt_on_seg - the closest xy point on (e1, e2) from p
+
+    References:
+        http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+        http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+
     CommandLine:
         python -m vtool.geometry --exec-closest_point_on_line_segment --show
 
@@ -203,9 +226,9 @@ def closest_point_on_line_segment(p, e1, e2):
         >>>                   [ 21.83012702,  13.16987298]])
         >>> rng = np.random.RandomState(0)
         >>> p_list = rng.rand(64, 2) * 20 + 5
-        >>> close_pts = np.array([closest_point_on_verts(p, verts) for p in p_list])
+        >>> close_pts = np.array([closest_point_on_vert_segments(p, verts) for p in p_list])
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
         >>> for x, y in list(zip(p_list, close_pts)):
@@ -228,16 +251,75 @@ def closest_point_on_line_segment(p, e1, e2):
     # Check if normalized dot product is between 0 and 1
     # Determines if pt is between 0,0 and de
     t = de.dot(pt_on_line_) / mag ** 2
+    # t is an interpolation factor indicating how far past the line segment we
+    # are. We are on the line segment if it is in the range 0 to 1.
     if t < 0:
-        pt_on_line = e1
+        pt_on_seg = e1
     elif t > 1:
-        pt_on_line = e2
+        pt_on_seg = e2
     else:
-        pt_on_line = pt_on_line_ + e1
+        pt_on_seg = pt_on_line_ + e1
+    return pt_on_seg
+
+
+def distance_to_lineseg(p, e1, e2):
+    import vtool as vt
+    close_pt = vt.closest_point_on_line_segment(p, e1, e2)
+    dist_to_lineseg = vt.L2(p, close_pt)
+    return dist_to_lineseg
+
+
+def closest_point_on_line(p, e1, e2):
+    """
+    e1 and e2 define two points on the line.
+    Does not clip to the segment.
+
+    CommandLine:
+        python -m vtool.geometry closest_point_on_line --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> import vtool as vt
+        >>> verts = np.array([[ 21.83012702,  13.16987298],
+        >>>                   [ 16.83012702,  21.83012702],
+        >>>                   [  8.16987298,  16.83012702],
+        >>>                   [ 13.16987298,   8.16987298],
+        >>>                   [ 21.83012702,  13.16987298]])
+        >>> rng = np.random.RandomState(0)
+        >>> p_list = rng.rand(64, 2) * 20 + 5
+        >>> close_pts = []
+        >>> for p in p_list:
+        >>>     candidates = [closest_point_on_line(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
+        >>>     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
+        >>>     close_pts.append(candidates[dists.argmin()])
+        >>> close_pts = np.array(close_pts)
+        >>> import plottool as pt
+        >>> pt.ensureqt()
+        >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
+        >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
+        >>> for x, y in list(zip(p_list, close_pts)):
+        >>>     z = np.array(list(zip(x, y)))
+        >>>     pt.plt.plot(z[0], z[1], 'r--')
+        >>> pt.plt.legend()
+        >>> pt.plt.plot(verts.T[0], verts.T[1], 'b-')
+        >>> pt.plt.xlim(0, 30)
+        >>> pt.plt.ylim(0, 30)
+        >>> pt.plt.axis('equal')
+        >>> ut.show_if_requested()
+    """
+    # shift e1 to origin
+    de = (dx, dy) = e2 - e1
+    # make point vector wrt orgin
+    pv = p - e1
+    # Project pv onto de
+    mag = np.linalg.norm(de)
+    pt_on_line_ = pv.dot(de / mag) * de / mag
+    pt_on_line = pt_on_line_ + e1
     return pt_on_line
 
 
-def closest_point_on_verts(p, verts):
+def closest_point_on_vert_segments(p, verts):
     import vtool as vt
     candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
@@ -257,7 +339,7 @@ def closest_point_on_bbox(p, bbox):
     """
     import vtool as vt
     verts = np.array(vt.verts_from_bbox(bbox, close=True))
-    new_pts = closest_point_on_verts(p, verts)
+    new_pts = closest_point_on_vert_segments(p, verts)
     return new_pts
 
 
@@ -271,9 +353,39 @@ def bbox_from_xywh(xy, wh, xy_rel_pos=[0, 0]):
     return bbox
 
 
+def extent_from_verts(verts):
+    bbox = bbox_from_verts(verts)
+    extent = extent_from_bbox(bbox)
+    return extent
+
+
+def union_extents(extents):
+    extents = np.array(extents)
+    xmin = extents.T[0].min()
+    xmax = extents.T[1].max()
+    ymin = extents.T[2].min()
+    ymax = extents.T[3].max()
+    return (xmin, xmax, ymin, ymax)
+
+
 #def tlbr_from_bbox(bbox):
 def extent_from_bbox(bbox):
-    """ returns tlbr_x, tlbr_y from tlwh """
+    """
+    Args:
+        bbox (ndarray): tl_x, tl_y, w, h
+
+    Returns:
+        extent (ndarray): tl_x, br_x, tl_y, br_y
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> bbox = [0, 0, 10, 10]
+        >>> extent = extent_from_bbox(bbox)
+        >>> result = ('extent = %s' % (ut.repr2(extent),))
+        >>> print(result)
+        extent = [0, 10, 0, 10]
+    """
     tl_x, tl_y, w, h = bbox
     br_x = tl_x + w
     br_y = tl_y + h
@@ -283,11 +395,26 @@ def extent_from_bbox(bbox):
 
 #def tlbr_from_bbox(bbox):
 def bbox_from_extent(extent):
-    """ returns tlbr_x, tlbr_y from tlwh """
+    """
+    Args:
+        extent (ndarray): tl_x, br_x, tl_y, br_y
+
+    Returns:
+        bbox (ndarray): tl_x, tl_y, w, h
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> extent = [0, 10, 0, 10]
+        >>> bbox = bbox_from_extent(extent)
+        >>> result = ('bbox = %s' % (ut.repr2(bbox),))
+        >>> print(result)
+        bbox = [0, 0, 10, 10]
+    """
     tl_x, br_x, tl_y, br_y = extent
     w = br_x - tl_x
     h = br_y - tl_y
-    bbox = [tl_x, br_x, w, h]
+    bbox = [tl_x, tl_y, w, h]
     return bbox
 
 
@@ -330,6 +457,29 @@ def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
         pt1 = ((x1 * sx), (y1 * sy))
         pt2 = ((x2 * sx), (y2 * sy))
     return (pt1, pt2)
+
+
+def scale_bbox(bbox, sx, sy=None):
+    if sy is None:
+        sy = sx
+    from vtool import linalg
+    centerx, centery = bbox_center(bbox)
+    S = linalg.scale_around_mat3x3(sx, sy, centerx, centery)
+    verts = np.array(verts_from_bbox(bbox))
+    vertsT = linalg.transform_points_with_homography(S, verts.T).T
+    bboxT = bbox_from_verts(vertsT)
+    return bboxT
+
+
+def scale_extents(extents, sx, sy=None):
+    """
+    Args:
+        extent (ndarray): tl_x, br_x, tl_y, br_y
+    """
+    bbox = bbox_from_extent(extents)
+    bboxT = scale_bbox(bbox, sx, sy)
+    extentsT = extent_from_bbox(bboxT)
+    return extentsT
 
 
 def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
@@ -390,6 +540,42 @@ def scaled_verts_from_bbox(bbox, theta, sx, sy):
 
 
 def point_inside_bbox(point, bbox):
+    r"""
+    Flags points that are strictly inside a bounding box.
+    Points on the boundary are not considered inside.
+
+    Args:
+        point (ndarray): one or more points to test (2xN)
+        bbox (tuple): a bounding box in  (x, y, w, h) format
+
+    Returns:
+        bool or ndarray: True if the point is in the bbox
+
+    CommandLine:
+        python -m vtool.geometry point_inside_bbox --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> point = np.array([
+        >>>     [3, 2], [4, 1], [2, 3], [1, 1], [0, 0],
+        >>>     [4, 9.5], [9, 9.5], [7, 2], [7, 8], [9, 3]
+        >>> ]).T
+        >>> bbox = (3, 2, 5, 7)
+        >>> flag = point_inside_bbox(point, bbox)
+        >>> flag = flag.astype(np.int)
+        >>> result = ('flag = %s' % (ut.repr2(flag),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> verts = np.array(verts_from_bbox(bbox, close=True))
+        >>> pt.plot(verts.T[0], verts.T[1], 'b-')
+        >>> pt.plot(point[0][flag], point[1][flag], 'go')
+        >>> pt.plot(point[0][~flag], point[1][~flag], 'rx')
+        >>> pt.plt.xlim(0, 10); pt.plt.ylim(0, 10)
+        >>> pt.show_if_requested()
+        flag = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+    """
     x, y = point
     tl_x, br_x, tl_y, br_y = extent_from_bbox(bbox)
     inside_x = np.logical_and(tl_x < x, x < br_x)

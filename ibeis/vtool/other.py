@@ -2,38 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import six
 import functools  # NOQA
 from six import next
-from six.moves import zip, range  # NOQA
-import scipy.spatial.distance as spdist
-(print, rrr, profile) = ut.inject2(__name__, '[other]')
-
-
-def multiaxis_reduce(ufunc, arr, startaxis=0):
-    """
-    used to get max/min over all axes after <startaxis>
-
-    CommandLine:
-        python -m vtool.other --test-multiaxis_reduce
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> rng = np.random.RandomState(0)
-        >>> arr = (rng.rand(4, 3, 2, 1) * 255).astype(np.uint8)
-        >>> ufunc = np.amax
-        >>> startaxis = 1
-        >>> out_ = multiaxis_reduce(ufunc, arr, startaxis)
-        >>> result = out_
-        >>> print(result)
-        [182 245 236 249]
-    """
-    num_iters = len(arr.shape) - startaxis
-    out_ = ufunc(arr, axis=startaxis)
-    for _ in range(num_iters - 1):
-        out_ = ufunc(out_, axis=1)
-    return out_
+from six.moves import zip, range
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
@@ -44,12 +16,66 @@ def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
         return np.empty(default_shape, dtype=default_dtype)
 
 
+def pad_vstack(arrs, fill_value=0):
+    """ Stacks values and pads arrays with different lengths with zeros """
+    total = max(map(len, arrs))
+    padded = [np.hstack([a, np.full(total - len(a), fill_value)]) for a in arrs]
+    return np.vstack(padded)
+
+
 def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
-    """ stacks a tuple even if it is empty """
-    try:
-        return np.concatenate(tup, axis=axis)
-    except ValueError:
-        return np.empty(default_shape, dtype=default_dtype)
+    """
+    stacks a tuple even if it is empty
+    Also deals with numpy bug where cat fails if an element in sequence is empty
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> import vtool as vt
+        >>> # test1
+        >>> tup = []
+        >>> ut.assert_eq(vt.safe_cat(tup, axis=0).shape, (0,))
+        >>> # test2
+        >>> tup = (np.array([[1, 2, 3]]), np.array([[]]))
+        >>> s = vt.safe_cat(tup, axis=0)
+        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> ut.assert_eq(s.shape, (1, 3))
+        >>> # test3
+        >>> tup = (np.array([[1, 2, 3]]), np.array([[3, 4, 5]]))
+        >>> s = vt.safe_cat(tup, axis=1)
+        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> ut.assert_eq(s.shape, (1, 6))
+        >>> # test3
+        >>> tup = (np.array(1), np.array(2), np.array(3))
+        >>> s = vt.safe_cat(tup, axis=1)
+        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> ut.assert_eq(s.shape, (1, 6))
+    """
+    if tup is None or len(tup) == 0:
+        stack = np.empty(default_shape, dtype=default_dtype)
+    else:
+        try:
+            stack = np.concatenate(tup, axis=axis)
+        except ValueError as ex1:
+            try:
+                # Ensure everything is at least a 1d array
+                tup_ = [np.atleast_1d(np.asarray(a)) for a in tup]
+                # remove empty parts
+                tup_ = [a for a in tup_ if a.size > 0]
+                stack = np.concatenate(tup_, axis=axis)
+            except ValueError:
+                # if axis == 0:
+                #     stack = np.hstack(tup)
+                # elif axis == 1:
+                #     stack = np.vstack(tup)
+                # elif axis == 3:
+                #     stack = np.dstack(tup)
+                # else:
+                raise ex1
+    return stack
+    # try:
+    #     return np.concatenate(tup, axis=axis)
+    # except ValueError:
 
 
 def median_abs_dev(arr_list, **kwargs):
@@ -90,8 +116,8 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> idxs_list = argsort_groups(scores_list, reverse, rng)
         >>> #import vtool as vt
         >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
-        >>> #result = 'sorted_scores = %s' % (ut.list_str(sorted_scores),)
-        >>> result = 'idxs_list = %s' % (ut.list_str(idxs_list, with_dtype=False),)
+        >>> #result = 'sorted_scores = %s' % (ut.repr2(sorted_scores),)
+        >>> result = 'idxs_list = %s' % (ut.repr4(idxs_list, with_dtype=False),)
         >>> print(result)
         idxs_list = [
             np.array([1, 0]),
@@ -169,137 +195,6 @@ def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     return isok
 
 
-def safe_pdist(arr, *args, **kwargs):
-    """
-    Kwargs:
-        metric = ut.absdiff
-
-    SeeAlso:
-        scipy.spatial.distance.pdist
-    """
-    if arr is None or len(arr) < 2:
-        return None
-    else:
-        if len(arr.shape) == 1:
-            return spdist.pdist(arr[:, None], *args, **kwargs)
-        else:
-            return spdist.pdist(arr, *args, **kwargs)
-
-
-def pdist_indicies(num):
-    return np.array([(i, j) for i in range(num) for j in range(num) if i < j])
-    #import itertools
-    #return [(i, j) for i, j in itertools.product(range(num), range(num)) if i < j]
-
-
-def pdist_argsort(x):
-    """
-    Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance
-
-    x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
-
-    Args:
-        x (ndarray):
-
-    Returns:
-        ndarray: sortx_2d
-
-    CommandLine:
-        python -m vtool.other --test-pdist_argsort
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> x = np.array([ 21695.78, 10943.76, 10941.44, 25867.64, 10752.03, 10754.35, 4171.86, 2.32, 14923.89, 14926.2 ], dtype=np.float64)
-        >>> #[ 21025.45583333,    670.60055556,  54936.59111111,  21696.05638889, 33911.13527778,  55607.19166667]
-        >>> sortx_2d = pdist_argsort(x)
-        >>> result = ('sortx_2d = %s' % (str(sortx_2d),))
-        >>> print(result)
-        sortx_2d = [(2, 3), (1, 4), (1, 2), (1, 3), (0, 3), (0, 2), (2, 4), (3, 4), (0, 1), (0, 4)]
-    """
-    OLD = True
-    #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2),
-    #range(len(x) / 2)) if (c > r)]
-    if OLD:
-        mat = spdist.squareform(x)
-        matu = np.triu(mat)
-        sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
-        # only take where col is larger than row due to upper triu
-        sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
-    else:
-        num_rows = len(x) // 2
-        compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)]
-                                   for r in range(num_rows)])
-        sortx = x.argsort()
-        sortx_2d = ut.take(compare_idxs, sortx)
-    return sortx_2d
-
-
-def get_consec_endpoint(consec_index_list, endpoint):
-    """
-    consec_index_list = consec_cols_list
-    endpoint = 0
-    """
-    for consec_index in consec_index_list:
-        if np.any(np.array(consec_index) == endpoint):
-            return consec_index
-
-
-def index_to_boolmask(index_list, maxval=None, isflat=True):
-    r"""
-    transforms a list of indicies into a boolean mask
-
-    Args:
-        index_list (ndarray):
-        maxval (None): (default = None)
-
-    Kwargs:
-        maxval
-
-    Returns:
-        ndarray: mask
-
-    CommandLine:
-        python -m vtool.other --exec-index_to_boolmask
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
-        >>> index_list = np.array([(0, 0), (1, 1), (2, 1)])
-        >>> maxval = (3, 3)
-        >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=False)
-        >>> result = ('mask =\n%s' % (str(mask.astype(np.uint8)),))
-        >>> print(result)
-        [[1 0 0]
-         [0 1 0]
-         [0 1 0]]
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
-        >>> index_list = np.array([0, 1, 4])
-        >>> maxval = 5
-        >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=True)
-        >>> result = ('mask = %s' % (str(mask.astype(np.uint8)),))
-        >>> print(result)
-        mask = [1 1 0 0 1]
-
-    """
-    #assert index_list.min() >= 0
-    if maxval is None:
-        maxval = index_list.max()
-    mask = np.zeros(maxval, dtype=np.bool)
-    if not isflat:
-        # assumes non-flat
-        mask.__setitem__(tuple(index_list.T), True)
-        #mask.__getitem__(tuple(index_list.T))
-    else:
-        mask[index_list] = True
-    return mask
-
-
 def get_crop_slices(isfill):
     fill_colxs = [np.where(row)[0] for row in isfill]
     fill_rowxs = [np.where(col)[0] for col in isfill.T]
@@ -309,6 +204,15 @@ def get_crop_slices(isfill):
     filled_rows = intersect1d_reduce(fill_rowxs)
     consec_rows_list = ut.group_consecutives(filled_rows)
     consec_cols_list = ut.group_consecutives(filled_columns)
+
+    def get_consec_endpoint(consec_index_list, endpoint):
+        """
+        consec_index_list = consec_cols_list
+        endpoint = 0
+        """
+        for consec_index in consec_index_list:
+            if np.any(np.array(consec_index) == endpoint):
+                return consec_index
 
     def get_min_consec_endpoint(consec_rows_list, endpoint):
         consec_index = get_consec_endpoint(consec_rows_list, endpoint)
@@ -347,7 +251,7 @@ def get_undirected_edge_ids(directed_edges):
         >>> from vtool.other import *  # NOQA
         >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
         >>> edgeid_list = get_undirected_edge_ids(directed_edges)
-        >>> result = ('edgeid_list = %s' % (str(edgeid_list),))
+        >>> result = ('edgeid_list = %s' % (ut.repr2(edgeid_list),))
         >>> print(result)
         edgeid_list = [0 0 1 2 3 1 1]
     """
@@ -357,10 +261,13 @@ def get_undirected_edge_ids(directed_edges):
     return edgeid_list
 
 
-def to_undirected_edges(directed_edges):
+def to_undirected_edges(directed_edges, upper=False):
     assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
     #flipped = qaid_arr < daid_arr
-    flipped = directed_edges.T[0] < directed_edges.T[1]
+    if upper:
+        flipped = directed_edges.T[0] > directed_edges.T[1]
+    else:
+        flipped = directed_edges.T[0] < directed_edges.T[1]
     # standardize edge order
     edges_dupl = directed_edges.copy()
     edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
@@ -452,7 +359,7 @@ def argsort_records(arrays, reverse=False):
         >>> result = ('sortx = %s' % (str(sortx),))
         >>> print('lxsrt = %s' % (np.lexsort(arrays[::-1]),))
         >>> print(result)
-        sortx = [ 1  2  0  5  4  3  6  7  8]
+        sortx = [1 2 0 5 4 3 6 7 8]
     """
     sorting_records = np.rec.fromarrays(arrays)
     sort_stride = (-reverse * 2) + 1
@@ -494,47 +401,10 @@ def compute_ndarray_unique_rowids_unsafe(arr):
     #assert arr.data == arr_void_view.data
 
 
-def unique_row_indexes(arr):
-    """ np.unique on rows
-
-    Args:
-        arr (ndarray): 2d array
-
-    Returns:
-        ndarray: unique_rowx
-
-    References:
-        http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
-
-    CommandLine:
-        python -m vtool.other --test-unique_row_indexes
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
-        >>> unique_rowx = unique_row_indexes(arr)
-        >>> result = ('unique_rowx = %s' % (ut.numpy_str(unique_rowx),))
-        >>> print(result)
-        unique_rowx = np.array([0, 1, 2, 3, 5], dtype=np.int64)
-
-    Ignore:
-        %timeit unique_row_indexes(arr)
-        %timeit compute_unique_data_ids(arr)
-        %timeit compute_unique_integer_data_ids(arr)
-
-    """
-    void_dtype = np.dtype((np.void, arr.dtype.itemsize * arr.shape[1]))
-    arr_void_view = np.ascontiguousarray(arr).view(void_dtype)
-    _, unique_rowx = np.unique(arr_void_view, return_index=True)
-    # cast back to original dtype
-    unique_rowx.sort()
-    return unique_rowx
-
-
 def nonunique_row_flags(arr):
+    import vtool as vt
     unique_rowx = unique_row_indexes(arr)
-    unique_flags = index_to_boolmask(unique_rowx, len(arr))
+    unique_flags = vt.index_to_boolmask(unique_rowx, len(arr))
     nonunique_flags = np.logical_not(unique_flags)
     return nonunique_flags
 
@@ -560,7 +430,7 @@ def nonunique_row_indexes(arr):
         >>> from vtool.other import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> nonunique_rowx = unique_row_indexes(arr)
-        >>> result = ('nonunique_rowx = %s' % (ut.numpy_str(nonunique_rowx),))
+        >>> result = ('nonunique_rowx = %s' % (ut.repr2(nonunique_rowx),))
         >>> print(result)
         nonunique_rowx = np.array([4, 6, 7, 8], dtype=np.int64)
     """
@@ -581,7 +451,7 @@ def compute_unique_data_ids(data):
         >>> from vtool.other import *  # NOQA
         >>> data = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> dataid_list = compute_unique_data_ids(data)
-        >>> result = 'dataid_list = ' + ut.numpy_str(dataid_list)
+        >>> result = 'dataid_list = ' + ut.repr2(dataid_list, with_dtype=True)
         >>> print(result)
         dataid_list = np.array([0, 1, 2, 3, 0, 4, 4, 2, 1], dtype=np.int32)
     """
@@ -645,12 +515,10 @@ def compute_unique_integer_data_ids(data):
     return dataid_list
 
 
-@profile
 def trytake(list_, index_list):
     return None if list_ is None else list_take_(list_, index_list)
 
 
-@profile
 def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
@@ -672,7 +540,6 @@ def take2(arr, index_list, axis=None, out=None):
     return np.take(arr, index_list, axis=axis, out=out)
 
 
-@profile
 def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
         return list_.compress(flag_list, axis=0)
@@ -846,13 +713,14 @@ def zipcat(arr1_list, arr2_list, axis=None):
         >>> print('arr3_list0 = %s' % (ut.repr3(arr3_list0),))
         >>> print('arr3_list2 = %s' % (ut.repr3(arr3_list2),))
     """
+    import vtool as vt
     assert len(arr1_list) == len(arr2_list), 'lists must correspond'
     if axis is None:
         arr1_iter = arr1_list
         arr2_iter = arr2_list
     else:
-        arr1_iter = [atleast_nd(arr1, axis + 1) for arr1 in arr1_list]
-        arr2_iter = [atleast_nd(arr2, axis + 1) for arr2 in arr2_list]
+        arr1_iter = [vt.atleast_nd(arr1, axis + 1) for arr1 in arr1_list]
+        arr2_iter = [vt.atleast_nd(arr2, axis + 1) for arr2 in arr2_list]
     arrs_iter = list(zip(arr1_iter, arr2_iter))
     arr3_list = [np.concatenate(arrs, axis=axis) for arrs in arrs_iter]
     return arr3_list
@@ -865,10 +733,10 @@ def atleast_nd(arr, n, tofront=False):
 
     Args:
         arr (array_like): One array-like object.  Non-array inputs are
-                converted to arrays.  Arrays that already have n or more dimensions
-                are preserved.
+            converted to arrays.  Arrays that already have n or more dimensions
+            are preserved.
         n (int):
-        tofront (bool): if True new dimensions are added to the front of the array
+        tofront (bool): if True new dims are added to the front of the array
 
     CommandLine:
         python -m vtool.other --exec-atleast_nd --show
@@ -928,6 +796,145 @@ def atleast_nd(arr, n, tofront=False):
             expander = (Ellipsis,) + (None,) * (n - ndims)
         arr_ = arr_[expander]
     return arr_
+
+
+def ensure_shape(arr, dimshape):
+    """
+    Ensures that an array takes a certain shape. The total size of the array
+    must not change.
+
+    Args:
+        arr (ndarray): array to change the shape of
+        dimshape (tuple): desired shape (Nones can be used to broadcast
+            dimensions)
+
+    Returns:
+        ndarray: arr_ -  the input array, which has been modified inplace.
+
+    CommandLine:
+        python -m vtool.other ensure_shape
+
+    Doctest:
+        >>> from vtool.other import *  # NOQA
+        >>> arr = np.zeros((7, 7))
+        >>> dimshape = (None, None, 3)
+        >>> arr2 = ensure_shape(np.array([[1, 2]]), (None, 2))
+        >>> assert arr2.shape == (1, 2)
+        >>> arr3 = ensure_shape(np.array([]), (None, 2))
+        >>> assert arr3.shape == (0, 2)
+    """
+    if isinstance(dimshape, tuple):
+        n = len(dimshape)
+    else:
+        n = dimshape
+        dimshape = None
+    arr_ = atleast_nd(arr, n)
+    if dimshape is not None:
+        newshape = tuple([
+            d1 if d2 is None else d2
+            for d1, d2 in zip(arr_.shape, dimshape)])
+        arr_.shape = newshape
+    return arr_
+
+
+def significant_shape(arr):
+    """ find the shape without trailing 1's """
+    sig_dim = 0
+    for i, dim in enumerate(arr.shape, start=1):
+        if dim != 1:
+            sig_dim = i
+    sig_shape = arr.shape[0:sig_dim]
+    return sig_shape
+
+
+def atleast_shape(arr, dimshape):
+    """
+    Ensures that an array takes a certain shape. The total size of the array
+    must not change.
+
+    Args:
+        arr (ndarray): array to change the shape of
+        dimshape (tuple): desired shape (Nones can be used to broadcast
+            dimensions)
+
+    Returns:
+        ndarray: arr_ -  the input array, which has been modified inplace.
+
+    CommandLine:
+        python -m vtool.other ensure_shape
+
+    Doctest:
+        >>> from vtool.other import *  # NOQA
+        >>> arr = np.zeros((7, 7))
+        >>> assert atleast_shape(arr, (1, 1, 3,)).shape == (7, 7, 3)
+        >>> assert atleast_shape(arr, (1, 1, 2, 4,)).shape == (7, 7, 2, 4)
+        >>> assert atleast_shape(arr, (1, 1,)).shape == (7, 7,)
+        >>> assert atleast_shape(arr, (1, 1, 1)).shape == (7, 7, 1)
+        >>> assert atleast_shape(np.zeros(()), (1,)).shape == (1,)
+        >>> assert atleast_shape(np.zeros(()), tuple()).shape == tuple()
+        >>> assert atleast_shape(np.zeros(()), (1, 2, 3,)).shape == (1, 2, 3)
+        >>> ut.assert_raises(ValueError, atleast_shape, arr, (2, 2))
+        >>> assert atleast_shape(np.zeros((7, 7, 3)), (1, 1, 3)).shape == (7, 7, 3)
+        >>> ut.assert_raises(ValueError, atleast_shape, np.zeros((7, 7, 3)), (1, 1, 4))
+
+    """
+    n = len(dimshape)
+    sig_shape = significant_shape(arr)
+    if n < len(sig_shape):
+        raise ValueError(
+            'len(dimshape)={} must be >= than '
+            'len(significant_shape(arr)={})'.format(n, sig_shape))
+    arr_ = atleast_nd(arr, n)
+    for d1, d2 in zip(arr_.shape, dimshape):
+        if d2 > 1 and d1 != 1 and d1 != d2:
+            raise ValueError('cannot broadcast {} to {}'.format(
+                arr_.shape, dimshape
+            ))
+    reps = tuple(1 if d2 is None or (d1 == d2) else d2
+                 for d1, d2 in zip(arr_.shape, dimshape))
+    arr_ = np.tile(arr_, reps)
+    return arr_
+
+
+def atleast_3channels(arr, copy=True):
+    r"""
+    Ensures that there are 3 channels in the image
+
+    Args:
+        arr (ndarray[N, M, ...]): the image
+        copy (bool): Always copies if True, if False, then copies only when the
+            size of the array must change.
+
+    Returns:
+        ndarray: with shape (N, M, C), where C in {3, 4}
+
+    CommandLine:
+        python -m vtool.other atleast_3channels
+
+    Doctest:
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> assert atleast_3channels(np.zeros((10, 10))).shape[-1] == 3
+        >>> assert atleast_3channels(np.zeros((10, 10, 1))).shape[-1] == 3
+        >>> assert atleast_3channels(np.zeros((10, 10, 3))).shape[-1] == 3
+        >>> assert atleast_3channels(np.zeros((10, 10, 4))).shape[-1] == 4
+    """
+    # atleast_shape(arr, (None, None, 3))
+    ndims = len(arr.shape)
+    if ndims == 2:
+        res = np.tile(arr[:, :, None], 3)
+        return res
+    elif ndims == 3:
+        h, w, c = arr.shape
+        if c == 1:
+            res = np.tile(arr, 3)
+        elif c in [3, 4]:
+            res = arr.copy() if copy else arr
+        else:
+            raise ValueError('Cannot handle ndims={}'.format(ndims))
+    else:
+        raise ValueError('Cannot handle arr.shape={}'.format(arr.shape))
+    return res
 
 
 def iter_reduce_ufunc(ufunc, arr_iter, out=None):
@@ -1002,7 +1009,7 @@ def clipnorm(arr, min_, max_, out=None):
 
 def intersect1d_reduce(arr_list, assume_unique=False):
     arr_iter = iter(arr_list)
-    out = six.next(arr_iter)
+    out = next(arr_iter)
     for arr in arr_iter:
         out = np.intersect1d(out, arr, assume_unique=assume_unique)
     return out
@@ -1087,12 +1094,9 @@ def intersect2d_flags(A, B):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
-        >>> # build test data
         >>> A = np.array([[609, 307], [ 95, 344], [  1, 690]])
         >>> B = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
-        >>> # execute function
         >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
-        >>> # verify results
         >>> result = str((flag_list1, flag_list2))
         >>> print(result)
         (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
@@ -1103,36 +1107,157 @@ def intersect2d_flags(A, B):
     return flag_list1, flag_list2
 
 
-def flag_intersection(X_, C_):
-    if X_.size == 0 or C_.size == 0:
-        flags = np.full(X_.shape[0], False, dtype=np.bool)
+def flag_intersection(arr1, arr2):
+    r"""
+    Flags the rows in `arr1` that contain items in `arr2`
+
+    Returns:
+        ndarray: flags where len(flags) == len(arr1)
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([0, 1, 2, 3, 4, 5])
+        >>> arr2 = np.array([2, 6, 4])
+        >>> flags = flag_intersection(arr1, arr2)
+        >>> assert len(flags) == len(arr1)
+        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> print(result)
+        flags = np.array([False, False,  True, False,  True, False])
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> import vtool as vt
+        >>> arr1 = np.array([[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5]])
+        >>> arr2 = np.array([[0, 2], [0, 6], [0, 4], [3, 0]])
+        >>> arr1, arr2 = vt.structure_rows(arr1, arr2)
+        >>> flags = flag_intersection(arr1, arr2)
+        >>> assert len(flags) == len(arr1)
+        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> print(result)
+        flags = np.array([False, False,  True, False,  True, False])
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([0, 1, 2, 3, 4, 5])
+        >>> arr2 = np.array([])
+        >>> flags = flag_intersection(arr1, arr2)
+        >>> assert len(flags) == len(arr1)
+        >>> flags = flag_intersection(np.array([]), np.array([2, 6, 4]))
+        >>> assert len(flags) == 0
+
+    Timeit:
+        >>> setup = ut.codeblock(
+        >>>     r'''
+                import vtool as vt
+                import numpy as np
+                rng = np.random.RandomState(0)
+                arr1 = rng.randint(0, 100, 100000).reshape(-1, 2)
+                arr2 = rng.randint(0, 100, 1000).reshape(-1, 2)
+                arr1_, arr2_ = vt.structure_rows(arr1, arr2)
+                ''')
+        >>> stmt_list = ut.codeblock(
+        >>>     '''
+                np.array([row in arr2_ for row in arr1_])
+                np.logical_or.reduce([arr1_ == row_ for row_ in arr2_]).ravel()
+                vt.iter_reduce_ufunc(np.logical_or, (arr1_ == row_ for row_ in arr2_)).ravel()
+                ''').split('\n')
+        >>> out = ut.timeit_compare(stmt_list, setup=setup, iterations=3)
+    """
+    import vtool as vt
+    if arr1.size == 0 or arr2.size == 0:
+        flags = np.full(arr1.shape[0], False, dtype=np.bool)
         #return np.empty((0,), dtype=np.bool)
     else:
-        flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
+        # flags = np.logical_or.reduce([arr1 == row for row in arr2]).T[0]
+        flags = vt.iter_reduce_ufunc(np.logical_or, (arr1 == row_ for row_ in arr2)).ravel()
     return flags
 
 
-def intersect2d_structured_numpy(A, B, assume_unique=False):
+def structure_rows(*arrs):
+    r"""
+    CommandLine:
+        python -m vtool.other structure_rows
+
+    SeeAlso:
+        unstructure_rows
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([[609, 307], [ 95, 344], [  1, 690]])
+        >>> arr2 = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
+        >>> arrs = (arr1, arr2)
+        >>> structured_arrs = structure_rows(*arrs)
+        >>> unstructured_arrs = unstructure_rows(*structured_arrs)
+        >>> assert np.all(unstructured_arrs[0] == arrs[0])
+        >>> assert np.all(unstructured_arrs[1] == arrs[1])
+        >>> union_ = np.union1d(*structured_arrs)
+        >>> union, = unstructure_rows(union_)
+        >>> assert len(union.shape) == 2
     """
+    arr0 = arrs[0]
+    ncols = arr0.shape[1]
+    dtype = {'names': ['f%d' % (i,) for i in range(ncols)],
+             'formats': ncols * [arr0.dtype]}
+    for arr in arrs:
+        assert len(arr.shape) == 2, 'arrays must be 2d'
+        assert arr.dtype == arr0.dtype, 'arrays must share the same dtype'
+        assert arr.shape[1] == ncols, 'arrays must share column shape'
+    structured_arrs = []
+    for arr in arrs:
+        arr_ = np.ascontiguousarray(arr).view(dtype)
+        structured_arrs.append(arr_)
+    return structured_arrs
+
+
+def unstructure_rows(*structured_arrs):
+    r"""
+    SeeAlso:
+        structure_rows
+    """
+    # TODO: assert arr.dtype.fields are all the same type
+    unstructured_arrs = [arr.view(list(arr.dtype.fields.values())[0][0])
+                         for arr in structured_arrs]
+    unstructured_arrs = []
+    for arr_ in structured_arrs:
+        dtype = list(arr_.dtype.fields.values())[0][0]
+        arr = arr_.view(dtype).reshape(-1, 2)
+        unstructured_arrs.append(arr)
+    return unstructured_arrs
+
+
+def intersect2d_structured_numpy(arr1, arr2, assume_unique=False):
+    """
+    Args:
+        arr1: unstructured 2d array
+        arr2: unstructured 2d array
+
+    Returns:
+        A_, B_, C_ - structured versions of arr1, and arr2, and their structured intersection
+
     References:
         http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
         http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays
     """
-    nrows, ncols = A.shape
-    assert A.dtype == B.dtype, ('A and B must have the same dtypes.'
-                                'A.dtype=%r, B.dtype=%r' % (A.dtype, B.dtype))
-    [('f%d' % i, A.dtype) for i in range(ncols)]
-    #dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
+    ncols = arr1.shape[1]
+    assert arr1.dtype == arr2.dtype, (
+        'arr1 and arr2 must have the same dtypes.'
+        'arr1.dtype=%r, arr2.dtype=%r' % (arr1.dtype, arr2.dtype))
+    # [('f%d' % i, arr1.dtype) for i in range(ncols)]
+    #dtype = np.dtype([('f%d' % i, arr1.dtype) for i in range(ncols)])
     #dtype = {'names': ['f{}'.format(i) for i in range(ncols)],
-    #         'formats': ncols * [A.dtype]}
+    #         'formats': ncols * [arr1.dtype]}
     dtype = {'names': ['f%d' % (i,) for i in range(ncols)],
-             'formats': ncols * [A.dtype]}
+             'formats': ncols * [arr1.dtype]}
     #try:
-    A_ = np.ascontiguousarray(A).view(dtype)
-    B_ = np.ascontiguousarray(B).view(dtype)
+    A_ = np.ascontiguousarray(arr1).view(dtype)
+    B_ = np.ascontiguousarray(arr2).view(dtype)
     C_ = np.intersect1d(A_, B_, assume_unique=assume_unique)
-    #C = np.intersect1d(A.view(dtype),
-    #                   B.view(dtype),
+    #C = np.intersect1d(arr1.view(dtype),
+    #                   arr2.view(dtype),
     #                   assume_unique=assume_unique)
     #except ValueError:
     #    C = np.intersect1d(A.copy().view(dtype),
@@ -1196,7 +1321,6 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indices=False):
         return C
 
 
-@profile
 def nearest_point(x, y, pts, mode='random'):
     """ finds the nearest point(s) in pts to (x, y) """
     dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
@@ -1256,7 +1380,7 @@ def get_uncovered_mask(covered_array, covering_array):
         ... ], dtype=np.int32)
         >>> covering_array = [2, 4, 5]
         >>> flags = get_uncovered_mask(covered_array, covering_array)
-        >>> result = ut.numpy_str(flags)
+        >>> result = ut.repr2(flags, with_dtype=True)
         >>> print(result)
         np.array([[ True, False,  True],
                   [False, False,  True],
@@ -1271,11 +1395,12 @@ def get_uncovered_mask(covered_array, covering_array):
 
 
     """
+    import vtool as vt
     if len(covering_array) == 0:
         return np.ones(np.shape(covered_array), dtype=np.bool)
     else:
         flags_iter = (np.not_equal(covered_array, item) for item in covering_array)
-        mask_array = iter_reduce_ufunc(np.logical_and, flags_iter)
+        mask_array = vt.iter_reduce_ufunc(np.logical_and, flags_iter)
         return mask_array
     #if len(covering_array) == 0:
     #    return np.ones(np.shape(covered_array), dtype=np.bool)
@@ -1290,7 +1415,7 @@ def get_uncovered_mask(covered_array, covering_array):
 #        return np.ones(np.shape(covered_array), dtype=np.bool)
 #    else:
 #        flags_iter = (np.not_equal(covered_array, item) for item in covering_array)
-#        mask_array = iter_reduce_ufunc(np.logical_and, flags_iter)
+#        mask_array = vt.iter_reduce_ufunc(np.logical_and, flags_iter)
 #        return mask_array
 
 
@@ -1360,7 +1485,6 @@ def and_lists(*args):
     return np.logical_and.reduce(args)
 
 
-@profile
 def axiswise_operation2(arr1, arr2, op, axis=0):
     """
     Apply opperation to each row
@@ -1383,7 +1507,6 @@ def axiswise_operation2(arr1, arr2, op, axis=0):
     raise NotImplementedError()
 
 
-@profile
 def rowwise_operation(arr1, arr2, op):
     """
     DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING AND
@@ -1425,7 +1548,6 @@ def compare_matrix_columns(matrix, columns, comp_op=np.equal, logic_op=np.logica
     return compare_matrix_to_rows(matrix.T, columns.T, comp_op=comp_op, logic_op=logic_op).T
 
 
-@profile
 def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
     """
     Compares each row in row_list to each row in row matrix using comp_op
@@ -1481,8 +1603,9 @@ def norm01(array, dim=None):
 
 
 def weighted_geometic_mean_unnormalized(data, weights):
+    import vtool as vt
     terms = [x ** w for x, w in zip(data, weights)]
-    termprod = iter_reduce_ufunc(np.multiply, iter(terms))
+    termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     return termprod
 
 
@@ -1507,7 +1630,7 @@ def weighted_geometic_mean(data, weights):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
-        >>> data = [np.array(.9), np.array(.5)]
+        >>> data = [.9, .5]
         >>> weights = np.array([1.0, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
         >>> result = ('gmean_ = %.3f' % (gmean_,))
@@ -1523,7 +1646,7 @@ def weighted_geometic_mean(data, weights):
         >>> data = [img1, img2]
         >>> weights = np.array([.5, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
-        >>> result = ut.hz_str('gmean_ = ', ut.numpy_str(gmean_, precision=2))
+        >>> result = ut.hz_str('gmean_ = ', ut.repr2(gmean_, precision=2, with_dtype=True))
         >>> print(result)
         gmean_ = np.array([[ 0.11,  0.77,  0.68,  0.69],
                            [ 0.64,  0.72,  0.45,  0.83],
@@ -1534,8 +1657,9 @@ def weighted_geometic_mean(data, weights):
         res1 = ((img1 ** .5 * img2 ** .5)) ** 1
         res2 = np.sqrt(img1 * img2)
     """
-    terms = [x ** w for x, w in zip(data, weights)]
-    termprod = iter_reduce_ufunc(np.multiply, iter(terms))
+    import vtool as vt
+    terms = [np.asarray(x ** w) for x, w in zip(data, weights)]
+    termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     exponent = 1 / np.sum(weights)
     gmean_ = termprod ** exponent
     return gmean_
@@ -1557,7 +1681,7 @@ def grab_webcam_image():
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(img)
-        >>> #vt.imwrite('webcap.jpg', img)
+        >>> vt.imwrite('webcap.jpg', img)
         >>> ut.show_if_requested()
     """
     import cv2
@@ -1709,25 +1833,117 @@ def ensure_rng(seed=None):
     return rng
 
 
-def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False):
-    if finite:
-        arr = arr.compress(np.isfinite(arr))
-    if arr is None or len(arr) == 0:
-        extreme =  fill
+def safe_extreme(arr, op, fill=np.nan, finite=False, nans=True):
+    """
+    Applies an exterme operation to an 1d array (typically max/min) but ensures
+    a value is always returned even in operations without identities. The
+    default identity must be specified using the `fill` argument.
+
+    Args:
+        arr (ndarray): 1d array to take extreme of
+        op (func): vectorized operation like np.max to apply to array
+        fill (float): return type if arr has no elements (default = nan)
+        finite (bool): if True ignores non-finite values (default = False)
+        nans (bool): if False ignores nans (default = True)
+    """
+    if arr is None:
+        extreme = fill
     else:
-        extreme = op(arr)
+        arr = np.asarray(arr)
+        if finite:
+            arr = arr.compress(np.isfinite(arr))
+        if not nans:
+            arr = arr.compress(np.logical_not(np.isnan(arr)))
+        if len(arr) == 0:
+            extreme =  fill
+        else:
+            extreme = op(arr)
     return extreme
 
 
-def safe_max(arr, fill=np.nan):
-    return safe_extreme(arr, np.max, fill)
+def safe_argmax(arr, fill=np.nan, finite=False, nans=True):
+    """
+    Doctest:
+        >>> from vtool.other import *
+        >>> assert safe_argmax([np.nan, np.nan], nans=False) == 0
+        >>> assert safe_argmax([-100, np.nan], nans=False) == 0
+        >>> assert safe_argmax([np.nan, -100], nans=False) == 1
+        >>> assert safe_argmax([-100, 0], nans=False) == 1
+        >>> assert np.isnan(safe_argmax([]))
+    """
+    if len(arr) == 0:
+        return fill
+    extreme = safe_max(arr, fill=fill, finite=finite, nans=nans)
+    if np.isnan(extreme):
+        arg_extreme = np.where(np.isnan(arr))[0][0]
+    else:
+        arg_extreme = np.where(arr == extreme)[0][0]
+    return arg_extreme
 
 
-def safe_min(arr, fill=np.nan):
-    return fill if arr is None or len(arr) == 0 else arr.min()
+def safe_max(arr, fill=np.nan, finite=False, nans=True):
+    r"""
+    Args:
+        arr (ndarray): 1d array to take max of
+        fill (float): return type if arr has no elements (default = nan)
+        finite (bool): if True ignores non-finite values (default = False)
+        nans (bool): if False ignores nans (default = True)
+
+    CommandLine:
+        python -m vtool.other safe_max --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arrs = [[], [np.nan], [-np.inf, np.nan, np.inf], [np.inf], [np.inf, 1], [0, 1]]
+        >>> arrs = [np.array(arr) for arr in arrs]
+        >>> fill = np.nan
+        >>> results1 = [safe_max(arr, fill, finite=False, nans=True) for arr in arrs]
+        >>> results2 = [safe_max(arr, fill, finite=True, nans=True) for arr in arrs]
+        >>> results3 = [safe_max(arr, fill, finite=True, nans=False) for arr in arrs]
+        >>> results4 = [safe_max(arr, fill, finite=False, nans=False) for arr in arrs]
+        >>> results = [results1, results2, results3, results4]
+        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> print(result)
+        results = [
+            [nan, nan, nan, inf, inf, 1],
+            [nan, nan, nan, nan, 1.0, 1],
+            [nan, nan, nan, nan, 1.0, 1],
+            [nan, nan, inf, inf, inf, 1],
+        ]
+    """
+    return safe_extreme(arr, np.max, fill, finite, nans)
 
 
-@profile
+def safe_min(arr, fill=np.nan, finite=False, nans=True):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arrs = [[], [np.nan], [-np.inf, np.nan, np.inf], [np.inf], [np.inf, 1], [0, 1]]
+        >>> arrs = [np.array(arr) for arr in arrs]
+        >>> fill = np.nan
+        >>> results1 = [safe_min(arr, fill, finite=False, nans=True) for arr in arrs]
+        >>> results2 = [safe_min(arr, fill, finite=True, nans=True) for arr in arrs]
+        >>> results3 = [safe_min(arr, fill, finite=True, nans=False) for arr in arrs]
+        >>> results4 = [safe_min(arr, fill, finite=False, nans=False) for arr in arrs]
+        >>> results = [results1, results2, results3, results4]
+        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> print(result)
+        results = [
+            [nan, nan, nan, inf, 1.0, 0],
+            [nan, nan, nan, nan, 1.0, 0],
+            [nan, nan, nan, nan, 1.0, 0],
+            [nan, nan, -inf, inf, 1.0, 0],
+        ]
+    """
+    return safe_extreme(arr, np.min, fill, finite, nans)
+
+
+def safe_div(a, b):
+    return None if a is None or b is None else a / b
+
+
 def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
     r"""
     Slow version of multigroup_lookup. Makes a call to custom_func for each
@@ -1746,7 +1962,6 @@ def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
     return data_lists
 
 
-@profile
 def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     r"""
     Efficiently calls custom_func for each item in zip(keys_list, subkeys_list)
@@ -1767,6 +1982,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
@@ -1977,8 +2193,8 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         depth_profile2 = ut.depth_profile(output2)
         type_profile1 = ut.list_type_profile(output1)
         type_profile2 = ut.list_type_profile(output2)
-        print('depth_profile1 = ' + ut.list_str(depth_profile1))
-        print('depth_profile2 = ' + ut.list_str(depth_profile2))
+        print('depth_profile1 = ' + ut.repr2(depth_profile1))
+        print('depth_profile2 = ' + ut.repr2(depth_profile2))
         print('type_profile1 = ' + (type_profile1))
         print('type_profile2 = ' + (type_profile2))
     print('L ___ END COMPARE IMPLEMENTATIONS ___')
@@ -2020,81 +2236,6 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
     #return out_inliers_c
 
 
-def bow_test():
-    x  = np.array([1, 0, 0, 0, 0, 0], dtype=np.float)
-    c1 = np.array([1, 0, 1, 0, 0, 1], dtype=np.float)
-    c2 = np.array([1, 1, 1, 1, 1, 1], dtype=np.float)
-    x /= x.sum()
-    c1 /= c1.sum()
-    c2 /= c2.sum()
-
-    # fred_query = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # tom_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # # columns that are distinctive per name
-    # #                      f1  f2  s1  s2  s3  t1  z1  z2  z3  z4, z5, z6
-    # fred1      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # fred2      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue2       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue3       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # tom1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-
-    names         = ['fred', 'sue', 'tom']
-    num_exemplars = [     3,     2,     1]
-
-    ax2_nx = np.array(ut.flatten([[nx] * num for nx, num in enumerate(num_exemplars)]))
-
-    total = sum(num_exemplars)
-
-    num_words = total * 2
-    # bow vector for database
-    darr = np.zeros((total, num_words))
-
-    for ax in range(len(darr)):
-        nx = ax2_nx[ax]
-        num = num_exemplars[nx]
-        darr[ax, ax] = 1
-        darr[ax, ax + total] = 1
-
-    # nx2_axs = dict(zip(*))
-    import vtool as vt
-    groupxs = vt.group_indices(ax2_nx)[1]
-    class_bows = np.vstack([arr.sum(axis=0) for arr in vt.apply_grouping(darr, groupxs)])
-    # generate a query for each class
-    true_class_bows = class_bows[:]
-    # noise words
-    true_class_bows[:, -total:] = 1
-    true_class_bows = true_class_bows / true_class_bows.sum(axis=1)[:, None]
-
-    class_bows = class_bows / class_bows.sum(axis=1)[:, None]
-
-    confusion = np.zeros((len(names), len(names)))
-
-    for trial in range(1000):
-        # bow vector for query
-        qarr = np.zeros((len(names), num_words))
-
-        for cx in range(len(class_bows)):
-            sample = np.random.choice(np.arange(num_words), size=30, p=true_class_bows[cx])
-            hist = np.histogram(sample, bins=np.arange(num_words + 1))[0]
-            qarr[cx] = (hist / hist.max()) >= .5
-        # normalize histograms
-        qarr = qarr / qarr.sum(axis=1)[:, None]
-
-        # Scoring for each class
-        similarity = qarr.dot(class_bows.T)
-        distance = 1 - similarity
-        confusion += distance
-
-    x /= x.sum()
-    c1 /= c1.sum()
-    c2 /= c2.sum()
-
-    print(x.dot(c1))
-    print(x.dot(c2))
-
-
 def greedy_setcover(universe, subsets, weights=None):
     """
     Copied implmentation of greedy set cover from stack overflow. Needs work.
@@ -2104,6 +2245,7 @@ def greedy_setcover(universe, subsets, weights=None):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> universe = set([1,2,3,4])
@@ -2195,6 +2337,266 @@ def find_elbow_point(curve):
     dist_to_line = np.sqrt(np.sum(vec_to_line ** 2, axis=1))
     tradeoff_idx = np.argmax(dist_to_line)
     return tradeoff_idx
+
+
+def zstar_value(conf_level=.95):
+    """
+    References:
+        http://stackoverflow.com/questions/28242593/correct-way-to-obtain-confidence-interval-with-scipy
+    """
+    import scipy.stats as spstats
+    #distribution =
+    #spstats.t.interval(.95, df=(ss - 1))[1]
+    #spstats.norm.interval(.95, df=1)[1]
+    zstar = spstats.norm.interval(conf_level)[1]
+    #zstar = spstats.norm.ppf(spstats.norm.cdf(0) + (conf_level / 2))
+    return zstar
+
+
+def calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95):
+    """
+    Determines a error bars of sample
+
+    References:
+        https://www.qualtrics.com/blog/determining-sample-size/
+        http://www.surveysystem.com/sscalc.htm
+        https://en.wikipedia.org/wiki/Sample_size_determination
+        http://www.surveysystem.com/sample-size-formula.htm
+        http://courses.wcupa.edu/rbove/Berenson/10th%20ed%20CD-ROM%20topics/section8_7.pdf
+        https://en.wikipedia.org/wiki/Standard_normal_table
+        https://www.unc.edu/~rls/s151-2010/class23.pdf
+    """
+    #zValC_lookup = {.95: 3.8416, .99: 6.6564,}
+    # We sampled ss from a population of pop and got num_positive true cases.
+    ss = sample_size
+    # Calculate at this confidence level
+    zval = zstar_value(conf_level)
+    # Calculate our plus/minus error in positive percentage
+    pos_frac = (num_positive / ss)
+    pf = (pop - ss) / (pop - 1)
+    err_frac = zval * np.sqrt((pos_frac) * (1 - pos_frac) * pf / ss)
+    lines = []
+    lines.append('population_size = %r' % (pop,))
+    lines.append('sample_size = %r' % (ss,))
+    lines.append('num_positive = %r' % (num_positive,))
+    lines.append('positive rate is %.2f%% ± %.2f%% @ %r confidence' % (
+        100 * pos_frac, 100 * err_frac, conf_level))
+    lines.append('positive num is %d ± %d @ %r confidence' % (
+        int(np.round(pop * pos_frac)), int(np.round(pop * err_frac)), conf_level))
+    print(ut.msgblock('Calculate Sample Error Margin', '\n'.join(lines)))
+
+
+def calc_sample_from_error_bars(err_frac, pop, conf_level=.95, prior=.5):
+    """
+    Determines a reasonable sample size to achieve desired error bars.
+
+    import sympy
+    p, n, N, z = sympy.symbols('prior, ss, pop, zval')
+    me = sympy.symbols('err_frac')
+    expr = (z * sympy.sqrt((p * (1 - p) / n) * ((N - n) / (N - 1))))
+    equation = sympy.Eq(me, expr)
+    nexpr = sympy.solve(equation, [n])[0]
+    nexpr = sympy.simplify(nexpr)
+
+    import autopep8
+    print(autopep8.fix_lines(['ss = ' + str(nexpr)], autopep8._get_options({}, False)))
+
+    ss = -pop * prior* (zval**2) *(prior - 1) / ((err_frac ** 2) * pop - (err_frac**2) - prior * (zval**2) * (prior - 1))
+    ss = pop * prior * zval ** 2 * (prior - 1) / (-err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (prior - 1))
+    """
+    # How much confidence ydo you want (in fraction of positive results)
+    #zVal_lookup = {.95: 1.96, .99: 2.58,}
+    zval = zstar_value(conf_level)
+
+    std = .5
+    zval * std * (1 - std) / err_frac
+
+    #margin_error = err_frac
+    #margin_error = zval * np.sqrt(prior * (1 - prior) / ss)
+
+    #margin_error_small = zval * np.sqrt((prior * (1 - prior) / ss) * ((pop - ss) / (pop - 1)))
+    #prior = .5  # initial uncertainty
+
+    # Used for large samples
+    #ss_large = (prior * (1 - prior)) / ((margin_error / zval) ** 2)
+
+    # Used for small samples
+    ss_numer = pop * prior * zval ** 2 * (1 - prior)
+    ss_denom = (err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (1 - prior))
+    ss_small = ss_numer / ss_denom
+
+    #ss_ = ((zval ** 2) * 0.25) / (err_frac ** 2)
+    #ss = int(np.ceil(ss_ / (1 + ((ss_ - 1) / pop))))
+    ss = int(np.ceil(ss_small))
+    lines = []
+    lines.append('population_size = %r' % (pop,))
+    lines.append('positive_prior = %r' % (prior,))
+    lines.append('Desired confidence = %.2f' % (conf_level,))
+    lines.append('Desired error rate is %.2f%%' % (err_frac * 100))
+    lines.append('Desired number of errors is %d' % (int(round(err_frac * pop))))
+    lines.append('Need sample sample size of %r to achive requirements' % (ss,))
+    print(ut.msgblock('Calculate Required Sample Size', '\n'.join(lines)))
+
+
+def inbounds(num, low, high, eq=False):
+    r"""
+    Args:
+        num (scalar or ndarray):
+        low (scalar or ndarray):
+        high (scalar or ndarray):
+        eq (bool):
+
+    Returns:
+        scalar or ndarray: is_inbounds
+
+    CommandLine:
+        python -m utool.util_alg --test-inbounds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> import utool as ut
+        >>> num = np.array([[ 0.   ,  0.431,  0.279],
+        ...                 [ 0.204,  0.352,  0.08 ],
+        ...                 [ 0.107,  0.325,  0.179]])
+        >>> low  = .1
+        >>> high = .4
+        >>> eq = False
+        >>> is_inbounds = inbounds(num, low, high, eq)
+        >>> result = ut.repr2(is_inbounds, with_dtype=True)
+        >>> print(result)
+        np.array([[False, False,  True],
+                  [ True,  True, False],
+                  [ True,  True,  True]], dtype=bool)
+
+    """
+    import operator as op
+    less    = op.le if eq else op.lt
+    greater = op.ge if eq else op.gt
+    and_ = np.logical_and if isinstance(num, np.ndarray) else op.and_
+    is_inbounds = and_(greater(num, low), less(num, high))
+    return is_inbounds
+
+
+def fromiter_nd(iter_, shape, dtype):
+    """
+    Like np.fromiter but handles iterators that generated
+    n-dimensional arrays. Slightly faster than np.array.
+
+    maybe commit to numpy?
+
+    Args:
+        iter_ (iter): an iterable that generates homogenous ndarrays
+        shape (tuple): the expected output shape
+        dtype (dtype): the numpy datatype of the generated ndarrays
+
+    Note:
+        The iterable must yeild a numpy array. It cannot yeild a Python list.
+
+    CommandLine:
+        python -m vtool.other fromiter_nd --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> dtype = np.float
+        >>> total = 11
+        >>> rng = np.random.RandomState(0)
+        >>> iter_ = (rng.rand(5, 7, 3) for _ in range(total))
+        >>> shape = (total, 5, 7, 3)
+        >>> result = fromiter_nd(iter_, shape, dtype)
+        >>> assert result.shape == shape
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> dtype = np.int
+        >>> qfxs = np.array([1, 2, 3])
+        >>> dfxs = np.array([4, 5, 6])
+        >>> iter_ = (np.array(x) for x in ut.product(qfxs, dfxs))
+        >>> total = len(qfxs) * len(dfxs)
+        >>> shape = (total, 2)
+        >>> result = fromiter_nd(iter_, shape, dtype)
+        >>> assert result.shape == shape
+    """
+    num_rows = shape[0]
+    chunksize = np.prod(shape[1:])
+    itemsize = np.dtype(dtype).itemsize
+    # Create dtype that makes an entire ndarray appear as a single item
+    chunk_dtype = np.dtype((np.void, itemsize * chunksize))
+    arr = np.fromiter(iter_, count=num_rows, dtype=chunk_dtype)
+    # Convert back to original dtype and shape
+    arr = arr.view(dtype)
+    arr.shape = shape
+    return arr
+
+
+def make_video2(images, outdir):
+    import vtool as vt
+    from os.path import join
+    n = str(int(np.ceil(np.log10(len(images)))))
+    fmt = 'frame_%0' + n + 'd.png'
+    ut.ensuredir(outdir)
+    for count, img in enumerate(images):
+        fname = join(outdir, fmt % (count))
+        vt.imwrite(fname, img)
+
+
+def make_video(images, outvid=None, fps=5, size=None,
+               is_color=True, format='XVID'):
+    """
+    Create a video from a list of images.
+
+    References:
+        http://www.xavierdupre.fr/blog/2016-03-30_nojs.html
+        http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+
+    @param      outvid      output video
+    @param      images      list of images to use in the video
+    @param      fps         frame per second
+    @param      size        size of each frame
+    @param      is_color    color
+    @param      format      see http://www.fourcc.org/codecs.php
+
+    The function relies on http://opencv-python-tutroals.readthedocs.org/en/latest/.
+    By default, the video will have the size of the first image.
+    It will resize every image to this size before adding them to the video.
+    """
+    # format = 'MJPG'
+    # format = 'FMP4'
+    import cv2
+    fourcc = cv2.VideoWriter_fourcc(*str(format))
+    vid = None
+    for img in images:
+        if vid is None:
+            if size is None:
+                size = img.shape[1], img.shape[0]
+            vid = cv2.VideoWriter(outvid, fourcc, float(fps), size, is_color)
+        if size[0] != img.shape[1] and size[1] != img.shape[0]:
+            img = cv2.resize(img, size)
+        vid.write(img)
+    vid.release()
+    return vid
+
+
+def take_col_per_row(arr, colx_list):
+    """ takes a column from each row
+
+    Ignore:
+        num_rows = 1000
+        num_cols = 4
+
+        arr = np.arange(10 * 4).reshape(10, 4)
+        colx_list = (np.random.rand(10) * 4).astype(np.int)
+
+        %timeit np.array([row[cx] for (row, cx) in zip(arr, colx_list)])
+        %timeit arr.ravel().take(np.ravel_multi_index((np.arange(len(colx_list)), colx_list), arr.shape))
+        %timeit arr.ravel().take(colx_list + np.arange(arr.shape[0]) * arr.shape[1])
+    """
+    # out = np.array([row[cx] for (row, cx) in zip(arr, colx_list)])
+    multix_list = np.ravel_multi_index((np.arange(len(colx_list)), colx_list), arr.shape)
+    out = arr.ravel().take(multix_list)
+    return out
 
 
 if __name__ == '__main__':

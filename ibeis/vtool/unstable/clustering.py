@@ -10,8 +10,7 @@ import sys
 import numpy as np
 import scipy.sparse as spsparse
 import vtool.nearest_neighbors as nn
-
-(print, rrr, profile) = ut.inject2(__name__, '[akmeans]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 CLUSTERS_FNAME = 'akmeans_clusters'

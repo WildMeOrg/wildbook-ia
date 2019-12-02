@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool
 import numpy as np
 import utool as ut
 import six
 import scipy.interpolate
 from functools import partial
-print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__)
 
 
 def check_unused_kwargs(kwargs, expected_keys):
@@ -74,7 +73,7 @@ class ScoreNormVisualizeClass(object):
         true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
         false_color = pt.FALSE_RED
         support_kw = dict(
-            scores_lbls=('trueneg', 'truepos'),
+            score_lbls=('trueneg', 'truepos'),
             score_colors=(false_color, true_color),
             titlesuf=kwargs.get('titlesuf', '')
         )
@@ -104,12 +103,12 @@ class ScoreNormVisualizeClass(object):
         # probs = encoder.normalize_scores(scores)
         probs = normalize_scores(encoder.score_domain, encoder.p_tp_given_score, scores)
 
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        confusions = vt.ConfusionMetrics().fit(probs, labels)
 
         score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
 
         #target_tpr = None
-        target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+        target_tpr = confusions.get_metric_at_thresh('tpr', prob_thresh)
         #print('target_tpr = %r' % (target_tpr,))
         ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
                                                  show_operating_point=True)
@@ -144,7 +143,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         fpr (float): target false positive rate (default None)
         gridsize=1024,
         adjust=8,
-        monotonize=False, if True ensures infered probability curves are monotonic
+        monotonize=False, if True ensures inferred probability curves are monotonic
         clip_factor=None,
         reverse (bool): True if lower scores are better, False if higher scores
             are better (default=None)
@@ -241,7 +240,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         encoder.support['y'] = y
         encoder.support['attrs'] = {} if attrs is None else attrs
         encoder.learn_probabilities(verbose=verbose)
-        encoder.learn_threshold(verbose=verbose)
+        try:
+            encoder.learn_threshold(verbose=verbose)
+        except Exception as ex:
+            ut.printex(ex, 'could not learn thresh', iswarning=True)
 
     @staticmethod
     # @ut.apply_docstr(flatten_scores)
@@ -335,7 +337,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> #pt.plot(xdata[0:-2], np.diff(np.diff(closeness)))
             >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(closeness)
             >>> fnum = 100
@@ -374,7 +376,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> #encoder._plot_prebayes(fnum=fnum, pnum=pnum_())
             >>> encoder._plot_postbayes(fnum=fnum, pnum=pnum_())
             >>> encoder._plot_roc(fnum=fnum, pnum=pnum_())
-            >>> pt.adjust_subplots2(hspace=.5, top=.95, bottom=.08)
+            >>> pt.adjust_subplots(hspace=.5, top=.95, bottom=.08)
             >>> pt.show_if_requested()
         """
         import vtool as vt
@@ -451,8 +453,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             #print('lr_neg = %r' % (lr_neg,))
             #print('lr_pos = %r' % (lr_pos,))
             # Normalize likelihood into range 0 to 1
-            pos_norm = max(1, vt.safe_extreme(lr_pos_, op=np.nanmax, fill=1, finite=True))
-            neg_norm = max(1, vt.safe_extreme(lr_neg_, op=np.nanmax, fill=1, finite=True))
+            pos_norm = max(1, vt.safe_max(lr_pos_, fill=1, finite=True, nans=False))
+            neg_norm = max(1, vt.safe_max(lr_neg_, fill=1, finite=True, nans=False))
             lr_pos = lr_pos_ / pos_norm  # NOQA
             lr_neg = lr_neg_ / neg_norm  # NOQA
 
@@ -529,27 +531,27 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         probs = encoder.normalize_scores(X)
 
         if False:
-            confusions_score = vt.ConfusionMetrics.from_scores_and_labels(
+            confusions_score = vt.ConfusionMetrics().fit(
                 -X, y, verbose=verbose)
 
-            confusions_prob = vt.ConfusionMetrics.from_scores_and_labels(
+            confusions_prob = vt.ConfusionMetrics().fit(
                 probs, y, verbose=verbose)
 
-            _score_thresh = confusions_score.get_threshold_at_metric(metric, value)
-            _prob_thresh = confusions_prob.get_threshold_at_metric(metric, value)
+            _score_thresh = confusions_score.get_thresh_at_metric(metric, value)
+            _prob_thresh = confusions_prob.get_thresh_at_metric(metric, value)
             _inv_score = encoder.inverse_normalize(_prob_thresh)
             _inv_prob = encoder.normalize_scores(-_score_thresh)
 
             _inv_prob - _prob_thresh
             _inv_score - (-_score_thresh)
 
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(
+        confusions = vt.ConfusionMetrics().fit(
             probs, y, verbose=verbose)
 
-        prob_thresh = confusions.get_threshold_at_metric(metric, value)
+        prob_thresh = confusions.get_thresh_at_metric(metric, value)
 
-        #target_value = confusions.get_metric_at_threshold(metric, prob_thresh)
-        #check_thresh = confusions.get_threshold_at_metric(metric, target_value)
+        #target_value = confusions.get_metric_at_thresh(metric, prob_thresh)
+        #check_thresh = confusions.get_thresh_at_metric(metric, target_value)
         score_thresh = encoder.inverse_normalize(prob_thresh)
         if verbose:
             print('[scorenorm] Learning threshold to achieve %s=%.5f' % (
@@ -613,8 +615,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> (fp_indicies, fn_indicies) = encoder.get_error_indicies(X, y)
             >>> fp_X = X.take(fp_indicies)[0:3]
             >>> fn_X = X.take(fn_indicies)[0:3]
-            >>> result =    'fp_X = ' + ut.numpy_str2(fp_X)
-            >>> result += '\nfn_X = ' + ut.numpy_str2(fn_X)
+            >>> result =    'fp_X = ' + ut.repr2(fp_X)
+            >>> result += '\nfn_X = ' + ut.repr2(fn_X)
             >>> print(result)
             fp_X = np.array([ 6.196,  5.912,  5.804])
             fn_X = np.array([ 3.947,  4.277,  4.43 ])
@@ -656,8 +658,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> (tp_indicies, tn_indicies) = encoder.get_correct_indices(X, y)
             >>> tp_X = X.take(tp_indicies)[0:3]
             >>> tn_X = X.take(tn_indicies)[0:3]
-            >>> result =    'tp_X = ' + ut.numpy_str2(tp_X)
-            >>> result += '\ntn_X = ' + ut.numpy_str2(tn_X)
+            >>> result =    'tp_X = ' + ut.repr2(tp_X)
+            >>> result += '\ntn_X = ' + ut.repr2(tn_X)
             >>> print(result)
             tp_X = np.array([ 8.883,  8.77 ,  8.759])
             tn_X = np.array([ 0.727,  0.76 ,  0.841])
@@ -770,10 +772,14 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             with_postbayes=True,
             score_range=None,
             bin_width=None,
+            logscale=False,
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
-        inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
-        other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
+        # inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict=alias_dict)
+        inspect_kw = ut.update_dict(default_kw, kwargs, alias_dict=alias_dict)
+        print('inspect_kw = %r' % (inspect_kw,))
+        other_kw = ut.delete_dict_keys(kwargs.copy(), list(inspect_kw.keys()) +
+                                       list(alias_dict.keys()))
 
         score_thresh, prob_thresh = encoder._hack_vizlearn(**other_kw)
 
@@ -815,8 +821,8 @@ def partition_scores(X, y, attrs=None):
         >>> tup = partition_scores(X, y, attrs)
         >>> resdict = ut.odict(zip(
         >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
-        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
-        >>>                      explicit=True, nl=2)
+        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
+        >>>                      explicit=1, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
         tn_scores=np.array([1, 2, 2]),
@@ -878,8 +884,8 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         >>> (X, y, attrs) = tup
         >>> y = y.astype(np.int)
         >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
-        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
-        >>>                      explicit=True, nl=1)
+        >>> result = ut.repr2(resdict, nobraces=True, with_dtype=False,
+        >>>                      explicit=1, nl=1)
         >>> print(result)
         X=np.array([5, 6, 6, 7, 1, 2, 2]),
         y=np.array([1, 1, 1, 1, 0, 0, 0]),
@@ -996,6 +1002,23 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, use_nan=True, precision=5))
         print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, use_nan=True, precision=5))
         #print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
+
+    problems = []
+
+    try:
+        assert not np.any(np.isnan(p_score_given_tp)), ('Need more positive support')
+    except AssertionError as ex:  # NOQA
+        print('[sn.pre]stats:tpsupport = ' + ut.get_stats_str(score_tp_pdf.support, use_nan=True, precision=5))
+        problems += [str(ex)]
+
+    try:
+        assert not np.any(np.isnan(p_score_given_tn)), ('Need more negative support')
+    except AssertionError as ex:  # NOQA
+        print('[sn.pre]stats:tnsupport = ' + ut.get_stats_str(score_tn_pdf.support, use_nan=True, precision=5))
+        problems += [str(ex)]
+
+    if problems:
+        raise AssertionError(', '.join(problems))
 
     if True:
         # Make sure we still have probability functions
@@ -1165,14 +1188,14 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
         python -m vtool.score_normalization --test-normalize_scores
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.score_normalization import *  # NOQA
         >>> score_domain = np.linspace(0, 10, 10)
         >>> p_tp_given_score = (score_domain ** 2) / (score_domain.max() ** 2)
         >>> scores = np.array([-1, 0.0, 0.01, 2.3, 8.0, 9.99, 10.0, 10.1, 11.1])
         >>> prob = normalize_scores(score_domain, p_tp_given_score, scores)
         >>> #np.set_printoptions(suppress=True)
-        >>> result = ut.numpy_str(prob, precision=2, suppress_small=True)
+        >>> result = ut.repr2(prob, precision=2, suppress_small=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -1248,8 +1271,10 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     import plottool as pt  # NOQA
 
     # Print raw score statistics
-    ut.print_stats(tp_support, lbl='tp_support')
-    ut.print_stats(tn_support, lbl='tn_support')
+    print('tp_support')
+    print(ut.repr4(ut.get_stats(tp_support)))
+    print('tn_support')
+    print(ut.repr4(ut.get_stats(tn_support)))
 
     # Test (potentially multiple) normalizing configurations
     if normkw_varydict is None:
@@ -1286,7 +1311,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         if figtitle is not None:
             pt.set_figtitle(figtitle)
         else:
-            pt.set_figtitle('ScoreNorm test' + ut.dict_str(normkw, newlines=False))
+            pt.set_figtitle('ScoreNorm test' + ut.repr2(normkw, newlines=False))
 
     locals_ = locals()
     return locals_
@@ -1346,15 +1371,14 @@ def inspect_pdfs(tn_support, tp_support,
                  with_roc=False, with_precision_recall=False, with_hist=False,
                  fnum=None, figtitle=None, interactive=None, use_stems=None,
                  part_attrs=None, thresh_kw=None, attr_callback=None,
-                 with_prebayes=True, with_postbayes=True, score_range=None, **kwargs):
-    """
+                 with_prebayes=True, with_postbayes=True, score_range=None,
+                 **kwargs):
+    r"""
     Shows plots of learned thresholds
-
 
     CommandLine:
         python -m vtool.score_normalization --test-ScoreNormalizer --show
         python -m vtool.score_normalization --exec-ScoreNormalizer.visualize --show
-
     """
     import plottool as pt  # NOQA
     from plottool.interactions import ExpandableInteraction
@@ -1370,13 +1394,15 @@ def inspect_pdfs(tn_support, tp_support,
     #with_postbayes = True
 
     nSubplots = (with_normscore + with_prebayes + with_postbayes +
-                 with_scores + with_roc + with_precision_recall + with_hist)
+                 with_scores + with_roc + with_precision_recall +
+                 with_hist)
+    if nSubplots == 0:
+        raise ValueError('Must choose at least one subplot')
     nRows, nCols = pt.get_square_row_cols(nSubplots)
     _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols,
                                      nSubplots=nSubplots)
 
     #print('Always interactive even if: interactive = %r' % (interactive,))
-
     # Make a plottool interaction
     inter = ExpandableInteraction(fnum, _pnumiter)
 
@@ -1386,7 +1412,7 @@ def inspect_pdfs(tn_support, tp_support,
     # probs = encoder.normalize_scores(scores)
     probs = normalize_scores(score_domain, p_tp_given_score, scores)
 
-    confusions = vt.ConfusionMetrics.from_scores_and_labels(
+    confusions = vt.ConfusionMetrics().fit(
         probs, labels)
     # Hack change confusion prob thresholds to score thresholds
     if False:
@@ -1402,11 +1428,11 @@ def inspect_pdfs(tn_support, tp_support,
     false_color = pt.FALSE_RED
 
     support_kw = dict(
-        scores_lbls=('trueneg', 'truepos'),
+        score_lbls=kwargs.get('score_lbls', ('trueneg', 'truepos')),
         score_colors=(false_color, true_color),
+        logscale=kwargs.get('logscale', False),
     )
     support_sort_kw = dict(
-        logscale=False,
         score_markers=['^', 'v'],
         markersizes=[5, 5],
         use_stems=use_stems,
@@ -1414,20 +1440,20 @@ def inspect_pdfs(tn_support, tp_support,
     )
 
     class SortedScoreSupportInteraction(AbstractInteraction):
-        def __init__(self, **kwargs):
-            super(SortedScoreSupportInteraction, self).__init__(**kwargs)
-            self.tn_support = tn_support
-            self.tp_support = tp_support
-            self.part_attrs = part_attrs
-            self.attr_callback = attr_callback
-            self.sel_mode = 'tn'
+        def __init__(data_pdf, **kwargs):
+            super(SortedScoreSupportInteraction, data_pdf).__init__(**kwargs)
+            data_pdf.tn_support = tn_support
+            data_pdf.tp_support = tp_support
+            data_pdf.part_attrs = part_attrs
+            data_pdf.attr_callback = attr_callback
+            data_pdf.sel_mode = 'tn'
 
-        def toggle_mode(self):
-            if self.sel_mode == 'tn':
-                self.sel_mode = 'tp'
+        def toggle_mode(data_pdf):
+            if data_pdf.sel_mode == 'tn':
+                data_pdf.sel_mode = 'tp'
             else:
-                self.sel_mode = 'tn'
-            print('TOGGLE self.sel_mode = %r' % (self.sel_mode,))
+                data_pdf.sel_mode = 'tn'
+            print('TOGGLE data_pdf.sel_mode = %r' % (self.sel_mode,))
 
         @staticmethod
         def static_plot(fnum, pnum):
@@ -1439,64 +1465,73 @@ def inspect_pdfs(tn_support, tp_support,
                 **support_sort_kw
             )
 
-        def plot(self, fnum, pnum):
-            self.static_plot(fnum, pnum)
+        def plot(data_pdf, fnum, pnum):
+            data_pdf.static_plot(fnum, pnum)
 
-        def on_key_press(self, event):
+        def on_key_press(data_pdf, event):
             #print('event = %r' % (event,))
             #print('event.key = %r' % (event.key,))
             if event.key == 't':
-                self.toggle_mode()
+                data_pdf.toggle_mode()
 
-        def on_click_inside(self, event, ex):
+        def on_click_inside(data_pdf, event, ex):
             import vtool as vt
             #ax = event.inaxes
             #for l in ax.get_lines():
             #    print(l.get_label())
-            tp_index, tp_dist = vt.closest_point(event.ydata, self.tp_support[:, None])
-            tn_index, tn_dist = vt.closest_point(event.ydata, self.tn_support[:, None])
+            tp_index, tp_dist = vt.closest_point(event.ydata, data_pdf.tp_support[:, None])
+            tn_index, tn_dist = vt.closest_point(event.ydata, data_pdf.tn_support[:, None])
             print('closest tp_index = %r, %r' % (tp_index, tp_dist))
             print('closest tn_index = %r, %r' % (tn_index, tn_dist))
-            SEL_TP = self.sel_mode == 'tp'
-            print('self.sel_mode = %r' % (self.sel_mode,))
+            SEL_TP = data_pdf.sel_mode == 'tp'
+            print('data_pdf.sel_mode = %r' % (self.sel_mode,))
             if SEL_TP:
-                tp_attrs = self.part_attrs[True]
+                tp_attrs = data_pdf.part_attrs[True]
                 if len(tp_attrs) == 0:
                     print('No positive attrs')
                 subattrs = ut.get_dict_column(tp_attrs, tp_index)
             else:
-                tn_attrs = self.part_attrs[False]
+                tn_attrs = data_pdf.part_attrs[False]
                 if len(tn_attrs) == 0:
                     print('No negative attrs')
                 subattrs = ut.get_dict_column(tn_attrs, tn_index)
             print('subattrs = %r' % (subattrs,))
-            if self.attr_callback is not None:
+            if data_pdf.attr_callback is not None:
                 print('Executing callback')
-                self.attr_callback(**subattrs)
-            #dists = vt.L1(event.ydata, self.tp_support[:, None])
+                data_pdf.attr_callback(**subattrs)
+            #dists = vt.L1(event.ydata, data_pdf.tp_support[:, None])
             #index = dists.argsort()[0]
             #event.xdata
             # Find the nearest label
             pass
 
     #target_tpr = None
-    target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+    target_tpr = confusions.get_metric_at_thresh('tpr', prob_thresh)
     #print('target_tpr = %r' % (target_tpr,))
     ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
                                              show_operating_point=True)
 
     def _score_support_hist(fnum, pnum):
+        overlay_score_domain = None
+        score_thresh_ = None
+        if kwargs.get('histoverlay', True):
+            overlay_score_domain = score_domain
+            score_thresh_ = score_thresh
+
+        print('support_kw = %r' % (support_kw,))
+
         pt.plot_score_histograms(
             (tn_support, tp_support),
-            score_thresh=score_thresh,
+            score_thresh=score_thresh_,
             score_label='score',
             fnum=fnum,
             pnum=pnum,
             bin_width=kwargs.get('bin_width', None),
             num_bins=kwargs.get('num_bins', None),
             overlay_prob_given_list=(p_score_given_tn, p_score_given_tp),
-            overlay_score_domain=score_domain,
+            overlay_score_domain=overlay_score_domain,
             xlim=score_range,
+            histnorm=kwargs.get('histnorm', False),
             **support_kw)
 
     def _prob_support_hist(fnum, pnum):
@@ -1581,7 +1616,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         ndarray: data_pdf
 
     CommandLine:
-        python -m vtool.score_normalization --exec-estimate_pdf --show
+        python -m vtool.score_normalization estimate_pdf --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1609,17 +1644,53 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         np.trapz(data_pdf.density, data_pdf.support)
     """
     import utool as ut
-    #import scipy.stats as spstats
     import numpy as np
-    #import statsmodels
     import statsmodels.nonparametric.kde
-    data = data.astype(np.float64)  # HACK
+    import statsmodels.nonparametric.bandwidths
+    #import scipy.stats as spstats
+    #import statsmodelskde.score_samples(support[:, None])
+
+    if True:
+        # Ensure that a non-zero bandwidth is chosen
+        # bw_choices = ['scott', 'silverman', 'normal_reference']
+        # bw = bw_choices[1]
+        for bw in ['silverman', 'scott']:
+            bw_value = statsmodels.nonparametric.bandwidths.select_bandwidth(data, bw, None)
+            if bw_value > 0:
+                break
+        if bw_value == 0:
+            sorted_diffs = np.diff(sorted(data))
+            nonzero_diffs = sorted_diffs[sorted_diffs > 0]
+            if len(nonzero_diffs) > 0:
+                median_diff = np.median(nonzero_diffs)
+                bw_value = np.sqrt(median_diff)
+            else:
+                # use a very small value
+                bw_value = 1e-9
     try:
+
+        if False:
+            # Alternate implementation in case statsmodels breaks
+            class TempPdf():
+                def __init__(data_pdf, data, bw_value, gridsize):
+                    from sklearn.neighbors.kde import KernelDensity
+                    kde = KernelDensity(kernel='gaussian', bandwidth=bw_value)
+                    kde.fit(data[:, None])
+                    data_pdf.kde = kde
+                    data_pdf.support = np.linspace(data.min(), data.max(), gridsize)
+                    data_pdf.density = data_pdf.evaluate(data_pdf.support)
+                    # import scipy as sp
+                    data_pdf.cdf = data_pdf.density.cumsum()
+                    # data_pdf.cdf = sp.integrate.cumtrapz(data_pdf.density,
+                                                           # data_pdf.support)
+
+                def evaluate(data_pdf, scores):
+                    return np.exp(data_pdf.kde.score_samples(scores[:, None]))
+            data_pdf = TempPdf(data, bw_value, gridsize)
+
         data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
-        bw_choices = ['scott', 'silverman', 'normal_reference']
-        bw = bw_choices[1]
         fitkw = dict(kernel='gau',
-                     bw=bw,
+                     bw=bw_value,
                      fft=True,
                      weights=None,
                      adjust=adjust,
@@ -1627,14 +1698,11 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
                      gridsize=gridsize,
                      clip=(-np.inf, np.inf),)
         data_pdf.fit(**fitkw)
-        #density = data_pdf.density
-    #try:
-    #    data_pdf = spstats.gaussian_kde(data, bw_factor)
-    #    data_pdf.covariance_factor = bw_factor
     except Exception as ex:
         ut.printex(ex, '! Exception while estimating kernel density',
-                   keys=['data'])
+                   keys=['data', 'gridsize', 'bw_value', 'adjust'])
         raise
+
     return data_pdf
 
 

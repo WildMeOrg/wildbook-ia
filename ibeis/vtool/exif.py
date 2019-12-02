@@ -3,6 +3,9 @@
 """
 References:
     http://www.exiv2.org/tags.html
+
+TODO:
+    https://github.com/recurser/exif-orientation-examples
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
@@ -10,12 +13,11 @@ import six
 from PIL.ExifTags import TAGS, GPSTAGS
 import PIL.ExifTags  # NOQA
 from PIL import Image
-#from utool import util_progress
 import utool as ut
+import warnings
 from utool import util_time
 from vtool import image_shared
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[exif]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # Inverse of PIL.ExifTags.TAGS
@@ -49,8 +51,30 @@ ORIENTATION_DICT = {
     8: ORIENTATION_270,
 }
 
+ORIENTATION_DICT_INVERSE = {
+    ORIENTATION_UNDEFINED : 0,
+    ORIENTATION_000       : 1,
+    ORIENTATION_180       : 3,
+    ORIENTATION_090       : 6,
+    ORIENTATION_270       : 8,
+}
 
-@profile
+ORIENTATION_ORDER_LIST = [
+    ORIENTATION_DICT_INVERSE[ORIENTATION_000],
+    ORIENTATION_DICT_INVERSE[ORIENTATION_090],
+    ORIENTATION_DICT_INVERSE[ORIENTATION_180],
+    ORIENTATION_DICT_INVERSE[ORIENTATION_270],
+]
+
+
+GPSLATITUDE_CODE     = GPS_TAG_TO_GPSID['GPSLatitude']
+GPSLATITUDEREF_CODE  = GPS_TAG_TO_GPSID['GPSLatitudeRef']
+GPSLONGITUDE_CODE    = GPS_TAG_TO_GPSID['GPSLongitude']
+GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
+GPSDATE_CODE         = GPS_TAG_TO_GPSID['GPSDateStamp']
+GPSTIME_CODE         = GPS_TAG_TO_GPSID['GPSTimeStamp']
+
+
 def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     if default_list is None:
         default_list = [None for _ in range(len(exif_tagid_list))]
@@ -60,7 +84,6 @@ def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     return exif_val_list
 
 
-@profile
 def get_exif_dict(pil_img):
     """ Returns exif dictionary by TAGID """
     try:
@@ -76,7 +99,6 @@ def get_exif_dict(pil_img):
     return exif_dict
 
 
-@profile
 def get_exif_dict2(pil_img):
     """ Returns exif dictionary by TAG (less efficient)"""
     try:
@@ -98,7 +120,6 @@ def make_exif_dict_human_readable(exif_dict):
     return exif_dict2
 
 
-@profile
 def check_exif_keys(pil_img):
     info_ = pil_img._getexif()
     valid_keys = []
@@ -115,7 +136,6 @@ def check_exif_keys(pil_img):
     #exec(df2.present())
 
 
-@profile
 def read_all_exif_tags(pil_img):
     info_ = pil_img._getexif()
     exif = {} if info_ is None else {
@@ -125,13 +145,11 @@ def read_all_exif_tags(pil_img):
     return exif
 
 
-@profile
 def get_exif_tagids(tag_list):
     tagid_list = [EXIF_TAG_TO_TAGID[tag] for tag in tag_list]
     return tagid_list
 
 
-@profile
 def read_one_exif_tag(pil_img, tag):
     try:
         exif_key = TAGS.keys()[TAGS.values().index(tag)]
@@ -146,7 +164,6 @@ def read_one_exif_tag(pil_img, tag):
     return exif_val
 
 
-@profile
 def read_exif(fpath, tag=None):
     try:
         pil_img = Image.open(fpath)
@@ -165,7 +182,6 @@ def read_exif(fpath, tag=None):
     return exif
 
 
-@profile
 def get_exist(data, key):
     if key in data:
         return data[key]
@@ -195,13 +211,29 @@ def convert_degrees(value):
     return degrees_float
 
 
-GPSLATITUDE_CODE     = GPS_TAG_TO_GPSID['GPSLatitude']
-GPSLATITUDEREF_CODE  = GPS_TAG_TO_GPSID['GPSLatitudeRef']
-GPSLONGITUDE_CODE    = GPS_TAG_TO_GPSID['GPSLongitude']
-GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
+def get_unixtime_gps(exif_dict, default=-1):
+    if GPSINFO_CODE in exif_dict:
+        gps_info = exif_dict[GPSINFO_CODE]
+
+        if (GPSDATE_CODE in gps_info and
+             GPSTIME_CODE in gps_info):
+            gps_date = gps_info[GPSDATE_CODE]
+            gps_time = gps_info[GPSTIME_CODE]
+
+            try:
+                hour = gps_time[0][0]
+                minute = gps_time[1][0]
+                second = gps_time[2][0] / 1000.0
+                exiftime = '%s %02d:%02d:%02d' % (gps_date, hour, minute, second)
+
+                unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+                return unixtime
+            except:
+                pass
+
+    return default
 
 
-@profile
 def get_lat_lon(exif_dict, default=(-1, -1)):
     r"""
     Returns the latitude and longitude, if available, from the provided
@@ -264,7 +296,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
     return default
 
 
-def get_orientation(exif_dict, default=0):
+def get_orientation(exif_dict, default=0, on_error='fail'):
     r"""
     Returns the image orientation, if available, from the provided
     exif_data2 (obtained through exif_data2 above)
@@ -301,7 +333,11 @@ def get_orientation(exif_dict, default=0):
                 raise NotImplementedError('Orientation not defined')
             default = orient
         else:
-            raise AssertionError('Unrecognized orientation in Exif')
+            msg = 'Unrecognized orientation=%r in Exif' % (orient,)
+            if on_error == 'warn':
+                warnings.warn(msg, RuntimeWarning)
+            else:
+                raise AssertionError(msg)
     return default
 
 
@@ -347,7 +383,7 @@ def get_unixtime(exif_dict, default=-1):
     Ignore:
         gpaths = ut.list_images('/home/joncrall/work/humpbacks_fb/_ibsdb/images', full=1)
         gpaths = ut.list_images('/home/joncrall/work/humpbacks/_ibsdb/images', full=1)
-        exifs = list(ut.generate(vt.read_exif, gpaths))
+        exifs = list(ut.generate2(vt.read_exif, zip(gpaths)))
         times = ut.dict_take_column(exifs, 'DateTimeOriginal', '!!!!!!!!!!!!!!!!!!!')
         idxs = ut.where([y[-2] == ' ' for y in times])
 
@@ -405,6 +441,13 @@ def parse_exif_unixtime(image_fpath):
     pil_img = image_shared.open_pil_image(image_fpath)
     exif_dict = get_exif_dict(pil_img)
     unixtime = get_unixtime(exif_dict)
+    return unixtime
+
+
+def parse_exif_unixtime_gps(image_fpath):
+    pil_img = image_shared.open_pil_image(image_fpath)
+    exif_dict = get_exif_dict(pil_img)
+    unixtime = get_unixtime_gps(exif_dict)
     return unixtime
 
 
