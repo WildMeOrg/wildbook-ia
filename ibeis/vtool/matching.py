@@ -14,6 +14,8 @@ import ubelt as ub
 import numpy as np
 import parse
 from collections import namedtuple
+from .util_math import TAU
+
 try:
     import pyhesaff
 except ImportError:
@@ -22,8 +24,6 @@ except ImportError:
 
 
 AssignTup = namedtuple('AssignTup', ('fm', 'match_dist', 'norm_fx1', 'norm_dist'))
-
-TAU = 2 * np.pi  # tauday.org
 
 
 class MatchingError(Exception):
@@ -100,7 +100,8 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
         use_cache = False
     function_sig = ut.get_func_sourcecode(vt.matching.PairwiseMatch)
     hashid = ut.hash_data(function_sig)
-    cfgstr = ub.hash_data(cfgdict.items()) + hashid
+    ub.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions()
+    cfgstr = ub.hash_data(cfgdict) + hashid
     cacher = ub.Cacher(
         'test_match_v5',
         cfgstr=cfgstr,
@@ -291,7 +292,7 @@ class PairwiseMatch(ub.NiceRepr):
             >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
-            >>> ut.quit_if_noshow()
+            >>> # xdoctest: +REQUIRES(--show)
             >>> gt.qtapp_loop(qwin=self, freq=10)
         """
         from vtool.inspect_matches import MatchInspector
@@ -372,6 +373,7 @@ class PairwiseMatch(ub.NiceRepr):
         Assign feature correspondences between annots
 
         Example:
+            >>> # xdoctest
             >>> from vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True}
             >>> match = demodata_match({}, apply=False)
@@ -396,7 +398,7 @@ class PairwiseMatch(ub.NiceRepr):
 
         if match.verbose:
             print('[match] assign')
-            print('[match] params = ' + ut.repr2(params))
+            print('[match] params = ' + ub.repr2(params))
 
         ensure_metadata_vsone(annot1, annot2, cfgdict)
 
@@ -597,7 +599,7 @@ class PairwiseMatch(ub.NiceRepr):
 
     def apply_sver(match, cfgdict={}, inplace=None):
         """
-        Example:
+        Ignore:
             >>> from vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'ratio_thresh': .8,
             >>>            'thresh_bins': [.5, .6, .7, .8]}
@@ -706,7 +708,7 @@ class PairwiseMatch(ub.NiceRepr):
             >>> feat = match._make_local_summary_feature_vector(
             >>>     local_keys=local_keys,
             >>>     bin_key=bin_key, summary_ops=summary_ops, bins=bins)
-            >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
+            >>> result = ('feat = %s' % (ub.repr2(feat, nl=2),))
             >>> print(result)
         """
 
@@ -838,7 +840,7 @@ class PairwiseMatch(ub.NiceRepr):
             >>> import vtool as vt
             >>> match = demodata_match({})
             >>> feat = match.make_feature_vector(indices=[0, 1])
-            >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
+            >>> result = ('feat = %s' % (ub.repr2(feat, nl=2),))
             >>> print(result)
         """
         feat = ut.odict([])
@@ -987,7 +989,7 @@ class AnnotPairFeatInfo(object):
                local_measure, summary_measure, summary_op, summary_bin,
                summary_binval, summary_binkey,
 
-        Examples:
+        Ignore:
             >>> featinfo.select_columns([
             >>>     ('measure_type', '==', 'local'),
             >>>     ('local_sorter', 'in', ['weighted_ratio_score', 'lnbnn_norm_dist']),
@@ -1268,12 +1270,12 @@ class AnnotPairFeatInfo(object):
         Summarizes the types (global, local, summary) of features in X based on
         standardized dimension names.
         """
-        grouped_keys = ut.ddict(list)
+        grouped_keys = ub.ddict(list)
         for key in featinfo.columns:
             type_ = featinfo.measure_type(key)
             grouped_keys[type_].append(key)
 
-        info_items = ut.odict([
+        info_items = ub.odict([
             ('global_measures', ut.lmap(featinfo.global_measure,
                                         grouped_keys['global'])),
 
@@ -1382,9 +1384,9 @@ def ensure_metadata_feats(annot, cfgdict={}):
         >>> ensure_metadata_feats(annot, cfgdict)
         >>> assert len(annot._stored_results) == 1
         >>> annot['kpts']
-        >>> assert len(annot._stored_results) == 4
+        >>> assert len(annot._stored_results) >= 4
         >>> annot['vecs']
-        >>> assert len(annot._stored_results) == 5
+        >>> assert len(annot._stored_results) >= 5
     """
     import vtool as vt
     rchip_key = 'rchip'
@@ -1708,20 +1710,6 @@ def assign_symmetric_matches(fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist,
 
     # ---------
     # Align matches with the reverse direction
-    # lookup = {(fx1, fx2): mx for mx, (fx1, fx2) in enumerate(fm)}
-    # idx_lookup = np.array([lookup[(i, j)] for i, j in fm_])
-    # idx_lookup_ = idx_lookup.argsort()
-
-    # if False:
-    #     assert fx1_to_flags.sum() == fx2_to_flags.sum()
-    #     assert np.all(fm[idx_lookup] == fm_)
-    #     assert np.all(fm == fm_[idx_lookup_])
-
-    #     assert match_dist2.sum() == match_dist1.sum()
-    #     assert set(ut.emap(frozenset, fm_)) == set(ut.emap(frozenset, fm))
-    # norm_fx2 = norm_fx2_[idx_lookup_]
-    # norm_dist2 = norm_dist2_[idx_lookup_]
-    # norm_dist1
 
     # Do this by enforcing a constant sorting. No lookup necessary
     sortx = np.lexsort(fm.T)
@@ -1770,12 +1758,8 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
         >>>                                          Knorm, fx2_to_flags)
         >>> fm, match_dist, norm_fx1, norm_dist = assigntup
-        >>> result = ut.repr4(assigntup, precision=3, nobr=True, with_dtype=True)
+        >>> result = ub.repr2(assigntup, precision=3, nobr=True, with_dtype=True)
         >>> print(result)
-        np.array([], shape=(0, 2), dtype=np.int32),
-        np.array([], dtype=np.float64),
-        np.array([], dtype=np.int32),
-        np.array([], dtype=np.float64),
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1799,10 +1783,10 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
         >>>                                          Knorm, fx2_to_flags)
         >>> fm, match_dist, norm_fx1, norm_dist = assigntup
-        >>> result = ut.repr3(assigntup, precision=3, nobr=True, with_dtype=True)
+        >>> result = ub.repr2(assigntup, precision=3, nobr=True, with_dtype=True)
         >>> print(result)
         >>> assert len(fm.shape) == 2 and fm.shape[1] == 2
-        >>> assert ut.allsame(list(map(len, assigntup)))
+        >>> assert ub.allsame(list(map(len, assigntup)))
     """
     # Infer the valid internal query feature indexes and ranks
     index_dtype = fx2_to_fx1.dtype
@@ -1883,16 +1867,8 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
         >>> fx2_to_flagsA = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
         >>> fx2_to_flagsB = flag_sym_slow(fx2_to_fx1, fx1_to_fx2, K)
         >>> assert np.all(fx2_to_flagsA == fx2_to_flagsB)
-        >>> result = ut.repr2(fx2_to_flagsB)
+        >>> result = ub.repr2(fx2_to_flagsB)
         >>> print(result)
-        np.array([[ True, False],
-                  [ True,  True],
-                  [False, False],
-                  [False,  True]])
-
-    Ignore:
-        %timeit flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
-        %timeit flag_sym_slow(fx2_to_fx1, fx1_to_fx2, K)
     """
     match_12 = fx1_to_fx2.T[:K].T
     match_21 = fx2_to_fx1.T[:K].T

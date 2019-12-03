@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range  # NOQA
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 
 
 def testdata_blend(scale=128):
@@ -30,7 +30,7 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
     lbl = ut.get_funcname(test_func)
     cfgresult_list = [
         test_func(*args, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl=lbl)
+        for cfgdict in ub.ProgIter(cfgdict_list, desc=lbl)
     ]
     onclick_func = None
     ut.interact_gridsearch_result_images(
@@ -154,12 +154,12 @@ def blend_images_average(img1, img2, alpha=.5):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_average
@@ -210,7 +210,7 @@ def blend_images_average_stack(images, alpha=None):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
@@ -254,12 +254,12 @@ def blend_images_mult_average(img1, img2, alpha=.5):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_mult_average(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_mult_average
@@ -313,12 +313,12 @@ def blend_images_multiply(img1, img2, alpha=0.5):
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_multiply(img1, img2, alpha)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
-    Example2:
+    Ignore:
         >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_multiply
@@ -337,8 +337,8 @@ def blend_images_multiply(img1, img2, alpha=0.5):
 
     img1_, img2_ = vt.make_channels_comparable(img1_, img2_)
 
-    # print(ut.repr2(ut.get_stats(img1_, axis=2)))
-    # print(ut.repr2(ut.get_stats(img2_.ravel())))
+    # print(ub.repr2(ut.get_stats(img1_, axis=2)))
+    # print(ub.repr2(ut.get_stats(img2_.ravel())))
     #assert img1_.min() >= 0 and img1_.max() <= 1
     #assert img2_.min() >= 0 and img2_.max() <= 1
     # apply transform
@@ -365,13 +365,7 @@ def blend_images_multiply(img1, img2, alpha=0.5):
 def gridsearch_addWeighted():
     r"""
     CommandLine:
-        python -m vtool.blend --test-gridsearch_addWeighted --show
-
-    Example:
-        >>> # GRIDSEARCH
-        >>> from vtool.blend import *  # NOQA
-        >>> gridsearch_addWeighted()
-        >>> ut.show_if_requested()
+        xdoctest -m ~/code/vtool/vtool/blend.py gridsearch_addWeighted
     """
     import cv2
     import vtool as vt
@@ -403,8 +397,8 @@ def gamma_adjust(img, gamma=1.0):
     CommandLine:
         python -m vtool.blend --test-gamma_adjust:0 --show
 
-    Example2:
-        >>> # GRIDSEARCH
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> from vtool.blend import *  # NOQA
         >>> import vtool as vt
         >>> test_func = gamma_adjust
@@ -426,11 +420,7 @@ def gamma_adjust(img, gamma=1.0):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.blend
-        python -m vtool.blend --allexamples
-        python -m vtool.blend --allexamples --noface --nosrc
+        xdoctest -m vtool.blend
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

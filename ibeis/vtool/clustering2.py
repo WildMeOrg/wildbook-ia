@@ -9,21 +9,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip, map  # NOQA
 import ubelt as ub
 import numpy as np
+import utool as ut
 
-
-# try:
-#     import pyflann
-#     _FLANN_CLS = pyflann.FLANN
-# except ImportError:
-# print('no pyflann, using cv2.flann_Index')
-import cv2
-_FLANN_CLS = cv2.flann_Index
-# print('_FLANN_CLS = {!r}'.format(_FLANN_CLS))
-
+from vtool._pyflann_backend import FLANN_CLS
 
 
 def tune_flann2(data):
-    flann = _FLANN_CLS()
+    flann = FLANN_CLS()
     flann_atkwargs = dict(algorithm='autotuned',
                           target_precision=.6,
                           build_weight=0.01,
@@ -110,7 +102,7 @@ def groupedzip(id_list, datas_list):
         >>> grouped_tuples = list(grouped_iter)
         >>> # verify results
         >>> result = str(groupxs) + '\n'
-        >>> result += ut.repr2(grouped_tuples, nl=1)
+        >>> result += ub.repr2(grouped_tuples, nl=1)
         >>> print(result)
         [1 2 3]
         [
@@ -136,16 +128,16 @@ def group_indices(idx2_groupid, assume_sorted=False):
         tuple (ndarray, list of ndarrays): (keys, groupxs)
 
     CommandLine:
-        python -m vtool.clustering2 --test-group_indices
-        python -m vtool.clustering2 --exec-group_indices:1
-        utprof.py -m vtool.clustering2 --test-group_indices:2
+        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices
+        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices:0
+        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices:1
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([1, 2, 3], dtype=np.int64),
         [
@@ -162,7 +154,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> # 2d arrays must be flattened before coming into this function so
         >>> # information is on the last axis
         >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([ 24, 129, 659, 822], dtype=np.int64),
         [
@@ -177,7 +169,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([True, True, False, True, False, False, True])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = ut.repr3((keys, groupxs), nobr=True, with_dtype=True)
+        >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
         >>> print(result)
         np.array([False,  True], dtype=np.bool),
         [
@@ -188,7 +180,6 @@ def group_indices(idx2_groupid, assume_sorted=False):
     Time:
         >>> # xdoctest: +SKIP
         >>> import vtool as vt
-        >>> import utool as ut
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
         >>> print(setup)
         >>> stmt_list = ut.codeblock(
@@ -486,14 +477,14 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_y = pca_centroids[:, 1]
     nCentroids = K = len(centroids)
     if labels == 'centroids':
-        (datax2_label, dists) = _FLANN_CLS().nn(centroids, data, 1)
+        (datax2_label, dists) = FLANN_CLS().nn(centroids, data, 1)
     else:
         datax2_label = labels
     datax2_label = np.array(datax2_label, dtype=np.int32)
     print(datax2_label)
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
     #if datax2_centroids is None:
-    #    (datax2_centroidx, _) = p _FLANN_CLS().nn(centroids, data, 1)
+    #    (datax2_centroidx, _) = p FLANN_CLS().nn(centroids, data, 1)
     #data_colors = colors[np.array(datax2_centroidx, dtype=np.int32)]
     nColors = datax2_label.max() - datax2_label.min() + 1
     print('nColors=%r' % (nColors,))
@@ -558,12 +549,11 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> import utool as ut
         >>> num = 100
         >>> ndim = 3
         >>> pts = uniform_sampe_hypersphere(num, ndim)
         >>> print(pts)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> if ndim == 2:
         >>>     pt.plot(pts.T[0], pts.T[1], 'gx')
@@ -600,7 +590,6 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
 
         >>> # synthetic data
         >>> import vtool as vt
-        >>> import utool as ut
         >>> size = 100
         >>> thresh = 50
         >>> np.random.randint(0, 1)
@@ -644,7 +633,6 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> from vtool.clustering2 import *  # NOQA
         >>> import networkx as nx
         >>> import plottool as pt
-        >>> import utool as ut
         >>> rng = np.random.RandomState(443284320)
         >>> pt.ensureqt()
         >>> #

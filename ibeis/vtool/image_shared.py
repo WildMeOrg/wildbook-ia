@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
-# LICENCE
 from __future__ import absolute_import, division, print_function, unicode_literals
 from PIL import Image
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-    cv2 = None
+import cv2
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[img]', DEBUG=False)
 
 
 def open_pil_image(image_fpath):
@@ -25,16 +18,3 @@ def print_image_checks(img_fpath):
     else:
         print('[io] Image %r does not exists ' (img_fpath,))
     return hasimg
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m vtool.image
-        python -m vtool.image --allexamples
-        python -m vtool.image --allexamples --noface --nosrc
-    """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()

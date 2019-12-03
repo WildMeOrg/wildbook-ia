@@ -4,27 +4,26 @@ from vtool import keypoint as ktool
 import vtool.util_math as mtool
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+from vtool.util_math import TAU
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
-TAU = np.pi * 2  # References: tauday.com
 
 
 def testdata_dummy_sift(nPts=10, asint=True, rng=None):
     r"""
-    Makes a dummy sift descriptor that has the uint8 * 512 hack
+    Makes a demodata sift descriptor that has the uint8 * 512 hack
     like hesaff returns
 
     Args:
         nPts (int): (default = 10)
 
     CommandLine:
-        python -m vtool.tests.dummy --test-testdata_dummy_sift
+        python -m vtool.demodata --test-testdata_dummy_sift
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.tests.dummy import *  # NOQA
+        >>> from vtool.demodata import *  # NOQA
         >>> import vtool as vt
         >>> nPts = 10
         >>> rng = np.random.RandomState(0)
@@ -408,22 +407,22 @@ def get_dummy_kpts(num=1, dtype=DEFAULT_DTYPE):
         ndarray[float32_t, ndim=2][ndims=2]: kpts -  keypoints
 
     CommandLine:
-        python -m vtool.tests.dummy --test-get_dummy_kpts
+        xdoctest -m ~/code/vtool/vtool/demodata.py get_dummy_kpts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.tests.dummy import *  # NOQA
+        >>> from vtool.demodata import *  # NOQA
         >>> num = 1
         >>> dtype = ktool.KPTS_DTYPE
         >>> kpts = get_dummy_kpts(num, dtype)
-        >>> result = ktool.kpts_repr(kpts)
+        >>> import ubelt as ub
+        >>> result = ub.repr2(kpts, precision=2, with_dtype=False)
         >>> print(result)
-        array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
-               [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
-               [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
-               [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
-               [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=float32)
-
+        np.array([[20.  , 25.  ,  5.22, -5.11, 24.15,  0.  ],
+                  [29.  , 25.  ,  2.36, -5.11, 24.15,  0.  ],
+                  [30.  , 30.  , 12.22, 12.02, 10.53,  0.  ],
+                  [31.  , 29.  , 13.36, 17.63, 14.1 ,  0.  ],
+                  [32.  , 31.  , 16.05,  3.41, 11.74,  0.  ]])
     """
     kpts = np.array([[20, 25, 5.21657705, -5.11095951, 24.1498699, 0],
                      [29, 25, 2.35508823, -5.11095952, 24.1498692, 0],
@@ -435,8 +434,8 @@ def get_dummy_kpts(num=1, dtype=DEFAULT_DTYPE):
 
 
 def dummy_img(w, h, intensity=200):
-    """ Creates a dummy test image """
-    img = np.zeros((h, w), dtype=np.uint8) + intensity
+    """ Creates a demodata test image """
+    img = np.zeros((int(h), int(w)), dtype=np.uint8) + intensity
     return img
 
 
@@ -451,19 +450,10 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.tests.dummy import *  # NOQA
+        >>> from vtool.demodata import *  # NOQA
         >>> kpts = get_dummy_kpts()
         >>> sf = 1.0
         >>> img =  get_kpts_dummy_img(kpts, sf, 10)
-
-    Ignore::
-        %pylab qt4
-        import plottool as pt
-        pt.imshow(img)
-        ell_colors = pt.distinct_colors(5, shuffle=False)
-        pt.draw_kpts2(kpts, ell_color=ell_colors)
-        pt.update()
-
     """
     (x1, x2, y1, y2) = ktool.get_kpts_image_extent(kpts)
     w = x2 - x1
@@ -595,7 +585,7 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     kpts_ = kpts + aug
     # Ensure keypoint feasibility
     kpts_ = force_kpts_feasibility(kpts_)
-    #print(ut.repr2({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
+    #print(ub.repr2({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
     #assert kpts_.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts_.dtype=%r' % (kpts_.dtype)
     return kpts_
 
@@ -606,21 +596,21 @@ def testdata_dummy_matches():
         tuple: matches_testtup
 
     CommandLine:
-        python -m vtool.tests.dummy --test-testdata_dummy_matches --show
+        python -m vtool.demodata --test-testdata_dummy_matches --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.tests.dummy import *  # NOQA
+        >>> from vtool.demodata import *  # NOQA
         >>> matches_testtup = testdata_dummy_matches()
         >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = matches_testtup
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, fs)
-        >>>     pt.set_figtitle('Dummy matches')
-        >>>     pt.show_if_requested()
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool as pt
+        >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, fs)
+        >>> pt.set_figtitle('Dummy matches')
+        >>> pt.show_if_requested()
     """
     kpts1, kpts2 = get_dummy_kpts_pair((100, 100))
-    #fm = np.ascontiguousarray(dummy.make_dummy_fm(len(kpts1)).astype(np.uint))
+    #fm = np.ascontiguousarray(demodata.make_dummy_fm(len(kpts1)).astype(np.uint))
     fm = np.ascontiguousarray(make_dummy_fm(len(kpts1)).astype(np.int64))
     #print(repr([kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh]))
     rchip1 = get_kpts_dummy_img(kpts1)
@@ -633,7 +623,7 @@ def get_testdata_kpts(fname=None, with_vecs=False):
     if fname is None:
         kpts = get_dummy_kpts()
         vecs = (np.random.rand(len(kpts), 128) * 255).astype(np.uint8)
-        # TODO: dummy vecs
+        # TODO: demodata vecs
     else:
         from vtool import features as feattool
         import utool as ut
@@ -648,7 +638,7 @@ def get_testdata_kpts(fname=None, with_vecs=False):
 def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
     r"""
     Runs simple ratio-test matching between two images.
-    Technically this is not dummy data.
+    Technically this is not demodata data.
 
     Args:
         fname1 (str):
@@ -658,17 +648,17 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         tuple : matches_testtup
 
     CommandLine:
-        python -m vtool.tests.dummy --test-testdata_ratio_matches
-        python -m vtool.tests.dummy --test-testdata_ratio_matches --help
-        python -m vtool.tests.dummy --test-testdata_ratio_matches --show
-        python -m vtool.tests.dummy --test-testdata_ratio_matches --show --ratio_thresh=1.1 --rotation_invariance
+        python -m vtool.demodata --test-testdata_ratio_matches
+        python -m vtool.demodata --test-testdata_ratio_matches --help
+        python -m vtool.demodata --test-testdata_ratio_matches --show
+        python -m vtool.demodata --test-testdata_ratio_matches --show --ratio_thresh=1.1 --rotation_invariance
 
-        python -m vtool.tests.dummy --test-testdata_ratio_matches --show --ratio_thresh=.625 --rotation_invariance --fname1 easy1.png --fname2 easy3.png
-        python -m vtool.tests.dummy --test-testdata_ratio_matches --show --ratio_thresh=.625 --no-rotation_invariance --fname1 easy1.png --fname2 easy3.png
+        python -m vtool.demodata --test-testdata_ratio_matches --show --ratio_thresh=.625 --rotation_invariance --fname1 easy1.png --fname2 easy3.png
+        python -m vtool.demodata --test-testdata_ratio_matches --show --ratio_thresh=.625 --no-rotation_invariance --fname1 easy1.png --fname2 easy3.png
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.tests.dummy import *  # NOQA
+        >>> from vtool.demodata import *  # NOQA
         >>> import vtool as vt
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
@@ -677,21 +667,26 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         >>> kwargs = ut.argparse_dict(default_dict)
         >>> matches_testtup = testdata_ratio_matches(fname1, fname2, **kwargs)
         >>> (kpts1, kpts2, fm_RAT, fs_RAT, rchip1, rchip2) = matches_testtup
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm_RAT, fs_RAT, ori=True)
-        >>>     num_matches = len(fm_RAT)
-        >>>     score_sum = sum(fs_RAT)
-        >>>     title = 'Simple matches using the Lowe\'s ratio test'
-        >>>     title += '\n num_matches=%r, score_sum=%.2f' % (num_matches, score_sum)
-        >>>     pt.set_figtitle(title)
-        >>>     pt.show_if_requested()
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import plottool as pt
+        >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm_RAT, fs_RAT, ori=True)
+        >>> num_matches = len(fm_RAT)
+        >>> score_sum = sum(fs_RAT)
+        >>> title = 'Simple matches using the Lowe\'s ratio test'
+        >>> title += '\n num_matches=%r, score_sum=%.2f' % (num_matches, score_sum)
+        >>> pt.set_figtitle(title)
+        >>> pt.show_if_requested()
     """
     import utool as ut
     import vtool as vt
     from vtool import image as gtool
     from vtool import features as feattool
-    import pyflann
+
+    try:
+        from vtool._pyflann_backend import pyflann
+    except ImportError:
+        import pytest
+        pytest.skip()
     # Get params
     ratio_thresh = kwargs.get('ratio_thresh', .625)
     print('ratio_thresh=%r' % (ratio_thresh,))
@@ -740,14 +735,6 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
 
     # GET NEAREST NEIGHBORS
     fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
-    #fx2_m = np.arange(len(fx2_to_fx1))
-    #fx1_m = fx2_to_fx1.T[0]
-    #fm_ORIG = np.vstack((fx1_m, fx2_m)).T
-    #fs_ORIG = fx2_to_dist.T[0]
-    #fs_ORIG = 1 - np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
-    #np.ones(len(fm_ORIG))
-    # APPLY RATIO TEST
-    #ratio_thresh = .625
     fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
     kpts1 = kpts1.astype(np.float64)
     kpts2 = kpts2.astype(np.float64)
@@ -758,11 +745,7 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.tests.dummy
-        python -m vtool.tests.dummy --allexamples
-        python -m vtool.tests.dummy --allexamples --noface --nosrc
+        xdoctest -m demodata
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

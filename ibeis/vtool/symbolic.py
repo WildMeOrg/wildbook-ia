@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import six
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[symb]')
+import ubelt as ub
 
 
 def custom_sympy_attrs(mat):
@@ -47,7 +47,7 @@ def evalprint(str_, globals_=None, locals_=None, simplify=False):
         str_ = ut.get_varname_from_stack(var, N=1)
     if simplify is True:
         var = sympy.simplify(var)
-    print(ut.hz_str(str_ + ' = ', repr(var)))
+    print(ub.hzcat(str_ + ' = ', repr(var)))
 
 
 def check_expr_eq(expr1, expr2, verbose=True):
@@ -78,7 +78,7 @@ def check_expr_eq(expr1, expr2, verbose=True):
         expr1 = sympy.simplify(expr1)
     if isinstance(expr2, six.string_types):
         expr2 = sympy.simplify(expr2)
-    print(ut.hz_str('Checking if ', repr(expr1), ' == ', repr(expr2)))
+    print(ub.hzcat('Checking if ', repr(expr1), ' == ', repr(expr2)))
     random_point_check = expr1.equals(expr2)
     if random_point_check is None:
         failexpr = expr1.equals(expr2, failing_expression=True)
@@ -101,7 +101,7 @@ def check_expr_eq(expr1, expr2, verbose=True):
             else:
                 print('This seems False')
         sympy.solve(sympy.Eq(sympy.simplify(expr2), y), 'd')
-    print(ut.hz_str('... checking 0 ', repr(expr3)))
+    print(ub.hzcat('... checking 0 ', repr(expr3)))
     # Does not always work.
     print('(not gaurenteed to work) expr3.is_zero = %r' % (expr3.is_zero,))
     return expr3.is_zero
@@ -191,11 +191,7 @@ x, y, iv11, iv21, iv22, patch_size = sympy.symbols('x y iv11 iv21 iv22 S')
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.symbolic
-        python -m vtool.symbolic --allexamples
-        python -m vtool.symbolic --allexamples --noface --nosrc
+        xdoctest -m vtool.symbolic
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

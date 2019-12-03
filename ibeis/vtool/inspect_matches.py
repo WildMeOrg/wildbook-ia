@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 try:
     import guitool as gt
     from guitool import mpl_widget
@@ -74,7 +74,7 @@ class MatchInspector(INSPECT_BASE):
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match)
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
@@ -86,7 +86,7 @@ class MatchInspector(INSPECT_BASE):
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> aids = ut.argval('--aids', default=[1, 2])
+        >>> aids = ub.argval('--aids', default=[1, 2])
         >>> print('aids = %r' % (aids,))
         >>> annots = ibs.annots(aids)
         >>> annot1 = annots[0]._make_lazy_dict()
@@ -96,14 +96,13 @@ class MatchInspector(INSPECT_BASE):
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match, cfgdict=cfgdict)
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
 
     def showEvent(self, event):
         super(MatchInspector, self).showEvent(event)
-        # ut.cprint('[viz_graph] showEvent', 'green')
         # Fire initialize event after we show the GUI
         # QtCore.QTimer.singleShot(50, self.init_inference)
         self.first_show()
@@ -246,7 +245,6 @@ class MatchInspector(INSPECT_BASE):
         cfgdict = {}
         cfgdict.update(self.featconfig.asdict())
         cfgdict.update(self.chipconfig.asdict())
-        # print('cfgdict = ' + ut.repr4(cfgdict))
 
         match = self.match
         match.verbose = True
@@ -275,7 +273,7 @@ class MatchInspector(INSPECT_BASE):
         info_html = ''
         if self.info_text is not None:
             info_html = '<pre>' + self.info_text + '</pre>'
-        feat_html = '<pre>' + ut.align(ut.repr4(summary), ':') + '</pre>'
+        feat_html = '<pre>' + ut.align(ub.repr2(summary), ':') + '</pre>'
         self.infobox.setText(info_html + feat_html)
 
         self.mpl_widget.clf()
@@ -331,8 +329,8 @@ def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     #fm, fs = matches['RAT'][0:2]
     annot1 = metadata['annot1']
     annot2 = metadata['annot2']
-    rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['nchip', 'kpts', 'vecs'])
-    rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['nchip', 'kpts', 'vecs'])
+    rchip1, kpts1, vecs1 = ub.dict_take(annot1, ['nchip', 'kpts', 'vecs'])
+    rchip2, kpts2, vecs2 = ub.dict_take(annot2, ['nchip', 'kpts', 'vecs'])
     #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     fsv = fs[:, None]
     interact = plottool.interact_matches.MatchInteraction2(
@@ -345,16 +343,12 @@ def show_matching_dict(matches, metadata, *args, **kwargs):
     interact = make_match_interaction(matches, metadata, *args, **kwargs)
     interact.show_page()
     return interact
-    #MatchInteraction2
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.inspect_matches
-        python -m vtool.inspect_matches --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool.inspect_matches
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

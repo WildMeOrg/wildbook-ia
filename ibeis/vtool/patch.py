@@ -10,6 +10,8 @@ from vtool import linalg as ltool
 from vtool import image as gtool
 from vtool import trig
 import utool as ut
+import ubelt as ub
+from .util_math import TAU
 try:
     import cv2
 except ImportError as ex:
@@ -19,10 +21,6 @@ except ImportError as ex:
     cv2.INTER_CUBIC = None
     cv2.BORDER_CONSTANT = None
     cv2.BORDER_REPLICATE = None
-(print, rrr, profile) = ut.inject2(__name__)
-
-
-TAU = np.pi * 2  # References: tauday.com
 
 
 def patch_gradient(patch, ksize=1, gaussian_weighted=False):
@@ -63,10 +61,8 @@ def get_test_patch(key='star', jitter=False):
         >>> # DISABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> import plottool as pt
-        >>> # build test data
         >>> key = 'star2'
         >>> jitter = False
-        >>> # execute function
         >>> patch = get_test_patch(key, jitter)
         >>> pt.imshow(255 * patch)
         >>> pt.show_if_requested()
@@ -105,7 +101,7 @@ def get_no_symbol(variant='symbol', size=(100, 100)):
         >>> # ENABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> errorimg = get_no_symbol()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(errorimg)
         >>> ut.show_if_requested()
@@ -298,14 +294,14 @@ def inverted_sift_patch(sift, dim=32):
         python -m vtool.patch test_sift_viz --show --name=stripe
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> import vtool as vt
         >>> patch = vt.get_test_patch(ut.get_argval('--name', default='star'))
         >>> sift = vt.extract_feature_from_patch(patch)
         >>> siftimg = test_sift_viz(sift)
         >>> # Need to do some image blending
-        >>> import plottool as pt
-        >>> #pt.imshow(siftimg)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.figure(fnum=1, pnum=(1, 2, 1))
         >>> pt.mpl_sift.draw_sift_on_patch(siftimg, sift)
@@ -356,7 +352,7 @@ def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
         >>> style = 'step'
         >>> theta = np.pi / 4
         >>> patch = vt.gradient_fill(shape, theta, style=style)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(vt.rectify_to_uint8(patch))
         >>> ut.show_if_requested()
@@ -466,7 +462,7 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         >>> gausspatch = gaussian_patch(shape, sigma)
         >>> sum_ = gausspatch.sum()
         >>> ut.assert_almost_eq(sum_, 1.0)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(vt.norm01(gausspatch) * 255)
         >>> ut.show_if_requested()
@@ -577,7 +573,7 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
         >>> from vtool.patch import *  # NOQA
         >>> import vtool as vt
         >>> # build test data
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> use_cpp = ut.get_argflag('--use_cpp')
         >>> kpts, desc = vt.extract_features(img_fpath)
@@ -588,8 +584,8 @@ def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
         >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode, use_cpp=use_cpp)
         >>> # verify results
         >>> print(np.array(warped_patches).shape)
-        >>> print(ut.repr2(np.array(warped_subkpts), precision=2))
-        >>> ut.quit_if_noshow()
+        >>> print(ub.repr2(np.array(warped_subkpts), precision=2))
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(warped_patches[0])
         >>> #pt.draw_kpts2(warped_subkpts, pts=True, rect=True)
@@ -978,7 +974,7 @@ def GaussianBlurInplace(img, sigma, size=None):
         >>> GaussianBlurInplace(img4, sigma1, size)
         >>> GaussianBlurInplace(img4, sigma2, size)
         >>> print((img4 - img3).sum())
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> fig = pt.figure(fnum=1, pnum=(2, 4, 1))
         >>> ksize = (size, size)
         >>> #fig.add_subplot(1, 3, 1, projection='3d')
@@ -1422,7 +1418,6 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     # Get wrapped histogram (because we are finding a direction)
     flat_oris = gori.flatten()
     flat_weights = gori_weights.flatten()
-    TAU = np.pi * 2
     range_ = (0, TAU)
     # FIXME: this does not do linear interpolation
     #hist_, edges_ = np.histogram(flat_oris, range=range_, bins=bins, weights=flat_weights)
@@ -1437,17 +1432,6 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     return hist, centers
 
 
-# if __name__ == '__main__':
-#     """
-#     CommandLine:
-#         python -m vtool.patch
-#         python -m vtool.patch --allexamples
-#         python -m vtool.patch --allexamples --noface --nosrc
-#     """
-#     import multiprocessing
-#     multiprocessing.freeze_support()  # for win32
-#     import utool as ut  # NOQA
-#     ut.doctest_funcs()
 if __name__ == '__main__':
     r"""
     CommandLine:

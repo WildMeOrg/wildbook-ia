@@ -6,13 +6,9 @@ python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors)
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import utool as ut
+import ubelt as ub
 import numpy as np
-(print, rrr, profile) = ut.inject2(__name__)
-
-try:
-    import pyflann
-except ImportError:
-    print('Warning: pyflann failed to import')
+from vtool._pyflann_backend import FLANN_CLS, pyflann
 
 
 class AnnoyWrapper(object):
@@ -46,12 +42,11 @@ class AnnoyWrapper(object):
 
 
 def test_annoy():
-    from vtool.tests import dummy
-    import pyflann
+    from vtool import demodata
     import annoy
     import utool
-    qvecs = dummy.testdata_dummy_sift(2 * 1000)
-    dvecs = dummy.testdata_dummy_sift(100 * 1000)
+    qvecs = demodata.testdata_dummy_sift(2 * 1000)
+    dvecs = demodata.testdata_dummy_sift(100 * 1000)
     dim = dpts.shape[1]
 
     checks = 200
@@ -77,7 +72,7 @@ def test_annoy():
 
     for timer in utool.Timerit(trials, label='build flann'):
         with timer:
-            flann = pyflann.FLANN()
+            flann = FLANN_CLS()
             flann.build_index(dvecs, algorithm='kdtree', trees=num_trees,
                               checks=checks, cores=1)
 
@@ -106,7 +101,7 @@ def test_cv2_flann():
         ut.grab_zipped_url('https://priithon.googlecode.com/archive/a6117f5e81ec00abcfb037f0f9da2937bb2ea47f.tar.gz', download_dir='.')
     """
     import cv2
-    from vtool.tests import dummy
+    from vtool import demodata
     import plottool as pt
     import vtool as vt
     img1 = vt.imread(ut.grab_test_imgpath('easy1.png'))
@@ -142,8 +137,8 @@ def test_cv2_flann():
     cv2.drawKeypoints(img1, kp1, outImage=out)
     pt.imshow(out)
 
-    vecs1 = dummy.testdata_dummy_sift(10)
-    vecs2 = dummy.testdata_dummy_sift(10)  # NOQA
+    vecs1 = demodata.testdata_dummy_sift(10)
+    vecs2 = demodata.testdata_dummy_sift(10)  # NOQA
 
     FLANN_INDEX_KDTREE = 0  # bug: flann enums are missing
     #flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=4)
@@ -170,9 +165,8 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     Finds the approximate nearest neighbors of qpts in dpts
 
-
     CommandLine:
-        python -m vtool.nearest_neighbors --test-ann_flann_once:0
+        xdoctest -m ~/code/vtool/vtool/nearest_neighbors.py ann_flann_once
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -243,8 +237,8 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> qmag = np.sqrt(np.power(qpts.astype(np.float64), 2).sum(1))
         >>> dmag = np.sqrt(np.power(dpts.astype(np.float64), 2).sum(1))
         >>> # FIX TO ACTUALLY BE AT THE RIGHT NORM
-        >>> dpts = dpts * (512 / np.linalg.norm(dpts, axis=1))[:, None]
-        >>> qpts = qpts * (512 / np.linalg.norm(qpts, axis=1))[:, None]
+        >>> dpts = (dpts * (512 / np.linalg.norm(dpts, axis=1))[:, None]).astype(np.float32)
+        >>> qpts = (qpts * (512 / np.linalg.norm(qpts, axis=1))[:, None]).astype(np.float32)
         >>> print(np.linalg.norm(dpts))
         >>> print(np.linalg.norm(qpts))
         >>> dist = np.sqrt(np.sum((qpts - dpts) ** 2, 1))
@@ -257,14 +251,21 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(
-        dpts, qpts, num_neighbors, **flann_params)
+    import cv2
+    obj = cv2.flann_Index()
+    if 'algorithm' not in flann_params:
+        flann_params['algorithm'] = 0
+        # flann_params['trees'] = 5
+    obj.build(dpts, flann_params)
+    (qx2_dx, qx2_dist) = obj.knnSearch(qpts, num_neighbors)
+    # flann.build_index(dpts, **flann_params)
+    # (qx2_dx, qx2_dist) = .nn_index(qpts, num_neighbors)
     return (qx2_dx, qx2_dist)
 
 
 def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
     """ Helper for akmeans """
-    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(
+    (qx2_dx, qx2_dist) = FLANN_CLS().nn_index(
         dpts, qpts, num_neighbors, **flann_params)
     return qx2_dx
 
@@ -320,8 +321,8 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     if cache_dir == 'default':
         if verbose:
             print('[flann] using default cache dir')
-        cache_dir = ut.get_app_resource_dir(appname)
-        ut.ensuredir(cache_dir)
+        cache_dir = ub.ensure_app_cache_dir(appname)
+        ub.ensuredir(cache_dir)
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
                                     use_params_hash=use_params_hash,
                                     use_data_hash=use_data_hash)
@@ -354,8 +355,9 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                                   use_data_hash=use_data_hash, appname=appname,
                                   verbose=verbose)
     # Load the index if it exists
-    flann = pyflann.FLANN()
+    flann = FLANN_CLS()
     flann.flann_fpath = flann_fpath
+
     if use_cache and exists(flann_fpath):
         try:
             flann.load_index(flann_fpath, dpts)
@@ -371,12 +373,13 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         print('...flann cache miss.')
     num_dpts = len(dpts)
     if flann is None:
-        flann = pyflann.FLANN()
+        flann = FLANN_CLS()
     if verbose > 1 or (verbose > 0 and num_dpts > 1E6):
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     if num_dpts == 0:
         print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
         return flann
+
     flann.build_index(dpts, **flann_params)
     if verbose > 1:
         print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=2))
@@ -393,9 +396,9 @@ def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.nearest_neighbors import *  # NOQA
-        >>> import vtool.tests.dummy as dummy  # NOQA
-        >>> dpts = dummy.get_dummy_dpts(ut.get_nth_prime(10))
-        >>> new_dpts = dummy.get_dummy_dpts(ut.get_nth_prime(9))
+        >>> import vtool.demodata as demodata  # NOQA
+        >>> dpts = demodata.get_dummy_dpts(ut.get_nth_prime(10))
+        >>> new_dpts = demodata.get_dummy_dpts(ut.get_nth_prime(9))
         >>> cache_dir = ut.get_app_resource_dir('vtool')
         >>> cfgstr = '_testcfg'
         >>> new_cfgstr = '_new_testcfg'
@@ -443,7 +446,7 @@ def get_flann_params(algorithm='kdtree', **kwargs):
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> algorithm = ut.get_argval('--algo', default='kdtree')
         >>> flann_params = get_flann_params(algorithm)
-        >>> result = ('flann_params = %s' % (ut.repr2(flann_params),))
+        >>> result = ('flann_params = %s' % (ub.repr2(flann_params),))
         >>> print(result)
     """
     _algorithm_options = [
@@ -553,7 +556,7 @@ def tune_flann(dpts,
     with ut.Timer('tuning flann'):
         print('Autotuning flann with %d %dD vectors' % (dpts.shape[0], dpts.shape[1]))
         print('a sample of %d vectors will be used' % (int(dpts.shape[0] * sample_fraction)))
-        flann = pyflann.FLANN()
+        flann = FLANN_CLS()
         #num_data = len(dpts)
         flann_atkwargs = dict(algorithm='autotuned',
                               target_precision=target_precision,
@@ -565,7 +568,7 @@ def tune_flann(dpts,
         for badchar in badchar_list:
             suffix = suffix.replace(badchar, '')
         print('flann_atkwargs:')
-        print(ut.repr2(flann_atkwargs))
+        print(ub.repr2(flann_atkwargs))
         print('starting optimization')
         tuned_params = flann.build_index(dpts, **flann_atkwargs)
         print('finished optimization')
@@ -619,21 +622,21 @@ def tune_flann(dpts,
         #    'sorted',
         #]
         out_file = 'flann_tuned' + suffix
-        ut.write_to(out_file, ut.repr2(tuned_params, sorted_=True, newlines=True))
+        ut.write_to(out_file, ub.repr2(tuned_params, sorted_=True, newlines=True))
         flann.delete_index()
         if tuned_params['algorithm'] in relevant_params_dict:
             print('relevant_params=')
             relevant_params = relevant_params_dict[tuned_params['algorithm']]
-            print(ut.repr2(ut.dict_subset(tuned_params, relevant_params),
+            print(ub.repr2(ut.dict_subset(tuned_params, relevant_params),
                               sorted_=True, newlines=True))
             print('irrelevant_params=')
-            print(ut.repr2(ut.dict_setdiff(tuned_params, relevant_params),
+            print(ub.repr2(ut.dict_setdiff(tuned_params, relevant_params),
                               sorted_=True, newlines=True))
         else:
             print('unknown tuned algorithm=%r' % (tuned_params['algorithm'],))
 
         print('all_tuned_params=')
-        print(ut.repr2(tuned_params, sorted_=True, newlines=True))
+        print(ub.repr2(tuned_params, sorted_=True, newlines=True))
     return tuned_params
 
 
@@ -653,7 +656,6 @@ def flann_index_time_experiment():
         >>> print(result)
     """
     import vtool as vt
-    import pyflann
     import itertools
 
     class TestDataPool(object):
@@ -668,7 +670,7 @@ def flann_index_time_experiment():
         def alloc_pool(self, num):
             print('[alloc] num = %r' % (num,))
             self.num = num
-            self.data_pool = vt.tests.dummy.testdata_dummy_sift(num)
+            self.data_pool = vt.demodata.testdata_dummy_sift(num)
             print('[alloc] object size ' + ut.get_object_size_str(self.data_pool, 'data_pool'))
 
         def get_testdata(self, num):
@@ -680,7 +682,7 @@ def flann_index_time_experiment():
 
     def get_buildtime_data(**kwargs):
         flann_params = vt.get_flann_params(**kwargs)
-        print('flann_params = %r' % (ut.repr2(flann_params),))
+        print('flann_params = %r' % (ub.repr2(flann_params),))
         data_list = []
         num = 1000
         print('-----')
@@ -692,7 +694,7 @@ def flann_index_time_experiment():
             #    break
             data = pool.get_testdata(num)
             print('object size ' + ut.get_object_size_str(data, 'data'))
-            flann = pyflann.FLANN(**flann_params)
+            flann = FLANN_CLS(**flann_params)
             with ut.Timer(verbose=False) as t:
                 flann.build_index(data)
             print('t.ellapsed = %r' % (t.ellapsed,))
@@ -771,54 +773,23 @@ def invertible_stack(vecs_list, label_list):
     # generate featx inverted index for each feature in each annotation
     _ax2_fx = [list(range(nFeat)) for nFeat in nFeat_iter]
     # generate label inverted index for each feature in each annotation
-    '''
-    # this is not a real test the code just happened to be here. syntax is good though
-    #-ifdef CYTH_TEST_SWAP
     _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
-    #-else
-    '''
-    _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
-    # endif is optional. the end of the functionscope counts as an #endif
-    '#-endif'
     # Flatten generators into the inverted index
-    _flatlabels = ut.iflatten(_ax2_label)
-    _flatfeatxs = ut.iflatten(_ax2_fx)
+    _flatlabels = ub.flatten(_ax2_label)
+    _flatfeatxs = ub.flatten(_ax2_fx)
 
     idx2_label = np.fromiter(_flatlabels, np.int32, nFeats)
     idx2_fx = np.fromiter(_flatfeatxs, np.int32, nFeats)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
     idx2_vec = np.vstack(vecs_list)
-    '#pragma cyth_returntup'
     return idx2_vec, idx2_label, idx2_fx
 
-#import cyth
-#if cyth.DYNAMIC:
-#    exec(cyth.import_cyth_execstr(__name__))
-#else:
-#    # <AUTOGEN_CYTH>
-#    # Regen command: python -c "import vtool.nearest_neighbors" --cyth-write
-#    try:
-#        if not cyth.WITH_CYTH:
-#            raise ImportError('no cyth')
-#        import vtool._nearest_neighbors_cyth
-#        _invertible_stack_cyth = vtool._nearest_neighbors_cyth._invertible_stack_cyth
-#        invertible_stack_cyth = vtool._nearest_neighbors_cyth._invertible_stack_cyth
-#        CYTHONIZED = True
-#    except ImportError:
-#        invertible_stack_cyth = invertible_stack
-#        CYTHONIZED = False
-#    # </AUTOGEN_CYTH>
-#    pass
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.nearest_neighbors
-        python -m vtool.nearest_neighbors --allexamples
-        python -m vtool.nearest_neighbors --allexamples --noface --nosrc
+        xdoctest -m vtool.nearest_neighbors
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

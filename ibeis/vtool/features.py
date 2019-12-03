@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 import utool as ut
+import ubelt as ub
 import six
-(print, rrr, profile) = ut.inject2(__name__, '[feat]')
 
 
 def extract_feature_from_patch(patch):
@@ -45,7 +45,7 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
         >>> imgBGR = vt.imread(img_fpath)
-        >>> feat_type = ut.get_argval('--feat_type', default='hesaff+sift')
+        >>> feat_type = ub.argval('--feat_type', default='hesaff+sift')
         >>> import pyhesaff
         >>> kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
         >>> # execute function
@@ -55,7 +55,7 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         >>> result = str((kpts, vecs))
         >>> print(result)
         >>> # Show keypoints
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> #pt.figure(fnum=1, doclf=True, docla=True)
         >>> #pt.imshow(imgBGR)
@@ -96,7 +96,7 @@ def get_extract_features_default_params():
         >>> # build test data
         >>> # execute function
         >>> param_dict = get_extract_features_default_params()
-        >>> result = ut.repr2(param_dict)
+        >>> result = ub.repr2(param_dict)
         >>> # verify results
         >>> print(result)
     """
@@ -110,8 +110,8 @@ def detect_opencv_keypoints():
     import vtool as vt
     import numpy as np  # NOQA
 
-    #img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
-    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
+    #img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='lena.png'))
+    img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='zebra.png'))
     imgBGR = vt.imread(img_fpath)
     imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
 
@@ -192,7 +192,7 @@ def detect_opencv_keypoints():
 
     print(list(type_to_kpts.keys()))
     print(ut.depth_profile(list(type_to_kpts.values())))
-    print('type_to_kpts = ' + ut.repr3(type_to_kpts, truncate=True))
+    print('type_to_kpts = ' + ub.repr2(type_to_kpts, truncate=True))
 
     cv2_kpts = type_to_kpts['MSER']
     kp = cv2_kpts[0]  # NOQA
@@ -214,7 +214,7 @@ def detect_opencv_keypoints():
 
     print(list(type_to_desc.keys()))
     print(ut.depth_profile(list(type_to_desc.values())))
-    print('type_to_desc = ' + ut.repr3(type_to_desc, truncate=True))
+    print('type_to_desc = ' + ub.repr2(type_to_desc, truncate=True))
 
 
 def test_mser():
@@ -249,10 +249,10 @@ def test_mser():
 
         def compress(self, flags, inplace=False):
             subarr = self.kparr.compress(flags, axis=0)
-            info = {key: ut.compress(val, flags) for key, val in self.info.items()}
+            info = {key: list(ub.compress(val, flags)) for key, val in self.info.items()}
             return Keypoints(subarr, info)
 
-    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
+    img_fpath = ut.grab_test_imgpath(ub.argval('--fname', default='zebra.png'))
     imgBGR = vt.imread(img_fpath)
     imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
     # http://docs.opencv.org/master/d3/d28/classcv_1_1MSER.html#gsc.tab=0
@@ -371,11 +371,7 @@ def test_mser():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.features
-        python -m vtool.features --allexamples
-        python -m vtool.features --allexamples --noface --nosrc
+        xdoctest -m vtool.features
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

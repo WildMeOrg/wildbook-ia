@@ -11,7 +11,6 @@ except ImportError as ex:
     print('ERROR: import cv2 is failing!')
     cv2 = ut.DynStruct()
     cv2.INTER_LANCZOS4 = None
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_image_to_chip_transform(bbox, chipsz, theta):
@@ -146,7 +145,7 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER
         >>> chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size)
         >>> # verify results
         >>> assert chipBGR.shape[0:2] == new_size[::-1], 'did not resize correctly'
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(chipBGR)
         >>> pt.show_if_requested()
@@ -168,9 +167,10 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER
 def gridsearch_chipextract():
     r"""
     CommandLine:
-        python -m vtool.chip --test-gridsearch_chipextract --show
+        xdoctest -m ~/code/vtool/vtool/chip.py gridsearch_chipextract --show
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # GRIDSEARCH
         >>> from vtool.chip import *  # NOQA
         >>> gridsearch_chipextract()
@@ -344,10 +344,10 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.chip import *  # NOQA
+        >>> from vtool.util_math import TAU
         >>> # build test data
         >>> gfpath = ut.grab_test_imgpath('carl.jpg')
         >>> bbox = (100, 3, 100, 100)
-        >>> TAU = 2 * np.pi
         >>> theta = TAU / 8
         >>> new_size = (32, 32)
         >>> filter_list = []
@@ -355,7 +355,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
         >>> chipBGR = compute_chip(gfpath, bbox, theta, new_size, filter_list)
         >>> # verify results
         >>> assert chipBGR.shape[0:2] == new_size[::-1], 'did not resize correctly'
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> import vtool as vt
         >>> pt.imshow(vt.draw_verts(vt.imread(gfpath), vt.scaled_verts_from_bbox(bbox, theta, 1, 1)), pnum=(1, 2, 1))
@@ -401,7 +401,7 @@ def get_extramargin_measures(bbox_gs, new_size, halfoffset_ms=(64, 64)):
         >>> new_size = (150, 150)
         >>> halfoffset_ms = (32, 32)
         >>> mbbox_gs, margin_size = get_extramargin_measures(bbox_gs, new_size, halfoffset_ms)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, mbbox_gs, margin_size)
     """
     # _ex denotes an expanded version
@@ -465,12 +465,9 @@ def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, m
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m vtool.chip
-        python -m vtool.chip --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool.chip
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

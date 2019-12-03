@@ -7,10 +7,10 @@ References:
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
+import ubelt as ub
 import six
 import numpy as np
 import scipy.interpolate
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def testdata_scores_labels():
@@ -24,8 +24,7 @@ def nan_to_num(arr, num):
     return arr
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class ConfusionMetrics(ut.NiceRepr):
+class ConfusionMetrics(ub.NiceRepr):
     r"""
     Can compute average percision using the PASCAL definition
 
@@ -76,7 +75,7 @@ class ConfusionMetrics(ut.NiceRepr):
         >>> assert np.all(np.isclose(c.ppv, c.recall * c.prev / c.bias))
         >>> assert np.all(np.isclose(
         >>>    c.wracc, 4 * c.c * (c.tpr - c.fpr) / (1 + c.c) ** 2))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> confusions.draw_roc_curve()
         >>> ut.show_if_requested()
     """
@@ -588,14 +587,14 @@ class ConfusionMetrics(ut.NiceRepr):
             >>> import itertools as it
             >>> s = it.count(0)
             >>> # Create places of ambiguitiy and unambiguity
-            >>> x = ut.flatten([[next(s)] * len(pat) for pat in pats for _ in range(n)])
-            >>> y = ut.flatten([pat for pat in pats for _ in range(n)])
+            >>> x = list(ub.flatten([[next(s)] * len(pat) for pat in pats for _ in range(n)]))
+            >>> y = list(ub.flatten([pat for pat in pats for _ in range(n)]))
             >>> self = ConfusionMetrics().fit(x, y)
             >>> at_metric = 'n_false_pos'
             >>> at_value = 0
             >>> subindex = False
-            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=True)
-            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker=False)
+            >>> idx1 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker='minthresh')
+            >>> idx2 = self.get_index_at_metric(at_metric, at_value, subindex=False, tiebreaker= 'maxthresh')
             >>> assert idx1 == 3
             >>> assert idx2 == 0
         """
@@ -816,13 +815,12 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
             xdata = xdata.take(sortx, axis=0)
             ydata = ydata.take(sortx, axis=0)
 
-    is_scalar = not ut.isiterable(pt)
+    is_scalar = not ub.iterable(pt)
     #print('----')
     #print('xdata = %r' % (xdata,))
     #print('ydata = %r' % (ydata,))
     if is_scalar:
         pt = np.array([pt])
-    #ut.ensure_iterable(pt)
     minval = xdata.min()
     maxval = xdata.max()
     argx_min_list = np.argwhere(xdata == minval)
@@ -896,9 +894,9 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         >>> precision = confusions.precision
         >>> recall = confusions.recall
         >>> recall_domain, p_interp = interpolate_precision_recall(confusions.precision, recall, nSamples=11)
-        >>> result = ut.repr2(p_interp, precision=1, with_dtype=True)
+        >>> result = ub.repr2(p_interp, precision=1, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> draw_precision_recall_curve(recall_domain, p_interp)
         >>> ut.show_if_requested()
         np.array([ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  0.9,  0.9,  0.8,  0.6], dtype=np.float64)
@@ -946,11 +944,11 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
         >>> print(ut.make_csv_table(
         >>>   [confusions.fpr, confusions.tpr, confusions.thresholds],
         >>>   ['fpr', 'tpr', 'thresh']))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ROCInteraction = interact_roc_factory(confusions, target_tpr=.4, show_operating_point=True)
         >>> inter = ROCInteraction()
         >>> inter.show_page()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
@@ -978,7 +976,6 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
             kwargs['thresholds'] = kwargs.get('thresholds', confusions.thresholds)
             kwargs['show_operating_point'] = kwargs.get('show_operating_point',
                                                         show_operating_point)
-            #ut.embed()
             confusions.draw_roc_curve(fnum=fnum, pnum=pnum,
                                       target_tpr=target_tpr, **kwargs)
 
@@ -1158,18 +1155,14 @@ def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
               flipx=False, color=color, fnum=fnum, pnum=pnum,
               title='Interplated Precision Vs Recall\n' + 'avep = %.3f'  % ave_p)
     #print('Interplated Precision')
-    #print(ut.repr2(list(zip(recall_domain, p_interp))))
+    #print(ub.repr2(list(zip(recall_domain, p_interp))))
     #fig.show()
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.confusion
-        python -m vtool.confusion --allexamples
-        python -m vtool.confusion --allexamples --noface --nosrc
+        xdoctest -m vtool.confusion
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
