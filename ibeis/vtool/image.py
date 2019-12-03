@@ -8,17 +8,12 @@ from os.path import splitext
 from six.moves import zip, map, range  # NOQA
 import numpy as np
 from PIL import Image
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-    cv2 = None
+import cv2
+from .util_math import TAU
 from vtool import exif
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__)
+import ubelt as ub
 
-
-TAU = np.pi * 2
 
 if cv2 is not None:
 
@@ -133,7 +128,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
         >>> num = 4
-        >>> img_list = ut.flatten([img_list1] * num)
+        >>> img_list = list(ub.flatten([img_list1] * num))
         >>> dsize = (700, 700)
         >>> rng = np.random.RandomState(42)
         >>> method = 'unused'
@@ -141,7 +136,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
         >>> dst, debug_info = montage(img_list, dsize, rng, method=method,
         >>>                           return_debug=True)
         >>> place_img = debug_info.get('place_img_', np.ones((2, 2)))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(dst, pnum=(1, 2, 1))
         >>> pt.imshow(place_img / place_img.max(), pnum=(1, 2, 2))
@@ -294,14 +289,14 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> imgBGR1 = imread(img_fpath, grayscale=False)
         >>> imgBGR2 = imread(img_fpath, grayscale=True)
         >>> imgBGR3 = imread(img_fpath, orient=True)
-        >>> assert imgBGR1.shape == (512, 512, 3)
-        >>> assert imgBGR2.shape == (512, 512)
+        >>> assert imgBGR1.shape == (250, 300, 3)
+        >>> assert imgBGR2.shape == (250, 300)
         >>> assert np.all(imgBGR1 == imgBGR3)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgBGR1, pnum=(2, 2, 1))
         >>> pt.imshow(imgBGR2, pnum=(2, 2, 2))
@@ -324,7 +319,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> print(result)
         >>> print('num_diff_pxls=%r/%r' % (num_diff_pxls, diff_pxls.size))
         >>> assert num_diff_pxls == 0
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> diffMag = np.linalg.norm(imgBGR2 / 255. - imgBGR1 / 255., axis=2)
         >>> pt.imshow(imgBGR1, pnum=(1, 3, 1))
@@ -341,7 +336,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         >>> delete_if_corrupted = False
         >>> grayscale = False
         >>> imgBGR = imread(img_fpath, grayscale=grayscale)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgBGR)
         >>> ut.show_if_requested()
@@ -375,8 +370,8 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
 
         except cv2.error as cv2ex:
             ut.printex(cv2ex, 'opencv error', iswarning=True)
-            #print('cv2error dict = ' + ut.repr2(cv2ex.__dict__))
-            #print('cv2error dirlist = ' + ut.repr2(dir(cv2ex)))
+            #print('cv2error dict = ' + ub.repr2(cv2ex.__dict__))
+            #print('cv2error dirlist = ' + ub.repr2(dir(cv2ex)))
             #print('cv2error args = ' + repr(cv2ex.args))
             #print('cv2error message = ' + repr(cv2ex.message))
             #cv2error args =
@@ -544,7 +539,7 @@ def imwrite(img_fpath, imgBGR, fallback=False):
         >>> import utool as ut
         >>> img_fpath1 = ut.grab_test_imgpath('zebra.png')
         >>> imgBGR = vt.imread(img_fpath1)
-        >>> img_dpath = ut.ensure_app_resource_dir('vtool', 'testwrite')
+        >>> img_dpath = ub.ensure_app_cache_dir('vtool', 'testwrite')
         >>> img_fpath2 = ut.unixjoin(img_dpath, 'zebra.png')
         >>> fallback = False
         >>> imwrite(img_fpath2, imgBGR, fallback=fallback)
@@ -732,13 +727,12 @@ def warpAffine(img, Aff, dsize):
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
-        >>> TAU = np.pi * 2
         >>> Aff = vt.rotation_mat3x3(TAU / 8)
         >>> dsize = vt.get_size(img)
         >>> warped_img = warpAffine(img, Aff, dsize)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(warped_img)
         >>> ut.show_if_requested()
@@ -812,7 +806,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (150, 150)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((150, 75), 0.75)
 
@@ -822,7 +816,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, 1000)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((2000, 1000), 10.0)
 
@@ -832,7 +826,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (5000, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
 
@@ -842,7 +836,7 @@ def resized_dims_and_ratio(img_size, max_dsize):
         >>> img_size = (200, 100)
         >>> max_dsize = (None, None)
         >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
-        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> result = ('(dsize, ratio) = %s' % (ub.repr2((dsize, ratio), nl=0),))
         >>> print(result)
         (dsize, ratio) = ((200, 100), 1.0)
     """
@@ -894,7 +888,7 @@ def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
         >>> value = 0
         >>> borderType = 0
         >>> out_fpath = pad_image_ondisk(img_fpath, pad_, out_fpath, value, borderType)
-        >>> result = ('out_fpath = %s' % (ut.repr2(out_fpath),))
+        >>> result = ('out_fpath = %s' % (ub.repr2(out_fpath),))
         >>> print(result)
     """
     imgBGR = imread(img_fpath)
@@ -951,9 +945,9 @@ def make_white_transparent(imgBGR):
         >>> from vtool.image import *  # NOQA
         >>> imgBGR = imread(ut.get_argval('--fpath', type_=str))
         >>> imgBGRA = make_white_transparent(imgBGR)
-        >>> result = ('imgBGRA = %s' % (ut.repr2(imgBGRA),))
+        >>> result = ('imgBGRA = %s' % (ub.repr2(imgBGRA),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
@@ -1175,13 +1169,13 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> x_shear = 0.05
         >>> y_shear = -0.05
         >>> dsize = None
         >>> imgSh = shear(img, x_shear, y_shear, dsize)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgSh)
         >>> ut.show_if_requested()
@@ -1208,7 +1202,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath) / 255.0
         >>> img = img.astype(np.float32)
         >>> dsize = (1000, 1000)
@@ -1223,7 +1217,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy,
         ...     theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize,
         ...     borderMode=borderMode, flags=flags, borderValue=(.5, .5, .5))
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow((img_warped * 255.0).astype(np.uint8))
         >>> ut.show_if_requested()
@@ -1293,7 +1287,7 @@ def rectify_to_uint8(img):
     if img.dtype.kind in ('f'):
         if img.max() <= 1.0 or img.min() >= 0.0:
             raise ValueError('Bad input image. Stats={}'.format(
-                ut.repr2(ut.get_stats(img.ravel()), precision=2)))
+                ub.repr2(ut.get_stats(img.ravel()), precision=2)))
         img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
@@ -1431,7 +1425,7 @@ def convert_colorspace(img, colorspace, src_colorspace='BGR'):
         >>> imgAB_BGR = convert_colorspace(imgAB_LAB, src_colorspace, colorspace)
         >>> imgA_BGR = convert_colorspace(imgA_LAB, src_colorspace, colorspace)
         >>> imgB_BGR = convert_colorspace(imgB_LAB, src_colorspace, colorspace)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> #imgAB_HSV = convert_colorspace(convert_colorspace(imgAB_LAB, 'LAB', 'BGR'), 'BGR', 'HSV')
         >>> imgAB_HSV = convert_colorspace(img, 'HSV', 'BGR')
@@ -1508,7 +1502,7 @@ def padded_resize(img, target_size=(64, 64), interpolation=None):
         >>> img3_list = [padded_resize(img, target_size) for img in [imgA, imgB, imgC]]
         >>> # verify results
         >>> assert ut.allsame([vt.get_size(img3) for img3 in img3_list])
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.imshow(img3_list[0], pnum=pnum_())
@@ -1559,7 +1553,7 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
         >>> img_square2 = embed_in_square_image(img, target_size, img_origin, target_origin)
         >>> assert img_square.sum() == img.sum()
         >>> assert vt.get_size(img_square) == target_size
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img_square, pnum=(1, 2, 1))
         >>> pt.imshow(img_square2, pnum=(1, 2, 2))
@@ -1706,7 +1700,7 @@ def resize_to_maxdims(img, max_dsize=(64, 64),
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
@@ -1737,7 +1731,7 @@ def resize_thumb(img, max_dsize=(64, 64), interpolation=None):
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
@@ -1820,7 +1814,7 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
         >>>     vt.draw_text(img, text, org,
         ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
         ...                  fontScale=fontScale, thickness=thickness)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> ut.show_if_requested()
@@ -1847,7 +1841,7 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
         >>>     vt.draw_text(img, text, org,
         ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
         ...                  fontScale=fontScale, thickness=thickness)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> ut.show_if_requested()
@@ -1877,10 +1871,10 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
 #        >>> # DISABLE_DOCTEST
 #        >>> from vtool.image import *  # NOQA
 #        >>> import vtool as vt
-#        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+#        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
 #        >>> img = vt.imread(img_fpath)
 #        >>> img2 = testing(img)
-#        >>> ut.quit_if_noshow()
+#        >>> # xdoctest: +REQUIRES(--show)
 #        >>> import plottool as pt
 #        >>> pt.imshow(img, pnum=(1, 2, 1))
 #        >>> pt.imshow(img2, pnum=(1, 2, 2))
@@ -1913,7 +1907,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
         >>> #scale = 32.0
         >>> scale = 64.0
         >>> img = perlin_noise(size, scale)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img, pnum=(1, 1, 1))
         >>> ut.show_if_requested()
@@ -2001,7 +1995,7 @@ def testdata_imglist():
     # build test data
     import vtool as vt
     img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-    img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+    img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
     img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
     img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
     img5 = vt.imread(ut.grab_test_imgpath('star.png'))
@@ -2031,7 +2025,7 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
         >>> initial_sf = None
         >>> initial_sf = .5
         >>> imgB, offset_list, sf_list = stack_image_list_special(img1, img_list, num_bot, vert, use_larger, initial_sf)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> wh_list = np.array([vt.get_size(img1)] + list(map(vt.get_size, img_list)))
         >>> wh_list_ = wh_list * sf_list
         >>> import plottool as pt
@@ -2162,9 +2156,9 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modify
         >>> vert = False
         >>> tup = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
         >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
-        >>> result = ut.remove_doublspaces(ut.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
+        >>> result = ut.remove_doublspaces(ub.repr2(np.array(stacked_offsets).T, precision=2, with_dtype=True, linewidth=10000)).replace(' ,', ',')
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(stacked_img)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list[::-1] + img_list + img_list])
@@ -2278,9 +2272,9 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> # verify results
-        >>> result = ut.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
+        >>> result = ub.repr2(np.array(offset_list).T, precision=2, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list])
@@ -2415,7 +2409,7 @@ def ensure_3channel(patch):
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> patch1 = vt.imread(ut.grab_test_imgpath('lena.png'))[0:512, 0:500, :]
+        >>> patch1 = vt.imread(ut.grab_test_imgpath('astro.png'))[0:512, 0:500, :]
         >>> patch2 = vt.imread(ut.grab_test_imgpath('ada.jpg'))[:, :, 0:1]
         >>> patch3 = vt.imread(ut.grab_test_imgpath('jeff.png'))[0:390, 0:400, 0]
         >>> res1 = ensure_3channel(patch1)
@@ -2481,7 +2475,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> import vtool as vt
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
         >>> vert = True
         >>> modifysize = False
         >>> # execute function
@@ -2495,7 +2489,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> # verify results
         >>> result = str((imgB.shape, woff, hoff))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> wh1 = np.multiply(vt.get_size(img1), sf_tup[0])
@@ -2631,7 +2625,7 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         >>> import vtool as vt
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('astro.png'))
         >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
         >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
         >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
@@ -2641,7 +2635,7 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
         >>> # execute function
         >>> imgB = stack_image_recurse(img_list1, img_list2, vert)
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> imshow(imgB)
         >>> #wh1 = img1.shape[0:2][::-1]
@@ -2718,7 +2712,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> gpaths = [ut.grab_test_imgpath('carl.jpg'),
-        >>>           ut.grab_test_imgpath('lena.png')]
+        >>>           ut.grab_test_imgpath('astro.png')]
         >>> flags = filterflags_valid_images(gpaths)
         >>> assert all(flags)
     """
@@ -2853,11 +2847,7 @@ def filterflags_valid_images(gpaths, valid_formats=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.image
-        python -m vtool.image --allexamples
-        python -m vtool.image --allexamples --noface --nosrc
+        xdoctest -m vtool.image
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

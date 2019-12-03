@@ -4,11 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import zip
 import numpy as np
 import utool as ut
-try:
-    import cv2
-except ImportError as ex:
-    print('WARNING: import cv2 is failing!')
-(print, rrr, profile) = ut.inject2(__name__, '[geom]', DEBUG=False)
+import ubelt as ub
+import cv2
 
 
 def bboxes_from_vert_list(verts_list, castint=False):
@@ -19,15 +16,6 @@ def bboxes_from_vert_list(verts_list, castint=False):
 def verts_list_from_bboxes_list(bboxes_list):
     """ Create a four-vertex polygon from the bounding rectangle """
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
-
-
-#def mask_from_verts(verts):
-#    h, w = shape[0:2]
-#    y, x = np.mgrid[:h, :w]
-#    points = np.transpose((x.ravel(), y.ravel()))
-#    #mask = nxutils.points_inside_poly(points, verts)
-#    mask = _nxutils_points_inside_poly(points, verts)
-#    return mask.reshape(h, w)
 
 
 def verts_from_bbox(bbox, close=False):
@@ -93,9 +81,9 @@ def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
         >>> color = (0, 128, 255)
         >>> thickness = 20
         >>> out = None
+        >>> # xdoctest: +REQUIRES(module:plottool)
         >>> img = draw_border(img_in, color, thickness, out)
-        >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
@@ -133,6 +121,7 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.geometry import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> import vtool as vt
         >>> # build test data
@@ -147,13 +136,14 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> assert out is not img
         >>> assert out is not img_in
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.geometry import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> import vtool as vt
         >>> # build test data
@@ -167,7 +157,7 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> assert img_in is img, 'should be in place'
         >>> assert out is img, 'should be in place'
         >>> # verify results
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
 
@@ -227,6 +217,7 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> rng = np.random.RandomState(0)
         >>> p_list = rng.rand(64, 2) * 20 + 5
         >>> close_pts = np.array([closest_point_on_vert_segments(p, verts) for p in p_list])
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
@@ -294,6 +285,7 @@ def closest_point_on_line(p, e1, e2):
         >>>     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
         >>>     close_pts.append(candidates[dists.argmin()])
         >>> close_pts = np.array(close_pts)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
@@ -368,7 +360,6 @@ def union_extents(extents):
     return (xmin, xmax, ymin, ymax)
 
 
-#def tlbr_from_bbox(bbox):
 def extent_from_bbox(bbox):
     """
     Args:
@@ -377,12 +368,15 @@ def extent_from_bbox(bbox):
     Returns:
         extent (ndarray): tl_x, br_x, tl_y, br_y
 
+    CommandLine:
+        xdoctest -m ~/code/vtool/vtool/geometry.py extent_from_bbox
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.geometry import *  # NOQA
         >>> bbox = [0, 0, 10, 10]
         >>> extent = extent_from_bbox(bbox)
-        >>> result = ('extent = %s' % (ut.repr2(extent),))
+        >>> result = ('extent = %s' % (ub.repr2(extent, nl=0),))
         >>> print(result)
         extent = [0, 10, 0, 10]
     """
@@ -407,7 +401,7 @@ def bbox_from_extent(extent):
         >>> from vtool.geometry import *  # NOQA
         >>> extent = [0, 10, 0, 10]
         >>> bbox = bbox_from_extent(extent)
-        >>> result = ('bbox = %s' % (ut.repr2(bbox),))
+        >>> result = ('bbox = %s' % (ub.repr2(bbox, nl=0),))
         >>> print(result)
         bbox = [0, 0, 10, 10]
     """
@@ -564,9 +558,9 @@ def point_inside_bbox(point, bbox):
         >>> bbox = (3, 2, 5, 7)
         >>> flag = point_inside_bbox(point, bbox)
         >>> flag = flag.astype(np.int)
-        >>> result = ('flag = %s' % (ut.repr2(flag),))
+        >>> result = ('flag = %s' % (ub.repr2(flag),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> verts = np.array(verts_from_bbox(bbox, close=True))
         >>> pt.plot(verts.T[0], verts.T[1], 'b-')
@@ -587,11 +581,7 @@ def point_inside_bbox(point, bbox):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.geometry
-        python -m vtool.geometry --allexamples
-        python -m vtool.geometry --allexamples --noface --nosrc
+        xdoctest -m vtool.geometry
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

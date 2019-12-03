@@ -5,10 +5,8 @@ import warnings
 import scipy.signal
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[hist]')
-
-
-TAU = np.pi * 2
+import ubelt as ub
+from .util_math import TAU
 
 
 def argsubmax(ydata, xdata=None):
@@ -25,7 +23,7 @@ def argsubmax(ydata, xdata=None):
         >>> xdata = [00, 10, 20,  30, 40]
         >>> result1 = argsubmax(ydata, xdata=None)
         >>> result2 = argsubmax(ydata, xdata=xdata)
-        >>> result = ut.repr2([result1, result2], precision=4, nl=1, nobr=True)
+        >>> result = ub.repr2([result1, result2], precision=4, nl=1, nobr=True)
         >>> print(result)
         (2.1667, 2.0208),
         (21.6667, 2.0208),
@@ -74,7 +72,7 @@ def argsubmaxima(hist, centers=None, maxima_thresh=None, _debug=False):
         >>> (submaxima_x, submaxima_y) = argsubmaxima(hist, centers, maxima_thresh)
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_hist_subbin_maxima(hist, centers)
         >>> pt.show_if_requested()
@@ -130,7 +128,7 @@ def argsubmax2(ydata, xdata=None):
         >>> xdata = [00, 10, 20,  30, 40]
         >>> result1 = argsubmax(ydata, xdata=None)
         >>> result2 = argsubmax(ydata, xdata=xdata)
-        >>> result = ut.repr2([result1, result2], precision=4, nl=1, nobr=True)
+        >>> result = ub.repr2([result1, result2], precision=4, nl=1, nobr=True)
         >>> print(result)
         (2.1667, 2.0208),
         (21.6667, 2.0208),
@@ -194,12 +192,11 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> op = 'min'
         >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, xdata, thresh_factor)
         >>> result = str((subextrema_x, subextrema_y))
-        >>> prkeysint(result)
-        >>> ut.quit_if_noshow()
+        >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.draw_hist_subbin_maxima(ydata, xdata)
         >>> pt.show_if_requested()
-        (array([ 3.03374251]), array([ 37.2719012]))
 
     Doctest:
         >>> from vtool.histogram import *  # NOQA
@@ -210,7 +207,7 @@ def argsubextrema2(op, ydata, xdata=None, thresh_factor=None, normalize_x=True,
         >>> (subextrema_x, subextrema_y) = argsubextrema2(op, ydata, thresh_factor=thresh_factor)
         >>> result = str((subextrema_x, subextrema_y))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.qtensure()
         >>> xdata = np.arange(len(ydata))
@@ -423,7 +420,6 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=None):
         >>> maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
         >>> result = str((maxima_x, maxima_y, argmaxima))
         >>> print(result)
-        (array([ 0.39,  2.75]), array([  8.69,  34.62]), array([1, 4]))
     """
     # FIXME: Not handling general cases
     # [0] index because argrelmaxima returns a tuple
@@ -524,9 +520,9 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>>                            key_list=['x123', 'y123', 'coeff_list'])
         >>> x123, y123, coeff_list = locals_
         >>> res = (submaxima_x, submaxima_y)
-        >>> result = ut.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
+        >>> result = ub.repr2(res, nl=1, nobr=True, precision=2, with_dtype=True)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.ensureqt()
         >>> pt.figure(fnum=pt.ensure_fnum(None))
@@ -865,7 +861,7 @@ def wrap_histogram(hist_, edges_, _debug=False):
         ...                    4.71238898,  5.49778714,  6.2831853 ])
         >>> (hist_wrap, edge_wrap) = wrap_histogram(hist_, edges_)
         >>> tup = (hist_wrap.tolist(), edge_wrap.tolist())
-        >>> result = ut.repr2(tup, nl=1, nobr=True, precision=2)
+        >>> result = ub.repr2(tup, nl=1, nobr=True, precision=2)
         >>> print(result)
         [6.73, 8.00, 0.00, 0.00, 34.32, 29.45, 0.00, 0.00, 6.73, 8.00],
         [-0.79, 0.00, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50, 6.28, 7.07],
@@ -1028,8 +1024,6 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     bgr_ori = pt.color_orimag(gori, weights, False, encoding='bgr')
     print('bgr_ori.max = %r' % bgr_ori.max())
 
-    #ut.embed()
-
     bgr_ori = (255 * bgr_ori).astype(np.uint8)
     print('bgr_ori.max = %r' % bgr_ori.max())
     #bgr_ori = np.array(bgr_ori, dtype=np.uint8)
@@ -1060,10 +1054,7 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.histogram
-        python -m vtool.histogram --allexamples
-        python -m vtool.histogram --allexamples --noface --nosrc
+        xdoctest -m vtool.histogram
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

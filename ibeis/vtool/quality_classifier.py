@@ -6,10 +6,9 @@ References:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import ubelt as ub
 import numpy as np
 import cv2
-#profile = ut.profile
-print, print_,  profile = ut.inject2(__name__, '[sharpness]', DEBUG=False)
 
 
 def compute_average_contrast(img):
@@ -21,11 +20,12 @@ def compute_average_contrast(img):
         >>> # ENABLE_DOCTEST
         >>> from vtool.quality_classifier import *  # NOQA
         >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> average_contrast, gradmag_sqrd = compute_average_contrast(img)
+        >>> # xdoctest: +REQUIRES(module:plottool)
         >>> import plottool as pt
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> pt.figure(fnum=1)
         >>> pt.plt.imshow(gradmag_sqrd)
         >>> ut.show_if_requested()
@@ -83,8 +83,9 @@ def test_average_contrast():
     y_list = avecontrast_list[sortx]
     x_list = np.arange(0, nCols) + .5
     pt.plot(x_list, y_list, 'bo-')
-    sorted_imgs = ut.take(img_list, sortx)
-    for px, img in ut.ProgressIter(enumerate(sorted_imgs, start=1)):
+    sorted_imgs = list(ub.take(img_list, sortx))
+
+    for px, img in ub.ProgIter(enumerate(sorted_imgs, start=1)):
         pt.imshow(img, fnum=fnum, pnum=(2, nCols, nCols + px))
 
 
@@ -104,10 +105,8 @@ def fourier_devtest(img):
         >>> # DISABLE_DOCTEST
         >>> from vtool.quality_classifier import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
-        >>> # execute function
         >>> magnitude_spectrum = fourier_devtest(img)
     """
     import plottool as pt
@@ -171,14 +170,12 @@ def fourier_devtest(img):
         pt.imshow(20 * get_fdomain_mag(dft_mask), pnum=next_pnum(), title='dft_mask')
         pt.imshow(img_back, pnum=next_pnum(), title='img_back')
         pt.show_if_requested()
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.quality_classifier
-        python -m vtool.quality_classifier --allexamples
-        python -m vtool.quality_classifier --allexamples --noface --nosrc
+        xdoctest -m vtool.quality_classifier
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

@@ -13,11 +13,11 @@ import six
 from PIL.ExifTags import TAGS, GPSTAGS
 import PIL.ExifTags  # NOQA
 from PIL import Image
+import ubelt as ub
 import utool as ut
 import warnings
 from utool import util_time
 from vtool import image_shared
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 # Inverse of PIL.ExifTags.TAGS
@@ -132,8 +132,6 @@ def check_exif_keys(pil_img):
             invalid_keys.append(key)
     print('[io] valid_keys = ' + '\n'.join(valid_keys))
     print('-----------')
-    #import draw_func2 as df2
-    #exec(df2.present())
 
 
 def read_all_exif_tags(pil_img):
@@ -252,7 +250,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         python -m vtool.exif --test-get_lat_lon
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.exif import *  # NOQA
         >>> import numpy as np
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
@@ -261,12 +259,6 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         >>> latlon = get_lat_lon(exif_dict)
         >>> result = np.array_str(np.array(latlon), precision=3)
         >>> print(result)
-        [ 41.89   12.486]
-
-    Ignore:
-        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
-        exif_dict[GPSINFO_CODE]
-        PIL.ExifTags.TAGS[GPSINFO_CODE]
     """
     if GPSINFO_CODE in exif_dict:
         gps_info = exif_dict[GPSINFO_CODE]
@@ -320,11 +312,6 @@ def get_orientation(exif_dict, default=0, on_error='fail'):
         >>>     result.append(orient)
         >>> print(result)
         [1, 6, 8]
-
-    Ignore:
-        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
-        exif_dict[ORIENTATION_CODE]
-        PIL.ExifTags.TAGS[ORIENTATION_CODE]
     """
     if ORIENTATION_CODE in exif_dict:
         orient = exif_dict[ORIENTATION_CODE]
@@ -365,11 +352,6 @@ def get_orientation_str(exif_dict):
         >>>     result.append(orient_str)
         >>> print(result)
         ['Normal', '90 Clockwise', '90 Counter-Clockwise']
-
-    Ignore:
-        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
-        exif_dict[ORIENTATION_CODE]
-        PIL.ExifTags.TAGS[ORIENTATION_CODE]
     """
     orient = get_orientation(exif_dict)
     orient_str = ORIENTATION_DICT[orient]
@@ -379,19 +361,6 @@ def get_orientation_str(exif_dict):
 def get_unixtime(exif_dict, default=-1):
     """
     TODO: Exif.Image.TimeZoneOffset
-
-    Ignore:
-        gpaths = ut.list_images('/home/joncrall/work/humpbacks_fb/_ibsdb/images', full=1)
-        gpaths = ut.list_images('/home/joncrall/work/humpbacks/_ibsdb/images', full=1)
-        exifs = list(ut.generate2(vt.read_exif, zip(gpaths)))
-        times = ut.dict_take_column(exifs, 'DateTimeOriginal', '!!!!!!!!!!!!!!!!!!!')
-        idxs = ut.where([y[-2] == ' ' for y in times])
-
-        gpath = gpaths[idxs[0]]
-        exif_dict = vt.get_exif_dict(Image.open(gpath))
-        ut.take(times, idxs)
-        ut.take(exifs, idxs)
-        ut.take(gpaths, idxs)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -428,15 +397,12 @@ def parse_exif_unixtime(image_fpath):
         python -m vtool.exif --test-parse_exif_unixtime
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.exif import *  # NOQA
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> unixtime = parse_exif_unixtime(image_fpath)
         >>> result = str(unixtime)
         >>> print(result)
-        1325351249
-
-        1325369249.0
     """
     pil_img = image_shared.open_pil_image(image_fpath)
     exif_dict = get_exif_dict(pil_img)
@@ -454,11 +420,7 @@ def parse_exif_unixtime_gps(image_fpath):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.exif
-        python -m vtool.exif --allexamples
-        python -m vtool.exif --allexamples --noface --nosrc
+        xdoctest -m vtool.exif
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

@@ -3,8 +3,7 @@ from six.moves import range, zip  # NOQA
 import numpy as np
 import cv2
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[seg]', DEBUG=False)
+import ubelt as ub
 
 DEBUG_SEGM = False
 
@@ -95,7 +94,7 @@ def demo_grabcut(bgr_img):
         >>> result = demo_grabcut(bgr_img)
         >>> # verify results
         >>> print(result)
-        >>> #ut.quit_if_noshow()
+        >>> ## xdoctest: +REQUIRES(--show)
         >>> pt.show_if_requested()
     """
     import plottool as pt
@@ -113,7 +112,7 @@ def demo_grabcut(bgr_img):
     init_mask[:, -1] = label_colors[label_values.index(cv2.GC_BGD)]
     #import vtool as vt
     cached_mask_fpath = 'tmp_mask.png'
-    if ut.get_argflag('--nocache'):
+    if ub.argflag('--nocache'):
         ut.delete(cached_mask_fpath)
     print('unique init mask colors')
     print(np.unique(init_mask))
@@ -280,11 +279,7 @@ def segment(img_fpath, bbox_, new_size=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.segmentation
-        python -m vtool.segmentation --allexamples
-        python -m vtool.segmentation --allexamples --noface --nosrc
+        xdoctest -m vtool.segmentation
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

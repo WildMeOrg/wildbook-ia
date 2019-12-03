@@ -179,7 +179,7 @@ def match_inspect_graph():
         >>> ut.qtensure()
         >>> self = match_inspect_graph()
         >>> self.show()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """

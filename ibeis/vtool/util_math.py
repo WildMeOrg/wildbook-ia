@@ -7,8 +7,8 @@ FIXME: monotization functions need more hueristics
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 from six.moves import range, zip
-(print, rrr, profile) = ut.inject2(__name__, '[math]', DEBUG=False)
 
 
 TAU = np.pi * 2  # References: tauday.com
@@ -106,7 +106,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> domain = np.arange(100)
         >>> offset = ut.get_argval('--offset', type_=float, default=2.3)
         >>> arr_ = np.sin(np.pi * (domain / 100) - offset) + (rng.rand(len(domain)) - .5) * .1 + 1.2
-        >>> #arr_ = vt.tests.dummy.testdata_nonmonotonic()
+        >>> #arr_ = vt.demodata.testdata_nonmonotonic()
         >>> #domain = np.arange(len(arr_))
         >>> arr = ensure_monotone_strictly_increasing(arr_, left_endpoint, right_endpoint)
         >>> result = str(arr)
@@ -115,7 +115,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> print('arr = %r' % (np.diff(arr),))
         >>> assert non_decreasing(arr), 'ensure nondecreasing failed2'
         >>> assert strictly_increasing(arr), 'ensure strict monotonic failed2'
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_increasing(arr_)
@@ -124,13 +124,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(3, 1, 3), title='after monotonization (strictly decreasing)', equal_aspect=False)
         >>> ut.show_if_requested()
     """
-    #with ut.EmbedOnException():
     arr = ensure_monotone_increasing(arr_, newmode=newmode)
-    #assert strictly_increasing(arr), 'ensure strict monotonic failed'
-    #import utool as ut
-    #print(ut.get_stats(arr))
-    #if arr.max() == 1.0:
-    #    ut.embed()
     if zerohack:
         left_endpoint = 0.0
     if onehack:
@@ -164,7 +158,7 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         >>> domain = np.arange(100)
         >>> rng = np.random.RandomState(0)
         >>> arr_ = np.sin(np.pi * (domain / 75) + 1.3) + (rng.rand(len(domain)) - .5) * .05 + 1.0
-        >>> #arr_ = vt.tests.dummy.testdata_nonmonotonic()
+        >>> #arr_ = vt.demodata.testdata_nonmonotonic()
         >>> #domain = np.arange(len(arr_))
         >>> left_endpoint = 2.5
         >>> right_endpoint = 0.25
@@ -172,7 +166,7 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         >>> result = str(arr)
         >>> print(result)
         >>> assert strictly_decreasing(arr), 'ensure strict monotonic failed'
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
         >>> arr2 = ensure_monotone_decreasing(arr_)
@@ -409,12 +403,12 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True, newmode=True
         >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
-        >>> offset = ut.get_argval('--offset', type_=float, default=2.3)
+        >>> offset = float(ub.argval('--offset', default=2.3))
         >>> arr_ = np.sin(np.pi * (domain / 100) - offset) + (rng.rand(len(domain)) - .5) * .1
         >>> arr = ensure_monotone_increasing(arr_, fromleft=False, fromright=True)
         >>> result = str(arr)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (increasing)', equal_aspect=False)
@@ -462,7 +456,7 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
         >>> arr = ensure_monotone_decreasing(arr_, fromright=True, fromleft=True)
         >>> result = str(arr)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (decreasing)', equal_aspect=False)
@@ -530,7 +524,7 @@ def iceil(num, dtype=np.int32):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> num = [1.5, 2.9]
-        >>> result = ut.repr2(vt.iceil(num), with_dtype=True)
+        >>> result = ub.repr2(vt.iceil(num), with_dtype=True)
         >>> print(result)
         np.array([2, 3], dtype=np.int32)
     """
@@ -567,7 +561,7 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
         >>> # verify results
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
@@ -601,7 +595,7 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
         >>> # verify results
         >>> result = np.array_repr(gaussval, precision=2)
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot(x, gaussval)
         >>> ut.show_if_requested()
@@ -627,7 +621,7 @@ def logistic_01(x):
         >>> from vtool.util_math import *  # NOQA
         >>> x = np.linspace(0, 1)
         >>> y = logistic_01(x)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.plot(x, y)
         >>> ut.show_if_requested()
@@ -692,13 +686,7 @@ def gauss_parzen_est(dist, L=1, sigma=.38):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, vtool.util_math; utool.doctest_funcs(vtool.util_math, allexamples=True)"
-        python -c "import utool, vtool.util_math; utool.doctest_funcs(vtool.util_math)"
-        python -m vtool.util_math
-        python -m vtool.util_math --allexamples
-        python -m vtool.util_math --allexamples --noface --nosrc
+        xdoctest -m vtool.util_math
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

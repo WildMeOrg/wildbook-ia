@@ -247,7 +247,7 @@
 #         >>>                        **pyhesaff.get_hesaff_default_params())
 #         >>> cfgdict = ut.parse_dict_from_argv(default_cfgdict)
 #         >>> match = vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict)
-#         >>> ut.quit_if_noshow()
+#         >>> # xdoctest: +REQUIRES(--show)
 #         >>> match.show(mode=1)
 #         >>> ut.show_if_requested()
 #     """

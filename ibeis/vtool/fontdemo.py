@@ -175,7 +175,7 @@ def font_demo():
         >>> result = font_demo()
         >>> import utool as ut
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
@@ -207,9 +207,9 @@ def get_text_test_img(text):
         >>> import utool as ut
         >>> text = 'A012'
         >>> text_img = get_text_test_img(text)
-        >>> result = ('text_img = %s' % (ut.repr2(text_img),))
+        >>> result = ('text_img = %s' % (ub.repr2(text_img),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(text_img)
         >>> ut.show_if_requested()
@@ -222,15 +222,10 @@ def get_text_test_img(text):
     text_img = img.reshape(buf.height, buf.width) * 255
     return text_img
 
-
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        pip install freetype-py
-        python -m vtool.fontdemo
-        python -m vtool.fontdemo --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    CommandLine:
+        xdoctest -m vtool.fontdemo
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

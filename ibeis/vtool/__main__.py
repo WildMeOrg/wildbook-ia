@@ -1,22 +1,22 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 
 
-def vtool_main():
-    ignore_prefix = []
-    ignore_suffix = []
-    import utool as ut
-    try:
-        import vtool as vt  # NOQA
-    except ImportError:
-        raise
-    # allows for --tf
-    ut.main_function_tester('vtool', ignore_prefix, ignore_suffix)
+def main():  # nocover
+    import vtool
+    print('Looks like the imports worked')
+    print('vtool = {!r}'.format(vtool))
+    print('vtool.__file__ = {!r}'.format(vtool.__file__))
+    print('vtool.__version__ = {!r}'.format(vtool.__version__))
+
+    from vtool._pyflann_backend import pyflann
+    print('pyflann = {!r}'.format(pyflann))
+    from vtool import sver_c_wrapper
+    print('sver_c_wrapper.lib_fname = {!r}'.format(sver_c_wrapper.lib_fname))
+    print('sver_c_wrapper.lib_fname_cand = {!r}'.format(sver_c_wrapper.lib_fname_cand))
+
 
 if __name__ == '__main__':
     """
-    python -m vtool --tf stack_images
+    CommandLine:
+       python -m vtool
     """
-    print('Checking vtool main')
-    vtool_main()
+    main()

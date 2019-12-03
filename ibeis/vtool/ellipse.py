@@ -10,13 +10,13 @@ import scipy.signal as spsignal
 import numpy as np
 from vtool import keypoint as ktool
 from vtool import image as gtool
+import ubelt as ub
 import utool as ut
 try:
     import cv2
 except ImportError as ex:
     print('ERROR: import cv2 is failing!')
     cv2 = ut.DynStruct()
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def adaptive_scale(img_fpath, kpts, nScales=4, low=-.5, high=.5, nSamples=16):

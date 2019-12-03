@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
+import ubelt as ub
 import functools  # NOQA
 from six import next
 from six.moves import zip, range
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
@@ -38,17 +38,17 @@ def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
         >>> # test2
         >>> tup = (np.array([[1, 2, 3]]), np.array([[]]))
         >>> s = vt.safe_cat(tup, axis=0)
-        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 3))
         >>> # test3
         >>> tup = (np.array([[1, 2, 3]]), np.array([[3, 4, 5]]))
         >>> s = vt.safe_cat(tup, axis=1)
-        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 6))
         >>> # test3
         >>> tup = (np.array(1), np.array(2), np.array(3))
         >>> s = vt.safe_cat(tup, axis=1)
-        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> print(ub.hzcat(['s = ', ub.repr2(s)])
         >>> ut.assert_eq(s.shape, (1, 6))
     """
     if tup is None or len(tup) == 0:
@@ -114,19 +114,8 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> reverse = True
         >>> rng = np.random.RandomState(0)
         >>> idxs_list = argsort_groups(scores_list, reverse, rng)
-        >>> #import vtool as vt
-        >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
-        >>> #result = 'sorted_scores = %s' % (ut.repr2(sorted_scores),)
         >>> result = 'idxs_list = %s' % (ut.repr4(idxs_list, with_dtype=False),)
         >>> print(result)
-        idxs_list = [
-            np.array([1, 0]),
-            np.array([1, 0]),
-            np.array([0, 1, 2]),
-            np.array([4, 7, 0, 5, 6, 1, 2, 3]),
-            np.array([1, 0]),
-            np.array([5, 3, 1, 2, 0, 4]),
-        ]
 
     """
     scores_list_ = [np.array(scores, copy=True).astype(np.float) for scores in scores_list]
@@ -251,7 +240,7 @@ def get_undirected_edge_ids(directed_edges):
         >>> from vtool.other import *  # NOQA
         >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
         >>> edgeid_list = get_undirected_edge_ids(directed_edges)
-        >>> result = ('edgeid_list = %s' % (ut.repr2(edgeid_list),))
+        >>> result = ('edgeid_list = %s' % (ub.repr2(edgeid_list),))
         >>> print(result)
         edgeid_list = [0 0 1 2 3 1 1]
     """
@@ -430,7 +419,7 @@ def nonunique_row_indexes(arr):
         >>> from vtool.other import *  # NOQA
         >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> nonunique_rowx = unique_row_indexes(arr)
-        >>> result = ('nonunique_rowx = %s' % (ut.repr2(nonunique_rowx),))
+        >>> result = ('nonunique_rowx = %s' % (ub.repr2(nonunique_rowx),))
         >>> print(result)
         nonunique_rowx = np.array([4, 6, 7, 8], dtype=np.int64)
     """
@@ -451,7 +440,7 @@ def compute_unique_data_ids(data):
         >>> from vtool.other import *  # NOQA
         >>> data = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
         >>> dataid_list = compute_unique_data_ids(data)
-        >>> result = 'dataid_list = ' + ut.repr2(dataid_list, with_dtype=True)
+        >>> result = 'dataid_list = ' + ub.repr2(dataid_list, with_dtype=True)
         >>> print(result)
         dataid_list = np.array([0, 1, 2, 3, 0, 4, 4, 2, 1], dtype=np.int32)
     """
@@ -523,7 +512,7 @@ def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
     else:
-        return ut.take(list_, index_list)
+        return list(ub.take(list_, index_list))
 
 
 def compress2(arr, flag_list, axis=None, out=None):
@@ -544,7 +533,7 @@ def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
         return list_.compress(flag_list, axis=0)
     else:
-        return ut.compress(list_, flag_list)
+        return list(ub.compress(list_, flag_list))
 
 
 def index_partition(item_list, part1_items):
@@ -649,7 +638,6 @@ def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):
         >>> new_fs = weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs)
         >>> result = new_fs
         >>> print(result)
-        [ 0.08585277  0.17123899  0.21611761  0.23367671  0.11675666]
 
     """
     weight_fs    = fsv.T.take(weight_filtxs, axis=0).T.prod(axis=1)
@@ -758,9 +746,8 @@ def atleast_nd(arr, n, tofront=False):
         >>> n = 2
         >>> arr = np.array([1, 1, 1])
         >>> arr_ = atleast_nd(arr, n)
-        >>> result = ut.repr2(arr_.tolist())
+        >>> result = ub.repr2(arr_.tolist())
         >>> print(result)
-        [[1], [1], [1]]
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -772,19 +759,11 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr1_ = atleast_nd(arr1, n)
         >>> arr2_ = atleast_nd(arr2, n)
         >>> arr3_ = atleast_nd(arr3, n)
-        >>> result1 = ut.repr2(arr1_.tolist())
-        >>> result2 = ut.repr2(arr2_.tolist())
-        >>> result3 = ut.repr2(arr3_.tolist())
+        >>> result1 = ub.repr2(arr1_.tolist())
+        >>> result2 = ub.repr2(arr2_.tolist())
+        >>> result3 = ub.repr2(arr3_.tolist())
         >>> result = '\n'.join([result1, result2, result3])
         >>> print(result)
-        [[[[1]]], [[[1]]], [[[1]]]]
-        [[[[0]]]]
-        [[[[[1]]]]]
-
-    Ignore:
-        # Hmm, mine is actually faster
-        %timeit atleast_nd(arr, 3)
-        %timeit np.atleast_3d(arr)
     """
     arr_ = np.asanyarray(arr)
     ndims = len(arr_.shape)
@@ -1066,7 +1045,6 @@ def intersect2d_indices(A, B):
         >>> # verify results
         >>> result = str((ax_list, bx_list))
         >>> print(result)
-        (array([0, 3, 4]), array([1, 2, 6]))
     """
     flag_list1, flag_list2 = intersect2d_flags(A, B)
     ax_list = np.flatnonzero(flag_list1)
@@ -1099,7 +1077,6 @@ def intersect2d_flags(A, B):
         >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
         >>> result = str((flag_list1, flag_list2))
         >>> print(result)
-        (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
     """
     A_, B_, C_  = intersect2d_structured_numpy(A, B)
     flag_list1 = flag_intersection(A_, C_)
@@ -1121,9 +1098,8 @@ def flag_intersection(arr1, arr2):
         >>> arr2 = np.array([2, 6, 4])
         >>> flags = flag_intersection(arr1, arr2)
         >>> assert len(flags) == len(arr1)
-        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> result = ('flags = %s' % (ub.repr2(flags),))
         >>> print(result)
-        flags = np.array([False, False,  True, False,  True, False])
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1134,9 +1110,8 @@ def flag_intersection(arr1, arr2):
         >>> arr1, arr2 = vt.structure_rows(arr1, arr2)
         >>> flags = flag_intersection(arr1, arr2)
         >>> assert len(flags) == len(arr1)
-        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> result = ('flags = %s' % (ub.repr2(flags),))
         >>> print(result)
-        flags = np.array([False, False,  True, False,  True, False])
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -1380,7 +1355,7 @@ def get_uncovered_mask(covered_array, covering_array):
         ... ], dtype=np.int32)
         >>> covering_array = [2, 4, 5]
         >>> flags = get_uncovered_mask(covered_array, covering_array)
-        >>> result = ut.repr2(flags, with_dtype=True)
+        >>> result = ub.repr2(flags, with_dtype=True)
         >>> print(result)
         np.array([[ True, False,  True],
                   [False, False,  True],
@@ -1485,28 +1460,6 @@ def and_lists(*args):
     return np.logical_and.reduce(args)
 
 
-def axiswise_operation2(arr1, arr2, op, axis=0):
-    """
-    Apply opperation to each row
-
-    >>> arr1 = (255 * np.random.rand(5, 128)).astype(np.uint8)
-    >>> arr2 = vecs.mean(axis=0)
-    >>> op = np.subtract
-    >>> axis = 0
-
-    performs an operation between an
-    (N x A x B ... x Z) array with an
-    (N x 1) array
-
-    %timeit op(arr1, arr2[np.newaxis, :])
-    %timeit op(arr1, arr2[None, :])
-    %timeit op(arr1, arr2.reshape(1, arr2.shape[0]))
-    arr2.shape = (1, arr2.shape[0])
-    %timeit op(arr1, arr2)
-    """
-    raise NotImplementedError()
-
-
 def rowwise_operation(arr1, arr2, op):
     """
     DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING AND
@@ -1580,18 +1533,14 @@ def norm01(array, dim=None):
     Returns:
         ndarray:
 
-    CommandLine:
-        python -m vtool.other --test-norm01
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
         >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
         >>> dim = None
         >>> array_norm = norm01(array, dim)
-        >>> result = np.array_str(array_norm, precision=3)
+        >>> result = ub.repr2(array_norm, precision=3)
         >>> print(result)
-        [ 0.512  0.     0.049  0.024  0.22   1.   ]
     """
     if not ut.is_float(array):
         array = array.astype(np.float32)
@@ -1646,12 +1595,8 @@ def weighted_geometic_mean(data, weights):
         >>> data = [img1, img2]
         >>> weights = np.array([.5, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
-        >>> result = ut.hz_str('gmean_ = ', ut.repr2(gmean_, precision=2, with_dtype=True))
+        >>> result = ub.hzcat(['gmean_ = ', ub.repr2(gmean_, precision=2, with_dtype=True)])
         >>> print(result)
-        gmean_ = np.array([[ 0.11,  0.77,  0.68,  0.69],
-                           [ 0.64,  0.72,  0.45,  0.83],
-                           [ 0.34,  0.5 ,  0.34,  0.71],
-                           [ 0.54,  0.62,  0.14,  0.26]], dtype=np.float64)
 
     Ignore:
         res1 = ((img1 ** .5 * img2 ** .5)) ** 1
@@ -1678,7 +1623,7 @@ def grab_webcam_image():
         >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> img = grab_webcam_image()
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> pt.imshow(img)
         >>> vt.imwrite('webcap.jpg', img)
@@ -1903,7 +1848,7 @@ def safe_max(arr, fill=np.nan, finite=False, nans=True):
         >>> results3 = [safe_max(arr, fill, finite=True, nans=False) for arr in arrs]
         >>> results4 = [safe_max(arr, fill, finite=False, nans=False) for arr in arrs]
         >>> results = [results1, results2, results3, results4]
-        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> result = ('results = %s' % (ub.repr2(results, nl=1),))
         >>> print(result)
         results = [
             [nan, nan, nan, inf, inf, 1],
@@ -1928,7 +1873,7 @@ def safe_min(arr, fill=np.nan, finite=False, nans=True):
         >>> results3 = [safe_min(arr, fill, finite=True, nans=False) for arr in arrs]
         >>> results4 = [safe_min(arr, fill, finite=False, nans=False) for arr in arrs]
         >>> results = [results1, results2, results3, results4]
-        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> result = ('results = %s' % (ub.repr2(results, nl=1),))
         >>> print(result)
         results = [
             [nan, nan, nan, inf, 1.0, 0],
@@ -2041,7 +1986,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     multi_subvals_list = [[] for _ in range(len(multi_groups))]
     _iter = zip(group_key_list, group_subvals_list, group_cumsum_list, group_invx_list)
     for key, subvals, group_cumsum, invx in _iter:
-        nonunique_subvals = ut.take(subvals, invx)
+        nonunique_subvals = list(ub.take(subvals, invx))
         unflat_subvals_list = ut.unflatten2(nonunique_subvals, group_cumsum)
         for subvals_list, unflat_subvals in zip(multi_subvals_list, unflat_subvals_list):
             subvals_list.append(unflat_subvals)
@@ -2171,9 +2116,9 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
     print('func1_name = %r' % (func1_name,))
     print('func2_name = %r' % (func2_name,))
     # test both versions
-    with ut.Timer('time func1=' + func1_name) as t1:
+    with ub.Timer('time func1=' + func1_name) as t1:
         output1 = func1(*args)
-    with ut.Timer('time func2=' + func2_name) as t2:
+    with ub.Timer('time func2=' + func2_name) as t2:
         output2 = func2(*args)
     if t2.ellapsed == 0:
         t2.ellapsed = 1e9
@@ -2193,47 +2138,12 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         depth_profile2 = ut.depth_profile(output2)
         type_profile1 = ut.list_type_profile(output1)
         type_profile2 = ut.list_type_profile(output2)
-        print('depth_profile1 = ' + ut.repr2(depth_profile1))
-        print('depth_profile2 = ' + ut.repr2(depth_profile2))
+        print('depth_profile1 = ' + ub.repr2(depth_profile1))
+        print('depth_profile2 = ' + ub.repr2(depth_profile2))
         print('type_profile1 = ' + (type_profile1))
         print('type_profile2 = ' + (type_profile2))
     print('L ___ END COMPARE IMPLEMENTATIONS ___')
     return output1
-
-    #out_inliers_py, out_errors_py, out_mats_py = py_output
-    #out_inliers_c, out_errors_c, out_mats_c = c_output
-    #if show_output:
-    #    print('python output:')
-    #    print(out_inliers_py)
-    #    print(out_errors_py)
-    #    print(out_mats_py)
-    #    print('c output:')
-    #    print(out_inliers_c)
-    #    print(out_errors_c)
-    #    print(out_mats_c)
-    #msg =  'c and python disagree'
-    #try:
-    #    assert ut.lists_eq(out_inliers_c, out_inliers_py), msg
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
-    #try:
-    #    passed, error = ut.almost_eq(out_errors_c, out_errors_py, 1E-7, ret_error=True)
-    #    assert np.all(passed), msg
-    #except AssertionError as ex:
-    #    passed_flat = passed.ravel()
-    #    error_flat = error.ravel()
-    #    failed_indexes = np.where(~passed_flat)[0]
-    #    failing_errors = error_flat.take(failed_indexes)
-    #    print(failing_errors)
-    #    ut.printex(ex)
-    #    raise
-    #try:
-    #    assert np.all(ut.almost_eq(out_mats_c, out_mats_py, 1E-9)), msg
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
-    #return out_inliers_c
 
 
 def greedy_setcover(universe, subsets, weights=None):
@@ -2305,10 +2215,10 @@ def find_elbow_point(curve):
         >>> from vtool.other import *  # NOQA
         >>> curve = np.exp(np.linspace(0, 10, 100))
         >>> tradeoff_idx = find_elbow_point(curve)
-        >>> result = ('tradeoff_idx = %s' % (ut.repr2(tradeoff_idx),))
+        >>> result = ('tradeoff_idx = %s' % (ub.repr2(tradeoff_idx),))
         >>> print(result)
         >>> assert tradeoff_idx == 76
-        >>> ut.quit_if_noshow()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> import plottool as pt
         >>> import vtool as vt
         >>> point = [tradeoff_idx, curve[tradeoff_idx]]
@@ -2450,7 +2360,7 @@ def inbounds(num, low, high, eq=False):
         scalar or ndarray: is_inbounds
 
     CommandLine:
-        python -m utool.util_alg --test-inbounds
+        xdoctest -m ~/code/vtool/vtool/other.py inbounds
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2463,11 +2373,8 @@ def inbounds(num, low, high, eq=False):
         >>> high = .4
         >>> eq = False
         >>> is_inbounds = inbounds(num, low, high, eq)
-        >>> result = ut.repr2(is_inbounds, with_dtype=True)
+        >>> result = ub.repr2(is_inbounds, with_dtype=True)
         >>> print(result)
-        np.array([[False, False,  True],
-                  [ True,  True, False],
-                  [ True,  True,  True]], dtype=bool)
 
     """
     import operator as op
@@ -2536,7 +2443,7 @@ def make_video2(images, outdir):
     from os.path import join
     n = str(int(np.ceil(np.log10(len(images)))))
     fmt = 'frame_%0' + n + 'd.png'
-    ut.ensuredir(outdir)
+    ub.ensuredir(outdir)
     for count, img in enumerate(images):
         fname = join(outdir, fmt % (count))
         vt.imwrite(fname, img)
@@ -2602,11 +2509,7 @@ def take_col_per_row(arr, colx_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.other
-        python -m vtool.other --allexamples
-        python -m vtool.other --allexamples --noface --nosrc
+        xdoctest -m vtool.other
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
