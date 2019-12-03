@@ -623,7 +623,7 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
     Returns:
         M_list: a list of 3x3 tranformation matricies for each keypoint
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
