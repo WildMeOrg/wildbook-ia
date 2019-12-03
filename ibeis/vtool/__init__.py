@@ -4,7 +4,7 @@ VTool - Computer vision tools
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
-__version__ = '1.8.0'
+__version__ = '2.0.0'
 
 # import utool as ut
 # ut.noinject(__name__, '[vtool]')
