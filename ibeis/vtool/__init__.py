@@ -10,6 +10,7 @@ __version__ = '2.0.0'
 # ut.noinject(__name__, '[vtool]')
 
 """
+mkinit vtool
 python -c "import vtool" --dump-vtool-init
 python -c "import vtool" --update-vtool-init
 """
@@ -130,10 +131,10 @@ from vtool.image import (CV2_BORDER_TYPES, CV2_INTERPOLATION_TYPES,
                          pad_image, pad_image_ondisk, padded_resize,
                          perlin_noise, rectify_to_float01,
                          rectify_to_square, rectify_to_uint8, resize,
-                         resize_image_by_scale, resize_imagelist_generator,
-                         resize_imagelist_to_sqrtarea, resize_mask,
+                         resize_image_by_scale,
+                         resize_mask,
                          resize_thumb, resize_to_maxdims,
-                         resize_to_maxdims_ondisk, resize_worker,
+                         resize_to_maxdims_ondisk,
                          resized_clamped_thumb_dims,
                          resized_dims_and_ratio, rotate_image,
                          rotate_image_ondisk, shear, stack_image_list,
