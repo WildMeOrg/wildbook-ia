@@ -633,7 +633,7 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         >>> M_list = get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
         >>> # verify results
         >>> result = kpts_repr(M_list)
-        >>> print(result)
+        >>> print(result)  # xdoc: +IGNORE_WANT
         array([[[ 1.49,  0.  , 15.53],
                 [-1.46,  6.9 ,  8.68],
                 [ 0.  ,  0.  ,  1.  ]],
@@ -869,7 +869,7 @@ def transform_kpts(kpts, M):
     Returns:
         ndarray: kpts_
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
@@ -878,7 +878,7 @@ def transform_kpts(kpts, M):
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
         >>> result = ub.repr2(kpts, precision=3, with_dtype=True).replace('-0. ', ' 0. ')
-        >>> print(result)  # xdoctest: +IGNORE_WANT
+        >>> print(result)  # xdoc: +IGNORE_WANT
         np.array([[200.   , 450.   ,  52.166,   1.056, 241.499,   0.   ],
                   [290.   , 540.   ,  23.551, -27.559, 241.499,   0.   ],
                   [300.   , 600.   , 122.166, 242.357, 105.287,   0.   ],
