@@ -356,7 +356,7 @@ def get_invV_mats2x2(kpts):
         >>> invV_mats2x2 = get_invV_mats2x2(kpts)
         >>> # verify results
         >>> result = kpts_repr(invV_mats2x2)
-        >>> print(result)
+        >>> print(result)  # xdoctest: +IGNORE_WANT
         array([[[1., 0.],
                 [2., 3.]],
                [[1., 0.],
@@ -462,7 +462,7 @@ def get_invV_mats3x3(kpts):
         >>> invV_arrs3x3 = get_invV_mats3x3(kpts)
         >>> # verify results
         >>> result = kpts_repr(invV_arrs3x3)
-        >>> print(result)
+        >>> print(result)  # xdoctest: +IGNORE_WANT
         array([[[1., 0., 0.],
                 [2., 3., 0.],
                 [0., 0., 1.]],
@@ -878,7 +878,7 @@ def transform_kpts(kpts, M):
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
         >>> result = ub.repr2(kpts, precision=3, with_dtype=True).replace('-0. ', ' 0. ')
-        >>> print(result)
+        >>> print(result)  # xdoctest: +IGNORE_WANT
         np.array([[200.   , 450.   ,  52.166,   1.056, 241.499,   0.   ],
                   [290.   , 540.   ,  23.551, -27.559, 241.499,   0.   ],
                   [300.   , 600.   , 122.166, 242.357, 105.287,   0.   ],

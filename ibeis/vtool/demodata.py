@@ -417,7 +417,7 @@ def get_dummy_kpts(num=1, dtype=DEFAULT_DTYPE):
         >>> kpts = get_dummy_kpts(num, dtype)
         >>> import ubelt as ub
         >>> result = ub.repr2(kpts, precision=2, with_dtype=False)
-        >>> print(result)
+        >>> print(result)  # xdoctest: +IGNORE_WANT
         np.array([[20.  , 25.  ,  5.22, -5.11, 24.15,  0.  ],
                   [29.  , 25.  ,  2.36, -5.11, 24.15,  0.  ],
                   [30.  , 30.  , 12.22, 12.02, 10.53,  0.  ],
