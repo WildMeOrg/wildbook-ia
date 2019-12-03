@@ -77,8 +77,6 @@ from vtool import spatial_verification as svtool
 from vtool import clustering2 as clustertool
 from vtool import trig
 from vtool import util_math as mtool
-from vtool.tests.dummy import get_dummy_kpts
-from vtool.tests import dummy
 
 import sys
 

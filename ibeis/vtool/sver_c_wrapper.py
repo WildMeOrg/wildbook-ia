@@ -12,12 +12,10 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import ctypes as C
 import numpy as np
-import vtool.keypoint as ktool
 import utool as ut
 import ubelt as ub
 from os.path import dirname, join, realpath
 from vtool.other import asserteq, compare_implementations  # NOQA
-from .util_math import TAU
 
 c_double_p = C.POINTER(C.c_double)
 
@@ -47,7 +45,23 @@ def mats_t(ndim):
 
 dpath = dirname(__file__)
 
-lib_fname = join(dpath, 'libsver' + ut.util_cplat.get_lib_ext())
+
+lib_fname_cand = list(ub.find_path(
+    name='libsver' + ut.util_cplat.get_lib_ext(),
+    path=[
+        join(dpath, 'lib'),
+        dpath
+    ],
+    exact=False)
+)
+
+if len(lib_fname_cand):
+    if len(lib_fname_cand) > 1:
+        print('multiple libsver candidates: {}'.format(lib_fname_cand))
+    lib_fname = lib_fname_cand[0]
+else:
+    raise Exception('cannot find path')
+    lib_fname = None
 
 
 if __name__ != '__main__':
@@ -66,7 +80,7 @@ if __name__ != '__main__':
 
     try:
         c_sver = C.cdll[lib_fname]
-    except Exception as ex:
+    except Exception:
         print('Failed to open lib_fname = %r' % (lib_fname,))
         ut.checkpath(lib_fname, verbose=True)
         raise
