@@ -6,8 +6,8 @@ VTool - Computer vision tools
 from __future__ import absolute_import, division, print_function, unicode_literals
 __version__ = '1.8.0'
 
-import utool as ut
-ut.noinject(__name__, '[vtool]')
+# import utool as ut
+# ut.noinject(__name__, '[vtool]')
 
 """
 python -c "import vtool" --dump-vtool-init
