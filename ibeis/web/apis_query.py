@@ -394,7 +394,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfluke', 'deepsense', 'finfindr'):
+    if proot.lower() in ('bc_dtw', 'oc_wdtw', 'curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke', 'deepsense', 'finfindr'):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -524,6 +524,10 @@ def review_query_chips_test(**kwargs):
     elif 'use_curvrank_dorsal' in request.args:
         query_config_dict = {
             'pipeline_root' : 'CurvRankDorsal'
+        }
+    elif 'use_curvrank_finfindr_hybrid_dorsal' in request.args:
+        query_config_dict = {
+            'pipeline_root' : 'CurvRankFinfindrHybridDorsal'
         }
     elif 'use_curvrank_fluke' in request.args:
         query_config_dict = {
@@ -767,11 +771,11 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
         quuid = ibs.get_annot_uuids(cm.qaid)
         cm_key = str(quuid)
 
-        args = (quuid, )
-        qannot_cache_filepath = join(cache_path, 'qannot_uuid_%s' % args)
-        ut.ensuredir(qannot_cache_filepath)
-
         if cache_images:
+            args = (quuid, )
+            qannot_cache_filepath = join(cache_path, 'qannot_uuid_%s' % args)
+            ut.ensuredir(qannot_cache_filepath)
+
             assert cache_path is not None
 
             score_list = cm.score_list
