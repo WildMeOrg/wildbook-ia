@@ -53,11 +53,11 @@ class ConfusionMetrics(ub.NiceRepr):
         print(ut.indent('\n'.join(lines)))
 
     CommandLine:
-        python -m vtool.confusion ConfusionMetrics --show
+        python -m vtool_ibeis.confusion ConfusionMetrics --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> c = self = confusions = ConfusionMetrics().fit(scores, labels)
         >>> assert np.all(c.n_pos == c.n_tp + c.n_fn)
@@ -476,7 +476,7 @@ class ConfusionMetrics(ub.NiceRepr):
             thresh = self.thresholds[idx]
         else:
             # interpolated version
-            import vtool as vt
+            import vtool_ibeis as vt
             thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
         return thresh
 
@@ -492,12 +492,12 @@ class ConfusionMetrics(ub.NiceRepr):
             float: thresh
 
         CommandLine:
-            python -m vtool.confusion get_thresh_at_metric
-            python -m vtool.confusion --exec-interact_roc_factory --show
+            python -m vtool_ibeis.confusion get_thresh_at_metric
+            python -m vtool_ibeis.confusion --exec-interact_roc_factory --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from vtool.confusion import *  # NOQA
+            >>> from vtool_ibeis.confusion import *  # NOQA
             >>> scores, labels = testdata_scores_labels()
             >>> self = ConfusionMetrics().fit(scores, labels)
             >>> metric = 'tpr'
@@ -577,7 +577,7 @@ class ConfusionMetrics(ub.NiceRepr):
                 better.
 
         Doctest:
-            >>> from vtool.confusion import *
+            >>> from vtool_ibeis.confusion import *
             >>> pat1 = [0, 0, 0, 0]
             >>> pat2 = [0, 0, 1, 1]
             >>> pat3 = [0, 1, 1, 1]
@@ -598,7 +598,7 @@ class ConfusionMetrics(ub.NiceRepr):
             >>> assert idx1 == 3
             >>> assert idx2 == 0
         """
-        import vtool as vt
+        import vtool_ibeis as vt
         at_arr = getattr(self, at_metric)
 
         if at_value in {'max', 'maximize'}:
@@ -632,7 +632,7 @@ class ConfusionMetrics(ub.NiceRepr):
             return idx
 
     def get_metric_at_index(self, metric, subindex):
-        import vtool as vt
+        import vtool_ibeis as vt
         arr = getattr(self, metric)
         if isinstance(subindex, int):
             value = arr[subindex]
@@ -650,7 +650,7 @@ class ConfusionMetrics(ub.NiceRepr):
             float : value - metric value
 
         CommandLine:
-            python -m vtool.confusion --exec-get_metric_at_threshold
+            python -m vtool_ibeis.confusion --exec-get_metric_at_threshold
 
         Ignore:
             >>> self = cfms
@@ -659,7 +659,7 @@ class ConfusionMetrics(ub.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from vtool.confusion import *  # NOQA
+            >>> from vtool_ibeis.confusion import *  # NOQA
             >>> scores, labels = testdata_scores_labels()
             >>> self = ConfusionMetrics().fit(scores, labels)
             >>> metric = 'tpr'
@@ -777,10 +777,10 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
         float: interp_vals
 
     CommandLine:
-        python -m vtool.confusion --exec-interpolate_replbounds
+        python -m vtool_ibeis.confusion --exec-interpolate_replbounds
 
     Example:
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> self = ConfusionMetrics().fit(scores, labels)
         >>> xdata = self.tpr
@@ -796,7 +796,7 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> xdata = np.array([0.7,  0.8,  0.8,  0.9,  0.9, 0.9])
         >>> ydata = np.array([34,    26,   23,   22,   19,  17])
         >>> pt = np.array([.85, 1.0, -1.0])
@@ -841,7 +841,7 @@ def interpolate_replbounds(xdata, ydata, pt, maximize=True):
     if True:
         # Grouping should be ok because xdata should be sorted
         # therefore groupxs are consecutive
-        import vtool as vt
+        import vtool_ibeis as vt
         unique_vals, groupxs = vt.group_indices(xdata)
         grouped_ydata = vt.apply_grouping(ydata, groupxs)
         if maximize:
@@ -883,11 +883,11 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         http://en.wikipedia.org/wiki/Information_retrieval#Mean_Average_precision
 
     CommandLine:
-        python -m vtool.confusion --test-interpolate_precision_recall --show
+        python -m vtool_ibeis.confusion --test-interpolate_precision_recall --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> nSamples = 11
         >>> confusions = ConfusionMetrics().fit(scores, labels)
@@ -933,11 +933,11 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
         confusions (Confusions):
 
     CommandLine:
-        python -m vtool.confusion --exec-interact_roc_factory --show
+        python -m vtool_ibeis.confusion --exec-interact_roc_factory --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> print('scores = %r' % (scores,))
         >>> confusions = ConfusionMetrics().fit(scores, labels)
@@ -1020,11 +1020,11 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
         show_operating_point (bool): (default = False)
 
     CommandLine:
-        python -m vtool.confusion --exec-draw_roc_curve --show --lightbg
+        python -m vtool_ibeis.confusion --exec-draw_roc_curve --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
+        >>> from vtool_ibeis.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> fpr = confusions.fpr
@@ -1162,7 +1162,7 @@ def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.confusion
+        xdoctest -m vtool_ibeis.confusion
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

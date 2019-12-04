@@ -13,7 +13,7 @@
 #     Returns:
 #         tuple: (matches, metadata)
 #     """
-#     # import vtool as vt
+#     # import vtool_ibeis as vt
 #     #assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
 
 #     annot1 = metadata['annot1']
@@ -54,7 +54,7 @@
 #         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
 
 #     Ignore:
-#         >>> from vtool.matching import *  # NOQA
+#         >>> from vtool_ibeis.matching import *  # NOQA
 #         >>> ut.qtensure()
 #         >>> import plottool as pt
 #         >>> pt.imshow(rchip1)
@@ -62,8 +62,8 @@
 #         >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
 #         >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
 #     """
-#     import vtool as vt
-#     #import vtool as vt
+#     import vtool_ibeis as vt
+#     #import vtool_ibeis as vt
 #     sv_on = cfgdict.get('sv_on', True)
 #     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
 #     ratio_thresh   = cfgdict.get('ratio_thresh', .625)
@@ -170,7 +170,7 @@
 
 # def match_spatial_verification(kpts1, kpts2, fm, fs, fm_norm, sver_xy_thresh,
 #                                dlen_sqrd2, refine_method):
-#     from vtool import spatial_verification as sver
+#     from vtool_ibeis import spatial_verification as sver
 #     # SPATIAL VERIFICATION FILTER
 #     match_weights = np.ones(len(fm))
 #     svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm,
@@ -199,12 +199,12 @@
 #         self.metadata = metadata
 
 #     def show(self, *args, **kwargs):
-#         from vtool import inspect_matches
+#         from vtool_ibeis import inspect_matches
 #         inspect_matches.show_matching_dict(
 #             self.matches, self.metadata, *args, **kwargs)
 
 #     def make_interaction(self, *args, **kwargs):
-#         from vtool import inspect_matches
+#         from vtool_ibeis import inspect_matches
 #         return inspect_matches.make_match_interaction(
 #             self.matches, self.metadata, *args, **kwargs)
 
@@ -228,17 +228,17 @@
 #         cfgdict (dict): (default = {})
 
 #     CommandLine:
-#         python -m vtool --tf vsone_image_fpath_matching --show
-#         python -m vtool --tf vsone_image_fpath_matching --show --helpx
-#         python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128
-#         python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128 --ratio-thresh=.9
-#         python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
-#         python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
+#         python -m vtool_ibeis --tf vsone_image_fpath_matching --show
+#         python -m vtool_ibeis --tf vsone_image_fpath_matching --show --helpx
+#         python -m vtool_ibeis --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128
+#         python -m vtool_ibeis --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128 --ratio-thresh=.9
+#         python -m vtool_ibeis --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
+#         python -m vtool_ibeis --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
 
 #     Example:
 #         >>> # ENABLE_DOCTEST
-#         >>> from vtool.matching import *  # NOQA
-#         >>> import vtool as vt
+#         >>> from vtool_ibeis.matching import *  # NOQA
+#         >>> import vtool_ibeis as vt
 #         >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
 #         >>> rchip_fpath2 = ut.grab_test_imgpath('easy2.png')
 #         >>> import pyhesaff

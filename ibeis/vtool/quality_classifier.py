@@ -14,12 +14,12 @@ import cv2
 def compute_average_contrast(img):
     """
     CommandLine:
-        python -m vtool.quality_classifier --exec-compute_average_contrast --show
+        python -m vtool_ibeis.quality_classifier --exec-compute_average_contrast --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.quality_classifier import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.quality_classifier import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> average_contrast, gradmag_sqrd = compute_average_contrast(img)
@@ -68,7 +68,7 @@ def contrast_measures(img):
 
 
 def test_average_contrast():
-    import vtool as vt
+    import vtool_ibeis as vt
     ut.get_valid_test_imgkeys()
     img_fpath_list = [ut.grab_test_imgpath(key) for key in ut.get_valid_test_imgkeys()]
     img_list = [vt.imread(img, grayscale=True) for img in img_fpath_list]
@@ -95,7 +95,7 @@ def fourier_devtest(img):
         img (ndarray[uint8_t, ndim=2]):  image data
 
     CommandLine:
-        python -m vtool.quality_classifier --test-fourier_devtest --show
+        python -m vtool_ibeis.quality_classifier --test-fourier_devtest --show
 
     References:
         http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_transforms/py_fourier_transform/py_fourier_transform.html
@@ -103,8 +103,8 @@ def fourier_devtest(img):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.quality_classifier import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.quality_classifier import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath, grayscale=True)
         >>> magnitude_spectrum = fourier_devtest(img)
@@ -175,7 +175,7 @@ def fourier_devtest(img):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.quality_classifier
+        xdoctest -m vtool_ibeis.quality_classifier
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

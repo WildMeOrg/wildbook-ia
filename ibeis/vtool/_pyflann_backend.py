@@ -1,7 +1,7 @@
 """
 abstract which pyflann implementation is used
 
-from vtool._pyflann_backend import pyflann
+from vtool_ibeis._pyflann_backend import pyflann
 """
 import ubelt as ub
 
