@@ -670,6 +670,12 @@ class SQLDatabaseController(object):
         db.cur.execute('VACUUM;')
         db.connection.commit()
 
+    def integrity(db):
+        print('[sql] vaccum')
+        db.connection.commit()
+        db.cur.execute('PRAGMA integrity_check;')
+        db.connection.commit()
+
     def squeeze(db):
         print('[sql] squeeze')
         db.shrink_memory()
