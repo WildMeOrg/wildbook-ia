@@ -482,7 +482,7 @@ def start_identify_annots_query(ibs,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.lower() in ('curvrankdorsal', 'curvrankfluke'):
+    if proot.lower() in ('curvrankdorsal', 'curvrankfinfindrhybriddorsal', 'curvrankfluke'):
         curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', '')
         if len(curvrank_daily_tag) > 144:
             message = 'The curvrank_daily_tag cannot have more than 128 characters, please shorten and try again.'
