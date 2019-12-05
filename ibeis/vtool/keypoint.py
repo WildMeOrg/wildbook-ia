@@ -32,7 +32,7 @@ Sympy:
     >>> # DISABLE_DOCTEST
     >>> # xdoctest: +SKIP
     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-    >>> from vtool.patch import *  # NOQA
+    >>> from vtool_ibeis.patch import *  # NOQA
     >>> import sympy
     >>> from sympy.abc import theta
     >>> ori = theta
@@ -134,10 +134,10 @@ from six.moves import zip, range, reduce
 import numpy as np
 import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
-from vtool import linalg as linalgtool
-from vtool import chip as chiptool
-from vtool import distance
-from vtool import trig
+from vtool_ibeis import linalg as linalgtool
+from vtool_ibeis import chip as chiptool
+from vtool_ibeis import distance
+from vtool_ibeis import trig
 import ubelt as ub
 import utool as ut
 from .util_math import TAU
@@ -172,11 +172,11 @@ def get_grid_kpts(wh=(300, 300), wh_stride=None, scale=20, wh_num=None,
         ndarray[float32_t, ndim=2]: kpts -  keypoints
 
     CommandLine:
-        python -m vtool.keypoint get_grid_kpts --show
+        python -m vtool_ibeis.keypoint get_grid_kpts --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> wh = (300, 300)
         >>> wh_stride = None
         >>> scale = 20
@@ -266,8 +266,8 @@ def get_sqrd_scales(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> _scales_sqrd = get_sqrd_scales(kpts)
         >>> result = (ub.repr2(_scales_sqrd, precision=2))
@@ -275,7 +275,7 @@ def get_sqrd_scales(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> _scales_sqrd = get_sqrd_scales([])
         >>> result = (ub.repr2(_scales_sqrd, precision=2))
         >>> print(result)
@@ -307,7 +307,7 @@ def convert_kptsZ_to_kpts(kpts_Z):
     """
     Convert keypoints in Z format to invV format
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     x, y, e11, e12, e22 = kpts_Z.T
     #import numpy as np
     Z_mats2x2 = np.array([[e11, e12],
@@ -323,7 +323,7 @@ def convert_kptsZ_to_kpts(kpts_Z):
 
 
 # def test_kpts_type(kpts):
-#     import vtool as vt
+#     import vtool_ibeis as vt
 #     invV_mats2x2 = vt.get_invV_mats2x2(kpts)
 #     # Test if it is in Z format
 #     e11, e12, e22 = kpts.T[[2, 3, 4]]
@@ -344,11 +344,11 @@ def get_invV_mats2x2(kpts):
         ndarray[float32_t, ndim=3]: invV_mats
 
     CommandLine:
-        python -m vtool.keypoint --test-get_invV_mats2x2
+        python -m vtool_ibeis.keypoint --test-get_invV_mats2x2
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts = np.array([
         ...    [0, 0, 1, 2, 3, 0],
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
@@ -383,11 +383,11 @@ def get_invVR_mats2x2(kpts):
         ndarray: invVR_mats
 
     CommandLine:
-        python -m vtool.keypoint --test-get_invVR_mats2x2
+        python -m vtool_ibeis.keypoint --test-get_invVR_mats2x2
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts = np.array([
         ...    [0, 0, 1, 2, 3, 0],
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
@@ -398,7 +398,7 @@ def get_invVR_mats2x2(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts = np.empty((0, 6))
         >>> invVR_mats2x2 = get_invVR_mats2x2(kpts)
         >>> assert invVR_mats2x2.shape == (0, 2, 2)
@@ -454,7 +454,7 @@ def get_invV_mats3x3(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts = np.array([
         ...    [0, 0, 1, 2, 3, 0],
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
@@ -518,7 +518,7 @@ def get_invVR_mats3x3(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts = np.array([
         ...    [10, 20, 1, 2, 3, 0],
         ...    [30, 40, 1, 2, 3, TAU / 4.0],
@@ -564,7 +564,7 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts = np.array([[10, 20, 1, 2, 3, 0]])
         >>> with_trans=True
         >>> with_ori=True
@@ -625,8 +625,8 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
 
     Ignore:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> patch_shape = (7, 7)
         >>> scale_factor = 1.0
@@ -651,8 +651,8 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
                 [ 0.  ,  0.  ,  1.  ]]])
 
     Ignore:
-        >>> from vtool.coverage_kpts import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.coverage_kpts import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> invVR_aff2Ds = [np.array(((a, 0, x),
         >>>                           (c, d, y),
@@ -760,12 +760,12 @@ def get_kpts_eccentricity(kpts):
         scale_factor (float): (default = 1.0)
 
     CommandLine:
-        python -m vtool.keypoint --exec-get_kpts_eccentricity --show
+        python -m vtool_ibeis.keypoint --exec-get_kpts_eccentricity --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts_ = vt.demodata.get_dummy_kpts()
         >>> kpts = np.append(kpts_, [[10, 10, 5, 0, 5, 0]], axis=0)
         >>> ecc = get_kpts_eccentricity(kpts)
@@ -809,8 +809,8 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts().astype(np.float64)
         >>> offset = (0.0, 0.0)
         >>> scale_factor = (1.5, 0.5)
@@ -871,8 +871,8 @@ def transform_kpts(kpts, M):
 
     Ignore:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> M = np.array([[10, 0, 0], [10, 10, 0], [0, 0, 1]], dtype=np.float64)
         >>> kpts = transform_kpts(kpts, M)
@@ -894,7 +894,7 @@ def transform_kpts(kpts, M):
         # THERE IS NO WAY TO GET KEYPOINTS TRANFORMED BY A HOMOGENOUS
         # TRANSFORM MATRIX INTO THE 6 COMPONENT KEYPOINT VECTOR.
         import warnings
-        warnings.warn('WARNING: [vtool.keypoint] transform produced non-affine keypoint')
+        warnings.warn('WARNING: [vtool_ibeis.keypoint] transform produced non-affine keypoint')
         # We can approximate it very very roughly
         MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
         raise
@@ -914,8 +914,8 @@ def transform_kpts_xys(H, kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> H = np.array([[ 3.,  3.,  5.],
         ...               [ 2.,  3.,  6.],
@@ -953,7 +953,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(7, 3, 3).astype(np.float64)
         >>> det_arr = get_invVR_mats_sqrd_scale(invVR_mats)
@@ -970,7 +970,7 @@ def get_invVR_mats_shape(invVR_mats):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
         >>> output = get_invVR_mats_shape(invVR_mats)
@@ -1024,7 +1024,7 @@ def get_invVR_mats_xys(invVR_mats):
         >>> ut.util_dev.timeit_compare(stmt_list, setup, int(1E5))
 
     Example:
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
         >>> invVR_mats.T[2, 0:2]
@@ -1042,7 +1042,7 @@ def get_invVR_mats_oris(invVR_mats):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> np.random.seed(0)
         >>> invVR_mats = np.random.rand(7, 2, 2).astype(np.float64)
         >>> output = get_invVR_mats_oris(invVR_mats)
@@ -1051,8 +1051,8 @@ def get_invVR_mats_oris(invVR_mats):
     Sympy:
         >>> # DISABLE_DOCTEST
         >>> # BEST PROOF SO FAR OF EXTRACTION FROM ARBITRARY COMPOMENTS
-        >>> from vtool.keypoint import *
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *
+        >>> import vtool_ibeis as vt
         >>> import sympy
         >>> symkw = dict(real=True, finite=True)
         >>> #x, y, v21  = sympy.symbols('x, y, v21', **symkw)
@@ -1313,7 +1313,7 @@ def get_invVR_mats_oris(invVR_mats):
 
     Sympy:
         >>> import sympy
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> # First orient a unit circle
         >>> symkw = dict(real=True, finite=True)
         >>> theta       = sympy.symbols('theta', **symkw)
@@ -1362,7 +1362,7 @@ def get_invVR_mats_oris(invVR_mats):
     Sympy:
         >>> # Show orientation property
         >>> import sympy
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> # First orient a unit circle
         >>> theta = sympy.symbols('theta', real=True)
         >>> x, y, iv21 = sympy.symbols('x y g', real=True, finite=True)
@@ -1471,12 +1471,12 @@ def rectify_invV_mats_are_up(invVR_mats):
     rotates affine shape matrixes into downward (lower triangular) position
 
     CommandLine:
-        python -m vtool.keypoint --exec-rectify_invV_mats_are_up --show
+        python -m vtool_ibeis.keypoint --exec-rectify_invV_mats_are_up --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> rng = np.random.RandomState(0)
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> # Shrink x and y scales a bit
@@ -1512,7 +1512,7 @@ def rectify_invV_mats_are_up(invVR_mats):
         ut.show_if_requested()
 
     Example1:
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> invVR_mats = rng.rand(1000, 2, 2).astype(np.float64)
         >>> output = rectify_invV_mats_are_up(invVR_mats)
@@ -1619,7 +1619,7 @@ def get_Z_mats(V_mats):
 
 
 def decompose_Z_to_invV_2x2(Z_2x2):
-    import vtool as vt
+    import vtool_ibeis as vt
     import scipy.linalg
     RV_2x2 = scipy.linalg.sqrtm(Z_2x2)
     invVR_2x2 = np.linalg.inv(RV_2x2)
@@ -1702,7 +1702,7 @@ def invert_invV_mats(invV_mats):
         ndarray[float32_t, ndim=3]: V_mats
 
     # Ignore:
-    #     >>> from vtool.keypoint import *
+    #     >>> from vtool_ibeis.keypoint import *
     #     >>> invV_mats  = np.array([[[ 18.00372824,   1.86434161,  32.        ],
     #     >>>                         [ -0.61356842,  16.02202028,  27.2       ],
     #     >>>                         [  0.        ,   0.        ,   1.        ]],
@@ -1730,8 +1730,8 @@ def invert_invV_mats(invV_mats):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> invV_mats = vt.get_invVR_mats3x3(kpts)
         >>> V_mats = invert_invV_mats(invV_mats)
@@ -1804,8 +1804,8 @@ def get_kpts_wh(kpts, outer=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()[0:5]
         >>> kpts[:, 0] += np.arange(len(kpts)) * 30
         >>> kpts[:, 1] += np.arange(len(kpts)) * 30
@@ -1900,8 +1900,8 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> extent = get_kpts_image_extent(kpts, outer=False)
         >>> result = ub.repr2(np.array(extent), precision=2)
@@ -1946,8 +1946,8 @@ def get_kpts_dlen_sqrd(kpts, outer=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()
         >>> dlen_sqrd = get_kpts_dlen_sqrd(kpts)
         >>> result = '%.2f' % dlen_sqrd
@@ -2046,7 +2046,7 @@ def kpts_docrepr(arr, name='arr', indent=True, *args, **kwargs):
     r"""
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> np.random.seed(0)
         >>> arr = np.random.rand(3, 3)
         >>> args = tuple()
@@ -2082,7 +2082,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts1 = np.array([[ 129.83,  46.97,  15.84,   4.66,   7.24,   0.  ],
         ...                   [ 137.88,  49.87,  20.09,   5.76,   6.2 ,   0.  ],
         ...                   [ 115.95,  53.13,  12.96,   1.73,   8.77,   0.  ],
@@ -2111,7 +2111,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
+        >>> from vtool_ibeis.keypoint import *  # NOQA
         >>> kpts1 = np.array([[ 6.,  4.,  15.84,   4.66,   7.24,   0.  ],
         ...                   [ 9.,  3.,  20.09,   5.76,   6.2 ,   0.  ],
         ...                   [ 1.,  1.,  12.96,   1.73,   8.77,   0.  ],])
@@ -2167,8 +2167,8 @@ def get_uneven_point_sample(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> ellipse_pts1 = get_uneven_point_sample(kpts)
         >>> # xdoctest: +REQUIRES(--show)
@@ -2196,8 +2196,8 @@ def get_even_point_sample(kpts):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.keypoint import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> kpts = vt.demodata.get_dummy_kpts()[0:2]
         >>> ell_border_pts_list = get_even_point_sample(kpts)
         >>> # xdoctest: +REQUIRES(--show)
@@ -2207,7 +2207,7 @@ def get_even_point_sample(kpts):
         >>> pt.show_if_requested()
     """
     # BROKEN
-    from vtool import ellipse
+    from vtool_ibeis import ellipse
     nSamples = 32
     ell_border_pts_list = ellipse.sample_uniform(kpts, nSamples)
     return ell_border_pts_list
@@ -2216,7 +2216,7 @@ def get_even_point_sample(kpts):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.keypoint
+        xdoctest -m vtool_ibeis.keypoint
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

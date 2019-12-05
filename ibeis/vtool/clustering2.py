@@ -11,7 +11,7 @@ import ubelt as ub
 import numpy as np
 import utool as ut
 
-from vtool._pyflann_backend import FLANN_CLS
+from vtool_ibeis._pyflann_backend import FLANN_CLS
 
 
 def tune_flann2(data):
@@ -86,11 +86,11 @@ def groupedzip(id_list, datas_list):
         iterator: _iter
 
     CommandLine:
-        python -m vtool.clustering2 --test-groupedzip
+        python -m vtool_ibeis.clustering2 --test-groupedzip
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> # build test data
         >>> id_list = np.array([1, 2, 1, 2, 1, 2, 3])
         >>> datas_list = [
@@ -128,13 +128,13 @@ def group_indices(idx2_groupid, assume_sorted=False):
         tuple (ndarray, list of ndarrays): (keys, groupxs)
 
     CommandLine:
-        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices
-        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices:0
-        xdoctest -m ~/code/vtool/vtool/clustering2.py group_indices:1
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/clustering2.py group_indices
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/clustering2.py group_indices:0
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/clustering2.py group_indices:1
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
         >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
@@ -148,7 +148,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([[  24], [ 129], [ 659], [ 659], [ 24],
         ...       [659], [ 659], [ 822], [ 659], [ 659], [24]])
         >>> # 2d arrays must be flattened before coming into this function so
@@ -166,7 +166,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([True, True, False, True, False, False, True])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
         >>> result = ut.repr2((keys, groupxs), nl=2, nobr=True, with_dtype=True)
@@ -179,7 +179,7 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Time:
         >>> # xdoctest: +SKIP
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
         >>> print(setup)
         >>> stmt_list = ut.codeblock(
@@ -274,14 +274,14 @@ def find_duplicate_items(item_arr):
         ?: duplicate_items
 
     CommandLine:
-        python -m vtool.clustering2 --test-find_duplicate_items
+        python -m vtool_ibeis.clustering2 --test-find_duplicate_items
 
     References:
         http://stackoverflow.com/questions/21888406/getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> np.random.seed(0)
         >>> item_arr = np.random.randint(100, size=30)
         >>> duplicate_items = find_duplicate_items(item_arr)
@@ -320,11 +320,11 @@ def apply_grouping(items, groupxs, axis=0):
         invert_apply_grouping
 
     CommandLine:
-        python -m vtool.clustering2 --test-apply_grouping
+        python -m vtool_ibeis.clustering2 --test-apply_grouping
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> items        = np.array([1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
@@ -354,11 +354,11 @@ def invert_apply_grouping(grouped_items, groupxs):
         list: items
 
     CommandLine:
-        python -m vtool.clustering2 --test-invert_apply_grouping
+        python -m vtool_ibeis.clustering2 --test-invert_apply_grouping
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> grouped_items = [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
         >>> groupxs = [np.array([1, 3, 5]), np.array([0, 2, 4, 6]), np.array([ 7,  8,  9, 10])]
         >>> items = invert_apply_grouping(grouped_items, groupxs)
@@ -368,7 +368,7 @@ def invert_apply_grouping(grouped_items, groupxs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> grouped_items, groupxs = [], []
         >>> result = invert_apply_grouping(grouped_items, groupxs)
         >>> print(result)
@@ -540,7 +540,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
         ndim (int): (default = 2)
 
     CommandLine:
-        python -m vtool.clustering2 --test-uniform_sampe_hypersphere
+        python -m vtool_ibeis.clustering2 --test-uniform_sampe_hypersphere
 
     Ignore:
         #pip install polytope
@@ -548,7 +548,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> num = 100
         >>> ndim = 3
         >>> pts = uniform_sampe_hypersphere(num, ndim)
@@ -569,7 +569,7 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
         >>> pt.dark_background()
         >>> ut.show_if_requested()
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     pts = np.random.rand(num, ndim)
     if not only_quadrent_1:
         pts =  pts * 2 - 1
@@ -584,12 +584,12 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         requires CPLEX
 
     CommandLine:
-        python -m vtool.clustering2 unsupervised_multicut_labeling --show
+        python -m vtool_ibeis.clustering2 unsupervised_multicut_labeling --show
 
     Ignore:
 
         >>> # synthetic data
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> size = 100
         >>> thresh = 50
         >>> np.random.randint(0, 1)
@@ -630,7 +630,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
 
     Example:
         >>> # SCRIPT
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool_ibeis.clustering2 import *  # NOQA
         >>> import networkx as nx
         >>> import plottool as pt
         >>> rng = np.random.RandomState(443284320)
@@ -680,7 +680,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> nx.set_node_attributes(graph, name='shape', values='ellipse')
         >>> encounter_lbls_str = [str(x) for x in name_labels]
         >>> node_name_lbls = dict(zip(aids, encounter_lbls_str))
-        >>> import vtool as vt
+        >>> import vtool_ibeis as vt
         >>> #
         >>> mcut_labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh=vt.eps)
         >>> diff = ut.find_group_differences(
@@ -831,8 +831,8 @@ def example_binary():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/vtool/vtool/clustering2.py all
-        python -m vtool.clustering2 all
+        python ~/code/vtool_ibeis/vtool_ibeis/clustering2.py all
+        python -m vtool_ibeis.clustering2 all
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

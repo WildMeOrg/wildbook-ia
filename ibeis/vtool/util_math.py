@@ -27,11 +27,11 @@ def interpolate_nans(arr):
         ndarray: new_arr
 
     CommandLine:
-        python -m vtool.util_math --exec-interpolate_nans
+        python -m vtool_ibeis.util_math --exec-interpolate_nans
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr = np.array([np.nan, np.nan, np.nan, np.nan])
         >>> new_arr = interpolate_nans(arr)
         >>> result = ('new_arr = %s' % (str(new_arr),))
@@ -40,14 +40,14 @@ def interpolate_nans(arr):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr = np.array([np.nan, 1, np.nan, np.nan, np.nan, np.nan, 10, np.nan, 5])
         >>> new_arr = interpolate_nans(arr)
         >>> result = ('new_arr = %s' % (str(new_arr),))
         >>> print(result)
         new_arr = [  1.    1.    2.8   4.6   6.4   8.2  10.    7.5   5. ]
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     new_arr = arr.copy()
     nan_idxs = np.where(np.isnan(arr))[0]
     consecutive_groups = vt.group_consecutive(nan_idxs)
@@ -85,12 +85,12 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         http://scikit-learn.org/stable/auto_examples/plot_isotonic_regression.html
 
     CommandLine:
-        python -m vtool.util_math --test-ensure_monotone_strictly_increasing --show
-        python -m vtool.util_math --test-ensure_monotone_strictly_increasing --show --offset=0
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_increasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_increasing --show --offset=0
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.util_math import *   # NOQA
+        >>> from vtool_ibeis.util_math import *   # NOQA
         >>> import numpy as np
         >>> arr_ = np.array([0.4, 0.4, 0.4, 0.5, 0.6, 0.6, 0.6, 0.7, 0.9, 0.9, 0.91, 0.92, 1.0, 1.0])
         >>> arr = ensure_monotone_strictly_increasing(arr_)
@@ -98,8 +98,8 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
 
     Example2:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_math import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> left_endpoint = None
         >>> rng = np.random.RandomState(0)
         >>> right_endpoint = None
@@ -149,12 +149,12 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         ndarray: arr
 
     CommandLine:
-        python -m vtool.util_math --test-ensure_monotone_strictly_decreasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_decreasing --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_math import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> domain = np.arange(100)
         >>> rng = np.random.RandomState(0)
         >>> arr_ = np.sin(np.pi * (domain / 75) + 1.3) + (rng.rand(len(domain)) - .5) * .05 + 1.0
@@ -195,12 +195,12 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
         ndarray: arr -
 
     CommandLine:
-        python -m vtool.util_math --exec-breakup_equal_streak
-        python -m vtool.util_math --test-ensure_monotone_strictly_increasing --show --offset=0
+        python -m vtool_ibeis.util_math --exec-breakup_equal_streak
+        python -m vtool_ibeis.util_math --test-ensure_monotone_strictly_increasing --show --offset=0
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr_in = np.array([0, 0, 1, 1, 2, 2], dtype=np.float32)
         >>> arr_in = np.array([ 1.20488135,  1.2529297 ,  1.27306686,  1.29859663,
         >>>    1.31769871, 1.37102388,  1.38114004,  1.45732054,  1.48119571,  1.48119571,
@@ -286,7 +286,7 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
         for group, isend in zip(index_groups, isend_list)
     ]
 
-    #import vtool as vt
+    #import vtool_ibeis as vt
     #vt.apply_grouping(arr, index_groups)
     #np.vstack((min_vals, max_vals)).T
 
@@ -335,11 +335,11 @@ def group_consecutive(arr):
         ndarray: arr -
 
     CommandLine:
-        python -m vtool.util_math --exec-group_consecutive
+        python -m vtool_ibeis.util_math --exec-group_consecutive
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> arr = np.array([1, 2, 3, 5, 6, 7, 8, 9, 10, 15, 99, 100, 101])
         >>> groups = group_consecutive(arr)
         >>> result = ('groups = %s' % (str(groups),))
@@ -395,11 +395,11 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True, newmode=True
         ndarray: arr
 
     CommandLine:
-        python -m vtool.util_math --test-ensure_monotone_increasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_increasing --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
@@ -444,11 +444,11 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
         ndarray: arr
 
     CommandLine:
-        python -m vtool.util_math --test-ensure_monotone_decreasing --show
+        python -m vtool_ibeis.util_math --test-ensure_monotone_decreasing --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
@@ -508,11 +508,11 @@ def iceil(num, dtype=np.int32):
         ndarray or scalar:
 
     CommandLine:
-        python -m vtool.util_math --test-iceil
+        python -m vtool_ibeis.util_math --test-iceil
 
     Setup:
-        >>> from vtool.util_math import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.util_math import *  # NOQA
+        >>> import vtool_ibeis as vt
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -544,14 +544,14 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
         sigma (float):
 
     CommandLine:
-        python -m vtool.util_math --test-gauss_func1d
+        python -m vtool_ibeis.util_math --test-gauss_func1d
 
     CommandLine:
-        python -m vtool.util_math --test-gauss_func1d --show
+        python -m vtool_ibeis.util_math --test-gauss_func1d --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> # build test data
         >>> x = np.array([-2, -1, -.5, 0, .5, 1, 2])
         >>> mu = 0.0
@@ -582,11 +582,11 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
 
 
     CommandLine:
-        python -m vtool.util_math --test-gauss_func1d_unnormalized --show
+        python -m vtool_ibeis.util_math --test-gauss_func1d_unnormalized --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> # build test data
         >>> x = np.array([-2, -1, -.5, 0, .5, 1, 2])
         >>> sigma = 1.0
@@ -614,11 +614,11 @@ def logistic_01(x):
         x (?):
 
     CommandLine:
-        python -m vtool.util_math --exec-logistic_01 --show
+        python -m vtool_ibeis.util_math --exec-logistic_01 --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.util_math import *  # NOQA
+        >>> from vtool_ibeis.util_math import *  # NOQA
         >>> x = np.linspace(0, 1)
         >>> y = logistic_01(x)
         >>> # xdoctest: +REQUIRES(--show)
@@ -686,7 +686,7 @@ def gauss_parzen_est(dist, L=1, sigma=.38):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.util_math
+        xdoctest -m vtool_ibeis.util_math
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

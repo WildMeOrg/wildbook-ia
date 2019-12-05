@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from vtool import keypoint as ktool
-import vtool.util_math as mtool
+from vtool_ibeis import keypoint as ktool
+import vtool_ibeis.util_math as mtool
 import numpy as np
 import utool as ut
-from vtool.util_math import TAU
+from vtool_ibeis.util_math import TAU
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
@@ -19,12 +19,12 @@ def testdata_dummy_sift(nPts=10, asint=True, rng=None):
         nPts (int): (default = 10)
 
     CommandLine:
-        python -m vtool.demodata --test-testdata_dummy_sift
+        python -m vtool_ibeis.demodata --test-testdata_dummy_sift
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.demodata import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.demodata import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> nPts = 10
         >>> rng = np.random.RandomState(0)
         >>> sift = testdata_dummy_sift(nPts, rng)
@@ -34,7 +34,7 @@ def testdata_dummy_sift(nPts=10, asint=True, rng=None):
     """
     if rng is None:
         rng = np.random
-    import vtool as vt
+    import vtool_ibeis as vt
     sift_ = rng.rand(nPts, 128)
     # normalize
     sift_ = vt.normalize_rows(rng.rand(nPts, 128))
@@ -386,7 +386,7 @@ def get_dummy_dpts(num, dtype=np.uint8):
     """
     Random SIFTish keypoints
     """
-    from vtool import linalg as ltool
+    from vtool_ibeis import linalg as ltool
     dpts_ = np.random.rand(num, 128).astype(np.float64)
     dpts_norm = ltool.normalize_rows(dpts_)
     # do SIFT normalization
@@ -407,11 +407,11 @@ def get_dummy_kpts(num=1, dtype=DEFAULT_DTYPE):
         ndarray[float32_t, ndim=2][ndims=2]: kpts -  keypoints
 
     CommandLine:
-        xdoctest -m ~/code/vtool/vtool/demodata.py get_dummy_kpts
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/demodata.py get_dummy_kpts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.demodata import *  # NOQA
+        >>> from vtool_ibeis.demodata import *  # NOQA
         >>> num = 1
         >>> dtype = ktool.KPTS_DTYPE
         >>> kpts = get_dummy_kpts(num, dtype)
@@ -450,7 +450,7 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.demodata import *  # NOQA
+        >>> from vtool_ibeis.demodata import *  # NOQA
         >>> kpts = get_dummy_kpts()
         >>> sf = 1.0
         >>> img =  get_kpts_dummy_img(kpts, sf, 10)
@@ -596,11 +596,11 @@ def testdata_dummy_matches():
         tuple: matches_testtup
 
     CommandLine:
-        python -m vtool.demodata --test-testdata_dummy_matches --show
+        python -m vtool_ibeis.demodata --test-testdata_dummy_matches --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.demodata import *  # NOQA
+        >>> from vtool_ibeis.demodata import *  # NOQA
         >>> matches_testtup = testdata_dummy_matches()
         >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = matches_testtup
         >>> # xdoctest: +REQUIRES(--show)
@@ -625,7 +625,7 @@ def get_testdata_kpts(fname=None, with_vecs=False):
         vecs = (np.random.rand(len(kpts), 128) * 255).astype(np.uint8)
         # TODO: demodata vecs
     else:
-        from vtool import features as feattool
+        from vtool_ibeis import features as feattool
         import utool as ut
         fpath = ut.grab_test_imgpath(fname)
         kpts, vecs = feattool.extract_features(fpath)
@@ -648,18 +648,18 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         tuple : matches_testtup
 
     CommandLine:
-        python -m vtool.demodata --test-testdata_ratio_matches
-        python -m vtool.demodata --test-testdata_ratio_matches --help
-        python -m vtool.demodata --test-testdata_ratio_matches --show
-        python -m vtool.demodata --test-testdata_ratio_matches --show --ratio_thresh=1.1 --rotation_invariance
+        python -m vtool_ibeis.demodata --test-testdata_ratio_matches
+        python -m vtool_ibeis.demodata --test-testdata_ratio_matches --help
+        python -m vtool_ibeis.demodata --test-testdata_ratio_matches --show
+        python -m vtool_ibeis.demodata --test-testdata_ratio_matches --show --ratio_thresh=1.1 --rotation_invariance
 
-        python -m vtool.demodata --test-testdata_ratio_matches --show --ratio_thresh=.625 --rotation_invariance --fname1 easy1.png --fname2 easy3.png
-        python -m vtool.demodata --test-testdata_ratio_matches --show --ratio_thresh=.625 --no-rotation_invariance --fname1 easy1.png --fname2 easy3.png
+        python -m vtool_ibeis.demodata --test-testdata_ratio_matches --show --ratio_thresh=.625 --rotation_invariance --fname1 easy1.png --fname2 easy3.png
+        python -m vtool_ibeis.demodata --test-testdata_ratio_matches --show --ratio_thresh=.625 --no-rotation_invariance --fname1 easy1.png --fname2 easy3.png
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.demodata import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.demodata import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
         >>> default_dict = vt.get_extract_features_default_params()
@@ -678,12 +678,12 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         >>> pt.show_if_requested()
     """
     import utool as ut
-    import vtool as vt
-    from vtool import image as gtool
-    from vtool import features as feattool
+    import vtool_ibeis as vt
+    from vtool_ibeis import image as gtool
+    from vtool_ibeis import features as feattool
 
     try:
-        from vtool._pyflann_backend import pyflann
+        from vtool_ibeis._pyflann_backend import pyflann
     except ImportError:
         import pytest
         pytest.skip()

@@ -17,7 +17,7 @@ import ubelt as ub
 import utool as ut
 import warnings
 from utool import util_time
-from vtool import image_shared
+from vtool_ibeis import image_shared
 
 
 # Inverse of PIL.ExifTags.TAGS
@@ -247,11 +247,11 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         pip install Pillow==2.9
 
     CommandLine:
-        python -m vtool.exif --test-get_lat_lon
+        python -m vtool_ibeis.exif --test-get_lat_lon
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> import numpy as np
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> pil_img = Image.open(image_fpath)
@@ -294,11 +294,11 @@ def get_orientation(exif_dict, default=0, on_error='fail'):
     exif_data2 (obtained through exif_data2 above)
 
     CommandLine:
-        python -m vtool.exif --test-get_orientation
+        python -m vtool_ibeis.exif --test-get_orientation
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
         >>> url = 'https://lev.cs.rpi.edu/public/models/orientation.zip'
@@ -334,11 +334,11 @@ def get_orientation_str(exif_dict):
     exif_data2 (obtained through exif_data2 above)
 
     CommandLine:
-        python -m vtool.exif --test-get_orientation_str
+        python -m vtool_ibeis.exif --test-get_orientation_str
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
         >>> url = 'https://lev.cs.rpi.edu/public/models/orientation.zip'
@@ -364,7 +364,7 @@ def get_unixtime(exif_dict, default=-1):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> pil_img = Image.open(image_fpath)
         >>> exif_dict = get_exif_dict(pil_img)
@@ -394,11 +394,11 @@ def parse_exif_unixtime(image_fpath):
         float: unixtime
 
     CommandLine:
-        python -m vtool.exif --test-parse_exif_unixtime
+        python -m vtool_ibeis.exif --test-parse_exif_unixtime
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.exif import *  # NOQA
+        >>> from vtool_ibeis.exif import *  # NOQA
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> unixtime = parse_exif_unixtime(image_fpath)
         >>> result = str(unixtime)
@@ -420,7 +420,7 @@ def parse_exif_unixtime_gps(image_fpath):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.exif
+        xdoctest -m vtool_ibeis.exif
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

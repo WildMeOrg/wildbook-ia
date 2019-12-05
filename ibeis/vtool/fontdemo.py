@@ -167,11 +167,11 @@ class Font(object):
 def font_demo():
     r"""
     CommandLine:
-        python -m vtool.fontdemo font_demo --show
+        python -m vtool_ibeis.fontdemo font_demo --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.fontdemo import *  # NOQA
+        >>> from vtool_ibeis.fontdemo import *  # NOQA
         >>> result = font_demo()
         >>> import utool as ut
         >>> print(result)
@@ -199,11 +199,11 @@ def get_text_test_img(text):
         text (str):
 
     CommandLine:
-        python -m vtool.fontdemo get_text_test_img --show
+        python -m vtool_ibeis.fontdemo get_text_test_img --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.fontdemo import *  # NOQA
+        >>> from vtool_ibeis.fontdemo import *  # NOQA
         >>> import utool as ut
         >>> text = 'A012'
         >>> text_img = get_text_test_img(text)
@@ -225,7 +225,7 @@ def get_text_test_img(text):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.fontdemo
+        xdoctest -m vtool_ibeis.fontdemo
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

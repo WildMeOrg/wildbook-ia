@@ -1,14 +1,14 @@
 """
 Wrapper around flann (with caching)
 
-python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors))"
+python -c "import vtool_ibeis, doctest; print(doctest.testmod(vtool_ibeis.nearest_neighbors))"
 """
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import utool as ut
 import ubelt as ub
 import numpy as np
-from vtool._pyflann_backend import FLANN_CLS, pyflann
+from vtool_ibeis._pyflann_backend import FLANN_CLS, pyflann
 
 
 class AnnoyWrapper(object):
@@ -42,7 +42,7 @@ class AnnoyWrapper(object):
 
 
 def test_annoy():
-    from vtool import demodata
+    from vtool_ibeis import demodata
     import annoy
     import utool
     qvecs = demodata.testdata_dummy_sift(2 * 1000)
@@ -101,9 +101,9 @@ def test_cv2_flann():
         ut.grab_zipped_url('https://priithon.googlecode.com/archive/a6117f5e81ec00abcfb037f0f9da2937bb2ea47f.tar.gz', download_dir='.')
     """
     import cv2
-    from vtool import demodata
+    from vtool_ibeis import demodata
     import plottool as pt
-    import vtool as vt
+    import vtool_ibeis as vt
     img1 = vt.imread(ut.grab_test_imgpath('easy1.png'))
     img2 = vt.imread(ut.grab_test_imgpath('easy2.png'))
 
@@ -166,30 +166,32 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     Finds the approximate nearest neighbors of qpts in dpts
 
     CommandLine:
-        xdoctest -m ~/code/vtool/vtool/nearest_neighbors.py ann_flann_once
+        xdoctest -m ~/code/vtool/vtool_ibeis/nearest_neighbors.py ann_flann_once:0
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
         >>> np.random.seed(1)
         >>> dpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-        >>> result = ut.repr3((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True)
+        >>> import ubelt as ub
+        >>> result = ub.repr2((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True, nl=2)
         >>> print(result)
         (
             np.array([[3, 3, 3, 3, 0],
                       [2, 0, 1, 4, 4]], dtype=np.int32),
-            np.array([[ 1037329.,  1235876.,  1168550.,  1286435.,  1075507.],
-                      [ 1038324.,  1243690.,  1304896.,  1320598.,  1369036.]], dtype=np.float32),
+            np.array([[1037329., 1235876., 1168550., 1286435., 1075507.],
+                      [1038324., 1243690., 1304896., 1320598., 1369036.]], dtype=np.float32),
         )
+
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> # Test upper bounds on sift descriptors
         >>> # SeeAlso distance.understanding_pseudomax_props
-        >>> from vtool.nearest_neighbors import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> import numpy as np
         >>> np.random.seed(1)
         >>> # get points on unit sphere
@@ -217,9 +219,8 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> # Get actual distance by hand
         >>> hand_dist = np.sum((qpts8 - dpts8[qx2_dx.T[0]]) ** 2, 0)
         >>> # Seems like flann returns squared distance. makes sense
-        >>> result = utool.hashstr27(repr((qx2_dx, qx2_dist)))
+        >>> result = ub.hash_data(repr((qx2_dx, qx2_dist)))
         >>> print(result)
-        8zdwd&q0mu+ez4gp
 
      Example2:
         >>> # Build theoretically maximally distant vectors
@@ -251,13 +252,15 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    import cv2
-    obj = cv2.flann_Index()
+    # import cv2
+
+    flann = FLANN_CLS()
+    # obj = cv2.flann_Index()
     if 'algorithm' not in flann_params:
         flann_params['algorithm'] = 0
         # flann_params['trees'] = 5
-    obj.build(dpts, flann_params)
-    (qx2_dx, qx2_dist) = obj.knnSearch(qpts, num_neighbors)
+    flann.build_index(dpts, **flann_params)
+    (qx2_dx, qx2_dist) = flann.nn_index(qpts, num_neighbors)
     # flann.build_index(dpts, **flann_params)
     # (qx2_dx, qx2_dist) = .nn_index(qpts, num_neighbors)
     return (qx2_dx, qx2_dist)
@@ -288,11 +291,11 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True,
     """
 
     CommandLine:
-        python -m vtool.nearest_neighbors --test-get_flann_cfgstr
+        python -m vtool_ibeis.nearest_neighbors --test-get_flann_cfgstr
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
         >>> rng = np.random.RandomState(1)
         >>> dpts = rng.randint(0, 255, (10, 128)).astype(np.uint8)
         >>> cache_dir = '.'
@@ -315,7 +318,7 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True,
 
 
 def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
-                    use_params_hash=True, use_data_hash=True, appname='vtool',
+                    use_params_hash=True, use_data_hash=True, appname='vtool_ibeis',
                     verbose=True):
     """ returns filepath for flann index """
     if cache_dir == 'default':
@@ -336,10 +339,10 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
 
 def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                 use_cache=True, save=True, use_params_hash=True,
-                use_data_hash=True, appname='vtool', verbose=None):
+                use_data_hash=True, appname='vtool_ibeis', verbose=None):
     """
     Tries to load a cached flann index before doing anything
-    from vtool.nn
+    from vtool_ibeis.nn
     """
     if verbose is None:
         verbose = int(ut.NOT_QUIET)
@@ -395,11 +398,11 @@ def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.nearest_neighbors import *  # NOQA
-        >>> import vtool.demodata as demodata  # NOQA
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
+        >>> import vtool_ibeis.demodata as demodata  # NOQA
         >>> dpts = demodata.get_dummy_dpts(ut.get_nth_prime(10))
         >>> new_dpts = demodata.get_dummy_dpts(ut.get_nth_prime(9))
-        >>> cache_dir = ut.get_app_resource_dir('vtool')
+        >>> cache_dir = ut.get_app_resource_dir('vtool_ibeis')
         >>> cfgstr = '_testcfg'
         >>> new_cfgstr = '_new_testcfg'
         >>> flann_params = get_kdtree_flann_params()
@@ -438,12 +441,12 @@ def get_flann_params(algorithm='kdtree', **kwargs):
         dict: flann_params
 
     CommandLine:
-        python -m vtool.nearest_neighbors --test-get_flann_params --algo=kdtree
-        python -m vtool.nearest_neighbors --test-get_flann_params --algo=kmeans
+        python -m vtool_ibeis.nearest_neighbors --test-get_flann_params --algo=kdtree
+        python -m vtool_ibeis.nearest_neighbors --test-get_flann_params --algo=kmeans
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
         >>> algorithm = ut.get_argval('--algo', default='kdtree')
         >>> flann_params = get_flann_params(algorithm)
         >>> result = ('flann_params = %s' % (ub.repr2(flann_params),))
@@ -550,7 +553,7 @@ def tune_flann(dpts,
         dict: tuned_params
 
     CommandLine:
-        python -m vtool.nearest_neighbors --test-tune_flann
+        python -m vtool_ibeis.nearest_neighbors --test-tune_flann
 
     """
     with ut.Timer('tuning flann'):
@@ -646,16 +649,16 @@ def flann_index_time_experiment():
     Shows a plot of how long it takes to build a flann index for a given number of KD-trees
 
     CommandLine:
-        python -m vtool.nearest_neighbors --test-flann_index_time_experiment
+        python -m vtool_ibeis.nearest_neighbors --test-flann_index_time_experiment
 
     Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
-        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
         >>> result = flann_index_time_experiment()
         >>> print(result)
     """
-    import vtool as vt
+    import vtool_ibeis as vt
     import itertools
 
     class TestDataPool(object):
@@ -746,7 +749,7 @@ def invertible_stack(vecs_list, label_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> from vtool_ibeis.nearest_neighbors import *  # NOQA
         >>> DESC_TYPE = np.uint8
         >>> label_list  = [1, 2, 3, 4, 5]
         >>> vecs_list = [
@@ -789,7 +792,7 @@ def invertible_stack(vecs_list, label_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.nearest_neighbors
+        xdoctest -m vtool_ibeis.nearest_neighbors
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

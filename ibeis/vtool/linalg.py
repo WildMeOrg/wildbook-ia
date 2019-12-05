@@ -5,7 +5,7 @@ TODO: Look at this file
 
 # Sympy:
 #     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-#     >>> import vtool as vt
+#     >>> import vtool_ibeis as vt
 #     >>> import sympy
 #     >>> from sympy.abc import theta
 #     >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
@@ -58,11 +58,11 @@ def svd(M):
         tuple: (U, s, Vt)
 
     CommandLine:
-        python -m vtool.linalg --test-svd
+        python -m vtool_ibeis.linalg --test-svd
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> # build test data
         >>> M = np.array([1, 2, 3], dtype=np.float32)
         >>> M = np.array([[20.5812, 0], [3.615, 17.1295]], dtype=np.float64)
@@ -241,13 +241,13 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         y2 (float, optional): center y location in output space (default = y)
 
     CommandLine:
-        python -m vtool.linalg affine_around_mat3x3 --show
+        python -m vtool_ibeis.linalg affine_around_mat3x3 --show
     CommandLine:
-        xdoctest -m ~/code/vtool/vtool/linalg.py affine_around_mat3x3
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/linalg.py affine_around_mat3x3
 
     Example:
-        >>> from vtool.linalg import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.linalg import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> orig_pts = np.array(vt.verts_from_bbox([10, 10, 20, 20]))
         >>> x, y = vt.bbox_center(vt.bbox_from_verts(orig_pts))
         >>> sx, sy = 0.5, 1.0
@@ -272,7 +272,7 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         >>> ut.show_if_requested()
 
     # Timeit:
-    #     >>> from vtool.linalg import *  # NOQA
+    #     >>> from vtool_ibeis.linalg import *  # NOQA
     #     >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = (
     #     >>>     256.0, 256.0, 1.5, 1.0, 0.78, 0.2, 0, 100, 500.0, 500.0)
     #     >>> for timer in ub.Timerit(1000, 'old'):  # 19.0697 µs
@@ -288,8 +288,8 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
     #     >>> assert np.all(np.isclose(Aff2, Aff1))
 
     # Sympy:
-    #     >>> from vtool.linalg import *  # NOQA
-    #     >>> import vtool as vt
+    #     >>> from vtool_ibeis.linalg import *  # NOQA
+    #     >>> import vtool_ibeis as vt
     #     >>> import sympy
     #     >>> # Shows the symbolic construction of the code
     #     >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
@@ -359,8 +359,8 @@ def whiten_xy_points(xy_m):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> from vtool import demodata
+        >>> from vtool_ibeis.linalg import *  # NOQA
+        >>> from vtool_ibeis import demodata
         >>> xy_m = demodata.get_dummy_xy()
         >>> tup = whiten_xy_points(xy_m)
         >>> xy_norm, T = tup
@@ -382,11 +382,11 @@ def whiten_xy_points(xy_m):
 def add_homogenous_coordinate(_xys):
     r"""
     CommandLine:
-        python -m vtool.linalg --test-add_homogenous_coordinate
+        python -m vtool_ibeis.linalg --test-add_homogenous_coordinate
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> _xys = np.array([[ 2.,  0.,  0.,  2.],
         ...                  [ 2.,  2.,  0.,  0.]], dtype=np.float32)
         >>> _xyzs = add_homogenous_coordinate(_xys)
@@ -411,11 +411,11 @@ def remove_homogenous_coordinate(_xyzs):
         ndarray: _xys of shape (2, N)
 
     CommandLine:
-        python -m vtool.linalg --test-remove_homogenous_coordinate
+        python -m vtool_ibeis.linalg --test-remove_homogenous_coordinate
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> _xyzs = np.array([[ 2.,   0.,  0.,  2.],
         ...                   [ 2.,   2.,  0.,  0.],
         ...                   [ 1.2,  1.,  1.,  2.]], dtype=np.float32)
@@ -425,7 +425,7 @@ def remove_homogenous_coordinate(_xyzs):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> _xyzs = np.array([[ 140.,  167.,  185.,  185.,  194.],
         ...                   [ 121.,  139.,  156.,  155.,  163.],
         ...                   [  47.,   56.,   62.,   62.,   65.]])
@@ -474,7 +474,7 @@ def normalize(arr, ord=None, axis=None, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> arr = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
         >>> arr_normed = normalize(arr, axis=1)
         >>> result = ub.hzcat(['arr_normed = ', ub.repr2(arr_normed, precision=2, with_dtype=True)])
@@ -483,7 +483,7 @@ def normalize(arr, ord=None, axis=None, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> arr = np.array([ 0.6,  0.1, -0.6])
         >>> arr_normed = normalize(arr)
         >>> result = ub.hzcat(['arr_normed = ', ub.repr2(arr_normed, precision=2)])
@@ -491,7 +491,7 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> print(result)
 
     Example:
-        >>> from vtool.linalg import *  # NOQA
+        >>> from vtool_ibeis.linalg import *  # NOQA
         >>> ord_list = [0, 1, 2, np.inf, -np.inf]
         >>> arr = np.array([ 0.6,  0.1, -0.5])
         >>> normed = [(ord, normalize(arr, ord=ord)) for ord in ord_list]
@@ -535,12 +535,12 @@ def random_affine_args(zoom_pdf=None,
         tuple: affine_args
 
     CommandLine:
-        xdoctest -m ~/code/vtool/vtool/linalg.py random_affine_args
+        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/linalg.py random_affine_args
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> import vtool as vt
+        >>> from vtool_ibeis.linalg import *  # NOQA
+        >>> import vtool_ibeis as vt
         >>> zoom_range = (0.9090909090909091, 1.1)
         >>> tx_pdf = (0.0, 4.0)
         >>> ty_pdf = (0.0, 4.0)
@@ -621,7 +621,7 @@ def random_affine_transform(*args, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m vtool.linalg
+        xdoctest -m vtool_ibeis.linalg
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

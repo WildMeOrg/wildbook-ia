@@ -1,15 +1,15 @@
 
 
 def main():  # nocover
-    import vtool
+    import vtool_ibeis
     print('Looks like the imports worked')
-    print('vtool = {!r}'.format(vtool))
-    print('vtool.__file__ = {!r}'.format(vtool.__file__))
-    print('vtool.__version__ = {!r}'.format(vtool.__version__))
+    print('vtool_ibeis = {!r}'.format(vtool_ibeis))
+    print('vtool_ibeis.__file__ = {!r}'.format(vtool_ibeis.__file__))
+    print('vtool_ibeis.__version__ = {!r}'.format(vtool_ibeis.__version__))
 
-    from vtool._pyflann_backend import pyflann
+    from vtool_ibeis._pyflann_backend import pyflann
     print('pyflann = {!r}'.format(pyflann))
-    from vtool import sver_c_wrapper
+    from vtool_ibeis import sver_c_wrapper
     print('sver_c_wrapper.lib_fname = {!r}'.format(sver_c_wrapper.lib_fname))
     print('sver_c_wrapper.lib_fname_cand = {!r}'.format(sver_c_wrapper.lib_fname_cand))
 
@@ -17,6 +17,6 @@ def main():  # nocover
 if __name__ == '__main__':
     """
     CommandLine:
-       python -m vtool
+       python -m vtool_ibeis
     """
     main()
