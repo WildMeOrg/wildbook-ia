@@ -1,23 +1,23 @@
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__.QtCore import Qt
-from guitool.guitool_delegates import ComboDelegate, ButtonDelegate
-from guitool import qtype
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from guitool_ibeis.guitool_delegates import ComboDelegate, ButtonDelegate
+from guitool_ibeis import qtype
 from six.moves import range, map
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[guitbls]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__)
 
 
-class ColumnListTableView(QtGui.QTableView):
+class ColumnListTableView(QtWidgets.QTableView):
     """ Table View for an AbstractItemModel """
     def __init__(view, *args, **kwargs):
         super(ColumnListTableView, view).__init__(*args, **kwargs)
         view.setSortingEnabled(True)
         view.vertical_header = view.verticalHeader()
         view.vertical_header.setVisible(True)
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         view.resizeColumnsToContents()
 
     @QtCore.pyqtSlot()
@@ -267,15 +267,16 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
 
 
-class ColumnListTableWidget(QtGui.QWidget):
+class ColumnListTableWidget(QtWidgets.QWidget):
     """ ColumnList Table Main Widget """
     def __init__(cltw, col_data_list=None, col_name_list=None,
                  niceheader_list=None, col_type_list=None,
                  col_edit_list=None, display_indices=False,
                  col_sort_index=None, parent=None):
-        QtGui.QWidget.__init__(cltw, parent)
+        super(ColumnListTableWidget, cltw).__init__(parent)
+        # QtWidgets.QWidget.__init__(cltw, parent)
         # Create vertical layout for the table to go into
-        cltw.vert_layout = QtGui.QVBoxLayout(cltw)
+        cltw.vert_layout = QtWidgets.QVBoxLayout(cltw)
         # Instansiate the AbstractItemModel
         cltw.model = ColumnListItemModel(parent=cltw)
         # Create a ColumnListTableView for the AbstractItemModel
@@ -348,16 +349,20 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
                           show=True, raise_=True, on_click=None):
     widget = ColumnListTableWidget(col_data_list, col_name_list,
                                    col_edit_list=col_edit_list)
+
     def on_doubleclick(index):
         # This is actually a release
         #print('DoubleClicked: ' + str(qtype.qindexinfo(index)))
         pass
+
     def on_pressed(index):
         #print('Pressed: ' + str(qtype.qindexinfo(index)))
         pass
+
     def on_activated(index):
         #print('Activated: ' + str(qtype.qindexinfo(index)))
         pass
+
     if on_click is not None:
         widget.view.clicked.connect(on_click)
     widget.view.doubleClicked.connect(on_doubleclick)
@@ -378,11 +383,13 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
     #widget.show()
     #widget.raise_()
     #sys.exit(app.exec_())
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool.guitool_tables
-        python -m guitool.guitool_tables --allexamples
+        python -m guitool_ibeis.guitool_tables
+        python -m guitool_ibeis.guitool_tables --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

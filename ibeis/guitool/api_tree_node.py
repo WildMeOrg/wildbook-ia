@@ -1,16 +1,16 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore  # NOQA
+from guitool_ibeis.__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
 from six.moves import zip, range
 import utool
 import utool as ut
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
+(print, print_, rrr) = utool.inject2(__name__)
 
 
 TREE_NODE_BASE = QtCore.QObject
 #TREE_NODE_BASE = object
-VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE_TREE_NODE = ut.get_argflag(('--verb-qt-tree'))
 
 
 class TreeNode(TREE_NODE_BASE):
@@ -26,7 +26,7 @@ class TreeNode(TREE_NODE_BASE):
         TREE_NODE_BASE.__init__(self, parent=parent_node)
         #super(TreeNode, self).__init__(parent_node)
         #if TREE_NODE_BASE is not object:
-        #if VERBOSE:
+        #if VERBOSE_TREE_NODE:
         #    print('[TreeNode] __init__')
         #super(TreeNode, self).__init__(parent=parent_node)
         self.id_ = id_
@@ -35,9 +35,9 @@ class TreeNode(TREE_NODE_BASE):
         self.level = level
 
     def __del__(self):
-        #print('[guitool] DELETING THE TREE NODE!:')
-        if VERBOSE:
-            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+        #print('[guitool_ibeis] DELETING THE TREE NODE!:')
+        if VERBOSE_TREE_NODE:
+            print('[guitool_ibeis] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
         """
@@ -78,12 +78,12 @@ class TreeNode(TREE_NODE_BASE):
             return self.parent_node
         except AttributeError as ex:
             import utool as ut
-            ut.printex(ex)
+            ut.printex(ex, 'Error getting parent', tb=True)
             #print(ex)
             #print('[tree_node] dir(self)=')
             #print(dir(self))
             #print('[tree_node] self.__dict__=')
-            #print(utool.dict_str(self.__dict__))
+            #print(utool.repr2(self.__dict__))
             raise
 
     def get_num_children(self):
@@ -125,7 +125,7 @@ class TreeNode(TREE_NODE_BASE):
         # If the child is a generator, then the TreeNode hasn't been created yet
         # so create it
         if isinstance(self.child_nodes, GeneratorType):
-            #printDBG('[tree_node] lazy evaluation level=%r' % self.level)
+            print('[tree_node] lazy evaluation level=%r' % self.level)
             #print('[tree_node] lazy evaluation level=%r' % self.level)
             self.child_nodes = list(self.child_nodes)
 
@@ -176,7 +176,6 @@ def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
     return str_
 
 
-@profile
 def _populate_tree_iterative(root_node, num_levels, ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet
     #@cython.boundscheck(False)
@@ -206,13 +205,13 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         ider_list (list):
 
     CommandLine:
-        python -m guitool.api_tree_node --test-_populate_tree_iterative
+        python -m guitool_ibeis.api_tree_node --test-_populate_tree_iterative
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from guitool.api_tree_node import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:ibeis)
+        >>> from guitool_ibeis.api_tree_node import *  # NOQA
         >>> import utool as ut
-        >>> from guitool import api_tree_node  # NOQA
+        >>> from guitool_ibeis import api_tree_node  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
         >>> # build test data
@@ -231,15 +230,19 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]
+    if VERBOSE_TREE_NODE:
+        print('_populate_tree_iterative')
+        print('root_ids = %r' % (root_ids,))
+        print('num_levels = %r' % (num_levels,))
     for level in range(num_levels):
         #print('------------ level=%r -----------' % (level,))
-        #print(utool.dict_str(locals()))
+        #print(utool.repr2(locals()))
         new_node_lists = []
         new_ids_lists  = []
         for parent_node, id_list in zip(parent_node_list, ids_list):
             #pass
             #assert isinstance(parent_node, TreeNode), '%r\n%s' % (parent_node,
-            #                                                      utool.dict_str(locals()))
+            #                                                      utool.repr2(locals()))
             node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
             if level + 1 < num_levels:
                 child_ider = ider_list[level + 1]
@@ -254,7 +257,6 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         ids_list = new_ids_lists
 
 
-#@profile
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """
     Recursively builds the tree structure
@@ -269,10 +271,11 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
             list next_ids
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from guitool.api_tree_node import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:ibeis)
+        >>> from guitool_ibeis.api_tree_node import *  # NOQA
+        >>> from guitool_ibeis.api_tree_node import *  # NOQA
         >>> import utool as ut
-        >>> from guitool import api_tree_node  # NOQA
+        >>> from guitool_ibeis import api_tree_node  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
         >>> # build test data
@@ -321,11 +324,12 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
             list child_nodes
             TreeNode next_node
             list next_ids
+
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from guitool.api_tree_node import *  # NOQA
+        >>> # xdoctest: +REQUIRES(module:ibeis)
+        >>> from guitool_ibeis.api_tree_node import *  # NOQA
         >>> import utool as ut
-        >>> from guitool import api_tree_node  # NOQA
+        >>> from guitool_ibeis import api_tree_node  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
         >>> # build test data
@@ -362,13 +366,12 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
     return parent_node
 
 
-@profile
 def build_internal_structure(model):
     """
     Cyth:
         <CYTH returns="TreeNode">
     """
-    #from guitool.api_item_model import *
+    #from guitool_ibeis.api_item_model import *
     ider_list = model.iders  # an ider for each level
     ider_list = model.get_iders()
     num_levels = len(ider_list)
@@ -388,7 +391,12 @@ def build_internal_structure(model):
         # TODO: Vet this code a bit more.
         root_node = TreeNode(-1, None, -1)
         _populate_tree_iterative(root_node, num_levels, ider_list)
-    #print(root_node.full_str())
+
+    if VERBOSE_TREE_NODE:
+        print('ider_list = %r' % (ider_list,))
+        infostr = tree_node_string(root_node, charids=2)
+        print(infostr)
+        # print(ut.repr3(root_node.__dict__))
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
 
@@ -405,11 +413,11 @@ CYTHONIZED = False
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool.api_tree_node
-        python -m guitool.api_tree_node --allexamples
-        python -m guitool.api_tree_node --allexamples --noface --nosrc
-        python -m guitool.api_tree_node --allexamples --noface --nosrc --db GZ_ALL
-        python -m guitool.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
+        python -m guitool_ibeis.api_tree_node
+        python -m guitool_ibeis.api_tree_node --allexamples
+        python -m guitool_ibeis.api_tree_node --allexamples --noface --nosrc
+        python -m guitool_ibeis.api_tree_node --allexamples --noface --nosrc --db GZ_ALL
+        python -m guitool_ibeis.api_tree_node --allexamples --noface --nosrc --db PZ_Master0
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

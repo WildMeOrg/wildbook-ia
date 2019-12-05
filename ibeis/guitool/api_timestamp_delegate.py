@@ -1,13 +1,13 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtGui, QtCore  # NOQA
-#from guitool import guitool_components
+from guitool_ibeis.__PYQT__ import QtGui, QtCore  # NOQA
+#from guitool_ibeis import guitool_components
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
 ut.noinject(__name__, '[api_timestamp_delegate]', DEBUG=False)
 
 
-DELEGATE_BASE = QtGui.QItemDelegate
-#DELEGATE_BASE = QtGui.QStyledItemDelegate
+DELEGATE_BASE = QtWidgets.QItemDelegate
+#DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
 class APITimestampDelegate(DELEGATE_BASE):

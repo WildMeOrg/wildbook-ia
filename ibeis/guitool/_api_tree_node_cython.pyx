@@ -110,7 +110,7 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
     parent_node_list = [root_node]
     for level in range(num_levels):
         #print('------------ level=%r -----------' % (level,))
-        #print(utool.dict_str(locals()))
+        #print(utool.repr2(locals()))
         new_node_lists = []
         new_ids_lists  = []
         for sx in range(len(ids_list)):
@@ -135,7 +135,7 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef TreeNode build_internal_structure(object model):
-    #from guitool.api_item_model import *
+    #from guitool_ibeis.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)
     USE_RECURSIVE = True

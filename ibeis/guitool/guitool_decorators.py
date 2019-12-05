@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import functools
-from guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from guitool.__PYQT__.QtCore import Qt      # NOQA
+from guitool_ibeis.__PYQT__ import QtCore, QtGui  # NOQA
+from guitool_ibeis.__PYQT__.QtCore import Qt      # NOQA
 import utool as ut
 from utool._internal import meta_util_six
-ut.noinject(__name__, '[guitool.decorators]', DEBUG=False)
+ut.noinject(__name__, '[guitool_ibeis.decorators]', DEBUG=False)
 
 DEBUG = False
 
@@ -15,8 +15,7 @@ signal_ = QtCore.pyqtSignal
 # SLOT DECORATOR
 def slot_(*types):  # This is called at wrap time to get args
     """
-    wrapper around pyqtslot decorator
-    *args = types
+    wrapper around pyqtslot decorator keep original function info
     """
     def pyqtSlotWrapper(func):
         #printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.__name__)

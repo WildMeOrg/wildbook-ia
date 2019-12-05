@@ -1,14 +1,15 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtGui, QtCore  # NOQA
-from guitool import guitool_components
+from guitool_ibeis.__PYQT__ import QtGui, QtCore  # NOQA
+from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
+from guitool_ibeis import guitool_components
 import utool
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
 ut.noinject(__name__, '[api_button_delegate]', DEBUG=False)
 
 
-#DELEGATE_BASE = QtGui.QItemDelegate
-DELEGATE_BASE = QtGui.QStyledItemDelegate
+#DELEGATE_BASE = QtWidgets.QItemDelegate
+DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
 def rgb_to_qcolor(rgb):
@@ -22,18 +23,18 @@ def rgb_to_qbrush(rgb):
 def paint_button(painter, option, text='button', pressed=True, bgcolor=None,
                  fgcolor=None, clicked=None, button=None, view=None):
     #http://www.qtcentre.org/archive/index.php/t-31029.html
-    opt = QtGui.QStyleOptionButton()
+    opt = QtWidgets.QStyleOptionButton()
     opt.text = text
     opt.rect = option.rect
     opt.palette = option.palette
     if pressed:
-        opt.state = QtGui.QStyle.State_Enabled | QtGui.QStyle.State_Sunken
+        opt.state = QtWidgets.QStyle.State_Enabled | QtWidgets.QStyle.State_Sunken
     else:
-        opt.state = QtGui.QStyle.State_Enabled | QtGui.QStyle.State_Raised
+        opt.state = QtWidgets.QStyle.State_Enabled | QtWidgets.QStyle.State_Raised
 
     #style = QtGui.Q Application.style()
     style = button.style()
-    style.drawControl(QtGui.QStyle.CE_PushButton, opt, painter, button)
+    style.drawControl(QtWidgets.QStyle.CE_PushButton, opt, painter, button)
 
 
 class APIButtonDelegate(DELEGATE_BASE):
@@ -131,7 +132,7 @@ class APIButtonDelegate(DELEGATE_BASE):
 
 
 ## graveyard:
-#    #opt = QtGui.QStyleOptionViewItemV4(option)
+#    #opt = QtWidgets.QStyleOptionViewItemV4(option)
 #    #opt.initFrom(button)
 #    #painter.drawRect(option.rect)
 #    #print(style)
@@ -163,7 +164,7 @@ class APIButtonDelegate(DELEGATE_BASE):
 #        #    # and return model.createIndex(row, col, object) where
 #        #    # object is specified.
 #        #    view.setIndexWidget(qtindex, None)
-#        #    button = QtGui.QPushButton(text, view, clicked=view.cellButtonClicked)
+#        #    button = QtWidgets.QPushButton(text, view, clicked=view.cellButtonClicked)
 
 #    #        pass
 #    #    #       dgt._pressed = (qtindex.row(), qtindex.column())

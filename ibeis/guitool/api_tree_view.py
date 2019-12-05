@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.guitool_decorators import signal_, slot_
-import utool
-#from guitool import guitool_components
-from guitool import api_item_view
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import GUITOOL_PYQT_VERSION
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.guitool_decorators import signal_, slot_
+import utool as ut
+from guitool_ibeis import api_item_view
 
-(print, rrr, profile) = utool.inject2(
-    __name__, '[APITreeView]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # If you need to set the selected index try:
@@ -15,8 +15,8 @@ from guitool import api_item_view
 # AbstractItemView::scrollTo
 # AbstractItemView::keyboardSearch
 
-API_VIEW_BASE = QtGui.QTreeView
-#API_VIEW_BASE = QtGui.QAbstractItemView
+API_VIEW_BASE = QtWidgets.QTreeView
+#API_VIEW_BASE = QtWidgets.QAbstractItemView
 
 
 class APITreeView(API_VIEW_BASE):
@@ -42,6 +42,9 @@ class APITreeView(API_VIEW_BASE):
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
         #view.cornerButton = guitool_components.newButton(view)
         #view.setCornerWidget(view.cornerButton)
+        view._init_api_item_view()
+
+        #view.setUniformRowHeights(True)
 
     #---------------
     # Initialization
@@ -59,12 +62,14 @@ class APITreeView(API_VIEW_BASE):
         """ Header behavior
 
         CommandLine:
-            python -m guitool.api_tree_view --test-_init_header_behavior
+            python -m guitool_ibeis.api_tree_view --test-_init_header_behavior
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> # TODO figure out how to test these
-            >>> from guitool.api_tree_view import *  # NOQA
+            >>> from guitool_ibeis.api_tree_view import *  # NOQA
+            >>> import guitool_ibeis as gt
+            >>> app = gt.ensure_qapp()
             >>> view = APITreeView()
             >>> view._init_header_behavior()
         """
@@ -77,12 +82,16 @@ class APITreeView(API_VIEW_BASE):
         header.setHighlightSections(True)
         # Column Sizes
         # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-        header.setResizeMode(QtGui.QHeaderView.Interactive)
-        #horizontalHeader.setCascadingSectionResizes(True)
-        # Columns moveable
-        header.setMovable(True)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        if GUITOOL_PYQT_VERSION == 4:
+            header.setResizeMode(QtWidgets.QHeaderView.Interactive)
+            #horizontalHeader.setCascadingSectionResizes(True)
+            # Columns moveable
+            header.setMovable(True)
+        else:
+            header.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            header.setSectionsMovable(True)
 
     #---------------
     # Qt Overrides
@@ -91,6 +100,9 @@ class APITreeView(API_VIEW_BASE):
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
         api_item_view.setModel(view, model)
+
+    def keyPressEvent(view, event):
+        return api_item_view.keyPressEvent(view, event)
 
     #---------------
     # Slots
@@ -107,12 +119,82 @@ class APITreeView(API_VIEW_BASE):
         view.contextMenuClicked.emit(index, pos)
 
 
+def testdata_tree_view():
+    r"""
+    CommandLine:
+        python -m guitool_ibeis.api_tree_view testdata_tree_view
+        python -m guitool_ibeis.api_tree_view testdata_tree_view --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import guitool_ibeis as gt
+        >>> from guitool_ibeis.api_tree_view import *  # NOQA
+        >>> wgt = testdata_tree_view()
+        >>> view = wgt.view
+        >>> rows = view.selectedRows()
+        >>> print('rows = %r' % (rows,))
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=wgt)
+    """
+    import guitool_ibeis as gt
+    gt.ensure_qapp()
+    col_name_list = ['name', 'num_annots', 'annots']
+    col_getter_dict = {
+        'name': ['fred', 'sue', 'tom', 'mary', 'paul'],
+        'num_annots': [2, 1, 3, 5, 1],
+    }
+    # make consistent data
+    grouped_data = [
+        [col_getter_dict['name'][index] + '-' + str(i) for i in range(num)]
+        for index, num in enumerate(col_getter_dict['num_annots'])
+    ]
+    flat_data, reverse_list = ut.invertible_flatten1(grouped_data)
+    col_getter_dict['annots'] = flat_data
+
+    iders = [
+        list(range(len(col_getter_dict['name']))),
+        reverse_list
+    ]
+
+    col_level_dict = {
+        'name': 0,
+        'num_annots': 0,
+        'annots': 1,
+    }
+    sortby = 'name'
+
+    api = gt.CustomAPI(
+        col_name_list=col_name_list,
+        col_getter_dict=col_getter_dict,
+        sortby=sortby,
+        iders=iders,
+        col_level_dict=col_level_dict,
+    )
+    headers = api.make_headers(tblnice='Tree Example')
+
+    wgt = gt.APIItemWidget(view_class=APITreeView)
+    wgt.change_headers(headers)
+
+    wgt.menubar = gt.newMenubar(wgt)
+    wgt.menuFile = wgt.menubar.newMenu('Dev')
+
+    def wgt_embed(wgt):
+        view = wgt.view  # NOQA
+        import utool
+        utool.embed()
+    ut.inject_func_as_method(wgt, wgt_embed)
+    wgt.menuFile.newAction(triggered=wgt.wgt_embed)
+
+    return wgt
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool.api_tree_view
-        python -m guitool.api_tree_view --allexamples
-        python -m guitool.api_tree_view --allexamples --noface --nosrc
+        python -m guitool_ibeis.api_tree_view
+        python -m guitool_ibeis.api_tree_view --allexamples
+        python -m guitool_ibeis.api_tree_view --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

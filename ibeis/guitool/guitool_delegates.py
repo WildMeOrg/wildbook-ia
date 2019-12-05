@@ -1,23 +1,25 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__ import GUITOOL_PYQT_VERSION
 import utool as ut
-ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
+ut.noinject(__name__, '[guitool_ibeis.delegates]', DEBUG=False)
 
 
-class APIDelegate(QtGui.QItemDelegate):
+class APIDelegate(QtWidgets.QItemDelegate):
     is_persistant_editable = True
     def __init__(self, parent):
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
 
     def sizeHint(option, qindex):
         # QStyleOptionViewItem option
         return QtCore.QSize(50, 50)
 
 
-class ImageDelegate(QtGui.QStyledItemDelegate):
+class ImageDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         print(dir(self))
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
 
@@ -41,12 +43,15 @@ class ComboDelegate(APIDelegate):
         APIDelegate.__init__(self, parent)
 
     def createEditor(self, parent, option, index):
-        combo = QtGui.QComboBox(parent)
+        combo = QtWidgets.QComboBox(parent)
         combo.addItems(['option1', 'option2', 'option3'])
-        #self.connect(combo.currentIndexChanged, self.currentIndexChanged)
         # FIXME: Change to newstyle signal slot
-        self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self, QtCore.SLOT("currentIndexChanged()"))
+        if GUITOOL_PYQT_VERSION == 5:
+            self.connect(combo.currentIndexChanged, self.currentIndexChanged)
+        else:
+            # I believe this particular option is broken in pyqt4
+            self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"),
+                         self, QtCore.SLOT("currentIndexChanged()"))
         return combo
 
     def setEditorData(self, editor, index):
@@ -83,14 +88,15 @@ class ButtonDelegate(APIDelegate):
         if not self.parent().indexWidget(index):
             self.parent().setIndexWidget(
                 index,
-                QtGui.QPushButton(
+                QtWidgets.QPushButton(
                     index.data().toString(),
                     self.parent(),
                     clicked=self.parent().cellButtonClicked
                 )
             )
 
-DELEGATE_MAP = {
-    'BUTTON': ButtonDelegate,
-    'COMBO': ComboDelegate,
-}
+
+# DELEGATE_MAP = {
+#     'BUTTON': ButtonDelegate,
+#     'COMBO': ComboDelegate,
+# }

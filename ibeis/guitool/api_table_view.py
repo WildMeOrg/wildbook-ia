@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool import api_item_view
-from guitool.guitool_decorators import signal_, slot_
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis import api_item_view
+from guitool_ibeis.guitool_decorators import signal_, slot_
 import utool
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableView]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[APITableView]', DEBUG=False)
 
 
 # If you need to set the selected index try:
@@ -12,8 +13,8 @@ import utool
 # AbstractItemView::scrollTo
 # AbstractItemView::keyboardSearch
 
-API_VIEW_BASE = QtGui.QTableView
-#API_VIEW_BASE = QtGui.QAbstractItemView
+API_VIEW_BASE = QtWidgets.QTableView
+#API_VIEW_BASE = QtWidgets.QAbstractItemView
 
 
 class APITableView(API_VIEW_BASE):
@@ -37,6 +38,7 @@ class APITableView(API_VIEW_BASE):
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
+        view._init_api_item_view()
 
     #---------------
     # Initialization
@@ -57,19 +59,29 @@ class APITableView(API_VIEW_BASE):
     def _init_header_behavior(view):
         """ Header behavior
 
+        CommandLine:
+            python -m guitool_ibeis.api_item_widget --test-simple_api_item_widget --show
+            python -m guitool_ibeis.api_table_view --test-_init_header_behavior --show
+
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from guitool.api_table_view import *  # NOQA
+            >>> from guitool_ibeis.api_table_view import *  # NOQA
+            >>> import guitool_ibeis
+            >>> guitool_ibeis.ensure_qapp()
             >>> view = APITableView()
-
+            >>> view._init_header_behavior()
         """
         # Row Headers
         verticalHeader = view.verticalHeader()
-        verticalHeader.setVisible(True)
+        verticalHeader.setVisible(False)
         #verticalHeader.setSortIndicatorShown(True)
         verticalHeader.setHighlightSections(True)
-        verticalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
-        verticalHeader.setMovable(True)
+        try:
+            verticalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
+            verticalHeader.setMovable(False)
+        except AttributeError:
+            verticalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            verticalHeader.setSectionsMovable(False)
         # TODO: get good estimate if there are thumbnails
         #verticalHeader.setDefaultSectionSize(256)
 
@@ -81,22 +93,16 @@ class APITableView(API_VIEW_BASE):
         horizontalHeader.setHighlightSections(True)
         # Column Sizes
         # DO NOT USE ResizeToContents. IT MAKES THINGS VERY SLOW
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-        horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        try:
+            horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
+            horizontalHeader.setMovable(True)
+        except AttributeError:
+            horizontalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            horizontalHeader.setSectionsMovable(True)
         #horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
-        horizontalHeader.setMovable(True)
-        view.registered_single_keys = []
-        view.registered_keypress_funcs = []
-
-    def connect_single_key_to_slot(view, key, func):
-        # TODO: move to api_item_view
-        view.registered_single_keys.append((key, func))
-
-    def connect_keypress_to_slot(view, func):
-        # TODO: move to api_item_view
-        view.registered_keypress_funcs.append(func)
 
     #---------------
     # Qt Overrides
@@ -107,18 +113,34 @@ class APITableView(API_VIEW_BASE):
         api_item_view.setModel(view, model)
 
     def keyPressEvent(view, event):
-        assert isinstance(event, QtGui.QKeyEvent)
-        API_VIEW_BASE.keyPressEvent(view, event)
-        if event.matches(QtGui.QKeySequence.Copy):
-            #print('Received Ctrl+C in View')
-            view.copy_selection_to_clipboard()
-        #print ('[view] keyPressEvent: %s' % event.key())
-        for func in view.registered_keypress_funcs:
-            func(view, event)
-        for key, func in view.registered_single_keys:
-            #print(key)
-            if event.key() == key:
-                func(view, event)
+        """
+        CommandLine:
+            python -m guitool_ibeis.api_item_widget --test-simple_api_item_widget --show
+            python -m guitool_ibeis.api_table_view --test-keyPressEvent --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from guitool_ibeis.api_table_view import *  # NOQA
+            >>> import guitool_ibeis
+            >>> guitool_ibeis.ensure_qapp()
+            >>> view = APITableView()
+            >>> view._init_header_behavior()
+        """
+        return api_item_view.keyPressEvent(view, event)
+
+        # # TODO: can this be in api_item_view?
+        # assert isinstance(event, QtGui.QKeyEvent)
+        # view.API_VIEW_BASE.keyPressEvent(view, event)
+        # if event.matches(QtGui.QKeySequence.Copy):
+        #     #print('Received Ctrl+C in View')
+        #     view.copy_selection_to_clipboard()
+        # #print ('[view] keyPressEvent: %s' % event.key())
+        # for func in view.registered_keypress_funcs:
+        #     func(view, event)
+        # for key, func in view.registered_single_keys:
+        #     #print(key)
+        #     if event.key() == key:
+        #         func(view, event)
 
     def mouseMoveEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
@@ -128,7 +150,7 @@ class APITableView(API_VIEW_BASE):
         assert isinstance(event, QtGui.QMouseEvent)
         API_VIEW_BASE.mousePressEvent(view, event)
         #print('no editing')
-        view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
     def mouseReleaseEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
