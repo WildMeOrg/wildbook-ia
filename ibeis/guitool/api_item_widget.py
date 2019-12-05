@@ -1,5 +1,5 @@
-"""
-  This module contains functions and clases to get data visualized fast (in
+r"""
+This module contains functions and clases to get data visualized fast (in
 terms of development time)
 """
 from __future__ import absolute_import, division, print_function
@@ -413,7 +413,6 @@ class CustomAPI(object):
             'col_level_list'   : self.col_level_list,
             'col_sort_reverse' : self.col_sort_reverse,
             'col_getter_list'  : self._make_getter_list(),
-            'col_setter_list'  : self._make_setter_list(),
             'col_setter_list'  : self._make_setter_list(),
             'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
             'get_thumb_size'   : self.get_thumb_size,

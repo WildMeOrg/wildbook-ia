@@ -1418,7 +1418,7 @@ def get_nested_attr(obj, attr):
 
 
 def walk_widget_heirarchy(obj, **kwargs):
-    """
+    r"""
     print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['minimumWidth'], skip=True)))
     print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['sizePolicy'], skip=True)))
     """
@@ -1496,7 +1496,7 @@ def fix_child_size_heirarchy(obj, pol):
 
 
 class ConfigConfirmWidget(GuitoolWidget):
-    """
+    r"""
 
     CommandLine:
         python -m guitool_ibeis.guitool_components ConfigConfirmWidget --show
@@ -1757,7 +1757,8 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
               visible=True, enabled=True, bgcolor=None, fgcolor=None,
               fontkw={}, shrink_to_text=False,
               min_width=None):
-    """ wrapper around QtWidgets.QPushButton
+    r"""
+    wrapper around QtWidgets.QPushButton
 
     Args:
         parent (None): (default = None)
@@ -1859,7 +1860,8 @@ def get_widget_text_width(widget):
 def newComboBox(parent=None, options=None, changed=None, default=None,
                 visible=True, enabled=True, bgcolor=None, fgcolor=None,
                 fontkw={}, editor_mode='combo', num=2):
-    """ wrapper around QtWidgets.QComboBox
+    r"""
+    wrapper around QtWidgets.QComboBox
 
     Args:
         parent (None):
@@ -2027,7 +2029,7 @@ class RadioButtonGroup(QtWidgets.QWidget):
 def newCheckBox(parent=None, text=None, changed=None, checked=False,
                 visible=True, enabled=True, bgcolor=None, fgcolor=None,
                 direction=None):
-    """
+    r"""
     wrapper around QtWidgets.QCheckBox
 
     CommandLine:
