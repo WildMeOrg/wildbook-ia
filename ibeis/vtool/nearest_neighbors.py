@@ -166,7 +166,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     Finds the approximate nearest neighbors of qpts in dpts
 
     CommandLine:
-        xdoctest -m ~/code/vtool_ibeis/vtool_ibeis/nearest_neighbors.py ann_flann_once
+        xdoctest -m ~/code/vtool/vtool_ibeis/nearest_neighbors.py ann_flann_once:0
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -175,14 +175,16 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> dpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-        >>> result = ut.repr3((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True)
+        >>> import ubelt as ub
+        >>> result = ub.repr2((qx2_dx.T, qx2_dist.T), precision=2, with_dtype=True, nl=2)
         >>> print(result)
         (
             np.array([[3, 3, 3, 3, 0],
                       [2, 0, 1, 4, 4]], dtype=np.int32),
-            np.array([[ 1037329.,  1235876.,  1168550.,  1286435.,  1075507.],
-                      [ 1038324.,  1243690.,  1304896.,  1320598.,  1369036.]], dtype=np.float32),
+            np.array([[1037329., 1235876., 1168550., 1286435., 1075507.],
+                      [1038324., 1243690., 1304896., 1320598., 1369036.]], dtype=np.float32),
         )
+
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -217,9 +219,8 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> # Get actual distance by hand
         >>> hand_dist = np.sum((qpts8 - dpts8[qx2_dx.T[0]]) ** 2, 0)
         >>> # Seems like flann returns squared distance. makes sense
-        >>> result = utool.hashstr27(repr((qx2_dx, qx2_dist)))
+        >>> result = ub.hash_data(repr((qx2_dx, qx2_dist)))
         >>> print(result)
-        8zdwd&q0mu+ez4gp
 
      Example2:
         >>> # Build theoretically maximally distant vectors
@@ -251,13 +252,15 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    import cv2
-    obj = cv2.flann_Index()
+    # import cv2
+
+    flann = FLANN_CLS()
+    # obj = cv2.flann_Index()
     if 'algorithm' not in flann_params:
         flann_params['algorithm'] = 0
         # flann_params['trees'] = 5
-    obj.build(dpts, flann_params)
-    (qx2_dx, qx2_dist) = obj.knnSearch(qpts, num_neighbors)
+    flann.build_index(dpts, **flann_params)
+    (qx2_dx, qx2_dist) = flann.nn_index(qpts, num_neighbors)
     # flann.build_index(dpts, **flann_params)
     # (qx2_dx, qx2_dist) = .nn_index(qpts, num_neighbors)
     return (qx2_dx, qx2_dist)

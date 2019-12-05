@@ -4,14 +4,19 @@ abstract which pyflann implementation is used
 from vtool_ibeis._pyflann_backend import pyflann
 """
 import ubelt as ub
+import os
 
 __all__ = ['pyflann', 'FLANN_CLS']
+
+FORCE_PYFLANN_IBEIS = os.environ.get('FORCE_PYFLANN_IBEIS', 'TRUE')
 
 
 try:
     import pyflann_ibeis as pyflann
     FLANN_CLS = pyflann.FLANN
 except ImportError:
+    if FORCE_PYFLANN_IBEIS == 'TRUE':
+        raise
     try:
         import pyflann
         FLANN_CLS = pyflann.FLANN
@@ -44,3 +49,7 @@ except ImportError:
                 def __init__(self):
                     raise RuntimeError('flann not installed')
             FLANN_CLS = _DUMMY_FLANN_CLS
+
+
+print('VTOOL_IBEIS BACKEND FOR pyflann = {!r}'.format(pyflann))
+print('VTOOL_IBEIS BACKEND FOR FLANN_CLS = {!r}'.format(FLANN_CLS))

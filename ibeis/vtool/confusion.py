@@ -8,7 +8,6 @@ References:
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import ubelt as ub
-import six
 import numpy as np
 import scipy.interpolate
 
@@ -371,7 +370,6 @@ class ConfusionMetrics(ub.NiceRepr):
     # --------------
 
     def fit(self, scores, labels, verbose=False):
-        import sklearn.metrics
         scores = np.asarray(scores)
         labels = np.asarray(labels)
         # must be binary
@@ -386,7 +384,8 @@ class ConfusionMetrics(ub.NiceRepr):
         # sklearn has much faster implementation
         # n_fp - count the number of false positives with score >= threshold[i]
         # n_tp - count the number of true positives with score >= threshold[i]
-        n_fp, n_tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(
+        from sklearn.metrics import ranking
+        n_fp, n_tp, thresholds = ranking._binary_clf_curve(
             labels, scores, pos_label=1)
 
         n_samples = len(labels)
