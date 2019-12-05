@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
-from guitool.__PYQT__ import QtCore
-from guitool.__PYQT__ import QtWidgets  # NOQA
-from guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
+from guitool_ibeis.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
-ut.noinject(__name__, '[guitool.main]', DEBUG=False)
+ut.noinject(__name__, '[guitool_ibeis.main]', DEBUG=False)
 
 
 IS_ROOT_WINDOW = False
@@ -52,7 +52,7 @@ def ensure_qtapp():
     parent_qapp = QtCore.QCoreApplication.instance()
     if parent_qapp is None:  # if not in qtconsole
         if not QUIET:
-            print('[guitool] Init new QApplication')
+            print('[guitool_ibeis] Init new QApplication')
         QAPP = GuitoolApplication(sys.argv)
         if GUITOOL_PYQT_VERSION == 4:
             QAPP.setStyle('plastique')
@@ -76,7 +76,7 @@ def ensure_qtapp():
         IS_ROOT_WINDOW = True
     else:
         if not QUIET:
-            print('[guitool] Using parent QApplication')
+            print('[guitool_ibeis] Using parent QApplication')
         QAPP = parent_qapp
         IS_ROOT_WINDOW = False
     return QAPP, IS_ROOT_WINDOW
@@ -88,7 +88,7 @@ ensure_qapp = ensure_qtapp
 def activate_qwindow(qwin):
     global QAPP
     if not QUIET:
-        print('[guitool] qapp.setActiveWindow(qwin)')
+        print('[guitool_ibeis] qapp.setActiveWindow(qwin)')
     qwin.show()
     QAPP.setActiveWindow(qwin)
 
@@ -110,7 +110,7 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
     #from IPython.lib.inputhook import enable_qt4
     import IPython.lib.guisupport
     if not QUIET:
-        print('[guitool] Starting ipython qt hook')
+        print('[guitool_ibeis] Starting ipython qt hook')
     #enable_qt4()
     if GUITOOL_PYQT_VERSION == 4:
         IPython.lib.guisupport.start_event_loop_qt4(QAPP)
@@ -119,7 +119,7 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
 
 
 #if '__PYQT__' in sys.modules:
-    #from guitool.__PYQT__ import QtCore
+    #from guitool_ibeis.__PYQT__ import QtCore
     #from IPython.lib.inputhook import enable_qt4
     #from IPython.lib.guisupport import start_event_loop_qt4
     #qapp = QtCore.QCoreApplication.instance()
@@ -144,24 +144,24 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
         init_signals (bool): if False, handle terminal signals yourself (default = True)
 
     CommandLine:
-        python -m guitool.guitool_main --test-qtapp_loop
+        python -m guitool_ibeis.guitool_ibeis_main --test-qtapp_loop
     """
     global QAPP
     #if not QUIET and VERBOSE:
     if not QUIET:
-        print('[guitool.qtapp_loop()] ENTERING')
-    print('[guitool.qtapp_loop()] starting qt app loop: qwin=%r' % (qwin,))
+        print('[guitool_ibeis.qtapp_loop()] ENTERING')
+    print('[guitool_ibeis.qtapp_loop()] starting qt app loop: qwin=%r' % (qwin,))
     if enable_activate_qwin and (qwin is not None):
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(frequency=frequency)
     elif qwin is None:
-        print('[guitool] Warning: need to specify qwin for ctrl+c to work')
+        print('[guitool_ibeis] Warning: need to specify qwin for ctrl+c to work')
     if init_signals:
         # allow ctrl+c to exit the program
         _init_signals()
     if IS_ROOT_WINDOW:
         if not QUIET:
-            print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
+            print('[guitool_ibeis.qtapp_loop()] qapp.exec_()  # runing main loop')
         if not ipy:
             # old_excepthook = sys.excepthook
             # def qt_excepthook(type_, value, traceback):
@@ -180,15 +180,15 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
                 raise
     else:
         if not QUIET:
-            print('[guitool.qtapp_loop()] not execing')
+            print('[guitool_ibeis.qtapp_loop()] not execing')
     if not QUIET:
-        print('[guitool.qtapp_loop()] EXITING')
+        print('[guitool_ibeis.qtapp_loop()] EXITING')
 
 
 def ping_python_interpreter(frequency=420):  # 4200):
     """ Create a QTimer which lets the python catch ctrl+c """
     if not QUIET and VERBOSE:
-        print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
+        print('[guitool_ibeis] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
 
     def ping_func():
@@ -203,12 +203,12 @@ def ping_python_interpreter(frequency=420):  # 4200):
 #@atexit.register
 def exit_application():
     if ut.NOT_QUIET:
-        print('[guitool] exiting application')
+        print('[guitool_ibeis] exiting application')
     QtWidgets.qApp.quit()
 
 
 def _on_ctrl_c(signal, frame):
-    print('[guitool.guitool_main] Caught ctrl+c. sys.exit(0)...')
+    print('[guitool_ibeis.guitool_ibeis_main] Caught ctrl+c. sys.exit(0)...')
     sys.exit(0)
 
 #-----------------------

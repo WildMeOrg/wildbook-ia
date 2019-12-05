@@ -3,24 +3,24 @@
 provides common methods for api_tree_view and api_table_view
 """
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtGui  # NOQA
-from guitool.__PYQT__ import QtCore
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__.QtCore import Qt
+from guitool_ibeis.__PYQT__ import QtGui  # NOQA
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
 import functools
-from guitool import qtype
-from guitool import api_button_delegate
-from guitool import api_thumb_delegate
-from guitool import guitool_main
-from guitool import guitool_misc
+from guitool_ibeis import qtype
+from guitool_ibeis import api_button_delegate
+from guitool_ibeis import api_thumb_delegate
+from guitool_ibeis import guitool_ibeis_main
+from guitool_ibeis import guitool_ibeis_misc
 from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
 import operator
 # Valid API Models
-from guitool.stripe_proxy_model import StripeProxyModel
-from guitool.filter_proxy_model import FilterProxyModel
-from guitool.api_item_model import APIItemModel
+from guitool_ibeis.stripe_proxy_model import StripeProxyModel
+from guitool_ibeis.filter_proxy_model import FilterProxyModel
+from guitool_ibeis.api_item_model import APIItemModel
 
 (print, rrr, profile) = utool.inject2(__name__, '[APIItemView]')
 
@@ -29,7 +29,7 @@ VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
 VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
 API_VIEW_BASE = QtWidgets.QAbstractItemView
-ABSTRACT_VIEW_INJECT_KEY = ('QtWidgets.QAbstractItemView', 'guitool')
+ABSTRACT_VIEW_INJECT_KEY = ('QtWidgets.QAbstractItemView', 'guitool_ibeis')
 register_view_method = utool.make_class_method_decorator(ABSTRACT_VIEW_INJECT_KEY, __name__)
 
 injectviewinstance = functools.partial(utool.inject_instance, classkey=ABSTRACT_VIEW_INJECT_KEY)
@@ -70,9 +70,9 @@ def _init_itemview_behavior(view):
     Example:
         >>> # ENABLE_DOCTEST
         >>> # TODO figure out how to test these
-        >>> from guitool.api_item_view import *  # NOQA
-        >>> from guitool import api_table_view
-        >>> from guitool import api_tree_view
+        >>> from guitool_ibeis.api_item_view import *  # NOQA
+        >>> from guitool_ibeis import api_table_view
+        >>> from guitool_ibeis import api_tree_view
         >>> view = api_table_view.APITableView()
         >>> view = api_tree_view.APITreeView()
 
@@ -313,13 +313,13 @@ def keyPressEvent(view, event):
     handled flag correctly.
 
     CommandLine:
-        python -m guitool.api_item_view --test-keyPressEvent
+        python -m guitool_ibeis.api_item_view --test-keyPressEvent
         --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_item_view import *  # NOQA
-        >>> import guitool as gt
+        >>> from guitool_ibeis.api_item_view import *  # NOQA
+        >>> import guitool_ibeis as gt
         >>> app = gt.ensure_qapp()[0]
         >>> wgt = gt.simple_api_item_widget()
         >>> view = wgt.view
@@ -335,7 +335,7 @@ def keyPressEvent(view, event):
         >>> view._init_header_behavior()
         >>> # Try to simulate an event for testing
         >>> wgt.show()
-        >>> from guitool.__PYQT__ import QtTest, GUITOOL_PYQT_VERSION
+        >>> from guitool_ibeis.__PYQT__ import QtTest, GUITOOL_PYQT_VERSION
         >>> QTest = QtTest.QTest
         >>> if GUITOOL_PYQT_VERSION == 4:
         >>>     QTest.qWaitForWindowShown(wgt)
@@ -412,23 +412,23 @@ def setModel(view, model):
 def copy_selection_to_clipboard(view):
     """ Copys selected grid to clipboard """
     if VERBOSE:
-        print('[guitool] Copying selection to clipboard')
-    copy_str = guitool_misc.get_view_selection_as_str(view)
+        print('[guitool_ibeis] Copying selection to clipboard')
+    copy_str = guitool_ibeis_misc.get_view_selection_as_str(view)
     #copy_qstr = QtCore.Q__String(copy_str)
     copy_qstr = str(copy_str)
-    clipboard = guitool_main.get_qtapp().clipboard()
+    clipboard = guitool_ibeis_main.get_qtapp().clipboard()
     if VERBOSE:
         print(copy_str)
     clipboard.setText(copy_qstr)
     if VERBOSE:
-        print('[guitool] finished copy')
+        print('[guitool_ibeis] finished copy')
 
 
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool.api_item_view
-        python -m guitool.api_item_view --allexamples
+        python -m guitool_ibeis.api_item_view
+        python -m guitool_ibeis.api_item_view --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

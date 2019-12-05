@@ -1,13 +1,13 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__ import QtWidgets  # NOQA
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
 import six
 import utool
 import sys
 import logging
 from six.moves import range
-from guitool.guitool_decorators import slot_
-from guitool import guitool_main
+from guitool_ibeis.guitool_ibeis_decorators import slot_
+from guitool_ibeis import guitool_ibeis_main
 import utool as ut
 ut.noinject(__name__)
 
@@ -51,7 +51,7 @@ def make_option_dict(options, shortcuts=True):
 
 
 def find_used_chars(name_list):
-    """ Move to guitool """
+    """ Move to guitool_ibeis """
     used_chars = []
     for name in name_list:
         index = name.find('&')
@@ -63,7 +63,7 @@ def find_used_chars(name_list):
 
 
 def make_word_hotlinks(name_list, used_chars=[], after_colon=False):
-    """ Move to guitool
+    """ Move to guitool_ibeis
 
     Args:
         name_list (list):
@@ -73,11 +73,11 @@ def make_word_hotlinks(name_list, used_chars=[], after_colon=False):
         list: hotlinked_name_list
 
     CommandLine:
-        python -m guitool.guitool_misc --exec-make_word_hotlinks
+        python -m guitool_ibeis.guitool_ibeis_misc --exec-make_word_hotlinks
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool.guitool_misc import *  # NOQA
+        >>> from guitool_ibeis.guitool_ibeis_misc import *  # NOQA
         >>> name_list = ['occlusion', 'occlusion:large', 'occlusion:medium', 'occlusion:small', 'lighting', 'lighting:shadowed', 'lighting:overexposed', 'lighting:underexposed']
         >>> used_chars = []
         >>> hotlinked_name_list = make_word_hotlinks(name_list, used_chars)
@@ -177,7 +177,7 @@ class QLoggedOutput(QtWidgets.QTextEdit):
     @slot_(str)
     def gui_write(outputEdit, msg_):
         # Slot for teed log output
-        app = guitool_main.get_qtapp()
+        app = guitool_ibeis_main.get_qtapp()
         # Write msg to text area
         outputEdit.moveCursor(QtGui.QTextCursor.End)
         # TODO: Find out how to do backspaces in textEdit
@@ -190,7 +190,7 @@ class QLoggedOutput(QtWidgets.QTextEdit):
 
     @slot_()
     def gui_flush(outputEdit):
-        app = guitool_main.get_qtapp()
+        app = guitool_ibeis_main.get_qtapp()
         if app is not None:
             app.processEvents()
 
@@ -212,7 +212,7 @@ def get_view_selection_as_str(view):
     selection_model = view.selectionModel()
     qindex_list = selection_model.selectedIndexes()
     qindex_list = sorted(qindex_list)
-    # print('[guitool] %d cells selected' % len(qindex_list))
+    # print('[guitool_ibeis] %d cells selected' % len(qindex_list))
     if len(qindex_list) == 0:
         return
     copy_table = []

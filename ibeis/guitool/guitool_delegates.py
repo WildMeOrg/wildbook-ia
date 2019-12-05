@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__ import GUITOOL_PYQT_VERSION
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__ import GUITOOL_PYQT_VERSION
 import utool as ut
-ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
+ut.noinject(__name__, '[guitool_ibeis.delegates]', DEBUG=False)
 
 
 class APIDelegate(QtWidgets.QItemDelegate):

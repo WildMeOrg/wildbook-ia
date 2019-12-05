@@ -1,10 +1,10 @@
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__ import QtWidgets
-from guitool.__PYQT__.QtCore import Qt
-from guitool.guitool_delegates import ComboDelegate, ButtonDelegate
-from guitool import qtype
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from guitool_ibeis.guitool_ibeis_delegates import ComboDelegate, ButtonDelegate
+from guitool_ibeis import qtype
 from six.moves import range, map
 import utool
 (print, rrr, profile) = utool.inject2(__name__)
@@ -388,8 +388,8 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool.guitool_tables
-        python -m guitool.guitool_tables --allexamples
+        python -m guitool_ibeis.guitool_ibeis_tables
+        python -m guitool_ibeis.guitool_ibeis_tables --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -1,4 +1,4 @@
-from guitool.__PYQT__.QtCore import Qt
+from guitool_ibeis.__PYQT__.QtCore import Qt
 import utool as ut
 import collections
 (print, rrr, profile) = ut.inject2(__name__)
@@ -122,8 +122,8 @@ def parse_window_type_and_flags(self):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool.qt_enums
-        python -m guitool.qt_enums --allexamples
+        python -m guitool_ibeis.qt_enums
+        python -m guitool_ibeis.qt_enums --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

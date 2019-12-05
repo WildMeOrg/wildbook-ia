@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__ import QtWidgets
-from guitool import api_item_view
-from guitool.guitool_decorators import signal_, slot_
+from guitool_ibeis.__PYQT__ import QtCore, QtGui
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis import api_item_view
+from guitool_ibeis.guitool_ibeis_decorators import signal_, slot_
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__, '[APITableView]', DEBUG=False)
@@ -60,14 +60,14 @@ class APITableView(API_VIEW_BASE):
         """ Header behavior
 
         CommandLine:
-            python -m guitool.api_item_widget --test-simple_api_item_widget --show
-            python -m guitool.api_table_view --test-_init_header_behavior --show
+            python -m guitool_ibeis.api_item_widget --test-simple_api_item_widget --show
+            python -m guitool_ibeis.api_table_view --test-_init_header_behavior --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from guitool.api_table_view import *  # NOQA
-            >>> import guitool
-            >>> guitool.ensure_qapp()
+            >>> from guitool_ibeis.api_table_view import *  # NOQA
+            >>> import guitool_ibeis
+            >>> guitool_ibeis.ensure_qapp()
             >>> view = APITableView()
             >>> view._init_header_behavior()
         """
@@ -115,14 +115,14 @@ class APITableView(API_VIEW_BASE):
     def keyPressEvent(view, event):
         """
         CommandLine:
-            python -m guitool.api_item_widget --test-simple_api_item_widget --show
-            python -m guitool.api_table_view --test-keyPressEvent --show
+            python -m guitool_ibeis.api_item_widget --test-simple_api_item_widget --show
+            python -m guitool_ibeis.api_table_view --test-keyPressEvent --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from guitool.api_table_view import *  # NOQA
-            >>> import guitool
-            >>> guitool.ensure_qapp()
+            >>> from guitool_ibeis.api_table_view import *  # NOQA
+            >>> import guitool_ibeis
+            >>> guitool_ibeis.ensure_qapp()
             >>> view = APITableView()
             >>> view._init_header_behavior()
         """

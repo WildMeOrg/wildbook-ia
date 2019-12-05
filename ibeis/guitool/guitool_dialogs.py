@@ -1,25 +1,25 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from guitool.__PYQT__ import QtWidgets  # NOQA
-from guitool.__PYQT__.QtCore import Qt
+from guitool_ibeis.__PYQT__ import QtCore, QtGui  # NOQA
+from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
+from guitool_ibeis.__PYQT__.QtCore import Qt
 import os
 from os.path import dirname
 import platform
 from utool import util_cache, util_path
 import utool as ut
-ut.noinject(__name__, '[guitool.dialogs]', DEBUG=False)
+ut.noinject(__name__, '[guitool_ibeis.dialogs]', DEBUG=False)
 
 
-SELDIR_CACHEID = 'guitool_selected_directory'
+SELDIR_CACHEID = 'guitool_ibeis_selected_directory'
 
 
-def _guitool_cache_write(key, val):
+def _guitool_ibeis_cache_write(key, val):
     """ Writes to global IBEIS cache """
     util_cache.global_cache_write(key, val, appname='ibeis')  # HACK, user should specify appname
 
 
-def _guitool_cache_read(key, **kwargs):
+def _guitool_ibeis_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
     return util_cache.global_cache_read(key, appname='ibeis', **kwargs)  # HACK, user should specify appname
 
@@ -56,12 +56,12 @@ def user_option(parent=None, msg='msg', title='user_option',
         str: reply
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-user_option
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-user_option
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool as gt
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> parent = None
         >>> msg = 'msg'
@@ -75,14 +75,14 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> result = str(reply)
         >>> print(result)
         >>> ut.quit_if_noshow()
-        >>> #gt.guitool_main.qtapp_loop()
+        >>> #gt.guitool_ibeis_main.qtapp_loop()
     """
     if ut.VERBOSE:
         print('[gt] user_option:\n %r: %s' % (title, msg))
     # Recall decision
     cache_id = title + msg
     if use_cache:
-        reply = _guitool_cache_read(cache_id, default=None)
+        reply = _guitool_ibeis_cache_read(cache_id, default=None)
         if reply is not None:
             return reply
     # Create message box
@@ -124,7 +124,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         raise
     # Remember decision if caching is on
     if use_cache and dontPrompt.isChecked():
-        _guitool_cache_write(cache_id, reply)
+        _guitool_ibeis_cache_write(cache_id, reply)
     # Close the message box
     del msgbox
     return reply
@@ -141,16 +141,16 @@ def user_input(parent=None, msg='msg', title='user_input', text=''):
         str:
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-user_input --show
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-user_input --show
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_input'
         >>> text = 'default text'
-        >>> import guitool as gt
+        >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> dpath = user_input(parent, msg, title, text)
         >>> result = str(dpath)
@@ -191,13 +191,13 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
         ?: qdlg
 
     CommandLine:
-        python -m guitool.guitool_dialogs newFileDialog --show
+        python -m guitool_ibeis.guitool_ibeis_dialogs newFileDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qtapp()
         >>> directory_ = '.'
         >>> _dialog_class_ = QtWidgets.QFileDialog
         >>> if ut.show_was_requested():
@@ -286,16 +286,16 @@ def select_directory(caption='Select Directory', directory=None,
         str: dpath
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-select_directory
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-select_directory
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qtapp()
         >>> # build test data
         >>> caption = 'Select Directory'
-        >>> directory = None  # os.path.dirname(guitool.__file__)
+        >>> directory = None  # os.path.dirname(guitool_ibeis.__file__)
         >>> # execute function
         >>> other_sidebar_dpaths = [os.path.dirname(ut.__file__)]
         >>> dpath = select_directory(caption, directory, other_sidebar_dpaths)
@@ -305,7 +305,7 @@ def select_directory(caption='Select Directory', directory=None,
     """
     print('[gt] select_directory(caption=%r, directory=%r)' % (caption, directory))
     if directory is None:
-        directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
+        directory_ = _guitool_ibeis_cache_read(SELDIR_CACHEID, default='.')
     else:
         directory_ = directory
     # hack to fix the dialog window on ubuntu
@@ -319,7 +319,7 @@ def select_directory(caption='Select Directory', directory=None,
         print('[gt] Cancel Select')
         return dpath
     else:
-        _guitool_cache_write(SELDIR_CACHEID, dirname(dpath))
+        _guitool_ibeis_cache_write(SELDIR_CACHEID, dirname(dpath))
     print('[gt] Selected Directory: %r' % dpath)
     return dpath
 
@@ -337,16 +337,16 @@ def select_directories(caption='Select Folder(s)', directory=None,
         str: dpath
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-select_directory
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-select_directory
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qtapp()
         >>> # build test data
         >>> caption = 'Select Directory'
-        >>> directory = None  # os.path.dirname(guitool.__file__)
+        >>> directory = None  # os.path.dirname(guitool_ibeis.__file__)
         >>> # execute function
         >>> other_sidebar_dpaths = [os.path.dirname(ut.__file__)]
         >>> dpath = select_directory(caption, directory, other_sidebar_dpaths)
@@ -356,7 +356,7 @@ def select_directories(caption='Select Folder(s)', directory=None,
     """
     print('[gt] select_directory(caption=%r, directory=%r)' % (caption, directory))
     if directory is None:
-        directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
+        directory_ = _guitool_ibeis_cache_read(SELDIR_CACHEID, default='.')
     else:
         directory_ = directory
     qdlg, dpath_list = newDirectoryDialog(caption, directory_, other_sidebar_dpaths,
@@ -368,7 +368,7 @@ def select_directories(caption='Select Folder(s)', directory=None,
         return dpath_list
     else:
         for dpath in dpath_list:
-            _guitool_cache_write(SELDIR_CACHEID, dirname(dpath))
+            _guitool_ibeis_cache_write(SELDIR_CACHEID, dirname(dpath))
     print('[gt] Selected Directories: %r' % dpath_list)
     return dpath_list
 
@@ -394,17 +394,17 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
         http://qt-project.org/doc/qt-4.8/qfiledialog.html
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-select_files
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-select_files
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qtapp()
         >>> # build test data
         >>> caption = 'Select Files'
         >>> name_filter = 'Python Files (*.py)'
-        >>> directory = os.path.dirname(guitool.__file__)
+        >>> directory = os.path.dirname(guitool_ibeis.__file__)
         >>> # execute function
         >>> other_sidebar_dpaths = [os.path.dirname(ut.__file__)]
         >>> dpath = select_files(caption, directory, name_filter, other_sidebar_dpaths, single_file=True)
@@ -414,7 +414,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
     """
     #print(caption)
     if directory is None:
-        directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
+        directory = _guitool_ibeis_cache_read(SELDIR_CACHEID, default='.')
     #qdlg = QtWidgets.QFileDialog()
     qdlg = newFileDialog(directory, other_sidebar_dpaths=[], use_sidebar_cwd=True)
     kwargs = {
@@ -429,7 +429,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
     qfile_list = response[0]
     file_list = list(map(str, qfile_list))
     print('[gt] Selected %d files' % len(file_list))
-    _guitool_cache_write(SELDIR_CACHEID, directory)
+    _guitool_ibeis_cache_write(SELDIR_CACHEID, directory)
     return file_list
 
 # Prevent messageboxes from being garbage collected
@@ -509,15 +509,15 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
     """ Make a non modal critical QtWidgets.QMessageBox.
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-msgbox
-        python -m guitool.guitool_dialogs --test-msgbox --show
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-msgbox
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-msgbox --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> from guitool.guitool_dialogs import _register_msgbox  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qtapp()
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import _register_msgbox  # NOQA
         >>> # build test data
         >>> msg = 'Hello World!'
         >>> detailed_msg = 'I have a detailed message for you.'
@@ -596,13 +596,13 @@ def popup_menu(widget, pos, context_options):
         tuple: (selection, actions)
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-popup_menu
-        python -m guitool.guitool_dialogs --test-popup_menu --show
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-popup_menu
+        python -m guitool_ibeis.guitool_ibeis_dialogs --test-popup_menu --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> import guitool
+        >>> from guitool_ibeis.guitool_ibeis_dialogs import *  # NOQA
+        >>> import guitool_ibeis
         >>> import plottool as pt
         >>> import functools
         >>> from plottool import interact_helpers as ih
@@ -633,13 +633,13 @@ def popup_menu(widget, pos, context_options):
         ...     ])
         ... ]
         >>> widget = fig.canvas
-        >>> pos = guitool.newQPoint(10, 10)
+        >>> pos = guitool_ibeis.newQPoint(10, 10)
         >>> # Hacky way to get a right click to span a context menu
         >>> def figure_clicked(event, fig=fig, context_options=context_options):
-        ...     import guitool
+        ...     import guitool_ibeis
         ...     import plottool as pt
         ...     from plottool import interact_helpers as ih
-        ...     pos = guitool.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
+        ...     pos = guitool_ibeis.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
         ...     widget = fig.canvas
         ...     (selection, actions) = popup_menu(widget, pos, context_options)
         ...     #print(str((selection, actions)))
@@ -707,9 +707,9 @@ def _getQtImageNameFilter():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool.guitool_dialogs
-        python -m guitool.guitool_dialogs --allexamples
-        python -m guitool.guitool_dialogs --allexamples --noface --nosrc
+        python -m guitool_ibeis.guitool_ibeis_dialogs
+        python -m guitool_ibeis.guitool_ibeis_dialogs --allexamples
+        python -m guitool_ibeis.guitool_ibeis_dialogs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

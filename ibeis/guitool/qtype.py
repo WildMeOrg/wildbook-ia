@@ -1,15 +1,15 @@
 from __future__ import absolute_import, division, print_function
-#from guitool.__PYQT__.QtCore import Qt
+#from guitool_ibeis.__PYQT__.QtCore import Qt
 import six
-from guitool.__PYQT__.QtCore import QLocale
+from guitool_ibeis.__PYQT__.QtCore import QLocale
 import utool as ut
 import uuid
 import numpy as np
-from guitool.__PYQT__ import QtGui
-from guitool.guitool_decorators import checks_qt_error
+from guitool_ibeis.__PYQT__ import QtGui
+from guitool_ibeis.guitool_ibeis_decorators import checks_qt_error
 #if six.PY2:
-#    from guitool.__PYQT__.QtCore import QString
-#    from guitool.__PYQT__.QtCore import QVariant
+#    from guitool_ibeis.__PYQT__.QtCore import QString
+#    from guitool_ibeis.__PYQT__.QtCore import QVariant
 #elif six.PY3:
 QVariant = None
 

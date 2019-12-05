@@ -6,17 +6,17 @@ TODO:
 
 """
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui, QVariantHack
-from guitool.__PYQT__.QtCore import Qt
-from guitool import qtype
-from guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
+from guitool_ibeis.__PYQT__ import QtCore, QtGui, QVariantHack
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from guitool_ibeis import qtype
+from guitool_ibeis.guitool_ibeis_decorators import checks_qt_error, signal_  # NOQA
 from six.moves import zip  # builtins  # NOQA
 #from utool._internal.meta_util_six import get_funcname
 import functools
 import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 import numpy as np
-from guitool import api_tree_node as _atn
+from guitool_ibeis import api_tree_node as _atn
 import cachetools
 
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
@@ -24,7 +24,7 @@ import cachetools
 #print, rrr, profile = ut.inject2(__name__)
 ut.noinject(__name__, '[APIItemModel]')
 
-#raise ImportError('refused to import guitool')
+#raise ImportError('refused to import guitool_ibeis')
 profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
@@ -370,7 +370,7 @@ class APIItemModel(API_MODEL_BASE):
                         values[np.isnan(values)] = -np.inf
                     elif type_ is str:
                         values = ut.replace_nones(values, '')
-                    import vtool as vt
+                    import vtool_ibeis as vt
                     sortx = vt.argsort_records([values, id_list], reverse=reverse)
                     # </NUMPY MULTIARRAY SORT>
                     nodes = ut.take(children, sortx)
@@ -1034,20 +1034,20 @@ def simple_thumbnail_widget():
     Very simple example to test thumbnails
 
     CommandLine:
-        python -m guitool.api_item_model --test-simple_thumbnail_widget  --show
+        python -m guitool_ibeis.api_item_model --test-simple_thumbnail_widget  --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import guitool
-        >>> from guitool.api_item_model import *  # NOQA
-        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> import guitool_ibeis
+        >>> from guitool_ibeis.api_item_model import *  # NOQA
+        >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_thumbnail_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
-        >>> guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
+        >>> guitool_ibeis.qtapp_loop(wgt, frequency=100, init_signals=True)
     """
-    import guitool
-    guitool.ensure_qapp()
+    import guitool_ibeis
+    guitool_ibeis.ensure_qapp()
     col_name_list = ['rowid', 'image_name', 'thumb']
     col_types_dict = {
         'thumb': 'PIXMAP',
@@ -1075,24 +1075,24 @@ def simple_thumbnail_widget():
     col_width_dict = {}
     col_bgrole_dict = {}
 
-    api = guitool.CustomAPI(
+    api = guitool_ibeis.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
     headers = api.make_headers(tblnice='Simple Example')
 
-    wgt = guitool.APIItemWidget()
+    wgt = guitool_ibeis.APIItemWidget()
     wgt.change_headers(headers)
-    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    #guitool_ibeis.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool.api_item_model
-        python -m guitool.api_item_model --allexamples
-        python -m guitool.api_item_model --allexamples --noface --nosrc
+        python -m guitool_ibeis.api_item_model
+        python -m guitool_ibeis.api_item_model --allexamples
+        python -m guitool_ibeis.api_item_model --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

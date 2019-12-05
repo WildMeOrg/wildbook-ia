@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import guitool as gt
+import guitool_ibeis as gt
 import plottool as pt
 import matplotlib as mpl
-from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
+from guitool_ibeis.__PYQT__.QtCore import Qt
+from guitool_ibeis.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
 from plottool import interact_helpers as ih
 from matplotlib.backend_bases import MouseEvent, KeyEvent, PickEvent
 
-from guitool import __PYQT__
+from guitool_ibeis import __PYQT__
 if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
     import matplotlib.backends.backend_qt4agg as backend_qt
 else:
@@ -82,8 +82,8 @@ class MatplotlibWidget(gt.GuitoolWidget):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool.mpl_widget
-        python -m guitool.mpl_widget --allexamples
+        python -m guitool_ibeis.mpl_widget
+        python -m guitool_ibeis.mpl_widget --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

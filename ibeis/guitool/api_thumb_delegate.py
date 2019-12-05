@@ -4,12 +4,12 @@ CommandLine:
     python -m ibeis.gui.inspect_gui --test-test_review_widget --show --verbose-thumb
 """
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtGui, QtCore
-from guitool.__PYQT__ import QtWidgets  # NOQA
+from guitool_ibeis.__PYQT__ import QtGui, QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
 import six
-import vtool as vt
+import vtool_ibeis as vt
 from os.path import exists
-from vtool import geometry
+from vtool_ibeis import geometry
 import utool as ut
 ut.noinject(__name__, '[APIThumbDelegate]')
 
@@ -59,20 +59,20 @@ def read_thumb_as_qimg(thumb_path):
         tuple: (qimg, width, height)
 
     CommandLine:
-        python -m guitool.api_thumb_delegate --test-read_thumb_as_qimg --show
+        python -m guitool_ibeis.api_thumb_delegate --test-read_thumb_as_qimg --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_thumb_delegate import *  # NOQA
-        >>> import guitool
+        >>> from guitool_ibeis.api_thumb_delegate import *  # NOQA
+        >>> import guitool_ibeis
         >>> # build test data
         >>> thumb_path = ut.grab_test_imgpath('carl.jpg')
         >>> # execute function
-        >>> guitool.ensure_qtapp()
+        >>> guitool_ibeis.ensure_qtapp()
         >>> (qimg) = ut.memprof(read_thumb_as_qimg)(thumb_path)
         >>> if ut.show_was_requested():
         >>>    lbl = test_show_qimg(qimg)
-        >>>    guitool.qtapp_loop()
+        >>>    guitool_ibeis.qtapp_loop()
         >>> # verify results
         >>> print(qimg)
 
@@ -420,11 +420,11 @@ def view_would_not_be_visible(view, offset):
 def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
     r"""
     CommandLine:
-        python -m guitool.api_thumb_delegate --test-get_thread_thumb_info
+        python -m guitool_ibeis.api_thumb_delegate --test-get_thread_thumb_info
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_thumb_delegate import *  # NOQA
+        >>> from guitool_ibeis.api_thumb_delegate import *  # NOQA
         >>> # build test data
         >>> bbox_list = [(100, 50, 400, 200)]
         >>> theta_list = [0]
@@ -450,11 +450,11 @@ def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
     Makes thumbnail with overlay. Called in thead
 
     CommandLine:
-        python -m guitool.api_thumb_delegate --test-make_thread_thumb --show
+        python -m guitool_ibeis.api_thumb_delegate --test-make_thread_thumb --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool.api_thumb_delegate import *  # NOQA
+        >>> from guitool_ibeis.api_thumb_delegate import *  # NOQA
         >>> import plottool as pt
         >>> # build test data
         >>> img_path = ut.grab_test_imgpath('carl.jpg')
@@ -602,30 +602,30 @@ def simple_thumbnail_widget():
     Very simple example to test thumbnails
 
     CommandLine:
-        python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show --verbthumb
-        python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show --tb
+        python -m guitool_ibeis.api_thumb_delegate --test-simple_thumbnail_widget  --show --verbthumb
+        python -m guitool_ibeis.api_thumb_delegate --test-simple_thumbnail_widget  --show --tb
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool.api_thumb_delegate import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> from guitool_ibeis.api_thumb_delegate import *  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_thumbnail_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
-        >>> guitool.qtapp_loop(wgt, frequency=100)
+        >>> guitool_ibeis.qtapp_loop(wgt, frequency=100)
     """
-    import guitool
-    guitool.ensure_qapp()
+    import guitool_ibeis
+    guitool_ibeis.ensure_qapp()
     col_name_list = ['rowid', 'image_name', 'thumb']
     col_types_dict = {
         'thumb': 'PIXMAP',
     }
 
-    guitool_test_thumbdir = ut.ensure_app_resource_dir('guitool', 'thumbs')
-    ut.delete(guitool_test_thumbdir)
-    ut.ensuredir(guitool_test_thumbdir)
-    import vtool as vt
+    guitool_ibeis_test_thumbdir = ut.ensure_app_resource_dir('guitool_ibeis', 'thumbs')
+    ut.delete(guitool_ibeis_test_thumbdir)
+    ut.ensuredir(guitool_ibeis_test_thumbdir)
+    import vtool_ibeis as vt
     from os.path import join
 
     #imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
@@ -636,7 +636,7 @@ def simple_thumbnail_widget():
     # num_imgs = list(range(500))
 
     def thread_func(would_be, id_):
-        from vtool.fontdemo import get_text_test_img
+        from vtool_ibeis.fontdemo import get_text_test_img
         get_text_test_img(id_)
 
     def thumb_getter(id_, thumbsize=128):
@@ -656,7 +656,7 @@ def simple_thumbnail_widget():
         else:
             img_path = ut.grab_test_imgpath(id_, verbose=False)
             img_size = vt.open_image_size(img_path)
-        thumb_path = join(guitool_test_thumbdir, ut.hashstr(str(img_path)) + '.jpg')
+        thumb_path = join(guitool_ibeis_test_thumbdir, ut.hashstr(str(img_path)) + '.jpg')
         if id_ == 'carl.jpg':
             bbox_list = [(10, 10, 200, 200)]
             theta_list = [0]
@@ -696,25 +696,25 @@ def simple_thumbnail_widget():
     col_width_dict = {}
     col_bgrole_dict = {}
 
-    api = guitool.CustomAPI(
+    api = guitool_ibeis.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
     headers = api.make_headers(tblnice='Utool Test Images')
 
-    wgt = guitool.APIItemWidget()
+    wgt = guitool_ibeis.APIItemWidget()
     wgt.change_headers(headers)
     wgt.resize(600, 400)
-    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    #guitool_ibeis.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool.api_thumb_delegate
-        python -m guitool.api_thumb_delegate --allexamples
-        python -m guitool.api_thumb_delegate --allexamples --noface --nosrc
+        python -m guitool_ibeis.api_thumb_delegate
+        python -m guitool_ibeis.api_thumb_delegate --allexamples
+        python -m guitool_ibeis.api_thumb_delegate --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

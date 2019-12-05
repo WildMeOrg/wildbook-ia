@@ -3,12 +3,12 @@
 terms of development time)
 """
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore
-from guitool.__PYQT__ import QtWidgets
-from guitool.api_item_model import APIItemModel
-from guitool.api_table_view import APITableView
-from guitool.api_tree_view import APITreeView
-#from guitool import guitool_components as comp
+from guitool_ibeis.__PYQT__ import QtCore
+from guitool_ibeis.__PYQT__ import QtWidgets
+from guitool_ibeis.api_item_model import APIItemModel
+from guitool_ibeis.api_table_view import APITableView
+from guitool_ibeis.api_tree_view import APITreeView
+#from guitool_ibeis import guitool_ibeis_components as comp
 from functools import partial
 from six.moves import range
 import utool as ut
@@ -26,20 +26,20 @@ def simple_api_item_widget():
     Very simple example of basic APIItemWidget widget with CustomAPI
 
     CommandLine:
-        python -m guitool.api_item_widget --test-simple_api_item_widget
-        python -m guitool.api_item_widget --test-simple_api_item_widget --show
+        python -m guitool_ibeis.api_item_widget --test-simple_api_item_widget
+        python -m guitool_ibeis.api_item_widget --test-simple_api_item_widget --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_item_widget import *  # NOQA
-        >>> import guitool as gt
+        >>> from guitool_ibeis.api_item_widget import *  # NOQA
+        >>> import guitool_ibeis as gt
         >>> gt.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_item_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
         >>> gt.qtapp_loop(wgt, frequency=100)
     """
-    import guitool as gt
+    import guitool_ibeis as gt
     gt.ensure_qapp()
     col_getter_dict = {
         'col1': [1, 2, 3],
@@ -80,21 +80,21 @@ def simple_api_tree_widget():
     Minimal example of a tree based api widget
 
     CommandLine:
-        python -m guitool.api_item_widget --test-simple_api_tree_widget
-        python -m guitool.api_item_widget --test-simple_api_tree_widget --show
+        python -m guitool_ibeis.api_item_widget --test-simple_api_tree_widget
+        python -m guitool_ibeis.api_item_widget --test-simple_api_tree_widget --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_item_widget import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> from guitool_ibeis.api_item_widget import *  # NOQA
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_tree_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
-        >>> guitool.qtapp_loop(wgt, frequency=100)
+        >>> guitool_ibeis.qtapp_loop(wgt, frequency=100)
     """
-    import guitool
-    guitool.ensure_qapp()
+    import guitool_ibeis
+    guitool_ibeis.ensure_qapp()
     col_name_list = ['name', 'num_annots', 'annots']
     col_getter_dict = {
         'name': ['fred', 'sue', 'tom', 'mary', 'paul'],
@@ -120,7 +120,7 @@ def simple_api_tree_widget():
     }
     sortby = 'name'
 
-    api = guitool.CustomAPI(
+    api = guitool_ibeis.CustomAPI(
         col_name_list=col_name_list,
         col_getter_dict=col_getter_dict,
         sortby=sortby,
@@ -129,9 +129,9 @@ def simple_api_tree_widget():
     )
     headers = api.make_headers(tblnice='Tree Example')
 
-    wgt = guitool.APIItemWidget(view_class=APITreeView)
+    wgt = guitool_ibeis.APIItemWidget(view_class=APITreeView)
     wgt.change_headers(headers)
-    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    #guitool_ibeis.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
 
 
@@ -199,7 +199,7 @@ class CustomAPI(object):
                             strict=False,
                             **kwargs):
         """
-        parses simple lists into information suitable for making guitool headers
+        parses simple lists into information suitable for making guitool_ibeis headers
         """
         # Unpack the column tuples into names, getters, and types
         if not strict:
@@ -311,7 +311,7 @@ class CustomAPI(object):
         """ universal input (really just accept list or tuple as input to a list
         only function)
 
-        Move to guitool
+        Move to guitool_ibeis
         """
         if isinstance(input_, (tuple, list)):
             output_ = list(map(func, input_))
@@ -532,9 +532,9 @@ class APIItemWidget(WIDGET_BASE):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool.api_item_widget
-        python -m guitool.api_item_widget --allexamples
-        python -m guitool.api_item_widget --allexamples --noface --nosrc
+        python -m guitool_ibeis.api_item_widget
+        python -m guitool_ibeis.api_item_widget --allexamples
+        python -m guitool_ibeis.api_item_widget --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #import random
 import time
 import utool as ut
-from guitool.__PYQT__ import QtGui, QtCore
+from guitool_ibeis.__PYQT__ import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 #from matplotlib.backends import qt_compat
@@ -30,14 +30,14 @@ class QtAbstractMplInteraction(BASE):
         dpi (int): (default = 100)
 
     CommandLine:
-        python -m guitool.mpl_embed --exec-QtAbstractMplInteraction --show
+        python -m guitool_ibeis.mpl_embed --exec-QtAbstractMplInteraction --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool.mpl_embed import *  # NOQA
+        >>> from guitool_ibeis.mpl_embed import *  # NOQA
         >>> import plottool as pt
-        >>> import guitool
-        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
         >>> self = QtAbstractMplInteraction()
         >>> parent = None
         >>> width = 5
@@ -51,7 +51,7 @@ class QtAbstractMplInteraction(BASE):
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()
-        >>> guitool.qtapp_loop(self, frequency=100, init_signals=True)
+        >>> guitool_ibeis.qtapp_loop(self, frequency=100, init_signals=True)
 
     """
 
@@ -96,8 +96,8 @@ class QtAbstractMplInteraction(BASE):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m guitool.mpl_embed
-        python -m guitool.mpl_embed --allexamples
+        python -m guitool_ibeis.mpl_embed
+        python -m guitool_ibeis.mpl_embed --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
