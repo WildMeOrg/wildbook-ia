@@ -8,7 +8,7 @@ from guitool_ibeis.__PYQT__ import QtWidgets
 from guitool_ibeis.api_item_model import APIItemModel
 from guitool_ibeis.api_table_view import APITableView
 from guitool_ibeis.api_tree_view import APITreeView
-#from guitool_ibeis import guitool_ibeis_components as comp
+#from guitool_ibeis import guitool_components as comp
 from functools import partial
 from six.moves import range
 import utool as ut
@@ -35,6 +35,7 @@ def simple_api_item_widget():
         >>> import guitool_ibeis as gt
         >>> gt.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_item_widget()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> wgt.show()
         >>> gt.qtapp_loop(wgt, frequency=100)
@@ -89,6 +90,7 @@ def simple_api_tree_widget():
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_tree_widget()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> wgt.show()
         >>> guitool_ibeis.qtapp_loop(wgt, frequency=100)

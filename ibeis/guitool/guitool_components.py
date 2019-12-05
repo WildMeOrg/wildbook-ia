@@ -7,7 +7,7 @@ from guitool_ibeis.__PYQT__ import QtWidgets
 from guitool_ibeis.__PYQT__.QtCore import Qt
 from guitool_ibeis.__PYQT__._internal import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
-from guitool_ibeis import guitool_ibeis_dialogs
+from guitool_ibeis import guitool_dialogs
 import weakref
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -39,11 +39,11 @@ def rectifyQtEnum(type_, value, default=ut.NoParam):
     TODO: move to qt_enums?
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components rectifyQtEnum
+        python -m guitool_ibeis.guitool_components rectifyQtEnum
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> newvals = []
         >>> newvals.append(rectifyQtEnum('Orientation', 'vert'))
         >>> newvals.append(rectifyQtEnum('Orientation', 'Horizontal'))
@@ -389,11 +389,11 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         level (int): (default = 0)
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components ProgHook --show  --progtext
+        python -m guitool_ibeis.guitool_components ProgHook --show  --progtext
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> app = gt.ensure_qtapp()[0]
         >>> parent = newWidget()
@@ -423,6 +423,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> subsubhooks[0](2, 3, 'special part')
         >>> subsubhooks[0](3, 3, 'other part')
         >>> app.processEvents()
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()
@@ -532,7 +533,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+            >>> from guitool_ibeis.guitool_components import *  # NOQA
             >>> import guitool_ibeis as gt
             >>> app = gt.ensure_qtapp()[0]
             >>> hook = ProgHook(None)
@@ -694,16 +695,17 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         QProgressBar: progressBar
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components --test-newProgressBar:0
-        python -m guitool_ibeis.guitool_ibeis_components --test-newProgressBar:0 --show
-        python -m guitool_ibeis.guitool_ibeis_components --test-newProgressBar:1
-        python -m guitool_ibeis.guitool_ibeis_components --test-newProgressBar:2
-        python -m guitool_ibeis.guitool_ibeis_components --test-newProgressBar:1 --progtext
-        python -m guitool_ibeis.guitool_ibeis_components --test-newProgressBar:2 --progtext
+        python -m guitool_ibeis.guitool_components --test-newProgressBar:0
+        python -m guitool_ibeis.guitool_components --test-newProgressBar:0 --show
+        python -m guitool_ibeis.guitool_components --test-newProgressBar:1
+        python -m guitool_ibeis.guitool_components --test-newProgressBar:2
+        python -m guitool_ibeis.guitool_components --test-newProgressBar:1 --progtext
+        python -m guitool_ibeis.guitool_components --test-newProgressBar:2 --progtext
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> # build test data
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qtapp()
@@ -722,12 +724,14 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> progiter = ut.ProgIter(range(100), freq=1, autoadjust=False, prog_hook=progressBar.utool_prog_hook)
         >>> results1 = [ut.get_nth_prime_bruteforce(300) for x in progiter]
         >>> # verify results
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> guitool_ibeis.qtapp_loop(freq=10)
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> # build test data
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qtapp()
@@ -749,12 +753,14 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> hook = progressBar.utool_prog_hook
         >>> complex_tasks(hook)
         >>> # verify results
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> guitool_ibeis.qtapp_loop(freq=10)
 
     Example:
         >>> # GUI_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> # xdoctest: +REQUIRES(--gui)
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> # build test data
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qtapp()
@@ -783,12 +789,13 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> hook = progressBar.utool_prog_hook
         >>> complex_tasks(hook)
         >>> # verify results
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> guitool_ibeis.qtapp_loop(freq=10)
 
 
     Ignore:
-        from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        from guitool_ibeis.guitool_components import *  # NOQA
         # build test data
         import guitool_ibeis
         guitool_ibeis.ensure_qtapp()
@@ -814,7 +821,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     progressBar.setFormat('%p%')
     progressBar.setVisible(visible)
     progressBar.setMinimumWidth(600)
-    setattr(progressBar, '_guitool_ibeis_sizepolicy', sizePolicy)
+    setattr(progressBar, '_guitool_sizepolicy', sizePolicy)
     if visible:
         # hack to make progres bar show up immediately
         import guitool_ibeis
@@ -825,7 +832,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
 
 
 def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
-    from guitool_ibeis.guitool_ibeis_misc import QLoggedOutput
+    from guitool_ibeis.guitool_misc import QLoggedOutput
     outputLog = QLoggedOutput(parent, visible=visible)
     sizePolicy = newSizePolicy(outputLog,
                                #verticalSizePolicy=QSizePolicy.Preferred,
@@ -836,7 +843,7 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     #outputLog.setVisible(visible)
     #outputLog.setFontPointSize(8)
     outputLog.setFont(newFont('Courier New', pointSize))
-    setattr(outputLog, '_guitool_ibeis_sizepolicy', sizePolicy)
+    setattr(outputLog, '_guitool_sizepolicy', sizePolicy)
     return outputLog
 
 
@@ -857,11 +864,11 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={},
         ?: label
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components --exec-newLabel --show
+        python -m guitool_ibeis.guitool_components --exec-newLabel --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qtapp()
         >>> parent = None
@@ -870,6 +877,7 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={},
         >>> gpath = ut.grab_test_imgpath('lena.png')
         >>> fontkw = {}
         >>> label = newLabel(parent, text, align, gpath, fontkw)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> label.show()
         >>> guitool_ibeis.qtapp_loop(qwin=label, freq=10)
@@ -971,7 +979,7 @@ def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
     #else:
     #    outputEdit.setMinimumHeight(0)
 
-    # setattr(outputEdit, '_guitool_ibeis_sizepolicy', sizePolicy)
+    # setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
     return outputEdit
 
 
@@ -984,7 +992,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> parent = None
         >>> text = None
         >>> visible = True
@@ -1019,7 +1027,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     #outputEdit.setAcceptRichText(False)
     #outputEdit.setVisible(visible)
     adjust_font(widget, **fontkw)
-    # setattr(widget, '_guitool_ibeis_sizepolicy', sizePolicy)
+    # setattr(widget, '_guitool_sizepolicy', sizePolicy)
     return widget
 
 
@@ -1032,15 +1040,16 @@ class TagEdit(QtWidgets.QLineEdit):
             editor_mode (str): (default = 'line')
 
         CommandLine:
-            python -m guitool_ibeis.guitool_ibeis_components TagEdit
+            python -m guitool_ibeis.guitool_components TagEdit
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+            >>> from guitool_ibeis.guitool_components import *  # NOQA
             >>> import guitool_ibeis as gt
             >>> gt.ensure_qtapp()
             >>> self = TagEdit(tags=['a', 'b', 'c'])
             >>> self.show()
+            >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
             >>> gt.qtapp_loop(qwin=self, freq=10)
 
@@ -1098,7 +1107,7 @@ def _inject_new_widget_methods(self):
             adjustSizePolicy(widget, vStretch=vStretch)
             # sizePolicy = newSizePolicy(widget, verticalStretch=verticalStretch)
             # widget.setSizePolicy(sizePolicy)
-            # setattr(widget, '_guitool_ibeis_sizepolicy', sizePolicy)
+            # setattr(widget, '_guitool_sizepolicy', sizePolicy)
             return widget
         return new_widget_maker
 
@@ -1286,11 +1295,11 @@ def newSpacer(w=0, h=0, hPolicy=None, vPolicy=None):
 class GuitoolWidget(WIDGET_BASE):
     """
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components GuitoolWidget --show
+        python -m guitool_ibeis.guitool_components GuitoolWidget --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> ut.exec_funckw(newWidget, globals())
@@ -1303,6 +1312,7 @@ class GuitoolWidget(WIDGET_BASE):
         >>> #widget.addRow('input 2', gt.newComboBox(widget, ['one', 'two']))
         >>> widget.show()
         >>> widget.resize(int(ut.PHI * 500), 500)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=widget, freq=10)
     """
@@ -1322,13 +1332,13 @@ class GuitoolWidget(WIDGET_BASE):
         #                           verticalStretch=verticalStretch,
         #                           horizontalStretch=horizontalStretch)
         #self.setSizePolicy(sizePolicy)
-        #setattr(self, '_guitool_ibeis_sizepolicy', sizePolicy)
+        #setattr(self, '_guitool_sizepolicy', sizePolicy)
         if orientation is not None:
             ori = orientation
         layout = newLayout(parent=self, ori=ori, spacing=spacing,
                            margin=margin)
         self.setLayout(layout)
-        self._guitool_ibeis_layout = layout
+        self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
         _inject_new_widget_methods(self)
         self.initialize(**kwargs)
@@ -1344,7 +1354,7 @@ class GuitoolWidget(WIDGET_BASE):
         return spacer
 
     def set_all_margins(self, margin):
-        layout = self._guitool_ibeis_layout
+        layout = self._guitool_layout
         if hasattr(layout, 'setMargin'):
             layout.setMargin(margin)
         else:
@@ -1373,7 +1383,7 @@ class GuitoolWidget(WIDGET_BASE):
         pass
 
     def addLayout(self, *args, **kwargs):
-        return self._guitool_ibeis_layout.addLayout(*args, **kwargs)
+        return self._guitool_layout.addLayout(*args, **kwargs)
 
     def closeEvent(self, event):
         self.closed.emit()
@@ -1489,11 +1499,11 @@ class ConfigConfirmWidget(GuitoolWidget):
     """
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components ConfigConfirmWidget --show
+        python -m guitool_ibeis.guitool_components ConfigConfirmWidget --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis
         >>> import dtool
         >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
@@ -1509,6 +1519,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         >>>     config=config)
         >>> #dlg.resize(700, 500)
         >>> self = dlg.widget
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> dlg.show()
@@ -1573,7 +1584,7 @@ class ConfigConfirmWidget(GuitoolWidget):
             self.button_row.setSizePolicy(newSizePolicy(
                 None, QtWidgets.QSizePolicy.Expanding,
                 QtWidgets.QSizePolicy.Maximum))
-            self.button_row._guitool_ibeis_layout.setAlignment(Qt.AlignBottom)
+            self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
             if options is None:
                 options = ['Confirm']
                 if default is None:
@@ -1772,19 +1783,20 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
        QtWidgets.QPushButton
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components --exec-newButton
-        python -m guitool_ibeis.guitool_ibeis_components --test-newButton
-        python -m guitool_ibeis.guitool_ibeis_components newButton --show
+        python -m guitool_ibeis.guitool_components --exec-newButton
+        python -m guitool_ibeis.guitool_components --test-newButton
+        python -m guitool_ibeis.guitool_components newButton --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> exec(ut.execstr_funckw(newButton), globals())
         >>> button = newButton(text='button')
         >>> result = ('button = %s' % (ut.repr2(button),))
         >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=button, freq=10)
     """
@@ -1869,11 +1881,11 @@ def newComboBox(parent=None, options=None, changed=None, default=None,
         QtWidgets.QComboBox: combo
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components --test-newComboBox --show
+        python -m guitool_ibeis.guitool_components --test-newComboBox --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> exec(ut.execstr_funckw(newComboBox), globals())
@@ -1882,6 +1894,7 @@ def newComboBox(parent=None, options=None, changed=None, default=None,
         >>> combo = newComboBox(parent, options)
         >>> result = str(combo)
         >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> combo.show()
         >>> gt.qtapp_loop(qwin=combo, freq=10)
@@ -2018,11 +2031,11 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False,
     wrapper around QtWidgets.QCheckBox
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components newCheckBox
+        python -m guitool_ibeis.guitool_components newCheckBox
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> app = gt.ensure_qtapp()[0]
         >>> parent = newWidget()
@@ -2033,6 +2046,7 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False,
         >>>                             direction='LeftToRight')
         >>> parent.show()
         >>> parent.resize(600, 40)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> gt.print_widget_heirarchy(cb1)
         >>> gt.qtapp_loop(qwin=parent, freq=10)
@@ -2143,7 +2157,7 @@ def layoutSplitter(splitter):
 
 def msg_event(title, msg):
     """ Returns a message event slot """
-    return lambda: guitool_ibeis_dialogs.msgbox(msg=msg, title=title)
+    return lambda: guitool_dialogs.msgbox(msg=msg, title=title)
 
 
 class Spoiler(WIDGET_BASE):
@@ -2153,11 +2167,11 @@ class Spoiler(WIDGET_BASE):
         http://stackoverflow.com/questions/32476006/how-to-make-an-expandable-collapsable-section-widget-in-qt
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components Spoiler --show
+        python -m guitool_ibeis.guitool_components Spoiler --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> # build test data
         >>> import guitool_ibeis
         >>> import guitool_ibeis as gt
@@ -2185,6 +2199,7 @@ class Spoiler(WIDGET_BASE):
         >>> widget1.layout().setAlignment(Qt.AlignBottom)
         >>> widget1.show()
         >>> #widget1.resize(int(ut.PHI * 500), 500)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=widget1, freq=10)
     """
@@ -2498,18 +2513,18 @@ class FlowLayout(QtWidgets.QLayout):
         https://gist.github.com/Cysu/7461066
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components FlowLayout
+        python -m guitool_ibeis.guitool_components FlowLayout
 
-    Example:
+    Ignore:
         >>> import sys
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> app = gt.ensure_qtapp()[0]
         >>> #
         >>> class Window(QtWidgets.QWidget):
         >>>     def __init__(self):
         >>>         super(Window, self).__init__()
-        >>> #
+        >>>         #
         >>>         flowLayout = FlowLayout()
         >>>         #flowLayout.setLayoutDirection(Qt.RightToLeft)
         >>>         flowLayout.addWidget(QtWidgets.QPushButton("Short"))
@@ -2518,9 +2533,8 @@ class FlowLayout(QtWidgets.QLayout):
         >>>         flowLayout.addWidget(QtWidgets.QPushButton("More text"))
         >>>         flowLayout.addWidget(QtWidgets.QPushButton("Even longer button text"))
         >>>         self.setLayout(flowLayout)
-        >>> #
+        >>>         #
         >>>         self.setWindowTitle("Flow Layout")
-        >>> #
         >>> mainWin = Window()
         >>> mainWin.show()
         >>> gt.qtapp_loop(freq=10)
@@ -2631,11 +2645,11 @@ class FlowLayout(QtWidgets.QLayout):
 class ComboRadioHybrid(GuitoolWidget):
     """
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components ComboRadioHybrid --show
+        python -m guitool_ibeis.guitool_components ComboRadioHybrid --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_components import *  # NOQA
+        >>> from guitool_ibeis.guitool_components import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> gt.ensure_qtapp()
         >>> parent = None
@@ -2644,6 +2658,7 @@ class ComboRadioHybrid(GuitoolWidget):
         >>> self = ComboRadioHybrid(parent=parent, options=options)
         >>> self.setCurrentValue('black')
         >>> #self.print_widget_heirarchy(attrs=['sizePolicy'])
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> self.show()
         >>> print(self.currentText())
@@ -2769,9 +2784,9 @@ class ComboRadioHybrid(GuitoolWidget):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_components
-        python -m guitool_ibeis.guitool_ibeis_components --allexamples
-        python -m guitool_ibeis.guitool_ibeis_components --allexamples --noface --nosrc
+        python -m guitool_ibeis.guitool_components
+        python -m guitool_ibeis.guitool_components --allexamples
+        python -m guitool_ibeis.guitool_components --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

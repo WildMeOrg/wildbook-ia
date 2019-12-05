@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from guitool_ibeis.__PYQT__ import QtGui, QtCore  # NOQA
-#from guitool_ibeis import guitool_ibeis_components
+#from guitool_ibeis import guitool_components
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
 ut.noinject(__name__, '[api_timestamp_delegate]', DEBUG=False)

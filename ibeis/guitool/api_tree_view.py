@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from guitool_ibeis.__PYQT__ import QtCore
 from guitool_ibeis.__PYQT__ import GUITOOL_PYQT_VERSION
 from guitool_ibeis.__PYQT__ import QtWidgets
-from guitool_ibeis.guitool_ibeis_decorators import signal_, slot_
+from guitool_ibeis.guitool_decorators import signal_, slot_
 import utool as ut
 from guitool_ibeis import api_item_view
 
@@ -40,7 +40,7 @@ class APITreeView(API_VIEW_BASE):
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
-        #view.cornerButton = guitool_ibeis_components.newButton(view)
+        #view.cornerButton = guitool_components.newButton(view)
         #view.setCornerWidget(view.cornerButton)
         view._init_api_item_view()
 
@@ -133,6 +133,7 @@ def testdata_tree_view():
         >>> view = wgt.view
         >>> rows = view.selectedRows()
         >>> print('rows = %r' % (rows,))
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=wgt)
     """

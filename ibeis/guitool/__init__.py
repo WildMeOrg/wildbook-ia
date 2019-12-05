@@ -16,9 +16,9 @@ ut.noinject(__name__, '[guitool_ibeis.__init__]')
 #    raise
 #    #pass
 
-#print('__guitool_ibeis__1')
+#print('__guitool__1')
 from guitool_ibeis import __PYQT__
-#print('__guitool_ibeis__2')
+#print('__guitool__2')
 
 from guitool_ibeis import api_item_model
 from guitool_ibeis import api_table_view
@@ -26,13 +26,13 @@ from guitool_ibeis import api_tree_view
 from guitool_ibeis import api_item_widget
 from guitool_ibeis import stripe_proxy_model
 
-from guitool_ibeis import guitool_ibeis_tables
-from guitool_ibeis import guitool_ibeis_dialogs
-from guitool_ibeis import guitool_ibeis_decorators
-from guitool_ibeis import guitool_ibeis_delegates
-from guitool_ibeis import guitool_ibeis_components
-from guitool_ibeis import guitool_ibeis_main
-from guitool_ibeis import guitool_ibeis_misc
+from guitool_ibeis import guitool_tables
+from guitool_ibeis import guitool_dialogs
+from guitool_ibeis import guitool_decorators
+from guitool_ibeis import guitool_delegates
+from guitool_ibeis import guitool_components
+from guitool_ibeis import guitool_main
+from guitool_ibeis import guitool_misc
 from guitool_ibeis import qtype
 
 import utool
@@ -42,32 +42,32 @@ print, rrr, profile = utool.inject2(__name__, '[guitool_ibeis]')
 def reload_subs():
     """Reloads utool and submodules """
     rrr()
-    if hasattr(guitool_ibeis_tables, 'rrr'):
-        guitool_ibeis_tables.rrr()
-    if hasattr(guitool_ibeis_dialogs, 'rrr'):
-        guitool_ibeis_dialogs.rrr()
-    if hasattr(guitool_ibeis_decorators, 'rrr'):
-        guitool_ibeis_decorators.rrr()
-    if hasattr(guitool_ibeis_main, 'rrr'):
-        guitool_ibeis_main.rrr()
-    if hasattr(guitool_ibeis_misc, 'rrr'):
-        guitool_ibeis_misc.rrr()
+    if hasattr(guitool_tables, 'rrr'):
+        guitool_tables.rrr()
+    if hasattr(guitool_dialogs, 'rrr'):
+        guitool_dialogs.rrr()
+    if hasattr(guitool_decorators, 'rrr'):
+        guitool_decorators.rrr()
+    if hasattr(guitool_main, 'rrr'):
+        guitool_main.rrr()
+    if hasattr(guitool_misc, 'rrr'):
+        guitool_misc.rrr()
     if hasattr(api_item_model, 'rrr'):
         api_item_model.rrr()
     if hasattr(qtype, 'rrr'):
         qtype.rrr()
-    if hasattr(guitool_ibeis_components, 'rrr'):
-        guitool_ibeis_components.rrr()
+    if hasattr(guitool_components, 'rrr'):
+        guitool_components.rrr()
 
 rrrr = reload_subs
 
 
 IMPORT_TUPLES = [
-    ('guitool_ibeis_main', None),
-    ('guitool_ibeis_components', None),
-    ('guitool_ibeis_dialogs', None),
-    ('guitool_ibeis_decorators', None),
-    ('guitool_ibeis_misc', None),
+    ('guitool_main', None),
+    ('guitool_components', None),
+    ('guitool_dialogs', None),
+    ('guitool_decorators', None),
+    ('guitool_misc', None),
     ('api_item_model', None),
     ('api_tree_view', None),
     ('api_table_view', None),
@@ -103,13 +103,13 @@ else:
     DOELSE = True
 
 # This screws up dynamic_import if it is placed before
-from guitool_ibeis.guitool_ibeis_tables import *
-from guitool_ibeis.guitool_ibeis_dialogs import *
-from guitool_ibeis.guitool_ibeis_decorators import *
-from guitool_ibeis.guitool_ibeis_delegates import *
-from guitool_ibeis.guitool_ibeis_components import *
-from guitool_ibeis.guitool_ibeis_main import *
-from guitool_ibeis.guitool_ibeis_misc import *
+from guitool_ibeis.guitool_tables import *
+from guitool_ibeis.guitool_dialogs import *
+from guitool_ibeis.guitool_decorators import *
+from guitool_ibeis.guitool_delegates import *
+from guitool_ibeis.guitool_components import *
+from guitool_ibeis.guitool_main import *
+from guitool_ibeis.guitool_misc import *
 from guitool_ibeis.api_item_model import *
 from guitool_ibeis.api_table_view import *
 from guitool_ibeis.api_tree_view import *
@@ -122,25 +122,25 @@ if DOELSE:
     pass
     # <AUTOGEN_INIT>
 
-    from guitool_ibeis import guitool_ibeis_main
-    from guitool_ibeis import guitool_ibeis_components
-    from guitool_ibeis import guitool_ibeis_dialogs
-    from guitool_ibeis import guitool_ibeis_decorators
-    from guitool_ibeis import guitool_ibeis_misc
+    from guitool_ibeis import guitool_main
+    from guitool_ibeis import guitool_components
+    from guitool_ibeis import guitool_dialogs
+    from guitool_ibeis import guitool_decorators
+    from guitool_ibeis import guitool_misc
     from guitool_ibeis import api_item_model
     from guitool_ibeis import api_tree_view
     from guitool_ibeis import api_table_view
     from guitool_ibeis import qtype
     from guitool_ibeis import stripe_proxy_model
     from guitool_ibeis import filter_proxy_model
-    from guitool_ibeis.guitool_ibeis_main import (GUITOOL_PYQT_VERSION, GuitoolApplication,
+    from guitool_ibeis.guitool_main import (GUITOOL_PYQT_VERSION, GuitoolApplication,
                                       IS_ROOT_WINDOW, QAPP, QUIET, VERBOSE,
                                       activate_qwindow, ensure_qapp,
                                       ensure_qtapp, exit_application,
                                       get_qtapp, ping_python_interpreter,
                                       qtapp_loop, qtapp_loop_nonblocking,
                                       remove_pyqt_input_hook,)
-    from guitool_ibeis.guitool_ibeis_components import (ALIGN_DICT, BlockSignals,
+    from guitool_ibeis.guitool_components import (ALIGN_DICT, BlockSignals,
                                             ConfigConfirmWidget, DEBUG_WIDGET,
                                             GuiProgContext, GuitoolWidget,
                                             PROG_TEXT, ProgHook,
@@ -163,7 +163,7 @@ if DOELSE:
                                             print_widget_heirarchy,
                                             prop_text_map, rectify_qt_const,
                                             walk_widget_heirarchy,)
-    from guitool_ibeis.guitool_ibeis_dialogs import (ResizableMessageBox, SELDIR_CACHEID,
+    from guitool_ibeis.guitool_dialogs import (ResizableMessageBox, SELDIR_CACHEID,
                                          are_you_sure, build_nested_qmenu,
                                          connect_context_menu, msgbox,
                                          newDirectoryDialog, newFileDialog,
@@ -171,9 +171,9 @@ if DOELSE:
                                          select_files, select_images,
                                          user_info, user_input, user_option,
                                          user_question,)
-    from guitool_ibeis.guitool_ibeis_decorators import (DEBUG, checks_qt_error, signal_,
+    from guitool_ibeis.guitool_decorators import (DEBUG, checks_qt_error, signal_,
                                             slot_,)
-    from guitool_ibeis.guitool_ibeis_misc import (ALT_KEY, BlockContext, GUILoggingHandler,
+    from guitool_ibeis.guitool_misc import (ALT_KEY, BlockContext, GUILoggingHandler,
                                       GUILoggingSender, QLoggedOutput,
                                       find_used_chars, get_cplat_tab_height,
                                       get_view_selection_as_str,
@@ -249,11 +249,11 @@ if DOELSE:
                 return wrap_fbrrr(mod)
         def get_reload_subs(mod):
             return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
-        get_rrr(guitool_ibeis_main)(verbose > 1)
-        get_rrr(guitool_ibeis_components)(verbose > 1)
-        get_rrr(guitool_ibeis_dialogs)(verbose > 1)
-        get_rrr(guitool_ibeis_decorators)(verbose > 1)
-        get_rrr(guitool_ibeis_misc)(verbose > 1)
+        get_rrr(guitool_main)(verbose > 1)
+        get_rrr(guitool_components)(verbose > 1)
+        get_rrr(guitool_dialogs)(verbose > 1)
+        get_rrr(guitool_decorators)(verbose > 1)
+        get_rrr(guitool_misc)(verbose > 1)
         get_rrr(api_item_model)(verbose > 1)
         get_rrr(api_tree_view)(verbose > 1)
         get_rrr(api_table_view)(verbose > 1)

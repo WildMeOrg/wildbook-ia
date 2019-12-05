@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #import random
 import time
 import utool as ut
-from guitool_ibeis.__PYQT__ import QtGui, QtCore
+from guitool_ibeis.__PYQT__ import QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 #from matplotlib.backends import qt_compat
@@ -48,6 +48,7 @@ class QtAbstractMplInteraction(BASE):
         >>> print('Blocking')
         >>> self.start_blocking()
         >>> print('Done')
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()

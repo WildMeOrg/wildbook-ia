@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from guitool_ibeis.__PYQT__ import QtGui, QtCore  # NOQA
 from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
-from guitool_ibeis import guitool_ibeis_components
+from guitool_ibeis import guitool_components
 import utool
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
@@ -76,7 +76,7 @@ class APIButtonDelegate(DELEGATE_BASE):
         butkw = dgt.get_index_butkw(qtindex)
         # FIXME: I don't want to create a widget each time just
         # so I can access the button's style
-        button = guitool_ibeis_components.newButton(**butkw)
+        button = guitool_components.newButton(**butkw)
         pressed = dgt.is_qtindex_pressed(qtindex)
         view = dgt.parent()
         paint_button(painter, option, button=button, pressed=pressed,

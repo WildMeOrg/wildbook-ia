@@ -2,11 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import guitool_ibeis as gt
-import plottool as pt
 import matplotlib as mpl
 from guitool_ibeis.__PYQT__.QtCore import Qt
 from guitool_ibeis.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
-from plottool import interact_helpers as ih
 from matplotlib.backend_bases import MouseEvent, KeyEvent, PickEvent
 
 from guitool_ibeis import __PYQT__
@@ -68,6 +66,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
 
     def reset_ax(self):
         # from plottool.interactions import zoom_factory, pan_factory
+        import plottool as pt
         self.ax = self.fig.add_subplot(1, 1, 1)
         pt.adjust_subplots(left=0, right=1, top=1, bottom=0, fig=self.fig)
         # self.pan_events = pan_factory(self.ax)
@@ -75,6 +74,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
         return self.ax
 
     def _emit_button_press(self, event):
+        from plottool import interact_helpers as ih
         if ih.clicked_inside_axis(event):
             self.click_inside_signal.emit(event, event.inaxes)
 

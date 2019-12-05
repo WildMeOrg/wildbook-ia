@@ -69,12 +69,12 @@ def read_thumb_as_qimg(thumb_path):
         >>> thumb_path = ut.grab_test_imgpath('carl.jpg')
         >>> # execute function
         >>> guitool_ibeis.ensure_qtapp()
-        >>> (qimg) = ut.memprof(read_thumb_as_qimg)(thumb_path)
-        >>> if ut.show_was_requested():
-        >>>    lbl = test_show_qimg(qimg)
-        >>>    guitool_ibeis.qtapp_loop()
-        >>> # verify results
+        >>> qimg = read_thumb_as_qimg(thumb_path)
         >>> print(qimg)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> lbl = test_show_qimg(qimg)
+        >>> #guitool_ibeis.qtapp_loop()
+        >>> # verify results
 
     Timeit::
         %timeit np.dstack((npimg, np.full(npimg.shape[0:2], 255, dtype=np.uint8)))
@@ -607,6 +607,7 @@ def simple_thumbnail_widget():
 
     Example:
         >>> # GUI_DOCTEST
+        >>> # xdoctest: +REQUIRES(--gui)
         >>> from guitool_ibeis.api_thumb_delegate import *  # NOQA
         >>> import guitool_ibeis
         >>> guitool_ibeis.ensure_qapp()  # must be ensured before any embeding
@@ -622,9 +623,9 @@ def simple_thumbnail_widget():
         'thumb': 'PIXMAP',
     }
 
-    guitool_ibeis_test_thumbdir = ut.ensure_app_resource_dir('guitool_ibeis', 'thumbs')
-    ut.delete(guitool_ibeis_test_thumbdir)
-    ut.ensuredir(guitool_ibeis_test_thumbdir)
+    guitool_test_thumbdir = ut.ensure_app_resource_dir('guitool_ibeis', 'thumbs')
+    ut.delete(guitool_test_thumbdir)
+    ut.ensuredir(guitool_test_thumbdir)
     import vtool_ibeis as vt
     from os.path import join
 
@@ -656,7 +657,7 @@ def simple_thumbnail_widget():
         else:
             img_path = ut.grab_test_imgpath(id_, verbose=False)
             img_size = vt.open_image_size(img_path)
-        thumb_path = join(guitool_ibeis_test_thumbdir, ut.hashstr(str(img_path)) + '.jpg')
+        thumb_path = join(guitool_test_thumbdir, ut.hashstr(str(img_path)) + '.jpg')
         if id_ == 'carl.jpg':
             bbox_list = [(10, 10, 200, 200)]
             theta_list = [0]

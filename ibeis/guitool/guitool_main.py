@@ -144,7 +144,7 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
         init_signals (bool): if False, handle terminal signals yourself (default = True)
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_main --test-qtapp_loop
+        python -m guitool_ibeis.guitool_main --test-qtapp_loop
     """
     global QAPP
     #if not QUIET and VERBOSE:
@@ -208,7 +208,7 @@ def exit_application():
 
 
 def _on_ctrl_c(signal, frame):
-    print('[guitool_ibeis.guitool_ibeis_main] Caught ctrl+c. sys.exit(0)...')
+    print('[guitool_ibeis.guitool_main] Caught ctrl+c. sys.exit(0)...')
     sys.exit(0)
 
 #-----------------------

@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 from guitool_ibeis.__PYQT__ import QtCore, QtGui, QVariantHack
 from guitool_ibeis.__PYQT__.QtCore import Qt
 from guitool_ibeis import qtype
-from guitool_ibeis.guitool_ibeis_decorators import checks_qt_error, signal_  # NOQA
+from guitool_ibeis.guitool_decorators import checks_qt_error, signal_  # NOQA
 from six.moves import zip  # builtins  # NOQA
 #from utool._internal.meta_util_six import get_funcname
 import functools

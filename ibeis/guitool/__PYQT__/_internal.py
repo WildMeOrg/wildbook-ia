@@ -4,6 +4,7 @@
 Move to PyQt5?
     pip install git+git://github.com/pyqt/python-qt5.git
 
+Ignore:
     >>> import sys
     >>> from PyQt5 import QtWidgets
     >>> app = QtWidgets.QApplication(sys.argv)
@@ -30,6 +31,8 @@ try:
     sip.setapi('QDateTime', 2)
     if hasattr(sip, 'setdestroyonexit'):
         sip.setdestroyonexit(False)  # This prevents a crash on windows
+except ImportError as ex:
+    print('Warning: Import Error: %s' % str(ex))
 except ValueError as ex:
     print('Warning: Value Error: %s' % str(ex))
 

@@ -6,8 +6,8 @@ import utool
 import sys
 import logging
 from six.moves import range
-from guitool_ibeis.guitool_ibeis_decorators import slot_
-from guitool_ibeis import guitool_ibeis_main
+from guitool_ibeis.guitool_decorators import slot_
+from guitool_ibeis import guitool_main
 import utool as ut
 ut.noinject(__name__)
 
@@ -73,11 +73,11 @@ def make_word_hotlinks(name_list, used_chars=[], after_colon=False):
         list: hotlinked_name_list
 
     CommandLine:
-        python -m guitool_ibeis.guitool_ibeis_misc --exec-make_word_hotlinks
+        python -m guitool_ibeis.guitool_misc --exec-make_word_hotlinks
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from guitool_ibeis.guitool_ibeis_misc import *  # NOQA
+        >>> from guitool_ibeis.guitool_misc import *  # NOQA
         >>> name_list = ['occlusion', 'occlusion:large', 'occlusion:medium', 'occlusion:small', 'lighting', 'lighting:shadowed', 'lighting:overexposed', 'lighting:underexposed']
         >>> used_chars = []
         >>> hotlinked_name_list = make_word_hotlinks(name_list, used_chars)
@@ -177,7 +177,7 @@ class QLoggedOutput(QtWidgets.QTextEdit):
     @slot_(str)
     def gui_write(outputEdit, msg_):
         # Slot for teed log output
-        app = guitool_ibeis_main.get_qtapp()
+        app = guitool_main.get_qtapp()
         # Write msg to text area
         outputEdit.moveCursor(QtGui.QTextCursor.End)
         # TODO: Find out how to do backspaces in textEdit
@@ -190,7 +190,7 @@ class QLoggedOutput(QtWidgets.QTextEdit):
 
     @slot_()
     def gui_flush(outputEdit):
-        app = guitool_ibeis_main.get_qtapp()
+        app = guitool_main.get_qtapp()
         if app is not None:
             app.processEvents()
 

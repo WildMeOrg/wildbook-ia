@@ -11,8 +11,8 @@ import functools
 from guitool_ibeis import qtype
 from guitool_ibeis import api_button_delegate
 from guitool_ibeis import api_thumb_delegate
-from guitool_ibeis import guitool_ibeis_main
-from guitool_ibeis import guitool_ibeis_misc
+from guitool_ibeis import guitool_main
+from guitool_ibeis import guitool_misc
 from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
@@ -361,6 +361,7 @@ def keyPressEvent(view, event):
         >>> QTest.keyPress(view, Qt.Key_C)
         >>> ut.assert_eq(check_selection(), 'b')
         >>> assert c_pressed[0] == 1
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(wgt, frequency=100)
     """
@@ -413,10 +414,10 @@ def copy_selection_to_clipboard(view):
     """ Copys selected grid to clipboard """
     if VERBOSE:
         print('[guitool_ibeis] Copying selection to clipboard')
-    copy_str = guitool_ibeis_misc.get_view_selection_as_str(view)
+    copy_str = guitool_misc.get_view_selection_as_str(view)
     #copy_qstr = QtCore.Q__String(copy_str)
     copy_qstr = str(copy_str)
-    clipboard = guitool_ibeis_main.get_qtapp().clipboard()
+    clipboard = guitool_main.get_qtapp().clipboard()
     if VERBOSE:
         print(copy_str)
     clipboard.setText(copy_qstr)

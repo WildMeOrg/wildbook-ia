@@ -3,7 +3,7 @@
 
 CommandLine:
     python -m guitool_ibeis.PrefWidget2 EditConfigWidget --show
-    python -m guitool_ibeis.guitool_ibeis_components ConfigConfirmWidget --show
+    python -m guitool_ibeis.guitool_components ConfigConfirmWidget --show
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals

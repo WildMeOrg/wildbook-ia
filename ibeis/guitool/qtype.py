@@ -6,7 +6,7 @@ import utool as ut
 import uuid
 import numpy as np
 from guitool_ibeis.__PYQT__ import QtGui
-from guitool_ibeis.guitool_ibeis_decorators import checks_qt_error
+from guitool_ibeis.guitool_decorators import checks_qt_error
 #if six.PY2:
 #    from guitool_ibeis.__PYQT__.QtCore import QString
 #    from guitool_ibeis.__PYQT__.QtCore import QVariant
