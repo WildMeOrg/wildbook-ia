@@ -313,11 +313,11 @@ def keyPressEvent(view, event):
     handled flag correctly.
 
     CommandLine:
-        python -m guitool_ibeis.api_item_view --test-keyPressEvent
+        xdoctest -m ~/code/guitool/guitool_ibeis/api_item_view.py keyPressEvent
         --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from guitool_ibeis.api_item_view import *  # NOQA
         >>> import guitool_ibeis as gt
         >>> app = gt.ensure_qapp()[0]
