@@ -7,9 +7,7 @@ from __future__ import absolute_import, division, print_function
 from guitool_ibeis.__PYQT__ import QtGui, QtCore
 from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
 import six
-import vtool_ibeis as vt
 from os.path import exists
-from vtool_ibeis import geometry
 import utool as ut
 ut.noinject(__name__, '[APIThumbDelegate]')
 
@@ -22,6 +20,7 @@ MAX_NUM_THUMB_THREADS = 1
 
 
 def read_thumb_size(thumb_path):
+    import vtool_ibeis as vt
     if VERBOSE_THUMB:
         print('[ThumbDelegate] Reading thumb size')
     # npimg = vt.imread(thumb_path, delete_if_corrupted=True)
@@ -437,6 +436,7 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
         ((128, 64), [[[21, 11], [107, 11], [107, 53], [21, 53], [21, 11]]])
 
     """
+    import vtool_ibeis as vt
     theta_list = [theta_list] if not ut.is_listlike(theta_list) else theta_list
     max_dsize = (thumbsize, thumbsize)
     dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
@@ -466,6 +466,8 @@ def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
         >>> pt.imshow(thumb)
         >>> pt.show_if_requested()
     """
+    import vtool_ibeis as vt
+    from vtool_ibeis import geometry
     orange_bgr = (0, 128, 255)
     blue_bgr = (255, 128, 0)
     # imread causes a MEMORY LEAK most likely!
@@ -558,6 +560,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
 
     def _run(thread):
         """ Compute thumbnail in a different thread """
+        import vtool_ibeis as vt
         #time.sleep(.005)  # Wait a in case the user is just scrolling
         if thread.thumb_would_not_be_visible():
             return
