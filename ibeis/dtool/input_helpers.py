@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import numpy as np
 import six
 import networkx as nx  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[depc_input_helpers]')
@@ -29,6 +30,7 @@ class ExiNode(ut.HashComparable):
 
     helps distinguish nodes and branch_ids
     """
+
     def __init__(node, node_id, branch_id):
         node.args = (node_id, branch_id)
 
@@ -435,6 +437,7 @@ class TableInput(ut.NiceRepr):
     Specifies a set of inputs that can validly compute the output of a table in
     the dependency graph
     """
+
     def __init__(inputs, rmi_list, exi_graph, table, reorder=False):
         # The order of the RMI list defines the expect input order
         inputs.rmi_list = rmi_list
@@ -695,7 +698,8 @@ class TableInput(ut.NiceRepr):
 
             # another sorting strategy. maybe this is correct.
             sortx = [exi_graph.get_edge_data(*e).get('parent_colx') for e in input_edges]
-            input_nodes = ut.take(input_nodes, sortx)
+            sortx_ = np.argsort(sortx)
+            input_nodes = ut.take(input_nodes, sortx_)
 
             input_rmis = [RootMostInput(node, sink, exi_graph)
                           for node in input_nodes]
