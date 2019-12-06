@@ -515,6 +515,10 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         >>> import plottool_ibeis as pt
         >>> import matplotlib.gridspec as gridspec
         >>> import matplotlib.pyplot as plt
+        >>> import six
+        >>> if six.PY2:
+        >>>     import pytest
+        >>>     pytest.skip()
         >>> pt.qtensure()
         >>> fig = plt.figure()
         >>> gs = gridspec.GridSpec(17, 17)
