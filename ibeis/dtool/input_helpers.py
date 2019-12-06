@@ -118,12 +118,12 @@ def make_expanded_input_graph(graph, target):
         identifier.
 
     CommandLine:
-        python -m dtool.input_helpers make_expanded_input_graph --show
+        python -m dtool_ibeis.input_helpers make_expanded_input_graph --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.input_helpers import *  # NOQA
-        >>> from dtool.example_depcache2 import * # NOQA
+        >>> from dtool_ibeis.input_helpers import *  # NOQA
+        >>> from dtool_ibeis.example_depcache2 import * # NOQA
         >>> depc = testdata_depc3()
         >>> table = depc['smk_match']
         >>> table = depc['vsone']
@@ -132,8 +132,9 @@ def make_expanded_input_graph(graph, target):
         >>> exi_graph = make_expanded_input_graph(graph, target)
         >>> x = list(exi_graph.nodes())[0]
         >>> print('x = %r' % (x,))
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.show_nx(graph, fnum=1, pnum=(1, 2, 1))
         >>> pt.show_nx(exi_graph, fnum=1, pnum=(1, 2, 2))
         >>> ut.show_if_requested()
@@ -180,7 +181,7 @@ def make_expanded_input_graph(graph, target):
 
     def accumulate_input_ids(edge_list):
         """
-        python -m dtool.example_depcache2 testdata_depc4 --show
+        python -m dtool_ibeis.example_depcache2 testdata_depc4 --show
         """
         edge_data = ut.take_column(edge_list, 3)
         # We are accumulating local input ids
@@ -344,7 +345,7 @@ class RootMostInput(ut.HashComparable):
         Returns rootmost inputs above this node
 
         Example:
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['smk_match'].rootmost_inputs
             >>> rmi = inputs.rmi_list[1]
@@ -399,11 +400,11 @@ class RootMostInput(ut.HashComparable):
 def sort_rmi_list(rmi_list):
     """
     CommandLine:
-        python -m dtool.input_helpers sort_rmi_list
+        python -m dtool_ibeis.input_helpers sort_rmi_list
 
     Example:
-        >>> from dtool.input_helpers import *  # NOQA
-        >>> from dtool.example_depcache2 import *  # NOQA
+        >>> from dtool_ibeis.input_helpers import *  # NOQA
+        >>> from dtool_ibeis.example_depcache2 import *  # NOQA
         >>> depc =testdata_custom_annot_depc([
         ...    dict(tablename='Notch_Tips', parents=['annot']),
         ...    dict(tablename='chips', parents=['annot']),
@@ -463,11 +464,11 @@ class TableInput(ut.NiceRepr):
         merge, then there is no problem. There is only one parent.
 
         CommandLine:
-            python -m dtool.input_helpers _order_rmi_list --show
+            python -m dtool_ibeis.input_helpers _order_rmi_list --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> exi_inputs1 = depc['vsone'].rootmost_inputs.total_expand()
             >>> assert exi_inputs1.rmi_list[0] != exi_inputs1.rmi_list[1]
@@ -480,9 +481,10 @@ class TableInput(ut.NiceRepr):
             >>> print('exi_inputs3 = %r' % (exi_inputs3,))
             >>> exi_inputs4 = depc['smk_match'].rootmost_inputs.total_expand()
             >>> print('exi_inputs4 = %r' % (exi_inputs4,))
+            >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> import plottool as pt
-            >>> from plottool.interactions import ExpandableInteraction
+            >>> import plottool_ibeis as pt
+            >>> from plottool_ibeis.interactions import ExpandableInteraction
             >>> inter = ExpandableInteraction(nCols=2)
             >>> depc['vsone'].show_dep_subgraph(inter)
             >>> exi_inputs1.show_exi_graph(inter)
@@ -542,8 +544,8 @@ class TableInput(ut.NiceRepr):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from dtool.input_helpers import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.input_helpers import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['neighbs'].rootmost_inputs
             >>> index = 'indexer'
@@ -573,12 +575,12 @@ class TableInput(ut.NiceRepr):
         Pushes the rootmost inputs all the way up to the sources of the graph
 
         CommandLine:
-            python -m dtool.input_helpers expand_input
+            python -m dtool_ibeis.input_helpers expand_input
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.input_helpers import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.input_helpers import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['smk_match'].rootmost_inputs
             >>> inputs = depc['neighbs'].rootmost_inputs
@@ -622,12 +624,12 @@ class TableInput(ut.NiceRepr):
         This is basically the scheduler
 
         CommandLine:
-            python -m dtool.input_helpers flat_compute_order
+            python -m dtool_ibeis.input_helpers flat_compute_order
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.input_helpers import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.input_helpers import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc4()
             >>> inputs = depc['feat'].rootmost_inputs.total_expand()
             >>> flat_compute_order = inputs.flat_compute_order()
@@ -658,7 +660,7 @@ class TableInput(ut.NiceRepr):
         Defines order of computation that maps input_ids to target_ids.
 
         CommandLine:
-            python -m dtool.input_helpers flat_compute_rmi_edges
+            python -m dtool_ibeis.input_helpers flat_compute_rmi_edges
 
         Returns:
             list: compute_edges
@@ -670,8 +672,8 @@ class TableInput(ut.NiceRepr):
                 computations.
 
         Example:
-            >>> from dtool.input_helpers import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.input_helpers import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc =testdata_custom_annot_depc([
             ...    dict(tablename='chips', parents=['annot']),
             ...    dict(tablename='Notch_Tips', parents=['annot']),
@@ -743,19 +745,19 @@ class TableInput(ut.NiceRepr):
     def show_exi_graph(inputs, inter=None):
         """
         CommandLine:
-            python -m dtool.input_helpers TableInput.show_exi_graph --show
+            python -m dtool_ibeis.input_helpers TableInput.show_exi_graph --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from dtool.input_helpers import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> from dtool_ibeis.input_helpers import *  # NOQA
+            >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
-            >>> import plottool as pt
             >>> # table = depc['smk_match']
             >>> table = depc['neighbs']
             >>> inputs = table.rootmost_inputs
             >>> print('inputs = %r' % (inputs,))
-            >>> from plottool.interactions import ExpandableInteraction
+            >>> import plottool_ibeis as pt
+            >>> from plottool_ibeis.interactions import ExpandableInteraction
             >>> inter = ExpandableInteraction(nCols=1)
             >>> inputs.show_exi_graph(inter=inter)
             >>> # FIXME; Expanding inputs can overspecify inputs
@@ -772,8 +774,8 @@ class TableInput(ut.NiceRepr):
             >>> inter.start()
             >>> ut.show_if_requested()
         """
-        import plottool as pt
-        from plottool.interactions import ExpandableInteraction
+        import plottool_ibeis as pt
+        from plottool_ibeis.interactions import ExpandableInteraction
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction()
@@ -803,21 +805,19 @@ class TableInput(ut.NiceRepr):
 def get_rootmost_inputs(exi_graph, table):
     r"""
     CommandLine:
-        python -m dtool.input_helpers get_rootmost_inputs --show
+        python -m dtool_ibeis.input_helpers get_rootmost_inputs --show
 
     Args:
         exi_graph (nx.Graph): made from make_expanded_input_graph(graph, target)
-        table (dtool.Table):
+        table (dtool_ibeis.Table):
 
     CommandLine:
-        python -m dtool.input_helpers get_rootmost_inputs
+        python -m dtool_ibeis.input_helpers get_rootmost_inputs
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.input_helpers import *  # NOQA
-        >>> from dtool.example_depcache2 import *  # NOQA
-        >>> import plottool as pt
-        >>> pt.ensureqt()
+        >>> from dtool_ibeis.input_helpers import *  # NOQA
+        >>> from dtool_ibeis.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc3()
         >>> tablename = 'smk_match'
         >>> table = depc[tablename]
@@ -845,8 +845,8 @@ def get_rootmost_inputs(exi_graph, table):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool.input_helpers
-        python -m dtool.input_helpers --allexamples
+        python -m dtool_ibeis.input_helpers
+        python -m dtool_ibeis.input_helpers --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

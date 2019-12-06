@@ -59,11 +59,11 @@ class Config(ut.NiceRepr, ut.DictLike):
     need to overwrite get_param_info_list
 
     CommandLine:
-        python -m dtool.base Config
+        python -m dtool_ibeis.base Config
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
+        >>> from dtool_ibeis.base import *  # NOQA
         >>> cfg1 = Config.from_dict({'a': 1, 'b': 2})
         >>> cfg2 = Config.from_dict({'a': 2, 'b': 2})
         >>> # Must be hashable and orderable
@@ -121,12 +121,12 @@ class Config(ut.NiceRepr, ut.DictLike):
             interpreted as <key>
 
         CommandLine:
-            python -m dtool.base update --show
+            python -m dtool_ibeis.base update --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyVsManyConfig
             >>> cfg = DummyVsManyConfig()
             >>> cfg.update(DummyAlgo_version=4)
             >>> print(cfg)
@@ -150,8 +150,8 @@ class Config(ut.NiceRepr, ut.DictLike):
         (useful for testing if a parameter was unused or misspelled)
 
         Doctest:
-            >>> from dtool.base import *  # NOQA
-            >>> import dtool as dt
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> import dtool_ibeis as dt
             >>> cfg = dt.Config.from_dict({'a': 1, 'b': 2, 'c': 3})
             >>> other = {'a': 5, 'e': 2}
             >>> cfg.pop_update(other)
@@ -190,12 +190,12 @@ class Config(ut.NiceRepr, ut.DictLike):
             interpreted as <key>
 
         CommandLine:
-            python -m dtool.base update --show
+            python -m dtool_ibeis.base update --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> import dtool as dt
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> import dtool_ibeis as dt
             >>> cfg = dt.Config.from_dict({
             >>>     'a': 1,
             >>>     'b': 2,
@@ -327,12 +327,12 @@ class Config(ut.NiceRepr, ut.DictLike):
             list: param_list
 
         CommandLine:
-            python -m dtool.base --exec-parse_items
+            python -m dtool_ibeis.base --exec-parse_items
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyVsManyConfig
             >>> cfg = DummyVsManyConfig()
             >>> param_list = cfg.parse_items()
             >>> result = ('param_list = %s' % (ut.repr2(param_list, nl=1),))
@@ -472,25 +472,26 @@ class Config(ut.NiceRepr, ut.DictLike):
             list: param_info_list
 
         CommandLine:
-            python -m dtool.base Config.from_dict --show
+            python -m dtool_ibeis.base Config.from_dict --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
+            >>> from dtool_ibeis.base import *  # NOQA
             >>> cls = Config
             >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
             >>> tablename = None
             >>> config = cls.from_dict(dict_, tablename)
             >>> print(config)
+            >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
             >>> dlg = config.make_qt_dialog(
             >>>     title='Confirm Merge Query',
             >>>     msg='Confirm')
             >>> dlg.resize(700, 500)
             >>> dlg.show()
-            >>> import plottool as pt
+            >>> import plottool_ibeis as pt
             >>> self = dlg.widget
-            >>> guitool.qtapp_loop(qwin=dlg)
+            >>> guitool_ibeis.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA
             >>> print('updated_config = %r' % (updated_config,))
         """
@@ -506,7 +507,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         return UnnamedConfig
 
     def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
-        import guitool as gt
+        import guitool_ibeis as gt
         gt.ensure_qapp()  # must be ensured before any embeding
         dlg = gt.ConfigConfirmWidget.as_dialog(
             title=title, msg=msg, config=cfg)
@@ -515,11 +516,11 @@ class Config(ut.NiceRepr, ut.DictLike):
         return dlg
 
     def getstate_todict_recursive(cfg):
-        import dtool
+        import dtool_ibeis
         _dict = cfg.asdict()
         _dict2 = {}
         for key, val in _dict.items():
-            if isinstance(val, dtool.Config):
+            if isinstance(val, dtool_ibeis.Config):
                 # val = val.asdict()
                 try:
                     val = val.getstate_todict_recursive()
@@ -536,8 +537,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyKptsConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyKptsConfig
             >>> from six.moves import cPickle as pickle
             >>> cfg = DummyKptsConfig()
             >>> ser = pickle.dumps(cfg)
@@ -547,8 +548,8 @@ class Config(ut.NiceRepr, ut.DictLike):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import DummyVsManyConfig
             >>> from six.moves import cPickle as pickle
             >>> cfg = DummyVsManyConfig()
             >>> state = cfg.__getstate__()
@@ -558,14 +559,14 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> assert cfg == unserialized
             >>> assert cfg is not unserialized
         """
-        #import dtool
+        #import dtool_ibeis
         #_dict = cfg.asdict()
         #_dict2 = {}
         #for key, val in _dict.items():
-        #    if isinstance(val, dtool.Config):
+        #    if isinstance(val, dtool_ibeis.Config):
         #        val = val.asdict()
         #    _dict2[key] = val
-        #return {'dtool.Config': _dict2}
+        #return {'dtool_ibeis.Config': _dict2}
         return cfg.__dict__
 
     def __setstate__(cfg, state):
@@ -608,8 +609,8 @@ def make_configclass(dict_, tablename):
 
 
 def from_param_info_list(param_info_list, tablename='Unnamed'):
-    import dtool
-    class UnnamedConfig(dtool.Config):
+    import dtool_ibeis
+    class UnnamedConfig(dtool_ibeis.Config):
         _param_info_list = param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')
     return UnnamedConfig
@@ -759,12 +760,12 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
     def ensure_dependencies(request):
         r"""
         CommandLine:
-            python -m dtool.base --exec-BaseRequest.ensure_dependencies
+            python -m dtool_ibeis.base --exec-BaseRequest.ensure_dependencies
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
+            >>> from dtool_ibeis.base import *  # NOQA
+            >>> from dtool_ibeis.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> request = depc.new_request('vsmany', [1, 2], [2, 3, 4])
             >>> request.ensure_dependencies()
@@ -874,12 +875,12 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         another-super-wrinkle-raising-typeerror/
 
     CommandLine:
-        python -m dtool.base --exec-VsOneSimilarityRequest
+        python -m dtool_ibeis.base --exec-VsOneSimilarityRequest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
+        >>> from dtool_ibeis.base import *  # NOQA
+        >>> from dtool_ibeis.example_depcache import testdata_depc
         >>> qaid_list = [1, 2, 3, 5]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
@@ -928,7 +929,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
 
         # vsone hack (i,j) same as (j,i)
         if request._symmetric:
-            import vtool as vt
+            import vtool_ibeis as vt
             directed_edges = np.array(parent_rowids)
             undirected_edges = vt.to_undirected_edges(directed_edges)
             edge_ids = vt.compute_unique_data_ids(undirected_edges)
@@ -971,12 +972,12 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
     Request for one-vs-many simlarity
 
     CommandLine:
-        python -m dtool.base --exec-VsManySimilarityRequest
+        python -m dtool_ibeis.base --exec-VsManySimilarityRequest
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
+        >>> from dtool_ibeis.base import *  # NOQA
+        >>> from dtool_ibeis.example_depcache import testdata_depc
         >>> qaid_list = [1, 2]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
@@ -1097,8 +1098,8 @@ class MatchResult(AlgoResult, ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool.base
-        python -m dtool.base --allexamples
+        python -m dtool_ibeis.base
+        python -m dtool_ibeis.base --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
