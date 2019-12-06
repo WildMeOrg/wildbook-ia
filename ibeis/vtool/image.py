@@ -262,7 +262,7 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
 
 
 def imread(img_fpath, grayscale=False, orient=False, flags=None,
-           force_pil=None, delete_if_corrupted=False):
+           force_pil=None, delete_if_corrupted=False, **kwargs):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.
 
@@ -358,7 +358,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
                 #print("USE PIL")
                 with Image.open(img_fpath) as pil_img:
                     imgBGR = _fix_orient_pil_img(pil_img, grayscale=grayscale,
-                                                 orient=orient_)
+                                                 orient=orient_, **kwargs)
                 #with Image.open(img_fpath) as pil_img: # breaks?
                 #pil_img.close()  # breaks?
             else:
@@ -472,7 +472,7 @@ def _imread_bytesio(image_stream, use_pil=False, flags=None, **kwargs):
     return imgBGR
 
 
-def _fix_orient_pil_img(pil_img, grayscale=False, orient=False):
+def _fix_orient_pil_img(pil_img, grayscale=False, orient=False, **kwargs):
     if orient == 'auto':
         exif_dict = exif.get_exif_dict(pil_img)
         orient = exif.get_orientation(exif_dict)
@@ -485,7 +485,7 @@ def _fix_orient_pil_img(pil_img, grayscale=False, orient=False):
     else:
         imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
-        imgBGR = _fix_orientation(imgBGR, orient)
+        imgBGR = _fix_orientation(imgBGR, orient, **kwargs)
     return imgBGR
 
 
@@ -2459,7 +2459,8 @@ def infer_vert(img1, img2, vert):
 
 
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
-                 use_larger=True, interpolation=None, overlap=0):
+                 use_larger=True, interpolation=None, white_background=False,
+                 overlap=0):
     r"""
 
     Args:
@@ -2567,6 +2568,12 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         newshape = (hB, wB)
     # Allocate new image for both
     imgB = np.zeros(newshape, dtype=dtype)
+
+    if white_background:
+        if dtype == np.uint8:
+            imgB += 255
+        else:
+            imgB += 1.0
 
     if overlap:
         if vert:

@@ -13,7 +13,6 @@ import six
 from PIL.ExifTags import TAGS, GPSTAGS
 import PIL.ExifTags  # NOQA
 from PIL import Image
-import ubelt as ub
 import utool as ut
 import warnings
 from utool import util_time
@@ -260,35 +259,38 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         >>> result = np.array_str(np.array(latlon), precision=3)
         >>> print(result)
     """
-    if GPSINFO_CODE in exif_dict:
-        gps_info = exif_dict[GPSINFO_CODE]
+    try:
+        if GPSINFO_CODE in exif_dict:
+            gps_info = exif_dict[GPSINFO_CODE]
 
-        if (GPSLATITUDE_CODE in gps_info and
-             GPSLATITUDEREF_CODE in gps_info and
-             GPSLONGITUDE_CODE in gps_info and
-             GPSLONGITUDEREF_CODE in gps_info):
-            gps_latitude      = gps_info[GPSLATITUDE_CODE]
-            gps_latitude_ref  = gps_info[GPSLATITUDEREF_CODE]
-            gps_longitude     = gps_info[GPSLONGITUDE_CODE]
-            gps_longitude_ref = gps_info[GPSLONGITUDEREF_CODE]
-            try:
-                lat = convert_degrees(gps_latitude)
-                if gps_latitude_ref != 'N':
-                    lat = 0 - lat
+            if (GPSLATITUDE_CODE in gps_info and
+                 GPSLATITUDEREF_CODE in gps_info and
+                 GPSLONGITUDE_CODE in gps_info and
+                 GPSLONGITUDEREF_CODE in gps_info):
+                gps_latitude      = gps_info[GPSLATITUDE_CODE]
+                gps_latitude_ref  = gps_info[GPSLATITUDEREF_CODE]
+                gps_longitude     = gps_info[GPSLONGITUDE_CODE]
+                gps_longitude_ref = gps_info[GPSLONGITUDEREF_CODE]
+                try:
+                    lat = convert_degrees(gps_latitude)
+                    if gps_latitude_ref != 'N':
+                        lat = 0 - lat
 
-                lon = convert_degrees(gps_longitude)
-                if gps_longitude_ref != 'E':
-                    lon = 0 - lon
-                return lat, lon
-            except ZeroDivisionError:
-                # FIXME: -1, -1 is not a good invalid GPS
-                # Find out what the divide by zero really means
-                # currently we think it just is bad gps data
-                pass
+                    lon = convert_degrees(gps_longitude)
+                    if gps_longitude_ref != 'E':
+                        lon = 0 - lon
+                    return lat, lon
+                except (ZeroDivisionError, TypeError):
+                    # FIXME: -1, -1 is not a good invalid GPS
+                    # Find out what the divide by zero really means
+                    # currently we think it just is bad gps data
+                    pass
+    except Exception:
+        pass
     return default
 
 
-def get_orientation(exif_dict, default=0, on_error='fail'):
+def get_orientation(exif_dict, default=0, on_error='warn'):
     r"""
     Returns the image orientation, if available, from the provided
     exif_data2 (obtained through exif_data2 above)
@@ -301,7 +303,7 @@ def get_orientation(exif_dict, default=0, on_error='fail'):
         >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
-        >>> url = 'https://lev.cs.rpi.edu/public/models/orientation.zip'
+        >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
         >>> images_path = ut.grab_zipped_url(url)
         >>> result = []
         >>> for index in range(3):
@@ -328,7 +330,7 @@ def get_orientation(exif_dict, default=0, on_error='fail'):
     return default
 
 
-def get_orientation_str(exif_dict):
+def get_orientation_str(exif_dict, **kwargs):
     r"""
     Returns the image orientation strings, if available, from the provided
     exif_data2 (obtained through exif_data2 above)
@@ -341,7 +343,7 @@ def get_orientation_str(exif_dict):
         >>> from vtool_ibeis.exif import *  # NOQA
         >>> from os.path import join
         >>> import numpy as np
-        >>> url = 'https://lev.cs.rpi.edu/public/models/orientation.zip'
+        >>> url = 'https://cthulhu.dyn.wildme.io/public/models/orientation.zip'
         >>> images_path = ut.grab_zipped_url(url)
         >>> result = []
         >>> for index in range(3):
@@ -353,7 +355,7 @@ def get_orientation_str(exif_dict):
         >>> print(result)
         ['Normal', '90 Clockwise', '90 Counter-Clockwise']
     """
-    orient = get_orientation(exif_dict)
+    orient = get_orientation(exif_dict, **kwargs)
     orient_str = ORIENTATION_DICT[orient]
     return orient_str
 
