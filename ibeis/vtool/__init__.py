@@ -7,7 +7,7 @@ Autogenerate Command:
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 
 __submodules__ = [
