@@ -601,7 +601,7 @@ def make_configclass(dict_, tablename):
             if isinstance(val, Config):
                 # Set table name from key when doing nested from dicts
                 if val.__class__.__name__ == 'UnnamedConfig':
-                    val.__class__.__name__ = key + 'Config'
+                    val.__class__.__name__ = str(key + 'Config')
             return ut.ParamInfo(key, val, type_=type(val))
 
     param_info_list = [rectify_item(key, val) for key, val in dict_.items()]

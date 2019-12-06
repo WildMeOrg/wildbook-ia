@@ -1180,6 +1180,7 @@ class _TableGeneralHelper(ub.NiceRepr):
             python -m dtool_ibeis.depcache_table rootmost_inputs --show
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> from dtool_ibeis.depcache_control import *  # NOQA
             >>> from dtool_ibeis.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
@@ -1189,6 +1190,7 @@ class _TableGeneralHelper(ub.NiceRepr):
             >>> inputs = table.rootmost_inputs
             >>> result = ('inputs = %s' % (inputs,))
             >>> print('compute_order = %s' % (ut.repr2(inputs.flat_compute_rmi_edges(), nl=1)))
+            ......
             >>> print(result)
             inputs = <TableInput [annot[t], vocab[t], inv_index[t]]>
         """
@@ -1386,7 +1388,7 @@ class _TableComputeHelper(object):
         """
         Get the rowid of a model given its uuid
 
-        Example:
+        Ignore:
             >>> import uuid
             >>> table.get_model_rowids([uuid.UUID('5b66772c-e654-dd9a-c9de-0ccc1bb6861c')])
             [2]
@@ -1973,6 +1975,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             >>> result = ('parent_ids_ = %r' % (parent_ids_,)) + '\n'
             >>> result += ('preproc_args = %r' % (preproc_args,))
             >>> print(result)
+
             parent_ids_ = [(UUID('356a192b-7913-b04c-5457-4d18c28d46e6'),)]
             preproc_args = [[1, 2, 3]]
 
@@ -2356,6 +2359,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             >>> assert len(prop_list2) == len(prop_list), 'inconsistent lens'
             >>> assert all([ut.lists_eq(prop_list2[1], prop_list[1]) for x in range(len(prop_list))]), 'inconsistent vals'
             >>> chips = table.get_row_data(tbl_rowids, 'chip', eager=False)
+
             [
                 [2453, (1707, 2453), 'chip_chip_id=1_pyrappzicqoskdjq.png'],
                 [250, (300, 250), 'chip_chip_id=2_pyrappzicqoskdjq.png'],
